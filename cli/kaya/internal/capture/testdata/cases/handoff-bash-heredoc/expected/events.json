@@ -1,0 +1,67 @@
+[
+  {
+    "at": "2026-10-01T09:00:10Z",
+    "branch": "feature/golden",
+    "cwd": "{{REPO}}",
+    "event": "SessionStart",
+    "model": "claude-opus-5-5",
+    "seq": 1,
+    "source": "startup"
+  },
+  {
+    "at": "2026-10-01T09:00:11Z",
+    "cwd": "{{REPO}}",
+    "description": "Build unit",
+    "event": "PreToolUse",
+    "handoff": "feat/backend/unit.md",
+    "seq": 2,
+    "subagent_type": "coding-engineer",
+    "tool_name": "Agent",
+    "tool_use_id": "toolu_agent"
+  },
+  {
+    "at": "2026-10-01T09:00:30Z",
+    "command": "mkdir -p [redacted] && cat > handoffs/feat/backend/unit.md <<'EOF'\n# Handoff\nStatus: DONE\nEOF",
+    "cwd": "{{REPO}}",
+    "event": "PostToolUse",
+    "ok": true,
+    "seq": 3,
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_bash"
+  },
+  {
+    "at": "2026-10-01T09:00:31Z",
+    "command": "ls handoffs",
+    "cwd": "{{REPO}}",
+    "event": "PostToolUse",
+    "ok": true,
+    "seq": 4,
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_bash"
+  },
+  {
+    "agent_id": "a1",
+    "agent_type": "coding-engineer",
+    "at": "2026-10-01T09:00:40Z",
+    "cwd": "{{REPO}}",
+    "event": "SubagentStop",
+    "last_assistant_message": "DONE. password=[redacted] in the log",
+    "seq": 5
+  },
+  {
+    "at": "2026-10-01T09:00:50Z",
+    "branch": "feature/golden",
+    "cwd": "{{REPO}}",
+    "event": "Stop",
+    "last_assistant_message": "All done.",
+    "seq": 6
+  },
+  {
+    "at": "2026-10-01T09:00:51Z",
+    "branch": "feature/golden",
+    "cwd": "{{REPO}}",
+    "event": "SessionEnd",
+    "reason": "other",
+    "seq": 7
+  }
+]

@@ -1,0 +1,32 @@
+package com.korur.oba.apps.kaya.agentsfile.dto.response;
+
+// 1. Framework-level
+
+// 2. Third-party
+import io.swagger.v3.oas.annotations.media.Schema;
+
+// 3. Java SDK
+import java.util.UUID;
+
+// 4. Internal
+import com.korur.oba.apps.kaya.agentsfile.enums.AgentsFilePlacement;
+
+/**
+ * A row of the agents file list: an agents file's placement and size, without its content.
+ */
+@Schema(description = "An agents file of a version with its placement, without its content")
+public record AgentsFileListResponse(
+        @Schema(description = "Agents file id", example = "8f2e3d4c-5b6a-4f7e-8d9c-2b3c4d5e6f7a")
+        UUID id,
+
+        @Schema(description = "Version the agents file belongs to", example = "5c2d1e0f-3a4b-4c5d-8e9f-0a1b2c3d4e5f")
+        UUID versionId,
+
+        @Schema(description = "Where the file is delivered: ROOT is AGENTS.md, AGENTS_DIR is .agents/AGENTS.md, "
+                + "MOUNT_ROOT is AGENTS.md in the folder a pack is mounted in", example = "ROOT")
+        AgentsFilePlacement placement,
+
+        @Schema(description = "Byte length of the file", example = "4096")
+        Integer sizeBytes
+) {
+}

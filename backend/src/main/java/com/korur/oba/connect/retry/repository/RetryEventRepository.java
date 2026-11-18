@@ -1,0 +1,15 @@
+package com.korur.oba.connect.retry.repository;
+
+// 1. Framework-level
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+// 3. Java SDK
+import java.util.UUID;
+
+// 4. Internal
+import com.korur.oba.connect.retry.entity.RetryEvent;
+
+@Repository
+public interface RetryEventRepository extends JpaRepository<RetryEvent, UUID> {
+}

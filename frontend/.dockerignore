@@ -1,0 +1,4 @@
+# Env files carry server secrets (the CI writes the Kagi env file into
+# apps/<app>/.env before the build); the runtime gets them from Kagi injection,
+# so none may reach an image layer.
+**/.env*

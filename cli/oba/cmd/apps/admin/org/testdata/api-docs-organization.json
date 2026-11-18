@@ -1,0 +1,35 @@
+{
+  "openapi": "3.1.0",
+  "info": {"title": "Oba API", "version": "v1"},
+  "paths": {},
+  "components": {
+    "schemas": {
+      "OrganizationCreateRequest": {
+        "type": "object",
+        "description": "Organization create request",
+        "required": ["name"],
+        "properties": {
+          "name": {"type": "string", "description": "Organization name", "maxLength": 255, "minLength": 1},
+          "description": {"type": ["string", "null"], "description": "Organization description", "maxLength": 512, "minLength": 0},
+          "industry": {"type": ["string", "null"], "description": "Industry", "maxLength": 100, "minLength": 0},
+          "companySize": {"type": ["string", "null"], "description": "Company size", "maxLength": 50, "minLength": 0},
+          "country": {"type": ["string", "null"], "description": "Country code (ISO 3166-1 alpha-3)", "maxLength": 3, "minLength": 0},
+          "website": {"type": ["string", "null"], "description": "Website URL", "maxLength": 512, "minLength": 0}
+        }
+      },
+      "OrganizationUpdateRequest": {
+        "type": "object",
+        "description": "Organization update request. Full update: every field is applied, and a null optional field clears the stored value.",
+        "required": ["name"],
+        "properties": {
+          "name": {"type": "string", "description": "Organization name", "maxLength": 255, "minLength": 1, "example": "Sensey B.V."},
+          "description": {"type": ["string", "null"], "description": "Organization description. Null clears the stored value. An empty or whitespace-only string is rejected.", "maxLength": 512, "minLength": 0},
+          "industry": {"type": ["string", "null"], "description": "Industry. Null clears the stored value. An empty or whitespace-only string is rejected.", "maxLength": 100, "minLength": 0},
+          "companySize": {"type": ["string", "null"], "description": "Company size. Null clears the stored value. An empty or whitespace-only string is rejected.", "maxLength": 50, "minLength": 0},
+          "country": {"type": ["string", "null"], "description": "Country code (ISO 3166-1 alpha-3). Null clears the stored value. An empty or whitespace-only string is rejected.", "maxLength": 3, "minLength": 0},
+          "website": {"type": ["string", "null"], "description": "Website URL. Null clears the stored value. An empty or whitespace-only string is rejected.", "maxLength": 512, "minLength": 0}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,174 @@
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import {
+  ACCOUNT_LINKS,
+  ADMIN_LINKS,
+  accountOnboardingUrl,
+  appUrl,
+  obaApps,
+} from "./apps";
+
+const ENV_KEYS = [
+  "NODE_ENV",
+  "KAIZEN_URL",
+  "KAYA_URL",
+  "KALKAN_URL",
+  "OTAK_URL",
+  "ADMIN_URL",
+  "ACCOUNT_URL",
+] as const;
+
+const saved: Record<string, string | undefined> = {};
+
+beforeEach(() => {
+  for (const key of ENV_KEYS) saved[key] = process.env[key];
+});
+
+afterEach(() => {
+  for (const key of ENV_KEYS) {
+    if (saved[key] === undefined) delete process.env[key];
+    else process.env[key] = saved[key];
+  }
+});
+
+/** Replaces the app URL keys of the environment; the links read it on every access. */
+function setEnv(env: Partial<Record<(typeof ENV_KEYS)[number], string>>): void {
+  for (const key of ENV_KEYS) delete process.env[key];
+  Object.assign(process.env, env);
+}
+
+describe("appUrl", () => {
+  test("production falls back to the korur.com hosts", () => {
+    setEnv({ NODE_ENV: "production" });
+
+    expect(appUrl("kaizen")).toBe("https://kaizen.korur.com");
+    expect(appUrl("kaya")).toBe("https://kaya.korur.com");
+    expect(appUrl("kalkan")).toBe("https://kalkan.korur.com");
+    expect(appUrl("otak")).toBe("https://otak.korur.com");
+    expect(appUrl("admin")).toBe("https://admin.korur.com");
+    expect(appUrl("account")).toBe("https://account.korur.com");
+  });
+
+  test("development falls back to the local dev ports", () => {
+    setEnv({ NODE_ENV: "development" });
+
+    expect(appUrl("kaizen")).toBe("http://localhost:3002");
+    expect(appUrl("kaya")).toBe("http://localhost:3014");
+    expect(appUrl("kalkan")).toBe("http://localhost:3019");
+    expect(appUrl("otak")).toBe("http://localhost:3018");
+    expect(appUrl("admin")).toBe("http://localhost:3016");
+    expect(appUrl("account")).toBe("http://localhost:3017");
+  });
+
+  test("a configured URL wins and loses its trailing slashes", () => {
+    setEnv({
+      NODE_ENV: "production",
+      ADMIN_URL: "https://admin.example.test//",
+      KAIZEN_URL: "https://kaizen.example.test",
+      ACCOUNT_URL: "https://account.example.test/",
+      OTAK_URL: "https://otak.example.test/",
+      KALKAN_URL: "https://kalkan.example.test///",
+    });
+
+    expect(appUrl("admin")).toBe("https://admin.example.test");
+    expect(appUrl("account")).toBe("https://account.example.test");
+    expect(appUrl("kaizen")).toBe("https://kaizen.example.test");
+    expect(appUrl("otak")).toBe("https://otak.example.test");
+    expect(appUrl("kalkan")).toBe("https://kalkan.example.test");
+    expect(appUrl("kaya")).toBe("https://kaya.korur.com");
+  });
+
+  test("an empty configured URL counts as unset", () => {
+    setEnv({ NODE_ENV: "production", ADMIN_URL: "" });
+
+    expect(appUrl("admin")).toBe("https://admin.korur.com");
+  });
+});
+
+describe("ADMIN_LINKS", () => {
+  test("are paths under the Admin origin", () => {
+    setEnv({ NODE_ENV: "production", ADMIN_URL: "https://admin.example.test/" });
+
+    expect(ADMIN_LINKS.organizations).toBe("https://admin.example.test");
+    expect(ADMIN_LINKS.organization("6f1c2a9e-0000-4000-8000-000000000001")).toBe(
+      "https://admin.example.test/organizations/6f1c2a9e-0000-4000-8000-000000000001"
+    );
+    expect(Object.keys(ADMIN_LINKS)).toEqual(["organizations", "organization"]);
+  });
+
+  test("an organization id is encoded as one path segment", () => {
+    setEnv({ NODE_ENV: "production" });
+
+    expect(ADMIN_LINKS.organization("a/b")).toBe("https://admin.korur.com/organizations/a%2Fb");
+  });
+
+  test("follow a changed environment on the next read", () => {
+    setEnv({ NODE_ENV: "production", ADMIN_URL: "https://one.example.test" });
+    expect(ADMIN_LINKS.organizations).toBe("https://one.example.test");
+
+    setEnv({ NODE_ENV: "production", ADMIN_URL: "https://two.example.test" });
+    expect(ADMIN_LINKS.organizations).toBe("https://two.example.test");
+  });
+});
+
+describe("ACCOUNT_LINKS", () => {
+  test("are paths under the account origin, with the profile at its root", () => {
+    setEnv({ NODE_ENV: "production", ACCOUNT_URL: "https://account.example.test/" });
+
+    expect({ ...ACCOUNT_LINKS }).toEqual({
+      profile: "https://account.example.test",
+      settings: "https://account.example.test/settings",
+      invitations: "https://account.example.test/invitations",
+      newOrganization: "https://account.example.test/organizations/new",
+      onboarding: "https://account.example.test/onboarding",
+    });
+  });
+});
+
+describe("accountOnboardingUrl", () => {
+  test("makes a path absolute against the calling app's base URL", () => {
+    setEnv({ NODE_ENV: "production" });
+
+    const url = new URL(accountOnboardingUrl("/home?tab=mine", "https://kaizen.korur.com"));
+
+    expect(url.origin + url.pathname).toBe("https://account.korur.com/onboarding");
+    expect(url.searchParams.get("callbackUrl")).toBe("https://kaizen.korur.com/home?tab=mine");
+  });
+
+  test("keeps an absolute callback URL as it is", () => {
+    setEnv({ NODE_ENV: "production" });
+
+    const url = new URL(
+      accountOnboardingUrl("https://admin.korur.com/organizations", "https://kaizen.korur.com")
+    );
+
+    expect(url.searchParams.get("callbackUrl")).toBe("https://admin.korur.com/organizations");
+  });
+});
+
+describe("obaApps", () => {
+  test("lists Kaizen, Kaya, Kalkan, Otak, Admin and Account in that order, each with its given origin and an icon", () => {
+    const appUrls = {
+      kaizen: "https://k.test",
+      kaya: "https://y.test",
+      kalkan: "https://l.test",
+      otak: "https://o.test",
+      admin: "https://a.test",
+      account: "https://c.test",
+    };
+
+    const apps = obaApps(appUrls);
+
+    expect(apps.map((app) => app.id)).toEqual(["kaizen", "kaya", "kalkan", "otak", "admin", "account"]);
+    expect(apps.map((app) => app.url)).toEqual([
+      "https://k.test",
+      "https://y.test",
+      "https://l.test",
+      "https://o.test",
+      "https://a.test",
+      "https://c.test",
+    ]);
+    for (const app of apps) {
+      expect(app.icon).toBeDefined();
+    }
+  });
+});

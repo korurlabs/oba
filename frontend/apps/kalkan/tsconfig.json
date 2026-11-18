@@ -1,0 +1,18 @@
+{
+  "extends": "@oba/typescript-config/nextjs.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "@oba/ui/*": ["../../packages/ui/src/*"],
+      "@oba/shared/*": ["../../packages/shared/src/*"]
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
+  "include": ["next-env.d.ts", "next.config.ts", "i18n-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}

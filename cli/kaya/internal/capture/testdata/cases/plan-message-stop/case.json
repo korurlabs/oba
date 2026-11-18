@@ -1,0 +1,132 @@
+{
+  "account": true,
+  "branch": "feature/golden",
+  "description": "A final message in the Goal and Steps format becomes the plan of the session at Stop; a later ExitPlanMode plan replaces it; unchanged text is not captured again.",
+  "email": "dev@example.com",
+  "queue_edits": [],
+  "queue_files": {},
+  "remote": "git@github.com:senseylabs/village.git",
+  "repo_files": [],
+  "scenarios": [],
+  "session_id": "11111111-aaaa-4bbb-8ccc-000000000003",
+  "ssh_aliases": {},
+  "state_files": {},
+  "steps": [
+    {
+      "at": "2026-10-01T09:00:00Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SessionStart",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000003",
+        "source": "startup",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:01Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "Stop",
+        "last_assistant_message": "Which option do you want?",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000003",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:02Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "Stop",
+        "last_assistant_message": "Only a goal\n**Goal**: x\nno steps",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000003",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:03Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "Stop",
+        "last_assistant_message": "**Goal**: the recorder is in the CLI.\n**Steps**:\n1. Port record.py.\n2. Port sender.py.\n**Verification**: tests pass.\n",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000003",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:04Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "Stop",
+        "last_assistant_message": "**Goal**: the recorder is in the CLI.\n**Steps**:\n1. Port record.py.\n2. Port sender.py.\n**Verification**: tests pass.\n",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000003",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:05Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "Stop",
+        "last_assistant_message": "## Goal\n\nShip it.\n\n## 2. Steps\n\n1. one\n",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000003",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:06Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "Stop",
+        "last_assistant_message": "- **Goal:** list style\n1. **Steps**: numbered\n",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000003",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:07Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "plan",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000003",
+        "tool_input": {
+          "plan": "1. **Goal**: from plan mode with API_KEY=planmodesecret1\n2. **Steps**: go\n"
+        },
+        "tool_name": "ExitPlanMode",
+        "tool_use_id": "toolu_exitplanmode",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:08Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "Stop",
+        "last_assistant_message": "**Goal**: a message after plan mode\n**Steps**:\n1. x\n",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000003",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:09Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SessionEnd",
+        "permission_mode": "default",
+        "reason": "other",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000003",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    }
+  ],
+  "usage": null,
+  "worktree": null
+}

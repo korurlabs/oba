@@ -1,0 +1,438 @@
+{
+  "account": true,
+  "branch": "feature/golden",
+  "description": "Spec files from Write, Edit, MultiEdit and Bash are snapshotted under their repository path with the worktree prefix removed; failures, older files, bad paths and files over 200000 characters are left out.",
+  "email": "dev@example.com",
+  "queue_edits": [],
+  "queue_files": {},
+  "remote": "git@github.com:senseylabs/village.git",
+  "repo_files": [],
+  "scenarios": [],
+  "session_id": "11111111-aaaa-4bbb-8ccc-000000000005",
+  "ssh_aliases": {},
+  "state_files": {},
+  "steps": [
+    {
+      "at": "2026-10-01T09:00:10Z",
+      "hook": {
+        "cwd": "{{REPO}}/.claude/worktrees/wt",
+        "hook_event_name": "SessionStart",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000005",
+        "source": "startup",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:20Z",
+      "files": [
+        {
+          "content": "# Spec 07\nAPI_KEY=specsecret99\n",
+          "mtime": "2026-10-01T09:00:19Z",
+          "path": ".claude/worktrees/wt/docs/claude/plans/kaya/07_X.md"
+        }
+      ],
+      "hook": {
+        "cwd": "{{REPO}}/.claude/worktrees/wt",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000005",
+        "tool_input": {
+          "content": "x",
+          "file_path": "{{REPO}}/.claude/worktrees/wt/docs/claude/plans/kaya/07_X.md"
+        },
+        "tool_name": "Write",
+        "tool_response": {
+          "filePath": "{{REPO}}/.claude/worktrees/wt/docs/claude/plans/kaya/07_X.md",
+          "type": "create"
+        },
+        "tool_use_id": "toolu_write",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:21Z",
+      "files": [
+        {
+          "content": "# Spec 18\n",
+          "mtime": "2026-10-01T09:00:20Z",
+          "path": ".claude/worktrees/wt/docs/private/plans/kaya/18_Y.md"
+        }
+      ],
+      "hook": {
+        "cwd": "{{REPO}}/.claude/worktrees/wt",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000005",
+        "tool_input": {
+          "file_path": "docs/private/plans/kaya/18_Y.md",
+          "new_string": "b",
+          "old_string": "a"
+        },
+        "tool_name": "Edit",
+        "tool_response": {
+          "filePath": "{{REPO}}/.claude/worktrees/wt/docs/private/plans/kaya/18_Y.md"
+        },
+        "tool_use_id": "toolu_edit",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:22Z",
+      "files": [
+        {
+          "content": "# Plan z\n",
+          "mtime": "2026-10-01T09:00:21Z",
+          "path": "docs/plans/z.md"
+        }
+      ],
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000005",
+        "tool_input": {
+          "file_path": "{{REPO}}/docs/plans/z.md"
+        },
+        "tool_name": "MultiEdit",
+        "tool_response": {
+          "success": true
+        },
+        "tool_use_id": "toolu_multiedit",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:23Z",
+      "files": [
+        {
+          "content": "# Failed write\n",
+          "mtime": "2026-10-01T09:00:22Z",
+          "path": "docs/plans/failed.md"
+        }
+      ],
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000005",
+        "tool_input": {
+          "file_path": "{{REPO}}/docs/plans/failed.md"
+        },
+        "tool_name": "Write",
+        "tool_response": {
+          "success": false
+        },
+        "tool_use_id": "toolu_write",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:24Z",
+      "files": [
+        {
+          "content": "# Failure event\n",
+          "mtime": "2026-10-01T09:00:22Z",
+          "path": "docs/plans/failure-event.md"
+        }
+      ],
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUseFailure",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000005",
+        "tool_input": {
+          "file_path": "{{REPO}}/docs/plans/failure-event.md"
+        },
+        "tool_name": "Write",
+        "tool_use_id": "toolu_write",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:25Z",
+      "files": [
+        {
+          "content": "# Not a plan path\n",
+          "mtime": "2026-10-01T09:00:22Z",
+          "path": "docs/notaplan/readme.md"
+        }
+      ],
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000005",
+        "tool_input": {
+          "file_path": "{{REPO}}/docs/notaplan/readme.md"
+        },
+        "tool_name": "Write",
+        "tool_response": {
+          "success": true
+        },
+        "tool_use_id": "toolu_write",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:26Z",
+      "files": [
+        {
+          "content": "# Dots normalised\n",
+          "mtime": "2026-10-01T09:00:22Z",
+          "path": "docs/plans/dots.md"
+        }
+      ],
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000005",
+        "tool_input": {
+          "file_path": "{{REPO}}/docs/plans/../plans/dots.md"
+        },
+        "tool_name": "Write",
+        "tool_response": {
+          "success": true
+        },
+        "tool_use_id": "toolu_write",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:27Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000005",
+        "tool_input": {
+          "file_path": "/elsewhere/docs/plans/outside.md"
+        },
+        "tool_name": "Write",
+        "tool_response": {
+          "success": true
+        },
+        "tool_use_id": "toolu_write",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:28Z",
+      "files": [
+        {
+          "content": "# Older than the session\n",
+          "mtime": "2026-10-01T09:00:05Z",
+          "path": "docs/plans/old.md"
+        },
+        {
+          "content": "# Changed after the start\n",
+          "mtime": "2026-10-01T09:00:25Z",
+          "path": "docs/plans/new.md"
+        }
+      ],
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000005",
+        "tool_input": {
+          "command": "cat docs/plans/old.md docs/plans/new.md && echo \"docs/plans/missing.md\""
+        },
+        "tool_name": "Bash",
+        "tool_response": {
+          "interrupted": false,
+          "stdout": ""
+        },
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:29Z",
+      "files": [
+        {
+          "content": "# Interrupted command\n",
+          "mtime": "2026-10-01T09:00:28Z",
+          "path": "docs/claude/plans/kaya/08.md"
+        }
+      ],
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000005",
+        "tool_input": {
+          "command": "sed -i s/a/b/ docs/claude/plans/kaya/08.md"
+        },
+        "tool_name": "Bash",
+        "tool_response": {
+          "interrupted": true,
+          "stdout": ""
+        },
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:30Z",
+      "files": [
+        {
+          "content": {
+            "$repeat": "0123456789abcdef",
+            "$times": 12500
+          },
+          "mtime": "2026-10-01T09:00:29Z",
+          "path": "docs/plans/exactly-limit.md"
+        }
+      ],
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000005",
+        "tool_input": {
+          "file_path": "{{REPO}}/docs/plans/exactly-limit.md"
+        },
+        "tool_name": "Write",
+        "tool_response": {
+          "success": true
+        },
+        "tool_use_id": "toolu_write",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:31Z",
+      "files": [
+        {
+          "content": {
+            "$concat": [
+              {
+                "$repeat": "0123456789abcdef",
+                "$times": 12500
+              },
+              "x"
+            ]
+          },
+          "mtime": "2026-10-01T09:00:29Z",
+          "path": "docs/plans/over-limit.md"
+        }
+      ],
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000005",
+        "tool_input": {
+          "file_path": "{{REPO}}/docs/plans/over-limit.md"
+        },
+        "tool_name": "Write",
+        "tool_response": {
+          "success": true
+        },
+        "tool_use_id": "toolu_write",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:32Z",
+      "files": [
+        {
+          "content": {
+            "$concat": [
+              {
+                "$repeat": "é",
+                "$times": 100000
+              },
+              {
+                "$repeat": "漢",
+                "$times": 100000
+              }
+            ]
+          },
+          "mtime": "2026-10-01T09:00:29Z",
+          "path": "docs/plans/multibyte.md"
+        }
+      ],
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000005",
+        "tool_input": {
+          "file_path": "{{REPO}}/docs/plans/multibyte.md"
+        },
+        "tool_name": "Write",
+        "tool_response": {
+          "success": true
+        },
+        "tool_use_id": "toolu_write",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:33Z",
+      "files": [
+        {
+          "content": {
+            "$concat": [
+              {
+                "$repeat": "é",
+                "$times": 100000
+              },
+              {
+                "$repeat": "漢",
+                "$times": 100001
+              }
+            ]
+          },
+          "mtime": "2026-10-01T09:00:29Z",
+          "path": "docs/plans/multibyte-over.md"
+        }
+      ],
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000005",
+        "tool_input": {
+          "file_path": "{{REPO}}/docs/plans/multibyte-over.md"
+        },
+        "tool_name": "Write",
+        "tool_response": {
+          "success": true
+        },
+        "tool_use_id": "toolu_write",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:34Z",
+      "files": [
+        {
+          "content": "# Plan z, rewritten\n",
+          "mtime": "2026-10-01T09:00:33Z",
+          "path": "docs/plans/z.md"
+        }
+      ],
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000005",
+        "tool_input": {
+          "file_path": "{{REPO}}/docs/plans/z.md"
+        },
+        "tool_name": "Write",
+        "tool_response": {
+          "success": true
+        },
+        "tool_use_id": "toolu_write",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    }
+  ],
+  "usage": null,
+  "worktree": "wt"
+}

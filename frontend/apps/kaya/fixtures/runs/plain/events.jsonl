@@ -1,0 +1,5 @@
+{"at":"2026-10-20T09:00:07Z","event":"SessionStart","cwd":"/repo","source":"startup","branch":"main"}
+{"at":"2026-10-20T09:00:14Z","event":"UserPromptSubmit","cwd":"/repo","prompt":"What does   the recorder   store for a Bash call?"}
+{"at":"2026-10-20T09:00:21Z","event":"PreToolUse","cwd":"/repo","tool_name":"Bash","tool_use_id":"toolu_plain_01","command":"sed -n 1,40p projects/boru/hooks/record.py"}
+{"at":"2026-10-20T09:00:28Z","event":"PostToolUse","cwd":"/repo","tool_name":"Bash","tool_use_id":"toolu_plain_01","command":"sed -n 1,40p projects/boru/hooks/record.py","ok":true}
+{"at":"2026-10-20T09:00:35Z","event":"Stop","cwd":"/repo","last_assistant_message":"It stores the redacted command and the ok flag.","branch":"feature/x"}

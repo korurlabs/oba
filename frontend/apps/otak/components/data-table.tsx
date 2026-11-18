@@ -1,0 +1,159 @@
+"use client";
+
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+  type Cell,
+  type ColumnDef,
+  type Header,
+  type Row,
+} from "@tanstack/react-table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@oba/ui/sky/table";
+import { Button } from "@oba/ui/sky/button";
+import { cn } from "@/lib/utils";
+
+/**
+ * What a column may say about its layout: `flex` takes the free width, the
+ * others keep the width their `size` gives, and `align` sets the text side,
+ * such as right for money.
+ */
+export type DataTableColumnMeta = { flex?: boolean; align?: "left" | "center" | "right" };
+
+function columnMeta(meta: unknown): DataTableColumnMeta {
+  return (meta as DataTableColumnMeta | undefined) ?? {};
+}
+
+const ALIGN_CLASS: Record<NonNullable<DataTableColumnMeta["align"]>, string> = {
+  left: "text-left",
+  center: "text-center",
+  right: "text-right",
+};
+
+/** A column's width: fixed from its `size`, unless it takes the free width or names none. */
+function widthStyle<T>(column: Header<T, unknown>["column"]): { width?: number } {
+  const meta = columnMeta(column.columnDef.meta);
+  if (meta.flex || column.columnDef.size === undefined) return {};
+  return { width: column.getSize() };
+}
+
+interface DataTableProps<T> {
+  columns: ColumnDef<T, unknown>[];
+  data: T[];
+  getRowId: (row: T) => string;
+  /** Opens a row; the row's own link stays the way for the keyboard. */
+  onRowClick?: (row: T) => void;
+  /** Names the table for assistive technology. */
+  label: string;
+  /** Marks the rows as stale while a newer page loads. */
+  isFetching?: boolean;
+}
+
+/**
+ * A list as Kaya shows one: the sky table on a white rounded panel. The
+ * caller renders the loading, error and empty states in its place.
+ */
+export function DataTable<T>({
+  columns,
+  data,
+  getRowId,
+  onRowClick,
+  label,
+  isFetching = false,
+}: DataTableProps<T>) {
+  const table = useReactTable<T>({
+    columns,
+    data,
+    getRowId: (row: T) => getRowId(row),
+    getCoreRowModel: getCoreRowModel(),
+  });
+  // Fixed widths hold only when a column names one; otherwise the browser sizes them to the text.
+  const fixedLayout = columns.some((column: ColumnDef<T, unknown>) => column.size !== undefined);
+
+  return (
+    <div className="bg-card overflow-hidden rounded-xl border shadow-sm">
+      <Table aria-label={label} aria-busy={isFetching} className={cn(fixedLayout && "table-fixed")}>
+        <TableHeader>
+          {table.getHeaderGroups().map((group) => (
+            <TableRow key={group.id} className="hover:bg-transparent">
+              {group.headers.map((header: Header<T, unknown>) => {
+                const align = columnMeta(header.column.columnDef.meta).align ?? "left";
+                return (
+                  <TableHead
+                    key={header.id}
+                    style={widthStyle(header.column)}
+                    className={cn("px-4", ALIGN_CLASS[align])}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                );
+              })}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody className={cn(isFetching && "opacity-60")}>
+          {table.getRowModel().rows.map((row: Row<T>) => (
+            <TableRow
+              key={row.id}
+              onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+              className={cn(onRowClick && "cursor-pointer")}
+            >
+              {row.getVisibleCells().map((cell: Cell<T, unknown>) => {
+                const align = columnMeta(cell.column.columnDef.meta).align ?? "left";
+                return (
+                  <TableCell key={cell.id} className={cn("h-12 px-4", ALIGN_CLASS[align])}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                );
+              })}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+interface TablePaginationProps {
+  page: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  /** Names the navigation for assistive technology. */
+  label: string;
+  previousLabel: string;
+  nextLabel: string;
+  /** Where the list stands, such as "Page 2 of 5 · 93 relations". */
+  summary: string;
+}
+
+/** The pages of a list below it, as Kaya's wall pages: back, where it stands, forward. */
+export function TablePagination({
+  page,
+  totalPages,
+  onPageChange,
+  label,
+  previousLabel,
+  nextLabel,
+  summary,
+}: TablePaginationProps) {
+  return (
+    <nav aria-label={label} className="flex items-center justify-between gap-4 text-sm">
+      <Button variant="outline" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>
+        <ChevronLeft className="size-4" aria-hidden />
+        {previousLabel}
+      </Button>
+      <span className="text-muted-foreground tabular-nums">{summary}</span>
+      <Button
+        variant="outline"
+        disabled={page >= totalPages}
+        onClick={() => onPageChange(page + 1)}
+      >
+        {nextLabel}
+        <ChevronRight className="size-4" aria-hidden />
+      </Button>
+    </nav>
+  );
+}

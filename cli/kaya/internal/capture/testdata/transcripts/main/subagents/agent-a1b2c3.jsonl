@@ -1,0 +1,4 @@
+{"type": "assistant", "message": {"model": "claude-haiku-5-5"}}
+{"type": "assistant", "message": {"model": "claude-sonnet-5-5"}}
+{"type": "user", "message": {}}
+{broken

@@ -1,0 +1,44 @@
+{
+  "runs": [
+    {
+      "cursor": {
+        "acknowledgedSeq": 7,
+        "handoffs": {
+          "feat/backend/report.md": 1790845249000000000,
+          "feat/backend/unit.md": 1790845239000000000,
+          "feat/notes/deep/y.md": 1790845225000000000
+        },
+        "plans": {}
+      },
+      "exit": 0,
+      "files": [
+        "cursor.json",
+        "events.jsonl",
+        "handoffs/feat/backend/report.md",
+        "handoffs/feat/backend/unit.md",
+        "handoffs/feat/notes/deep/y.md",
+        "session.json",
+        "summary.json"
+      ],
+      "log": [],
+      "queueAfter": {},
+      "requests": [
+        {
+          "authorized": true,
+          "body": "same as ../batch.json",
+          "contentType": "application/json",
+          "method": "POST",
+          "path": "/kaya/ingest/batches"
+        }
+      ],
+      "state": {
+        "token": "ok"
+      },
+      "stderr": [],
+      "stdout": "",
+      "token": "A",
+      "usageFileLeft": false
+    }
+  ],
+  "scenario": "ok"
+}

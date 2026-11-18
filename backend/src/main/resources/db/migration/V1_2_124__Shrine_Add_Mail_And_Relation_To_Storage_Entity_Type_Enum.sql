@@ -1,0 +1,9 @@
+-- Oba Database Schema - Shrine: Add MAIL And RELATION To Storage Entity Type Enum
+-- V1_2_124__Shrine_Add_Mail_And_Relation_To_Storage_Entity_Type_Enum.sql
+--
+-- Extends shrine_storage_entity_type_enum with MAIL and RELATION so that
+-- shrine.attachments can be associated with Otak mails and Otak relations.
+-- Alone in its file: a new enum value cannot be used in the transaction that adds it.
+
+ALTER TYPE shrine_storage_entity_type_enum ADD VALUE IF NOT EXISTS 'MAIL';
+ALTER TYPE shrine_storage_entity_type_enum ADD VALUE IF NOT EXISTS 'RELATION';

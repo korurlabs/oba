@@ -1,0 +1,55 @@
+{
+  "account": false,
+  "branch": "main",
+  "description": "Branch and git author email: a repository without user.email, and no account in .claude.json.",
+  "email": null,
+  "queue_edits": [],
+  "queue_files": {},
+  "remote": "git@github.com:senseylabs/village.git",
+  "repo_files": [],
+  "scenarios": [],
+  "session_id": "33333333-aaaa-4bbb-8ccc-000000000001",
+  "ssh_aliases": {},
+  "state_files": {},
+  "steps": [
+    {
+      "at": "2026-10-01T09:00:00Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SessionStart",
+        "permission_mode": "default",
+        "session_id": "33333333-aaaa-4bbb-8ccc-000000000001",
+        "source": "startup",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:01Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "33333333-aaaa-4bbb-8ccc-000000000001",
+        "tool_input": {
+          "command": "ls"
+        },
+        "tool_name": "Bash",
+        "tool_use_id": "t",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:02Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SessionEnd",
+        "permission_mode": "default",
+        "reason": "other",
+        "session_id": "33333333-aaaa-4bbb-8ccc-000000000001",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    }
+  ],
+  "usage": null,
+  "worktree": null
+}

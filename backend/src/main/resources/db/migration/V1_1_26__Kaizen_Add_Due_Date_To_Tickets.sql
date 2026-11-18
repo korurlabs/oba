@@ -1,0 +1,1 @@
+ALTER TABLE kaizen.tickets ADD COLUMN due_date TIMESTAMP WITH TIME ZONE;

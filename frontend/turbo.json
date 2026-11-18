@@ -1,0 +1,78 @@
+{
+  "globalEnv": [
+    "NODE_ENV",
+    "BASE_URL",
+    "API_BASE_URL",
+    "KAIZEN_URL",
+    "KAYA_URL",
+    "KALKAN_URL",
+    "OTAK_URL",
+    "ADMIN_URL",
+    "ACCOUNT_URL",
+    "IMAGE_REMOTE_HOST",
+    "AUTH_URL",
+    "AUTH_SECRET",
+    "AUTH_TRUST_HOST",
+    "AUTH_KEYCLOAK_ID",
+    "AUTH_KEYCLOAK_ISSUER",
+    "AUTH_KEYCLOAK_SECRET"
+  ],
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "!.env",
+        "!.env.*"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "build/**"
+      ],
+      "cache": false
+    },
+    "lint": {
+      "dependsOn": [
+        "^lint"
+      ]
+    },
+    "check-types": {
+      "dependsOn": [
+        "^check-types"
+      ]
+    },
+    "typecheck": {
+      "dependsOn": [
+        "^typecheck"
+      ]
+    },
+    "test": {
+      "dependsOn": [
+        "^test"
+      ],
+      "outputs": []
+    },
+    "dev": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ],
+      "cache": false,
+      "persistent": true
+    },
+    "dev:doppler": {
+      "cache": false,
+      "persistent": true
+    },
+    "format": {
+      "dependsOn": [
+        "^format"
+      ]
+    }
+  }
+}

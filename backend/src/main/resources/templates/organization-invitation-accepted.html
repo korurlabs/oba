@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Invitation Accepted</title>
+    <style>
+        body { font-family: Arial, sans-serif; color: #555555; margin: 0; padding: 20px; background-color: #F5F0E8; }
+        .email-container { max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border-radius: 10px; overflow: hidden; box-shadow: 0 0 10px rgba(0, 0, 0, 0.08); }
+        .email-logo { text-align: center; padding: 24px 24px 0; }
+        .email-header { background: linear-gradient(135deg, #C75775 0%, #D4728A 100%); color: #FFFFFF; padding: 24px 30px; text-align: center; font-size: 22px; font-weight: bold; }
+        .email-body { padding: 30px; font-size: 15px; line-height: 1.6; }
+        .highlight { font-size: 16px; font-weight: bold; margin-top: 20px; display: block; color: #1A1A1A; }
+        .box { margin-top: 14px; background: #F7F7F5; border: 1px solid #E7E7E7; border-radius: 8px; padding: 14px; }
+        .row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #EEEEEE; }
+        .row:last-child { border-bottom: none; }
+        .label { font-weight: bold; color: #444444; }
+        .value { text-align: right; color: #333333; max-width: 60%; }
+        .email-footer { background-color: #1A1A1A; color: #BBBBBB; padding: 20px; text-align: center; font-size: 13px; }
+        .email-footer a { color: #D4728A; text-decoration: none; }
+    </style>
+</head>
+<body>
+<div class="email-container">
+    <div class="email-logo">
+        <img th:src="'data:image/png;base64,' + ${senseyLogoBase64}" alt="Sensey" style="width: 120px;"/>
+    </div>
+
+    <div class="email-header">Invitation Accepted</div>
+
+    <div class="email-body">
+        <p>Dear <span th:text="${contactName}">Admin</span>,</p>
+
+        <p>A new member has accepted the invitation to join your organization.</p>
+
+        <span class="highlight">Details</span>
+        <div class="box">
+            <div class="row">
+                <div class="label">Organization</div>
+                <div class="value" th:text="${organizationName}"></div>
+            </div>
+            <div class="row">
+                <div class="label">New Member</div>
+                <div class="value" th:text="${memberName}"></div>
+            </div>
+        </div>
+
+        <p style="margin-top: 18px;">You can manage your team members from your organization settings.</p>
+    </div>
+
+    <div class="email-footer">
+        <p>The Sensey Team</p>
+        <p><a href="https://sensey.io">sensey.io</a></p>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,706 @@
+{
+  "account": true,
+  "branch": "feature/golden",
+  "description": "Every key of every event kind, ok flags, pull request URLs, Skill name fallbacks, harness blocks, unknown events and a missing cwd.",
+  "email": "dev@example.com",
+  "queue_edits": [],
+  "queue_files": {},
+  "remote": "git@github.com:senseylabs/village.git",
+  "repo_files": [],
+  "scenarios": [],
+  "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+  "ssh_aliases": {},
+  "state_files": {},
+  "steps": [
+    {
+      "at": "2026-10-01T09:00:00Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SessionStart",
+        "model": "claude-opus-5-5",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "session_title": "  Title from the hook ",
+        "source": "startup",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:01Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "UserPromptSubmit",
+        "permission_mode": "default",
+        "prompt": "<system-reminder>reminder text</system-reminder>\n<ide_opened_file>file.go</ide_opened_file>\nFix KAI-42 and KAI-43 please",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:02Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "UserPromptSubmit",
+        "permission_mode": "default",
+        "prompt": "<system-reminder>only a harness block</system-reminder>",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:03Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "UserPromptSubmit",
+        "permission_mode": "default",
+        "prompt": "<system-reminder>never closed, runs to the end",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:04Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "UserPromptSubmit",
+        "permission_mode": "default",
+        "prompt": "plain text with <b>markup</b> and a trailing <ide_x>block</ide_x>",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:05Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "UserPromptSubmit",
+        "permission_mode": "default",
+        "prompt": null,
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:06Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "UserPromptSubmit",
+        "permission_mode": "default",
+        "prompt": 123,
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:07Z",
+      "hook": {
+        "command_args": "KAI-44 --token=abc123def",
+        "command_name": "deliver",
+        "cwd": "{{REPO}}",
+        "hook_event_name": "UserPromptExpansion",
+        "permission_mode": "default",
+        "prompt": "/deliver KAI-44",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:08Z",
+      "hook": {
+        "command_name": "deliver",
+        "cwd": "{{REPO}}",
+        "hook_event_name": "UserPromptExpansion",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:09Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "command": "kaizen ticket get KAI-45 --json",
+          "description": "Get the ticket"
+        },
+        "tool_name": "Bash",
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:10Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "command": "git status"
+        },
+        "tool_name": "Bash",
+        "tool_response": {
+          "interrupted": false,
+          "stdout": "x"
+        },
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:11Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "command": "gh pr create --title x"
+        },
+        "tool_name": "Bash",
+        "tool_response": {
+          "interrupted": false,
+          "stdout": "see https://github.com/senseylabs/village/pull/12)\nand https://github.com/other/x/pull/1"
+        },
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:12Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "command": "cd x && gh   pr create"
+        },
+        "tool_name": "Bash",
+        "tool_response": {
+          "interrupted": false,
+          "stdout": "https://github.com/senseylabs/village/pull/13"
+        },
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:13Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "command": "echo gh pr create"
+        },
+        "tool_name": "Bash",
+        "tool_response": {
+          "interrupted": false,
+          "stdout": "https://github.com/senseylabs/village/pull/14"
+        },
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:14Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "command": "gh pr create"
+        },
+        "tool_name": "Bash",
+        "tool_response": {
+          "interrupted": false,
+          "stdout": "created without a url"
+        },
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:15Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "command": "gh pr create"
+        },
+        "tool_name": "Bash",
+        "tool_response": "plain string response",
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:16Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "command": "false"
+        },
+        "tool_name": "Bash",
+        "tool_response": {
+          "interrupted": true
+        },
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:17Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "command": "false"
+        },
+        "tool_name": "Bash",
+        "tool_response": {
+          "is_error": true
+        },
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:18Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "command": "false"
+        },
+        "tool_name": "Bash",
+        "tool_response": {
+          "success": false
+        },
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:19Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "command": "false"
+        },
+        "tool_name": "Bash",
+        "tool_response": {
+          "error": "boom"
+        },
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:20Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "command": "false"
+        },
+        "tool_name": "Bash",
+        "tool_response": {
+          "status": "failed"
+        },
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:21Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "command": "true"
+        },
+        "tool_name": "Bash",
+        "tool_response": {
+          "status": "completed",
+          "success": true
+        },
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:22Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "command": "x"
+        },
+        "tool_name": "Bash",
+        "tool_response": {
+          "interrupted": "yes"
+        },
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:23Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "error": "Exit code 1",
+        "hook_event_name": "PostToolUseFailure",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "command": "kaizen ticket list"
+        },
+        "tool_name": "Bash",
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:24Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {},
+        "tool_name": "Bash",
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:25Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": "not a dict",
+        "tool_name": "Bash",
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:26Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "skill": "code-comments"
+        },
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_skill",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:27Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "name": "by-name"
+        },
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_skill",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:28Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "command": "by-command"
+        },
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_skill",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:29Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {},
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_skill",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:30Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "content": "x",
+          "file_path": "{{REPO}}/projects/kaya/cli/main.go"
+        },
+        "tool_name": "Write",
+        "tool_response": {
+          "type": "create"
+        },
+        "tool_use_id": "toolu_write",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:31Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "content": "x"
+        },
+        "tool_name": "Write",
+        "tool_response": {
+          "filePath": "{{REPO}}/from/response.txt"
+        },
+        "tool_use_id": "toolu_write",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:32Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "file_path": "relative/path.go"
+        },
+        "tool_name": "Edit",
+        "tool_use_id": "toolu_edit",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:33Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "file_path": "{{REPO}}/m.go"
+        },
+        "tool_name": "MultiEdit",
+        "tool_response": {
+          "success": true
+        },
+        "tool_use_id": "toolu_multiedit",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:34Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "file_path": "{{REPO}}/not-recorded.go"
+        },
+        "tool_name": "Read",
+        "tool_use_id": "toolu_read",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:35Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "description": "has API_KEY=descsecret99 inside",
+          "prompt": "Handoff: handoffs/one/two.md",
+          "subagent_type": "a"
+        },
+        "tool_name": "Agent",
+        "tool_response": {
+          "agentId": "ag-1",
+          "status": "async_launched"
+        },
+        "tool_use_id": "toolu_agent",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:36Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "description": "agent id not a string",
+          "prompt": "no handoff line",
+          "subagent_type": "a"
+        },
+        "tool_name": "Agent",
+        "tool_response": {
+          "agentId": 5
+        },
+        "tool_use_id": "toolu_agent",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:37Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "prompt": "> *Handoff:** `handoffs/q/w.md`.",
+          "subagent_type": "a"
+        },
+        "tool_name": "Agent",
+        "tool_response": {
+          "agentId": "ag-2"
+        },
+        "tool_use_id": "toolu_agent",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:38Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "prompt": "Handoff: handoffs/../escape.md",
+          "subagent_type": "a"
+        },
+        "tool_name": "Agent",
+        "tool_response": {
+          "agentId": "ag-3"
+        },
+        "tool_use_id": "toolu_agent",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:39Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "tool_input": {
+          "prompt": "Handoff: notinhandoffs/x.md",
+          "subagent_type": "a"
+        },
+        "tool_name": "Agent",
+        "tool_response": {
+          "agentId": "ag-4"
+        },
+        "tool_use_id": "toolu_agent",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:40Z",
+      "hook": {
+        "agent_id": "a1",
+        "agent_type": "coding-engineer",
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SubagentStart",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:41Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "Notification",
+        "message": "unknown event kinds keep only the common keys",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:42Z",
+      "env": {
+        "CLAUDE_PROJECT_DIR": "{{REPO}}"
+      },
+      "hook": {
+        "hook_event_name": "PreCompact",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:43Z",
+      "hook": {
+        "agent_id": "",
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SessionEnd",
+        "permission_mode": "default",
+        "reason": "logout",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+        "session_title": "Title at the end",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    }
+  ],
+  "usage": null,
+  "worktree": null
+}

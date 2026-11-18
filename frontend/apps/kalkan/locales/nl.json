@@ -1,0 +1,31 @@
+{
+  "metadata": {
+    "description": "Beleid, procedures en documenten van je organisatie"
+  },
+  "sidebar": {
+    "label": "Pagina's",
+    "language": "Taal"
+  },
+  "errors": {
+    "somethingWentWrong": "Er is iets misgegaan",
+    "unexpectedError": "Er is een onverwachte fout opgetreden. Probeer de pagina te vernieuwen of neem contact op met support als het probleem aanhoudt.",
+    "tryAgain": "Probeer Opnieuw",
+    "goHome": "Naar Home",
+    "errorDetails": "Fout Details (Alleen Ontwikkeling):",
+    "notFound": {
+      "title": "Pagina niet gevonden",
+      "description": "Deze pagina bestaat niet, of je hebt er geen toegang toe. Controleer de link of ga terug naar Home."
+    },
+    "signInFailed": {
+      "title": "Inloggen mislukt",
+      "description": "Je aanmelding kon niet worden voltooid. Probeer het opnieuw; neem contact op met support als het blijft mislukken.",
+      "action": "Opnieuw inloggen",
+      "code": "Foutcode: {code}"
+    }
+  },
+  "organizationGate": {
+    "title": "Nog geen organisatie",
+    "description": "Kalkan bewaart de documenten van een organisatie. Maak er eerst een aan of word lid van een in je account.",
+    "action": "Open je account"
+  }
+}

@@ -1,0 +1,1134 @@
+{
+  "metadata": {
+    "description": "Relaties, leads en klanten van je organisatie"
+  },
+  "sidebar": {
+    "navigation": "Navigatie",
+    "relations": "Relaties",
+    "battlefield": "Battlefield",
+    "language": "Taal",
+    "icps": "ICP's",
+    "outreaches": "Outreaches",
+    "templates": "Sjablonen",
+    "events": "Evenementen"
+  },
+  "errors": {
+    "somethingWentWrong": "Er is iets misgegaan",
+    "unexpectedError": "Er is een onverwachte fout opgetreden. Probeer de pagina te vernieuwen of neem contact op met support als het probleem aanhoudt.",
+    "tryAgain": "Probeer Opnieuw",
+    "goHome": "Naar Home",
+    "errorDetails": "Fout Details (Alleen Ontwikkeling):",
+    "notFound": {
+      "title": "Pagina niet gevonden",
+      "description": "Deze pagina bestaat niet, of je hebt er geen toegang toe. Controleer de link of ga terug naar Home."
+    },
+    "signInFailed": {
+      "title": "Inloggen mislukt",
+      "description": "Je aanmelding kon niet worden voltooid. Probeer het opnieuw; neem contact op met support als het blijft mislukken.",
+      "action": "Opnieuw inloggen",
+      "code": "Foutcode: {code}"
+    }
+  },
+  "organizationGate": {
+    "title": "Nog geen organisatie",
+    "description": "Otak bewaart de relaties van een organisatie. Maak er eerst een aan of word lid van een organisatie in je account.",
+    "action": "Open je account"
+  },
+  "relations": {
+    "title": "Relaties",
+    "subtitle": "De bedrijven waaraan je organisatie verkoopt, waarvan ze inkoopt of die ze wil winnen.",
+    "eyebrow": "Bedrijven",
+    "new": "Nieuwe relatie",
+    "loadError": "De relaties konden niet worden geladen.",
+    "reloadError": "De lijst kon niet worden vernieuwd; hij is mogelijk niet actueel.",
+    "emptyFiltered": "Geen relatie voldoet aan deze filters.",
+    "emptyFilteredHint": "Pas de zoekopdracht of de filters aan, of wis ze om de hele lijst te zien.",
+    "emptyByTab": {
+      "leads": "Nog geen open leads.",
+      "customers": "Nog geen klanten.",
+      "suppliers": "Nog geen leveranciers."
+    },
+    "emptyHintByTab": {
+      "leads": "Voeg een bedrijf toe dat je wilt winnen en volg het van eerste contact tot voorstel.",
+      "customers": "Voeg een bedrijf toe waaraan je verkoopt, of markeer een gewonnen lead als klant.",
+      "suppliers": "Voeg een bedrijf toe waarvan je organisatie inkoopt."
+    },
+    "noOwner": "Geen eigenaar",
+    "noValue": "Geen verwachte waarde",
+    "tabs": {
+      "leads": "Leads",
+      "customers": "Klanten",
+      "suppliers": "Leveranciers"
+    },
+    "tabsLabel": "Soort relatie",
+    "types": {
+      "LEAD": "Lead",
+      "SUPPLIER": "Leverancier",
+      "CUSTOMER": "Klant"
+    },
+    "stages": {
+      "NEW": "Nieuw",
+      "QUALIFIED": "Gekwalificeerd",
+      "CONTACTED": "Benaderd",
+      "WARM": "Warm",
+      "PROPOSAL": "Voorstel",
+      "CLOSED": "Gesloten (gewonnen)",
+      "LOST": "Verloren",
+      "PARKED": "Geparkeerd",
+      "DIRECT": "Direct"
+    },
+    "sizes": {
+      "SIZE_1_10": "1-10 medewerkers",
+      "SIZE_11_50": "11-50 medewerkers",
+      "SIZE_51_200": "51-200 medewerkers",
+      "SIZE_201_500": "201-500 medewerkers",
+      "SIZE_501_1000": "501-1.000 medewerkers",
+      "SIZE_1001_5000": "1.001-5.000 medewerkers",
+      "SIZE_5001_PLUS": "5.001+ medewerkers"
+    },
+    "sources": {
+      "NETWORK": "Netwerk",
+      "LINKEDIN": "LinkedIn",
+      "REFERRAL": "Doorverwijzing",
+      "INBOUND": "Inbound",
+      "PARTNER": "Partner",
+      "EVENT": "Evenement",
+      "RESEARCH": "Onderzoek",
+      "OTHER": "Overig"
+    },
+    "columns": {
+      "name": "Naam",
+      "stage": "Fase",
+      "owner": "Eigenaar",
+      "expectedValue": "Verwachte waarde",
+      "updatedAt": "Bijgewerkt",
+      "mainContact": "Contactpersoon",
+      "type": "Type",
+      "contactMail": "Contactmail",
+      "companyMail": "Bedrijfsmail"
+    },
+    "filters": {
+      "searchPlaceholder": "Zoek op naam",
+      "stagePlaceholder": "Open fasen",
+      "stagePlaceholderCustomers": "Elke fase",
+      "ownerPlaceholder": "Elke eigenaar",
+      "clear": "Filters wissen",
+      "ownersLoadError": "De eigenaren konden niet worden geladen.",
+      "searchLabel": "Zoeken",
+      "stageLabel": "Fase",
+      "ownerLabel": "Eigenaar",
+      "eventLabel": "Evenement",
+      "eventPlaceholder": "Elk evenement",
+      "eventsLoadError": "De evenementen konden niet worden geladen."
+    },
+    "form": {
+      "sections": {
+        "company": "Bedrijf",
+        "address": "Adres",
+        "sales": "Verkoop"
+      },
+      "name": "Naam",
+      "type": "Type",
+      "typePlaceholder": "Kies een type",
+      "website": "Website",
+      "websitePlaceholder": "https://voorbeeld.nl",
+      "sector": "Sector",
+      "size": "Grootte",
+      "sizePlaceholder": "Kies een grootte",
+      "registrationNumber": "KvK-nummer",
+      "vatNumber": "Btw-nummer",
+      "street": "Straat",
+      "postalCode": "Postcode",
+      "city": "Plaats",
+      "country": "Land",
+      "countryPlaceholder": "Kies een land",
+      "countrySearch": "Zoek een land...",
+      "owner": "Eigenaar",
+      "ownerPlaceholder": "Kies een eigenaar",
+      "ownersLoadError": "De leden konden niet worden geladen.",
+      "ownerNoOtakAccess": "Geen toegang tot Otak. Een eigenaar of beheerder kan Otak toekennen in Admin.",
+      "icp": "ICP",
+      "icpPlaceholder": "Kies een ICP",
+      "icpsLoadError": "De ICP's konden niet worden geladen.",
+      "source": "Bron",
+      "sourcePlaceholder": "Kies een bron",
+      "expectedValue": "Verwachte waarde (EUR)",
+      "notes": "Notities",
+      "create": "Relatie aanmaken",
+      "creating": "Aanmaken...",
+      "save": "Wijzigingen opslaan",
+      "saving": "Opslaan...",
+      "cancel": "Annuleren",
+      "discard": "Wijzigingen verwerpen",
+      "unsavedChanges": "Niet-opgeslagen wijzigingen",
+      "errors": {
+        "nameRequired": "Naam is verplicht",
+        "nameMax": "Naam mag maximaal 200 tekens zijn",
+        "typeRequired": "Type is verplicht",
+        "websiteMax": "Website mag maximaal 500 tekens zijn",
+        "websiteInvalid": "Vul een webadres in dat begint met http:// of https://",
+        "sectorMax": "Sector mag maximaal 100 tekens zijn",
+        "registrationNumberMax": "KvK-nummer mag maximaal 50 tekens zijn",
+        "vatNumberMax": "Btw-nummer mag maximaal 50 tekens zijn",
+        "streetMax": "Straat mag maximaal 200 tekens zijn",
+        "postalCodeMax": "Postcode mag maximaal 20 tekens zijn",
+        "cityMax": "Plaats mag maximaal 100 tekens zijn",
+        "expectedValueNegative": "Verwachte waarde mag niet negatief zijn",
+        "expectedValueTooLarge": "Verwachte waarde moet onder 10.000.000.000 liggen",
+        "expectedValueDecimals": "Verwachte waarde mag maximaal twee decimalen hebben",
+        "notesMax": "Notities mogen maximaal 10.000 tekens zijn"
+      },
+      "event": "Evenement",
+      "eventPlaceholder": "Kies een evenement",
+      "eventsLoadError": "De evenementen konden niet worden geladen."
+    },
+    "newPage": {
+      "title": "Nieuwe relatie",
+      "subtitle": "Voeg een bedrijf toe waarmee je organisatie zaken doet.",
+      "back": "Terug naar relaties"
+    },
+    "detail": {
+      "title": "Relatie",
+      "back": "Terug naar relaties",
+      "backTo": {
+        "leads": "Terug naar leads",
+        "customers": "Terug naar klanten",
+        "suppliers": "Terug naar leveranciers"
+      },
+      "details": "Gegevens",
+      "timestamps": "Aangemaakt {created} · Bijgewerkt {updated}",
+      "loading": "De relatie wordt geladen",
+      "loadError": "De relatie kon niet worden geladen.",
+      "notFoundTitle": "Relatie niet gevonden",
+      "notFoundDescription": "Deze relatie bestaat niet, of hoort bij een andere organisatie.",
+      "delete": "Relatie verwijderen",
+      "deleting": "Verwijderen...",
+      "deleteTitle": "Relatie verwijderen",
+      "deleteConfirm": "{name} met de contactpersonen verwijderen? Dit kan niet ongedaan worden gemaakt.",
+      "cancel": "Annuleren",
+      "event": "Evenement: {name}",
+      "eventUnnamed": "Evenement"
+    },
+    "notesCard": {
+      "title": "Notities",
+      "empty": "Nog geen notities."
+    },
+    "toast": {
+      "created": "Relatie aangemaakt",
+      "updated": "Relatie opgeslagen",
+      "deleted": "Relatie verwijderd",
+      "saveError": "De relatie kon niet worden opgeslagen",
+      "deleteError": "De relatie kon niet worden verwijderd",
+      "typeChangeError": "Het type kon niet worden gewijzigd",
+      "moveError": "De lead kon niet worden verplaatst; hij staat weer in zijn kolom"
+    },
+    "errors": {
+      "notFound": "Deze relatie bestaat niet meer.",
+      "icpNotFound": "Dit ICP bestaat niet meer.",
+      "ownerNotMember": "De eigenaar moet een actief lid van de organisatie zijn.",
+      "ownerWithoutOtakAccess": "Dit lid heeft geen toegang tot Otak en kan daarom geen eigenaar van een relatie zijn. Een eigenaar of beheerder kan Otak toekennen in Admin.",
+      "forbidden": "Je hebt geen toestemming om dit te doen.",
+      "validation": "Controleer de gemarkeerde velden.",
+      "notLead": "Alleen de fase van een lead kan worden ingesteld.",
+      "typeUnchanged": "De relatie heeft dit type al.",
+      "stageNotForType": "Deze fase hoort niet bij het type van de relatie.",
+      "loadHint": "Controleer je verbinding en probeer het opnieuw.",
+      "eventNotFound": "Dit evenement bestaat niet meer."
+    },
+    "battlefield": {
+      "title": "Battlefield",
+      "subtitle": "Waar elke lead en klant staat. Sleep een lead of kies de fase om hem te verplaatsen.",
+      "newLead": "Nieuwe lead",
+      "loading": "Het Battlefield wordt geladen",
+      "loadError": "Het Battlefield kon niet worden geladen.",
+      "reloadError": "Het Battlefield kon niet worden ververst; het is mogelijk niet actueel.",
+      "empty": "Voeg een lead toe om hem hier te zien.",
+      "emptyColumn": "Niets hier",
+      "columnCount": "{count, plural, one {# relatie} other {# relaties}}",
+      "columnTotal": "Verwachte waarde {value}",
+      "capped": "Het Battlefield toont de eerste {max} relaties.",
+      "stageOf": "Fase van {name}",
+      "moved": "{name} is verplaatst naar {stage}.",
+      "emptyTitle": "Nog geen leads of klanten",
+      "closedHint": "Sleep een lead hierheen als hij gewonnen is. Hij wordt een klant.",
+      "closeOption": "Gesloten (gewonnen): wordt een klant",
+      "closedAsCustomer": "{name} is nu een klant (fase Gesloten (gewonnen)). Het is geen lead meer.",
+      "dropRefused": {
+        "directNotForLead": "Direct is voor klanten die nooit een lead waren. Sleep {name} naar Gesloten (gewonnen) om er een klant van te maken.",
+        "notLead": "{name} is een klant; Otak bepaalt de fase."
+      }
+    },
+    "typeChange": {
+      "markAsCustomer": "Markeren als klant",
+      "done": {
+        "leadToCustomer": "{name} is nu een klant (fase Gesloten (gewonnen)). Het is geen lead meer.",
+        "toLead": "{name} is weer een lead en begint opnieuw in fase Nieuw.",
+        "toCustomer": "{name} is nu een klant (fase Direct).",
+        "toSupplier": "{name} is nu een leverancier. De fase is gewist."
+      }
+    },
+    "tableLabel": "Relaties",
+    "pagination": {
+      "label": "Pagina's",
+      "previous": "Vorige",
+      "next": "Volgende",
+      "summary": "Pagina {page} van {pages} · {total, plural, one {# relatie} other {# relaties}}"
+    },
+    "loading": "Relaties laden",
+    "noMainContact": "Geen contactpersoon",
+    "noContactMail": "Geen contactmail",
+    "noCompanyMail": "Geen bedrijfsmail",
+    "attachments": {
+      "title": "Bijlagen"
+    }
+  },
+  "contacts": {
+    "title": "Contactpersonen",
+    "new": "Contactpersoon toevoegen",
+    "newTitle": "Nieuwe contactpersoon",
+    "editTitle": "Contactpersoon bewerken",
+    "dialogDescription": "Iemand met wie je bij deze relatie praat.",
+    "loadError": "De contactpersonen konden niet worden geladen.",
+    "empty": "Nog geen contactpersonen.",
+    "decisionMaker": "Beslisser",
+    "linkedinOpen": "LinkedIn",
+    "emailTypes": {
+      "COMPANY": "Zakelijk",
+      "SHARED": "Gedeeld",
+      "PERSONAL": "Privé"
+    },
+    "edit": "{name} bewerken",
+    "delete": "{name} verwijderen",
+    "deleteTitle": "Contactpersoon verwijderen",
+    "deleteConfirm": "{name} verwijderen? Dit kan niet ongedaan worden gemaakt.",
+    "deleteAction": "Verwijderen",
+    "columns": {
+      "name": "Naam",
+      "role": "Functie",
+      "email": "E-mail",
+      "phone": "Telefoon",
+      "linkedin": "LinkedIn",
+      "actions": "Acties"
+    },
+    "form": {
+      "name": "Naam",
+      "role": "Functie",
+      "rolePlaceholder": "Zoals CEO of inkoop",
+      "email": "E-mail",
+      "emailType": "Soort e-mail",
+      "emailTypePlaceholder": "Niet ingesteld",
+      "emailTypeNeedsEmail": "Vul eerst een e-mailadres in",
+      "phone": "Telefoon",
+      "linkedinUrl": "LinkedIn-URL",
+      "linkedinUrlPlaceholder": "https://www.linkedin.com/in/...",
+      "decisionMaker": "Beslisser",
+      "decisionMakerDescription": "Deze persoon beslist over een aankoop.",
+      "create": "Contactpersoon toevoegen",
+      "save": "Wijzigingen opslaan",
+      "saving": "Opslaan...",
+      "cancel": "Annuleren",
+      "errors": {
+        "nameRequired": "Naam is verplicht",
+        "nameMax": "Naam mag maximaal 200 tekens zijn",
+        "roleMax": "Functie mag maximaal 100 tekens zijn",
+        "emailMax": "E-mail mag maximaal 254 tekens zijn",
+        "emailInvalid": "Voer een geldig e-mailadres in",
+        "phoneMax": "Telefoon mag maximaal 50 tekens zijn",
+        "linkedinUrlMax": "LinkedIn-URL mag maximaal 500 tekens zijn",
+        "linkedinUrlInvalid": "Voer een webadres in dat begint met http:// of https://"
+      },
+      "kind": "Soort"
+    },
+    "toast": {
+      "created": "Contactpersoon toegevoegd",
+      "updated": "Contactpersoon opgeslagen",
+      "deleted": "Contactpersoon verwijderd",
+      "saveError": "De contactpersoon kon niet worden opgeslagen",
+      "deleteError": "De contactpersoon kon niet worden verwijderd"
+    },
+    "errors": {
+      "relationNotFound": "Deze relatie bestaat niet meer.",
+      "notFound": "Deze contactpersoon bestaat niet meer.",
+      "emailTypeWithoutEmail": "Een soort e-mail vraagt om een e-mailadres.",
+      "forbidden": "Je hebt geen toestemming om dit te doen.",
+      "validation": "Controleer de gemarkeerde velden.",
+      "loadHint": "Controleer je verbinding en probeer het opnieuw.",
+      "mainFlagNotForKind": "Een contactpersoon kan alleen hoofdcontact van zijn eigen soort zijn."
+    },
+    "tableLabel": "Contactpersonen",
+    "loading": "Contactpersonen laden",
+    "mainContact": "Hoofdcontact",
+    "makeMain": "Hoofdcontact maken",
+    "makeMainNamed": "{name} hoofdcontact maken",
+    "kinds": {
+      "PERSON": "Persoon",
+      "BUSINESS": "Bedrijf"
+    },
+    "business": "Bedrijf",
+    "mainBusinessContact": "Hoofdcontact bedrijf",
+    "makeMainBusiness": "Hoofdcontact bedrijf maken",
+    "makeMainBusinessNamed": "{name} hoofdcontact bedrijf maken"
+  },
+  "icps": {
+    "title": "ICP's",
+    "subtitle": "Ideale klantprofielen: de bedrijven die de organisatie wil winnen.",
+    "new": "Nieuw ICP",
+    "newTitle": "Nieuw ICP",
+    "editTitle": "ICP bewerken",
+    "dialogDescription": "Beschrijf een soort bedrijf om op te richten. Leads kunnen eraan worden gekoppeld.",
+    "loadError": "De ICP's konden niet worden geladen.",
+    "reloadError": "De ICP's konden niet worden vernieuwd; deze lijst is mogelijk verouderd.",
+    "loadOneError": "Het ICP kon niet worden geladen.",
+    "loading": "De ICP's worden geladen",
+    "loadingOne": "Het ICP wordt geladen",
+    "empty": "Nog geen ICP's",
+    "emptyHint": "Beschrijf de bedrijven die je wilt winnen en koppel er leads aan.",
+    "emptyFiltered": "Geen ICP's gevonden voor deze zoekopdracht",
+    "emptyFilteredHint": "Probeer een andere naam of wis de zoekopdracht.",
+    "tableLabel": "ICP's",
+    "anyCountry": "Alle",
+    "noRole": "Geen doelrol",
+    "edit": "{name} bewerken",
+    "delete": "{name} verwijderen",
+    "deleteTitle": "ICP verwijderen",
+    "deleteConfirm": "{name} verwijderen? Gekoppelde relaties blijven bestaan en verliezen de koppeling. Dit kan niet ongedaan worden gemaakt.",
+    "deleteAction": "Verwijderen",
+    "sizeRange": {
+      "between": "{min} tot {max} medewerkers",
+      "from": "{min} medewerkers of meer",
+      "upTo": "Tot {max} medewerkers",
+      "any": "Elke grootte"
+    },
+    "columns": {
+      "name": "Naam",
+      "industry": "Branche",
+      "country": "Land",
+      "size": "Bedrijfsgrootte",
+      "targetPersonRole": "Doelrol",
+      "updatedAt": "Bijgewerkt",
+      "actions": "Acties"
+    },
+    "filters": {
+      "searchLabel": "Zoeken",
+      "searchPlaceholder": "Zoeken op naam",
+      "clear": "Zoekopdracht wissen"
+    },
+    "pagination": {
+      "label": "Pagina's",
+      "previous": "Vorige",
+      "next": "Volgende",
+      "summary": "Pagina {page} van {pages} · {total, plural, one {# ICP} other {# ICP's}}"
+    },
+    "form": {
+      "name": "Naam",
+      "namePlaceholder": "Bijvoorbeeld Nederlandse MSP's",
+      "industry": "Branche",
+      "industryPlaceholder": "Kies een branche",
+      "country": "Land",
+      "countryPlaceholder": "Elk land",
+      "countrySearch": "Landen zoeken",
+      "companySizeMin": "Minimale bedrijfsgrootte",
+      "companySizeMax": "Maximale bedrijfsgrootte",
+      "companySizePlaceholder": "Geen grens",
+      "targetPersonRole": "Doelrol",
+      "targetPersonRolePlaceholder": "Kies een rol",
+      "description": "Omschrijving",
+      "descriptionPlaceholder": "Wat deze bedrijven gemeen hebben en waarom ze ons nodig hebben",
+      "create": "ICP aanmaken",
+      "save": "Wijzigingen opslaan",
+      "saving": "Opslaan...",
+      "cancel": "Annuleren",
+      "errors": {
+        "nameRequired": "Naam is verplicht",
+        "nameMax": "Naam mag maximaal 100 tekens zijn",
+        "industryRequired": "Branche is verplicht",
+        "descriptionMax": "Omschrijving mag maximaal 10.000 tekens zijn",
+        "sizeRange": "De maximale grootte mag niet onder de minimale grootte liggen"
+      }
+    },
+    "toast": {
+      "created": "ICP aangemaakt",
+      "updated": "ICP opgeslagen",
+      "deleted": "ICP verwijderd",
+      "saveError": "Het ICP kon niet worden opgeslagen",
+      "deleteError": "Het ICP kon niet worden verwijderd"
+    },
+    "errors": {
+      "notFound": "Dit ICP bestaat niet meer.",
+      "nameTaken": "De organisatie heeft al een ICP met deze naam.",
+      "sizeRange": "De minimale bedrijfsgrootte mag niet boven de maximale liggen.",
+      "forbidden": "Je hebt geen toestemming om dit te doen.",
+      "validation": "Controleer de gemarkeerde velden.",
+      "loadHint": "Controleer je verbinding en probeer het opnieuw."
+    },
+    "industries": {
+      "SOFTWARE": "Software",
+      "IT_SERVICES": "IT-diensten",
+      "TELECOM": "Telecom",
+      "FINANCE": "Financiën",
+      "INSURANCE": "Verzekeringen",
+      "HEALTHCARE": "Zorg",
+      "MANUFACTURING": "Productie",
+      "LOGISTICS": "Logistiek",
+      "RETAIL": "Retail",
+      "ECOMMERCE": "E-commerce",
+      "ENERGY": "Energie",
+      "CONSTRUCTION": "Bouw",
+      "REAL_ESTATE": "Vastgoed",
+      "LEGAL": "Juridisch",
+      "ACCOUNTING": "Accountancy",
+      "EDUCATION": "Onderwijs",
+      "GOVERNMENT": "Overheid",
+      "NON_PROFIT": "Non-profit",
+      "HOSPITALITY": "Horeca",
+      "MEDIA": "Media",
+      "AUTOMOTIVE": "Automotive",
+      "AGRICULTURE": "Landbouw",
+      "DEFENSE": "Defensie",
+      "OTHER": "Overig"
+    },
+    "roles": {
+      "OWNER": "Eigenaar",
+      "CEO": "CEO",
+      "CTO": "CTO",
+      "CIO": "CIO",
+      "CISO": "CISO",
+      "IT_MANAGER": "IT-manager",
+      "OPERATIONS": "Operations",
+      "FINANCE": "Financiën",
+      "OTHER": "Overig"
+    },
+    "sizeBands": {
+      "SIZE_1_10": "1-10",
+      "SIZE_11_50": "11-50",
+      "SIZE_51_200": "51-200",
+      "SIZE_201_500": "201-500",
+      "SIZE_501_1000": "501-1.000",
+      "SIZE_1001_5000": "1.001-5.000",
+      "SIZE_5001_PLUS": "5.001+"
+    }
+  },
+  "documentTemplates": {
+    "title": "Sjablonen",
+    "subtitle": "Goedgekeurde documenten die elke benadering kan meesturen, elk een HTML-bestand met de pdf die ervan is gemaakt.",
+    "new": "Nieuw sjabloon",
+    "newTitle": "Nieuw sjabloon",
+    "editTitle": "Sjabloon bewerken",
+    "dialogDescription": "Een documentsjabloon is een HTML-bestand met de pdf die ervan is gemaakt.",
+    "loadError": "De sjablonen konden niet worden geladen.",
+    "reloadError": "De sjablonen konden niet worden vernieuwd; deze lijst is mogelijk niet actueel.",
+    "loadOneError": "Het sjabloon kon niet worden geladen.",
+    "loading": "De sjablonen worden geladen",
+    "loadingOne": "Het sjabloon wordt geladen",
+    "empty": "Nog geen sjablonen",
+    "emptyHint": "Voeg een document één keer toe en gebruik het voor elke lead.",
+    "emptyHintMember": "Een beheerder van de organisatie voegt de sjablonen toe.",
+    "emptyFiltered": "Geen sjablonen voor deze filters",
+    "emptyFilteredHint": "Probeer een andere naam, type of taal, of wis de filters.",
+    "tableLabel": "Sjablonen",
+    "preview": "Voorbeeld van {name}",
+    "edit": "{name} bewerken",
+    "delete": "{name} verwijderen",
+    "deleteTitle": "Sjabloon verwijderen",
+    "deleteConfirm": "{name} verwijderen? Bijlagen die ervan gekopieerd zijn blijven zoals ze zijn. Dit kan niet ongedaan worden gemaakt.",
+    "deleteAction": "Verwijderen",
+    "previewTitle": "Sjabloon",
+    "previewDescription": "Het sjabloon wordt geladen",
+    "previewNoFiles": "Dit sjabloon heeft nog geen bestanden. Een beheerder uploadt het HTML- en PDF-bestand.",
+    "previewFrameTitle": "PDF van {name}",
+    "openPdf": "De PDF openen in een nieuw tabblad",
+    "types": {
+      "PROPOSAL": "Offerte",
+      "NDA": "Geheimhoudingsverklaring",
+      "TERMS": "Voorwaarden",
+      "REPORT": "Rapport",
+      "SERVICE_SHEET": "Dienstenblad",
+      "PRESENTATION": "Presentatie",
+      "OTHER": "Overig"
+    },
+    "languages": {
+      "NL": "Nederlands",
+      "TR": "Turks",
+      "EN": "Engels"
+    },
+    "ready": {
+      "yes": "Klaar",
+      "no": "Bestanden nodig"
+    },
+    "updated": {
+      "today": "Vandaag",
+      "yesterday": "Gisteren"
+    },
+    "columns": {
+      "name": "Naam",
+      "type": "Type",
+      "language": "Taal",
+      "ready": "Status",
+      "updatedAt": "Bijgewerkt",
+      "actions": "Acties"
+    },
+    "filters": {
+      "searchLabel": "Zoeken",
+      "searchPlaceholder": "Zoeken op naam",
+      "typeLabel": "Type",
+      "typeAll": "Alle typen",
+      "languageLabel": "Taal",
+      "languageAll": "Alle talen",
+      "clear": "Filters wissen"
+    },
+    "pagination": {
+      "label": "Pagina's",
+      "previous": "Vorige",
+      "next": "Volgende",
+      "summary": "Pagina {page} van {pages} · {total, plural, one {# sjabloon} other {# sjablonen}}"
+    },
+    "form": {
+      "type": "Type",
+      "language": "Taal",
+      "name": "Naam",
+      "namePlaceholder": "Bijvoorbeeld Eerste contact",
+      "filesHint": "Upload het HTML-bestand en de PDF die ervan is gemaakt, samen. Zonder bestanden wordt het sjabloon opgeslagen maar is het nog niet bruikbaar.",
+      "filesReplaceHint": "De opgeslagen bestanden blijven, tenzij je samen een nieuw HTML-bestand en een nieuwe PDF kiest.",
+      "htmlFile": "HTML-bestand",
+      "pdfFile": "PDF-bestand",
+      "openCurrentPdf": "De huidige PDF openen",
+      "create": "Sjabloon aanmaken",
+      "save": "Wijzigingen opslaan",
+      "saving": "Opslaan...",
+      "cancel": "Annuleren",
+      "errors": {
+        "nameRequired": "Naam is verplicht",
+        "nameMax": "Naam mag maximaal 100 tekens bevatten",
+        "htmlFileType": "Kies een .html-bestand",
+        "pdfFileType": "Kies een .pdf-bestand",
+        "htmlFileRequired": "Kies ook het HTML-bestand; beide bestanden worden samen geüpload",
+        "pdfFileRequired": "Kies ook het PDF-bestand; beide bestanden worden samen geüpload",
+        "filesTooLarge": "De twee bestanden samen mogen maximaal 12 MB zijn"
+      }
+    },
+    "toast": {
+      "created": "Sjabloon aangemaakt",
+      "updated": "Sjabloon opgeslagen",
+      "filesUploaded": "Bestanden geüpload",
+      "deleted": "Sjabloon verwijderd",
+      "saveError": "Het sjabloon kon niet worden opgeslagen",
+      "uploadError": "De bestanden konden niet worden geüpload",
+      "deleteError": "Het sjabloon kon niet worden verwijderd"
+    },
+    "errors": {
+      "notFound": "Dit sjabloon bestaat niet meer.",
+      "nameTaken": "De organisatie heeft al een sjabloon met deze naam in deze taal.",
+      "fileNotHtmlOrPdf": "Het bestand is niet het HTML- of PDF-bestand dat het moet zijn.",
+      "uploadFailed": "De bestanden konden niet worden opgeslagen. Probeer het later opnieuw.",
+      "forbidden": "Je hebt geen toestemming om dit te doen.",
+      "validation": "Controleer de gemarkeerde velden.",
+      "loadHint": "Controleer je verbinding en probeer het opnieuw."
+    },
+    "tabsLabel": "Onderdelen van sjablonen",
+    "tabs": {
+      "documents": "Documenten",
+      "mail": "Mail"
+    },
+    "attach": {
+      "button": "Toevoegen uit sjabloon",
+      "title": "Toevoegen uit sjabloon",
+      "description": "Kies een documentsjabloon; een kopie van de pdf wordt hier bijgevoegd. Latere wijzigingen aan het sjabloon laten de kopie zoals ze is.",
+      "pick": "Documentsjabloon",
+      "empty": "Nog geen documentsjablonen. Voeg ze toe op de pagina Sjablonen.",
+      "add": "Toevoegen",
+      "adding": "Toevoegen...",
+      "cancel": "Annuleren",
+      "toast": {
+        "added": "Bijlage toegevoegd",
+        "addError": "De bijlage kon niet worden toegevoegd"
+      },
+      "errors": {
+        "mailNotFound": "Deze mail bestaat niet meer.",
+        "relationNotFound": "Deze relatie bestaat niet meer.",
+        "notUsable": "Dit documentsjabloon kan hier niet worden gebruikt: de pdf ontbreekt nog.",
+        "mailSent": "Deze mail is verstuurd of wordt verstuurd; de bijlagen kunnen niet meer veranderen.",
+        "duplicate": "Deze pdf is hier al bijgevoegd."
+      }
+    }
+  },
+  "mailTemplates": {
+    "title": "Mailsjablonen",
+    "subtitle": "Goedgekeurde mails waar elke mailbenadering mee kan beginnen.",
+    "new": "Nieuw mailsjabloon",
+    "newTitle": "Nieuw mailsjabloon",
+    "editTitle": "Mailsjabloon bewerken",
+    "dialogDescription": "Een onderwerp en een platte tekst. Een benadering kopieert het, dus latere wijzigingen veranderen al voorbereide mails niet.",
+    "loadError": "De mailsjablonen konden niet worden geladen.",
+    "reloadError": "De mailsjablonen konden niet worden vernieuwd; deze lijst is mogelijk verouderd.",
+    "loadOneError": "Het mailsjabloon kon niet worden geladen.",
+    "loading": "De mailsjablonen worden geladen",
+    "loadingOne": "Het mailsjabloon wordt geladen",
+    "empty": "Nog geen mailsjablonen",
+    "emptyHint": "Schrijf een mail één keer en begin er elke mailbenadering mee.",
+    "emptyHintMember": "Een beheerder van de organisatie voegt de mailsjablonen toe.",
+    "emptyFiltered": "Geen mailsjablonen voor deze filters",
+    "emptyFilteredHint": "Probeer een andere naam of taal, of wis de filters.",
+    "tableLabel": "Mailsjablonen",
+    "preview": "{name} bekijken",
+    "edit": "{name} bewerken",
+    "delete": "{name} verwijderen",
+    "deleteTitle": "Mailsjabloon verwijderen",
+    "deleteConfirm": "{name} verwijderen? Mails die ervan zijn gekopieerd behouden hun tekst. Dit kan niet ongedaan worden gemaakt.",
+    "deleteAction": "Verwijderen",
+    "previewTitle": "Mailsjabloon",
+    "columns": {
+      "name": "Naam",
+      "subject": "Onderwerp",
+      "language": "Taal",
+      "updatedAt": "Bijgewerkt",
+      "actions": "Acties"
+    },
+    "filters": {
+      "searchLabel": "Zoeken",
+      "searchPlaceholder": "Zoeken op naam",
+      "languageLabel": "Taal",
+      "languageAll": "Alle talen",
+      "clear": "Filters wissen"
+    },
+    "pagination": {
+      "label": "Pagina's",
+      "previous": "Vorige",
+      "next": "Volgende",
+      "summary": "Pagina {page} van {pages} · {total, plural, one {# mailsjabloon} other {# mailsjablonen}}"
+    },
+    "form": {
+      "name": "Naam",
+      "namePlaceholder": "Zoals Eerste contact",
+      "language": "Taal",
+      "subject": "Onderwerp",
+      "subjectPlaceholder": "De onderwerpregel van de mail",
+      "body": "Tekst",
+      "bodyPlaceholder": "De tekst van de mail",
+      "create": "Mailsjabloon aanmaken",
+      "save": "Wijzigingen opslaan",
+      "saving": "Opslaan...",
+      "cancel": "Annuleren",
+      "errors": {
+        "nameRequired": "Naam is verplicht",
+        "nameMax": "Naam mag maximaal 100 tekens zijn",
+        "subjectRequired": "Onderwerp is verplicht",
+        "subjectMax": "Onderwerp mag maximaal 255 tekens zijn",
+        "bodyRequired": "Tekst is verplicht",
+        "bodyMax": "Tekst mag maximaal 10.000 tekens zijn"
+      }
+    },
+    "toast": {
+      "created": "Mailsjabloon aangemaakt",
+      "updated": "Mailsjabloon opgeslagen",
+      "deleted": "Mailsjabloon verwijderd",
+      "saveError": "Het mailsjabloon kon niet worden opgeslagen",
+      "deleteError": "Het mailsjabloon kon niet worden verwijderd"
+    },
+    "errors": {
+      "notFound": "Dit mailsjabloon bestaat niet meer.",
+      "nameTaken": "De organisatie heeft al een mailsjabloon met deze naam in deze taal.",
+      "forbidden": "Je hebt geen toestemming om dit te doen.",
+      "validation": "Controleer de gemarkeerde velden.",
+      "loadHint": "Controleer je verbinding en probeer het opnieuw."
+    }
+  },
+  "outreaches": {
+    "title": "Outreaches",
+    "subtitle": "Elke benadering van contactpersonen van leads, per mail, WhatsApp of telefoon: wat is voorbereid, wat is verstuurd of gedaan, en vanuit welke mailbox.",
+    "tabsLabel": "Onderdelen van outreach",
+    "tabs": {
+      "outreaches": "Outreaches",
+      "senders": "Afzenders"
+    },
+    "cardTitle": "Outreaches",
+    "cardEmpty": "Nog geen outreaches. Gebruik Benaderen bij een lead om er een voor te bereiden.",
+    "cardEmptyMember": "Nog geen outreaches. Een beheerder van de organisatie bereidt ze voor.",
+    "editTitle": "Outreach bewerken",
+    "editDescription": "Wijzig de contactpersoon of de titel, en bij een mail de tekst of de bijlagen, voordat de benadering is verstuurd of gedaan.",
+    "viewTitle": "Outreach",
+    "viewDescription": "Het kanaal, aan wie en wanneer, en bij een mail de mailbox, de tekst en de bijlagen.",
+    "loadError": "De outreaches konden niet worden geladen.",
+    "reloadError": "De outreaches konden niet worden ververst; deze lijst is mogelijk niet actueel.",
+    "loadOneError": "De outreach kon niet worden geladen.",
+    "loading": "Outreaches laden",
+    "loadingOne": "Outreach laden",
+    "empty": "Nog geen outreaches",
+    "emptyHint": "Open een lead en gebruik Benaderen om een mail, een WhatsApp-bericht of een gesprek met een van de contactpersonen voor te bereiden.",
+    "emptyHintMember": "Een beheerder van de organisatie bereidt de outreaches voor bij de leads.",
+    "emptyFiltered": "Geen outreaches met deze status",
+    "emptyFilteredHint": "Kies een andere status of wis het filter.",
+    "goToLeads": "Naar relaties",
+    "mailTemplates": "Mailsjablonen",
+    "tableLabel": "Outreaches",
+    "view": "{title} bekijken",
+    "edit": "{title} bewerken",
+    "send": "{title} versturen",
+    "delete": "{title} verwijderen",
+    "deleteTitle": "Outreach verwijderen",
+    "deleteConfirm": "{title} met de mail en de bijlagen van de mail verwijderen? Dit kan niet ongedaan worden gemaakt.",
+    "deleteAction": "Verwijderen",
+    "openLead": "Lead openen",
+    "contactDeleted": "Verwijderde contactpersoon",
+    "notSent": "Niet verstuurd",
+    "noSender": "Geen",
+    "statuses": {
+      "DRAFT": "Concept",
+      "SENT": "Verstuurd",
+      "FAILED": "Mislukt"
+    },
+    "types": {
+      "MAIL": "Mail",
+      "WHATSAPP": "WhatsApp",
+      "CALL": "Gesprek"
+    },
+    "columns": {
+      "title": "Titel",
+      "lead": "Lead",
+      "contact": "Contactpersoon",
+      "status": "Status",
+      "sentAt": "Verstuurd op",
+      "sender": "Afzender",
+      "updatedAt": "Bijgewerkt",
+      "actions": "Acties",
+      "type": "Kanaal"
+    },
+    "details": {
+      "sentTo": "Verstuurd naar"
+    },
+    "filters": {
+      "statusLabel": "Status",
+      "statusAll": "Alle statussen",
+      "clear": "Filter wissen"
+    },
+    "pagination": {
+      "label": "Pagina's",
+      "previous": "Vorige",
+      "next": "Volgende",
+      "summary": "Pagina {page} van {pages} · {total, plural, one {# outreach} other {# outreaches}}"
+    },
+    "form": {
+      "title": "Titel",
+      "titlePlaceholder": "Bijvoorbeeld Intro security check",
+      "contact": "Contactpersoon",
+      "contactsLoadError": "De contactpersonen konden niet worden geladen, dus alleen de huidige contactpersoon kan worden gekozen.",
+      "language": "Taal",
+      "subject": "Onderwerp",
+      "subjectPlaceholder": "De onderwerpregel van de mail",
+      "body": "Tekst",
+      "bodyPlaceholder": "De tekst van de mail",
+      "save": "Wijzigingen opslaan",
+      "saving": "Opslaan...",
+      "cancel": "Annuleren",
+      "errors": {
+        "titleRequired": "Titel is verplicht",
+        "titleMax": "Titel mag maximaal 200 tekens zijn",
+        "contactRequired": "Kies een contactpersoon",
+        "subjectRequired": "Onderwerp is verplicht",
+        "subjectMax": "Onderwerp mag maximaal 255 tekens zijn",
+        "bodyRequired": "Tekst is verplicht",
+        "bodyMax": "Tekst mag maximaal 10.000 tekens zijn"
+      }
+    },
+    "attachments": {
+      "templatesLegend": "Bijvoegen uit sjablonen",
+      "templatesHint": "Optioneel. Elk gekozen documentsjabloon gaat mee als kopie van de pdf; samen met de bestanden hieronder maximaal 3 MB.",
+      "noTemplates": "Nog geen documentsjablonen met hun bestanden. Voeg ze toe op de pagina Sjablonen.",
+      "filesLegend": "Bestanden bijvoegen"
+    },
+    "toast": {
+      "created": "Outreach opgeslagen als concept",
+      "updated": "Outreach opgeslagen",
+      "deleted": "Outreach verwijderd",
+      "sent": "Outreach verstuurd",
+      "saveError": "De outreach kon niet worden opgeslagen",
+      "deleteError": "De outreach kon niet worden verwijderd",
+      "sendError": "De outreach kon niet worden verstuurd",
+      "completed": "Benadering als gedaan gemarkeerd",
+      "completeError": "De benadering kon niet als gedaan worden gemarkeerd",
+      "attachmentsUploadError": "De benadering is opgeslagen, maar de bijlagen konden niet worden geüpload. Voeg ze toe bij de benadering."
+    },
+    "errors": {
+      "relationNotFound": "Deze relatie bestaat niet meer.",
+      "contactNotFound": "Deze contactpersoon hoort niet meer bij de lead. Kies een andere contactpersoon.",
+      "notFound": "Deze outreach bestaat niet meer.",
+      "senderNotFound": "Deze afzender bestaat niet meer. Kies een andere.",
+      "templateNotFound": "Dit mailsjabloon bestaat niet meer.",
+      "notEditable": "Deze outreach is verstuurd of wordt verstuurd en kan niet meer veranderen.",
+      "sharedMailboxNotFound": "De gedeelde mailbox van deze afzender staat niet meer in de Microsoft 365-tenant.",
+      "contactWithoutAddress": "De contactpersoon heeft geen mailadres. Voeg er een toe in de kaart Contactpersonen.",
+      "attachmentsTooLarge": "De bijlagen zijn samen groter dan 3 MB. Verwijder een bijlage.",
+      "sendFailed": "Microsoft 365 heeft de mail niet verstuurd.",
+      "storageFailed": "De bijlagen konden niet uit de opslag worden gelezen. Probeer het later opnieuw.",
+      "forbidden": "Je hebt geen toestemming om dit te doen.",
+      "validation": "Controleer de gemarkeerde velden.",
+      "loadHint": "Controleer je verbinding en probeer het opnieuw.",
+      "actionNotForType": "Deze actie past niet bij het kanaal van de benadering.",
+      "contactWithoutPhone": "De contactpersoon heeft geen telefoonnummer. Voeg er een toe in de kaart Contactpersonen.",
+      "documentTemplateNotFound": "Een van de documentsjablonen bestaat niet meer.",
+      "documentTemplateNotUsable": "Een van de documentsjablonen kan niet worden bijgevoegd: de pdf ontbreekt nog.",
+      "attachmentDuplicate": "Dit bestand is hier al bijgevoegd."
+    },
+    "sendDialog": {
+      "title": "{title} versturen",
+      "description": "De mail gaat naar het huidige adres van {name}, met de bijlagen.",
+      "descriptionNoContact": "De contactpersoon van deze outreach is verwijderd. Bewerk de outreach en kies eerst een andere contactpersoon.",
+      "previouslyFailed": "De vorige poging om deze outreach te versturen is mislukt. Je kunt hem opnieuw versturen.",
+      "noSendersTitle": "Nog geen afzenders",
+      "noSendersHint": "Mail gaat uit vanuit een mailbox van de organisatie. Een beheerder voegt er een toe op het tabblad Afzenders.",
+      "goToSenders": "Naar Afzenders",
+      "senderLegend": "Versturen vanuit",
+      "failedTitle": "De mail is niet verstuurd",
+      "refusedTitle": "De outreach kan niet worden verstuurd",
+      "failedHint": "De outreach staat nu op mislukt. Probeer het opnieuw of kies een andere afzender.",
+      "send": "Versturen",
+      "sending": "Versturen..."
+    },
+    "reachOut": {
+      "button": "Benaderen",
+      "title": "{name} benaderen",
+      "description": "Bereid een mail, een WhatsApp-bericht of een gesprek met een contactpersoon voor. Het wordt opgeslagen als concept; een mail wordt later verstuurd, een WhatsApp-bericht of gesprek wordt als gedaan gemarkeerd.",
+      "stepsLabel": "Stappen",
+      "steps": {
+        "contact": "Contactpersoon",
+        "mail": "Mail",
+        "attachments": "Bijlagen",
+        "save": "Opslaan",
+        "channel": "Kanaal"
+      },
+      "contactLegend": "Welke contactpersoon krijgt de mail?",
+      "noContactsTitle": "Geen contactpersoon met een zakelijk e-mailadres",
+      "noContactsHint": "Een mail heeft een contactpersoon met een zakelijk of gedeeld e-mailadres nodig. Voeg er een toe, of vul een adres in bij een contactpersoon, in de kaart Contactpersonen op deze pagina.",
+      "goToContacts": "Naar Contactpersonen",
+      "mailLegend": "Begin met een mailsjabloon of schrijf de mail zelf",
+      "templateSearchPlaceholder": "Zoek mailsjablonen op naam",
+      "fromScratch": "Zelf schrijven",
+      "noTemplates": "Nog geen mailsjablonen. Schrijf de mail zelf, of voeg mailsjablonen toe op de pagina Sjablonen.",
+      "languageHint": "De taal waarin de mail is geschreven.",
+      "templateLanguage": "Taal: {language}, uit het sjabloon.",
+      "titleHint": "Een korte naam waarmee je deze outreach in de lijsten herkent.",
+      "summary": {
+        "contact": "Contactpersoon",
+        "mail": "Mail",
+        "subject": "Onderwerp",
+        "attachments": "Bijlagen",
+        "attachmentCount": "{count, plural, =0 {Geen} one {# bijlage} other {# bijlagen}}",
+        "channel": "Kanaal"
+      },
+      "back": "Terug",
+      "next": "Volgende",
+      "saveDraft": "Concept opslaan",
+      "channelLegend": "Hoe benader je?",
+      "channelHints": {
+        "MAIL": "Verstuurd vanuit een mailbox van de organisatie, met bijlagen.",
+        "WHATSAPP": "Verstuurd buiten Oba; markeer het als gedaan zodra het is verstuurd.",
+        "CALL": "Gevoerd buiten Oba; markeer het als gedaan zodra je hebt gebeld."
+      },
+      "phoneContactLegend": "Welke contactpersoon benader je?",
+      "noPhoneContactsTitle": "Geen contactpersoon met een telefoonnummer",
+      "noPhoneContactsHint": "Een WhatsApp-bericht of gesprek heeft een contactpersoon met een telefoonnummer nodig. Voeg er een toe in de kaart Contactpersonen op deze pagina."
+    },
+    "complete": "{title} als gedaan markeren",
+    "completeTitle": "Als gedaan markeren",
+    "completeConfirm": "{title} als gedaan vastleggen? De {type} telt als nu gedaan, naar het huidige telefoonnummer van de contactpersoon. Daarna kan de benadering niet meer veranderen.",
+    "completeAction": "Als gedaan markeren",
+    "detailTabs": {
+      "label": "Onderdelen van de benadering",
+      "details": "Gegevens",
+      "attachments": "Bijlagen"
+    }
+  },
+  "mailSenders": {
+    "subtitle": "De mailboxen van de Microsoft 365-tenant van je organisatie waaruit zij haar outreach-mail verstuurt.",
+    "new": "Afzender toevoegen",
+    "newTitle": "Afzender toevoegen",
+    "dialogDescription": "Voer het adres in van een mailbox in de Microsoft 365-tenant van je organisatie.",
+    "loadError": "De afzenders konden niet worden geladen.",
+    "reloadError": "De afzenders konden niet worden vernieuwd; deze lijst is mogelijk verouderd.",
+    "loading": "De afzenders worden geladen",
+    "empty": "Nog geen afzenders",
+    "emptyHint": "Voeg een mailbox van de Microsoft 365-tenant van je organisatie toe om outreach-mail uit te versturen.",
+    "emptyHintMember": "Een beheerder van de organisatie voegt de afzenders toe.",
+    "tableLabel": "Afzenders",
+    "delete": "{mailAddress} verwijderen",
+    "deleteTitle": "Afzender verwijderen",
+    "deleteConfirm": "{mailAddress} verwijderen? Er kan dan geen outreach-mail meer uit worden verstuurd.",
+    "deleteAction": "Verwijderen",
+    "types": {
+      "PERSONAL": "Persoonlijk",
+      "SHARED": "Gedeeld"
+    },
+    "columns": {
+      "mailAddress": "Mailadres",
+      "type": "Type",
+      "createdAt": "Toegevoegd",
+      "actions": "Acties"
+    },
+    "form": {
+      "type": "Type",
+      "mailAddress": "Mailadres",
+      "mailAddressPlaceholder": "naam@example.com",
+      "mailAddressHint": "Moet een mailbox zijn in de Microsoft 365-tenant van je organisatie.",
+      "create": "Afzender toevoegen",
+      "saving": "Controleren...",
+      "cancel": "Annuleren",
+      "errors": {
+        "mailAddressRequired": "Mailadres is verplicht",
+        "mailAddressMax": "Mailadres mag maximaal 254 tekens bevatten",
+        "mailAddressInvalid": "Voer een geldig mailadres in"
+      }
+    },
+    "toast": {
+      "created": "Afzender toegevoegd",
+      "deleted": "Afzender verwijderd",
+      "saveError": "De afzender kon niet worden toegevoegd",
+      "deleteError": "De afzender kon niet worden verwijderd"
+    },
+    "errors": {
+      "notFound": "Deze afzender bestaat niet meer.",
+      "mailAddressTaken": "De organisatie heeft al een afzender met dit mailadres.",
+      "accountNotInTenant": "Er is geen account met dit adres in de Microsoft 365-tenant van je organisatie. Controleer de spelling. Is het een gedeelde mailbox, kies dan Gedeeld.",
+      "accountWithoutMailbox": "Dit account bestaat in Microsoft 365 maar heeft geen mailbox, dus Otak kan er niet vanaf versturen. Vraag een beheerder om het een mailbox te geven.",
+      "sharedMailboxNotFound": "Er is geen gedeelde mailbox met dit adres in de Microsoft 365-tenant van je organisatie. Controleer de spelling.",
+      "microsoftUnreachable": "Microsoft 365 is niet bereikbaar. Probeer het later opnieuw.",
+      "forbidden": "Je hebt geen toestemming om dit te doen.",
+      "validation": "Controleer de gemarkeerde velden.",
+      "loadHint": "Controleer je verbinding en probeer het opnieuw."
+    }
+  },
+  "events": {
+    "title": "Evenementen",
+    "subtitle": "Beurzen, conferenties en meetups waar de organisatie bedrijven ontmoet.",
+    "new": "Nieuw evenement",
+    "newTitle": "Nieuw evenement",
+    "editTitle": "Evenement bewerken",
+    "dialogDescription": "Leg een evenement vast waar je bedrijven ontmoet. Relaties kunnen eraan worden gekoppeld.",
+    "loadError": "De evenementen konden niet worden geladen.",
+    "reloadError": "De evenementen konden niet worden vernieuwd; deze lijst is mogelijk verouderd.",
+    "loadOneError": "Het evenement kon niet worden geladen.",
+    "loading": "Evenementen laden",
+    "loadingOne": "Evenement laden",
+    "emptyFiltered": "Geen evenementen gevonden",
+    "emptyFilteredHint": "Probeer een andere naam of wis de zoekopdracht.",
+    "emptyByTab": {
+      "upcoming": "Geen komende evenementen",
+      "past": "Geen afgelopen evenementen"
+    },
+    "emptyHintByTab": {
+      "upcoming": "Voeg de volgende beurs, conferentie of meetup toe waar je heen gaat.",
+      "past": "Evenementen komen hier de dag nadat ze eindigen."
+    },
+    "tableLabel": "Evenementen",
+    "tabsLabel": "Periode",
+    "tabs": {
+      "upcoming": "Komend",
+      "past": "Afgelopen"
+    },
+    "noPlace": "Geen plaats",
+    "noWebsite": "Geen website",
+    "edit": "{name} bewerken",
+    "delete": "{name} verwijderen",
+    "deleteTitle": "Evenement verwijderen",
+    "deleteConfirm": "{name} verwijderen? Gekoppelde relaties blijven bestaan en verliezen de koppeling. Dit kan niet ongedaan worden gemaakt.",
+    "deleteAction": "Verwijderen",
+    "types": {
+      "EXPO": "Beurs",
+      "CONFERENCE": "Conferentie",
+      "MEETUP": "Meetup",
+      "WEBINAR": "Webinar",
+      "OTHER": "Overig"
+    },
+    "columns": {
+      "name": "Naam",
+      "type": "Type",
+      "dates": "Data",
+      "place": "Plaats",
+      "website": "Website",
+      "actions": "Acties"
+    },
+    "filters": {
+      "searchLabel": "Zoeken",
+      "searchPlaceholder": "Zoeken op naam",
+      "clear": "Zoekopdracht wissen"
+    },
+    "pagination": {
+      "label": "Pagina's",
+      "previous": "Vorige",
+      "next": "Volgende",
+      "summary": "Pagina {page} van {pages} · {total, plural, one {# evenement} other {# evenementen}}"
+    },
+    "form": {
+      "name": "Naam",
+      "namePlaceholder": "Bijvoorbeeld IGEF 2026",
+      "type": "Type",
+      "typePlaceholder": "Kies een type",
+      "startDate": "Startdatum",
+      "endDate": "Einddatum",
+      "city": "Plaats",
+      "cityPlaceholder": "Bijvoorbeeld Ankara",
+      "country": "Land",
+      "countryPlaceholder": "Kies een land",
+      "countrySearch": "Landen zoeken",
+      "website": "Website",
+      "websitePlaceholder": "https://example.com",
+      "notes": "Notities",
+      "notesPlaceholder": "Standnummer, wie er ging, wat op te volgen",
+      "create": "Evenement aanmaken",
+      "save": "Wijzigingen opslaan",
+      "saving": "Opslaan...",
+      "cancel": "Annuleren",
+      "errors": {
+        "nameRequired": "Naam is verplicht",
+        "nameMax": "Naam mag maximaal 200 tekens zijn",
+        "typeRequired": "Type is verplicht",
+        "startDateRequired": "Startdatum is verplicht",
+        "dateInvalid": "Voer een geldige datum in",
+        "dateRange": "De einddatum mag niet voor de startdatum liggen",
+        "cityMax": "Plaats mag maximaal 100 tekens zijn",
+        "websiteMax": "Website mag maximaal 500 tekens zijn",
+        "websiteInvalid": "Voer een webadres in dat begint met http:// of https://",
+        "notesMax": "Notities mogen maximaal 10.000 tekens zijn"
+      }
+    },
+    "toast": {
+      "created": "Evenement aangemaakt",
+      "updated": "Evenement opgeslagen",
+      "deleted": "Evenement verwijderd",
+      "saveError": "Het evenement kon niet worden opgeslagen",
+      "deleteError": "Het evenement kon niet worden verwijderd"
+    },
+    "errors": {
+      "notFound": "Dit evenement bestaat niet meer.",
+      "nameTaken": "De organisatie heeft al een evenement met deze naam.",
+      "dateRange": "De einddatum mag niet voor de startdatum liggen.",
+      "periodWithoutToday": "De lijst kon niet bepalen welke evenementen komend zijn. Laad de pagina opnieuw.",
+      "forbidden": "Je hebt geen toestemming om dit te doen.",
+      "validation": "Controleer de gemarkeerde velden.",
+      "loadHint": "Controleer je verbinding en probeer het opnieuw."
+    },
+    "detail": {
+      "title": "Evenement",
+      "back": "Terug naar evenementen",
+      "loading": "Evenement laden",
+      "loadError": "Het evenement kon niet worden geladen.",
+      "notFoundTitle": "Evenement niet gevonden",
+      "notFoundDescription": "Dit evenement bestaat niet, of het hoort bij een andere organisatie.",
+      "timestamps": "Aangemaakt {created} · Bijgewerkt {updated}",
+      "edit": "Evenement bewerken",
+      "delete": "Evenement verwijderen",
+      "deleting": "Verwijderen...",
+      "details": "Gegevens",
+      "dates": "Data",
+      "place": "Plaats",
+      "website": "Website",
+      "notes": "Notities",
+      "noNotes": "Nog geen notities."
+    },
+    "relationsCard": {
+      "title": "Relaties",
+      "loading": "Relaties laden",
+      "loadError": "De relaties konden niet worden geladen.",
+      "empty": "Er zijn nog geen relaties aan dit evenement gekoppeld.",
+      "tableLabel": "Relaties van dit evenement"
+    }
+  }
+}

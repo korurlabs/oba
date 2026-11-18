@@ -1,0 +1,39 @@
+Organization Domain Architecture
+
+Purpose
+The organization domain models multi-tenant ownership and collaboration. Users can belong to multiple organizations and can switch their active organization context.
+
+Key entities
+- Organization: tenant boundary with ownership, status, and descriptive metadata.
+- OrganizationMember: join entity linking users to organizations with role, status, and active context flag.
+
+Core services and methods
+- OrganizationService:
+  - createOrganization: creates a new organization and the owner membership.
+  - updateOrganization: updates organization metadata with role-based authorization.
+  - deleteOrganization: archives the organization.
+  - addMember/removeMember: manages organization membership.
+  - switchOrganization: sets the active organization for the current user.
+- OrganizationQueryService:
+  - getOrganization: retrieves organization details.
+  - listOrganizations: lists organizations for the current user.
+  - listOrganizationMembers: lists members for a given organization; the caller must be an ACTIVE member of it (any role, GUEST up).
+
+Validators and rules
+- OrganizationValidator enforces the existence of organizations and memberships.
+- Role-based access checks are enforced in service methods through OrganizationAccessService.verifyOrganizationAccess: the organization must exist (404) and not be DISABLED (403), the caller must be a member (404 NOT_ORGANIZATION_MEMBER_FOUND) with an ACTIVE membership (403 SEC_MEMBERSHIP_DISABLED) and at least the required role (403 SEC_INSUFFICIENT_PERMISSIONS).
+- Active organization must be an ACTIVE membership.
+
+DTOs and mapping
+- Create/Update requests control organization metadata.
+- Member requests set role at invitation or membership creation.
+- Detail/List responses expose organization snapshots; member responses expose membership role and status.
+
+Relations to other domains
+- Identity provides the user records for membership.
+- Folder/Vault/Password domains attach to an organization for shared ownership.
+- Passfeed uses organization membership to authorize sharing between members.
+
+Notes on behavior
+- Organization deletion is modeled as status transition to ARCHIVED.
+- Active membership is singular per user; switching deactivates previous active membership.

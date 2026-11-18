@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>You Have Been Invited</title>
+    <style>
+        body { font-family: Arial, sans-serif; color: #555555; margin: 0; padding: 20px; background-color: #F5F0E8; }
+        .email-container { max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border-radius: 10px; overflow: hidden; box-shadow: 0 0 10px rgba(0, 0, 0, 0.08); }
+        .email-logo { text-align: center; padding: 24px 24px 0; }
+        .email-header { background: linear-gradient(135deg, #C75775 0%, #D4728A 100%); color: #FFFFFF; padding: 24px 30px; text-align: center; font-size: 22px; font-weight: bold; }
+        .email-body { padding: 30px; font-size: 15px; line-height: 1.6; }
+        .highlight { font-size: 16px; font-weight: bold; margin-top: 20px; display: block; color: #1A1A1A; }
+        .organization-name { color: #C75775; font-weight: bold; }
+        .action-link { color: #C75775; text-decoration: underline; font-weight: bold; }
+        .button { display: inline-block; padding: 12px 24px; margin-top: 10px; background-color: #C75775; color: #FFFFFF; text-decoration: none; border-radius: 6px; font-weight: bold; }
+        .box { margin-top: 14px; background: #F7F7F5; border: 1px solid #E7E7E7; border-radius: 8px; padding: 14px; }
+        .row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #EEEEEE; }
+        .row:last-child { border-bottom: none; }
+        .label { font-weight: bold; color: #444444; }
+        .value { text-align: right; color: #333333; max-width: 60%; }
+        .email-footer { background-color: #1A1A1A; color: #BBBBBB; padding: 20px; text-align: center; font-size: 13px; }
+        .email-footer a { color: #D4728A; text-decoration: none; }
+    </style>
+</head>
+<body>
+<div class="email-container">
+    <div class="email-logo">
+        <img th:src="'data:image/png;base64,' + ${senseyLogoBase64}" alt="Sensey" style="width: 120px;"/>
+    </div>
+
+    <div class="email-header">You Have Been Invited</div>
+
+    <div class="email-body">
+        <p>Dear <span th:text="${contactName}">User</span>,</p>
+
+        <p>You have been invited to join an organization on the Sensey platform. Log in or create an account to accept this invitation.</p>
+
+        <span class="highlight">Organization</span>
+        <div class="box">
+            <div class="row">
+                <div class="label">Organization Name</div>
+                <div class="value organization-name" th:text="${organizationName}"></div>
+            </div>
+        </div>
+
+        <p style="margin-top: 18px;">
+            <a th:href="${link}" class="button">View Invitation</a>
+        </p>
+
+        <p>
+            If the button does not work, use this link:
+            <a th:href="${link}" class="action-link">View Invitation</a>
+        </p>
+    </div>
+
+    <div class="email-footer">
+        <p>The Sensey Team</p>
+        <p><a href="https://sensey.io">sensey.io</a></p>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,249 @@
+{
+  "account": true,
+  "branch": "feature/golden",
+  "description": "Prompt and command arguments cut at 500, command at 300, message at 2000, counted in characters after redaction; the handoff is redacted before the 200000 cut.",
+  "email": "dev@example.com",
+  "queue_edits": [],
+  "queue_files": {},
+  "remote": "git@github.com:senseylabs/village.git",
+  "repo_files": [],
+  "scenarios": [],
+  "session_id": "11111111-aaaa-4bbb-8ccc-000000000008",
+  "ssh_aliases": {},
+  "state_files": {},
+  "steps": [
+    {
+      "at": "2026-10-01T09:00:00Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SessionStart",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000008",
+        "source": "startup",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:01Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "UserPromptSubmit",
+        "permission_mode": "default",
+        "prompt": {
+          "$repeat": "word ",
+          "$times": 40000
+        },
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000008",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:02Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "UserPromptSubmit",
+        "permission_mode": "default",
+        "prompt": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000008",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:03Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "UserPromptSubmit",
+        "permission_mode": "default",
+        "prompt": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000008",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:04Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "UserPromptSubmit",
+        "permission_mode": "default",
+        "prompt": "ééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé漢tail",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000008",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:05Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "UserPromptSubmit",
+        "permission_mode": "default",
+        "prompt": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx😀😀😀😀tail",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000008",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:06Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "UserPromptSubmit",
+        "permission_mode": "default",
+        "prompt": "yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy TOKEN=abcdefghijklmnopqrstuvwxyz0123456789",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000008",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:07Z",
+      "hook": {
+        "command_args": {
+          "$repeat": "z",
+          "$times": 200000
+        },
+        "command_name": "x",
+        "cwd": "{{REPO}}",
+        "hook_event_name": "UserPromptExpansion",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000008",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:08Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000008",
+        "tool_input": {
+          "command": {
+            "$repeat": "c",
+            "$times": 200000
+          }
+        },
+        "tool_name": "Bash",
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:09Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000008",
+        "tool_input": {
+          "command": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd --token=thesecretvalue1234567890"
+        },
+        "tool_name": "Bash",
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:10Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000008",
+        "tool_input": {
+          "command": "ééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé漢漢"
+        },
+        "tool_name": "Bash",
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:11Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "Stop",
+        "last_assistant_message": {
+          "$repeat": "m",
+          "$times": 200000
+        },
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000008",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:12Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "Stop",
+        "last_assistant_message": "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn PASSWORD=thesecretvalue12345 end",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000008",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:13Z",
+      "hook": {
+        "agent_id": "a",
+        "agent_type": "t",
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SubagentStop",
+        "last_assistant_message": "ééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000008",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:14Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000008",
+        "tool_input": {
+          "description": {
+            "$repeat": "q",
+            "$times": 5000
+          },
+          "prompt": "Handoff: handoffs/big/h.md",
+          "subagent_type": "t"
+        },
+        "tool_name": "Agent",
+        "tool_use_id": "toolu_agent",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:20Z",
+      "files": [
+        {
+          "content": {
+            "$concat": [
+              {
+                "$repeat": "x",
+                "$times": 199990
+              },
+              "\nAPI_KEY=supersecretvalue12345 tail\n",
+              {
+                "$repeat": "y",
+                "$times": 50000
+              }
+            ]
+          },
+          "mtime": "2026-10-01T09:00:19Z",
+          "path": "handoffs/big/h.md"
+        }
+      ],
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "Stop",
+        "last_assistant_message": "all done",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000008",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    }
+  ],
+  "usage": null,
+  "worktree": null
+}

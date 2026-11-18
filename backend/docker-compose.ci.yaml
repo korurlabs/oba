@@ -1,0 +1,83 @@
+# The services the Oba API tests need in CI, and nothing more: PostgreSQL and Azurite. The tests
+# replace the JWT decoder, so nothing calls Keycloak. Local development keeps docker-compose.yaml.
+# Not named docker-compose.yaml on purpose: global-pipeline's maven-build boots a file by that
+# exact name.
+name: oba-ci
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "127.0.0.1:5438:5432"
+    environment:
+      POSTGRES_DB: oba
+      POSTGRES_USER: oba
+      POSTGRES_PASSWORD: oba
+    # The database lives only as long as the job, so it is kept in memory.
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U oba -d oba"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    command: "azurite --blobHost 0.0.0.0 --blobPort 10000 --skipApiVersionCheck"
+    ports:
+      - "127.0.0.1:10000:10000"
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 10000"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  # Creates the blob containers the application expects. It reuses the Azurite image, which ships
+  # Node.js, and signs the Create Container call with the well-known Azurite development key, so
+  # CI does not pull the azure-cli image (over 1 GB) for one request.
+  azurite-init:
+    image: mcr.microsoft.com/azure-storage/azurite
+    depends_on:
+      azurite:
+        condition: service_healthy
+    environment:
+      CONTAINERS: dev-container
+    entrypoint: ["node", "-e"]
+    command:
+      - |
+        const crypto = require('crypto');
+        const http = require('http');
+        const account = 'devstoreaccount1';
+        const key = Buffer.from('Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==', 'base64');
+        const version = '2021-08-06';
+        function create(name) {
+          return new Promise(function (resolve, reject) {
+            const date = new Date().toUTCString();
+            const stringToSign = ['PUT', '', '', '', '', '', '', '', '', '', '', '',
+              'x-ms-date:' + date + '\nx-ms-version:' + version,
+              '/' + account + '/' + account + '/' + name + '\nrestype:container'].join('\n');
+            const signature = crypto.createHmac('sha256', key).update(stringToSign, 'utf8').digest('base64');
+            const request = http.request({
+              host: 'azurite', port: 10000, method: 'PUT',
+              path: '/' + account + '/' + name + '?restype=container',
+              headers: {
+                'x-ms-date': date, 'x-ms-version': version, 'Content-Length': 0,
+                Authorization: 'SharedKey ' + account + ':' + signature,
+              },
+            }, function (response) {
+              response.resume();
+              if (response.statusCode === 201 || response.statusCode === 409) {
+                console.log('Container ready: ' + name + ' (' + response.statusCode + ')');
+                resolve();
+              } else {
+                reject(new Error('Creating container ' + name + ' answered ' + response.statusCode));
+              }
+            });
+            request.on('error', reject);
+            request.end();
+          });
+        }
+        Promise.all(process.env.CONTAINERS.split(' ').filter(Boolean).map(create))
+          .catch(function (error) { console.error(error.message); process.exit(1); });
+    restart: "no"

@@ -1,0 +1,31 @@
+{
+  "metadata": {
+    "description": "Policies, procedures and documents of your organization"
+  },
+  "sidebar": {
+    "label": "Pages",
+    "language": "Language"
+  },
+  "errors": {
+    "somethingWentWrong": "Something went wrong",
+    "unexpectedError": "An unexpected error occurred. Please try refreshing the page or contact support if the problem persists.",
+    "tryAgain": "Try Again",
+    "goHome": "Go Home",
+    "errorDetails": "Error Details (Development Only):",
+    "notFound": {
+      "title": "Page not found",
+      "description": "This page does not exist, or you do not have access to it. Check the link, or go back to Home."
+    },
+    "signInFailed": {
+      "title": "Signing in failed",
+      "description": "Your sign-in could not be completed. Try again; if it keeps failing, contact support.",
+      "action": "Sign in again",
+      "code": "Error code: {code}"
+    }
+  },
+  "organizationGate": {
+    "title": "No organization yet",
+    "description": "Kalkan keeps the documents of an organization. Create or join one in your account first.",
+    "action": "Open your account"
+  }
+}

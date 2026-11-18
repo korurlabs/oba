@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>System Notification</title>
+    <style>
+        body { font-family: Arial, sans-serif; color: #555555; margin: 0; padding: 20px; background-color: #F5F0E8; }
+        .email-container { max-width: 600px; margin: 0 auto; background-color: #FFFFFF; border-radius: 10px; overflow: hidden; box-shadow: 0 0 10px rgba(0, 0, 0, 0.08); }
+        .email-logo { text-align: center; padding: 24px 24px 0; }
+        .email-header { background: linear-gradient(135deg, #C75775 0%, #D4728A 100%); color: #FFFFFF; padding: 24px 30px; text-align: center; font-size: 22px; font-weight: bold; }
+        .email-body { padding: 30px; font-size: 15px; line-height: 1.6; }
+        .action-link { color: #C75775; text-decoration: underline; font-weight: bold; }
+        .email-footer { background-color: #1A1A1A; color: #BBBBBB; padding: 20px; text-align: center; font-size: 13px; }
+        .email-footer a { color: #D4728A; text-decoration: none; }
+    </style>
+</head>
+<body>
+<div class="email-container">
+    <div class="email-logo">
+        <img th:src="'data:image/png;base64,' + ${senseyLogoBase64}" alt="Sensey" style="width: 120px;"/>
+    </div>
+
+    <div class="email-header" th:text="${title}">System Notification</div>
+
+    <div class="email-body">
+        <p>Dear <span th:text="${contactName}">User</span>,</p>
+
+        <p th:text="${message}">You have a new system notification.</p>
+
+        <p style="margin-top: 18px;">
+            If you have questions, please contact us at
+            <a href="mailto:support@sensey.io" class="action-link">support@sensey.io</a>.
+        </p>
+    </div>
+
+    <div class="email-footer">
+        <p>The Sensey Team</p>
+        <p><a href="https://sensey.io">sensey.io</a></p>
+    </div>
+</div>
+</body>
+</html>

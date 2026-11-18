@@ -1,0 +1,52 @@
+Purpose: Email notification delivery for all Village domains
+
+Key Entities:
+- EmailNotification (persists every send attempt with sender, template type, recipients, mail payload, success flag)
+
+Core Services:
+- EmailNotificationService: async email sending via @Async("notificationExecutor")
+  - Accepts EmailRequest (template type, recipients, variables, optional attachments)
+  - Resolves Thymeleaf template, injects Sensey branding, sends via MS Graph
+  - Persists send attempt to database regardless of success/failure
+
+Infrastructure:
+- MsGraphClient: Microsoft Graph API integration with @Retryable (3 attempts, exponential backoff)
+- EmailTemplateProcessor: Thymeleaf engine, enriches variables with logo (base64), CSS, timestamp
+- EmailResourceManager: Loads and caches korur-logo.png (base64) and email-common.css at startup
+- EmailConfiguration: Reads sensey.notification.default-sender and sensey.logo.url from properties
+
+Email Template Types (13):
+- Onboarding: WELCOME_EMAIL
+- Organization: ORGANIZATION_INVITATION_EXISTING_USER, ORGANIZATION_INVITATION_NEW_USER,
+  ORGANIZATION_INVITATION_ACCEPTED, ORGANIZATION_MEMBER_REMOVED, ORGANIZATION_ROLE_CHANGED
+- Passchat: PASSCHAT_SECRET_SHARED, PASSCHAT_SECRET_EXPIRED, PASSCHAT_STORAGE_ACK_REQUIRED
+- Security: UNUSUAL_ACTIVITY_DETECTED, ACCOUNT_STATUS_CHANGED
+- Data: DATA_EXPORT_READY
+- System: SYSTEM_NOTIFICATION
+
+Branding:
+- Colors: Sakura Pink (#C75775), Black (#1A1A1A), White (#FFFFFF), Cream (#F5F0E8)
+- Logo: static/images/korur-logo.png (embedded as base64 in emails)
+- CSS: static/css/email-common.css
+- Language: English only
+
+Relations to Other Domains:
+- Identity: welcome email on user creation
+- Organization: invitation, member removal, role change notifications
+- Passchat: secret sharing, expiration, acknowledgement notifications
+
+Integration Pattern:
+- Other domains call EmailNotificationService.sendEmail(EmailRequest) directly
+- Sending is async (non-blocking to caller)
+- No outbox pattern — direct async dispatch is sufficient for current scale
+
+Database:
+- Table: shrine.notifications
+- Columns: sender, send (boolean), email_template_type (enum), metadata (jsonb Mail), recipients (jsonb list)
+- Extends BaseEntity (id, created_at, updated_at, deleted_at)
+
+Behavior Notes:
+- All emails include Sensey logo, consistent CSS, and timestamp via EmailTemplateProcessor enrichment
+- Failed sends are logged and persisted with send=false for audit trail
+- Security alerts (unusual activity) use a red gradient header instead of sakura pink
+- MS Graph retry: 3 attempts with 2s initial delay and 2x multiplier

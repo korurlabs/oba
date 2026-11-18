@@ -1,0 +1,18 @@
+{
+  "account": {
+    "billingType": "stripe_subscription",
+    "emailAddress": "dev@example.com",
+    "organizationName": "Korur",
+    "organizationType": "claude_max",
+    "organizationUuid": "11111111-2222-3333-4444-555555555555",
+    "seatTier": "max_5x"
+  },
+  "claudeCodeVersion": "2.1.100",
+  "cwd": "{{REPO}}",
+  "gitAuthorEmail": "dev@example.com",
+  "machineName": "golden-host",
+  "model": "claude-opus-5-5",
+  "remoteUrl": "git@github.com:senseylabs/village.git",
+  "repositoryName": "village",
+  "sessionId": "11111111-aaaa-4bbb-8ccc-000000000007"
+}

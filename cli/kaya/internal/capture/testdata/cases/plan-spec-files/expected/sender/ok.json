@@ -1,0 +1,52 @@
+{
+  "runs": [
+    {
+      "cursor": {
+        "acknowledgedSeq": 16,
+        "handoffs": {},
+        "plans": {
+          "files/docs/claude/plans/kaya/07_X.md": 1790845219000000000,
+          "files/docs/plans/dots.md": 1790845222000000000,
+          "files/docs/plans/exactly-limit.md": 1790845229000000000,
+          "files/docs/plans/multibyte.md": 1790845229000000000,
+          "files/docs/plans/new.md": 1790845225000000000,
+          "files/docs/plans/z.md": 1790845233000000000,
+          "files/docs/private/plans/kaya/18_Y.md": 1790845220000000000
+        }
+      },
+      "exit": 0,
+      "files": [
+        "cursor.json",
+        "events.jsonl",
+        "plans/files/docs/claude/plans/kaya/07_X.md",
+        "plans/files/docs/plans/dots.md",
+        "plans/files/docs/plans/exactly-limit.md",
+        "plans/files/docs/plans/multibyte.md",
+        "plans/files/docs/plans/new.md",
+        "plans/files/docs/plans/z.md",
+        "plans/files/docs/private/plans/kaya/18_Y.md",
+        "session.json",
+        "summary.json"
+      ],
+      "log": [],
+      "queueAfter": {},
+      "requests": [
+        {
+          "authorized": true,
+          "body": "same as ../batch.json",
+          "contentType": "application/json",
+          "method": "POST",
+          "path": "/kaya/ingest/batches"
+        }
+      ],
+      "state": {
+        "token": "ok"
+      },
+      "stderr": [],
+      "stdout": "",
+      "token": "A",
+      "usageFileLeft": false
+    }
+  ],
+  "scenario": "ok"
+}

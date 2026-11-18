@@ -1,0 +1,18 @@
+{
+  "plans/session.json": {
+    "content": "{\n  \"source\": \"MESSAGE\"\n}\n",
+    "mtime": "2026-10-01T09:00:01Z"
+  },
+  "plans/session.md": {
+    "content": {
+      "$concat": [
+        "**Goal**: g\n**Steps**:\n1. s\n",
+        {
+          "$repeat": "p",
+          "$times": 199972
+        }
+      ]
+    },
+    "mtime": "2026-10-01T09:00:01Z"
+  }
+}

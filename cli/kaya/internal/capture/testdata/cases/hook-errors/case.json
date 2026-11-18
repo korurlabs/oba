@@ -1,0 +1,71 @@
+{
+  "account": true,
+  "branch": "feature/golden",
+  "description": "Malformed input never fails Claude: exit 0, empty stdout, one stderr line, nothing queued.",
+  "email": "dev@example.com",
+  "queue_edits": [],
+  "queue_files": {},
+  "remote": "git@github.com:senseylabs/village.git",
+  "repo_files": [],
+  "scenarios": [],
+  "session_id": "55555555-aaaa-4bbb-8ccc-000000000001",
+  "ssh_aliases": {},
+  "state_files": {},
+  "steps": [
+    {
+      "at": "2026-10-01T09:00:00Z",
+      "raw_stdin": "this is not json"
+    },
+    {
+      "at": "2026-10-01T09:00:01Z",
+      "raw_stdin": "[1, 2, 3]"
+    },
+    {
+      "at": "2026-10-01T09:00:02Z",
+      "raw_stdin": ""
+    },
+    {
+      "at": "2026-10-01T09:00:03Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SessionStart"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:04Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SessionStart",
+        "session_id": "///"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:05Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SessionStart",
+        "session_id": "ab/../c d",
+        "source": "startup"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:06Z",
+      "hook": {
+        "cwd": "{{OUTSIDE}}",
+        "hook_event_name": "SessionStart",
+        "session_id": "55555555-aaaa-4bbb-8ccc-000000000001"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:07Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SessionStart",
+        "session_id": 12345,
+        "source": "startup"
+      }
+    }
+  ],
+  "usage": null,
+  "worktree": null
+}

@@ -1,0 +1,37 @@
+{
+  "openapi": "3.1.0",
+  "info": {"title": "Oba API", "version": "v1"},
+  "paths": {},
+  "components": {
+    "schemas": {
+      "EventCreateRequest": {
+        "type": "object",
+        "required": ["name", "type", "startDate"],
+        "properties": {
+          "name": {"type": "string", "maxLength": 200, "minLength": 0},
+          "type": {"type": "string", "enum": ["EXPO", "CONFERENCE", "MEETUP", "WEBINAR", "OTHER"]},
+          "startDate": {"type": "string", "format": "date"},
+          "endDate": {"type": ["string", "null"], "format": "date"},
+          "city": {"type": ["string", "null"], "maxLength": 100},
+          "country": {"type": ["string", "null"], "enum": ["NL", "TR", "DE", null]},
+          "website": {"type": ["string", "null"], "maxLength": 500},
+          "notes": {"type": ["string", "null"], "maxLength": 10000}
+        }
+      },
+      "EventUpdateRequest": {
+        "type": "object",
+        "required": ["name", "type", "startDate"],
+        "properties": {
+          "name": {"type": "string", "maxLength": 200, "minLength": 0},
+          "type": {"type": "string", "enum": ["EXPO", "CONFERENCE", "MEETUP", "WEBINAR", "OTHER"]},
+          "startDate": {"type": "string", "format": "date"},
+          "endDate": {"type": ["string", "null"], "format": "date"},
+          "city": {"type": ["string", "null"], "maxLength": 100},
+          "country": {"type": ["string", "null"], "enum": ["NL", "TR", "DE", null]},
+          "website": {"type": ["string", "null"], "maxLength": 500},
+          "notes": {"type": ["string", "null"], "maxLength": 10000}
+        }
+      }
+    }
+  }
+}

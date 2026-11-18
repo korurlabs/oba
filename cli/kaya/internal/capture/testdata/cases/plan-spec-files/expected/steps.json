@@ -1,0 +1,86 @@
+[
+  {
+    "exit": 0,
+    "stderr": [],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [
+      "kaya recorder: plan {{REPO}}/docs/plans/over-limit.md not captured: it has more than 200000 characters"
+    ],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [
+      "kaya recorder: plan {{REPO}}/docs/plans/multibyte-over.md not captured: it has more than 200000 characters"
+    ],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [],
+    "stdout": ""
+  }
+]

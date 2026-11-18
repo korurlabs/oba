@@ -1,0 +1,96 @@
+<configuration>
+
+    <!--
+        Suppresses logback's own plain-text status messages (e.g. "INFO in ch.qos.logback...").
+        Without this, logback prints non-JSON lines to the console during startup,
+        breaking the pure NDJSON stream. Configuration errors are still visible via
+        StatusManager (programmatic access) or by temporarily removing this listener.
+    -->
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
+
+    <!--
+        CONSOLE appender using LogstashEncoder (logstash-logback-encoder).
+        Outputs every log event as a single-line JSON object (NDJSON) to stdout.
+
+        Built-in fields emitted automatically by LogstashEncoder:
+          @timestamp, message, logger_name, thread_name, level,
+          stack_trace (when a throwable is present), logId (via UuidJsonProvider below).
+
+        Suppressed built-in fields (via <fieldNames> below):
+          @version  — Logstash legacy field, always "1". Adds no value for a monolith.
+          level_value — Numeric SLF4J level (e.g. 20000=INFO). Redundant since we
+                        filter by the human-readable "level" string field.
+
+        MDC fields are also emitted as flat top-level JSON keys by default.
+        The <includeMdcKeyName> whitelist below restricts which MDC keys appear in output,
+        preventing accidental leakage of unexpected MDC entries.
+
+        Pretty-printed JSON is enabled via PrettyPrintingJsonGeneratorDecorator,
+          so output is human-readable without external tools.
+    -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+
+            <jsonGeneratorDecorator class="net.logstash.logback.decorate.PrettyPrintingJsonGeneratorDecorator"/>
+
+            <!-- Blank line between JSON blocks for visual separation -->
+            <lineSeparator>&#10;&#10;</lineSeparator>
+
+            <!--
+                Suppress fields that add no value for this application.
+                Set field name to [ignore] to prevent it from appearing in JSON output.
+            -->
+            <fieldNames>
+                <version>[ignore]</version>
+                <levelValue>[ignore]</levelValue>
+            </fieldNames>
+
+            <!--
+                Generates a unique UUID for every single log event (not request-scoped).
+                Unlike requestId (shared across all logs in one HTTP request), logId uniquely
+                identifies each individual log line — useful for referencing specific entries
+                in support/debugging, and essential for logs without a request context
+                (scheduler tasks, startup, shutdown, etc.).
+            -->
+            <provider class="net.logstash.logback.composite.UuidJsonProvider">
+                <fieldName>logId</fieldName>
+            </provider>
+
+            <!--
+                Monotonically increasing counter, starts at 0 on each application boot.
+                Useful for detecting gaps in log pipelines and ordering events
+                that share the same millisecond timestamp. Thread-safe (AtomicLong).
+            -->
+            <provider class="com.korur.oba.dojo.logging.provider.LogCounterJsonProvider">
+                <fieldName>logCounter</fieldName>
+            </provider>
+
+            <!-- Request context (set by RequestCorrelationFilter / RequestLoggingContextFilter) -->
+            <includeMdcKeyName>requestId</includeMdcKeyName>
+            <includeMdcKeyName>keycloakId</includeMdcKeyName>
+            <includeMdcKeyName>organizationId</includeMdcKeyName>
+            <includeMdcKeyName>issuerRealm</includeMdcKeyName>
+
+            <!-- Business context (set via LoggingService) -->
+            <includeMdcKeyName>domain</includeMdcKeyName>
+            <includeMdcKeyName>layer</includeMdcKeyName>
+        </encoder>
+    </appender>
+
+    <!--
+        Application logger: INFO in every environment, so loggingService.observe(...) and
+        debug(...) calls stay out of the output unless asked for. Spring Boot applies
+        logging.level.* after this file, so DEBUG is one property away when a diagnosis needs it:
+          LOGGING_LEVEL_COM_KORUR_OBA=DEBUG in the environment, or the debug profile.
+    -->
+    <logger name="com.korur.oba" level="INFO"/>
+
+    <!--
+        Root logger: baseline level for all loggers not explicitly configured above.
+        INFO filters out DEBUG/TRACE from third-party libraries (Spring, Hikari, etc.).
+    -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</configuration>

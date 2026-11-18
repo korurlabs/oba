@@ -1,0 +1,432 @@
+[
+  {
+    "expected": "",
+    "input": "",
+    "name": "empty"
+  },
+  {
+    "expected": "just a sentence with nothing secret",
+    "input": "just a sentence with nothing secret",
+    "name": "plain"
+  },
+  {
+    "expected": "login --token [redacted] now",
+    "input": "login --token abc123 now",
+    "name": "token-space"
+  },
+  {
+    "expected": "login --token=[redacted] now",
+    "input": "login --token=abc123 now",
+    "name": "token-equals"
+  },
+  {
+    "expected": "login --token [redacted] next",
+    "input": "login --token \"with spaces\" next",
+    "name": "token-double-quoted"
+  },
+  {
+    "expected": "login --token [redacted] next",
+    "input": "login --token 'with spaces' next",
+    "name": "token-single-quoted"
+  },
+  {
+    "expected": "login --token [redacted] closed and more",
+    "input": "login --token \"never closed and more",
+    "name": "token-unterminated-quote"
+  },
+  {
+    "expected": "login --token",
+    "input": "login --token",
+    "name": "token-at-end"
+  },
+  {
+    "expected": "login --token [redacted]",
+    "input": "login --token --verbose",
+    "name": "token-then-flag"
+  },
+  {
+    "expected": "login --token [redacted] now",
+    "input": "login --token abc123 now",
+    "name": "token-nbsp-separator"
+  },
+  {
+    "expected": "login --token\t[redacted]\tnext",
+    "input": "login --token\tabc123\tnext",
+    "name": "token-tab-separator"
+  },
+  {
+    "expected": "login --token\n[redacted]\nnext",
+    "input": "login --token\nabc123\nnext",
+    "name": "token-newline-separator"
+  },
+  {
+    "expected": "login --token [redacted] def next",
+    "input": "login --token abc def next",
+    "name": "token-unicode-space-value"
+  },
+  {
+    "expected": "login --TOKEN abc123",
+    "input": "login --TOKEN abc123",
+    "name": "token-uppercase-flag"
+  },
+  {
+    "expected": "db --password [redacted]",
+    "input": "db --password hunter2",
+    "name": "password-space"
+  },
+  {
+    "expected": "db --password=[redacted] x",
+    "input": "db --password='p w' x",
+    "name": "password-equals-quoted"
+  },
+  {
+    "expected": "--token [redacted] --password [redacted]",
+    "input": "--token a --password b",
+    "name": "two-flags"
+  },
+  {
+    "expected": "--tokens abc --token-file f",
+    "input": "--tokens abc --token-file f",
+    "name": "token-prefix-flag"
+  },
+  {
+    "expected": "-p [redacted] rest",
+    "input": "-p secret rest",
+    "name": "short-p-start"
+  },
+  {
+    "expected": "mysql -h db -p [redacted] rest",
+    "input": "mysql -h db -p secret rest",
+    "name": "short-p-after-space"
+  },
+  {
+    "expected": "mysql\t-p\t[redacted]",
+    "input": "mysql\t-p\tsecret",
+    "name": "short-p-after-tab"
+  },
+  {
+    "expected": "mysql -p [redacted]",
+    "input": "mysql -p secret",
+    "name": "short-p-after-nbsp"
+  },
+  {
+    "expected": "psql -p5432",
+    "input": "psql -p5432",
+    "name": "short-p-glued"
+  },
+  {
+    "expected": "foo-p bar",
+    "input": "foo-p bar",
+    "name": "short-p-inside-word"
+  },
+  {
+    "expected": "mysql -p [redacted] c",
+    "input": "mysql -p 'a b' c",
+    "name": "short-p-quoted"
+  },
+  {
+    "expected": "mysql -p",
+    "input": "mysql -p",
+    "name": "short-p-end"
+  },
+  {
+    "expected": "line1\n-p [redacted]",
+    "input": "line1\n-p secret",
+    "name": "short-p-newline"
+  },
+  {
+    "expected": "Authorization: [redacted]",
+    "input": "Authorization: Bearer abc.def.ghi",
+    "name": "authorization-bearer"
+  },
+  {
+    "expected": "authorization: [redacted]",
+    "input": "authorization: token xyz",
+    "name": "authorization-lower"
+  },
+  {
+    "expected": "AUTHORIZATION:[redacted]",
+    "input": "AUTHORIZATION:Basic Zm9v",
+    "name": "authorization-mixed"
+  },
+  {
+    "expected": "curl -H 'Authorization: [redacted]' https://x",
+    "input": "curl -H 'Authorization: Bearer abc' https://x",
+    "name": "authorization-quote-stops"
+  },
+  {
+    "expected": "curl -H \"Authorization: [redacted]\" https://x",
+    "input": "curl -H \"Authorization: Bearer abc\" https://x",
+    "name": "authorization-double-quote-stops"
+  },
+  {
+    "expected": "Authorization: [redacted]\nnext line stays",
+    "input": "Authorization: Bearer abc\nnext line stays",
+    "name": "authorization-newline-stops"
+  },
+  {
+    "expected": "Authorization:",
+    "input": "Authorization:",
+    "name": "authorization-empty"
+  },
+  {
+    "expected": "Authorization:  [redacted]",
+    "input": "Authorization:   ",
+    "name": "authorization-spaces-only"
+  },
+  {
+    "expected": "Authorization: [redacted]",
+    "input": "Authorization: Bearer abc",
+    "name": "authorization-nbsp"
+  },
+  {
+    "expected": "GITHUB_TOKEN=[redacted]",
+    "input": "GITHUB_TOKEN=ghp_abc123",
+    "name": "name-token"
+  },
+  {
+    "expected": "MY_SECRET=[redacted]",
+    "input": "MY_SECRET=value",
+    "name": "name-secret"
+  },
+  {
+    "expected": "DB_PASSWORD=[redacted]",
+    "input": "DB_PASSWORD=hunter2",
+    "name": "name-password"
+  },
+  {
+    "expected": "AWS_ACCESS_KEY=[redacted]",
+    "input": "AWS_ACCESS_KEY=AKIA123",
+    "name": "name-key"
+  },
+  {
+    "expected": "api_key=[redacted]",
+    "input": "api_key=abc",
+    "name": "name-lowercase"
+  },
+  {
+    "expected": "Api-Key=[redacted]",
+    "input": "Api-Key=abc",
+    "name": "name-mixed-case"
+  },
+  {
+    "expected": "KEY=[redacted]",
+    "input": "KEY=abc",
+    "name": "name-bare-key"
+  },
+  {
+    "expected": "token=[redacted]",
+    "input": "token=abc",
+    "name": "name-bare-token"
+  },
+  {
+    "expected": "x.y-z_TOKEN=[redacted]",
+    "input": "x.y-z_TOKEN=abc",
+    "name": "name-dot-dash"
+  },
+  {
+    "expected": "S3_SECRET2_KEY=[redacted]",
+    "input": "S3_SECRET2_KEY=abc",
+    "name": "name-with-digits"
+  },
+  {
+    "expected": "MONKEY=[redacted]",
+    "input": "MONKEY=banana",
+    "name": "name-ends-in-key-word"
+  },
+  {
+    "expected": "turkey=[redacted]",
+    "input": "turkey=gobble",
+    "name": "name-turkey"
+  },
+  {
+    "expected": "KEYS=abc",
+    "input": "KEYS=abc",
+    "name": "name-key-not-at-end"
+  },
+  {
+    "expected": "KEY: abc",
+    "input": "KEY: abc",
+    "name": "name-key-then-colon"
+  },
+  {
+    "expected": "DB_PASSWORD=[redacted] tail",
+    "input": "DB_PASSWORD=\"quoted secret\" tail",
+    "name": "name-double-quoted-value"
+  },
+  {
+    "expected": "DB_PASSWORD=[redacted] tail",
+    "input": "DB_PASSWORD='quoted secret' tail",
+    "name": "name-single-quoted-value"
+  },
+  {
+    "expected": "API_KEY=[redacted] closed",
+    "input": "API_KEY=\"never closed",
+    "name": "name-unterminated-quote"
+  },
+  {
+    "expected": "API_KEY=",
+    "input": "API_KEY=",
+    "name": "name-empty-value"
+  },
+  {
+    "expected": "API_KEY= value",
+    "input": "API_KEY= value",
+    "name": "name-empty-value-then-space"
+  },
+  {
+    "expected": "API_KEY=[redacted]",
+    "input": "API_KEY==abc",
+    "name": "name-equals-twice"
+  },
+  {
+    "expected": "API_KEY=[redacted]",
+    "input": "API_KEY=abc=def",
+    "name": "name-value-with-equals"
+  },
+  {
+    "expected": "run API_KEY=[redacted] now",
+    "input": "run API_KEY=abc now",
+    "name": "name-after-space"
+  },
+  {
+    "expected": "A=B_TOKEN=[redacted]",
+    "input": "A=B_TOKEN=abc",
+    "name": "name-after-equals"
+  },
+  {
+    "expected": "/path/API_KEY=[redacted]",
+    "input": "/path/API_KEY=abc",
+    "name": "name-after-slash"
+  },
+  {
+    "expected": "env:API_KEY=[redacted]",
+    "input": "env:API_KEY=abc",
+    "name": "name-after-colon"
+  },
+  {
+    "expected": "'API_KEY=[redacted]",
+    "input": "'API_KEY=abc'",
+    "name": "name-after-quote"
+  },
+  {
+    "expected": "x API_KEY=[redacted]",
+    "input": "x API_KEY=abc",
+    "name": "name-after-nbsp"
+  },
+  {
+    "expected": "(TOKEN=[redacted]",
+    "input": "(TOKEN=abc)",
+    "name": "name-run-starts-after-punctuation"
+  },
+  {
+    "expected": "A_KEY=[redacted] B_KEY=[redacted]",
+    "input": "A_KEY=1 B_KEY=2",
+    "name": "name-two-in-a-row"
+  },
+  {
+    "expected": "A_KEY=[redacted]",
+    "input": "A_KEY=1B_KEY=2",
+    "name": "name-glued-two"
+  },
+  {
+    "expected": "first=1\nSECRET=[redacted]\nthird=3",
+    "input": "first=1\nSECRET=two\nthird=3",
+    "name": "name-multiline"
+  },
+  {
+    "expected": "é_TOKEN=[redacted]",
+    "input": "é_TOKEN=abc",
+    "name": "name-unicode-prefix"
+  },
+  {
+    "expected": "paſſword=[redacted]",
+    "input": "paſſword=abc",
+    "name": "name-long-sharp-s-case"
+  },
+  {
+    "expected": "KEY=[redacted]",
+    "input": "KEY=abc",
+    "name": "name-kelvin-sign"
+  },
+  {
+    "expected": "ſecret=[redacted]",
+    "input": "ſecret=abc",
+    "name": "name-long-s-secret"
+  },
+  {
+    "expected": "TOKEN=[redacted] ıd=1",
+    "input": "TOKEN=abc ıd=1",
+    "name": "name-turkish-dotless-i-token"
+  },
+  {
+    "expected": "curl --token [redacted] -p [redacted] -H 'Authorization: [redacted]' API_KEY=[redacted]",
+    "input": "curl --token a -p b -H 'Authorization: Bearer c' API_KEY=d",
+    "name": "mixed-all-rules"
+  },
+  {
+    "expected": "--token [redacted] API_KEY=[redacted]",
+    "input": "--token [redacted] API_KEY=[redacted]",
+    "name": "already-redacted"
+  },
+  {
+    "expected": "[redacted]_TOKEN=[redacted]",
+    "input": "[redacted]_TOKEN=abc",
+    "name": "redacted-marker-as-name"
+  },
+  {
+    "expected": "# Handoff\n\nUse `kagi secrets set --personal KAYA_RECORDER_TOKEN=[redacted] to set it.\n",
+    "input": "# Handoff\n\nUse `kagi secrets set --personal KAYA_RECORDER_TOKEN=kyt_abc` to set it.\n",
+    "name": "handoff-style"
+  },
+  {
+    "expected": "{\"api_key\": \"abc\", \"token\": \"def\"}",
+    "input": "{\"api_key\": \"abc\", \"token\": \"def\"}",
+    "name": "json-style"
+  },
+  {
+    "expected": "https://user:pass@host/path?token=[redacted]",
+    "input": "https://user:pass@host/path?token=abc&key=def",
+    "name": "url-style"
+  },
+  {
+    "expected": "password: hunter2\nsecret_key=[redacted]",
+    "input": "password: hunter2\nsecret_key=abc",
+    "name": "yaml-style"
+  },
+  {
+    "expected": "😀 API_KEY=[redacted]",
+    "input": "😀 API_KEY=abc",
+    "name": "emoji-before"
+  },
+  {
+    "expected": "API_KEY=[redacted]\r\nnext",
+    "input": "API_KEY=abc\r\nnext",
+    "name": "crlf"
+  },
+  {
+    "expected": "TOKEN=\t abc",
+    "input": "TOKEN=\t abc",
+    "name": "whitespace-only-value"
+  },
+  {
+    "expected": "===",
+    "input": "===",
+    "name": "only-equals"
+  },
+  {
+    "expected": "=KEY=[redacted]",
+    "input": "=KEY=abc",
+    "name": "name-chars-then-equals-at-start"
+  },
+  {
+    "expected": "--KEY=[redacted]",
+    "input": "--KEY=abc",
+    "name": "hyphen-run"
+  },
+  {
+    "expected": "..SECRET=[redacted]",
+    "input": "..SECRET=abc",
+    "name": "dot-run"
+  }
+]

@@ -1,0 +1,147 @@
+package com.korur.oba.apps.kaya.lesson.service;
+
+// 1. Framework-level
+import org.springframework.data.domain.Page;
+
+// 2. Third-party
+
+// 3. Java SDK
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+// 4. Internal
+import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.apps.kaya.lesson.dto.derived.LessonDelivery;
+import com.korur.oba.apps.kaya.lesson.dto.request.LessonQueryRequest;
+import com.korur.oba.apps.kaya.lesson.dto.response.LessonDeliverySearchResponse;
+import com.korur.oba.apps.kaya.lesson.dto.response.LessonDetailResponse;
+import com.korur.oba.apps.kaya.lesson.dto.response.LessonFiltersResponse;
+import com.korur.oba.apps.kaya.lesson.dto.response.LessonListResponse;
+import com.korur.oba.apps.kaya.lesson.entity.Lesson;
+import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
+import com.korur.oba.apps.kaya.repository.dto.response.RepositoryResponse;
+
+/**
+ * Reads the lessons of an organization for the lessons list, the lesson page and the delivery to
+ * the CLI. A lesson of another organization answers the same 404 as an unknown id, so ids leak
+ * nothing.
+ */
+public interface LessonQueryService {
+
+    /**
+     * Lists the lessons of the organization, newest first.
+     *
+     * @param user           the signed-in user, for canEdit
+     * @param organizationId the organization of the request
+     * @param request        paging (25 by default, at most 100) and filters
+     * @return one page of lessons with the names of their repository and author and their sessions
+     */
+    Page<LessonListResponse> listLessons(User user, UUID organizationId, LessonQueryRequest request);
+
+    /**
+     * The options of the list's repository and user filters: the values the organization's
+     * lessons hold.
+     *
+     * @param organizationId the organization of the request
+     * @return the options, each list ordered by name
+     */
+    LessonFiltersResponse getFilters(UUID organizationId);
+
+    /**
+     * Reads one lesson with the session that recorded it.
+     *
+     * @param user           the signed-in user, for canEdit
+     * @param organizationId the organization of the request
+     * @param lessonId       the lesson
+     * @return the lesson
+     * @throws com.korur.oba.dojo.exception.internal.business.NotFoundException KAY_NF_001 when the
+     *         organization has no such lesson
+     */
+    LessonDetailResponse getLesson(User user, UUID organizationId, UUID lessonId);
+
+    /**
+     * Builds the response of a lesson already loaded, with the names of its repository and author
+     * and its session.
+     *
+     * @param user           the signed-in user, for canEdit
+     * @param organizationId the organization of the lesson
+     * @param lesson         the lesson
+     * @return the response
+     */
+    LessonDetailResponse toDetailResponse(User user, UUID organizationId, Lesson lesson);
+
+    /**
+     * Resolves a lesson within the organization.
+     *
+     * @param organizationId the organization the lesson must belong to
+     * @param lessonId       the lesson
+     * @return the lesson
+     * @throws com.korur.oba.dojo.exception.internal.business.NotFoundException KAY_NF_001 otherwise
+     */
+    Lesson getEntity(UUID organizationId, UUID lessonId);
+
+    /**
+     * The titles a checkout reads at session start: those of its repository plus the
+     * organization-wide ones, newest first, at most 100, with the ETag of every applicable lesson.
+     * The ETag ignores since, so a CLI that asks with a newer since still gets 304.
+     *
+     * @param principal the machine token
+     * @param remoteUrl the checkout's git remote, raw; an unknown or unreadable one gives the
+     *                  organization-wide lessons only
+     * @param since     an ISO-8601 instant, or null; a lesson created or updated after it is marked
+     *                  changed
+     * @return the titles and the ETag
+     * @throws com.korur.oba.dojo.exception.internal.business.ValidationException GEN_VAL_001 for an
+     *         unreadable since, KAY_VAL_002 for an archived repository
+     */
+    LessonDelivery listForCheckout(MachinePrincipal principal, String remoteUrl, String since);
+
+    /**
+     * Searches the lessons of a checkout by title and text, newest first, at most 100.
+     *
+     * @param principal the machine token
+     * @param remoteUrl the checkout's git remote, raw; an unknown or unreadable one searches the
+     *                  organization-wide lessons only
+     * @param search    the text to find
+     * @return the matching lessons with their text
+     * @throws com.korur.oba.dojo.exception.internal.business.ValidationException KAY_VAL_002 for
+     *         an archived repository
+     */
+    List<LessonDeliverySearchResponse> searchForCheckout(MachinePrincipal principal, String remoteUrl, String search);
+
+    /**
+     * Reads one lesson for the CLI.
+     *
+     * @param principal the machine token
+     * @param lessonId  the lesson
+     * @return the lesson, with canEdit of the token's user
+     * @throws com.korur.oba.dojo.exception.internal.business.NotFoundException KAY_NF_001 when the
+     *         organization has no such lesson
+     */
+    LessonDetailResponse getLesson(MachinePrincipal principal, UUID lessonId);
+
+    /**
+     * The user of a machine token. The machine token chain has already refused a token whose user
+     * no longer acts in the organization with the Kaya app: a token outlives a user disabled, a
+     * membership ended or a Kaya grant revoked after it was issued.
+     *
+     * @param principal the machine token
+     * @return the user
+     * @throws com.korur.oba.dojo.exception.internal.business.NotFoundException when no user has the
+     *         id of the token's user
+     */
+    User getActingUser(MachinePrincipal principal);
+
+    /**
+     * Finds the repository of a checkout's remote. Unlike the rest of delivery, an unknown remote
+     * is not an error: it has no lessons of its own, but the organization-wide ones still apply.
+     *
+     * @param organizationId the organization of the machine token
+     * @param remoteUrl      the checkout's git remote, raw
+     * @return the repository, or empty when the remote is unknown or unreadable
+     * @throws com.korur.oba.dojo.exception.internal.business.ValidationException KAY_VAL_002 for
+     *         an archived repository
+     */
+    Optional<RepositoryResponse> findCheckoutRepository(UUID organizationId, String remoteUrl);
+}

@@ -1,0 +1,125 @@
+{
+  "machine": {
+    "account": {
+      "billingType": "stripe_subscription",
+      "emailAddress": "dev@example.com",
+      "organizationName": "Korur",
+      "organizationType": "claude_max",
+      "organizationUuid": "11111111-2222-3333-4444-555555555555",
+      "seatTier": "max_5x"
+    },
+    "claudeCodeVersion": "2.1.100",
+    "machineName": "golden-host"
+  },
+  "events": [
+    {
+      "at": "2026-10-01T09:00:00Z",
+      "branch": "feature/golden",
+      "cwd": "{{REPO}}",
+      "event": "SessionStart",
+      "seq": 1,
+      "source": "startup"
+    },
+    {
+      "at": "2026-10-01T09:00:01Z",
+      "cwd": "{{REPO}}",
+      "event": "UserPromptSubmit",
+      "prompt": "use kagi secrets set --personal KAYA_RECORDER_TOKEN=[redacted] now",
+      "seq": 2
+    },
+    {
+      "at": "2026-10-01T09:00:02Z",
+      "command_args": "--password [redacted] --token=[redacted]",
+      "command_name": "login",
+      "cwd": "{{REPO}}",
+      "event": "UserPromptExpansion",
+      "seq": 3
+    },
+    {
+      "at": "2026-10-01T09:00:03Z",
+      "command": "curl -H 'Authorization: [redacted]' -u me --password [redacted] https://x",
+      "cwd": "{{REPO}}",
+      "event": "PreToolUse",
+      "seq": 4,
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_bash"
+    },
+    {
+      "at": "2026-10-01T09:00:04Z",
+      "command": "mysql -p [redacted] -h db && psql -p5432",
+      "cwd": "{{REPO}}",
+      "event": "PreToolUse",
+      "seq": 5,
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_bash"
+    },
+    {
+      "at": "2026-10-01T09:00:05Z",
+      "command": "export DB_PASSWORD=[redacted] MY_SECRET=[redacted] AWS_ACCESS_KEY=[redacted]",
+      "cwd": "{{REPO}}",
+      "event": "PreToolUse",
+      "seq": 6,
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_bash"
+    },
+    {
+      "at": "2026-10-01T09:00:06Z",
+      "cwd": "{{REPO}}",
+      "description": "run with GITHUB_TOKEN=[redacted]",
+      "event": "PreToolUse",
+      "handoff": "x/y.md",
+      "seq": 7,
+      "subagent_type": "a",
+      "tool_name": "Agent",
+      "tool_use_id": "toolu_agent"
+    },
+    {
+      "at": "2026-10-01T09:00:07Z",
+      "branch": "feature/golden",
+      "cwd": "{{REPO}}",
+      "event": "Stop",
+      "last_assistant_message": "I set API_KEY=[redacted] and the Authorization: [redacted]\nnext line",
+      "seq": 8
+    },
+    {
+      "at": "2026-10-01T09:00:08Z",
+      "branch": "feature/golden",
+      "cwd": "{{REPO}}",
+      "event": "SessionEnd",
+      "reason": "other",
+      "seq": 9
+    }
+  ],
+  "handoffs": [],
+  "plans": [],
+  "repository": {
+    "name": "village",
+    "remoteUrl": "git@github.com:senseylabs/village.git"
+  },
+  "sessionId": "11111111-aaaa-4bbb-8ccc-00000000000a",
+  "summary": {
+    "branch": "feature/golden",
+    "briefed_features": [
+      "x"
+    ],
+    "configRelease": {
+      "deliveredBy": null,
+      "manifestSha256": null,
+      "number": null,
+      "state": "NONE"
+    },
+    "cwd": "{{REPO}}",
+    "ended": true,
+    "event_count": 9,
+    "features": [],
+    "first_prompt": "use kagi secrets set --personal KAYA_RECORDER_TOKEN=[redacted] now",
+    "gitAuthorEmail": "dev@example.com",
+    "last_event_at": "2026-10-01T09:00:08Z",
+    "model": "claude-opus-5-5",
+    "project": null,
+    "session_title": null,
+    "started_at": "2026-10-01T09:00:00Z",
+    "ticket": null,
+    "title": "use kagi secrets set --personal KAYA_RECORDER_TOKEN=[redacted] now"
+  }
+}

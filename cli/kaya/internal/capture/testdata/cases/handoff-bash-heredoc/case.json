@@ -1,0 +1,159 @@
+{
+  "account": true,
+  "branch": "feature/golden",
+  "description": "A handoff written by a shell heredoc is found by the rescan after Bash, Agent, SubagentStop and Stop; older files and temporary files are left out.",
+  "email": "dev@example.com",
+  "queue_edits": [],
+  "queue_files": {},
+  "remote": "git@github.com:senseylabs/village.git",
+  "repo_files": [],
+  "scenarios": [],
+  "session_id": "11111111-aaaa-4bbb-8ccc-000000000002",
+  "ssh_aliases": {},
+  "state_files": {},
+  "steps": [
+    {
+      "at": "2026-10-01T09:00:10Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SessionStart",
+        "model": "claude-opus-5-5",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000002",
+        "source": "startup",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:11Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000002",
+        "tool_input": {
+          "description": "Build unit",
+          "prompt": "Task: build it.\nHandoff: {{REPO}}/handoffs/feat/backend/unit.md, new\nReport: DONE",
+          "subagent_type": "coding-engineer"
+        },
+        "tool_name": "Agent",
+        "tool_use_id": "toolu_agent",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:30Z",
+      "files": [
+        {
+          "content": "# Handoff\nStatus: DONE\n",
+          "mtime": "2026-10-01T09:00:29Z",
+          "path": "handoffs/feat/backend/unit.md"
+        },
+        {
+          "content": "half written",
+          "mtime": "2026-10-01T09:00:29Z",
+          "path": "handoffs/feat/backend/unit.md.tmp-123"
+        },
+        {
+          "content": "of another session, older than the start",
+          "mtime": "2026-10-01T09:00:05Z",
+          "path": "handoffs/feat/other/x.md"
+        },
+        {
+          "content": "# Deep\nAuthorization: Bearer abc.def.ghi\n",
+          "mtime": "2026-10-01T09:00:25Z",
+          "path": "handoffs/feat/notes/deep/y.md"
+        }
+      ],
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000002",
+        "tool_input": {
+          "command": "mkdir -p handoffs/feat/backend && cat > handoffs/feat/backend/unit.md <<'EOF'\n# Handoff\nStatus: DONE\nEOF",
+          "description": "write handoff"
+        },
+        "tool_name": "Bash",
+        "tool_response": {
+          "interrupted": false,
+          "stderr": "",
+          "stdout": ""
+        },
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:31Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000002",
+        "tool_input": {
+          "command": "ls handoffs"
+        },
+        "tool_name": "Bash",
+        "tool_response": {
+          "interrupted": false,
+          "stderr": "",
+          "stdout": "feat"
+        },
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:40Z",
+      "files": [
+        {
+          "content": "# Handoff\nStatus: DONE\nFiles: a.go\n",
+          "mtime": "2026-10-01T09:00:39Z",
+          "path": "handoffs/feat/backend/unit.md"
+        }
+      ],
+      "hook": {
+        "agent_id": "a1",
+        "agent_type": "coding-engineer",
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SubagentStop",
+        "last_assistant_message": "DONE. password=hunter2 in the log",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000002",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:50Z",
+      "files": [
+        {
+          "content": "# Report\nLATE_SECRET=topsecretvalue\n",
+          "mtime": "2026-10-01T09:00:49Z",
+          "path": "handoffs/feat/backend/report.md"
+        }
+      ],
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "Stop",
+        "last_assistant_message": "All done.",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000002",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:51Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SessionEnd",
+        "permission_mode": "default",
+        "reason": "other",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000002",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    }
+  ],
+  "usage": null,
+  "worktree": null
+}

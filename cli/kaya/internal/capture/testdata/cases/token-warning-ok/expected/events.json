@@ -1,0 +1,26 @@
+[
+  {
+    "at": "2026-10-01T09:00:00Z",
+    "branch": "feature/golden",
+    "cwd": "{{REPO}}",
+    "event": "SessionStart",
+    "seq": 1,
+    "source": "startup"
+  },
+  {
+    "at": "2026-10-01T09:00:01Z",
+    "branch": "feature/golden",
+    "cwd": "{{REPO}}",
+    "event": "SessionStart",
+    "seq": 2,
+    "source": "resume"
+  },
+  {
+    "at": "2026-10-01T09:00:02Z",
+    "branch": "feature/golden",
+    "cwd": "{{REPO}}",
+    "event": "SessionEnd",
+    "reason": "other",
+    "seq": 3
+  }
+]

@@ -1,0 +1,25 @@
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native prebuild output, at the app root only. Anchored so that a native
+# folder inside a local module is never ignored.
+/ios/
+/android/
+
+# Metro
+.metro-health-check*
+
+# Debug
+*.log
+
+# macOS
+.DS_Store
+
+# Env: local values stay out of git. The repo root ignores every .env.*, so the
+# template that lists the keys is re-included here.
+.env
+.env*.local
+!.env.example

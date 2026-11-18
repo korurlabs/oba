@@ -1,0 +1,29 @@
+@import "tailwindcss";
+@import "@oba/ui/sky/styles.css";
+
+/*
+ * Account wears the sky design of Kaya. Its signed-in pages sit in
+ * `SkyAppShell`, and the onboarding pages, which stay outside the shell, take
+ * the same tokens and base styles from here.
+ *
+ * Unlike Kaya, Account renders shared Oba components (the app switcher, the
+ * account menu, the form fields, the table). Tailwind scans only this app, so
+ * their folders are named here.
+ */
+@source "../../../packages/shared/src/components/**/*.{ts,tsx}";
+@source "../../../packages/shared/src/features/**/*.{ts,tsx}";
+@source "../../../packages/ui/src/components/**/*.{ts,tsx}";
+
+/*
+ * The sky design has no dark mode and Account always renders light (see
+ * `providers/index.tsx`). The shared components carry `dark:` classes; tied to
+ * the theme class, which is never set here, they stay off even when the
+ * system prefers dark.
+ */
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* Brand shades the shared account menu and the onboarding page use; sky names the others. */
+  --color-korur-blue-strong: #1c6fb8;
+  --color-korur-blue-medium: #beddff;
+}

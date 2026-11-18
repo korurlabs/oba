@@ -1,0 +1,10 @@
+{
+  "plans/session.json": {
+    "content": "{\n  \"source\": \"PLAN_MODE\"\n}\n",
+    "mtime": "2026-10-01T09:00:03Z"
+  },
+  "plans/session.md": {
+    "content": "# Plan\n\n1. Do the thing with --token abcdef and TOKEN=xyz123\n",
+    "mtime": "2026-10-01T09:00:03Z"
+  }
+}

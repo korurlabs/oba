@@ -1,0 +1,82 @@
+[
+  {
+    "at": "2026-10-01T09:00:00Z",
+    "branch": "feature/golden",
+    "cwd": "{{REPO}}",
+    "event": "SessionStart",
+    "seq": 1,
+    "source": "startup"
+  },
+  {
+    "at": "2026-10-01T09:00:01Z",
+    "branch": "feature/golden",
+    "cwd": "{{REPO}}",
+    "event": "Stop",
+    "last_assistant_message": "Which option do you want?",
+    "seq": 2
+  },
+  {
+    "at": "2026-10-01T09:00:02Z",
+    "branch": "feature/golden",
+    "cwd": "{{REPO}}",
+    "event": "Stop",
+    "last_assistant_message": "Only a goal\n**Goal**: x\nno steps",
+    "seq": 3
+  },
+  {
+    "at": "2026-10-01T09:00:03Z",
+    "branch": "feature/golden",
+    "cwd": "{{REPO}}",
+    "event": "Stop",
+    "last_assistant_message": "**Goal**: the recorder is in the CLI.\n**Steps**:\n1. Port record.py.\n2. Port sender.py.\n**Verification**: tests pass.\n",
+    "seq": 4
+  },
+  {
+    "at": "2026-10-01T09:00:04Z",
+    "branch": "feature/golden",
+    "cwd": "{{REPO}}",
+    "event": "Stop",
+    "last_assistant_message": "**Goal**: the recorder is in the CLI.\n**Steps**:\n1. Port record.py.\n2. Port sender.py.\n**Verification**: tests pass.\n",
+    "seq": 5
+  },
+  {
+    "at": "2026-10-01T09:00:05Z",
+    "branch": "feature/golden",
+    "cwd": "{{REPO}}",
+    "event": "Stop",
+    "last_assistant_message": "## Goal\n\nShip it.\n\n## 2. Steps\n\n1. one\n",
+    "seq": 6
+  },
+  {
+    "at": "2026-10-01T09:00:06Z",
+    "branch": "feature/golden",
+    "cwd": "{{REPO}}",
+    "event": "Stop",
+    "last_assistant_message": "- **Goal:** list style\n1. **Steps**: numbered\n",
+    "seq": 7
+  },
+  {
+    "at": "2026-10-01T09:00:07Z",
+    "cwd": "{{REPO}}",
+    "event": "PreToolUse",
+    "seq": 8,
+    "tool_name": "ExitPlanMode",
+    "tool_use_id": "toolu_exitplanmode"
+  },
+  {
+    "at": "2026-10-01T09:00:08Z",
+    "branch": "feature/golden",
+    "cwd": "{{REPO}}",
+    "event": "Stop",
+    "last_assistant_message": "**Goal**: a message after plan mode\n**Steps**:\n1. x\n",
+    "seq": 9
+  },
+  {
+    "at": "2026-10-01T09:00:09Z",
+    "branch": "feature/golden",
+    "cwd": "{{REPO}}",
+    "event": "SessionEnd",
+    "reason": "other",
+    "seq": 10
+  }
+]

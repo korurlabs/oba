@@ -1,0 +1,92 @@
+version: 2
+
+# The oba CLI source lives in this PRIVATE monorepo, but its releases are
+# published to the PUBLIC korurlabs/oba-cli repo, because
+# `brew install korurlabs/tap/oba-cli` resolves release assets from there and
+# Homebrew cannot authenticate against a private repo.
+#
+# Do NOT change project_name: it determines both the tap formula filename
+# (Formula/oba-cli.rb) and every archive name
+# (oba-cli_<version>_<os>_<arch>.tar.gz). The binary inside is `oba`.
+project_name: oba-cli
+
+builds:
+  - id: oba
+    main: .
+    binary: oba
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}} -X main.date={{.Date}}
+    # -s -w drop the symbol table and DWARF, but Go still embeds absolute source
+    # paths for panic traces; -trimpath keeps the runner's directory layout out
+    # of them and makes the build reproducible.
+    flags:
+      - -trimpath
+
+archives:
+  - formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    # LICENSE only. goreleaser's default also packs README*, and this README is
+    # written for the private monorepo (local stack, private doc paths), which
+    # must not ship in a public release.
+    files:
+      - LICENSE
+
+# install.sh and the release smoke test look the checksums up under this name.
+checksum:
+  name_template: "{{ .ProjectName }}_{{ .Version }}_checksums.txt"
+
+brews:
+  - repository:
+      owner: korurlabs
+      name: homebrew-tap
+      # The short-lived `sensey-releases` GitHub App installation token the
+      # release workflow mints, scoped to the release repo and the tap.
+      token: "{{ .Env.GITHUB_TOKEN }}"
+    directory: Formula
+    # The App makes the formula commit, so the tap history names it. The id is
+    # the bot USER id.
+    commit_author:
+      name: sensey-releases[bot]
+      email: 327959077+sensey-releases[bot]@users.noreply.github.com
+    homepage: "https://github.com/korurlabs/oba-cli"
+    description: "Oba CLI: the Oba apps from your terminal"
+    license: "MIT"
+    install: |
+      bin.install "oba"
+    test: |
+      system "#{bin}/oba", "--version"
+    # Rehearsal tags (e.g. v1.2.0-rc.1) must NOT reach the tap: brew has no
+    # prerelease channel, so a formula commit would upgrade everyone to it.
+    skip_upload: auto
+
+# Cut the release in the PUBLIC repo, not this private one: goreleaser uses
+# release.github for the release, every asset upload and the formula URLs.
+# target_commitish stays unset, so GitHub creates the tag on that repo's own
+# default branch; this monorepo's SHA would answer 422 there.
+release:
+  github: { owner: korurlabs, name: oba-cli }
+  mode: keep-existing
+  prerelease: auto
+  extra_files:
+    - glob: ./install.sh
+
+# SECURITY: release notes are supplied explicitly via --release-notes, generated
+# path-scoped to this directory. This exclude-all filter is the backstop for a
+# hand-run goreleaser, which would otherwise resolve a previous tag from THIS
+# monorepo and publish private commit messages of every project into a PUBLIC
+# release body. Do NOT swap it for `disable: true`: that also drops
+# --release-notes.
+changelog:
+  use: git
+  sort: asc
+  filters:
+    exclude:
+      - "^.*$"

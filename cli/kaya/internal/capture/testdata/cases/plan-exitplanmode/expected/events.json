@@ -1,0 +1,59 @@
+[
+  {
+    "at": "2026-10-01T09:00:00Z",
+    "branch": "feature/golden",
+    "cwd": "{{REPO}}",
+    "event": "SessionStart",
+    "seq": 1,
+    "source": "startup"
+  },
+  {
+    "at": "2026-10-01T09:00:01Z",
+    "cwd": "{{REPO}}",
+    "event": "PreToolUse",
+    "seq": 2,
+    "tool_name": "ExitPlanMode",
+    "tool_use_id": "toolu_exitplanmode"
+  },
+  {
+    "at": "2026-10-01T09:00:02Z",
+    "cwd": "{{REPO}}",
+    "event": "PreToolUse",
+    "seq": 3,
+    "tool_name": "ExitPlanMode",
+    "tool_use_id": "toolu_exitplanmode"
+  },
+  {
+    "at": "2026-10-01T09:00:03Z",
+    "cwd": "{{REPO}}",
+    "event": "PreToolUse",
+    "seq": 4,
+    "tool_name": "ExitPlanMode",
+    "tool_use_id": "toolu_exitplanmode"
+  },
+  {
+    "at": "2026-10-01T09:00:04Z",
+    "cwd": "{{REPO}}",
+    "event": "PreToolUse",
+    "seq": 5,
+    "tool_name": "ExitPlanMode",
+    "tool_use_id": "toolu_exitplanmode"
+  },
+  {
+    "at": "2026-10-01T09:00:05Z",
+    "cwd": "{{REPO}}",
+    "event": "PostToolUse",
+    "ok": true,
+    "seq": 6,
+    "tool_name": "ExitPlanMode",
+    "tool_use_id": "toolu_exitplanmode"
+  },
+  {
+    "at": "2026-10-01T09:00:06Z",
+    "branch": "feature/golden",
+    "cwd": "{{REPO}}",
+    "event": "SessionEnd",
+    "reason": "other",
+    "seq": 7
+  }
+]

@@ -1,0 +1,13 @@
+-- Village Database Schema - Map bunq_user_id Column to BankAccount.bunqUserId Field
+-- V1_2_43__Iroh_Map_BunqUserId_On_BankAccount.sql
+--
+-- The bank_accounts.bunq_user_id column already exists in the database — it was added by
+-- V1_2_20__Iroh_Add_Bunq_Per_Account_Credentials.sql alongside the encrypted_api_key and
+-- encrypted_bunq_context columns to support the bunq SDK per-account integration.
+--
+-- This migration is intentionally empty (no-op) and exists only to bracket the JPA-side change
+-- that maps the existing bunq_user_id column onto the BankAccount.bunqUserId entity field. The
+-- entity mapping introduces no schema change because the column was already present; this file
+-- preserves the version sequence and documents the entity-side change for future readers.
+--
+-- See: iroh/bank/entity/BankAccount.java — @Column(name = "bunq_user_id", length = 50)

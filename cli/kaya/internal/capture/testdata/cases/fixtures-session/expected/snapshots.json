@@ -1,0 +1,18 @@
+{
+  "handoffs/kaya/other/recorder.md": {
+    "content": "# Handoff\n\nStatus: PARTIAL\n",
+    "mtime": "2026-10-01T09:00:03Z"
+  },
+  "handoffs/kaya/other/second.md": {
+    "content": "# Second handoff\ntoken=notasecret\nAPI_KEY=abcdef123\n",
+    "mtime": "2026-10-01T09:00:04Z"
+  },
+  "plans/session.json": {
+    "content": "{\n  \"source\": \"PLAN_MODE\"\n}\n",
+    "mtime": "2026-10-01T09:00:12Z"
+  },
+  "plans/session.md": {
+    "content": "1. **Goal**: the recorder captures plans.\n2. **Steps**:\n   1. Add `snapshot_plan` to `record.py`.\n3. **Verification**: the tests pass.\n",
+    "mtime": "2026-10-01T09:00:12Z"
+  }
+}

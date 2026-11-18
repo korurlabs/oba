@@ -1,0 +1,52 @@
+{
+  "account": true,
+  "branch": "feature/golden",
+  "description": "Remote: https remote with user and password.",
+  "email": "dev@example.com",
+  "queue_edits": [],
+  "queue_files": {},
+  "remote": "https://user:ghp_tokenvalue@github.com/senseylabs/village",
+  "repo_files": [],
+  "scenarios": [],
+  "session_id": "22222222-aaaa-4bbb-8ccc-000000000014",
+  "ssh_aliases": {},
+  "state_files": {},
+  "steps": [
+    {
+      "at": "2026-10-01T09:00:00Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SessionStart",
+        "model": "claude-opus-5-5",
+        "permission_mode": "default",
+        "session_id": "22222222-aaaa-4bbb-8ccc-000000000014",
+        "source": "startup",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:01Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "Stop",
+        "last_assistant_message": "ok",
+        "permission_mode": "default",
+        "session_id": "22222222-aaaa-4bbb-8ccc-000000000014",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:02Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SessionEnd",
+        "permission_mode": "default",
+        "reason": "other",
+        "session_id": "22222222-aaaa-4bbb-8ccc-000000000014",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    }
+  ],
+  "usage": null,
+  "worktree": null
+}

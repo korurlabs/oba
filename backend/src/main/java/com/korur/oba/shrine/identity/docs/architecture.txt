@@ -1,0 +1,29 @@
+Identity Domain Architecture
+
+Purpose
+The identity domain provides user management and the canonical internal representation of an authenticated user. It anchors access control, auditing, and ownership across all domains.
+
+Key entities
+- User: internal user record with Keycloak identity mapping, email, status, and embedded profile.
+- UserProfile (embedded): user profile attributes stored with the user entity.
+
+Core services and methods
+- UserService: activates users after onboarding, sets the default organization, and applies organization deletions to users.
+- UserQueryService: queries user details and lists users via specifications.
+- UserJwtAuthService: synchronizes the current user using the JWT token and Keycloak identity.
+
+Validators and rules
+- UserValidator: enforces uniqueness of email, validates active status, checks required Keycloak mapping, and checks organization membership.
+
+DTOs and mapping
+- DTOs define request and response payloads for user update, list, and detail views.
+- UserMapper and UserEmbeddedMapper are the boundary translators between entities and DTOs.
+
+Relations to other domains
+- Organization membership and ownership are derived from identity user records.
+- Password, Vault, Folder, and Passfeed all use User as the owner or participant.
+- Logging and security context derive the current user via Keycloak ID.
+
+Notes on behavior
+- Deleting a user is a soft delete, reflected by user status.
+- Keycloak ID is the primary external identity link; operations requiring security context should validate it.

@@ -1,0 +1,279 @@
+# yaml-language-server: $schema=https://github.com/korurlabs/devstack/releases/latest/download/devstack.schema.json
+version: 1
+stack: oba
+port-block: 26
+requires: ">=0.1.0"
+notes: |
+  Kaizen ${kaizen.url}   Admin ${admin.url}   Account ${account.url}   Otak ${otak.url}   Kalkan ${kalkan.url}   Kaya ${kaya.url}   API ${backend.url}
+  Keycloak admin console ${keycloak.url}/admin (bootstrap credentials: backend/docker-compose.yaml).
+  backend, kaizen, admin, account, otak, kalkan and kaya are Kagi-bound: each one's kagi.yaml carries a
+  local: provider: devstack block owning exactly that unit's env and unset keys,
+  so the unit launches through kagi run and devstack's provider layers the values
+  written here over the ones Kagi serves. That is how the backend receives
+  ENCRYPTION_SECRET, which application.properties:35 binds with no default, and
+  how kaizen, admin, account, otak, kalkan and kaya receive AUTH_SECRET,
+  AUTH_KEYCLOAK_ID and AUTH_KEYCLOAK_SECRET. The AUTH_SECRET of admin, account,
+  otak and kalkan must equal Kaizen's, because all five apps read the one shared
+  session cookie. Kaya has a session cookie of its own, so its AUTH_SECRET may differ.
+  Still inert: the backend's unset: keys, because
+  application.properties:33,37 are literals.
+
+infra:
+  compose:
+    files: [backend/docker-compose.yaml]
+  services:
+    postgres:
+      type: postgres
+      service: postgres
+      offset: 32
+      health:
+        exec: { container: true, command: [pg_isready, -U, oba, -d, oba] }
+    keycloak:
+      type: keycloak
+      service: keycloak
+      offset: 70
+      # Keycloak stores its realms in the postgres service
+      # (backend/docker-compose.yaml:33-38).
+      depends-on: [postgres]
+      admin: { username-env: KEYCLOAK_ADMIN, password-env: KEYCLOAK_ADMIN_PASSWORD }
+      realms: [sensey]
+      heap: small
+      clients:
+        sensey/oba: [kaizen, admin, account, otak, kalkan, kaya]
+    azurite:
+      type: azurite
+      service: azurite
+      offset: 40
+      # The image declares VOLUME /data and the compose file names no volume for
+      # it, so blobs would not survive a container replacement.
+      data-volumes: { /data: azurite-data }
+    azurite-init:
+      type: oneshot
+      service: azurite-init
+      depends-on: [azurite]
+
+apps:
+  backend:
+    type: spring
+    path: backend
+    offset: 80
+    # backend/kagi.yaml owns every key below in its local: block, so this unit
+    # launches through kagi run the way the start script does today
+    # (projects/oba/scripts/start.sh:559): Kagi supplies the AI provider
+    # credentials and ENCRYPTION_SECRET, and devstack's provider layers the
+    # datasource, Keycloak, Azure and port values over them.
+    kagi: true
+    depends-on: [postgres, keycloak, azurite-init]
+    # Every devstack manifest builds Spring with the system mvn, never the
+    # Maven wrapper, as .agents/rules/07-build-verification.md requires.
+    build:
+      command: [mvn, -q, -DskipTests, package]
+      clean-command: [mvn, -q, clean, package, -DskipTests]
+      jar: target/oba-api-*.jar
+    stop-grace: 40s
+    env:
+      SERVER_PORT: "${self.port}"
+      SERVER_ADDRESS: "127.0.0.1"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://localhost:${postgres.port}/oba"
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: "${keycloak.url}/realms/sensey"
+      OBA_OPENAPI_URL: "${self.url}"
+      AZURE_STORAGE_CONNECTION_STRING: "${azurite.connection-string}"
+      AZURE_STORAGE_BLOB_BASE_URL: "http://127.0.0.1:${azurite.port}/devstoreaccount1"
+      SENSEY_CORS_ALLOW_LOCAL_ORIGINS: "true"
+    # Inert: nothing reads these names, because application.properties:33,37
+    # are literals.
+    unset: [KEYCLOAK_ISSUER, OPENAPI_URL]
+    health:
+      tcp: {}
+      start-period: 180s
+
+  kaizen:
+    type: next
+    path: frontend/apps/kaizen
+    offset: 1
+    # frontend/apps/kaizen/kagi.yaml owns every key below; Kagi adds AUTH_SECRET,
+    # AUTH_KEYCLOAK_ID and AUTH_KEYCLOAK_SECRET, which no manifest may set.
+    kagi: true
+    depends-on: [frontend-install, keycloak]
+    env:
+      PORT: "${self.port}"
+      AUTH_URL: "${self.url}"
+      AUTH_KEYCLOAK_ISSUER: "${keycloak.url}/realms/sensey"
+      # Public URLs, read by the server on each request (runtime config).
+      BASE_URL: "${self.url}"
+      API_BASE_URL: "${backend.url}"
+      KAIZEN_URL: "${self.url}"
+      ADMIN_URL: "${admin.url}"
+      ACCOUNT_URL: "${account.url}"
+      OTAK_URL: "${otak.url}"
+      KALKAN_URL: "${kalkan.url}"
+      KAYA_URL: "${kaya.url}"
+
+  admin:
+    type: next
+    path: frontend/apps/admin
+    offset: 2
+    # frontend/apps/admin/kagi.yaml owns every key below; Kagi adds AUTH_SECRET,
+    # AUTH_KEYCLOAK_ID and AUTH_KEYCLOAK_SECRET, which no manifest may set.
+    kagi: true
+    depends-on: [frontend-install, keycloak]
+    env:
+      PORT: "${self.port}"
+      AUTH_URL: "${self.url}"
+      AUTH_KEYCLOAK_ISSUER: "${keycloak.url}/realms/sensey"
+      # Public URLs, read by the server on each request (runtime config).
+      BASE_URL: "${self.url}"
+      API_BASE_URL: "${backend.url}"
+      KAIZEN_URL: "${kaizen.url}"
+      ADMIN_URL: "${self.url}"
+      ACCOUNT_URL: "${account.url}"
+      OTAK_URL: "${otak.url}"
+      KALKAN_URL: "${kalkan.url}"
+      KAYA_URL: "${kaya.url}"
+
+  account:
+    type: next
+    path: frontend/apps/account
+    offset: 3
+    # frontend/apps/account/kagi.yaml owns every key below; Kagi adds AUTH_SECRET,
+    # AUTH_KEYCLOAK_ID and AUTH_KEYCLOAK_SECRET, which no manifest may set.
+    kagi: true
+    depends-on: [frontend-install, keycloak]
+    env:
+      PORT: "${self.port}"
+      AUTH_URL: "${self.url}"
+      AUTH_KEYCLOAK_ISSUER: "${keycloak.url}/realms/sensey"
+      # Public URLs, read by the server on each request (runtime config).
+      BASE_URL: "${self.url}"
+      API_BASE_URL: "${backend.url}"
+      KAIZEN_URL: "${kaizen.url}"
+      ADMIN_URL: "${admin.url}"
+      ACCOUNT_URL: "${self.url}"
+      OTAK_URL: "${otak.url}"
+      KALKAN_URL: "${kalkan.url}"
+      KAYA_URL: "${kaya.url}"
+
+  otak:
+    type: next
+    path: frontend/apps/otak
+    offset: 4
+    # frontend/apps/otak/kagi.yaml owns every key below; Kagi adds AUTH_SECRET,
+    # AUTH_KEYCLOAK_ID and AUTH_KEYCLOAK_SECRET, which no manifest may set.
+    kagi: true
+    depends-on: [frontend-install, keycloak]
+    env:
+      PORT: "${self.port}"
+      AUTH_URL: "${self.url}"
+      AUTH_KEYCLOAK_ISSUER: "${keycloak.url}/realms/sensey"
+      # Public URLs, read by the server on each request (runtime config).
+      BASE_URL: "${self.url}"
+      API_BASE_URL: "${backend.url}"
+      KAIZEN_URL: "${kaizen.url}"
+      ADMIN_URL: "${admin.url}"
+      ACCOUNT_URL: "${account.url}"
+      OTAK_URL: "${self.url}"
+      KALKAN_URL: "${kalkan.url}"
+      KAYA_URL: "${kaya.url}"
+
+  kalkan:
+    type: next
+    path: frontend/apps/kalkan
+    offset: 5
+    # frontend/apps/kalkan/kagi.yaml owns every key below; Kagi adds AUTH_SECRET,
+    # AUTH_KEYCLOAK_ID and AUTH_KEYCLOAK_SECRET, which no manifest may set.
+    kagi: true
+    depends-on: [frontend-install, keycloak]
+    env:
+      PORT: "${self.port}"
+      AUTH_URL: "${self.url}"
+      AUTH_KEYCLOAK_ISSUER: "${keycloak.url}/realms/sensey"
+      # Public URLs, read by the server on each request (runtime config).
+      BASE_URL: "${self.url}"
+      API_BASE_URL: "${backend.url}"
+      KAIZEN_URL: "${kaizen.url}"
+      ADMIN_URL: "${admin.url}"
+      ACCOUNT_URL: "${account.url}"
+      OTAK_URL: "${otak.url}"
+      KALKAN_URL: "${self.url}"
+      KAYA_URL: "${kaya.url}"
+
+  kaya:
+    type: next
+    path: frontend/apps/kaya
+    offset: 6
+    # frontend/apps/kaya/kagi.yaml owns every key below; Kagi adds AUTH_SECRET,
+    # AUTH_KEYCLOAK_ID and AUTH_KEYCLOAK_SECRET, which no manifest may set.
+    kagi: true
+    depends-on: [frontend-install, keycloak]
+    env:
+      PORT: "${self.port}"
+      AUTH_URL: "${self.url}"
+      AUTH_KEYCLOAK_ISSUER: "${keycloak.url}/realms/sensey"
+      # Public URLs, read by the server on each request (runtime config).
+      BASE_URL: "${self.url}"
+      API_BASE_URL: "${backend.url}"
+      KAIZEN_URL: "${kaizen.url}"
+      ADMIN_URL: "${admin.url}"
+      ACCOUNT_URL: "${account.url}"
+      OTAK_URL: "${otak.url}"
+      KALKAN_URL: "${kalkan.url}"
+      KAYA_URL: "${self.url}"
+
+tasks:
+  frontend-install:
+    on: up
+    path: frontend
+    run: [bun, install]
+    inputs: [frontend/bun.lock]
+  flyway-verify:
+    on: up
+    after: [backend]
+    container: postgres
+    run:
+      - sh
+      - -c
+      - 'test "$(psql -U oba -d oba -tAc "SELECT COUNT(*) FROM flyway_schema_history WHERE success")" -gt 0'
+  seed-dev-data:
+    on: up
+    after: [flyway-verify]
+    container: postgres
+    stdin: scripts/seed-dev-data.sql
+    run:
+      - sh
+      - -c
+      - 'if [ "$(psql -U oba -d oba -tAc "SELECT COUNT(*) FROM shrine.users")" -gt 0 ]; then echo "users exist, skipping seed"; else psql -v ON_ERROR_STOP=1 -U oba -d oba; fi'
+  link-users-to-org:
+    on: up
+    after: [seed-dev-data]
+    # A fresh database has no users to link, and the backend links them on first
+    # login (projects/oba/scripts/start.sh:658-681).
+    critical: false
+    container: postgres
+    run:
+      - psql
+      - -U
+      - oba
+      - -d
+      - oba
+      - -q
+      - -c
+      - |
+        UPDATE shrine.users
+        SET default_organization_id = 'b0000000-0000-0000-0000-000000000001'
+        WHERE default_organization_id IS NULL;
+
+        INSERT INTO shrine.organization_members (id, organization_id, user_id, role, status)
+        SELECT gen_random_uuid(), 'b0000000-0000-0000-0000-000000000001', u.id, 'OWNER', 'ACTIVE'
+        FROM shrine.users u
+        WHERE NOT EXISTS (
+            SELECT 1 FROM shrine.organization_members om
+            WHERE om.user_id = u.id AND om.organization_id = 'b0000000-0000-0000-0000-000000000001'
+        );
+
+doctor:
+  legacy:
+    # The start scripts' compose project, under its current name and under the
+    # name it had before the platform became Oba.
+    containers: [oba-postgres, oba-keycloak, oba-azurite, oba-azurite-init, village-postgres, village-keycloak, village-azurite, village-azurite-init]
+    compose-projects: [oba, village]
+    ports: [5438, 8086, 10000, 8080, 3000, 3002]

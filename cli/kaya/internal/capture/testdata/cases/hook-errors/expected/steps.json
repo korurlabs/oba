@@ -1,0 +1,54 @@
+[
+  {
+    "exit": 0,
+    "stderr": [
+      "kaya recorder: nothing recorded: the event on stdin is not JSON: Expecting value: line 1 column 1 (char 0)"
+    ],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [
+      "kaya recorder: nothing recorded: the event is not a JSON object"
+    ],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [
+      "kaya recorder: nothing recorded: the event on stdin is not JSON: Expecting value: line 1 column 1 (char 0)"
+    ],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [
+      "kaya recorder: nothing recorded: the event has no session_id"
+    ],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [
+      "kaya recorder: nothing recorded: the event has no session_id"
+    ],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [
+      "kaya recorder: nothing recorded: {{OUTSIDE}} is not inside a git repository"
+    ],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [],
+    "stdout": ""
+  }
+]

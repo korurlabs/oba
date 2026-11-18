@@ -1,0 +1,10 @@
+{
+  "plans/session.json": {
+    "content": "{\n  \"source\": \"MESSAGE\"\n}\n",
+    "mtime": "2026-10-01T09:00:08Z"
+  },
+  "plans/session.md": {
+    "content": "**Goal**: a message after plan mode\n**Steps**:\n1. x\n",
+    "mtime": "2026-10-01T09:00:08Z"
+  }
+}

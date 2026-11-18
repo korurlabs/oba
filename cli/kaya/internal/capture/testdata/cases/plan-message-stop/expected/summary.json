@@ -1,0 +1,16 @@
+{
+  "branch": "feature/golden",
+  "briefed_features": [],
+  "cwd": "{{REPO}}",
+  "ended": true,
+  "event_count": 10,
+  "features": [],
+  "first_prompt": null,
+  "last_event_at": "2026-10-01T09:00:09Z",
+  "project": null,
+  "session_id": "11111111-aaaa-4bbb-8ccc-000000000003",
+  "session_title": null,
+  "started_at": "2026-10-01T09:00:00Z",
+  "ticket": null,
+  "title": null
+}

@@ -1,0 +1,136 @@
+{
+  "account": true,
+  "branch": "feature/golden",
+  "description": "The config release report: unknown state and delivery, bad digest, missing file and non-object file.",
+  "email": "dev@example.com",
+  "queue_edits": [],
+  "queue_files": {
+    "config-release.json": "{\"number\": 3, \"manifestSha256\": \"ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789\", \"state\": \"WEIRD\", \"deliveredBy\": \"ROBOT\"}"
+  },
+  "remote": "git@github.com:senseylabs/village.git",
+  "repo_files": [],
+  "scenarios": [
+    {
+      "name": "state-stale-upper-sha",
+      "queue_files": {
+        "config-release.json": "{\"number\": 4, \"manifestSha256\": \"ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789\", \"state\": \"STALE\", \"deliveredBy\": \"HOOK\"}"
+      },
+      "runs": [
+        {
+          "responses": [],
+          "token": "A"
+        }
+      ]
+    },
+    {
+      "name": "state-none",
+      "queue_files": {
+        "config-release.json": "{\"number\": 4, \"manifestSha256\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\", \"state\": \"NONE\"}"
+      },
+      "runs": [
+        {
+          "responses": [],
+          "token": "A"
+        }
+      ]
+    },
+    {
+      "name": "bad-digest",
+      "queue_files": {
+        "config-release.json": "{\"number\": 4, \"manifestSha256\": \"short\", \"state\": \"CACHED\", \"deliveredBy\": \"LAUNCHER\"}"
+      },
+      "runs": [
+        {
+          "responses": [],
+          "token": "A"
+        }
+      ]
+    },
+    {
+      "name": "number-zero",
+      "queue_files": {
+        "config-release.json": "{\"number\": 0, \"manifestSha256\": \"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\", \"state\": \"FRESH\"}"
+      },
+      "runs": [
+        {
+          "responses": [],
+          "token": "A"
+        }
+      ]
+    },
+    {
+      "name": "not-an-object",
+      "queue_files": {
+        "config-release.json": "[1]"
+      },
+      "runs": [
+        {
+          "responses": [],
+          "token": "A"
+        }
+      ]
+    },
+    {
+      "name": "not-json",
+      "queue_files": {
+        "config-release.json": "{broken"
+      },
+      "runs": [
+        {
+          "responses": [],
+          "token": "A"
+        }
+      ]
+    },
+    {
+      "name": "no-file",
+      "queue_files": {
+        "config-release.json": null
+      },
+      "runs": [
+        {
+          "responses": [],
+          "token": "A"
+        }
+      ]
+    },
+    {
+      "name": "usage-without-windows",
+      "runs": [
+        {
+          "responses": [],
+          "token": "A"
+        }
+      ],
+      "usage": {
+        "capturedAt": "2026-10-01T09:00:00Z"
+      }
+    }
+  ],
+  "session_id": "11111111-aaaa-4bbb-8ccc-00000000000e",
+  "ssh_aliases": {},
+  "state_files": {},
+  "steps": [
+    {
+      "at": "2026-10-01T09:00:00Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SessionStart",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000e",
+        "source": "startup",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    }
+  ],
+  "usage": {
+    "capturedAt": "2026-10-01T09:00:00Z",
+    "fiveHour": null,
+    "ignored": "x",
+    "sevenDay": {
+      "resetsAt": "2026-10-07T09:00:00Z",
+      "utilization": 99.0
+    }
+  },
+  "worktree": null
+}

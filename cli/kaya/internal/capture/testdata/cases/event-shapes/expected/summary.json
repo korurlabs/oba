@@ -1,0 +1,20 @@
+{
+  "branch": "feature/golden",
+  "briefed_features": [
+    "one",
+    "q",
+    ".."
+  ],
+  "cwd": "{{REPO}}",
+  "ended": true,
+  "event_count": 44,
+  "features": [],
+  "first_prompt": "Fix KAI-42 and KAI-43 please",
+  "last_event_at": "2026-10-01T09:00:43Z",
+  "project": "kaya",
+  "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
+  "session_title": "Title at the end",
+  "started_at": "2026-10-01T09:00:00Z",
+  "ticket": "KAI-42",
+  "title": "Title at the end"
+}

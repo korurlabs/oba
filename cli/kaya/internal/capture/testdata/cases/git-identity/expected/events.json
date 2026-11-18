@@ -1,0 +1,27 @@
+[
+  {
+    "at": "2026-10-01T09:00:00Z",
+    "branch": "main",
+    "cwd": "{{REPO}}",
+    "event": "SessionStart",
+    "seq": 1,
+    "source": "startup"
+  },
+  {
+    "at": "2026-10-01T09:00:01Z",
+    "command": "ls",
+    "cwd": "{{REPO}}",
+    "event": "PreToolUse",
+    "seq": 2,
+    "tool_name": "Bash",
+    "tool_use_id": "t"
+  },
+  {
+    "at": "2026-10-01T09:00:02Z",
+    "branch": "main",
+    "cwd": "{{REPO}}",
+    "event": "SessionEnd",
+    "reason": "other",
+    "seq": 3
+  }
+]

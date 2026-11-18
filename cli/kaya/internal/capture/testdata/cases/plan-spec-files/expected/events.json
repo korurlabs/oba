@@ -1,0 +1,160 @@
+[
+  {
+    "at": "2026-10-01T09:00:10Z",
+    "branch": "wt",
+    "cwd": "{{REPO}}/.claude/worktrees/wt",
+    "event": "SessionStart",
+    "seq": 1,
+    "source": "startup"
+  },
+  {
+    "at": "2026-10-01T09:00:20Z",
+    "cwd": "{{REPO}}/.claude/worktrees/wt",
+    "event": "PostToolUse",
+    "file_path": "{{REPO}}/.claude/worktrees/wt/docs/claude/plans/kaya/07_X.md",
+    "ok": true,
+    "seq": 2,
+    "tool_name": "Write",
+    "tool_use_id": "toolu_write"
+  },
+  {
+    "at": "2026-10-01T09:00:21Z",
+    "cwd": "{{REPO}}/.claude/worktrees/wt",
+    "event": "PostToolUse",
+    "file_path": "docs/private/plans/kaya/18_Y.md",
+    "ok": true,
+    "seq": 3,
+    "tool_name": "Edit",
+    "tool_use_id": "toolu_edit"
+  },
+  {
+    "at": "2026-10-01T09:00:22Z",
+    "cwd": "{{REPO}}",
+    "event": "PostToolUse",
+    "file_path": "{{REPO}}/docs/plans/z.md",
+    "ok": true,
+    "seq": 4,
+    "tool_name": "MultiEdit",
+    "tool_use_id": "toolu_multiedit"
+  },
+  {
+    "at": "2026-10-01T09:00:23Z",
+    "cwd": "{{REPO}}",
+    "event": "PostToolUse",
+    "file_path": "{{REPO}}/docs/plans/failed.md",
+    "ok": false,
+    "seq": 5,
+    "tool_name": "Write",
+    "tool_use_id": "toolu_write"
+  },
+  {
+    "at": "2026-10-01T09:00:24Z",
+    "cwd": "{{REPO}}",
+    "event": "PostToolUseFailure",
+    "file_path": "{{REPO}}/docs/plans/failure-event.md",
+    "ok": false,
+    "seq": 6,
+    "tool_name": "Write",
+    "tool_use_id": "toolu_write"
+  },
+  {
+    "at": "2026-10-01T09:00:25Z",
+    "cwd": "{{REPO}}",
+    "event": "PostToolUse",
+    "file_path": "{{REPO}}/docs/notaplan/readme.md",
+    "ok": true,
+    "seq": 7,
+    "tool_name": "Write",
+    "tool_use_id": "toolu_write"
+  },
+  {
+    "at": "2026-10-01T09:00:26Z",
+    "cwd": "{{REPO}}",
+    "event": "PostToolUse",
+    "file_path": "{{REPO}}/docs/plans/../plans/dots.md",
+    "ok": true,
+    "seq": 8,
+    "tool_name": "Write",
+    "tool_use_id": "toolu_write"
+  },
+  {
+    "at": "2026-10-01T09:00:27Z",
+    "cwd": "{{REPO}}",
+    "event": "PostToolUse",
+    "file_path": "/elsewhere/docs/plans/outside.md",
+    "ok": true,
+    "seq": 9,
+    "tool_name": "Write",
+    "tool_use_id": "toolu_write"
+  },
+  {
+    "at": "2026-10-01T09:00:28Z",
+    "command": "cat docs/plans/old.md docs/plans/new.md && echo \"docs/plans/missing.md\"",
+    "cwd": "{{REPO}}",
+    "event": "PostToolUse",
+    "ok": true,
+    "seq": 10,
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_bash"
+  },
+  {
+    "at": "2026-10-01T09:00:29Z",
+    "command": "sed -i s/a/b/ docs/claude/plans/kaya/08.md",
+    "cwd": "{{REPO}}",
+    "event": "PostToolUse",
+    "ok": false,
+    "seq": 11,
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_bash"
+  },
+  {
+    "at": "2026-10-01T09:00:30Z",
+    "cwd": "{{REPO}}",
+    "event": "PostToolUse",
+    "file_path": "{{REPO}}/docs/plans/exactly-limit.md",
+    "ok": true,
+    "seq": 12,
+    "tool_name": "Write",
+    "tool_use_id": "toolu_write"
+  },
+  {
+    "at": "2026-10-01T09:00:31Z",
+    "cwd": "{{REPO}}",
+    "event": "PostToolUse",
+    "file_path": "{{REPO}}/docs/plans/over-limit.md",
+    "ok": true,
+    "seq": 13,
+    "tool_name": "Write",
+    "tool_use_id": "toolu_write"
+  },
+  {
+    "at": "2026-10-01T09:00:32Z",
+    "cwd": "{{REPO}}",
+    "event": "PostToolUse",
+    "file_path": "{{REPO}}/docs/plans/multibyte.md",
+    "ok": true,
+    "seq": 14,
+    "tool_name": "Write",
+    "tool_use_id": "toolu_write"
+  },
+  {
+    "at": "2026-10-01T09:00:33Z",
+    "cwd": "{{REPO}}",
+    "event": "PostToolUse",
+    "file_path": "{{REPO}}/docs/plans/multibyte-over.md",
+    "ok": true,
+    "seq": 15,
+    "tool_name": "Write",
+    "tool_use_id": "toolu_write"
+  },
+  {
+    "at": "2026-10-01T09:00:34Z",
+    "cwd": "{{REPO}}",
+    "event": "PostToolUse",
+    "file_path": "{{REPO}}/docs/plans/z.md",
+    "ok": true,
+    "seq": 16,
+    "tool_name": "Write",
+    "tool_use_id": "toolu_write"
+  }
+]
