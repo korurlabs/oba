@@ -55,7 +55,7 @@ class AlertmanagerAuthenticationFilterUnitTest {
     void setUp() {
         SecurityContextHolder.clearContext();
         filter = new AlertmanagerAuthenticationFilter(tokenValidator, loggingService);
-        request = new MockHttpServletRequest("POST", "/kaizen/integrations/alertmanager");
+        request = new MockHttpServletRequest("POST", "/kazan/integrations/alertmanager");
         request.addHeader(HttpHeaders.AUTHORIZATION, HEADER);
         request.setRemoteAddr("10.0.0.7");
         response = new MockHttpServletResponse();

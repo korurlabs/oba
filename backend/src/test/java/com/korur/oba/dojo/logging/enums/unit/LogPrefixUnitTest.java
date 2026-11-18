@@ -34,27 +34,27 @@ class LogPrefixUnitTest {
     class FromClass {
 
         @Test
-        void kaizenAppClass_resolvesAppAndArea() {
+        void kazanAppClass_resolvesAppAndArea() {
             // Arrange
-            Class<?> clazz = classNamed("com.korur.oba.apps.kaizen.ticket.service.TicketProbeA");
+            Class<?> clazz = classNamed("com.korur.oba.apps.kazan.ticket.service.TicketProbeA");
 
             // Act
             String domain = LogPrefix.fromClass(clazz).getDomain();
 
             // Assert
-            assertEquals("kaizen.ticket", domain);
+            assertEquals("kazan.ticket", domain);
         }
 
         @Test
-        void kaizenAppClassInDeepPackage_resolvesAppAndArea() {
+        void kazanAppClassInDeepPackage_resolvesAppAndArea() {
             // Arrange
-            Class<?> clazz = classNamed("com.korur.oba.apps.kaizen.ticket.service.impl.helper.TicketProbeB");
+            Class<?> clazz = classNamed("com.korur.oba.apps.kazan.ticket.service.impl.helper.TicketProbeB");
 
             // Act
             String domain = LogPrefix.fromClass(clazz).getDomain();
 
             // Assert
-            assertEquals("kaizen.ticket", domain);
+            assertEquals("kazan.ticket", domain);
         }
 
         @Test
@@ -96,13 +96,13 @@ class LogPrefixUnitTest {
         @Test
         void classDirectlyUnderApp_resolvesAppAndFirstSegmentAsModule() {
             // Arrange: only two segments after the base, so the apps rule does not apply
-            Class<?> clazz = classNamed("com.korur.oba.apps.kaizen.AppRootProbe");
+            Class<?> clazz = classNamed("com.korur.oba.apps.kazan.AppRootProbe");
 
             // Act
             String domain = LogPrefix.fromClass(clazz).getDomain();
 
             // Assert
-            assertEquals("apps.kaizen", domain);
+            assertEquals("apps.kazan", domain);
         }
 
         @Test
@@ -156,7 +156,7 @@ class LogPrefixUnitTest {
         @Test
         void legacyBasePackage_returnsUnknown() {
             // Arrange
-            Class<?> clazz = classNamed("com.sensey.kaizen.domain.ticket.LegacyProbe");
+            Class<?> clazz = classNamed("com.sensey.kazan.domain.ticket.LegacyProbe");
 
             // Act
             String domain = LogPrefix.fromClass(clazz).getDomain();

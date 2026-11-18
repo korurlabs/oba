@@ -234,7 +234,7 @@ class OrganizationMemberServiceImplUnitTest {
 
             OrganizationMemberRoleUpdateRequest request = new OrganizationMemberRoleUpdateRequest(OrganizationMemberRole.GUEST);
             Map<App, Set<UUID>> holders = Map.of(
-                    App.KAIZEN, Set.of(targetUserId),
+                    App.KAZAN, Set.of(targetUserId),
                     App.KAYA, Set.of(targetUserId));
 
             when(organizationValidator.ensureMemberExists(organizationId, targetUserId))

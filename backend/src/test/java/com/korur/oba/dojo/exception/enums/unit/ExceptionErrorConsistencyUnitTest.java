@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import com.korur.oba.apps.kaizen.dailyupdate.exception.ExceptionDomainDailyUpdateError;
-import com.korur.oba.apps.kaizen.exception.ExceptionDomainKaizenError;
+import com.korur.oba.apps.kazan.dailyupdate.exception.ExceptionDomainDailyUpdateError;
+import com.korur.oba.apps.kazan.exception.ExceptionDomainKazanError;
 import com.korur.oba.apps.kalkan.core.exception.enums.ExceptionDomainKalkanError;
 import com.korur.oba.apps.otak.exception.ExceptionDomainOtakError;
 import com.korur.oba.connect.azure.exception.ExceptionDomainAzureError;
@@ -57,7 +57,7 @@ class ExceptionErrorConsistencyUnitTest {
         addAll(all, ExceptionStateError.values());
         addAll(all, ExceptionUpstreamError.values());
         addAll(all, ExceptionValidationError.values());
-        addAll(all, ExceptionDomainKaizenError.values());
+        addAll(all, ExceptionDomainKazanError.values());
         addAll(all, ExceptionDomainKalkanError.values());
         addAll(all, ExceptionDomainOtakError.values());
         addAll(all, ExceptionDomainAzureError.values());

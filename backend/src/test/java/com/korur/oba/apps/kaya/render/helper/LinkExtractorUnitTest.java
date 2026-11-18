@@ -114,7 +114,7 @@ class LinkExtractorUnitTest {
     void extract_urlsUndeliveredPathsFencesAndSelfLinks_areLeftOut() {
         String markdown = String.join("\n",
                 "[site](https://sensey.io/docs/a.md) [mail](mailto:dev@example.com) [anchor](#tests) [self](./11-backend-rules.md)",
-                "[kaizen docs](/docs/private/projects/kaizen/) `projects/kaya/backend` `.agents/skills/<name>/SKILL.md`",
+                "[kazan docs](/docs/private/projects/kazan/) `projects/kaya/backend` `.agents/skills/<name>/SKILL.md`",
                 "[up](../../../../etc/passwd.md)",
                 "```markdown",
                 "[inside a fence](/docs/private/conventions/a.md)",
@@ -150,11 +150,11 @@ class LinkExtractorUnitTest {
     @Test
     void isDelivered_deliveredFileOrDirectory_isTrueAndOtherwiseFalse() {
         NavigableSet<String> delivered = new TreeSet<>(List.of(
-                "docs/private/conventions/backend/32-soft-delete-convention.md", ".agents/skills/kaizen/SKILL.md"));
+                "docs/private/conventions/backend/32-soft-delete-convention.md", ".agents/skills/kazan/SKILL.md"));
 
         assertTrue(LinkExtractor.isDelivered("docs/private/conventions/backend/32-soft-delete-convention.md", delivered));
         assertTrue(LinkExtractor.isDelivered("docs/private/conventions/backend/", delivered));
-        assertTrue(LinkExtractor.isDelivered(".agents/skills/kaizen", delivered));
+        assertTrue(LinkExtractor.isDelivered(".agents/skills/kazan", delivered));
         assertFalse(LinkExtractor.isDelivered("docs/private/conventions/frontend/", delivered));
         assertFalse(LinkExtractor.isDelivered(".agents/skills/kai", delivered));
     }

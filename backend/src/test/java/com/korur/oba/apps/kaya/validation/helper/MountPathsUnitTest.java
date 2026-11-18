@@ -42,7 +42,7 @@ class MountPathsUnitTest {
 
     @Test
     void classify_otherLiteralFolder_isOutside() {
-        assertEquals(PatternClass.OUTSIDE, classOf("projects/kaizen/**"));
+        assertEquals(PatternClass.OUTSIDE, classOf("projects/kazan/**"));
         assertEquals(PatternClass.OUTSIDE, classOf("projects/*.md"));
     }
 
@@ -60,8 +60,8 @@ class MountPathsUnitTest {
 
     @Test
     void classify_braceGroup_classifiesEachExpansion() {
-        Map<String, PatternClass> classes = MountPaths.classify("projects/{kagi,kaizen}/x/**", ROOT);
-        assertEquals(Map.of("projects/kagi/x/**", PatternClass.INSIDE, "projects/kaizen/x/**", PatternClass.OUTSIDE),
+        Map<String, PatternClass> classes = MountPaths.classify("projects/{kagi,kazan}/x/**", ROOT);
+        assertEquals(Map.of("projects/kagi/x/**", PatternClass.INSIDE, "projects/kazan/x/**", PatternClass.OUTSIDE),
                 classes);
     }
 
@@ -96,7 +96,7 @@ class MountPathsUnitTest {
         assertFalse(MountPaths.isInNamespace(".agents/hooks/dispatch.sh", "kagi", ROOT));
         assertFalse(MountPaths.isInNamespace("AGENTS.md", "kagi", ROOT));
         assertFalse(MountPaths.isInNamespace(".agents/rules/core.md", "kagi", ROOT));
-        assertFalse(MountPaths.isInNamespace(".agents/rules/kaizen/x.md", "kagi", ROOT));
+        assertFalse(MountPaths.isInNamespace(".agents/rules/kazan/x.md", "kagi", ROOT));
         assertFalse(MountPaths.isInNamespace(".agents/skills/kagi/SKILL.md", "kagi", ROOT));
         assertFalse(MountPaths.isInNamespace("projects/kagi/operator/AGENTS.md", "kagi", ROOT));
     }
@@ -106,8 +106,8 @@ class MountPathsUnitTest {
         assertFalse(MountPaths.isScopedTo(List.of(), ROOT));
         assertFalse(MountPaths.isScopedTo(List.of("**/*.java"), ROOT));
         assertFalse(MountPaths.isScopedTo(List.of("projects/kagi*/**"), ROOT));
-        assertFalse(MountPaths.isScopedTo(List.of("{projects/kagi,projects/kaizen}/**"), ROOT));
-        assertFalse(MountPaths.isScopedTo(List.of("projects/kagi/**", "projects/kaizen/**"), ROOT));
+        assertFalse(MountPaths.isScopedTo(List.of("{projects/kagi,projects/kazan}/**"), ROOT));
+        assertFalse(MountPaths.isScopedTo(List.of("projects/kagi/**", "projects/kazan/**"), ROOT));
     }
 
     @Test

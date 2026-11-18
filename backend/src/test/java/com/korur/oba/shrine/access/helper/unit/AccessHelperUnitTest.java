@@ -50,14 +50,14 @@ class AccessHelperUnitTest {
             // Arrange
             List<AppGrant> grants = List.of(
                     AppGrant.builder().app(App.KAYA).build(),
-                    AppGrant.builder().app(App.KAIZEN).build(),
+                    AppGrant.builder().app(App.KAZAN).build(),
                     AppGrant.builder().app(App.KAYA).build());
 
             // Act
             List<App> result = accessHelper.appsOf(grants);
 
             // Assert
-            assertEquals(List.of(App.KAIZEN, App.KAYA), result);
+            assertEquals(List.of(App.KAZAN, App.KAYA), result);
         }
 
         @Test
@@ -130,14 +130,14 @@ class AccessHelperUnitTest {
         void groupGrant_returnsAppAndGroupId() {
             // Arrange
             OrganizationGroup group = group();
-            AppGrant grant = AppGrant.builder().app(App.KAIZEN).group(group).build();
+            AppGrant grant = AppGrant.builder().app(App.KAZAN).group(group).build();
 
             // Act
             Map<String, Object> result = accessHelper.describeGrant(grant);
 
             // Assert
             assertEquals(Map.of(
-                    AppAccessServiceLogConstant.AUDIT_FIELD_APP, "KAIZEN",
+                    AppAccessServiceLogConstant.AUDIT_FIELD_APP, "KAZAN",
                     AppAccessServiceLogConstant.AUDIT_FIELD_GROUP_ID, group.getId()), result);
         }
     }

@@ -16,7 +16,7 @@ class AppUnitTest {
 
     @Test
     void fromAppPackage_knownSegments_mapIgnoringCase() {
-        assertEquals(Optional.of(App.KAIZEN), App.fromAppPackage("kaizen"));
+        assertEquals(Optional.of(App.KAZAN), App.fromAppPackage("kazan"));
         assertEquals(Optional.of(App.KAYA), App.fromAppPackage("kaya"));
         assertEquals(Optional.of(App.KAYA), App.fromAppPackage("Kaya"));
         assertEquals(Optional.of(App.KALKAN), App.fromAppPackage("kalkan"));
@@ -32,7 +32,7 @@ class AppUnitTest {
 
     @Test
     void getMinimumRole_eachApp_returnsItsMinimumRole() {
-        assertEquals(OrganizationMemberRole.GUEST, App.KAIZEN.getMinimumRole());
+        assertEquals(OrganizationMemberRole.GUEST, App.KAZAN.getMinimumRole());
         assertEquals(OrganizationMemberRole.MEMBER, App.KAYA.getMinimumRole());
         assertEquals(OrganizationMemberRole.GUEST, App.KALKAN.getMinimumRole());
         assertEquals(OrganizationMemberRole.MEMBER, App.OTAK.getMinimumRole());

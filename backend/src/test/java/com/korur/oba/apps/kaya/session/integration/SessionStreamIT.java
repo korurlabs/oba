@@ -169,7 +169,7 @@ class SessionStreamIT extends AbstractSessionIT {
             awaitOpen(stream);
 
             String linkId = read(mockMvc.perform(in(tenant, post("/kaya/sessions/" + session + "/links"), ada.jwt(),
-                            "{\"kind\":\"KAIZEN_TICKET\",\"reference\":\"SEN-1\"}"))
+                            "{\"kind\":\"KAZAN_TICKET\",\"reference\":\"SEN-1\"}"))
                     .andExpect(status().isCreated()).andReturn(), "$.data.id");
             await().atMost(WAIT).until(() -> stream.framesNamed("session-updated").size() >= 1);
 
@@ -198,7 +198,7 @@ class SessionStreamIT extends AbstractSessionIT {
             awaitOpen(stream);
 
             mockMvc.perform(in(tenant, post("/kaya/sessions/" + session + "/links"), ada.jwt(),
-                    "{\"kind\":\"KAIZEN_TICKET\",\"reference\":\"nope\"}")).andExpect(status().isUnprocessableEntity());
+                    "{\"kind\":\"KAZAN_TICKET\",\"reference\":\"nope\"}")).andExpect(status().isUnprocessableEntity());
 
             awaitNoSessionUpdated(stream);
         }

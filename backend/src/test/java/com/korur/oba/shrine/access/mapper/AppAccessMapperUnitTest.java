@@ -50,7 +50,7 @@ class AppAccessMapperUnitTest {
         user.setId(UUID.randomUUID());
         user.getProfile().setFirstName("Ada");
         user.getProfile().setLastName("Lovelace");
-        AppGrant grant = AppGrant.builder().app(App.KAIZEN).user(user).build();
+        AppGrant grant = AppGrant.builder().app(App.KAZAN).user(user).build();
 
         AppGrantResponse response = appAccessMapper.toResponse(grant);
 
@@ -85,11 +85,11 @@ class AppAccessMapperUnitTest {
         OrganizationMemberResponse member = new OrganizationMemberResponse(UUID.randomUUID(), userId,
                 "ada@example.com", "Ada", "Lovelace", OrganizationMemberRole.MEMBER, OrganizationMemberStatus.ACTIVE);
 
-        MemberAppAccessResponse response = appAccessMapper.toMemberAccessResponse(member, List.of(App.KAIZEN));
+        MemberAppAccessResponse response = appAccessMapper.toMemberAccessResponse(member, List.of(App.KAZAN));
 
         assertEquals(userId, response.userId());
         assertEquals("Ada Lovelace", response.fullName());
         assertEquals(OrganizationMemberRole.MEMBER, response.role());
-        assertEquals(List.of(App.KAIZEN), response.apps());
+        assertEquals(List.of(App.KAZAN), response.apps());
     }
 }

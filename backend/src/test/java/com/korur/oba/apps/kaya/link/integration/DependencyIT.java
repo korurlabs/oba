@@ -33,8 +33,8 @@ class DependencyIT extends AbstractVersionIT {
     private static final String RULE = ".agents/rules/10-backend.md";
     private static final String NAMING = "docs/private/conventions/backend/naming.md";
     private static final String IMPLEMENT = ".agents/workflows/implement.md";
-    private static final String SKILL = ".agents/skills/kaizen/SKILL.md";
-    private static final String SKILL_WORKFLOW = ".agents/skills/kaizen/workflows/close.md";
+    private static final String SKILL = ".agents/skills/kazan/SKILL.md";
+    private static final String SKILL_WORKFLOW = ".agents/skills/kazan/workflows/close.md";
     private static final String LINKER = ".agents/roles/linker.md";
 
     private UUID packVersion;

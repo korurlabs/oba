@@ -54,13 +54,13 @@ class PathMappingsUnitTest {
             new Example(".agents/hooks/guard.sh", FileMode.EXECUTABLE, null),
             new Example(".claude/agents/reviewer.md", FileMode.FILE, null),
             new Example(".claude/settings.json", FileMode.FILE, null),
-            new Example(".agents/skills/kaizen/SKILL.md", FileMode.FILE, null),
-            new Example(".agents/skills/kaizen/workflows/close.md", FileMode.FILE, null),
-            new Example(".agents/skills/kaizen/scripts/run.sh", FileMode.EXECUTABLE, null),
-            new Example(".agents/skills/kaizen/conventions/style.md", FileMode.FILE, null),
-            new Example(".agents/skills/kaizen/agents/openai.yml", FileMode.FILE, null),
-            new Example(".agents/skills/kaizen/references/api.md", FileMode.FILE, null),
-            new Example(".claude/skills/kaizen", FileMode.SYMLINK, null),
+            new Example(".agents/skills/kazan/SKILL.md", FileMode.FILE, null),
+            new Example(".agents/skills/kazan/workflows/close.md", FileMode.FILE, null),
+            new Example(".agents/skills/kazan/scripts/run.sh", FileMode.EXECUTABLE, null),
+            new Example(".agents/skills/kazan/conventions/style.md", FileMode.FILE, null),
+            new Example(".agents/skills/kazan/agents/openai.yml", FileMode.FILE, null),
+            new Example(".agents/skills/kazan/references/api.md", FileMode.FILE, null),
+            new Example(".claude/skills/kazan", FileMode.SYMLINK, null),
             new Example("AGENTS.md", FileMode.SYMLINK, null),
             new Example(".claude/rules", FileMode.SYMLINK, null),
             new Example(".claude/templates", FileMode.SYMLINK, null));
@@ -80,10 +80,10 @@ class PathMappingsUnitTest {
 
     @Test
     void mappings_otherPathsOfASkill_classifyToTheirPart() {
-        assertEquals(SkillPartKind.CONVENTION, part(".agents/skills/kaizen/rules/naming.md", FileMode.FILE));
-        assertEquals(SkillPartKind.TOOL_PARAMETER, part(".agents/skills/kaizen/evals/evals.json", FileMode.FILE));
-        assertEquals(SkillPartKind.SCRIPT, part(".agents/skills/kaizen/references/tool.sh", FileMode.EXECUTABLE));
-        assertEquals(SkillPartKind.REFERENCE, part(".agents/skills/kaizen/notes.md", FileMode.FILE));
+        assertEquals(SkillPartKind.CONVENTION, part(".agents/skills/kazan/rules/naming.md", FileMode.FILE));
+        assertEquals(SkillPartKind.TOOL_PARAMETER, part(".agents/skills/kazan/evals/evals.json", FileMode.FILE));
+        assertEquals(SkillPartKind.SCRIPT, part(".agents/skills/kazan/references/tool.sh", FileMode.EXECUTABLE));
+        assertEquals(SkillPartKind.REFERENCE, part(".agents/skills/kazan/notes.md", FileMode.FILE));
     }
 
     @Test

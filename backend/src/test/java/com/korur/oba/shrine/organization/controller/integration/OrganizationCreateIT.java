@@ -50,7 +50,7 @@ class OrganizationCreateIT extends ObaIntegrationTest {
                 ORDER BY g.app::text
                 """, String.class, organizationId);
         List<String> expectedApps = Arrays.stream(App.values()).map(Enum::name).sorted().toList();
-        assertEquals(List.of("KAIZEN", "KALKAN", "KAYA", "OTAK"), expectedApps);
+        assertEquals(List.of("KAZAN", "KALKAN", "KAYA", "OTAK"), expectedApps);
         assertEquals(expectedApps, grantedApps);
 
         long allGrants = count("SELECT count(*) FROM shrine.organization_app_grants WHERE organization_id = ? AND deleted = FALSE",

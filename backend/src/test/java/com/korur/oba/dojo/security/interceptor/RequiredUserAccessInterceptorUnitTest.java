@@ -95,7 +95,7 @@ class RequiredUserAccessInterceptorUnitTest {
     @BeforeEach
     void setUp() {
         interceptor = new RequiredUserAccessInterceptor(validator, loggingService);
-        request = new MockHttpServletRequest("GET", "/kaizen/chat/channels");
+        request = new MockHttpServletRequest("GET", "/kazan/chat/channels");
         signInWithJwt();
     }
 
@@ -196,7 +196,7 @@ class RequiredUserAccessInterceptorUnitTest {
 
         @Test
         void preHandle_unannotatedUnlistedPath_throwsHandlerUnannotated() throws Exception {
-            request.setRequestURI("/kaizen/chat/channels");
+            request.setRequestURI("/kazan/chat/channels");
 
             ForbiddenException exception = assertThrows(ForbiddenException.class,
                     () -> interceptor.preHandle(request, response, handler("unannotated")));
@@ -204,7 +204,7 @@ class RequiredUserAccessInterceptorUnitTest {
             assertEquals("GEN_SEC_004", exception.getErrorCode());
             verifyNoInteractions(validator);
             verify(loggingService).error(any(LogPrefix.class), eq(LogLayer.HANDLER),
-                    eq(SecurityLogConstant.ACCESS_DENIED_UNANNOTATED), any(HandlerMethod.class), eq("/kaizen/chat/channels"));
+                    eq(SecurityLogConstant.ACCESS_DENIED_UNANNOTATED), any(HandlerMethod.class), eq("/kazan/chat/channels"));
         }
     }
 
@@ -220,13 +220,13 @@ class RequiredUserAccessInterceptorUnitTest {
 
             assertTrue(result);
             InOrder order = inOrder(validator);
-            order.verify(validator).ensureUserIsProvisioned(SUBJECT, "/kaizen/chat/channels");
-            order.verify(validator).ensureUserIsActive(user, "/kaizen/chat/channels");
-            order.verify(validator).ensureOrganizationIdIsValid(null, organizationId.toString(), "/kaizen/chat/channels");
-            order.verify(validator).ensureUserIsMember(user.getId(), organizationId, "/kaizen/chat/channels");
-            order.verify(validator).ensureMembershipIsActive(member, "/kaizen/chat/channels");
-            order.verify(validator).ensureOrganizationIsActive(member, "/kaizen/chat/channels");
-            order.verify(validator).ensureAppAccess(member, Fixture.class.getPackageName(), "/kaizen/chat/channels");
+            order.verify(validator).ensureUserIsProvisioned(SUBJECT, "/kazan/chat/channels");
+            order.verify(validator).ensureUserIsActive(user, "/kazan/chat/channels");
+            order.verify(validator).ensureOrganizationIdIsValid(null, organizationId.toString(), "/kazan/chat/channels");
+            order.verify(validator).ensureUserIsMember(user.getId(), organizationId, "/kazan/chat/channels");
+            order.verify(validator).ensureMembershipIsActive(member, "/kazan/chat/channels");
+            order.verify(validator).ensureOrganizationIsActive(member, "/kazan/chat/channels");
+            order.verify(validator).ensureAppAccess(member, Fixture.class.getPackageName(), "/kazan/chat/channels");
             assertSame(user, request.getAttribute(SecurityConstant.REQUEST_ATTRIBUTE_CURRENT_USER));
             assertSame(member, request.getAttribute(SecurityConstant.REQUEST_ATTRIBUTE_ORGANIZATION_MEMBER));
         }
@@ -239,12 +239,12 @@ class RequiredUserAccessInterceptorUnitTest {
 
             interceptor.preHandle(request, response, handler("adminOnly"));
 
-            verify(validator).ensureOrganizationIdIsValid(organizationId.toString(), null, "/kaizen/chat/channels");
+            verify(validator).ensureOrganizationIdIsValid(organizationId.toString(), null, "/kazan/chat/channels");
         }
 
         @Test
         void preHandle_userNotProvisioned_stopsBeforeEveryLaterStep() throws Exception {
-            when(validator.ensureUserIsProvisioned(SUBJECT, "/kaizen/chat/channels"))
+            when(validator.ensureUserIsProvisioned(SUBJECT, "/kazan/chat/channels"))
                     .thenThrow(new ForbiddenException());
 
             ForbiddenException exception = assertThrows(ForbiddenException.class,
@@ -258,8 +258,8 @@ class RequiredUserAccessInterceptorUnitTest {
 
         @Test
         void preHandle_userNotActive_stopsBeforeTheOrganizationSteps() throws Exception {
-            when(validator.ensureUserIsProvisioned(SUBJECT, "/kaizen/chat/channels")).thenReturn(user);
-            doThrow(new ForbiddenException()).when(validator).ensureUserIsActive(user, "/kaizen/chat/channels");
+            when(validator.ensureUserIsProvisioned(SUBJECT, "/kazan/chat/channels")).thenReturn(user);
+            doThrow(new ForbiddenException()).when(validator).ensureUserIsActive(user, "/kazan/chat/channels");
 
             assertThrows(ForbiddenException.class, () -> interceptor.preHandle(request, response, handler("adminOnly")));
 
@@ -269,7 +269,7 @@ class RequiredUserAccessInterceptorUnitTest {
 
         @Test
         void preHandle_organizationIdInvalid_stopsBeforeTheMembershipLookup() throws Exception {
-            when(validator.ensureUserIsProvisioned(SUBJECT, "/kaizen/chat/channels")).thenReturn(user);
+            when(validator.ensureUserIsProvisioned(SUBJECT, "/kazan/chat/channels")).thenReturn(user);
             when(validator.ensureOrganizationIdIsValid(any(), any(), anyString()))
                     .thenThrow(new BadRequestException(ExceptionDomainOrganizationError.API_ORGANIZATION_ID_MISMATCH));
 
@@ -282,9 +282,9 @@ class RequiredUserAccessInterceptorUnitTest {
 
         @Test
         void preHandle_notAMember_stopsBeforeTheMembershipStatusAndRole() throws Exception {
-            when(validator.ensureUserIsProvisioned(SUBJECT, "/kaizen/chat/channels")).thenReturn(user);
+            when(validator.ensureUserIsProvisioned(SUBJECT, "/kazan/chat/channels")).thenReturn(user);
             when(validator.ensureOrganizationIdIsValid(any(), any(), anyString())).thenReturn(organizationId);
-            when(validator.ensureUserIsMember(user.getId(), organizationId, "/kaizen/chat/channels"))
+            when(validator.ensureUserIsMember(user.getId(), organizationId, "/kazan/chat/channels"))
                     .thenThrow(new ForbiddenException(ExceptionDomainOrganizationError.SEC_USER_NOT_MEMBER));
 
             ForbiddenException exception = assertThrows(ForbiddenException.class,
@@ -300,7 +300,7 @@ class RequiredUserAccessInterceptorUnitTest {
         void preHandle_membershipDisabled_stopsBeforeTheOrganizationStatus() throws Exception {
             OrganizationMember member = passingChain(OrganizationMemberRole.OWNER);
             doThrow(new ForbiddenException(ExceptionDomainOrganizationError.SEC_USER_NOT_MEMBER))
-                    .when(validator).ensureMembershipIsActive(member, "/kaizen/chat/channels");
+                    .when(validator).ensureMembershipIsActive(member, "/kazan/chat/channels");
 
             assertThrows(ForbiddenException.class, () -> interceptor.preHandle(request, response, handler("adminOnly")));
 
@@ -311,7 +311,7 @@ class RequiredUserAccessInterceptorUnitTest {
         void preHandle_organizationDisabled_throwsAndStoresNothing() throws Exception {
             OrganizationMember member = passingChain(OrganizationMemberRole.OWNER);
             doThrow(new ForbiddenException(ExceptionDomainOrganizationError.SEC_ORGANIZATION_DISABLED))
-                    .when(validator).ensureOrganizationIsActive(member, "/kaizen/chat/channels");
+                    .when(validator).ensureOrganizationIsActive(member, "/kazan/chat/channels");
 
             ForbiddenException exception = assertThrows(ForbiddenException.class,
                     () -> interceptor.preHandle(request, response, handler("adminOnly")));
@@ -374,7 +374,7 @@ class RequiredUserAccessInterceptorUnitTest {
         void preHandle_appAccessRefused_throwsAndStoresNothing() throws Exception {
             OrganizationMember member = passingChain(OrganizationMemberRole.ADMIN);
             doThrow(new ForbiddenException()).when(validator)
-                    .ensureAppAccess(member, Fixture.class.getPackageName(), "/kaizen/chat/channels");
+                    .ensureAppAccess(member, Fixture.class.getPackageName(), "/kazan/chat/channels");
 
             assertThrows(ForbiddenException.class,
                     () -> interceptor.preHandle(request, response, handler("adminOnly")));
@@ -392,7 +392,7 @@ class RequiredUserAccessInterceptorUnitTest {
             OrganizationMember stored = member(OrganizationMemberRole.MEMBER);
             request.setAttribute(SecurityConstant.REQUEST_ATTRIBUTE_ORGANIZATION_MEMBER, stored);
             request.addHeader("X-Organization-ID", organizationId.toString());
-            when(validator.ensureOrganizationIdIsValid(null, organizationId.toString(), "/kaizen/chat/channels"))
+            when(validator.ensureOrganizationIdIsValid(null, organizationId.toString(), "/kazan/chat/channels"))
                     .thenReturn(organizationId);
 
             assertTrue(interceptor.preHandle(request, response, handler("adminOnly")));
@@ -416,8 +416,8 @@ class RequiredUserAccessInterceptorUnitTest {
                     () -> interceptor.preHandle(request, response, handler("adminOnly")));
 
             assertEquals("ORG_SEC_003", exception.getErrorCode());
-            verify(validator).ensureUserIsProvisioned(SUBJECT, "/kaizen/chat/channels");
-            verify(validator).ensureMembershipIsActive(fresh, "/kaizen/chat/channels");
+            verify(validator).ensureUserIsProvisioned(SUBJECT, "/kazan/chat/channels");
+            verify(validator).ensureMembershipIsActive(fresh, "/kazan/chat/channels");
         }
 
         @Test

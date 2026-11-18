@@ -94,16 +94,16 @@ class AttachmentControllerAccessIT extends AbstractTenantIT {
 
     private String createTicket(Tenant tenant, Person person) throws Exception {
         String prefix = "A" + uniqueSuffix().substring(0, 8).toUpperCase();
-        String boardId = read(mockMvc.perform(in(tenant, post("/kaizen/boards"), person.jwt(),
+        String boardId = read(mockMvc.perform(in(tenant, post("/kazan/boards"), person.jwt(),
                 "{\"name\":\"Board " + prefix + "\",\"prefix\":\"" + prefix + "\"}"))
                 .andExpect(status().is2xxSuccessful()).andReturn(), "$.data.id");
         if (tenant == tenantA) {
             boardIdA = boardId;
         }
-        String sprintId = read(mockMvc.perform(in(tenant, post("/kaizen/boards/" + boardId + "/sprints"),
+        String sprintId = read(mockMvc.perform(in(tenant, post("/kazan/boards/" + boardId + "/sprints"),
                 person.jwt(), "{\"name\":\"Sprint\"}"))
                 .andExpect(status().is2xxSuccessful()).andReturn(), "$.data.id");
-        return read(mockMvc.perform(in(tenant, post("/kaizen/boards/" + boardId + "/tickets"), person.jwt(),
+        return read(mockMvc.perform(in(tenant, post("/kazan/boards/" + boardId + "/tickets"), person.jwt(),
                 "{\"title\":\"Ticket\",\"type\":\"FEATURE\",\"priority\":\"MEDIUM\",\"status\":\"TODO\","
                         + "\"missionRank\":\"M\",\"sprintId\":\"" + sprintId + "\"}"))
                 .andExpect(status().is2xxSuccessful()).andReturn(), "$.data.id");
@@ -122,8 +122,8 @@ class AttachmentControllerAccessIT extends AbstractTenantIT {
     private Person guestViewerOfBoardA() throws Exception {
         Person guest = signIn("kc-" + uniqueSuffix(), "guest" + uniqueSuffix().substring(0, 6) + "@" + tenantA.domain());
         createMember(tenantA.organization(), guest.user(), OrganizationMemberRole.GUEST, OrganizationMemberStatus.ACTIVE);
-        jdbcTemplate.update("INSERT INTO kaizen.board_members (id, role, board_id, user_id) "
-                + "VALUES (gen_random_uuid(), 'VIEWER'::kaizen_board_member_role_enum, ?::uuid, ?::uuid)",
+        jdbcTemplate.update("INSERT INTO kazan.board_members (id, role, board_id, user_id) "
+                + "VALUES (gen_random_uuid(), 'VIEWER'::kazan_board_member_role_enum, ?::uuid, ?::uuid)",
                 boardIdA, guest.userId());
         return guest;
     }
@@ -324,10 +324,10 @@ class AttachmentControllerAccessIT extends AbstractTenantIT {
     }
 
     @Test
-    void ticketAttachments_organizationWithoutKaizen_returns403AppAccessDenied() throws Exception {
+    void ticketAttachments_organizationWithoutKazan_returns403AppAccessDenied() throws Exception {
         String ticketId = createTicket();
         jdbcTemplate.update("UPDATE shrine.organization_app_grants SET deleted = TRUE "
-                + "WHERE organization_id = ? AND app = 'KAIZEN'::shrine_app_grant_app_enum",
+                + "WHERE organization_id = ? AND app = 'KAZAN'::shrine_app_grant_app_enum",
                 tenantA.organization().getId());
 
         mockMvc.perform(get("/storage/attachments").param("entityType", "TICKET").param("entityId", ticketId)
@@ -337,12 +337,12 @@ class AttachmentControllerAccessIT extends AbstractTenantIT {
 
     @Test
     void chatMessage_sendWithFile_storesTheFileAndListsIt() throws Exception {
-        String channelId = read(mockMvc.perform(in(tenantA, post("/kaizen/chat/channels"),
+        String channelId = read(mockMvc.perform(in(tenantA, post("/kazan/chat/channels"),
                         jwtOf(tenantA.admin().getUser()),
                         "{\"name\":\"general" + uniqueSuffix() + "\",\"visibility\":\"PUBLIC\",\"purpose\":\"GENERAL\"}"))
                 .andExpect(status().is2xxSuccessful()).andReturn(), "$.data.id");
 
-        String messageId = read(mockMvc.perform(multipart("/kaizen/chat/messages")
+        String messageId = read(mockMvc.perform(multipart("/kazan/chat/messages")
                         .file(json("message", "{\"content\":\"With file\",\"channelId\":\"" + channelId
                                 + "\",\"clientNonce\":\"" + uniqueSuffix() + "\"}"))
                         .file(file("files", "note.pdf", "chat file " + uniqueSuffix()))

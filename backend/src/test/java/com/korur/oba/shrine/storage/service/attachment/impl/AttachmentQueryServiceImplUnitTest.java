@@ -19,7 +19,7 @@ import java.util.Set;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.kaizen.exception.ExceptionDomainKaizenError;
+import com.korur.oba.apps.kazan.exception.ExceptionDomainKazanError;
 import com.korur.oba.connect.azure.service.AzureBlobStorageQueryService;
 import com.korur.oba.dojo.exception.internal.auth.ForbiddenException;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
@@ -307,7 +307,7 @@ class AttachmentQueryServiceImplUnitTest {
             User user = user();
             UUID ticketId = UUID.randomUUID();
             ticketAccessible();
-            doThrow(new NotFoundException(ExceptionDomainKaizenError.NOT_BOARD_MEMBER_FOUND))
+            doThrow(new NotFoundException(ExceptionDomainKazanError.NOT_BOARD_MEMBER_FOUND))
                     .when(resourceAccessQueryService).verifyResourceAccess(user, organizationId,
                             ResourceAccessType.TICKET, ticketId, ResourceAccessAction.READ);
 
@@ -396,7 +396,7 @@ class AttachmentQueryServiceImplUnitTest {
             UUID allowed = UUID.randomUUID();
             UUID refused = UUID.randomUUID();
             ticketAccessible();
-            doThrow(new NotFoundException(ExceptionDomainKaizenError.NOT_BOARD_MEMBER_FOUND))
+            doThrow(new NotFoundException(ExceptionDomainKazanError.NOT_BOARD_MEMBER_FOUND))
                     .when(resourceAccessQueryService).verifyResourceAccess(user, organizationId,
                             ResourceAccessType.TICKET, refused, ResourceAccessAction.READ);
 

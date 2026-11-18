@@ -83,14 +83,14 @@ class FlywayMigrationVersionUnitTest {
 
     @Test
     void duplicateVersions_sameVersionSpelledDifferently_reportsBothFiles(@TempDir Path directory) throws IOException {
-        Files.writeString(directory.resolve("V1_2_108__Kaizen_Change.sql"), "SELECT 1;");
+        Files.writeString(directory.resolve("V1_2_108__Kazan_Change.sql"), "SELECT 1;");
         Files.writeString(directory.resolve("V1.2.108.0__Otak_Change.sql"), "SELECT 1;");
         Files.writeString(directory.resolve("V1_2_109__Other_Change.sql"), "SELECT 1;");
         Files.writeString(directory.resolve("R__Repeatable_View.sql"), "SELECT 1;");
 
         Map<String, List<String>> duplicates = duplicateVersions(directory);
 
-        assertEquals(Map.of("1.2.108", List.of("V1.2.108.0__Otak_Change.sql", "V1_2_108__Kaizen_Change.sql")),
+        assertEquals(Map.of("1.2.108", List.of("V1.2.108.0__Otak_Change.sql", "V1_2_108__Kazan_Change.sql")),
                 duplicates);
     }
 }

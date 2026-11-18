@@ -102,7 +102,7 @@ class ExecutableChangeDetectorUnitTest {
     @Test
     void linkElsewhereToDocumentation_isNotExecutable() {
         assertFalse(detector.isExecutableChange(List.of(),
-                List.of(link(".agents/skills/x/guide.md", "../kaizen/SKILL.md")), null, null));
+                List.of(link(".agents/skills/x/guide.md", "../kazan/SKILL.md")), null, null));
     }
 
     @Test

@@ -261,13 +261,13 @@ class RealtimeTicketServiceUnitTest {
         }
 
         @Test
-        void kaizenLost_dropsThatMembershipsTicketsOnly() {
+        void kazanLost_dropsThatMembershipsTicketsOnly() {
             // Arrange
             String revoked = service.issueTicket(user, organizationId).ticket();
             String otherOrganization = service.issueTicket(user, UUID.randomUUID()).ticket();
 
             // Act
-            service.onAppAccessRevoked(new AppAccessRevokedEvent(userId, organizationId, App.KAIZEN));
+            service.onAppAccessRevoked(new AppAccessRevokedEvent(userId, organizationId, App.KAZAN));
 
             // Assert
             handshakeWith(revoked).assertRefused();

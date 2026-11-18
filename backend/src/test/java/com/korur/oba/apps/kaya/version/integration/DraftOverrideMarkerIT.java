@@ -58,7 +58,7 @@ class DraftOverrideMarkerIT extends AbstractVersionIT {
 
     @Test
     void createDraft_ownerWithoutOverride_storesNoMarker() throws Exception {
-        UUID other = insertPack(tenant.organization(), "kaizen-" + uniqueSuffix().substring(0, 8));
+        UUID other = insertPack(tenant.organization(), "kazan-" + uniqueSuffix().substring(0, 8));
         insertFile(tenant.organization(), approvedVersion(other, 1), RULE_PATH, MOUNTED_RULE);
 
         UUID draftId = startDraft(other, owner);

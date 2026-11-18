@@ -86,7 +86,7 @@ class SessionControllerIT extends AbstractSessionIT {
                     .andExpect(jsonPath("$.data[0].ended").value(false))
                     .andExpect(jsonPath("$.data[0].accountOrganizationUuid").value(CLAUDE_ORGANIZATION_UUID))
                     .andExpect(jsonPath("$.data[0].links.length()").value(1))
-                    .andExpect(jsonPath("$.data[0].links[0].kind").value("KAIZEN_TICKET"))
+                    .andExpect(jsonPath("$.data[0].links[0].kind").value("KAZAN_TICKET"))
                     .andExpect(jsonPath("$.data[0].links[0].source").value("RECORDER"));
         }
 

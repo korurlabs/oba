@@ -236,7 +236,7 @@ class IngestControllerIT extends AbstractIngestIT {
                     WHERE c.session_id = ? ORDER BY l.kind::text
                     """, session);
             assertEquals(2, links.size());
-            assertEquals("KAIZEN_TICKET", links.get(0).get("kind"));
+            assertEquals("KAZAN_TICKET", links.get(0).get("kind"));
             assertEquals("KAYA-42", links.get(0).get("reference"));
             assertEquals("PULL_REQUEST", links.get(1).get("kind"));
             assertEquals("https://github.com/senseylabs/village/pull/643", links.get(1).get("reference"));

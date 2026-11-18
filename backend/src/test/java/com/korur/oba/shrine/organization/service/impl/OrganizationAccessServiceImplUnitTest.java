@@ -495,11 +495,11 @@ class OrganizationAccessServiceImplUnitTest {
             OrganizationMember member = stubMember(UUID.randomUUID(), organization, OrganizationMemberRole.MEMBER);
             when(organizationValidator.ensureOrganizationExists(organizationId)).thenReturn(organization);
             when(organizationValidator.ensureMemberExists(organizationId, userId)).thenReturn(member);
-            when(appAccessQueryService.hasAppAccess(member, App.KAIZEN)).thenReturn(true);
+            when(appAccessQueryService.hasAppAccess(member, App.KAZAN)).thenReturn(true);
 
             // Act
             Organization result = organizationAccessServiceImpl.verifyOrganizationAccess(
-                    organizationId, userId, OrganizationMemberRole.MEMBER, App.KAIZEN);
+                    organizationId, userId, OrganizationMemberRole.MEMBER, App.KAZAN);
 
             // Assert
             assertSame(organization, result);
@@ -539,7 +539,7 @@ class OrganizationAccessServiceImplUnitTest {
             // Act & Assert
             assertThrows(ForbiddenException.class, () ->
                     organizationAccessServiceImpl.verifyOrganizationAccess(
-                            organizationId, userId, OrganizationMemberRole.ADMIN, App.KAIZEN));
+                            organizationId, userId, OrganizationMemberRole.ADMIN, App.KAZAN));
             verifyNoInteractions(appAccessQueryService);
         }
 
@@ -555,7 +555,7 @@ class OrganizationAccessServiceImplUnitTest {
             // Act & Assert
             assertThrows(ForbiddenException.class, () ->
                     organizationAccessServiceImpl.verifyOrganizationAccess(
-                            organizationId, userId, OrganizationMemberRole.GUEST, App.KAIZEN));
+                            organizationId, userId, OrganizationMemberRole.GUEST, App.KAZAN));
             verifyNoInteractions(appAccessQueryService);
         }
     }
