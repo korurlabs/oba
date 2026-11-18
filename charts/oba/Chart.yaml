@@ -1,0 +1,51 @@
+apiVersion: v2
+name: oba
+description: >-
+  Oba, an open-source work platform: one Spring Boot API and the Kazan,
+  Kaya, Kalkan, Otak, Admin and Account web apps. The chart runs each
+  component as its own Deployment and Service, with an optional Ingress.
+type: application
+# The release workflow sets version and appVersion from the tag (vX.Y.Z gives
+# X.Y.Z) and rewrites the image tags in artifacthub.io/images to match.
+version: 0.0.0
+appVersion: 0.0.0
+kubeVersion: ">=1.25.0-0"
+
+home: https://github.com/korurlabs/oba
+sources:
+  - https://github.com/korurlabs/oba
+keywords:
+  - oba
+  - kazan
+  - project-management
+  - workflow
+  - spring-boot
+  - nextjs
+maintainers:
+  - name: Korur
+    email: devs@korur.com
+    url: https://github.com/korurlabs
+
+annotations:
+  artifacthub.io/license: AGPL-3.0-only
+  artifacthub.io/prerelease: "false"
+  artifacthub.io/links: |
+    - name: source
+      url: https://github.com/korurlabs/oba
+    - name: chart
+      url: https://github.com/korurlabs/oba/tree/main/charts/oba
+  artifacthub.io/images: |
+    - name: oba-api
+      image: ghcr.io/korurlabs/oba-api:0.0.0
+    - name: oba-kazan
+      image: ghcr.io/korurlabs/oba-kazan:0.0.0
+    - name: oba-kaya
+      image: ghcr.io/korurlabs/oba-kaya:0.0.0
+    - name: oba-kalkan
+      image: ghcr.io/korurlabs/oba-kalkan:0.0.0
+    - name: oba-otak
+      image: ghcr.io/korurlabs/oba-otak:0.0.0
+    - name: oba-admin
+      image: ghcr.io/korurlabs/oba-admin:0.0.0
+    - name: oba-account
+      image: ghcr.io/korurlabs/oba-account:0.0.0

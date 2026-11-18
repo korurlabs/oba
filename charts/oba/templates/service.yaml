@@ -1,0 +1,26 @@
+{{- range $name := splitList " " (include "oba.components" .) }}
+{{- $c := index $.Values $name }}
+{{- $ctx := dict "root" $ "name" $name }}
+{{- if $c.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "oba.componentName" $ctx }}-service
+  labels:
+    {{- include "oba.labels" $ctx | nindent 4 }}
+  {{- with $c.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ $c.service.type }}
+  selector:
+    {{- include "oba.selectorLabels" $ctx | nindent 4 }}
+  ports:
+    - name: http
+      protocol: TCP
+      port: {{ $c.service.port }}
+      targetPort: http
+{{- end }}
+{{- end }}

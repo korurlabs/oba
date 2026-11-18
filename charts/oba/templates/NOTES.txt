@@ -1,0 +1,15 @@
+Oba {{ .Chart.AppVersion }} is installed as release {{ .Release.Name }} in namespace {{ .Release.Namespace }}.
+
+Components:
+{{- range $name := splitList " " (include "oba.components" .) }}
+{{- $c := index $.Values $name }}
+{{- if $c.enabled }}
+  - {{ $name }}: Service {{ include "oba.componentName" (dict "root" $ "name" $name) }}-service
+    {{- if $c.ingress.enabled }}{{ range $c.ingress.hosts }} https://{{ .host }}{{ end }}{{ end }}
+{{- end }}
+{{- end }}
+
+The components start only with their environment set: a PostgreSQL database,
+an OpenID Connect issuer and the public URL of each app. The chart README lists
+the keys of each component:
+https://github.com/korurlabs/oba/tree/main/charts/oba
