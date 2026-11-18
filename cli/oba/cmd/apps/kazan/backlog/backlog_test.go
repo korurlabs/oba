@@ -18,7 +18,7 @@ const ticketID = "0c000000-0000-4000-8000-000000000001"
 
 func TestBacklogGetPrintsTheTickets(t *testing.T) {
 	api := newAPI(t)
-	api.Respond("GET /kaizen/boards/"+idOps+"/backlog", http.StatusOK,
+	api.Respond("GET /kazan/boards/"+idOps+"/backlog", http.StatusOK,
 		`{"data":{"id":"b1","boardId":"`+idOps+`","tickets":[{"key":"OPS-1","title":"Fix\nlogin","status":"TODO","priority":"HIGH","type":"BUG"}]}}`)
 	out, _, err := runCLI(t, "", "kazan", "backlog", "get")
 	if err != nil {
@@ -27,14 +27,14 @@ func TestBacklogGetPrintsTheTickets(t *testing.T) {
 	if out != "KEY    TITLE      STATUS  PRIORITY  TYPE\nOPS-1  Fix login  TODO    HIGH      BUG\n" {
 		t.Errorf("out =\n%q", out)
 	}
-	if api.Request("GET /kaizen/boards/"+idOps+"/backlog").Org != clitest.OrgIDAcme {
+	if api.Request("GET /kazan/boards/"+idOps+"/backlog").Org != clitest.OrgIDAcme {
 		t.Error("organization header missing")
 	}
 }
 
 func TestBacklogGetEmpty(t *testing.T) {
 	api := newAPI(t)
-	api.Respond("GET /kaizen/boards/"+idOps+"/backlog", http.StatusOK, `{"data":{"id":"b1","tickets":[]}}`)
+	api.Respond("GET /kazan/boards/"+idOps+"/backlog", http.StatusOK, `{"data":{"id":"b1","tickets":[]}}`)
 	out, _, err := runCLI(t, "", "kazan", "backlog", "get")
 	if err != nil || out != "Backlog is empty.\n" {
 		t.Errorf("out %q err %v", out, err)
@@ -47,7 +47,7 @@ func TestBacklogGetBoardFlagAndJSON(t *testing.T) {
 	if err := config.Save(config.File{}); err != nil {
 		t.Fatal(err)
 	}
-	api.Respond("GET /kaizen/boards/"+idOps+"/backlog", http.StatusOK, `{"data":{"id":"b1","extra":1,"tickets":[]}}`)
+	api.Respond("GET /kazan/boards/"+idOps+"/backlog", http.StatusOK, `{"data":{"id":"b1","extra":1,"tickets":[]}}`)
 	var buf bytes.Buffer
 	jsonout.Start(&buf)
 	t.Cleanup(jsonout.Stop)
@@ -74,7 +74,7 @@ func TestBacklogWithoutBoard(t *testing.T) {
 
 func TestBacklogAddTicket(t *testing.T) {
 	api := newAPI(t)
-	route := "POST /kaizen/boards/" + idOps + "/backlog/tickets/" + ticketID
+	route := "POST /kazan/boards/" + idOps + "/backlog/tickets/" + ticketID
 	api.Respond(route, http.StatusOK, `{"data":null}`)
 	out, _, err := runCLI(t, "", "kazan", "backlog", "add-ticket", ticketID)
 	if err != nil || out != "Ticket "+ticketID+" added to backlog.\n" {
@@ -85,7 +85,7 @@ func TestBacklogAddTicket(t *testing.T) {
 
 func TestBacklogAddTicketNotFoundExitsTwo(t *testing.T) {
 	api := newAPI(t)
-	api.Respond("POST /kaizen/boards/"+idOps+"/backlog/tickets/"+ticketID, http.StatusNotFound, `{"message":"Ticket not found"}`)
+	api.Respond("POST /kazan/boards/"+idOps+"/backlog/tickets/"+ticketID, http.StatusNotFound, `{"message":"Ticket not found"}`)
 	_, _, err := runCLI(t, "", "kazan", "backlog", "add-ticket", ticketID)
 	if client.ExitCode(err) != 2 {
 		t.Errorf("err %v exit %d", err, client.ExitCode(err))

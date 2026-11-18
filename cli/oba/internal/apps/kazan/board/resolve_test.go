@@ -60,7 +60,7 @@ func TestResolverReadsTheTreeOnce(t *testing.T) {
 	if len(api.Calls()) != 1 {
 		t.Errorf("calls = %v", api.Calls())
 	}
-	q := api.Request("GET /kaizen/boards")
+	q := api.Request("GET /kazan/boards")
 	if q.Org != "11111111-1111-4111-8111-111111111111" {
 		t.Errorf("org = %q", q.Org)
 	}

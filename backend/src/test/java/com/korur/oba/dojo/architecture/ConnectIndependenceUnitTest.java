@@ -62,9 +62,9 @@ class ConnectIndependenceUnitTest {
         Path file = directory.resolve("Offender.java");
         Files.write(file, List.of(
                 "package x;",
-                "import com.korur.oba.apps.kaizen.Foo;",
-                "import static com.korur.oba.apps.kaizen.Foo.bar;",
-                "/** See {@link com.korur.oba.apps.kaizen.Foo}. */",
+                "import com.korur.oba.apps.kazan.Foo;",
+                "import static com.korur.oba.apps.kazan.Foo.bar;",
+                "/** See {@link com.korur.oba.apps.kazan.Foo}. */",
                 "class Offender { }"));
 
         List<String> found = violations(directory);

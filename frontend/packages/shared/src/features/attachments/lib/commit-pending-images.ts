@@ -185,7 +185,7 @@ export async function commitPendingImages(
       // to a no-op for callers that don't supply the callback (tests,
       // migration tooling, etc.) -- the in-flight retry path still
       // works because the same in-memory entry sees the assignment via
-      // the markUploaded callback when wired by the kaizen ticket sheet.
+      // the markUploaded callback when wired by the kazan ticket sheet.
       args.markUploaded?.(pendingImage.localId, attachmentId, attachmentUrl);
     }
 

@@ -31,7 +31,7 @@ const DEV_ENVIRONMENT_MARKER = "-dev";
  * from reading, rewriting or deleting the Oba session.
  *
  * The session cookie carries the platform name alone, not an app's, because
- * every app built on this package (Kaizen, Admin) reads the one shared Oba
+ * every app built on this package (Kazan, Admin) reads the one shared Oba
  * session, as production does through the parent-domain cookie; they share
  * AUTH_SECRET for that reason. It carries no port on purpose: each signed-in
  * session family adds about 5 KB to every localhost request, and Node rejects
@@ -78,7 +78,7 @@ export function sessionCookieName(authUrl?: string): string {
 }
 
 /**
- * Parent domain of the AUTH_URL host (kaizen.korur.com -> ".korur.com"), or
+ * Parent domain of the AUTH_URL host (kazan.korur.com -> ".korur.com"), or
  * undefined for localhost and two-label hosts.
  *
  * The session cookie is scoped to the parent domain so every app on a

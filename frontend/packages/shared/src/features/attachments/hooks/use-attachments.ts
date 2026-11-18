@@ -25,7 +25,7 @@ export function useAttachments(
     // The attachment collection for an entity is routinely mutated by
     // writers that live outside this React tree, so a cached page of it
     // can be wrong through no fault of any local mutation:
-    //   - the kaizen CLI (`kaizen ... --attach`) uploads server-side,
+    //   - the kazan CLI (`kazan ... --attach`) uploads server-side,
     //   - the ticket sheet's orphan GC hard-deletes through the raw
     //     `deleteAttachment` API function (see lib/orphan-gc.ts), and
     //   - `commitPendingImages` uploads description images the same way.

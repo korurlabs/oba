@@ -78,15 +78,15 @@
       "description": "Use when the task needs kagi-cli-release. Second sentence."
     },
     {
-      "name": "kaizen",
-      "path": ".agents/skills/kaizen/SKILL.md",
+      "name": "kazan",
+      "path": ".agents/skills/kazan/SKILL.md",
       "managed": true,
       "pack": "managed",
       "scopes": [],
       "routing": [],
       "preloaded_by": [],
       "lines": 120,
-      "description": "Use when the task needs kaizen. Second sentence."
+      "description": "Use when the task needs kazan. Second sentence."
     },
     {
       "name": "mobile-app-architecture",

@@ -116,9 +116,9 @@
       }
     },
     {
-      "clientId": "kaizen-mobile",
-      "name": "Kaizen mobile",
-      "description": "Public client for the Kaizen mobile app sign-in with the authorization code flow and PKCE",
+      "clientId": "kazan-mobile",
+      "name": "Kazan mobile",
+      "description": "Public client for the Kazan mobile app sign-in with the authorization code flow and PKCE",
       "enabled": true,
       "protocol": "openid-connect",
       "publicClient": true,
@@ -128,7 +128,7 @@
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "authorizationServicesEnabled": false,
-      "redirectUris": ["kaizen://oauthredirect"],
+      "redirectUris": ["kazan://oauthredirect"],
       "webOrigins": [],
       "fullScopeAllowed": true,
       "attributes": {

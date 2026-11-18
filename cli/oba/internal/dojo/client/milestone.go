@@ -39,7 +39,7 @@ type MilestoneDependency struct {
 	Conflict    bool   `json:"conflict"`
 }
 
-// MilestoneCreateRequest is the body of POST /kaizen/boards/{boardId}/milestones. Color is
+// MilestoneCreateRequest is the body of POST /kazan/boards/{boardId}/milestones. Color is
 // #RRGGBB; the API takes the board's color when it is nil.
 type MilestoneCreateRequest struct {
 	Name        string  `json:"name"`
@@ -49,7 +49,7 @@ type MilestoneCreateRequest struct {
 	Color       *string `json:"color,omitempty"`
 }
 
-// MilestoneUpdateRequest is the body of PUT /kaizen/boards/{boardId}/milestones/{id}. A nil field
+// MilestoneUpdateRequest is the body of PUT /kazan/boards/{boardId}/milestones/{id}. A nil field
 // is left unchanged; the clear flags set their field to null.
 type MilestoneUpdateRequest struct {
 	Name             *string `json:"name,omitempty"`

@@ -10,10 +10,10 @@ const base = {
 
 describe("userOrganizationSchema apps", () => {
   test("parses an app string this client does not know", () => {
-    const parsed = userOrganizationSchema.safeParse({ ...base, apps: ["KAIZEN", "LATER_APP"] });
+    const parsed = userOrganizationSchema.safeParse({ ...base, apps: ["KAZAN", "LATER_APP"] });
 
     expect(parsed.success).toBe(true);
-    expect(parsed.data?.apps).toEqual(["KAIZEN", "LATER_APP"]);
+    expect(parsed.data?.apps).toEqual(["KAZAN", "LATER_APP"]);
   });
 
   test("parses a membership without apps", () => {
@@ -24,13 +24,13 @@ describe("userOrganizationSchema apps", () => {
   });
 
   test("refuses apps that is not a list of strings", () => {
-    expect(userOrganizationSchema.safeParse({ ...base, apps: "KAIZEN" }).success).toBe(false);
+    expect(userOrganizationSchema.safeParse({ ...base, apps: "KAZAN" }).success).toBe(false);
   });
 });
 
 describe("grantedAppSchema", () => {
   test("accepts the grantable apps and refuses any other value", () => {
-    expect(grantedAppSchema.safeParse("KAIZEN").success).toBe(true);
+    expect(grantedAppSchema.safeParse("KAZAN").success).toBe(true);
     expect(grantedAppSchema.safeParse("KAYA").success).toBe(true);
     expect(grantedAppSchema.safeParse("KALKAN").success).toBe(true);
     expect(grantedAppSchema.safeParse("OTAK").success).toBe(true);

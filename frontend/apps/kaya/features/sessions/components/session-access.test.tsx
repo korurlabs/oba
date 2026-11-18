@@ -61,7 +61,7 @@ function session(overrides: Partial<SessionDetailResponse> = {}): SessionDetailR
     links: [
       {
         id: "l1",
-        kind: "KAIZEN_TICKET",
+        kind: "KAZAN_TICKET",
         reference: "KAYA-42",
         url: null,
         source: "RECORDER",

@@ -88,7 +88,7 @@ public final class RealtimeConstant {
      * the organization, not to one app. Losing any other app leaves the sessions open. An app that starts
      * sending realtime signals is added here, and nowhere else.
      */
-    public static final Set<App> SESSION_APPS = Set.of(App.KAIZEN);
+    public static final Set<App> SESSION_APPS = Set.of(App.KAZAN);
 
     // --- Configuration ---
     public static final String PROPERTIES_PREFIX = "oba.realtime";

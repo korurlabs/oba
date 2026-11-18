@@ -12,7 +12,7 @@ import {
 } from "./sign-in-retry";
 
 const LOCAL_AUTH_URLS = ["http://localhost:3002", "http://localhost:3016", "http://localhost"];
-const SECURE_AUTH_URLS = ["https://kaizen.korur.com", "https://admin.korur.com", "https://kaizen-dev.korur.com"];
+const SECURE_AUTH_URLS = ["https://kazan.korur.com", "https://admin.korur.com", "https://kazan-dev.korur.com"];
 
 describe("signInRetryCookieName", () => {
   test("names the mark after the app's port on a plain-http AUTH_URL", () => {
@@ -55,7 +55,7 @@ describe("callbackUrlCookieName", () => {
   });
 
   test("matches the Auth.js default on an https AUTH_URL", () => {
-    expect(callbackUrlCookieName("https://kaizen.korur.com")).toBe("__Secure-authjs.callback-url");
+    expect(callbackUrlCookieName("https://kazan.korur.com")).toBe("__Secure-authjs.callback-url");
   });
 
   test("matches the Auth.js default without a usable AUTH_URL", () => {

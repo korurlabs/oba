@@ -34,7 +34,7 @@ const MANAGER: Membership[] = [
     name: "Korur",
     role: "OWNER",
     organizationStatus: "ACTIVE",
-    apps: ["KAIZEN", "KAYA", "KALKAN", "OTAK"],
+    apps: ["KAZAN", "KAYA", "KALKAN", "OTAK"],
   },
 ];
 let meResult: { data?: { success: boolean; data?: { organizations: Membership[] } } };
@@ -58,9 +58,9 @@ const { RuntimeConfigProvider } = await import("../../providers/RuntimeConfigPro
 // run-time config and not from a default.
 const CONFIG = {
   apiBaseUrl: "https://api.example.test",
-  baseUrl: "https://kaizen.example.test",
+  baseUrl: "https://kazan.example.test",
   appUrls: {
-    kaizen: "https://kaizen.example.test",
+    kazan: "https://kazan.example.test",
     kaya: "https://kaya.example.test",
     kalkan: "https://kalkan.example.test",
     otak: "https://otak.example.test",
@@ -100,8 +100,8 @@ describe("AppSwitcher", () => {
   });
 
   test("lists Admin and Account first, then the product apps in catalogue order", () => {
-    const html = renderSwitcher(<AppSwitcher currentAppId="kaizen" />);
-    const order = ["admin", "account", "kaizen", "kaya", "kalkan", "otak"];
+    const html = renderSwitcher(<AppSwitcher currentAppId="kazan" />);
+    const order = ["admin", "account", "kazan", "kaya", "kalkan", "otak"];
     const positions = order.map((id) => html.indexOf(`${id}.name`));
 
     expect(positions.every((position) => position >= 0)).toBe(true);
@@ -109,7 +109,7 @@ describe("AppSwitcher", () => {
   });
 
   test("offers the switch label on the trigger", () => {
-    const html = renderSwitcher(<AppSwitcher currentAppId="kaizen" />);
+    const html = renderSwitcher(<AppSwitcher currentAppId="kazan" />);
 
     expect(html).toContain('aria-label="switchApp"');
   });
@@ -119,7 +119,7 @@ describe("AppSwitcher admin entry", () => {
   const adminLink = `href="${OBA_APPS.find((app) => app.id === "admin")?.url}"`;
 
   test("lists admin for a user who manages an organization", () => {
-    expect(renderSwitcher(<AppSwitcher currentAppId="kaizen" />)).toContain(adminLink);
+    expect(renderSwitcher(<AppSwitcher currentAppId="kazan" />)).toContain(adminLink);
   });
 
   test("lists admin as the current app even for a member-only user", () => {
@@ -133,7 +133,7 @@ describe("AppSwitcher admin entry", () => {
               name: "Joined",
               role: "MEMBER",
               organizationStatus: "ACTIVE",
-              apps: ["KAIZEN", "KAYA"],
+              apps: ["KAZAN", "KAYA"],
             },
           ],
         },
@@ -157,14 +157,14 @@ describe("AppSwitcher admin entry", () => {
               name: "Joined",
               role: "MEMBER",
               organizationStatus: "ACTIVE",
-              apps: ["KAIZEN", "KAYA"],
+              apps: ["KAZAN", "KAYA"],
             },
           ],
         },
       },
     };
 
-    const html = renderSwitcher(<AppSwitcher currentAppId="kaizen" />);
+    const html = renderSwitcher(<AppSwitcher currentAppId="kazan" />);
 
     expect(html).not.toContain("admin.name");
     expect(html).not.toContain(adminLink);
@@ -183,18 +183,18 @@ describe("AppSwitcher admin entry", () => {
       },
     };
 
-    expect(renderSwitcher(<AppSwitcher currentAppId="kaizen" />)).not.toContain("admin.name");
+    expect(renderSwitcher(<AppSwitcher currentAppId="kazan" />)).not.toContain("admin.name");
   });
 
   test("hides admin while the current user is unknown", () => {
     meResult = {};
 
-    expect(renderSwitcher(<AppSwitcher currentAppId="kaizen" />)).not.toContain("admin.name");
+    expect(renderSwitcher(<AppSwitcher currentAppId="kazan" />)).not.toContain("admin.name");
   });
 });
 
 describe("AppSwitcher app access", () => {
-  const kaizenLink = `href="${OBA_APPS.find((app) => app.id === "kaizen")?.url}"`;
+  const kazanLink = `href="${OBA_APPS.find((app) => app.id === "kazan")?.url}"`;
   const kayaLink = `href="${OBA_APPS.find((app) => app.id === "kaya")?.url}"`;
   const kalkanLink = `href="${OBA_APPS.find((app) => app.id === "kalkan")?.url}"`;
   const otakLink = `href="${OBA_APPS.find((app) => app.id === "otak")?.url}"`;
@@ -209,32 +209,32 @@ describe("AppSwitcher app access", () => {
     apps,
   });
 
-  test("hides kaizen from a user whose organizations do not grant KAIZEN", () => {
+  test("hides kazan from a user whose organizations do not grant KAZAN", () => {
     meResult = withOrganizations([member(["KAYA"])]);
 
     const html = renderSwitcher(<AppSwitcher currentAppId="account" />);
 
-    expect(html).not.toContain(kaizenLink);
+    expect(html).not.toContain(kazanLink);
     expect(html).toContain(kayaLink);
   });
 
-  test("hides kaizen and kaya when the API sends no apps", () => {
+  test("hides kazan and kaya when the API sends no apps", () => {
     meResult = withOrganizations([member()]);
 
     const html = renderSwitcher(<AppSwitcher currentAppId="account" />);
 
-    expect(html).not.toContain(kaizenLink);
+    expect(html).not.toContain(kazanLink);
     expect(html).not.toContain(kayaLink);
   });
 
   test("hides kalkan and otak from a user whose organizations do not grant them", () => {
-    meResult = withOrganizations([member(["KAIZEN", "KAYA"])]);
+    meResult = withOrganizations([member(["KAZAN", "KAYA"])]);
 
     const html = renderSwitcher(<AppSwitcher currentAppId="account" />);
 
     expect(html).not.toContain(kalkanLink);
     expect(html).not.toContain(otakLink);
-    expect(html).toContain(kaizenLink);
+    expect(html).toContain(kazanLink);
   });
 
   test("lists kalkan and otak for a user whose organization grants them", () => {
@@ -244,7 +244,7 @@ describe("AppSwitcher app access", () => {
 
     expect(html).toContain(kalkanLink);
     expect(html).toContain(otakLink);
-    expect(html).not.toContain(kaizenLink);
+    expect(html).not.toContain(kazanLink);
   });
 
   test("hides kalkan and otak when the API sends no apps", () => {
@@ -257,9 +257,9 @@ describe("AppSwitcher app access", () => {
   });
 
   test("hides an app that only a DISABLED organization grants", () => {
-    meResult = withOrganizations([member(["KAIZEN"], "DISABLED")]);
+    meResult = withOrganizations([member(["KAZAN"], "DISABLED")]);
 
-    expect(renderSwitcher(<AppSwitcher currentAppId="account" />)).not.toContain(kaizenLink);
+    expect(renderSwitcher(<AppSwitcher currentAppId="account" />)).not.toContain(kazanLink);
   });
 
   test("keeps the granted apps while the current user loads, and still hides admin", () => {
@@ -267,7 +267,7 @@ describe("AppSwitcher app access", () => {
 
     const html = renderSwitcher(<AppSwitcher currentAppId="account" />);
 
-    expect(html).toContain(kaizenLink);
+    expect(html).toContain(kazanLink);
     expect(html).toContain(kayaLink);
     expect(html).toContain(kalkanLink);
     expect(html).toContain(otakLink);
@@ -277,15 +277,15 @@ describe("AppSwitcher app access", () => {
   test("lists the current app even when no organization grants it", () => {
     meResult = withOrganizations([member()]);
 
-    const html = renderSwitcher(<AppSwitcher currentAppId="kaizen" />);
+    const html = renderSwitcher(<AppSwitcher currentAppId="kazan" />);
 
-    expect(html).toContain("kaizen.name");
+    expect(html).toContain("kazan.name");
     expect(html.match(/aria-current="page"/g)).toHaveLength(1);
   });
 
   test("never lists admin for a user who only holds app grants", () => {
-    meResult = withOrganizations([member(["KAIZEN", "KAYA"])]);
+    meResult = withOrganizations([member(["KAZAN", "KAYA"])]);
 
-    expect(renderSwitcher(<AppSwitcher currentAppId="kaizen" />)).not.toContain("admin.name");
+    expect(renderSwitcher(<AppSwitcher currentAppId="kazan" />)).not.toContain("admin.name");
   });
 });

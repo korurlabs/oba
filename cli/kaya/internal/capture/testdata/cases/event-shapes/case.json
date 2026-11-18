@@ -123,7 +123,7 @@
         "permission_mode": "default",
         "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
         "tool_input": {
-          "command": "kaizen ticket get KAI-45 --json",
+          "command": "oba kazan ticket get KAI-45 --json",
           "description": "Get the ticket"
         },
         "tool_name": "Bash",
@@ -378,7 +378,7 @@
         "permission_mode": "default",
         "session_id": "11111111-aaaa-4bbb-8ccc-000000000007",
         "tool_input": {
-          "command": "kaizen ticket list"
+          "command": "oba kazan ticket list"
         },
         "tool_name": "Bash",
         "tool_use_id": "toolu_bash",

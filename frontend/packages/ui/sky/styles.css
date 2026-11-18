@@ -4,7 +4,7 @@
  * An app opts in by importing this file right after Tailwind in its
  * `app/globals.css` and by framing its pages in `SkyAppShell`
  * (`@oba/ui/sky/app-shell`). It replaces `@oba/ui/globals.css`, so an app
- * imports one or the other, never both; Kaizen and Kalkan keep theirs.
+ * imports one or the other, never both; Kazan and Kalkan keep theirs.
  *
  * Colours, radii and shadows come from the Korur brand, as used by Kalkan,
  * so every adopting app reads as part of the same product family. The design deliberately has no dark mode.

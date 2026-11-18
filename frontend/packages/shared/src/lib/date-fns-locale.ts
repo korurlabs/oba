@@ -1,5 +1,5 @@
 // The date-fns locale of an app locale, for the date pickers and the date-fns
-// formats of the Kaizen app. Kept apart from `format-instant` and `date-only`,
+// formats of the Kazan app. Kept apart from `format-instant` and `date-only`,
 // which use `Intl` and import no date library.
 
 import { enUS, nl, tr, type Locale } from "date-fns/locale";

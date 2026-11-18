@@ -49,7 +49,7 @@ class SigningUnitTest {
     private static SignedManifest manifest() {
         return new SignedManifest("8b1f7c1e-3d0a-4c56-9a51-2f1b0e9c7d42", "github.com/senseylabs/village", 3,
                 SignedManifestWriter.formatCreatedAt(Instant.parse("2026-10-23T09:15:02.123456Z")),
-                List.of(new SignedManifestFile(".claude/skills/kaizen", null, "SYMLINK", "../../.agents/skills/kaizen", false, null),
+                List.of(new SignedManifestFile(".claude/skills/kazan", null, "SYMLINK", "../../.agents/skills/kazan", false, null),
                         new SignedManifestFile("AGENTS.md", "a".repeat(64), "FILE", null, true, null)));
     }
 
@@ -57,7 +57,7 @@ class SigningUnitTest {
     void canonicalJson_isCompactOrderedAndOmitsAbsentValues() {
         assertEquals("{\"organization\":\"8b1f7c1e-3d0a-4c56-9a51-2f1b0e9c7d42\",\"remoteUrl\":\"github.com/senseylabs/village\","
                         + "\"number\":3,\"createdAt\":\"2026-10-23T09:15:02.123Z\",\"files\":["
-                        + "{\"path\":\".claude/skills/kaizen\",\"mode\":\"SYMLINK\",\"target\":\"../../.agents/skills/kaizen\",\"alwaysOn\":false},"
+                        + "{\"path\":\".claude/skills/kazan\",\"mode\":\"SYMLINK\",\"target\":\"../../.agents/skills/kazan\",\"alwaysOn\":false},"
                         + "{\"path\":\"AGENTS.md\",\"sha256\":\"" + "a".repeat(64) + "\",\"mode\":\"FILE\",\"alwaysOn\":true}]}",
                 SignedManifestWriter.toCanonicalJson(manifest()));
     }

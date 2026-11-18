@@ -78,13 +78,13 @@ describe("deriveActivity", () => {
         cwd: "/r",
         tool_name: "Bash",
         tool_use_id: "t3",
-        command: "kaizen comment add KAI-1 --json",
+        command: "kazan comment add KAI-1 --json",
       },
     ];
     const view = deriveActivity(events);
     expect(view.commands.map((run) => [run.command, run.agentId, run.ok])).toEqual([
       ["git push -u origin kai-1", "a1", false],
-      ["kaizen comment add KAI-1 --json", null, null],
+      ["kazan comment add KAI-1 --json", null, null],
     ]);
     expect(view.agents[0]?.handoff).toBe("kai-1/backend/api.md");
     expect(view.agents[0]?.agentId).toBe("a1");

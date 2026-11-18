@@ -47,7 +47,7 @@ public final class SessionConstant {
     public static final int LINK_URL_MAX_LENGTH = 500;
 
     // --- Links ---
-    public static final String KAIZEN_TICKET_PATTERN = "[A-Z][A-Z0-9]+-[0-9]+";
+    public static final String KAZAN_TICKET_PATTERN = "[A-Z][A-Z0-9]+-[0-9]+";
     public static final String PULL_REQUEST_URL_PREFIX = "https://github.com/";
     public static final String TICKET_URL_KEY_PLACEHOLDER = "{key}";
     // A pull request URL as the recorder copies it from the output of gh pr create.
@@ -109,7 +109,7 @@ public final class SessionConstant {
     public static final String LINK_KIND_REQUIRED_MESSAGE = "kind is required";
     public static final String LINK_REFERENCE_REQUIRED_MESSAGE = "reference is required";
     public static final String LINK_REFERENCE_SIZE_MESSAGE = "reference must be at most 500 characters";
-    public static final String LINK_RULE_KAIZEN_TICKET = "KAIZEN_TICKET_KEY";
+    public static final String LINK_RULE_KAZAN_TICKET = "KAZAN_TICKET_KEY";
     public static final String LINK_RULE_PULL_REQUEST = "PULL_REQUEST_URL";
 
     // --- Live stream ---

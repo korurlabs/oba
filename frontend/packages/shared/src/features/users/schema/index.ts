@@ -59,7 +59,7 @@ export const organizationStatusSchema = z.enum(["ACTIVE", "DISABLED"]);
  * Account are not grantable: Admin is gated by the organization role, and
  * Account is open to every user.
  */
-export const grantedAppSchema = z.enum(["KAIZEN", "KAYA", "KALKAN", "OTAK"]);
+export const grantedAppSchema = z.enum(["KAZAN", "KAYA", "KALKAN", "OTAK"]);
 
 /**
  * Ids are checked with `z.guid()`, not `z.uuid()`: the backend accepts any

@@ -122,8 +122,8 @@ class OrganizationGroupQueryServiceImplUnitTest {
                     .thenReturn(List.of(zeta, everyone, alpha));
             when(appGrantRepository.findByOrganization_Id(organizationId)).thenReturn(List.of(
                     AppGrant.builder().group(alpha).app(App.KAYA).build(),
-                    AppGrant.builder().group(alpha).app(App.KAIZEN).build(),
-                    AppGrant.builder().user(actor).app(App.KAIZEN).build()));
+                    AppGrant.builder().group(alpha).app(App.KAZAN).build(),
+                    AppGrant.builder().user(actor).app(App.KAZAN).build()));
             when(organizationMemberQueryService.listOrganizationMembers(actor, organizationId)).thenReturn(List.of(
                     memberResponse(UUID.randomUUID(), "A", "a@x.io", OrganizationMemberRole.OWNER,
                             OrganizationMemberStatus.ACTIVE),
@@ -139,7 +139,7 @@ class OrganizationGroupQueryServiceImplUnitTest {
             assertEquals(List.of("Everyone", "Alpha", "zeta"), result.stream().map(OrganizationGroupResponse::name).toList());
             assertEquals(2L, result.get(0).memberCount());
             assertEquals(3L, result.get(1).memberCount());
-            assertEquals(List.of(App.KAIZEN, App.KAYA), result.get(1).apps());
+            assertEquals(List.of(App.KAZAN, App.KAYA), result.get(1).apps());
             assertTrue(result.get(2).apps().isEmpty());
         }
     }

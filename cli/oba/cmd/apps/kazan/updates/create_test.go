@@ -175,7 +175,7 @@ func TestCreateOnATerminalPicksFromMyOpenTickets(t *testing.T) {
 	api.Respond("GET "+updatesPath+"/suggested-tickets", http.StatusOK, `{"data":[]}`)
 	api.Respond("GET /users/me", http.StatusOK, clitest.UserMeJSON)
 	var query string
-	queryOf(api, "GET /kaizen/tickets", `{"data":[`+
+	queryOf(api, "GET /kazan/tickets", `{"data":[`+
 		`{"id":"`+idTicket1+`","key":"OPS-7","title":"T","status":"TODO","percentage":10},`+
 		`{"id":"`+idTicket2+`","key":"KAGI-2","title":"U","status":"WAITING_FOR_THIRD_PARTY","percentage":20}]}`, &query)
 	api.Respond("POST "+updatesPath, http.StatusCreated, `{"data":{"id":"`+idUpdate+`","summaryText":"POSTED"}}`)

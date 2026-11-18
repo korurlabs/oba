@@ -185,8 +185,8 @@ func TestMilestoneDeleteJSONDoesNotAsk(t *testing.T) {
 
 func TestMilestoneLinkTicketsByKey(t *testing.T) {
 	api := newAPI(t)
-	api.Respond("GET /kaizen/tickets/by-key/OPS-1", http.StatusOK, `{"data":{"id":"t1","board":{"id":"`+idOps+`"}}}`)
-	api.Respond("GET /kaizen/tickets/by-key/MOB-2", http.StatusOK, `{"data":{"id":"t2","board":{"id":"`+idMob+`"}}}`)
+	api.Respond("GET /kazan/tickets/by-key/OPS-1", http.StatusOK, `{"data":{"id":"t1","board":{"id":"`+idOps+`"}}}`)
+	api.Respond("GET /kazan/tickets/by-key/MOB-2", http.StatusOK, `{"data":{"id":"t2","board":{"id":"`+idMob+`"}}}`)
 	api.Respond(milestoneRoute("POST", idBeta, "/link"), http.StatusOK, `{"data":`+strings.Replace(betaJSON, `"doneCount":3`, `"doneCount":5`, 1)+`}`)
 	out, _, err := runCLI(t, "", "kazan", "milestone", "link", "Beta", "--tickets", "ops-1, MOB-2")
 	if err != nil || out != `Linked 2 tickets to milestone "Beta" (`+idBeta+") (5/10 done)\n" {

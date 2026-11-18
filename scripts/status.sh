@@ -229,7 +229,7 @@ show_urls() {
     echo -e "${BOLD}Quick Links${NC}"
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
-    echo "  Kaizen:       http://localhost:3002"
+    echo "  Kazan:        http://localhost:3002"
     echo "  Backend API:  http://localhost:8080"
     echo "  Swagger UI:   http://localhost:8080/swagger-ui.html"
     echo "  Keycloak:     http://localhost:8086"

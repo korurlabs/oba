@@ -25,13 +25,13 @@ export type TimelineProps = {
 const COMMAND_LABEL: Readonly<Record<CommandKind, string>> = {
   push: "Push",
   "pull-request": "Pull request",
-  kaizen: "Kaizen",
+  kazan: "Kazan",
 };
 
 const COMMAND_ICON = {
   push: Upload,
   "pull-request": GitPullRequest,
-  kaizen: SquareKanban,
+  kazan: SquareKanban,
 } as const;
 
 function Row({ at, icon, children }: { at: string; icon: ReactNode; children: ReactNode }) {
@@ -153,7 +153,7 @@ function Item({ item }: { item: TimelineItem }) {
 
 /**
  * The session in recorded order: prompts, skills, subagents, pushes, pull
- * requests and Kaizen calls. A subagent's own skills and
+ * requests and Kazan calls. A subagent's own skills and
  * subagents are indented under it, between its start and its stop.
  */
 export function Timeline({ items }: TimelineProps) {

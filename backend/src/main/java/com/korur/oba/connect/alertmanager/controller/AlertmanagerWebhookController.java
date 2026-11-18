@@ -43,7 +43,7 @@ import com.korur.oba.dojo.util.ResponseUtil;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/kaizen/integrations/alertmanager")
+@RequestMapping("/kazan/integrations/alertmanager")
 @Tag(name = "Alertmanager integration", description = "Alertmanager webhook that turns alerts into incident tickets")
 public class AlertmanagerWebhookController {
 

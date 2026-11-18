@@ -73,7 +73,7 @@ func fold(summary *Summary, event map[string]any, sessionID string) *Summary {
 		texts = append(texts, stringOf(event["command_args"]))
 	}
 	command := stringOf(event["command"])
-	if words := pyFields(command); len(words) > 0 && words[0] == "kaizen" {
+	if isKazanCommand(pyFields(command)) {
 		texts = append(texts, command)
 	}
 	if summary.Ticket == nil {
@@ -96,6 +96,12 @@ func fold(summary *Summary, event map[string]any, sessionID string) *Summary {
 	}
 	summary.Title = title(summary)
 	return summary
+}
+
+// isKazanCommand reports whether a shell command runs `oba kazan`, the board commands whose
+// arguments name tickets. The app may follow global flags such as --org, so any later word counts.
+func isKazanCommand(words []string) bool {
+	return len(words) > 1 && words[0] == "oba" && slices.Contains(words[1:], "kazan")
 }
 
 // addFeature adds the handoff directory of a path below handoffs/ once.

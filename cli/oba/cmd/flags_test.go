@@ -91,7 +91,7 @@ func TestJSONOrgListPrintsTheOrganizations(t *testing.T) {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
 			api := signedIn(t)
 			api.Respond("GET /users/me", http.StatusOK, strings.Replace(clitest.UserMeJSON,
-				`"organizationStatus":"ACTIVE"}`, `"organizationStatus":"ACTIVE","apps":["KAIZEN"]}`, 1))
+				`"organizationStatus":"ACTIVE"}`, `"organizationStatus":"ACTIVE","apps":["KAZAN"]}`, 1))
 
 			out, errOut, err := run(t, append(args, "--json")...)
 			if err != nil {
@@ -105,7 +105,7 @@ func TestJSONOrgListPrintsTheOrganizations(t *testing.T) {
 				t.Fatalf("stdout = %s", out)
 			}
 			var apps []string
-			if err := json.Unmarshal(orgs[0]["apps"], &apps); err != nil || len(apps) != 1 || apps[0] != "KAIZEN" {
+			if err := json.Unmarshal(orgs[0]["apps"], &apps); err != nil || len(apps) != 1 || apps[0] != "KAZAN" {
 				t.Errorf("a field the CLI has no model for was dropped: %s", out)
 			}
 			if !strings.Contains(errOut, "Acme") {

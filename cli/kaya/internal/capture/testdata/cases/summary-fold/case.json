@@ -54,7 +54,7 @@
         "permission_mode": "default",
         "session_id": "11111111-aaaa-4bbb-8ccc-00000000000b",
         "tool_input": {
-          "command": "kaizen ticket move KAI-77 IN_REVIEW"
+          "command": "oba kazan ticket move KAI-77 IN_REVIEW"
         },
         "tool_name": "Bash",
         "tool_use_id": "toolu_bash",

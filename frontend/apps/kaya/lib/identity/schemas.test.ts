@@ -11,7 +11,7 @@ describe("userMeResponseSchema", () => {
       userStatus: "ACTIVE",
       profile: { firstName: "Ada", lastName: "Lovelace" },
       defaultOrganizationId: KORUR,
-      organizations: [{ id: KORUR, name: "Korur", role: "OWNER", apps: ["KAIZEN", "KAYA"] }],
+      organizations: [{ id: KORUR, name: "Korur", role: "OWNER", apps: ["KAZAN", "KAYA"] }],
     });
     expect(parsed).toEqual({
       id: "u1",
@@ -111,8 +111,8 @@ describe("userMeResponseSchema Kaya access", () => {
 
   test("drops a membership whose apps do not list KAYA", () => {
     const parsed = parse([
-      { id: "a", name: "A", role: "MEMBER", organizationStatus: "ACTIVE", apps: ["KAIZEN"] },
-      { id: "b", name: "B", role: "MEMBER", organizationStatus: "ACTIVE", apps: ["KAIZEN", "KAYA"] },
+      { id: "a", name: "A", role: "MEMBER", organizationStatus: "ACTIVE", apps: ["KAZAN"] },
+      { id: "b", name: "B", role: "MEMBER", organizationStatus: "ACTIVE", apps: ["KAZAN", "KAYA"] },
     ]);
     expect(parsed.memberships).toEqual([{ organizationId: "b", name: "B", role: "MEMBER" }]);
   });
@@ -141,7 +141,7 @@ describe("userMeResponseSchema Kaya access", () => {
   test("kayaWithheld is true for a dropped non-GUEST membership", () => {
     for (const role of ["OWNER", "ADMIN", "MEMBER"]) {
       expect(
-        parse([{ id: "a", name: "A", role, organizationStatus: "ACTIVE", apps: ["KAIZEN"] }])
+        parse([{ id: "a", name: "A", role, organizationStatus: "ACTIVE", apps: ["KAZAN"] }])
           .kayaWithheld
       ).toBe(true);
     }
@@ -163,7 +163,7 @@ describe("userMeResponseSchema Kaya access", () => {
   });
 
   test("managesOrganizations reads a manager organization that grants no Kaya", () => {
-    const parsed = parse([{ id: "a", name: "A", role: "OWNER", organizationStatus: "ACTIVE", apps: ["KAIZEN"] }]);
+    const parsed = parse([{ id: "a", name: "A", role: "OWNER", organizationStatus: "ACTIVE", apps: ["KAZAN"] }]);
     expect(parsed.memberships).toEqual([]);
     expect(parsed.managesOrganizations).toBe(true);
   });

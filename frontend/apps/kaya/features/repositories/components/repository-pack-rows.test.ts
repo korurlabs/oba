@@ -98,21 +98,21 @@ describe("checkRows", () => {
 
   test("a folder given twice or inside another is refused on the later row", () => {
     expect(
-      checkRows([row("a", "kagi", "projects/kagi"), row("b", "kaizen", "projects/kagi")])
+      checkRows([row("a", "kagi", "projects/kagi"), row("b", "kazan", "projects/kagi")])
     ).toEqual({
       ok: false,
       message: "The folder projects/kagi is given twice.",
       rowKey: "b",
     });
     expect(
-      checkRows([row("a", "kagi", "projects"), row("b", "kaizen", "projects/kaizen")])
+      checkRows([row("a", "kagi", "projects"), row("b", "kazan", "projects/kazan")])
     ).toEqual({
       ok: false,
-      message: "The folders projects and projects/kaizen lie inside one another.",
+      message: "The folders projects and projects/kazan lie inside one another.",
       rowKey: "b",
     });
     expect(
-      checkRows([row("a", "kagi", "projects/kagi"), row("b", "kaizen", "projects/kagi2")])
+      checkRows([row("a", "kagi", "projects/kagi"), row("b", "kazan", "projects/kagi2")])
     ).toMatchObject({
       ok: true,
     });
@@ -123,7 +123,7 @@ describe("refusedRowKey", () => {
   const rows = [
     row("a", "village"),
     row("b", "kagi", "projects/kagi"),
-    row("c", "kaizen", "projects/kaizen"),
+    row("c", "kazan", "projects/kazan"),
   ];
 
   test("KAY_CFG_034 marks the row of the rule's folder", () => {
@@ -137,7 +137,7 @@ describe("refusedRowKey", () => {
 
   test("KAY_CFG_026 marks the row whose folder its reason names", () => {
     const error = new KayaApiError("refused", 422, "KAY_CFG_026", {
-      rootPath: "The folder projects/kaizen lies inside or around projects",
+      rootPath: "The folder projects/kazan lies inside or around projects",
     });
     expect(refusedRowKey(error, rows)).toBe("c");
   });

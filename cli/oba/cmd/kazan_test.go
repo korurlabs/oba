@@ -26,8 +26,8 @@ const (
 func kazanAPI(t *testing.T) {
 	t.Helper()
 	api := signedIn(t)
-	api.Respond("GET /kaizen/boards", http.StatusOK, kazanTreeJSON)
-	api.Respond("GET /kaizen/boards/"+kazanIDInfra, http.StatusOK, kazanInfraJSON)
+	api.Respond("GET /kazan/boards", http.StatusOK, kazanTreeJSON)
+	api.Respond("GET /kazan/boards/"+kazanIDInfra, http.StatusOK, kazanInfraJSON)
 }
 
 func TestJSONKazanBoardListIsTheRawTree(t *testing.T) {
@@ -128,11 +128,11 @@ func kazanTicketJSON(id, key string) string {
 // gets both the exit status and what was done.
 func TestJSONKazanBulkDeletePartialFailurePrintsTheResults(t *testing.T) {
 	api := signedIn(t)
-	api.Respond("GET /kaizen/boards", http.StatusOK, kazanTreeJSON)
-	api.Respond("GET /kaizen/tickets/by-key/OPS-42", http.StatusOK, `{"data":`+kazanTicketJSON(kazanIDT42, "OPS-42")+`}`)
-	api.Respond("GET /kaizen/tickets/by-key/OPS-43", http.StatusOK, `{"data":`+kazanTicketJSON(kazanIDT43, "OPS-43")+`}`)
-	api.Respond("DELETE /kaizen/boards/"+kazanIDOps+"/tickets/"+kazanIDT42, http.StatusOK, `{"data":null}`)
-	api.Respond("DELETE /kaizen/boards/"+kazanIDOps+"/tickets/"+kazanIDT43, http.StatusForbidden, `{"message":"no access"}`)
+	api.Respond("GET /kazan/boards", http.StatusOK, kazanTreeJSON)
+	api.Respond("GET /kazan/tickets/by-key/OPS-42", http.StatusOK, `{"data":`+kazanTicketJSON(kazanIDT42, "OPS-42")+`}`)
+	api.Respond("GET /kazan/tickets/by-key/OPS-43", http.StatusOK, `{"data":`+kazanTicketJSON(kazanIDT43, "OPS-43")+`}`)
+	api.Respond("DELETE /kazan/boards/"+kazanIDOps+"/tickets/"+kazanIDT42, http.StatusOK, `{"data":null}`)
+	api.Respond("DELETE /kazan/boards/"+kazanIDOps+"/tickets/"+kazanIDT43, http.StatusForbidden, `{"message":"no access"}`)
 
 	out, errOut, err := run(t, "kazan", "ticket", "bulk-delete", "--tickets", "OPS-42,OPS-43", "--yes", "--json")
 	if err == nil || err.Error() != "1 of 2 tickets could not be deleted" {
@@ -152,9 +152,9 @@ func TestJSONKazanBulkDeletePartialFailurePrintsTheResults(t *testing.T) {
 
 func TestJSONKazanCreateUploadFailurePrintsTheTicket(t *testing.T) {
 	api := signedIn(t)
-	api.Respond("GET /kaizen/boards", http.StatusOK, kazanTreeJSON)
-	api.Respond("GET /kaizen/boards/"+kazanIDOps+"/backlog", http.StatusOK, `{"data":{"id":"`+kazanIDBacklog+`"}}`)
-	api.Respond("POST /kaizen/boards/"+kazanIDOps+"/tickets", http.StatusCreated, `{"data":`+kazanTicketJSON(kazanIDT43, "OPS-43")+`}`)
+	api.Respond("GET /kazan/boards", http.StatusOK, kazanTreeJSON)
+	api.Respond("GET /kazan/boards/"+kazanIDOps+"/backlog", http.StatusOK, `{"data":{"id":"`+kazanIDBacklog+`"}}`)
+	api.Respond("POST /kazan/boards/"+kazanIDOps+"/tickets", http.StatusCreated, `{"data":`+kazanTicketJSON(kazanIDT43, "OPS-43")+`}`)
 	api.Respond("POST /storage/attachments/exists", http.StatusOK, `{"data":{"exists":false}}`)
 	api.Respond("POST /storage/attachments", http.StatusInternalServerError, `{"message":"disk full"}`)
 	file := filepath.Join(t.TempDir(), "log.txt")

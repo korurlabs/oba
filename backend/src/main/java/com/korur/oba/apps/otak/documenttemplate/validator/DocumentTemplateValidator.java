@@ -166,7 +166,7 @@ public class DocumentTemplateValidator {
     /**
      * Ensures the parent of the new attachment is a mail or a relation, the only Otak parents
      * a template belongs on. {@link StorageEntityType} is shared with every app, so a request
-     * could otherwise copy an Otak template onto a Kaizen ticket.
+     * could otherwise copy an Otak template onto a Kazan ticket.
      *
      * Called by
      * {@link com.korur.oba.apps.otak.documenttemplate.service.impl.DocumentTemplateServiceImpl#copyToAttachment}

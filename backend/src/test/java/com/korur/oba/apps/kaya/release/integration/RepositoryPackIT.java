@@ -58,7 +58,7 @@ class RepositoryPackIT extends AbstractVersionIT {
              "hooks":{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":".agents/hooks/dispatch.sh"}]}],
                       "SessionStart":[{"hooks":[{"type":"command","command":".agents/hooks/dispatch.sh"}]}]}}
             """;
-    private static final String SKILL = "---\nname: kaizen\ndescription: Use for Kaizen tickets\npaths:\n  - \"**/*.java\"\n---\n# Kaizen\n";
+    private static final String SKILL = "---\nname: kazan\ndescription: Use for Kazan tickets\npaths:\n  - \"**/*.java\"\n---\n# Kazan\n";
     private static final String LOCAL_RULE = "---\npaths: \"src/**\"\n---\nLocal rule\n";
 
     @Autowired
@@ -85,8 +85,8 @@ class RepositoryPackIT extends AbstractVersionIT {
         UUID version = approvedVersion(pack, 1);
         renderService.parse(tenant.organization().getId(), version, List.of(
                 SourceFile.of("AGENTS.md", FileMode.FILE, bytes("# Agents\n")),
-                SourceFile.of(".agents/skills/kaizen/SKILL.md", FileMode.FILE, bytes(SKILL)),
-                new SourceFile(".claude/skills/kaizen", FileMode.SYMLINK, "../../.agents/skills/kaizen", null, null),
+                SourceFile.of(".agents/skills/kazan/SKILL.md", FileMode.FILE, bytes(SKILL)),
+                new SourceFile(".claude/skills/kazan", FileMode.SYMLINK, "../../.agents/skills/kazan", null, null),
                 SourceFile.of(".claude/settings.json", FileMode.FILE, bytes(SETTINGS_WITH_ASK)),
                 SourceFile.of(".agents/hooks/dispatch.sh", FileMode.EXECUTABLE, bytes("#!/bin/sh\n"))));
         return pack;
@@ -148,9 +148,9 @@ class RepositoryPackIT extends AbstractVersionIT {
                 .andExpect(jsonPath("$.data.files[0].path").value(".agents/hooks/dispatch.sh"))
                 .andExpect(jsonPath("$.data.files[0].mode").value("EXECUTABLE"))
                 .andExpect(jsonPath("$.data.files[1].path").value(".agents/rules/local.md"))
-                .andExpect(jsonPath("$.data.files[4].path").value(".claude/skills/kaizen"))
+                .andExpect(jsonPath("$.data.files[4].path").value(".claude/skills/kazan"))
                 .andExpect(jsonPath("$.data.files[4].mode").value("SYMLINK"))
-                .andExpect(jsonPath("$.data.files[4].target").value("../../.agents/skills/kaizen"))
+                .andExpect(jsonPath("$.data.files[4].target").value("../../.agents/skills/kazan"))
                 .andExpect(jsonPath("$.data.files[5].path").value("AGENTS.md"))
                 .andExpect(jsonPath("$.data.files[5].ownerId").value(pack.toString()))
                 .andReturn();
@@ -171,8 +171,8 @@ class RepositoryPackIT extends AbstractVersionIT {
         mockMvc.perform(in(tenant, get("/kaya/skills").param("versionId", packVersion.toString()), member, null))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.length()").value(1))
-                .andExpect(jsonPath("$.data[0].name").value("kaizen"))
-                .andExpect(jsonPath("$.data[0].description").value("Use for Kaizen tickets"));
+                .andExpect(jsonPath("$.data[0].name").value("kazan"))
+                .andExpect(jsonPath("$.data[0].description").value("Use for Kazan tickets"));
         mockMvc.perform(in(tenant, get("/kaya/settings").param("versionId", packVersion.toString()), member, null))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[0].allow[0]").value("Bash(git status)"))
@@ -468,7 +468,7 @@ class RepositoryPackIT extends AbstractVersionIT {
     void replacePacks_invalidMountFolders_answer422WithKayCfg026AndStoreNothing() throws Exception {
         UUID pack = orgPack();
         UUID kagi = childPackWith("kagi", pack, "AGENTS.md", "# Kagi\n");
-        UUID kaizen = childPackWith("kaizen", pack, "AGENTS.md", "# Kaizen\n");
+        UUID kazan = childPackWith("kazan", pack, "AGENTS.md", "# Kazan\n");
         Repository repository = saveRepository(tenant.organization());
 
         for (String folder : List.of("../kagi", "/projects/kagi", "projects/kagi/", "docs/kagi", ".claude", "a/b/c/d/e", "")) {
@@ -477,7 +477,7 @@ class RepositoryPackIT extends AbstractVersionIT {
         }
         for (String second : List.of("projects/kagi", "projects/kagi/backend", "projects")) {
             String body = "{\"packs\":[{\"packId\":\"" + pack + "\"},{\"packId\":\"" + kagi + "\",\"rootPath\":\"projects/kagi\"},"
-                    + "{\"packId\":\"" + kaizen + "\",\"rootPath\":\"" + second + "\"}]}";
+                    + "{\"packId\":\"" + kazan + "\",\"rootPath\":\"" + second + "\"}]}";
             mockMvc.perform(in(tenant, put(packsPath(repository)), owner, body))
                     .andExpect(status().isUnprocessableEntity())
                     .andExpect(jsonPath("$.error.code").value("KAY_CFG_026"));

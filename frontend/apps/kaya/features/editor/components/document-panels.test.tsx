@@ -130,7 +130,7 @@ describe("DependencyPanel", () => {
       ],
       usedBy: [
         {
-          path: ".agents/skills/kaizen/SKILL.md",
+          path: ".agents/skills/kazan/SKILL.md",
           kind: "SKILL",
           relation: "SKILL_PART",
           status: "FOUND",

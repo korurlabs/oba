@@ -47,7 +47,7 @@ public record FileHistoryResponse(
         UUID proposedBy,
 
         @Schema(description = "Reason given on submit; null for a draft never submitted", nullable = true,
-                example = "Allow the kaizen CLI in every repository")
+                example = "Allow the oba CLI in every repository")
         String reason,
 
         @Schema(description = "When the version was submitted for review", nullable = true)

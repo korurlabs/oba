@@ -173,7 +173,7 @@ export const effectiveOverrideResponseSchema = z.object({
 
 /** `GET /packs/{id}/effective`: one item of a pack, own or inherited, with its source. */
 export const effectiveItemResponseSchema = z.object({
-  /** A file path, or a skill directory such as `.agents/skills/kaizen/`. */
+  /** A file path, or a skill directory such as `.agents/skills/kazan/`. */
   path: z.string(),
   kind: EntityKindSchema,
   sourcePackId: z.string(),

@@ -10,7 +10,7 @@ import (
 // deleted sprint; bulk move refuses it, so it is not among the moves of ticket_models.go.
 const RelocationDelete = "DELETE"
 
-// Sprint is one sprint of a board. GET /kaizen/boards/{boardId}/sprints (SprintListResponse)
+// Sprint is one sprint of a board. GET /kazan/boards/{boardId}/sprints (SprintListResponse)
 // returns id, name, slug, status, dates and createdAt; goal, boards and updatedAt come from the
 // detail. Dates are RFC 3339 instants.
 type Sprint struct {
@@ -33,7 +33,7 @@ type SprintBoard struct {
 	Prefix string `json:"prefix"`
 }
 
-// SprintCreateRequest is the body of POST /kaizen/boards/{boardId}/sprints. ChildBoardIDs links
+// SprintCreateRequest is the body of POST /kazan/boards/{boardId}/sprints. ChildBoardIDs links
 // the new sprint to descendant boards in the same request; the API rolls the whole create back
 // when one of them cannot be linked.
 type SprintCreateRequest struct {
@@ -58,7 +58,7 @@ type SprintChildBoard struct {
 	ActiveSprintName *string `json:"activeSprintName"`
 }
 
-// SprintUpdateRequest is the body of PUT /kaizen/boards/{boardId}/sprints/{id}; a nil field is
+// SprintUpdateRequest is the body of PUT /kazan/boards/{boardId}/sprints/{id}; a nil field is
 // left unchanged. A sprint of a repeating series is named after its series, so the API refuses
 // Name for it and takes SeriesName, which renames the series and its unfinished sprints.
 type SprintUpdateRequest struct {

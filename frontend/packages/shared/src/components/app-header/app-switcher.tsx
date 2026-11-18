@@ -36,7 +36,7 @@ export interface AppSwitcherProps {
  * the same tab: they share the Keycloak session, so the user lands signed in.
  *
  * An app is listed only when it has something to show the user: Admin for a
- * user who manages an organization, Kaizen, Kaya, Kalkan and Otak for a user
+ * user who manages an organization, Kazan, Kaya, Kalkan and Otak for a user
  * with an ACTIVE organization that grants them. The current app is always listed.
  *
  * While the user is unknown (loading, or the load failed) Admin stays hidden,

@@ -22,7 +22,7 @@ const DOC = "docs/private/conventions/backend/32-soft-delete-convention.md";
 const FILES: ScopeFile[] = [
   file(".agents/rules/09-skill-routing.md"),
   file(RULE),
-  file(".agents/skills/kaizen/SKILL.md"),
+  file(".agents/skills/kazan/SKILL.md"),
   file(".claude/settings.json"),
   file("AGENTS.md"),
   file("docs/private/conventions/backend/03-service-cqrs-convention.md"),
@@ -71,39 +71,39 @@ describe("the page a target opens", () => {
   });
 
   test("a skill directory or file opens the skill; settings open the Allowlist", () => {
-    expect(linkHref(".agents/skills/kaizen", FILES, new URLSearchParams())).toBe(
-      "/skills?skill=.agents%2Fskills%2Fkaizen"
+    expect(linkHref(".agents/skills/kazan", FILES, new URLSearchParams())).toBe(
+      "/skills?skill=.agents%2Fskills%2Fkazan"
     );
-    expect(linkHref(".agents/skills/kaizen/SKILL.md", FILES, new URLSearchParams())).toBe(
-      "/skills?skill=.agents%2Fskills%2Fkaizen"
+    expect(linkHref(".agents/skills/kazan/SKILL.md", FILES, new URLSearchParams())).toBe(
+      "/skills?skill=.agents%2Fskills%2Fkazan"
     );
     expect(linkHref(".claude/settings.json", FILES, new URLSearchParams())).toBe("/allowlist");
   });
 
   test("a part of a skill opens the skill's document at that file", () => {
-    const files: ScopeFile[] = [...FILES, file(".agents/skills/kaizen/workflows/sprint.md")];
+    const files: ScopeFile[] = [...FILES, file(".agents/skills/kazan/workflows/sprint.md")];
     expect(
-      linkHref(".agents/skills/kaizen/workflows/sprint.md", files, new URLSearchParams())
+      linkHref(".agents/skills/kazan/workflows/sprint.md", files, new URLSearchParams())
     ).toBe(
-      "/skills?skill=.agents%2Fskills%2Fkaizen&file=.agents%2Fskills%2Fkaizen%2Fworkflows%2Fsprint.md"
+      "/skills?skill=.agents%2Fskills%2Fkazan&file=.agents%2Fskills%2Fkazan%2Fworkflows%2Fsprint.md"
     );
   });
 
   test("a .claude/skills symlink opens the skill it points at, the key the Skills page lists", () => {
     const linked: ScopeFile[] = [
       ...FILES,
-      { ...file(".claude/skills/kaizen"), mode: "SYMLINK", target: "../../.agents/skills/kaizen" },
+      { ...file(".claude/skills/kazan"), mode: "SYMLINK", target: "../../.agents/skills/kazan" },
       {
         ...file(".claude/skills/review/SKILL.md"),
         mode: "SYMLINK",
-        target: "../../../.agents/skills/kaizen/SKILL.md",
+        target: "../../../.agents/skills/kazan/SKILL.md",
       },
       { ...file(".claude/skills/dangling"), mode: "SYMLINK", target: "../../.agents/skills/gone" },
     ];
-    const kaizen = "/skills?skill=.agents%2Fskills%2Fkaizen";
-    expect(linkHref(".claude/skills/kaizen", linked, new URLSearchParams())).toBe(kaizen);
-    expect(linkHref(".claude/skills/kaizen/SKILL.md", linked, new URLSearchParams())).toBe(kaizen);
-    expect(linkHref(".claude/skills/review/", linked, new URLSearchParams())).toBe(kaizen);
+    const kazan = "/skills?skill=.agents%2Fskills%2Fkazan";
+    expect(linkHref(".claude/skills/kazan", linked, new URLSearchParams())).toBe(kazan);
+    expect(linkHref(".claude/skills/kazan/SKILL.md", linked, new URLSearchParams())).toBe(kazan);
+    expect(linkHref(".claude/skills/review/", linked, new URLSearchParams())).toBe(kazan);
     expect(linkHref(".claude/skills/dangling", linked, new URLSearchParams())).toBeNull();
   });
 

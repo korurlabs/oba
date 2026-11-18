@@ -21,7 +21,7 @@ KEYCLOAK_PORT=8086
 KEYCLOAK_REALM=sensey
 
 # Frontend apps to start (bash 3.2 compatible - no associative arrays).
-APPS="kaizen"
+APPS="kazan"
 
 # Defaults
 SKIP_FRONTEND=false
@@ -854,7 +854,7 @@ parse_args() {
                 echo "  - Frontend apps (Next.js via 'kagi run -- bun run dev')"
                 echo ""
                 echo "Options:"
-                echo "  --app NAME      Start only NAME (default: kaizen)"
+                echo "  --app NAME      Start only NAME (default: kazan)"
                 echo "  --all-apps      Start every app under frontend/apps"
                 echo "  --no-frontend   Skip starting frontend apps"
                 echo "  --no-backend    Skip starting the backend"

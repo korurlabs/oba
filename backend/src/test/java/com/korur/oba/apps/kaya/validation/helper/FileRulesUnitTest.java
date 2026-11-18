@@ -35,8 +35,8 @@ class FileRulesUnitTest {
 
     @Test
     void validate_validSkill_hasNoViolation() {
-        String skill = "---\nname: kaizen\ndescription: Use for Kaizen tickets\nglobs: \"**/*.java\"\n---\n# Kaizen\n";
-        assertEquals(List.of(), rulesOf(file(".agents/skills/kaizen/SKILL.md", skill)));
+        String skill = "---\nname: kazan\ndescription: Use for Kazan tickets\nglobs: \"**/*.java\"\n---\n# Kazan\n";
+        assertEquals(List.of(), rulesOf(file(".agents/skills/kazan/SKILL.md", skill)));
     }
 
     @Test

@@ -11,12 +11,12 @@ import java.util.Map;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.kaizen.board.enums.BoardMemberRole;
-import com.korur.oba.apps.kaizen.board.service.BoardAccessService;
-import com.korur.oba.apps.kaizen.chat.entity.ChatMessage;
-import com.korur.oba.apps.kaizen.chat.service.ChatChannelQueryService;
-import com.korur.oba.apps.kaizen.chat.validator.ChatValidator;
-import com.korur.oba.apps.kaizen.ticket.entity.Ticket;
+import com.korur.oba.apps.kazan.board.enums.BoardMemberRole;
+import com.korur.oba.apps.kazan.board.service.BoardAccessService;
+import com.korur.oba.apps.kazan.chat.entity.ChatMessage;
+import com.korur.oba.apps.kazan.chat.service.ChatChannelQueryService;
+import com.korur.oba.apps.kazan.chat.validator.ChatValidator;
+import com.korur.oba.apps.kazan.ticket.entity.Ticket;
 import com.korur.oba.apps.kalkan.core.exception.enums.ExceptionDomainKalkanError;
 import com.korur.oba.apps.kalkan.page.constant.KalkanPageConstant;
 import com.korur.oba.apps.kalkan.page.constant.service.KalkanPageServiceLogConstant;

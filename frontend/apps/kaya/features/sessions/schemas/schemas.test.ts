@@ -147,15 +147,15 @@ describe("sessionLinkCreateRequestSchema", () => {
   const link = (kind: string, reference: string) =>
     sessionLinkCreateRequestSchema.safeParse({ kind, reference });
 
-  test("a ticket is a Kaizen key, stripped of surrounding whitespace", () => {
+  test("a ticket is a Kazan key, stripped of surrounding whitespace", () => {
     const parsed = sessionLinkCreateRequestSchema.parse({
-      kind: "KAIZEN_TICKET",
+      kind: "KAZAN_TICKET",
       reference: "  KAYA-42 ",
     });
     expect(parsed.reference).toBe("KAYA-42");
-    expect(link("KAIZEN_TICKET", "kaya-42").success).toBe(false);
-    expect(link("KAIZEN_TICKET", "K-42").success).toBe(false);
-    expect(link("KAIZEN_TICKET", "KAYA-42x").success).toBe(false);
+    expect(link("KAZAN_TICKET", "kaya-42").success).toBe(false);
+    expect(link("KAZAN_TICKET", "K-42").success).toBe(false);
+    expect(link("KAZAN_TICKET", "KAYA-42x").success).toBe(false);
   });
 
   test("a pull request is a GitHub pull request URL", () => {
@@ -168,13 +168,13 @@ describe("sessionLinkCreateRequestSchema", () => {
   });
 
   test("a blank or overlong reference and an unknown kind are refused", () => {
-    expect(link("KAIZEN_TICKET", "   ").success).toBe(false);
-    expect(link("KAIZEN_TICKET", `KAYA-${"1".repeat(500)}`).success).toBe(false);
+    expect(link("KAZAN_TICKET", "   ").success).toBe(false);
+    expect(link("KAZAN_TICKET", `KAYA-${"1".repeat(500)}`).success).toBe(false);
     expect(link("ISSUE", "KAYA-42").success).toBe(false);
   });
 
   test("a refused reference names the expected form", () => {
-    const result = link("KAIZEN_TICKET", "nope");
+    const result = link("KAZAN_TICKET", "nope");
     expect(result.success).toBe(false);
     expect(result.error?.issues[0]?.path).toEqual(["reference"]);
     expect(result.error?.issues[0]?.message).toContain("KAYA-42");

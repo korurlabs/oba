@@ -24,7 +24,7 @@ public record AppGrantResponse(
         @Schema(description = "Grant id", example = "5b1c7e2a-9d4f-4a3b-8e6c-1f2a3b4c5d6e")
         UUID id,
 
-        @Schema(description = "Granted app", example = "KAIZEN")
+        @Schema(description = "Granted app", example = "KAZAN")
         App app,
 
         @Schema(description = "Kind of target", example = "GROUP")

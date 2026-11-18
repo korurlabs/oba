@@ -58,7 +58,7 @@ export async function listSessionHandoffs(sessionId: string) {
   return res.data;
 }
 
-/** Links a pull request or Kaizen ticket by hand; a link the session already has comes back unchanged. */
+/** Links a pull request or Kazan ticket by hand; a link the session already has comes back unchanged. */
 export async function addSessionLink(sessionId: string, data: SessionLinkCreateRequest) {
   const res = await api.post<ApiResponse<SessionLinkResponse>>(
     API_ROUTES.sessions.links(sessionId),

@@ -33,9 +33,9 @@ const READY = {
   scope: { kind: "PACK", packId: "p-1" },
 } as unknown as ReadyScope;
 const ROW: SkillRow = {
-  name: "kaizen",
-  description: "Kaizen tickets",
-  directory: ".agents/skills/kaizen",
+  name: "kazan",
+  description: "Kazan tickets",
+  directory: ".agents/skills/kazan",
   originName: "org",
   originOwnerId: "p-1",
   paths: null,
@@ -122,7 +122,7 @@ describe("SkillsPage", () => {
   test("a row opens the skill's own page, keeping only the scope, release and inherited setting", () => {
     render("scope=pack%3Ap-1&at=v-0&compare=v-1&view=split");
     expect(handed.hrefOf?.(ROW.directory)).toBe(
-      "/skills/.agents%2Fskills%2Fkaizen?scope=pack%3Ap-1"
+      "/skills/.agents%2Fskills%2Fkazan?scope=pack%3Ap-1"
     );
   });
 

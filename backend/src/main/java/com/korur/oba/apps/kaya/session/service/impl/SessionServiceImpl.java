@@ -43,7 +43,7 @@ import com.korur.oba.apps.kaya.repository.service.RepositoryQueryService;
 public class SessionServiceImpl implements SessionService {
 
     private static final LogPrefix LOG_PREFIX = LogPrefix.fromClass(SessionServiceImpl.class);
-    private static final Pattern KAIZEN_TICKET = Pattern.compile(SessionConstant.KAIZEN_TICKET_PATTERN);
+    private static final Pattern KAZAN_TICKET = Pattern.compile(SessionConstant.KAZAN_TICKET_PATTERN);
     private static final Pattern PULL_REQUEST_URL = Pattern.compile(SessionConstant.PULL_REQUEST_URL_PATTERN);
 
     private final SessionRepository sessionRepository;
@@ -119,9 +119,9 @@ public class SessionServiceImpl implements SessionService {
      * the column.
      */
     private String urlOf(Session session, SessionLinkKind kind, String reference) {
-        if (kind == SessionLinkKind.KAIZEN_TICKET) {
-            if (!KAIZEN_TICKET.matcher(reference).matches()) {
-                throw invalidReference(session, kind, reference, SessionConstant.LINK_RULE_KAIZEN_TICKET);
+        if (kind == SessionLinkKind.KAZAN_TICKET) {
+            if (!KAZAN_TICKET.matcher(reference).matches()) {
+                throw invalidReference(session, kind, reference, SessionConstant.LINK_RULE_KAZAN_TICKET);
             }
             String template = repositoryQueryService.getEntityById(session.getOrganizationId(), session.getRepositoryId())
                     .getTicketUrlTemplate();

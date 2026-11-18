@@ -9,7 +9,7 @@ import {
 
 const ENV_KEYS = [
   "NODE_ENV",
-  "KAIZEN_URL",
+  "KAZAN_URL",
   "KAYA_URL",
   "KALKAN_URL",
   "OTAK_URL",
@@ -40,7 +40,7 @@ describe("appUrl", () => {
   test("production falls back to the korur.com hosts", () => {
     setEnv({ NODE_ENV: "production" });
 
-    expect(appUrl("kaizen")).toBe("https://kaizen.korur.com");
+    expect(appUrl("kazan")).toBe("https://kazan.korur.com");
     expect(appUrl("kaya")).toBe("https://kaya.korur.com");
     expect(appUrl("kalkan")).toBe("https://kalkan.korur.com");
     expect(appUrl("otak")).toBe("https://otak.korur.com");
@@ -51,7 +51,7 @@ describe("appUrl", () => {
   test("development falls back to the local dev ports", () => {
     setEnv({ NODE_ENV: "development" });
 
-    expect(appUrl("kaizen")).toBe("http://localhost:3002");
+    expect(appUrl("kazan")).toBe("http://localhost:3002");
     expect(appUrl("kaya")).toBe("http://localhost:3014");
     expect(appUrl("kalkan")).toBe("http://localhost:3019");
     expect(appUrl("otak")).toBe("http://localhost:3018");
@@ -63,7 +63,7 @@ describe("appUrl", () => {
     setEnv({
       NODE_ENV: "production",
       ADMIN_URL: "https://admin.example.test//",
-      KAIZEN_URL: "https://kaizen.example.test",
+      KAZAN_URL: "https://kazan.example.test",
       ACCOUNT_URL: "https://account.example.test/",
       OTAK_URL: "https://otak.example.test/",
       KALKAN_URL: "https://kalkan.example.test///",
@@ -71,7 +71,7 @@ describe("appUrl", () => {
 
     expect(appUrl("admin")).toBe("https://admin.example.test");
     expect(appUrl("account")).toBe("https://account.example.test");
-    expect(appUrl("kaizen")).toBe("https://kaizen.example.test");
+    expect(appUrl("kazan")).toBe("https://kazan.example.test");
     expect(appUrl("otak")).toBe("https://otak.example.test");
     expect(appUrl("kalkan")).toBe("https://kalkan.example.test");
     expect(appUrl("kaya")).toBe("https://kaya.korur.com");
@@ -128,17 +128,17 @@ describe("accountOnboardingUrl", () => {
   test("makes a path absolute against the calling app's base URL", () => {
     setEnv({ NODE_ENV: "production" });
 
-    const url = new URL(accountOnboardingUrl("/home?tab=mine", "https://kaizen.korur.com"));
+    const url = new URL(accountOnboardingUrl("/home?tab=mine", "https://kazan.korur.com"));
 
     expect(url.origin + url.pathname).toBe("https://account.korur.com/onboarding");
-    expect(url.searchParams.get("callbackUrl")).toBe("https://kaizen.korur.com/home?tab=mine");
+    expect(url.searchParams.get("callbackUrl")).toBe("https://kazan.korur.com/home?tab=mine");
   });
 
   test("keeps an absolute callback URL as it is", () => {
     setEnv({ NODE_ENV: "production" });
 
     const url = new URL(
-      accountOnboardingUrl("https://admin.korur.com/organizations", "https://kaizen.korur.com")
+      accountOnboardingUrl("https://admin.korur.com/organizations", "https://kazan.korur.com")
     );
 
     expect(url.searchParams.get("callbackUrl")).toBe("https://admin.korur.com/organizations");
@@ -146,9 +146,9 @@ describe("accountOnboardingUrl", () => {
 });
 
 describe("obaApps", () => {
-  test("lists Kaizen, Kaya, Kalkan, Otak, Admin and Account in that order, each with its given origin and an icon", () => {
+  test("lists Kazan, Kaya, Kalkan, Otak, Admin and Account in that order, each with its given origin and an icon", () => {
     const appUrls = {
-      kaizen: "https://k.test",
+      kazan: "https://k.test",
       kaya: "https://y.test",
       kalkan: "https://l.test",
       otak: "https://o.test",
@@ -158,7 +158,7 @@ describe("obaApps", () => {
 
     const apps = obaApps(appUrls);
 
-    expect(apps.map((app) => app.id)).toEqual(["kaizen", "kaya", "kalkan", "otak", "admin", "account"]);
+    expect(apps.map((app) => app.id)).toEqual(["kazan", "kaya", "kalkan", "otak", "admin", "account"]);
     expect(apps.map((app) => app.url)).toEqual([
       "https://k.test",
       "https://y.test",

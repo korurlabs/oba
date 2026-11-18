@@ -443,10 +443,10 @@ class RealtimeSessionRegistryUnitTest {
         }
 
         @Test
-        void kaizenLost_closesOnlyThatUsersSessionsInThatOrganization() {
+        void kazanLost_closesOnlyThatUsersSessionsInThatOrganization() {
             // Act
             registry.onAppAccessRevoked(
-                    new AppAccessRevokedEvent(principal.userId(), principal.organizationId(), App.KAIZEN));
+                    new AppAccessRevokedEvent(principal.userId(), principal.organizationId(), App.KAZAN));
 
             // Assert
             assertThat(sessionsSentForbidden()).containsExactly(SESSION_ID);

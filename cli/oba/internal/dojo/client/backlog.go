@@ -6,7 +6,7 @@ import (
 	"net/url"
 )
 
-// Backlog is the backlog of one board as GET /kaizen/boards/{boardId}/backlog returns it
+// Backlog is the backlog of one board as GET /kazan/boards/{boardId}/backlog returns it
 // (BacklogDetailResponse): the tickets of the board that are in no sprint.
 type Backlog struct {
 	ID      string          `json:"id"`

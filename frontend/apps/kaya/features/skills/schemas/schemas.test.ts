@@ -5,8 +5,8 @@ import { skillListResponseSchema, skillQueryRequestSchema } from ".";
 const SKILL = {
   id: "sk-1",
   versionId: "v-1",
-  path: "kaizen",
-  name: "kaizen",
+  path: "kazan",
+  name: "kazan",
   description: "Ticket work.",
   sizeBytes: 420,
 };

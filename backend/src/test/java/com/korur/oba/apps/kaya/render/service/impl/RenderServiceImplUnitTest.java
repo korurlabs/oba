@@ -89,10 +89,10 @@ class RenderServiceImplUnitTest {
         // Assert
         assertEquals(FileMode.EXECUTABLE, rendered.get(".agents/hooks/guard.sh").mode());
         assertEquals(FileMode.FILE, rendered.get(".agents/hooks/README.md").mode());
-        assertEquals(FileMode.EXECUTABLE, rendered.get(".agents/skills/kaizen/scripts/run.sh").mode());
+        assertEquals(FileMode.EXECUTABLE, rendered.get(".agents/skills/kazan/scripts/run.sh").mode());
         assertArrayEquals(settingsBytes(), rendered.get(".claude/settings.json").content());
-        assertEquals(FileMode.SYMLINK, rendered.get(".claude/skills/kaizen").mode());
-        assertEquals("../../.agents/skills/kaizen", rendered.get(".claude/skills/kaizen").symlinkTarget());
+        assertEquals(FileMode.SYMLINK, rendered.get(".claude/skills/kazan").mode());
+        assertEquals("../../.agents/skills/kazan", rendered.get(".claude/skills/kazan").symlinkTarget());
     }
 
     @Test
@@ -399,10 +399,10 @@ class RenderServiceImplUnitTest {
                 SourceFile.of(SUBAGENT, FileMode.FILE, utf8("---\ntools: Read, Grep\nmaxTurns: 5\nname: reviewer\n"
                         + "description: Reviews code\n---\nReview.\n")),
                 SourceFile.of(".claude/settings.json", FileMode.FILE, settingsBytes()),
-                skillFile("kaizen"),
-                SourceFile.of(".agents/skills/kaizen/scripts/run.sh", FileMode.EXECUTABLE, utf8("#!/bin/sh\necho run\n")),
-                SourceFile.of(".agents/skills/kaizen/workflows/close.md", FileMode.FILE, utf8("# Close a ticket\n")),
-                new SourceFile(".claude/skills/kaizen", FileMode.SYMLINK, "../../.agents/skills/kaizen", null, null));
+                skillFile("kazan"),
+                SourceFile.of(".agents/skills/kazan/scripts/run.sh", FileMode.EXECUTABLE, utf8("#!/bin/sh\necho run\n")),
+                SourceFile.of(".agents/skills/kazan/workflows/close.md", FileMode.FILE, utf8("# Close a ticket\n")),
+                new SourceFile(".claude/skills/kazan", FileMode.SYMLINK, "../../.agents/skills/kazan", null, null));
     }
 
     // A comment and odd spacing in the frontmatter, so a byte-exact render is told apart from a re-serialised one.

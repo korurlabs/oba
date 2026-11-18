@@ -5,7 +5,7 @@ package com.korur.oba.dojo.exception.enums;
  *
  * <p>Implemented by category-specific enums (e.g., {@code ExceptionApiError})
  * for generic/cross-cutting errors and by domain-specific enums
- * (e.g., {@code ExceptionDomainKaizenError}) for domain-owned errors.</p>
+ * (e.g., {@code ExceptionDomainKazanError}) for domain-owned errors.</p>
  *
  * <p>Error code format: {@code <DOMAIN>_<CATEGORY>_<NNN>}</p>
  *

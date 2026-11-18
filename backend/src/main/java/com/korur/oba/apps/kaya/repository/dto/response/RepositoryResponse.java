@@ -24,7 +24,7 @@ public record RepositoryResponse(
         String remoteUrl,
 
         @Schema(description = "Ticket URL template containing {key}", nullable = true,
-                example = "https://kaizen.sensey.io/tickets/{key}")
+                example = "https://kazan.korur.com/tickets/{key}")
         String ticketUrlTemplate,
 
         @Schema(description = "Repository status", example = "ACTIVE")

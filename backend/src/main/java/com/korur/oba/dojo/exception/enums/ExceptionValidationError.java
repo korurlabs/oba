@@ -14,7 +14,7 @@ package com.korur.oba.dojo.exception.enums;
  * This is the error code enum for the VAL category at the generic (GEN) level.
  * It pairs with ValidationException (the throwable type). Domain-specific validation
  * codes live in their respective ExceptionDomain*Error enums (e.g., VAL_SPRINT_NOT_PLANNED
- * in ExceptionDomainKaizenError). The distinction from ExceptionApiError is important:
+ * in ExceptionDomainKazanError). The distinction from ExceptionApiError is important:
  * ExceptionValidationError codes signal that the request was well-formed but failed a
  * business rule (HTTP 422 Unprocessable Entity), while ExceptionApiError codes signal
  * that the request itself was structurally invalid (HTTP 400 Bad Request). The different

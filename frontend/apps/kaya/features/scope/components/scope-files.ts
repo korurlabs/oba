@@ -97,7 +97,7 @@ const SKILL_FILE = /^\.(agents|claude)\/skills\/([^/]+)\/SKILL\.md$/;
 export type SkillLocation = {
   /** The directory name, the skill's name when its frontmatter gives none. */
   directoryName: string;
-  /** Such as `.agents/skills/kaizen`. */
+  /** Such as `.agents/skills/kazan`. */
   directory: string;
   skillFile: ScopeFile;
   fileCount: number;

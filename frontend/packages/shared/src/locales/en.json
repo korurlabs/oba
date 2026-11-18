@@ -71,8 +71,8 @@
   },
   "apps": {
     "switchApp": "Switch app",
-    "kaizen": {
-      "name": "Kaizen",
+    "kazan": {
+      "name": "Kazan",
       "description": "Boards, tickets and sprints"
     },
     "kaya": {

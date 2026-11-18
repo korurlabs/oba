@@ -80,7 +80,7 @@ public class SessionController {
     @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "List the sessions of the organization",
             description = "Paged, 60 by default and at most; newest last event first. search matches the title, "
-                    + "the branch or a linked Kaizen ticket key")
+                    + "the branch or a linked Kazan ticket key")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successful operation"),
             @ApiResponse(responseCode = "400", description = "X-Organization-ID missing or not a UUID"),
@@ -206,12 +206,12 @@ public class SessionController {
     }
 
     /**
-     * Links a Kaizen ticket or a pull request to a session.
+     * Links a Kazan ticket or a pull request to a session.
      */
     @PostMapping("/{sessionId}/links")
     @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "Link a ticket or pull request to a session",
-            description = "A Kaizen ticket is its key, a pull request its https://github.com/ URL; "
+            description = "A Kazan ticket is its key, a pull request its https://github.com/ URL; "
                     + "adding a link the session has returns that link")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Link added, or the existing link returned"),

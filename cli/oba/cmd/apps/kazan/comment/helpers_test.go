@@ -20,7 +20,7 @@ const (
 	treeJSON = `{"data":[{"id":"` + idOps + `","name":"Operations","prefix":"OPS","childBoards":[]}],` +
 		`"pagination":{"currentPage":1,"last":true}}`
 	ticketJSON   = `{"data":{"id":"` + idTicket + `","key":"OPS-12","board":{"id":"` + idOps + `","name":"Operations","prefix":"OPS"}}}`
-	commentsPath = "/kaizen/boards/" + idOps + "/tickets/" + idTicket + "/comments"
+	commentsPath = "/kazan/boards/" + idOps + "/tickets/" + idTicket + "/comments"
 	commentsJSON = `{"data":[` +
 		`{"id":"` + idComment + `","content":"First\nline","authorFirstName":"Ada","authorLastName":"Lovelace","createdAt":"2026-11-18T09:00:00Z"},` +
 		`{"id":"c2","content":"Second","authorEmail":"b@x.io","createdAt":"2026-11-18T10:00:00Z"}]}`
@@ -43,8 +43,8 @@ func newAPI(t *testing.T) *clitest.MockAPI {
 	clitest.SetupHome(t)
 	clitest.FakeTerminal(t, &stdinIsTerminal, false)
 	api := clitest.NewMockAPI(t)
-	api.Respond("GET /kaizen/boards", http.StatusOK, treeJSON)
-	api.Respond("GET /kaizen/tickets/by-key/OPS-12", http.StatusOK, ticketJSON)
+	api.Respond("GET /kazan/boards", http.StatusOK, treeJSON)
+	api.Respond("GET /kazan/tickets/by-key/OPS-12", http.StatusOK, ticketJSON)
 	api.Respond("GET "+commentsPath, http.StatusOK, commentsJSON)
 	clitest.LoginTo(t, api.URL(), clitest.OrgIDAcme)
 	return api

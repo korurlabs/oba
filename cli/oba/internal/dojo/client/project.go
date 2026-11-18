@@ -6,7 +6,7 @@ import (
 	"net/url"
 )
 
-// Project is one project of a board as GET /kaizen/boards/{boardId}/projects lists it
+// Project is one project of a board as GET /kazan/boards/{boardId}/projects lists it
 // (ProjectListResponse) and the single-project calls return it (ProjectDetailResponse). A project
 // has a name and a color only.
 type Project struct {
@@ -15,13 +15,13 @@ type Project struct {
 	Color *string `json:"color"`
 }
 
-// ProjectCreateRequest is the body of POST /kaizen/boards/{boardId}/projects.
+// ProjectCreateRequest is the body of POST /kazan/boards/{boardId}/projects.
 type ProjectCreateRequest struct {
 	Name  string  `json:"name"`
 	Color *string `json:"color,omitempty"`
 }
 
-// ProjectUpdateRequest is the body of PUT /kaizen/boards/{boardId}/projects/{id}; a nil field is
+// ProjectUpdateRequest is the body of PUT /kazan/boards/{boardId}/projects/{id}; a nil field is
 // left unchanged.
 type ProjectUpdateRequest struct {
 	Name  *string `json:"name,omitempty"`

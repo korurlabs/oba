@@ -25,7 +25,7 @@ func TestCommentListPrintsTheTable(t *testing.T) {
 			t.Errorf("out missing %q:\n%s", part, out)
 		}
 	}
-	want := "GET /kaizen/boards,GET /kaizen/tickets/by-key/OPS-12,GET " + commentsPath
+	want := "GET /kazan/boards,GET /kazan/tickets/by-key/OPS-12,GET " + commentsPath
 	if strings.Join(api.Calls(), ",") != want {
 		t.Errorf("calls = %v", api.Calls())
 	}
@@ -190,7 +190,7 @@ func TestCommentTicketIDUsesTheBoardFlag(t *testing.T) {
 	if _, _, err := run(t, "", "list", idTicket, "--board", "OPS"); err != nil {
 		t.Fatal(err)
 	}
-	if strings.Join(api.Calls(), ",") != "GET /kaizen/boards,GET "+commentsPath {
+	if strings.Join(api.Calls(), ",") != "GET /kazan/boards,GET "+commentsPath {
 		t.Errorf("calls = %v", api.Calls())
 	}
 	_, _, err := run(t, "", "list", idTicket)

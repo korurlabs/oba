@@ -100,7 +100,7 @@ class KayaSecurityChainsIT extends AbstractIngestIT {
     void alertmanagerWebhook_machineToken_isRefusedByTheWebhookChain() throws Exception {
         Machine machine = newMachine();
 
-        String body = mockMvc.perform(post("/kaizen/integrations/alertmanager")
+        String body = mockMvc.perform(post("/kazan/integrations/alertmanager")
                         .header("Authorization", "Bearer " + machine.token())
                         .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isUnauthorized())
@@ -111,7 +111,7 @@ class KayaSecurityChainsIT extends AbstractIngestIT {
 
     @Test
     void alertmanagerWebhook_keycloakJwt_isRefusedByTheWebhookChain() throws Exception {
-        mockMvc.perform(post("/kaizen/integrations/alertmanager").header("Authorization", "Bearer aaa.bbb.ccc")
+        mockMvc.perform(post("/kazan/integrations/alertmanager").header("Authorization", "Bearer aaa.bbb.ccc")
                         .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isUnauthorized());
     }

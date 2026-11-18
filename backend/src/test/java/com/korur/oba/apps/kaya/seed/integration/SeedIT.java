@@ -56,7 +56,7 @@ class SeedIT extends AbstractTenantIT {
              "hooks":{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":".agents/hooks/dispatch.sh"}]}],
                       "SessionStart":[{"hooks":[{"type":"command","command":".agents/hooks/dispatch.sh"}]}]}}
             """;
-    private static final String SKILL = "---\nname: kaizen\ndescription: Use for Kaizen tickets\n---\n# Kaizen\n";
+    private static final String SKILL = "---\nname: kazan\ndescription: Use for Kazan tickets\n---\n# Kazan\n";
     private static final String SHADCN_SKILL = "---\nname: shadcn\ndescription: Use for shadcn components\n---\n# shadcn\n";
     private static final String RULE = "---\npaths: \"src/**\"\n---\nLocal rule\n";
 
@@ -188,8 +188,8 @@ class SeedIT extends AbstractTenantIT {
     private List<Map<String, Object>> orgPackFiles(String agents) throws Exception {
         List<Map<String, Object>> files = new ArrayList<>();
         files.add(file("AGENTS.md", agents));
-        files.add(file(".agents/skills/kaizen/SKILL.md", SKILL));
-        files.add(link(".claude/skills/kaizen", "../../.agents/skills/kaizen"));
+        files.add(file(".agents/skills/kazan/SKILL.md", SKILL));
+        files.add(link(".claude/skills/kazan", "../../.agents/skills/kazan"));
         files.add(file(".claude/settings.json", SETTINGS));
         files.add(file(".agents/hooks/dispatch.sh", "#!/bin/sh\n"));
         return files;
@@ -567,7 +567,7 @@ class SeedIT extends AbstractTenantIT {
             }
         }
         assertEquals(Map.of(".claude/rules", "../.agents/rules", ".claude/templates", "../.agents/templates",
-                ".claude/skills/kaizen", "../../.agents/skills/kaizen"), links);
+                ".claude/skills/kazan", "../../.agents/skills/kazan"), links);
     }
 
     @Test

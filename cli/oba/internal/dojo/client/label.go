@@ -9,13 +9,13 @@ type Label struct {
 	Color *string `json:"color"`
 }
 
-// LabelCreateRequest is the body of POST /kaizen/boards/{boardId}/labels.
+// LabelCreateRequest is the body of POST /kazan/boards/{boardId}/labels.
 type LabelCreateRequest struct {
 	Name  string  `json:"name"`
 	Color *string `json:"color,omitempty"`
 }
 
-// LabelUpdateRequest is the body of PUT /kaizen/boards/{boardId}/labels/{labelId}; a nil field
+// LabelUpdateRequest is the body of PUT /kazan/boards/{boardId}/labels/{labelId}; a nil field
 // is left unchanged.
 type LabelUpdateRequest struct {
 	Name  *string `json:"name,omitempty"`

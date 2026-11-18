@@ -56,15 +56,15 @@ describe("skill rows", () => {
   test("server rows take the name and description of the version's skill list, by name", () => {
     const files = [
       file(".agents/skills/plan/SKILL.md", "p-1", "v-2"),
-      file(".agents/skills/kaizen/SKILL.md"),
-      file(".agents/skills/kaizen/references/cli.md"),
+      file(".agents/skills/kazan/SKILL.md"),
+      file(".agents/skills/kazan/references/cli.md"),
     ];
     const rows = serverSkillRows(files, ownerOf, [
       {
         id: "sk-1",
         versionId: "v-1",
-        path: "kaizen",
-        name: "kaizen",
+        path: "kazan",
+        name: "kazan",
         description: "Ticket work.",
         sizeBytes: 10,
       },
@@ -72,7 +72,7 @@ describe("skill rows", () => {
     expect(
       rows.map((row: SkillRow) => [row.name, row.description, row.originName, row.fileCount])
     ).toEqual([
-      ["kaizen", "Ticket work.", "org", 2],
+      ["kazan", "Ticket work.", "org", 2],
       ["plan", null, "village", 1],
     ]);
   });
@@ -111,21 +111,21 @@ describe("skill rows", () => {
 
   test("search needs every word in name, description or origin", () => {
     const rows = serverSkillRows(
-      [file(".agents/skills/kaizen/SKILL.md"), file(".agents/skills/plan/SKILL.md", "p-1", "v-2")],
+      [file(".agents/skills/kazan/SKILL.md"), file(".agents/skills/plan/SKILL.md", "p-1", "v-2")],
       ownerOf,
       [
         {
           id: "sk-1",
           versionId: "v-1",
-          path: "kaizen",
-          name: "kaizen",
+          path: "kazan",
+          name: "kazan",
           description: "Ticket work",
           sizeBytes: 10,
         },
       ]
     );
     expect(filterSkillRows(rows, "ticket ORG").map((row: SkillRow) => row.name)).toEqual([
-      "kaizen",
+      "kazan",
     ]);
     expect(filterSkillRows(rows, "")).toHaveLength(2);
   });
@@ -136,10 +136,10 @@ describe("skill rows", () => {
   });
 
   test("a server row without paths takes them from its SKILL.md once read", () => {
-    const content = "---\nname: kaizen\npaths:\n  - projects/kaizen/**\n---\nBody";
-    expect(skillPaths({ paths: null }, content)).toEqual(["projects/kaizen/**"]);
+    const content = "---\nname: kazan\npaths:\n  - projects/kazan/**\n---\nBody";
+    expect(skillPaths({ paths: null }, content)).toEqual(["projects/kazan/**"]);
     expect(skillPaths({ paths: null }, undefined)).toBeNull();
-    expect(skillPaths({ paths: null }, "---\nname: kaizen\n---\n")).toBeNull();
+    expect(skillPaths({ paths: null }, "---\nname: kazan\n---\n")).toBeNull();
     expect(skillPaths({ paths: ["a/**"] }, content)).toEqual(["a/**"]);
   });
 });

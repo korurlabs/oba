@@ -209,7 +209,7 @@ export const rebaseConflictSchema = z.object({
 /** The override record of a draft item after `PUT /drafts/{id}/overrides`. */
 export const itemOverrideResponseSchema = z.object({
   versionId: z.string(),
-  /** A file path, or a skill directory such as `.agents/skills/kaizen/`. */
+  /** A file path, or a skill directory such as `.agents/skills/kazan/`. */
   path: z.string(),
   basePackId: z.string(),
   baseVersionId: z.string().nullish(),

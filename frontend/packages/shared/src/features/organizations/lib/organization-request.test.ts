@@ -12,9 +12,9 @@ describe("toAppGrantRequest", () => {
   });
 
   test("sends only groupId for a GROUP target", () => {
-    const request = toAppGrantRequest({ app: "KAIZEN", targetType: "GROUP", targetId: ID });
+    const request = toAppGrantRequest({ app: "KAZAN", targetType: "GROUP", targetId: ID });
 
-    expect(request).toEqual({ app: "KAIZEN", groupId: ID });
+    expect(request).toEqual({ app: "KAZAN", groupId: ID });
     expect("userId" in request).toBe(false);
   });
 });

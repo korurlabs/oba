@@ -12,6 +12,6 @@ public final class PushConfigLogConstant {
 
     public static final String PUSH_ENABLED = "Push sending through Expo is on";
     public static final String PUSH_DISABLED =
-            "Push sending is off: oba.integrations.expo.access-token (KAIZEN_EXPO_ACCESS_TOKEN) is blank";
+            "Push sending is off: oba.integrations.expo.access-token (KAZAN_EXPO_ACCESS_TOKEN) is blank";
     public static final String EXECUTOR_REJECTED = "Push dispatch dropped, the push executor queue is full: queueCapacity={}";
 }

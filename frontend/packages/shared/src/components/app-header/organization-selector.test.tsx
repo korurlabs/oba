@@ -40,7 +40,7 @@ const fetches: (string | null)[] = [];
 let queryClient: QueryClient;
 let pageQuery: QueryObserver<string>;
 let unsubscribePageQuery: () => void;
-const PAGE_QUERY_KEY = ["kaizen", "boards"];
+const PAGE_QUERY_KEY = ["kazan", "boards"];
 
 const passthrough = ({ children }: { children?: ReactNode }) => <div>{children}</div>;
 mock.module("@oba/ui/components/select", () => ({

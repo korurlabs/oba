@@ -160,9 +160,9 @@ class RepositoryControllerIT extends ObaIntegrationTest {
         mockMvc.perform(patch("/kaya/repositories/{id}", repository.getId()).with(as(admin))
                         .header(ORGANIZATION_HEADER, organization.getId())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"ticketUrlTemplate\":\"https://kaizen.example/tickets/{key}\"}"))
+                        .content("{\"ticketUrlTemplate\":\"https://kazan.example/tickets/{key}\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.ticketUrlTemplate").value("https://kaizen.example/tickets/{key}"));
+                .andExpect(jsonPath("$.data.ticketUrlTemplate").value("https://kazan.example/tickets/{key}"));
 
         mockMvc.perform(patch("/kaya/repositories/{id}", repository.getId()).with(as(admin))
                         .header(ORGANIZATION_HEADER, organization.getId())

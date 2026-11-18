@@ -59,7 +59,7 @@ export async function deleteAttachment(attachmentId: string): Promise<void> {
  *
  * Note two differences from the upload body: `metadata` is a single JSON
  * OBJECT (not an array) and carries no entityId, and the file part is named
- * "file" (singular). Mirrors the kaizen CLI's `CheckAttachmentExists`.
+ * "file" (singular). Mirrors the kazan CLI's `CheckAttachmentExists`.
  */
 export async function checkAttachmentExists(
   entityType: StorageEntityType,

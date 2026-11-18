@@ -19,7 +19,7 @@ import (
 
 const (
 	idOps      = "0a000000-0000-4000-8000-000000000001"
-	labelsPath = "/kaizen/boards/" + idOps + "/labels"
+	labelsPath = "/kazan/boards/" + idOps + "/labels"
 	treeJSON   = `{"data":[{"id":"` + idOps + `","name":"Operations","prefix":"OPS","childBoards":[]}],` +
 		`"pagination":{"currentPage":1,"last":true}}`
 	labelsJSON = `{"data":[{"id":"l1","name":"bug","color":"#EF4444"},{"id":"l2","name":"chore","color":null}]}`
@@ -44,7 +44,7 @@ func newAPI(t *testing.T) *clitest.MockAPI {
 	clitest.SetupHome(t)
 	clitest.FakeTerminal(t, &stdinIsTerminal, false)
 	api := clitest.NewMockAPI(t)
-	api.Respond("GET /kaizen/boards", http.StatusOK, treeJSON)
+	api.Respond("GET /kazan/boards", http.StatusOK, treeJSON)
 	api.Respond("GET "+labelsPath, http.StatusOK, labelsJSON)
 	clitest.LoginTo(t, api.URL(), clitest.OrgIDAcme)
 	return api
@@ -61,7 +61,7 @@ func TestLabelListPrintsTheTable(t *testing.T) {
 		strings.Join(strings.Fields(lines[2]), " ") != "chore - l2" {
 		t.Errorf("out =\n%s", out)
 	}
-	if strings.Join(api.Calls(), ",") != "GET /kaizen/boards,GET "+labelsPath {
+	if strings.Join(api.Calls(), ",") != "GET /kazan/boards,GET "+labelsPath {
 		t.Errorf("calls = %v", api.Calls())
 	}
 }
