@@ -49,13 +49,13 @@ brews:
   - repository:
       owner: korurlabs
       name: homebrew-tap
-      # The short-lived `sensey-releases` GitHub App installation token the
+      # The short-lived `korur-prod-release-write` GitHub App installation token the
       # release workflow mints, scoped to the release repo and the tap.
       token: "{{ .Env.GITHUB_TOKEN }}"
     directory: Formula
     commit_author:
-      name: sensey-releases[bot]
-      email: 327959077+sensey-releases[bot]@users.noreply.github.com
+      name: korur-prod-release-write[bot]
+      email: 327959077+korur-prod-release-write[bot]@users.noreply.github.com
     homepage: "https://github.com/korurlabs/kaya-cli"
     description: "Kaya CLI: signed agent config of Claude Code from Kaya"
     # kaya-launch is the same binary; the VS Code extension starts Claude Code

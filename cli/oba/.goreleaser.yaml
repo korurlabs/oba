@@ -54,8 +54,8 @@ brews:
     # The App makes the formula commit, so the tap history names it. The id is
     # the bot USER id.
     commit_author:
-      name: sensey-releases[bot]
-      email: 327959077+sensey-releases[bot]@users.noreply.github.com
+      name: korur-prod-release-write[bot]
+      email: 327959077+korur-prod-release-write[bot]@users.noreply.github.com
     homepage: "https://github.com/korurlabs/oba-cli"
     description: "Oba CLI: the Oba apps from your terminal"
     license: "MIT"
