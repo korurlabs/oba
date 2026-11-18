@@ -1,0 +1,16 @@
+# Artifact Hub metadata of the OCI repository ghcr.io/korurlabs/charts/oba.
+#
+# Helm does not read this file. The release workflow pushes it to that OCI
+# repository with the tag "artifacthub.io", where Artifact Hub reads it to
+# confirm who owns the repository:
+# https://artifacthub.io/docs/topics/repositories/helm-charts/#oci-support
+#
+# repositoryID is the id Artifact Hub gives the repository when it is added
+# there (kind "Helm charts", URL oci://ghcr.io/korurlabs/charts/oba). Until it
+# is filled in, the listing works but is not marked as a verified publisher.
+repositoryID: ""
+
+# Artifact Hub users with these emails may claim the repository.
+owners:
+  - name: Korur
+    email: devs@korur.com
