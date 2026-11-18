@@ -1,0 +1,551 @@
+# Default values for the oba chart.
+#
+# Every component (api and the six web apps) has the same block of keys. The
+# defaults run each component with one replica, no Ingress and no secret: set
+# the environment each one needs (charts/oba/README.md lists the keys) through
+# `env` or through `envFrom` with a Secret or ConfigMap you create.
+
+# Overrides the chart name in object names. Object names are
+# "<fullname>-<component>", and the Service is "<fullname>-<component>-service".
+nameOverride: ""
+# Replaces "<release>-oba" (or the release name, when it already contains
+# "oba") as the prefix of every object name.
+fullnameOverride: ""
+
+# Pull secrets for every pod, for a private copy of the images.
+imagePullSecrets: []
+
+# Labels added to every object the chart renders.
+commonLabels: {}
+
+api:
+  enabled: true
+  replicas: 1
+  image:
+    repository: ghcr.io/korurlabs/oba-api
+    # Defaults to the chart's appVersion.
+    tag: ""
+    pullPolicy: IfNotPresent
+  # The image's entrypoint, written out so that a pod-mutating webhook that
+  # wraps the command sees it.
+  command: ["java", "-jar", "/app/oba-api.jar"]
+  args: []
+  containerPort: 8080
+  env:
+    - name: SPRING_PROFILES_ACTIVE
+      value: prod
+    - name: JAVA_TOOL_OPTIONS
+      value: "-XX:MaxRAMPercentage=60.0"
+  # For example: [{secretRef: {name: oba-api}}]
+  envFrom: []
+  resources:
+    requests:
+      cpu: 100m
+      memory: 768Mi
+    limits:
+      memory: 1Gi
+  # Flyway migrates the database before the API reports live, so the startup
+  # probe allows a slow first start.
+  startupProbe:
+    httpGet:
+      path: /actuator/health/liveness
+      port: http
+    failureThreshold: 96
+    periodSeconds: 10
+    timeoutSeconds: 5
+  livenessProbe:
+    httpGet:
+      path: /actuator/health/liveness
+      port: http
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readinessProbe:
+    httpGet:
+      path: /actuator/health/readiness
+      port: http
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+  # A new pod becomes ready before an old one stops.
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  podSecurityContext:
+    runAsUser: 1000
+    runAsGroup: 3000
+    fsGroup: 2000
+  securityContext:
+    readOnlyRootFilesystem: true
+    allowPrivilegeEscalation: false
+    privileged: false
+  # The root filesystem is read-only, so /tmp is a per-pod emptyDir.
+  volumes:
+    - name: tmp-volume
+      emptyDir: {}
+  volumeMounts:
+    - name: tmp-volume
+      mountPath: /tmp
+  podLabels: {}
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  serviceAccount:
+    create: true
+    annotations: {}
+  service:
+    type: ClusterIP
+    port: 80
+    annotations: {}
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    # For example:
+    # hosts:
+    #   - host: api.example.com
+    #     paths:
+    #       - path: /
+    #         pathType: Prefix
+    hosts: []
+    # For example: [{secretName: api-example-com-tls, hosts: [api.example.com]}]
+    tls: []
+  pdb:
+    enabled: false
+    maxUnavailable: 1
+
+kazan:
+  enabled: true
+  replicas: 1
+  image:
+    repository: ghcr.io/korurlabs/oba-kazan
+    # Defaults to the chart's appVersion.
+    tag: ""
+    pullPolicy: IfNotPresent
+  # The image's command, written out so that a pod-mutating webhook that wraps
+  # the command sees it. The server path keeps the name of the app's source
+  # folder, which the image is built from.
+  command: ["node", ".next/standalone/apps/kaizen/server.js"]
+  args: []
+  containerPort: 8080
+  env:
+    # Next.js binds to HOSTNAME, which Kubernetes sets to the pod name.
+    - name: HOSTNAME
+      value: "0.0.0.0"
+  envFrom: []
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 768Mi
+  startupProbe:
+    tcpSocket:
+      port: http
+    failureThreshold: 96
+    periodSeconds: 10
+    timeoutSeconds: 5
+  livenessProbe: {}
+  readinessProbe:
+    tcpSocket:
+      port: http
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  podSecurityContext: {}
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    runAsGroup: 1001
+    allowPrivilegeEscalation: false
+  volumes: []
+  volumeMounts: []
+  podLabels: {}
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  serviceAccount:
+    create: true
+    annotations: {}
+  service:
+    type: ClusterIP
+    port: 80
+    annotations: {}
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts: []
+    tls: []
+  pdb:
+    enabled: false
+    maxUnavailable: 1
+
+kaya:
+  enabled: true
+  replicas: 1
+  image:
+    repository: ghcr.io/korurlabs/oba-kaya
+    # Defaults to the chart's appVersion.
+    tag: ""
+    pullPolicy: IfNotPresent
+  # The image's command, written out so that a pod-mutating webhook that wraps
+  # the command sees it.
+  command: ["node", ".next/standalone/apps/kaya/server.js"]
+  args: []
+  containerPort: 8080
+  env:
+    # Next.js binds to HOSTNAME, which Kubernetes sets to the pod name.
+    - name: HOSTNAME
+      value: "0.0.0.0"
+  envFrom: []
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 512Mi
+  startupProbe:
+    tcpSocket:
+      port: http
+    failureThreshold: 96
+    periodSeconds: 10
+    timeoutSeconds: 5
+  livenessProbe: {}
+  readinessProbe:
+    tcpSocket:
+      port: http
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  podSecurityContext: {}
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    runAsGroup: 1001
+    allowPrivilegeEscalation: false
+  volumes: []
+  volumeMounts: []
+  podLabels: {}
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  serviceAccount:
+    create: true
+    annotations: {}
+  service:
+    type: ClusterIP
+    port: 80
+    annotations: {}
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts: []
+    tls: []
+  pdb:
+    enabled: false
+    maxUnavailable: 1
+
+kalkan:
+  enabled: true
+  replicas: 1
+  image:
+    repository: ghcr.io/korurlabs/oba-kalkan
+    # Defaults to the chart's appVersion.
+    tag: ""
+    pullPolicy: IfNotPresent
+  # The image's command, written out so that a pod-mutating webhook that wraps
+  # the command sees it.
+  command: ["node", ".next/standalone/apps/kalkan/server.js"]
+  args: []
+  containerPort: 8080
+  env:
+    # Next.js binds to HOSTNAME, which Kubernetes sets to the pod name.
+    - name: HOSTNAME
+      value: "0.0.0.0"
+  envFrom: []
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 512Mi
+  startupProbe:
+    tcpSocket:
+      port: http
+    failureThreshold: 96
+    periodSeconds: 10
+    timeoutSeconds: 5
+  livenessProbe: {}
+  readinessProbe:
+    tcpSocket:
+      port: http
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  podSecurityContext: {}
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    runAsGroup: 1001
+    allowPrivilegeEscalation: false
+  volumes: []
+  volumeMounts: []
+  podLabels: {}
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  serviceAccount:
+    create: true
+    annotations: {}
+  service:
+    type: ClusterIP
+    port: 80
+    annotations: {}
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts: []
+    tls: []
+  pdb:
+    enabled: false
+    maxUnavailable: 1
+
+otak:
+  enabled: true
+  replicas: 1
+  image:
+    repository: ghcr.io/korurlabs/oba-otak
+    # Defaults to the chart's appVersion.
+    tag: ""
+    pullPolicy: IfNotPresent
+  # The image's command, written out so that a pod-mutating webhook that wraps
+  # the command sees it.
+  command: ["node", ".next/standalone/apps/otak/server.js"]
+  args: []
+  containerPort: 8080
+  env:
+    # Next.js binds to HOSTNAME, which Kubernetes sets to the pod name.
+    - name: HOSTNAME
+      value: "0.0.0.0"
+  envFrom: []
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 512Mi
+  startupProbe:
+    tcpSocket:
+      port: http
+    failureThreshold: 96
+    periodSeconds: 10
+    timeoutSeconds: 5
+  livenessProbe: {}
+  readinessProbe:
+    tcpSocket:
+      port: http
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  podSecurityContext: {}
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    runAsGroup: 1001
+    allowPrivilegeEscalation: false
+  volumes: []
+  volumeMounts: []
+  podLabels: {}
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  serviceAccount:
+    create: true
+    annotations: {}
+  service:
+    type: ClusterIP
+    port: 80
+    annotations: {}
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts: []
+    tls: []
+  pdb:
+    enabled: false
+    maxUnavailable: 1
+
+admin:
+  enabled: true
+  replicas: 1
+  image:
+    repository: ghcr.io/korurlabs/oba-admin
+    # Defaults to the chart's appVersion.
+    tag: ""
+    pullPolicy: IfNotPresent
+  # The image's command, written out so that a pod-mutating webhook that wraps
+  # the command sees it.
+  command: ["node", ".next/standalone/apps/admin/server.js"]
+  args: []
+  containerPort: 8080
+  env:
+    # Next.js binds to HOSTNAME, which Kubernetes sets to the pod name.
+    - name: HOSTNAME
+      value: "0.0.0.0"
+  envFrom: []
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 512Mi
+  startupProbe:
+    tcpSocket:
+      port: http
+    failureThreshold: 96
+    periodSeconds: 10
+    timeoutSeconds: 5
+  livenessProbe: {}
+  readinessProbe:
+    tcpSocket:
+      port: http
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  podSecurityContext: {}
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    runAsGroup: 1001
+    allowPrivilegeEscalation: false
+  volumes: []
+  volumeMounts: []
+  podLabels: {}
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  serviceAccount:
+    create: true
+    annotations: {}
+  service:
+    type: ClusterIP
+    port: 80
+    annotations: {}
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts: []
+    tls: []
+  pdb:
+    enabled: false
+    maxUnavailable: 1
+
+account:
+  enabled: true
+  replicas: 1
+  image:
+    repository: ghcr.io/korurlabs/oba-account
+    # Defaults to the chart's appVersion.
+    tag: ""
+    pullPolicy: IfNotPresent
+  # The image's command, written out so that a pod-mutating webhook that wraps
+  # the command sees it.
+  command: ["node", ".next/standalone/apps/account/server.js"]
+  args: []
+  containerPort: 8080
+  env:
+    # Next.js binds to HOSTNAME, which Kubernetes sets to the pod name.
+    - name: HOSTNAME
+      value: "0.0.0.0"
+  envFrom: []
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 512Mi
+  startupProbe:
+    tcpSocket:
+      port: http
+    failureThreshold: 96
+    periodSeconds: 10
+    timeoutSeconds: 5
+  livenessProbe: {}
+  readinessProbe:
+    tcpSocket:
+      port: http
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  podSecurityContext: {}
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    runAsGroup: 1001
+    allowPrivilegeEscalation: false
+  volumes: []
+  volumeMounts: []
+  podLabels: {}
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  serviceAccount:
+    create: true
+    annotations: {}
+  service:
+    type: ClusterIP
+    port: 80
+    annotations: {}
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts: []
+    tls: []
+  pdb:
+    enabled: false
+    maxUnavailable: 1

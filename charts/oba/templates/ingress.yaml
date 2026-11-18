@@ -1,0 +1,43 @@
+{{- range $name := splitList " " (include "oba.components" .) }}
+{{- $c := index $.Values $name }}
+{{- $ctx := dict "root" $ "name" $name }}
+{{- if and $c.enabled $c.ingress.enabled }}
+{{- if not $c.ingress.hosts }}
+{{- fail (printf "%s.ingress.enabled is true but %s.ingress.hosts is empty" $name $name) }}
+{{- end }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "oba.componentName" $ctx }}
+  labels:
+    {{- include "oba.labels" $ctx | nindent 4 }}
+  {{- with $c.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with $c.ingress.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- with $c.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    {{- range $c.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range (default (list (dict "path" "/" "pathType" "Prefix")) .paths) }}
+          - path: {{ .path }}
+            pathType: {{ default "Prefix" .pathType }}
+            backend:
+              service:
+                name: {{ include "oba.componentName" $ctx }}-service
+                port:
+                  name: http
+          {{- end }}
+    {{- end }}
+{{- end }}
+{{- end }}

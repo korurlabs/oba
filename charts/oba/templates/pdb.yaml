@@ -1,0 +1,18 @@
+{{- range $name := splitList " " (include "oba.components" .) }}
+{{- $c := index $.Values $name }}
+{{- $ctx := dict "root" $ "name" $name }}
+{{- if and $c.enabled $c.pdb.enabled }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "oba.componentName" $ctx }}-pdb
+  labels:
+    {{- include "oba.labels" $ctx | nindent 4 }}
+spec:
+  maxUnavailable: {{ $c.pdb.maxUnavailable }}
+  selector:
+    matchLabels:
+      {{- include "oba.selectorLabels" $ctx | nindent 6 }}
+{{- end }}
+{{- end }}
