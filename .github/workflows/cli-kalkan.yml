@@ -1,0 +1,68 @@
+name: Kalkan CLI
+
+# Builds, vets, tests and lints the Go module in cli/kalkan. It publishes nothing; releases are a
+# separate workflow.
+#
+# Fork safety: `pull_request` only (never `pull_request_target` or `workflow_run`), so a run from a
+# fork gets a read-only token and no secret.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'cli/kalkan/**'
+      - '!**/*.md'
+      - '.github/workflows/cli-kalkan.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'cli/kalkan/**'
+      - '!**/*.md'
+      - '.github/workflows/cli-kalkan.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # One job, not four: each job bills a one-minute floor, and these steps fit in one.
+  checks:
+    name: Build, vet, test and lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: cli/kalkan
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: cli/kalkan/go.mod
+          cache-dependency-path: cli/kalkan/go.sum
+
+      - name: Build
+        run: make build
+
+      - name: Vet
+        run: go vet ./...
+
+      # make test runs the tests with -race.
+      - name: Test
+        run: make test
+
+      # Pinned: golangci-lint refuses to run when the Go it was built with is older than the
+      # module's go directive.
+      - name: Lint
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          version: v2.13.2
+          working-directory: cli/kalkan
