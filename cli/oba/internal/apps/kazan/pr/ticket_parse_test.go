@@ -11,7 +11,7 @@ func TestParseTickets(t *testing.T) {
 		t.Fatalf("got %v, %v", got, err)
 	}
 	for raw, want := range map[string]string{
-		"ACME":         "--tickets: invalid ticket",
+		"ACME":          "--tickets: invalid ticket",
 		"ACME-1,acme-1": "--tickets names acme-1 twice",
 		"A-1,A-2,A-3,A-4,A-5,A-6,A-7,A-8,A-9,A-10,A-11": "at most 10 related tickets",
 	} {

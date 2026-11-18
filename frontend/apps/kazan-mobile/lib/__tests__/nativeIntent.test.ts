@@ -34,8 +34,8 @@ describe("redirectSystemPath", () => {
     expect(redirectSystemPath({ path: "kazan://ticket/ALP-4", initial: false })).toBe(
       "/ticket/ALP-4"
     );
-    expect(
-      redirectSystemPath({ path: "https://kazan.test/en/ticket/ALP-4", initial: false })
-    ).toBe("/ticket/ALP-4");
+    expect(redirectSystemPath({ path: "https://kazan.test/en/ticket/ALP-4", initial: false })).toBe(
+      "/ticket/ALP-4"
+    );
   });
 });

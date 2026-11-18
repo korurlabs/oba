@@ -207,10 +207,7 @@ function boardLinkSprint(
  * links are read on any origin, as their chips are; every other page only
  * on the Kazan web host of this build.
  */
-export function parseKazanLink(
-  href: string,
-  kazanWebHost: string | null
-): KazanLinkTarget | null {
+export function parseKazanLink(href: string, kazanWebHost: string | null): KazanLinkTarget | null {
   const message: ChatMessageLink | null = parseChatMessageLink(href);
   if (message) {
     return {

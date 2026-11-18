@@ -142,12 +142,13 @@ describe("parseKazanLink", () => {
   });
 
   it("reads the sprint of a Sprint tab link by ID and of an All link by slug", () => {
-    expect(
-      parseKazanLink(`https://${HOST}/en/board/alpha/sprint?sprintId=s1`, HOST)
-    ).toMatchObject({ view: "sprint", sprint: { id: "s1" } });
-    expect(parseKazanLink(`https://${HOST}/board/alpha/all?sprint=sprint-12`, HOST)).toMatchObject(
-      { view: "all", sprint: { slug: "sprint-12" } }
+    expect(parseKazanLink(`https://${HOST}/en/board/alpha/sprint?sprintId=s1`, HOST)).toMatchObject(
+      { view: "sprint", sprint: { id: "s1" } }
     );
+    expect(parseKazanLink(`https://${HOST}/board/alpha/all?sprint=sprint-12`, HOST)).toMatchObject({
+      view: "all",
+      sprint: { slug: "sprint-12" },
+    });
     expect(parseKazanLink(`https://${HOST}/board/alpha/backlog?sprintId=s1`, HOST)).toMatchObject({
       view: "backlog",
       sprint: null,

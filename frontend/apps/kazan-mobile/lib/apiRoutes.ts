@@ -136,8 +136,7 @@ export const API_ROUTES = {
     messages: "/kazan/chat/messages",
     message: (messageId: string): string => `/kazan/chat/messages/${encode(messageId)}`,
     /** POST adds and DELETE removes a reaction. */
-    reactions: (messageId: string): string =>
-      `/kazan/chat/messages/${encode(messageId)}/reactions`,
+    reactions: (messageId: string): string => `/kazan/chat/messages/${encode(messageId)}/reactions`,
     /** PUT pins and DELETE unpins a message. */
     pin: (messageId: string): string => `/kazan/chat/messages/${encode(messageId)}/pin`,
     pins: "/kazan/chat/pins",
@@ -164,8 +163,7 @@ export const API_ROUTES = {
     sharePreview: "/kazan/pull-request-shares/preview",
     share: (shareId: string): string => `/kazan/pull-request-shares/${encode(shareId)}`,
     /** PUT approves and DELETE withdraws the approval. */
-    approval: (shareId: string): string =>
-      `/kazan/pull-request-shares/${encode(shareId)}/approval`,
+    approval: (shareId: string): string => `/kazan/pull-request-shares/${encode(shareId)}/approval`,
     githubRepositories: "/kazan/github/repositories",
     githubContributors: (repositoryId: string): string =>
       `/kazan/github/repositories/${encode(repositoryId)}/contributors`,
