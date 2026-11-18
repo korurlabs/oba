@@ -38,6 +38,7 @@ bun.lockb
 dist/
 out/
 .next/
+next-env.d.ts
 .turbo/
 *.tsbuildinfo
 .cache/
