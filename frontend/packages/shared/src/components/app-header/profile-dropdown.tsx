@@ -31,7 +31,7 @@ export interface ProfileDropdownProps {
   className?: string;
   /**
    * Optional extra menu content rendered between Settings and Log out --
-   * Kaizen passes `LanguageSwitcherSubMenu` here so locale switching lives in
+   * Kazan passes `LanguageSwitcherSubMenu` here so locale switching lives in
    * the account menu instead of floating in the sidebar footer. Must be
    * dropdown-menu content (an item, a group or a submenu); it is rendered
    * directly inside `DropdownMenuContent`.

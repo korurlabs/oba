@@ -17,7 +17,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.kaizen.exception.ExceptionDomainKaizenError;
+import com.korur.oba.apps.kazan.exception.ExceptionDomainKazanError;
 import com.korur.oba.connect.azure.service.AzureBlobStorageService;
 import com.korur.oba.dojo.exception.internal.auth.ForbiddenException;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
@@ -377,7 +377,7 @@ class AttachmentServiceImplUnitTest {
             // Arrange
             UUID ticketId = UUID.randomUUID();
             ticketAccessible();
-            doThrow(new ForbiddenException(ExceptionDomainKaizenError.SEC_INSUFFICIENT_BOARD_PERMISSIONS))
+            doThrow(new ForbiddenException(ExceptionDomainKazanError.SEC_INSUFFICIENT_BOARD_PERMISSIONS))
                     .when(resourceAccessQueryService).verifyResourceAccess(user, organizationId,
                             ResourceAccessType.TICKET, ticketId, ResourceAccessAction.WRITE);
             AttachmentCreateRequest request = new AttachmentCreateRequest(
@@ -425,7 +425,7 @@ class AttachmentServiceImplUnitTest {
             ticketAccessible();
             doNothing().when(resourceAccessQueryService).verifyResourceAccess(user, organizationId,
                     ResourceAccessType.TICKET, firstTicket, ResourceAccessAction.WRITE);
-            doThrow(new ForbiddenException(ExceptionDomainKaizenError.SEC_INSUFFICIENT_BOARD_PERMISSIONS))
+            doThrow(new ForbiddenException(ExceptionDomainKazanError.SEC_INSUFFICIENT_BOARD_PERMISSIONS))
                     .when(resourceAccessQueryService).verifyResourceAccess(user, organizationId,
                             ResourceAccessType.TICKET, secondTicket, ResourceAccessAction.WRITE);
             List<AttachmentCreateRequest> requests = List.of(
@@ -547,7 +547,7 @@ class AttachmentServiceImplUnitTest {
             Attachment attachment = storedAttachment(StorageEntityType.TICKET, ticketId);
             when(attachmentValidator.ensureEntityTypeAccessible(StorageEntityType.TICKET))
                     .thenReturn(ResourceAccessType.TICKET);
-            doThrow(new ForbiddenException(ExceptionDomainKaizenError.SEC_INSUFFICIENT_BOARD_PERMISSIONS))
+            doThrow(new ForbiddenException(ExceptionDomainKazanError.SEC_INSUFFICIENT_BOARD_PERMISSIONS))
                     .when(resourceAccessQueryService).verifyResourceAccess(user, organizationId,
                             ResourceAccessType.TICKET, ticketId, ResourceAccessAction.DELETE);
             when(attachmentRepository.findById(attachment.getId())).thenReturn(Optional.of(attachment));

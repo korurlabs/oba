@@ -52,13 +52,13 @@ public final class RenderTrees {
         tree.add(file(".claude/agents/reviewer.md", "---\ntools: Read, Grep\nmaxTurns: 5\nname: reviewer\n"
                 + "description: 'Reviews code'\n---\nReview.\n"));
         tree.add(file(SETTINGS_PATH, "{\n    \"permissions\" : { \"allow\": [ \"Bash(ls)\" ] },\n  \"env\":{}\n}\n"));
-        tree.add(file(".agents/skills/kaizen/SKILL.md", "---\nname: kaizen\ndescription: The kaizen skill\n---\n\n# kaizen\n"));
-        tree.add(executable(".agents/skills/kaizen/scripts/run.sh", "#!/bin/sh\necho run\n"));
-        tree.add(file(".agents/skills/kaizen/workflows/close.md", "# Close a ticket\n"));
-        tree.add(file(".agents/skills/kaizen/conventions/style.md", "# Style\n"));
-        tree.add(file(".agents/skills/kaizen/references/api.md", "# API\n"));
-        tree.add(file(".agents/skills/kaizen/agents/openai.yml", "interface:\n  display_name: Kaizen\n"));
-        tree.add(new SourceFile(".claude/skills/kaizen", FileMode.SYMLINK, "../../.agents/skills/kaizen", null, null));
+        tree.add(file(".agents/skills/kazan/SKILL.md", "---\nname: kazan\ndescription: The kazan skill\n---\n\n# kazan\n"));
+        tree.add(executable(".agents/skills/kazan/scripts/run.sh", "#!/bin/sh\necho run\n"));
+        tree.add(file(".agents/skills/kazan/workflows/close.md", "# Close a ticket\n"));
+        tree.add(file(".agents/skills/kazan/conventions/style.md", "# Style\n"));
+        tree.add(file(".agents/skills/kazan/references/api.md", "# API\n"));
+        tree.add(file(".agents/skills/kazan/agents/openai.yml", "interface:\n  display_name: Kazan\n"));
+        tree.add(new SourceFile(".claude/skills/kazan", FileMode.SYMLINK, "../../.agents/skills/kazan", null, null));
         return tree;
     }
 
@@ -71,13 +71,13 @@ public final class RenderTrees {
                         + "See [logging](../../docs/private/conventions/backend/logging.md).\n"));
                 case ".agents/roles/tester.md", ".agents/hooks/guard.sh" -> {
                 }
-                case ".agents/skills/kaizen/references/api.md" -> tree.add(file(source.path(), "# API v2\n"));
+                case ".agents/skills/kazan/references/api.md" -> tree.add(file(source.path(), "# API v2\n"));
                 case SETTINGS_PATH -> tree.add(file(source.path(), "{\"permissions\":{\"allow\":[\"Bash(pwd)\"]}}\n"));
                 default -> tree.add(source);
             }
         }
         tree.add(file(".agents/templates/PLAN.md", "# Plan\n"));
-        tree.add(file(".agents/skills/kaizen/references/extra.md", "# Extra\n"));
+        tree.add(file(".agents/skills/kazan/references/extra.md", "# Extra\n"));
         return tree;
     }
 }

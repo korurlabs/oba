@@ -49,7 +49,7 @@ class AppAccessSetReadIT extends AbstractTenantIT {
     private final List<UUID> userIds = new ArrayList<>();
 
     private UUID ownerId;
-    private UUID directKaizenGuestId;
+    private UUID directKazanGuestId;
     private UUID directKayaGuestId;
     private UUID customGroupMemberId;
     private UUID removedGroupMemberId;
@@ -65,7 +65,7 @@ class AppAccessSetReadIT extends AbstractTenantIT {
         organizationId = tenant.organization().getId();
 
         ownerId = tenant.owner().getUser().getId();
-        directKaizenGuestId = member(OrganizationMemberRole.GUEST, OrganizationMemberStatus.ACTIVE);
+        directKazanGuestId = member(OrganizationMemberRole.GUEST, OrganizationMemberStatus.ACTIVE);
         directKayaGuestId = member(OrganizationMemberRole.GUEST, OrganizationMemberStatus.ACTIVE);
         customGroupMemberId = member(OrganizationMemberRole.MEMBER, OrganizationMemberStatus.ACTIVE);
         removedGroupMemberId = member(OrganizationMemberRole.MEMBER, OrganizationMemberStatus.ACTIVE);
@@ -74,27 +74,27 @@ class AppAccessSetReadIT extends AbstractTenantIT {
         disabledMemberId = member(OrganizationMemberRole.MEMBER, OrganizationMemberStatus.DISABLED);
         deletedGrantMemberId = member(OrganizationMemberRole.MEMBER, OrganizationMemberStatus.ACTIVE);
         outsiderId = createUser().getId();
-        userIds.addAll(List.of(ownerId, tenant.admin().getUser().getId(), directKaizenGuestId, directKayaGuestId,
+        userIds.addAll(List.of(ownerId, tenant.admin().getUser().getId(), directKazanGuestId, directKayaGuestId,
                 customGroupMemberId, removedGroupMemberId, deletedGroupMemberId, everyoneMemberId, disabledMemberId,
                 deletedGrantMemberId, outsiderId));
 
-        directGrant(directKaizenGuestId, "KAIZEN", false);
+        directGrant(directKazanGuestId, "KAZAN", false);
         // A guest is below Kaya's minimum role, so this grant opens nothing.
         directGrant(directKayaGuestId, "KAYA", false);
-        directGrant(disabledMemberId, "KAIZEN", false);
-        directGrant(deletedGrantMemberId, "KAIZEN", true);
+        directGrant(disabledMemberId, "KAZAN", false);
+        directGrant(deletedGrantMemberId, "KAZAN", true);
         // A grant to a user of another organization opens nothing in this one.
-        directGrant(outsiderId, "KAIZEN", false);
+        directGrant(outsiderId, "KAZAN", false);
 
         UUID customGroup = group("CUSTOM", false);
         groupMember(customGroup, customGroupMemberId, false);
         groupMember(customGroup, removedGroupMemberId, true);
-        groupGrant(customGroup, "KAIZEN");
+        groupGrant(customGroup, "KAZAN");
         groupGrant(customGroup, "KAYA");
 
         UUID deletedGroup = group("CUSTOM", true);
         groupMember(deletedGroup, deletedGroupMemberId, false);
-        groupGrant(deletedGroup, "KAIZEN");
+        groupGrant(deletedGroup, "KAZAN");
 
         UUID everyone = group("EVERYONE", false);
         groupGrant(everyone, "OTAK");
@@ -149,12 +149,12 @@ class AppAccessSetReadIT extends AbstractTenantIT {
     }
 
     @Test
-    void findUserIdsWithAppAccess_kaizen_isTheOwnerTheDirectGuestAndTheCustomGroupMember() {
+    void findUserIdsWithAppAccess_kazan_isTheOwnerTheDirectGuestAndTheCustomGroupMember() {
         // Act
-        Set<UUID> holders = appAccessQueryService.findUserIdsWithAppAccess(organizationId, App.KAIZEN, userIds);
+        Set<UUID> holders = appAccessQueryService.findUserIdsWithAppAccess(organizationId, App.KAZAN, userIds);
 
         // Assert
-        assertEquals(Set.of(ownerId, directKaizenGuestId, customGroupMemberId), holders);
+        assertEquals(Set.of(ownerId, directKazanGuestId, customGroupMemberId), holders);
     }
 
     @Test

@@ -28,7 +28,7 @@ public record VersionFileResponse(
         @Schema(description = "Content size in bytes; null for a SYMLINK", nullable = true, example = "2048")
         Integer size,
 
-        @Schema(description = "Relative target of a SYMLINK; null otherwise", nullable = true, example = "../.agents/skills/kaizen")
+        @Schema(description = "Relative target of a SYMLINK; null otherwise", nullable = true, example = "../.agents/skills/kazan")
         String symlinkTarget,
 
         @Schema(description = "Path of the inherited file a project file replaces; null otherwise", nullable = true,

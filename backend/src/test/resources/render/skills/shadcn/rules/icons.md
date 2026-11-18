@@ -6,7 +6,7 @@
 
 ## Icons in Button — no margin, no sizing classes
 
-The `@kaizen/ui` Button component applies `gap-*` between children (gap-2 default, gap-1.5 sm, gap-1 xs) and auto-sizes SVG icons via `[&_svg:not([class*='size-'])]:size-4`. Never add `mr-*`, `ml-*`, or sizing classes (`size-4`, `w-4 h-4`) to icons inside Button.
+The `@kazan/ui` Button component applies `gap-*` between children (gap-2 default, gap-1.5 sm, gap-1 xs) and auto-sizes SVG icons via `[&_svg:not([class*='size-'])]:size-4`. Never add `mr-*`, `ml-*`, or sizing classes (`size-4`, `w-4 h-4`) to icons inside Button.
 
 **Incorrect:**
 

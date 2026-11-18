@@ -22,7 +22,7 @@ export type SkillRow = {
   name: string;
   /** Null when the frontmatter has none; undefined while its `SKILL.md` loads. */
   description: string | null | undefined;
-  /** Such as `.agents/skills/kaizen`; unique within a scope. */
+  /** Such as `.agents/skills/kazan`; unique within a scope. */
   directory: string;
   /** The name of the pack that delivers the skill. */
   originName: string;

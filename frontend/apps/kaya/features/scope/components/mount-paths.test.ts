@@ -39,7 +39,7 @@ const KAGI: MountRef = { name: "kagi", mountPaths: ["projects/kagi"] };
 
 const OWNERS: Owner[] = [
   owner({ id: "p-org", name: "org" }),
-  owner({ id: "s-kaizen", name: "kaizen", parentPackId: "p-org", mountPaths: ["projects/kaizen"] }),
+  owner({ id: "s-kazan", name: "kazan", parentPackId: "p-org", mountPaths: ["projects/kazan"] }),
   owner({ id: "s-kagi", name: "kagi", parentPackId: "p-org", mountPaths: ["projects/kagi"] }),
 ];
 
@@ -142,7 +142,7 @@ describe("mount paths", () => {
     }
     for (const path of [
       ".agents/rules/core.md",
-      ".agents/rules/kaizen/x.md",
+      ".agents/rules/kazan/x.md",
       ".agents/rules/kagi-extra/x.md",
       ".agents/rules/kagi/x.txt",
       ".claude/settings.json",
@@ -198,11 +198,11 @@ describe("mount paths", () => {
     expect(mountRuleRefusal(rule, "# Api\n", KAGI)).toBe(message);
     expect(refused('paths: "**/*.java"')).toBe(message);
     expect(refused('paths: "projects/kagi*/**"')).toBe(message);
-    expect(refused('paths: "{projects/kagi,projects/kaizen}/**"')).toBe(message);
+    expect(refused('paths: "{projects/kagi,projects/kazan}/**"')).toBe(message);
     expect(refused("paths: projects/kagi/**")).toBeNull();
     expect(refused('paths:\n  - "./projects/kagi/src/**"')).toBeNull();
     expect(mountRuleRefusal("AGENTS.md", "# A\n", KAGI)).toBeNull();
-    expect(mountRuleRefusal(".agents/rules/kaizen/api.md", "# A\n", KAGI)).toBeNull();
+    expect(mountRuleRefusal(".agents/rules/kazan/api.md", "# A\n", KAGI)).toBeNull();
     expect(
       checkFile({ path: rule, mode: "FILE", content: "# Api\n" }, null, KAGI).map(
         (issue) => issue.rule
@@ -249,14 +249,14 @@ describe("mount paths", () => {
   test("patterns are classified against the mount folder, brace groups one by one", () => {
     const classes = (pattern: string) => classifyPattern(pattern, "projects/kagi");
     expect(classes("projects/kagi/backend/**")).toEqual([["projects/kagi/backend/**", "INSIDE"]]);
-    expect(classes("projects/kaizen/**")).toEqual([["projects/kaizen/**", "OUTSIDE"]]);
+    expect(classes("projects/kazan/**")).toEqual([["projects/kazan/**", "OUTSIDE"]]);
     expect(classes("projects/*/backend/**")).toEqual([["projects/*/backend/**", "SPANNING"]]);
     expect(classes("**/*.java")).toEqual([["**/*.java", "SPANNING"]]);
     expect(classes("projects/k*/x")).toEqual([["projects/k*/x", "SPANNING"]]);
     expect(classes("projects/z*/x")).toEqual([["projects/z*/x", "OUTSIDE"]]);
-    expect(classes("projects/{kagi,kaizen}/x/**")).toEqual([
+    expect(classes("projects/{kagi,kazan}/x/**")).toEqual([
       ["projects/kagi/x/**", "INSIDE"],
-      ["projects/kaizen/x/**", "OUTSIDE"],
+      ["projects/kazan/x/**", "OUTSIDE"],
     ]);
     expect(expandBraces("{a,b}{c,d}")).toEqual(["ac", "ad", "bc", "bd"]);
   });

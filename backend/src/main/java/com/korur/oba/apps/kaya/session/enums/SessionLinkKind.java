@@ -9,9 +9,9 @@ package com.korur.oba.apps.kaya.session.enums;
 // 4. Internal
 
 /**
- * What a session link points at: a pull request or a Kaizen ticket.
+ * What a session link points at: a pull request or a Kazan ticket.
  */
 public enum SessionLinkKind {
     PULL_REQUEST,
-    KAIZEN_TICKET
+    KAZAN_TICKET
 }

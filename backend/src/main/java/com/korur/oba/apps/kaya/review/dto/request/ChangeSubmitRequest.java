@@ -18,7 +18,7 @@ import com.korur.oba.apps.kaya.version.constant.VersionConstant;
 @Schema(description = "Submits a draft for review")
 public record ChangeSubmitRequest(
         @Schema(description = "Why the change is needed; the reviewer reads it", requiredMode = Schema.RequiredMode.REQUIRED,
-                example = "Allow the kaizen CLI in every repository")
+                example = "Allow the oba CLI in every repository")
         @NotBlank(message = VersionConstant.REASON_REQUIRED_MESSAGE)
         @Size(min = VersionConstant.REASON_MIN_LENGTH, max = VersionConstant.REASON_MAX_LENGTH,
                 message = VersionConstant.REASON_SIZE_MESSAGE)

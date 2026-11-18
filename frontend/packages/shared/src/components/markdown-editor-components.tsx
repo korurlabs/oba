@@ -12,7 +12,7 @@ export type MarkdownEditorButtonProps = React.ComponentProps<'button'> & {
 
 /**
  * The primitives the editor renders its toolbar, link popover and image
- * delete button with. Apps that keep their own `Button` and `Input` (Kaizen
+ * delete button with. Apps that keep their own `Button` and `Input` (Kazan
  * has a gradient primary and taller inputs) pass them, so the editor looks
  * like the rest of that app; every other app gets the `@oba/ui` ones.
  */

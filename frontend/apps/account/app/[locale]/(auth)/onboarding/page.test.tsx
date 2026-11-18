@@ -105,11 +105,11 @@ describe("onboarding page", () => {
   test("sends a visitor without a session to the sign-in, back to onboarding's callbackUrl", async () => {
     session = null;
 
-    const redirected = await redirectOf("https://kaizen.korur.com/home");
+    const redirected = await redirectOf("https://kazan.korur.com/home");
 
     expect(redirected.kind).toBe("plain");
     expect(redirected.target).toBe(
-      `/api/auth/login?callbackUrl=${encodeURIComponent("https://kaizen.korur.com/home")}`,
+      `/api/auth/login?callbackUrl=${encodeURIComponent("https://kazan.korur.com/home")}`,
     );
   });
 
@@ -138,10 +138,10 @@ describe("onboarding page", () => {
   test("sends an already onboarded user to the safe callbackUrl", async () => {
     session = { ...PENDING, userStatus: "ACTIVE" };
 
-    const redirected = await redirectOf("https://kaizen.korur.com/home");
+    const redirected = await redirectOf("https://kazan.korur.com/home");
 
     expect(redirected.kind).toBe("plain");
-    expect(redirected.target).toBe("https://kaizen.korur.com/home");
+    expect(redirected.target).toBe("https://kazan.korur.com/home");
   });
 
   test("sends an already onboarded user to the organizations when there is no safe callbackUrl", async () => {

@@ -23,8 +23,8 @@ class PathRulesUnitTest {
     @ParameterizedTest
     @ValueSource(strings = {
             "AGENTS.md", ".agents/AGENTS.md", ".claude/settings.json", ".agents/rules/core.md",
-            ".agents/skills/kaizen/SKILL.md", ".agents/hooks/dispatch.sh", ".claude/agents/coding-engineer.md",
-            ".claude/skills/plan/SKILL.md", ".claude/skills/kaizen", ".agents/templates/HANDOFF_TEMPLATE.md",
+            ".agents/skills/kazan/SKILL.md", ".agents/hooks/dispatch.sh", ".claude/agents/coding-engineer.md",
+            ".claude/skills/plan/SKILL.md", ".claude/skills/kazan", ".agents/templates/HANDOFF_TEMPLATE.md",
             "docs/private/conventions/a.md", "docs/private/conventions/backend/32-soft-delete-convention.md",
             "projects/kagi/AGENTS.md", "a/AGENTS.md", "a/b/c/d/AGENTS.md", "_x/y.z-w/AGENTS.md", ".claude/rules", ".claude/templates"})
     void isAllowedPath_deliveredPath_isAllowed(String path) {
@@ -48,7 +48,7 @@ class PathRulesUnitTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {".agents/rules", ".agents/templates", ".agents/skills/kaizen", ".claude/skills", "docs/private/conventions",
+    @ValueSource(strings = {".agents/rules", ".agents/templates", ".agents/skills/kazan", ".claude/skills", "docs/private/conventions",
             "docs/private/conventions/backend"})
     void isAllowedDirectory_directoryWithDeliveredPathsBelow_isAllowed(String directory) {
         assertTrue(PathRules.isAllowedDirectory(directory));
@@ -74,26 +74,26 @@ class PathRulesUnitTest {
 
     @Test
     void resolveSymlink_relativeTarget_resolvesAgainstTheLinkDirectory() {
-        assertEquals(Optional.of(".agents/skills/kaizen"),
-                PathRules.resolveSymlink(".claude/skills/kaizen", "../../.agents/skills/kaizen"));
+        assertEquals(Optional.of(".agents/skills/kazan"),
+                PathRules.resolveSymlink(".claude/skills/kazan", "../../.agents/skills/kazan"));
         assertEquals(Optional.of(".agents/rules/core.md"),
                 PathRules.resolveSymlink(".agents/rules/link.md", "./core.md"));
     }
 
     @Test
     void resolveSymlink_targetLeavingTheRepository_isEmpty() {
-        assertEquals(Optional.empty(), PathRules.resolveSymlink(".claude/skills/kaizen", "../../../outside"));
+        assertEquals(Optional.empty(), PathRules.resolveSymlink(".claude/skills/kazan", "../../../outside"));
         assertEquals(Optional.empty(), PathRules.resolveSymlink("AGENTS.md", ".."));
     }
 
     @Test
     void isSkillFile_matchesOnlyTheSkillFileOfASkillDirectory() {
-        assertTrue(PathRules.isSkillFile(".agents/skills/kaizen/SKILL.md"));
+        assertTrue(PathRules.isSkillFile(".agents/skills/kazan/SKILL.md"));
         assertTrue(PathRules.isSkillFile(".claude/skills/plugin/SKILL.md"));
-        assertFalse(PathRules.isSkillFile(".agents/skills/kaizen/reference/SKILL.md"));
+        assertFalse(PathRules.isSkillFile(".agents/skills/kazan/reference/SKILL.md"));
         assertFalse(PathRules.isSkillFile(".agents/skills/SKILL.md"));
-        assertEquals(".agents/skills/kaizen", PathRules.skillDirectory(".agents/skills/kaizen/SKILL.md"));
-        assertEquals("kaizen", PathRules.skillDirectoryName(".agents/skills/kaizen/SKILL.md"));
+        assertEquals(".agents/skills/kazan", PathRules.skillDirectory(".agents/skills/kazan/SKILL.md"));
+        assertEquals("kazan", PathRules.skillDirectoryName(".agents/skills/kazan/SKILL.md"));
     }
 
     @Test
@@ -107,8 +107,8 @@ class PathRulesUnitTest {
 
     @Test
     void resolveSymlink_linkToALink_endsAtTheLastTarget() {
-        Map<String, String> links = Map.of(".claude/skills/k", "../../.agents/skills/alias", ".agents/skills/alias", "kaizen");
-        assertEquals(SymlinkResolution.of(".agents/skills/kaizen"),
+        Map<String, String> links = Map.of(".claude/skills/k", "../../.agents/skills/alias", ".agents/skills/alias", "kazan");
+        assertEquals(SymlinkResolution.of(".agents/skills/kazan"),
                 PathRules.resolveSymlink(".claude/skills/k", "../../.agents/skills/alias", links));
     }
 
@@ -156,8 +156,8 @@ class PathRulesUnitTest {
 
     @Test
     void itemOf_fileOfASkill_isTheSkillDirectory() {
-        assertEquals(".agents/skills/kaizen/", PathRules.itemOf(".agents/skills/kaizen/SKILL.md"));
-        assertEquals(".agents/skills/kaizen/", PathRules.itemOf(".agents/skills/kaizen/scripts/run.sh"));
+        assertEquals(".agents/skills/kazan/", PathRules.itemOf(".agents/skills/kazan/SKILL.md"));
+        assertEquals(".agents/skills/kazan/", PathRules.itemOf(".agents/skills/kazan/scripts/run.sh"));
         assertEquals(".agents/rules/core.md", PathRules.itemOf(".agents/rules/core.md"));
     }
 

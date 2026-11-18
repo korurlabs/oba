@@ -32,7 +32,7 @@ public record ToolParameterDetailResponse(
         @Schema(description = "Byte length of the file", example = "512")
         Integer sizeBytes,
 
-        @Schema(description = "The whole file as UTF-8 text", example = "interface:\n  display_name: Kaizen\n")
+        @Schema(description = "The whole file as UTF-8 text", example = "interface:\n  display_name: Kazan\n")
         String content,
 
         @Schema(description = "When the file was stored", example = "2026-10-23T09:15:00Z")

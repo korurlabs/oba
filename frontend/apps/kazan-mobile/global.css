@@ -1,0 +1,290 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Kazan mobile design tokens, from the design system's tokens.json ("Kazan
+ * Mobile" version 1). The hex values there are the source of truth; each token
+ * is written here as an HSL triple "H S% L%" with one decimal, so the tight
+ * contrast pairs (type-feature-*, primary-foreground on primary-fill) keep
+ * their checked ratios. tailwind.config.js reads them as hsl(var(--token)).
+ *
+ * GOLDEN RULE: every change here is mirrored in lib/theme.ts (THEME), which
+ * native props, SVG and Reanimated read as raw colour strings.
+ * lib/__tests__/theme.test.ts fails when the two files differ.
+ *
+ * Every variable is set under both :root (light) and .dark:root (dark); a
+ * token with no dark value repeats its light value, so each scheme is
+ * complete on its own.
+ *
+ * Translucent tokens (bar, notification-surface, scrim) hold the colour
+ * without alpha; tailwind.config.js applies the alpha, and scrim reads its
+ * per-scheme alpha from --scrim-alpha.
+ */
+@layer base {
+  :root {
+    /* Surfaces and text */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 9%;
+    --screen: 0 0% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 9%;
+    --card-background: 0 0% 96.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 9%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 42%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 42%;
+    --accent: 210 100% 96.5%;
+    --accent-foreground: 0 0% 9%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 209 80.9% 54.9%;
+    --link: 208.1 73.6% 41.6%;
+    --grabber: 0 0% 83.1%;
+    --bar: 0 0% 98%;
+    --notification-surface: 0 0% 98%;
+    --scrim: 0 0% 0%;
+    --scrim-alpha: 0.4;
+
+    /* Primary (marks only; filled controls use primary-fill) */
+    --primary: 209 80.9% 54.9%;
+    --primary-fill: 208.1 73.6% 41.6%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 208.6 100% 95.9%;
+    --primary-medium: 211.4 100% 87.3%;
+
+    /*
+     * Semantic. destructive is for text, outlines and marks: a shade darker
+     * than the design's #dc2626, which reads only 4.43:1 on card-background.
+     * destructive-fill is the ground under destructive-foreground (buttons,
+     * badges, banner, FAB, swipe actions) and keeps the design value.
+     */
+    --destructive: 0 72.2% 47%;
+    --destructive-fill: 0 72.2% 50.6%;
+    --destructive-foreground: 0 0% 100%;
+    /*
+     * success is a mark; white success-foreground on it reads only 2.28:1,
+     * so filled grounds (swipe actions) use success-fill (#15803d, 5.02:1).
+     */
+    --success: 142.1 70.6% 45.3%;
+    --success-fill: 142.4 71.8% 29.2%;
+    --success-foreground: 0 0% 100%;
+    --success-light: 140.6 84.2% 92.5%;
+    --error: 0 84.2% 60.2%;
+    --error-light: 0 93.3% 94.1%;
+    --warning: 37.7 92.1% 50.2%;
+    --warning-light: 48 96.5% 88.8%;
+    --info: 217.2 91.2% 59.8%;
+    --info-light: 214.3 94.6% 92.7%;
+    --purple: 258.3 89.5% 66.3%;
+    --purple-light: 251.4 91.3% 95.5%;
+
+    /* Chat */
+    --chat-highlight: 45.9 94.4% 92.9%;
+    --chat-highlight-border: 37.7 92.1% 50.2%;
+
+    /* Sidebar */
+    --sidebar: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-accent: 208.6 100% 95.9%;
+    --sidebar-border: 220 13% 91%;
+
+    /* Ticket status: dots (fixed), pill grounds, kanban column grounds */
+    --status-todo: 217.9 10.6% 64.9%;
+    --status-in-progress: 213.1 93.9% 67.8%;
+    --status-waiting: 43.3 96.4% 56.3%;
+    --status-in-review: 270 95.2% 75.3%;
+    --status-done: 141.9 69.2% 58%;
+    --status-todo-bg: 220 14.3% 95.9%;
+    --status-in-progress-bg: 214.3 94.6% 92.7%;
+    --status-waiting-bg: 48 96.5% 88.8%;
+    --status-in-review-bg: 251.4 91.3% 95.5%;
+    --status-done-bg: 140.6 84.2% 92.5%;
+    --column-todo: 0 0% 96.1%;
+    --column-in-progress: 216.5 92% 95.1%;
+    --column-waiting: 50 92.3% 94.9%;
+    --column-in-review: 258.3 92% 95.1%;
+    --column-done: 142.1 76% 95.1%;
+
+    /* Ticket type badges */
+    --type-incident-bg: 208.6 100% 95.9%;
+    --type-incident-fg: 208.1 73.6% 41.6%;
+    --type-bug-bg: 0 93.3% 94.1%;
+    --type-bug-fg: 0 72.2% 50.6%;
+    --type-feature-bg: 140.6 84.2% 92.5%;
+    --type-feature-fg: 142.1 76.2% 36.3%;
+    --type-tech-debt-bg: 48 96.5% 88.8%;
+    --type-tech-debt-fg: 26 90.5% 37.1%;
+    --type-improvement-bg: 214.3 94.6% 92.7%;
+    --type-improvement-fg: 221.2 83.2% 53.3%;
+    --type-problem-bg: 287 100% 95.5%;
+    --type-problem-fg: 293.4 69.5% 48.8%;
+    --type-refactor-bg: 214.3 31.8% 91.4%;
+    --type-refactor-fg: 215.3 19.3% 34.5%;
+
+    /*
+     * Priority icons. Lowest, high and p3 are darker here than in dark mode so
+     * the glyphs reach the 3:1 that graphics need on white.
+     */
+    --priority-lowest: 219 8.8% 55.7%;
+    --priority-low: 217.2 91.2% 59.8%;
+    --priority-medium: 220 8.9% 46.1%;
+    --priority-high: 20.5 90.2% 48.2%;
+    --priority-highest: 0 84.2% 60.2%;
+    --priority-p1: 0 72.2% 50.6%;
+    --priority-p2: 20.5 90.2% 48.2%;
+    --priority-p3: 35.5 91.7% 32.9%;
+
+    /* Charts (fixed) */
+    --chart-1: 210.5 100% 64.5%;
+    --chart-2: 217.1 91.2% 60%;
+    --chart-3: 142.1 71.2% 44.9%;
+    --chart-4: 38 92.2% 50%;
+    --chart-5: 207.5 38.6% 30%;
+
+    /* Korur brand ramp (fixed) */
+    --korur-blue: 210.5 100% 64.5%;
+    --korur-blue-hover: 209 80.9% 54.9%;
+    --korur-blue-strong: 208.1 73.6% 41.6%;
+    --korur-blue-deep: 207.5 38.6% 30%;
+    --korur-blue-medium: 211.4 100% 87.3%;
+    --korur-blue-light: 208.6 100% 95.9%;
+    --korur-blue-accent: 210 100% 96.5%;
+    --korur-slate: 211.7 45% 15.7%;
+    --korur-slate-border: 208.2 38.6% 24.9%;
+
+    /* Radius: rounded-lg 10, md 8, sm 6, xs 4, xl 14 (tailwind.config.js) */
+    --radius: 0.625rem;
+  }
+
+  .dark:root {
+    /* Surfaces and text */
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --screen: 0 0% 3.9%;
+    --card: 0 0% 7.1%;
+    --card-foreground: 0 0% 98%;
+    --card-background: 0 0% 9%;
+    --popover: 0 0% 7.1%;
+    --popover-foreground: 0 0% 98%;
+    --secondary: 0 0% 18%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 211.7 45% 15.7%;
+    --accent-foreground: 0 0% 98%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 210.5 100% 64.5%;
+    --link: 210.5 100% 64.5%;
+    --grabber: 0 0% 32.2%;
+    --bar: 0 0% 7.1%;
+    --notification-surface: 240 2.6% 15.3%;
+    --scrim: 0 0% 0%;
+    --scrim-alpha: 0.6;
+
+    /* Primary (marks only; filled controls use primary-fill) */
+    --primary: 210.5 100% 64.5%;
+    --primary-fill: 210.5 100% 64.5%;
+    --primary-foreground: 0 0% 9%;
+    --primary-light: 211.7 45% 15.7%;
+    --primary-medium: 208.2 38.6% 24.9%;
+
+    /*
+     * Semantic. Each dark -light tint is a low-lightness ground of its hue, as
+     * the status-*-bg grounds are; info and error sit darker than their
+     * status twins so text-info and text-error on them keep 4.5:1. The
+     * design's dark destructive #cf3030 stays as destructive-fill, where the
+     * light foreground on it reads 4.9:1; as text it reads only 3.67:1 on
+     * card, so text uses the lighter #f05252.
+     */
+    --destructive: 0 84% 63.1%;
+    --destructive-fill: 0 62.4% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --success: 142.1 70.6% 45.3%;
+    --success-fill: 142.4 71.8% 29.2%;
+    --success-foreground: 0 0% 100%;
+    --success-light: 144.4 47.4% 11.2%;
+    --error: 0 84.2% 60.2%;
+    --error-light: 0 50% 12%;
+    --warning: 37.7 92.1% 50.2%;
+    --warning-light: 39.4 61.5% 10.2%;
+    --info: 217.2 91.2% 59.8%;
+    --info-light: 214.3 62% 12.5%;
+    --purple: 258.3 89.5% 66.3%;
+    --purple-light: 255 38.1% 16.5%;
+
+    /* Chat */
+    --chat-highlight: 44.4 45.8% 11.6%;
+    --chat-highlight-border: 35.5 71% 42%;
+
+    /* Sidebar */
+    --sidebar: 0 0% 12.2%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-accent: 211.7 45% 15.7%;
+    --sidebar-border: 0 0% 20%;
+
+    /* Ticket status: dots (fixed), pill grounds, kanban column grounds */
+    --status-todo: 217.9 10.6% 64.9%;
+    --status-in-progress: 213.1 93.9% 67.8%;
+    --status-waiting: 43.3 96.4% 56.3%;
+    --status-in-review: 270 95.2% 75.3%;
+    --status-done: 141.9 69.2% 58%;
+    --status-todo-bg: 0 0% 14.9%;
+    --status-in-progress-bg: 214.3 62% 15.5%;
+    --status-waiting-bg: 39.4 61.5% 10.2%;
+    --status-in-review-bg: 255 38.1% 16.5%;
+    --status-done-bg: 144.4 47.4% 11.2%;
+    --column-todo: 0 0% 9%;
+    --column-in-progress: 216 50% 11.8%;
+    --column-waiting: 41.7 59% 7.6%;
+    --column-in-review: 251.1 39.1% 13.5%;
+    --column-done: 143.3 40.9% 8.6%;
+
+    /* Ticket type badges */
+    --type-incident-bg: 211.7 45% 15.7%;
+    --type-incident-fg: 210.5 100% 64.5%;
+    --type-bug-bg: 0 62.8% 30.6%;
+    --type-bug-fg: 0 90.6% 70.8%;
+    --type-feature-bg: 143.8 61.2% 20.2%;
+    --type-feature-fg: 141.9 69.2% 58%;
+    --type-tech-debt-bg: 21.7 77.8% 26.5%;
+    --type-tech-debt-fg: 43.3 96.4% 56.3%;
+    --type-improvement-bg: 224.4 64.3% 32.9%;
+    --type-improvement-fg: 213.1 93.9% 67.8%;
+    --type-problem-bg: 296.7 63.6% 28%;
+    --type-problem-fg: 292 91.4% 72.5%;
+    --type-refactor-bg: 217.2 32.6% 17.5%;
+    --type-refactor-fg: 212.7 26.8% 83.9%;
+
+    /* Priority icons (fixed) */
+    --priority-lowest: 217.9 10.6% 64.9%;
+    --priority-low: 217.2 91.2% 59.8%;
+    --priority-medium: 220 8.9% 46.1%;
+    --priority-high: 24.6 95% 53.1%;
+    --priority-highest: 0 84.2% 60.2%;
+    --priority-p1: 0 72.2% 50.6%;
+    --priority-p2: 20.5 90.2% 48.2%;
+    --priority-p3: 40.6 96.1% 40.4%;
+
+    /* Charts (fixed) */
+    --chart-1: 210.5 100% 64.5%;
+    --chart-2: 217.1 91.2% 60%;
+    --chart-3: 142.1 71.2% 44.9%;
+    --chart-4: 38 92.2% 50%;
+    --chart-5: 207.5 38.6% 30%;
+
+    /* Korur brand ramp (fixed) */
+    --korur-blue: 210.5 100% 64.5%;
+    --korur-blue-hover: 209 80.9% 54.9%;
+    --korur-blue-strong: 208.1 73.6% 41.6%;
+    --korur-blue-deep: 207.5 38.6% 30%;
+    --korur-blue-medium: 211.4 100% 87.3%;
+    --korur-blue-light: 208.6 100% 95.9%;
+    --korur-blue-accent: 210 100% 96.5%;
+    --korur-slate: 211.7 45% 15.7%;
+    --korur-slate-border: 208.2 38.6% 24.9%;
+  }
+}

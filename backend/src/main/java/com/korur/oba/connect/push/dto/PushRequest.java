@@ -81,7 +81,7 @@ public record PushRequest(
     }
 
     /**
-     * An urgent incident opened or raised on a board: "P1 incident on Kaizen Platform",
+     * An urgent incident opened or raised on a board: "P1 incident on Kazan Platform",
      * "KZN-311 Payment webhooks return 502".
      *
      * @param organizationId the organization of the board

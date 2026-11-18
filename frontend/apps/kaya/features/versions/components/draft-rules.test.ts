@@ -23,7 +23,7 @@ describe("isAllowedPath", () => {
       ".agents/AGENTS.md",
       ".claude/settings.json",
       ".agents/rules/core.md",
-      ".agents/skills/kaizen/SKILL.md",
+      ".agents/skills/kazan/SKILL.md",
       ".agents/hooks/pre-bash-git.sh",
       ".claude/agents/coder.md",
       ".claude/skills/x/run.py",
@@ -145,20 +145,20 @@ describe("checkFile", () => {
 
 describe("skillNameIssue", () => {
   test("one folder name that is not taken", () => {
-    expect(skillNameIssue("kaizen", [])).toBeNull();
+    expect(skillNameIssue("kazan", [])).toBeNull();
     expect(skillNameIssue("", [])).not.toBeNull();
     expect(skillNameIssue("a/b", [])).not.toBeNull();
     expect(skillNameIssue("..", [])).not.toBeNull();
-    expect(skillNameIssue("kaizen", ["kaizen"])).not.toBeNull();
+    expect(skillNameIssue("kazan", ["kazan"])).not.toBeNull();
   });
 
   test("the template passes the skill checks", () => {
     expect(
       checkFile(
         {
-          path: ".agents/skills/kaizen/SKILL.md",
+          path: ".agents/skills/kazan/SKILL.md",
           mode: "FILE",
-          content: newSkillContent("kaizen"),
+          content: newSkillContent("kazan"),
         },
         null
       )

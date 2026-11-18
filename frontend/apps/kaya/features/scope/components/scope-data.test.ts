@@ -180,20 +180,20 @@ describe("scope files", () => {
 
   test("skills come from SKILL.md files that are not symlinks", () => {
     const files = [
-      file(".agents/skills/kaizen/SKILL.md"),
-      file(".agents/skills/kaizen/references/cli.md"),
+      file(".agents/skills/kazan/SKILL.md"),
+      file(".agents/skills/kazan/references/cli.md"),
       file(".agents/skills/nested/deeper/SKILL.md"),
-      file(".claude/skills/kaizen", { mode: "SYMLINK", target: "../../.agents/skills/kaizen" }),
+      file(".claude/skills/kazan", { mode: "SYMLINK", target: "../../.agents/skills/kazan" }),
       file(".claude/skills/plugin/SKILL.md"),
     ];
     const skills = skillsFromFiles(files);
     expect(skills.map((skill) => [skill.directoryName, skill.directory, skill.fileCount])).toEqual([
-      ["kaizen", ".agents/skills/kaizen", 2],
+      ["kazan", ".agents/skills/kazan", 2],
       ["plugin", ".claude/skills/plugin", 1],
     ]);
-    expect(skillFiles(files, ".agents/skills/kaizen").map((entry) => entry.path)).toEqual([
-      ".agents/skills/kaizen/SKILL.md",
-      ".agents/skills/kaizen/references/cli.md",
+    expect(skillFiles(files, ".agents/skills/kazan").map((entry) => entry.path)).toEqual([
+      ".agents/skills/kazan/SKILL.md",
+      ".agents/skills/kazan/references/cli.md",
     ]);
   });
 
@@ -224,8 +224,8 @@ describe("frontmatter", () => {
   test("reads scalars, folded text and lists", () => {
     const content = [
       "---",
-      "name: kaizen",
-      'description: "Use for any Kaizen ticket work"',
+      "name: kazan",
+      'description: "Use for any Kazan ticket work"',
       "when_to_use: >",
       "  Triggers on ticket",
       "  and sprint.",
@@ -237,8 +237,8 @@ describe("frontmatter", () => {
       "# Body",
     ].join("\n");
     const frontmatter = parseFrontmatter(content);
-    expect(frontmatterText(frontmatter, "name")).toBe("kaizen");
-    expect(frontmatterText(frontmatter, "description")).toBe("Use for any Kaizen ticket work");
+    expect(frontmatterText(frontmatter, "name")).toBe("kazan");
+    expect(frontmatterText(frontmatter, "description")).toBe("Use for any Kazan ticket work");
     expect(frontmatterText(frontmatter, "when_to_use")).toBe("Triggers on ticket and sprint.");
     expect(frontmatterList(frontmatter, "paths")).toEqual(["**/*.java", "src/**"]);
     expect(frontmatterList(frontmatter, "globs")).toEqual(["a.ts", "b.ts"]);
@@ -258,7 +258,7 @@ describe("frontmatter", () => {
       "",
       "    indented line",
       "",
-      "name: kaizen",
+      "name: kazan",
       "paths:",
       "  - a/**",
       "",
@@ -271,7 +271,7 @@ describe("frontmatter", () => {
       "First paragraph goes on.\nSecond paragraph."
     );
     expect(frontmatterText(frontmatter, "when_to_use")).toBe("line one\n\n  indented line");
-    expect(frontmatterText(frontmatter, "name")).toBe("kaizen");
+    expect(frontmatterText(frontmatter, "name")).toBe("kazan");
     expect(frontmatterList(frontmatter, "paths")).toEqual(["a/**", "b/**"]);
   });
 

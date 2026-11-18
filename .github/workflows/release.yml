@@ -70,10 +70,8 @@ jobs:
         include:
           - name: api
             kind: backend
-          # Image oba-kazan; built from frontend/apps/kaizen until that folder is renamed.
           - name: kazan
             kind: frontend
-            app: kaizen
           - name: kaya
             kind: frontend
           - name: kalkan
@@ -128,7 +126,7 @@ jobs:
         if: matrix.kind == 'frontend'
         working-directory: frontend
         env:
-          APP: ${{ matrix.app || matrix.name }}
+          APP: ${{ matrix.name }}
         run: bun turbo build --filter="${APP}..."
 
       - name: Set up Docker Buildx
@@ -164,7 +162,7 @@ jobs:
           context: ${{ matrix.kind }}
           file: ${{ matrix.kind }}/Dockerfile
           platforms: linux/amd64
-          build-args: ${{ matrix.kind == 'frontend' && format('APP_NAME={0}', matrix.app || matrix.name) || '' }}
+          build-args: ${{ matrix.kind == 'frontend' && format('APP_NAME={0}', matrix.name) || '' }}
           push: true
           tags: ${{ steps.tags.outputs.tags }}
           labels: |

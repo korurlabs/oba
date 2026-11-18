@@ -118,7 +118,7 @@ class AppAccessServiceImplUnitTest {
         @Test
         void targetRefused_propagatesValidationExceptionAndWritesNothing() {
             UUID organizationId = UUID.randomUUID();
-            AppGrantCreateRequest request = new AppGrantCreateRequest(App.KAIZEN, null, null);
+            AppGrantCreateRequest request = new AppGrantCreateRequest(App.KAZAN, null, null);
             doThrow(new ValidationException(ExceptionDomainAccessError.VAL_GRANT_TARGET_INVALID, Map.of()))
                     .when(appGrantValidator).ensureOneTarget(organizationId, request);
 
@@ -138,7 +138,7 @@ class AppAccessServiceImplUnitTest {
                     .thenThrow(new NotFoundException());
 
             assertThrows(NotFoundException.class, () -> appAccessServiceImpl.grant(user(), organizationId,
-                    new AppGrantCreateRequest(App.KAIZEN, targetId, null)));
+                    new AppGrantCreateRequest(App.KAZAN, targetId, null)));
 
             verify(appGrantRepository, never()).save(any(AppGrant.class));
         }
@@ -162,14 +162,14 @@ class AppAccessServiceImplUnitTest {
             Organization organization = organization(organizationId);
             User target = user();
             OrganizationMember member = OrganizationMember.builder().organization(organization).user(target).build();
-            AppGrant existing = AppGrant.builder().organization(organization).app(App.KAIZEN).user(target).build();
+            AppGrant existing = AppGrant.builder().organization(organization).app(App.KAZAN).user(target).build();
             existing.setId(UUID.randomUUID());
             when(organizationValidator.ensureMemberExists(organizationId, target.getId())).thenReturn(member);
-            when(appGrantRepository.findByOrganization_IdAndAppAndUser_Id(organizationId, App.KAIZEN, target.getId()))
+            when(appGrantRepository.findByOrganization_IdAndAppAndUser_Id(organizationId, App.KAZAN, target.getId()))
                     .thenReturn(Optional.of(existing));
 
             AppGrantResponse response = appAccessServiceImpl.grant(user(), organizationId,
-                    new AppGrantCreateRequest(App.KAIZEN, target.getId(), null));
+                    new AppGrantCreateRequest(App.KAZAN, target.getId(), null));
 
             assertEquals(existing.getId(), response.id());
             verify(appGrantRepository, never()).save(any(AppGrant.class));
@@ -244,13 +244,13 @@ class AppAccessServiceImplUnitTest {
         void userGrant_findsTheAppHoldersBeforeTheDeleteAndPublishesAfter() {
             UUID organizationId = UUID.randomUUID();
             User target = user();
-            AppGrant grant = AppGrant.builder().organization(organization(organizationId)).app(App.KAIZEN)
+            AppGrant grant = AppGrant.builder().organization(organization(organizationId)).app(App.KAZAN)
                     .user(target).build();
             grant.setId(UUID.randomUUID());
-            Map<App, Set<UUID>> holders = Map.of(App.KAIZEN, Set.of(target.getId()));
+            Map<App, Set<UUID>> holders = Map.of(App.KAZAN, Set.of(target.getId()));
             when(appGrantValidator.ensureGrantExists(organizationId, grant.getId())).thenReturn(grant);
             when(appAccessQueryService.findTargetUserIds(grant)).thenReturn(Set.of(target.getId()));
-            when(appAccessQueryService.findAppHolders(organizationId, Set.of(App.KAIZEN), Set.of(target.getId())))
+            when(appAccessQueryService.findAppHolders(organizationId, Set.of(App.KAZAN), Set.of(target.getId())))
                     .thenReturn(holders);
 
             appAccessServiceImpl.revoke(user(), organizationId, grant.getId());
@@ -258,7 +258,7 @@ class AppAccessServiceImplUnitTest {
             org.mockito.InOrder order = org.mockito.Mockito.inOrder(appAccessQueryService, appGrantRepository,
                     appAccessRevocationService);
             order.verify(appAccessQueryService)
-                    .findAppHolders(organizationId, Set.of(App.KAIZEN), Set.of(target.getId()));
+                    .findAppHolders(organizationId, Set.of(App.KAZAN), Set.of(target.getId()));
             order.verify(appGrantRepository).delete(grant);
             order.verify(appAccessRevocationService).publishLostAppAccess(organizationId, holders);
         }

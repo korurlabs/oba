@@ -31,21 +31,21 @@ class RuleNarrowerUnitTest {
 
     @Test
     void narrow_inlineList_rewritesOnlyThePathsLine() {
-        String rule = "---\ndescription: Kagi API\npaths: [\"projects/kagi/**\", \"projects/kaizen/**\"]\n---\n# Body\n";
-        assertEquals("---\ndescription: Kagi API\npaths: [\"projects/kaizen/**\"]\n---\n# Body\n",
-                narrowed(rule, List.of("projects/kaizen/**")));
+        String rule = "---\ndescription: Kagi API\npaths: [\"projects/kagi/**\", \"projects/kazan/**\"]\n---\n# Body\n";
+        assertEquals("---\ndescription: Kagi API\npaths: [\"projects/kazan/**\"]\n---\n# Body\n",
+                narrowed(rule, List.of("projects/kazan/**")));
     }
 
     @Test
     void narrow_blockList_replacesItsItemLines() {
-        String rule = "---\npaths:\n  - projects/kagi/**\n\n  - projects/kaizen/**\n\nname: x\n---\nBody\n";
-        assertEquals("---\npaths: [\"projects/kaizen/**\"]\n\nname: x\n---\nBody\n", narrowed(rule, List.of("projects/kaizen/**")));
+        String rule = "---\npaths:\n  - projects/kagi/**\n\n  - projects/kazan/**\n\nname: x\n---\nBody\n";
+        assertEquals("---\npaths: [\"projects/kazan/**\"]\n\nname: x\n---\nBody\n", narrowed(rule, List.of("projects/kazan/**")));
     }
 
     @Test
     void narrow_crlfFile_keepsItsLineEndings() {
-        String rule = "---\r\npaths: projects/kagi/**, projects/kaizen/**\r\n---\r\nBody\r\n";
-        assertEquals("---\r\npaths: [\"projects/kaizen/**\"]\r\n---\r\nBody\r\n", narrowed(rule, List.of("projects/kaizen/**")));
+        String rule = "---\r\npaths: projects/kagi/**, projects/kazan/**\r\n---\r\nBody\r\n";
+        assertEquals("---\r\npaths: [\"projects/kazan/**\"]\r\n---\r\nBody\r\n", narrowed(rule, List.of("projects/kazan/**")));
     }
 
     @Test

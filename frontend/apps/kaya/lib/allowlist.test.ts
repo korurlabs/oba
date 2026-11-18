@@ -59,7 +59,7 @@ describe("groupRules", () => {
 
   test("programOf skips wrappers and directories", () => {
     expect(programOf(rule("Bash(timeout 30 /usr/bin/curl -s *)"))).toBe("curl");
-    expect(programOf(rule("Bash(kaizen:*)"))).toBe("kaizen");
+    expect(programOf(rule("Bash(oba:*)"))).toBe("oba");
     expect(programOf(rule("Bash(*)"))).toBeNull();
     expect(programOf(rule("Bash(./scripts/*)"))).toBe("./scripts/*");
     expect(programOf(rule("Read(//usr/**)"))).toBeNull();

@@ -1,0 +1,311 @@
+name: Oba CLI Release
+
+# Publishes the oba CLI from a tag oba-cli/vX.Y.Z (or oba-cli/vX.Y.Z-rc.N):
+#   preflight (can the release App still write to both targets?)
+#     -> vet and test the module
+#     -> goreleaser cuts release vX.Y.Z in korurlabs/oba-cli and commits Formula/oba-cli.rb
+#        to korurlabs/homebrew-tap (a prerelease skips the tap)
+#     -> smoke test of the published linux/amd64 archive
+#
+# The binaries are published from korurlabs/oba-cli, not from this repository, because
+# `brew install korurlabs/tap/oba-cli` and install.sh already resolve their assets there. The
+# goreleaser config is cli/oba/.goreleaser.yaml.
+#
+# Credentials: a one-hour installation token of the release GitHub App, scoped to those two
+# repositories with contents:write and minted only in jobs that run in the environment
+# `release`. The App's client id is the variable RELEASE_APP_CLIENT_ID and its private key the
+# secret RELEASE_APP_PRIVATE_KEY, both of that environment. GITHUB_TOKEN stays read-only.
+#
+# The tag is prefixed, not a bare v*: a bare v* tag releases Oba itself (release.yml), and a
+# glob `*` never matches across `/`, so the two triggers never overlap.
+#
+# Fork safety: tags and manual runs only, so no pull request reaches the App key.
+
+on:
+  push:
+    tags:
+      - 'oba-cli/v*'
+  # Runs the preflight on demand without tagging or publishing: the test and release jobs
+  # need a tag ref.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CLI_DIR: cli/oba
+  TAG_PREFIX: 'oba-cli/'
+  RELEASE_REPO: oba-cli
+  TAP_REPO: homebrew-tap
+  # goreleaser's project_name, which names every archive.
+  PROJECT_NAME: oba-cli
+
+jobs:
+  # A public repository is readable without any grant, so only the installation's own list of
+  # repositories proves that the token can write to both targets.
+  preflight:
+    name: Auth preflight
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: release
+    steps:
+      - name: Mint the release App installation token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            ${{ env.RELEASE_REPO }}
+            ${{ env.TAP_REPO }}
+          permission-contents: write
+
+      # An installation token carries no `.permissions.push` on GET /repos, so the installation's
+      # repository list is the question to ask.
+      - name: The token reaches both target repositories
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          list="$(gh api --paginate /installation/repositories --jq '.repositories[].full_name')" || {
+            echo "::error::Could not list the installation's repositories. Check that RELEASE_APP_CLIENT_ID and RELEASE_APP_PRIVATE_KEY belong to the same GitHub App."
+            exit 1
+          }
+          fail=0
+          for repo in "$OWNER/$RELEASE_REPO" "$OWNER/$TAP_REPO"; do
+            if printf '%s\n' "$list" | grep -qx "$repo"; then
+              echo "ok    $repo"
+            else
+              echo "::error::The release App is not installed on $repo."
+              fail=1
+            fi
+          done
+          if [ "$fail" -ne 0 ]; then
+            echo "::error::Refusing to start a release that cannot finish. Nothing has been published."
+            exit 1
+          fi
+
+  test:
+    name: Vet and test
+    needs: preflight
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: cli/oba
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: cli/oba/go.mod
+          cache-dependency-path: cli/oba/go.sum
+
+      - name: Vet
+        run: go vet ./...
+
+      # make test runs the tests with -race.
+      - name: Test
+        run: make test
+
+  release:
+    name: Release
+    needs: [preflight, test]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: release
+    steps:
+      # The full history: goreleaser runs `git describe`, and the notes read a `git log` range.
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: cli/oba/go.mod
+          cache-dependency-path: cli/oba/go.sum
+
+      # Minted again rather than passed from the preflight: a credential does not belong in a
+      # job output.
+      - name: Mint the release App installation token
+        id: app-token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            ${{ env.RELEASE_REPO }}
+            ${{ env.TAP_REPO }}
+          permission-contents: write
+
+      # goreleaser's monorepo tag prefix is a paid feature, so the prefix is stripped here and a
+      # bare tag set on HEAD, locally only: goreleaser's validation runs
+      # `git describe --exact-match --tags`. The bare tag is never pushed to this repository,
+      # where v* releases Oba itself.
+      - name: Derive the version from the tag
+        id: tag
+        env:
+          FULL_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          semver="${FULL_TAG#"$TAG_PREFIX"}"
+          if ! [[ "$semver" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::The tag '$FULL_TAG' is not ${TAG_PREFIX}vX.Y.Z or ${TAG_PREFIX}vX.Y.Z-<prerelease>."
+            exit 1
+          fi
+          git tag -f "$semver"
+          echo "semver=$semver" >> "$GITHUB_OUTPUT"
+          echo "version=${semver#v}" >> "$GITHUB_OUTPUT"
+
+      # Users install from korurlabs/oba-cli, so the version must be strictly higher than the
+      # latest release there; otherwise Homebrew would move everyone backwards without an error.
+      - name: Guard against a version downgrade
+        id: guard
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+          SEMVER: ${{ steps.tag.outputs.semver }}
+        run: |
+          set -euo pipefail
+          latest="$(gh release view --repo "$OWNER/$RELEASE_REPO" --json tagName -q .tagName 2>/dev/null || true)"
+          if [ -z "$latest" ]; then
+            echo "::warning::No release found in $OWNER/$RELEASE_REPO; $SEMVER is the first."
+            echo "previous=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "Latest public release: $latest. This release: $SEMVER."
+          if [ "$latest" = "$SEMVER" ]; then
+            echo "::error::$SEMVER is already published in $OWNER/$RELEASE_REPO."
+            exit 1
+          fi
+          highest="$(printf '%s\n%s\n' "${latest#v}" "${SEMVER#v}" | sort -V | tail -1)"
+          if [ "$highest" != "${SEMVER#v}" ]; then
+            echo "::error::$SEMVER is lower than the latest release $latest."
+            exit 1
+          fi
+          echo "previous=$latest" >> "$GITHUB_OUTPUT"
+
+      # The notes list only commits that touched cli/oba since the previous oba-cli tag of this
+      # repository. Without one (the first release from this repository) they list none, rather
+      # than the whole history of the directory.
+      - name: Write the release notes
+        id: notes
+        env:
+          PREVIOUS: ${{ steps.guard.outputs.previous }}
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          set -euo pipefail
+          notes="$RUNNER_TEMP/release-notes.md"
+          prev_ref=""
+          if [ -n "$PREVIOUS" ] && git rev-parse -q --verify "refs/tags/${TAG_PREFIX}${PREVIOUS}^{commit}" >/dev/null; then
+            prev_ref="${TAG_PREFIX}${PREVIOUS}"
+          fi
+          {
+            echo "## Changes"
+            echo
+            if [ -n "$prev_ref" ]; then
+              echo "Previous release: \`$PREVIOUS\`"
+              echo
+              git log --no-merges --pretty='* %s' "$prev_ref..HEAD" -- "$CLI_DIR"
+            else
+              echo "_No previous release of this repository to compare against._"
+            fi
+            echo
+            echo "## Install"
+            echo
+            echo "### Homebrew (macOS, Linux)"
+            echo '```sh'
+            echo "brew install korurlabs/tap/oba-cli"
+            echo '```'
+            echo
+            echo "### Install script (macOS, Linux)"
+            echo '```sh'
+            echo "curl -sSfL https://github.com/korurlabs/oba-cli/releases/latest/download/install.sh -o oba-install.sh"
+            echo "sh oba-install.sh"
+            echo '```'
+            echo
+            echo "Source: https://github.com/${GITHUB_REPOSITORY}/tree/${GITHUB_REF_NAME}/${CLI_DIR}"
+            echo
+            echo "**Version:** \`$VERSION\`"
+          } > "$notes"
+          echo "file=$notes" >> "$GITHUB_OUTPUT"
+          cat "$notes"
+
+      # goreleaser would create the tag implicitly; creating it first fails early and loudly when
+      # the token cannot write. The tag points at the main branch of korurlabs/oba-cli, because a
+      # commit of this repository does not exist there. That repository must hold no tag-triggered
+      # workflow of its own, or this tag would start a second, competing release.
+      - name: Create the tag in the release repository
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+          SEMVER: ${{ steps.tag.outputs.semver }}
+        run: |
+          set -euo pipefail
+          main_sha="$(gh api "repos/$OWNER/$RELEASE_REPO/git/ref/heads/main" -q .object.sha)"
+          if out="$(gh api --method POST "repos/$OWNER/$RELEASE_REPO/git/refs" \
+                      -f ref="refs/tags/$SEMVER" -f sha="$main_sha" 2>&1)"; then
+            echo "Created tag $SEMVER in $OWNER/$RELEASE_REPO at $main_sha."
+          elif printf '%s' "$out" | grep -qi 'already exists'; then
+            echo "Tag $SEMVER already exists in $OWNER/$RELEASE_REPO; continuing."
+          else
+            echo "::error::Could not create tag $SEMVER in $OWNER/$RELEASE_REPO."
+            printf '%s\n' "$out"
+            exit 1
+          fi
+
+      # GITHUB_TOKEN here is the App token: it writes the release in korurlabs/oba-cli and the
+      # formula commit in the tap. goreleaser stays on the v2 line, whose brews pipe the tap uses.
+      - name: Run goreleaser
+        uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
+        with:
+          distribution: goreleaser
+          version: '~> v2'
+          args: release --clean --release-notes=${{ steps.notes.outputs.file }}
+          workdir: cli/oba
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          GORELEASER_CURRENT_TAG: ${{ steps.tag.outputs.semver }}
+          GORELEASER_PREVIOUS_TAG: ${{ steps.guard.outputs.previous }}
+
+      # A release that lands in the wrong place or with a broken archive passes every step above
+      # and only shows up as a failed `brew install`, so one archive is fetched back and checked.
+      - name: Verify the published release
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          OWNER: ${{ github.repository_owner }}
+          SEMVER: ${{ steps.tag.outputs.semver }}
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          set -euo pipefail
+          asset="${PROJECT_NAME}_${VERSION}_linux_amd64.tar.gz"
+          sums="${PROJECT_NAME}_${VERSION}_checksums.txt"
+          dir="$RUNNER_TEMP/smoke"
+          rm -rf "$dir" && mkdir -p "$dir"
+          gh release download "$SEMVER" --repo "$OWNER/$RELEASE_REPO" \
+            --pattern "$asset" --pattern "$sums" --dir "$dir"
+          cd "$dir"
+          grep "  ${asset}\$" "$sums" | sha256sum -c -
+          tar -xzf "$asset" oba
+          ./oba --version
+          {
+            echo "### Released \`$SEMVER\`"
+            echo
+            echo "[$OWNER/$RELEASE_REPO@$SEMVER]($GITHUB_SERVER_URL/$OWNER/$RELEASE_REPO/releases/tag/$SEMVER), \`$asset\` verified."
+          } >> "$GITHUB_STEP_SUMMARY"

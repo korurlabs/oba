@@ -59,7 +59,7 @@ class ComposerUnitTest {
 
     private static final UUID ORGANIZATION = UUID.randomUUID();
     private static final UUID REPOSITORY = UUID.randomUUID();
-    private static final String WIDE_RULE = "---\npaths: [\"projects/kagi/**\", \"projects/kaizen/**\"]\n---\nRoot rule\n";
+    private static final String WIDE_RULE = "---\npaths: [\"projects/kagi/**\", \"projects/kazan/**\"]\n---\nRoot rule\n";
     private static final String INSIDE_RULE = "---\npaths: [\"projects/kagi/backend/**\"]\n---\nInside rule\n";
     private static final String ALWAYS_ON_RULE = "# Core\n";
     private static final String SPANNING_RULE = "---\npaths: [\"projects/*/backend/**\"]\n---\nSpanning rule\n";
@@ -262,13 +262,13 @@ class ComposerUnitTest {
 
     @Test
     void compose_childAddingAFileToASkillOfARequiredAncestor_isOverrideLockedOnTheSkill() {
-        Pack parent = pack("org", List.of(file(".agents/skills/kaizen/SKILL.md", "---\nname: kaizen\n---\nBody\n", null)));
+        Pack parent = pack("org", List.of(file(".agents/skills/kazan/SKILL.md", "---\nname: kazan\n---\nBody\n", null)));
         parent.setRequired(true);
-        Pack child = child("village", parent, List.of(file(".agents/skills/kaizen/extra.md", "# Extra\n", null)));
+        Pack child = child("village", parent, List.of(file(".agents/skills/kazan/extra.md", "# Extra\n", null)));
 
         Composition composition = compose(atRoot(child));
 
-        assertEquals(List.of(".agents/skills/kaizen/"), composition.mountViolations().stream()
+        assertEquals(List.of(".agents/skills/kazan/"), composition.mountViolations().stream()
                 .filter(violation -> violation.rule() == ViolationRule.OVERRIDE_LOCKED)
                 .map(Violation::path)
                 .toList());
@@ -387,7 +387,7 @@ class ComposerUnitTest {
 
     @Test
     void compose_mountedUnscopedRule_isDeliveredWithItsStoredBytesAndNamesItsFolder() {
-        RenderedFile wide = file(".agents/rules/kagi/wide.md", "---\npaths: [\"{projects/kagi,projects/kaizen}/**\"]\n---\nWide\n",
+        RenderedFile wide = file(".agents/rules/kagi/wide.md", "---\npaths: [\"{projects/kagi,projects/kazan}/**\"]\n---\nWide\n",
                 null);
         Pack kagi = pack("kagi", List.of(wide));
 
@@ -409,7 +409,7 @@ class ComposerUnitTest {
         String rule = ".agents/rules/kagi/a.md";
 
         for (String refused : List.of("# No paths\n", "---\npaths: [\"**/*.java\"]\n---\nA\n",
-                "---\npaths: [\"projects/kagi*/**\"]\n---\nA\n", "---\npaths: [\"{projects/kagi,projects/kaizen}/**\"]\n---\nA\n")) {
+                "---\npaths: [\"projects/kagi*/**\"]\n---\nA\n", "---\npaths: [\"{projects/kagi,projects/kazan}/**\"]\n---\nA\n")) {
             assertTrue(Composer.ruleScopeViolation(null, mount, rule, FileMode.FILE, refused.getBytes(StandardCharsets.UTF_8))
                     .isPresent(), refused);
         }
@@ -466,7 +466,7 @@ class ComposerUnitTest {
         ComposedFile narrowed = composition.byPath().get(".agents/rules/16-kagi.md");
         assertEquals(kagi.getId(), narrowed.narrowedBy());
         String content = new String(composition.contents().get(narrowed.sha256()), StandardCharsets.UTF_8);
-        assertTrue(content.contains("projects/kaizen/**"));
+        assertTrue(content.contains("projects/kazan/**"));
         assertFalse(content.contains("projects/kagi/**"));
         assertTrue(composition.mountViolations().isEmpty());
     }

@@ -49,8 +49,8 @@ func newAPI(t *testing.T) *clitest.MockAPI {
 	clitest.SetupHome(t)
 	clitest.FakeTerminal(t, &stdinIsTerminal, false)
 	api := clitest.NewMockAPI(t)
-	api.Respond("GET /kaizen/boards", http.StatusOK, treeJSON)
-	api.Respond("GET /kaizen/tickets/by-key/OPS-12", http.StatusOK, ticketJSON)
+	api.Respond("GET /kazan/boards", http.StatusOK, treeJSON)
+	api.Respond("GET /kazan/tickets/by-key/OPS-12", http.StatusOK, ticketJSON)
 	api.Respond("GET /storage/attachments", http.StatusOK, attachmentsJSON)
 	clitest.LoginTo(t, api.URL(), clitest.OrgIDAcme)
 	return api
@@ -78,7 +78,7 @@ func TestAttachmentListPrintsTheTable(t *testing.T) {
 	if !strings.Contains(out, "NAME") || !strings.Contains(out, "shot.png") || !strings.Contains(out, "a1") {
 		t.Errorf("out =\n%s", out)
 	}
-	if strings.Join(api.Calls(), ",") != "GET /kaizen/boards,GET /kaizen/tickets/by-key/OPS-12,GET /storage/attachments" {
+	if strings.Join(api.Calls(), ",") != "GET /kazan/boards,GET /kazan/tickets/by-key/OPS-12,GET /storage/attachments" {
 		t.Errorf("calls = %v", api.Calls())
 	}
 }
@@ -137,7 +137,7 @@ func TestAttachmentAddChecksThenUploads(t *testing.T) {
 	if metadata != `[{"fileName":"log.txt","entityType":"TICKET","entityId":"`+idTicket+`"}]` {
 		t.Errorf("metadata = %s", metadata)
 	}
-	want := "GET /kaizen/boards,GET /kaizen/tickets/by-key/OPS-12,POST /storage/attachments/exists,POST /storage/attachments"
+	want := "GET /kazan/boards,GET /kazan/tickets/by-key/OPS-12,POST /storage/attachments/exists,POST /storage/attachments"
 	if strings.Join(api.Calls(), ",") != want {
 		t.Errorf("calls = %v", api.Calls())
 	}

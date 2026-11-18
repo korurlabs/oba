@@ -34,7 +34,7 @@ public record UserOrganizationEmbeddedResponse(
         OrganizationStatus organizationStatus,
 
         @Schema(description = "Apps the user can open in the organization, in app order; empty when none",
-                nullable = false, example = "[\"KAIZEN\",\"KAYA\"]")
+                nullable = false, example = "[\"KAZAN\",\"KAYA\"]")
         List<App> apps
 ) {
 }

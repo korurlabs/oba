@@ -71,8 +71,8 @@
   },
   "apps": {
     "switchApp": "Wissel van app",
-    "kaizen": {
-      "name": "Kaizen",
+    "kazan": {
+      "name": "Kazan",
       "description": "Borden, tickets en sprints"
     },
     "kaya": {

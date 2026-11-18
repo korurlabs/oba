@@ -92,9 +92,9 @@ describe("GrantAppDialog", () => {
   test("a member target sends userId and no groupId", () => {
     render();
 
-    submitHandler({ app: "KAIZEN", targetType: "USER", targetId: "u-1" });
+    submitHandler({ app: "KAZAN", targetType: "USER", targetId: "u-1" });
 
-    expect(sent).toEqual([{ app: "KAIZEN", userId: "u-1" }]);
+    expect(sent).toEqual([{ app: "KAZAN", userId: "u-1" }]);
     expect(Object.keys(sent[0] as object)).not.toContain("groupId");
   });
 

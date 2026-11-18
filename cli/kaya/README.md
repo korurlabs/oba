@@ -156,7 +156,7 @@ A checkout on an older branch still has the Python rows in its `.claude/settings
 ## Propose
 
 ```sh
-kaya propose --reason "Allow the kaizen CLI" .claude/settings.json
+kaya propose --reason "Allow the oba CLI" .claude/settings.json
 kaya propose --dry-run                     # every changed delivered path and new config file, checked, not sent
 kaya propose --reason "..." --from /tmp/edit .agents/rules/core.md
 kaya propose --reason "..." --remove .agents/rules/old.md

@@ -28,14 +28,14 @@ import static org.mockito.Mockito.when;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.kaizen.board.entity.Board;
-import com.korur.oba.apps.kaizen.board.enums.BoardMemberRole;
-import com.korur.oba.apps.kaizen.board.service.BoardAccessService;
-import com.korur.oba.apps.kaizen.chat.entity.ChatMessage;
-import com.korur.oba.apps.kaizen.chat.entity.ChatThread;
-import com.korur.oba.apps.kaizen.chat.service.ChatChannelQueryService;
-import com.korur.oba.apps.kaizen.chat.validator.ChatValidator;
-import com.korur.oba.apps.kaizen.ticket.entity.Ticket;
+import com.korur.oba.apps.kazan.board.entity.Board;
+import com.korur.oba.apps.kazan.board.enums.BoardMemberRole;
+import com.korur.oba.apps.kazan.board.service.BoardAccessService;
+import com.korur.oba.apps.kazan.chat.entity.ChatMessage;
+import com.korur.oba.apps.kazan.chat.entity.ChatThread;
+import com.korur.oba.apps.kazan.chat.service.ChatChannelQueryService;
+import com.korur.oba.apps.kazan.chat.validator.ChatValidator;
+import com.korur.oba.apps.kazan.ticket.entity.Ticket;
 import com.korur.oba.apps.kalkan.page.constant.service.KalkanPageServiceLogConstant;
 import com.korur.oba.apps.kalkan.page.entity.KalkanPage;
 import com.korur.oba.apps.kalkan.permission.enums.KalkanLevel;

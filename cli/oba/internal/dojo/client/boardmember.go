@@ -6,7 +6,7 @@ import (
 	"net/url"
 )
 
-// BoardMember is one member of a board as GET /kaizen/boards/{boardId}/members lists it
+// BoardMember is one member of a board as GET /kazan/boards/{boardId}/members lists it
 // (BoardMemberResponse). The member calls address a member by UserID.
 type BoardMember struct {
 	ID        string `json:"id"`

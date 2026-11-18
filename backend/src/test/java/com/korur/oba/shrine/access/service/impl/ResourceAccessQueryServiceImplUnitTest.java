@@ -15,11 +15,11 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 // 4. Internal
-import com.korur.oba.apps.kaizen.board.entity.Board;
-import com.korur.oba.apps.kaizen.chat.entity.ChatMessage;
-import com.korur.oba.apps.kaizen.chat.service.ChatChannelQueryService;
-import com.korur.oba.apps.kaizen.ticket.entity.Ticket;
-import com.korur.oba.apps.kaizen.ticket.service.TicketQueryService;
+import com.korur.oba.apps.kazan.board.entity.Board;
+import com.korur.oba.apps.kazan.chat.entity.ChatMessage;
+import com.korur.oba.apps.kazan.chat.service.ChatChannelQueryService;
+import com.korur.oba.apps.kazan.ticket.entity.Ticket;
+import com.korur.oba.apps.kazan.ticket.service.TicketQueryService;
 import com.korur.oba.apps.kalkan.page.entity.KalkanPage;
 import com.korur.oba.apps.kalkan.page.service.KalkanPageQueryService;
 import com.korur.oba.apps.otak.mail.entity.Mail;
@@ -192,7 +192,7 @@ class ResourceAccessQueryServiceImplUnitTest {
     class RoleAndApp {
 
         @Test
-        void ticketRead_checksTheAppMinimumRoleOfKaizen() {
+        void ticketRead_checksTheAppMinimumRoleOfKazan() {
             Ticket ticket = ticketOf(organizationId);
             when(ticketQueryService.getEntityById(resourceId)).thenReturn(ticket);
 
@@ -200,7 +200,7 @@ class ResourceAccessQueryServiceImplUnitTest {
                     ResourceAccessAction.READ);
 
             verify(organizationAccessService).verifyOrganizationAccess(organizationId, userId,
-                    OrganizationMemberRole.GUEST, App.KAIZEN);
+                    OrganizationMemberRole.GUEST, App.KAZAN);
         }
 
         @Test
@@ -212,7 +212,7 @@ class ResourceAccessQueryServiceImplUnitTest {
                     ResourceAccessAction.WRITE);
 
             verify(organizationAccessService).verifyOrganizationAccess(organizationId, userId,
-                    OrganizationMemberRole.MEMBER, App.KAIZEN);
+                    OrganizationMemberRole.MEMBER, App.KAZAN);
         }
 
         @Test
@@ -232,7 +232,7 @@ class ResourceAccessQueryServiceImplUnitTest {
             Ticket ticket = ticketOf(organizationId);
             when(ticketQueryService.getEntityById(resourceId)).thenReturn(ticket);
             doThrow(mock(ForbiddenException.class)).when(organizationAccessService)
-                    .verifyOrganizationAccess(organizationId, userId, OrganizationMemberRole.MEMBER, App.KAIZEN);
+                    .verifyOrganizationAccess(organizationId, userId, OrganizationMemberRole.MEMBER, App.KAZAN);
 
             assertThrows(ForbiddenException.class, () -> service.verifyResourceAccess(user, organizationId,
                     ResourceAccessType.TICKET, resourceId, ResourceAccessAction.WRITE));
@@ -257,7 +257,7 @@ class ResourceAccessQueryServiceImplUnitTest {
             order.verify(resourceAccessValidator).verifySameOrganization(user, organizationId,
                     ResourceAccessType.TICKET, resourceId, organizationId);
             order.verify(organizationAccessService).verifyOrganizationAccess(organizationId, userId,
-                    OrganizationMemberRole.GUEST, App.KAIZEN);
+                    OrganizationMemberRole.GUEST, App.KAZAN);
             order.verify(resourceAccessValidator).verifyTicketRules(user, ticket, ResourceAccessAction.READ);
         }
 
@@ -274,7 +274,7 @@ class ResourceAccessQueryServiceImplUnitTest {
             order.verify(resourceAccessValidator).verifySameOrganization(user, organizationId,
                     ResourceAccessType.CHAT_MESSAGE, resourceId, organizationId);
             order.verify(organizationAccessService).verifyOrganizationAccess(organizationId, userId,
-                    OrganizationMemberRole.MEMBER, App.KAIZEN);
+                    OrganizationMemberRole.MEMBER, App.KAZAN);
             order.verify(resourceAccessValidator).verifyChatMessageRules(user, message,
                     ResourceAccessAction.WRITE);
         }
@@ -528,7 +528,7 @@ class ResourceAccessQueryServiceImplUnitTest {
         void withCheckedReadGrant_checksTheOrganizationBeforeTheRead() {
             List<String> events = new java.util.ArrayList<>();
             when(organizationAccessService.verifyOrganizationAccess(organizationId, userId,
-                    OrganizationMemberRole.GUEST, App.KAIZEN)).thenAnswer(invocation -> {
+                    OrganizationMemberRole.GUEST, App.KAZAN)).thenAnswer(invocation -> {
                 events.add("organization");
                 return null;
             });
@@ -546,7 +546,7 @@ class ResourceAccessQueryServiceImplUnitTest {
         @Test
         void withCheckedReadGrant_organizationRefused_readNeverRuns() {
             doThrow(mock(ForbiddenException.class)).when(organizationAccessService)
-                    .verifyOrganizationAccess(organizationId, userId, OrganizationMemberRole.GUEST, App.KAIZEN);
+                    .verifyOrganizationAccess(organizationId, userId, OrganizationMemberRole.GUEST, App.KAZAN);
             AtomicInteger reads = new AtomicInteger();
 
             assertThrows(ForbiddenException.class, () -> service.withCheckedReadGrant(user,

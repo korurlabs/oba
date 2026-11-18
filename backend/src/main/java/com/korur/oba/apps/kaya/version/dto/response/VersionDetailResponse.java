@@ -41,7 +41,7 @@ public record VersionDetailResponse(
         @Schema(description = "Where the version came from", example = "MANUAL")
         VersionSource source,
 
-        @Schema(description = "Reason given on submit", nullable = true, example = "Allow the kaizen CLI in every repository")
+        @Schema(description = "Reason given on submit", nullable = true, example = "Allow the oba CLI in every repository")
         String reason,
 
         @Schema(description = "Whether the change touches hooks, permissions or executable files", example = "false")

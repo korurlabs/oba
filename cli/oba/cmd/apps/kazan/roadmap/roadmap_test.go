@@ -15,7 +15,7 @@ const (
 	idOps    = "0a000000-0000-4000-8000-000000000001"
 	treeJSON = `{"data":[{"id":"` + idOps + `","name":"Operations","prefix":"OPS","childBoards":[]}],` +
 		`"pagination":{"currentPage":1,"last":true}}`
-	roadmapRoute = "GET /kaizen/boards/" + idOps + "/roadmap"
+	roadmapRoute = "GET /kazan/boards/" + idOps + "/roadmap"
 )
 
 func newAPI(t *testing.T) *clitest.MockAPI {
@@ -25,7 +25,7 @@ func newAPI(t *testing.T) *clitest.MockAPI {
 	width = func() int { return 80 }
 	t.Cleanup(func() { width = old })
 	api := clitest.NewMockAPI(t)
-	api.Respond("GET /kaizen/boards", http.StatusOK, treeJSON)
+	api.Respond("GET /kazan/boards", http.StatusOK, treeJSON)
 	clitest.LoginTo(t, api.URL(), clitest.OrgIDAcme)
 	if err := config.Save(config.File{KazanBoards: map[string]string{clitest.OrgIDAcme: idOps}}); err != nil {
 		t.Fatal(err)

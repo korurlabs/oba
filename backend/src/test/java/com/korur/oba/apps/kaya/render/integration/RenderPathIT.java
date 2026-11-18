@@ -72,7 +72,7 @@ class RenderPathIT extends AbstractVersionIT {
         Map<String, RenderedFile> editedFiles = byPath(filesOf(edited));
         Set<String> paths = new TreeSet<>(baseFiles.keySet());
         paths.addAll(editedFiles.keySet());
-        assertTrue(paths.contains(".claude/skills/kaizen"));
+        assertTrue(paths.contains(".claude/skills/kazan"));
 
         for (String path : paths) {
             Map<UUID, RenderedFile> rendered = renderQueryService.renderPath(organizationId(),
@@ -98,8 +98,8 @@ class RenderPathIT extends AbstractVersionIT {
     @Test
     void render_everyStoredFile_namesItsEntity() {
         Map<String, RenderedFile> files = byPath(filesOf(base));
-        Map<String, UUID> partIds = skillQueryService.getPartLinks(organizationId(), base, "kaizen").stream()
-                .collect(Collectors.toMap(link -> ".agents/skills/kaizen/" + link.path(), SkillPartLink::partId));
+        Map<String, UUID> partIds = skillQueryService.getPartLinks(organizationId(), base, "kazan").stream()
+                .collect(Collectors.toMap(link -> ".agents/skills/kazan/" + link.path(), SkillPartLink::partId));
 
         for (RenderedFile file : files.values()) {
             if (file.mode() == FileMode.SYMLINK) {
@@ -110,9 +110,9 @@ class RenderPathIT extends AbstractVersionIT {
                 assertNotNull(file.entityId(), file.path());
             }
         }
-        assertEquals(EntityKind.SCRIPT, files.get(".agents/skills/kaizen/scripts/run.sh").entityKind());
-        assertEquals(EntityKind.TOOL_PARAMETER, files.get(".agents/skills/kaizen/agents/openai.yml").entityKind());
-        assertEquals(EntityKind.SKILL, files.get(".agents/skills/kaizen/SKILL.md").entityKind());
+        assertEquals(EntityKind.SCRIPT, files.get(".agents/skills/kazan/scripts/run.sh").entityKind());
+        assertEquals(EntityKind.TOOL_PARAMETER, files.get(".agents/skills/kazan/agents/openai.yml").entityKind());
+        assertEquals(EntityKind.SKILL, files.get(".agents/skills/kazan/SKILL.md").entityKind());
         assertEquals(EntityKind.HOOK, files.get(".agents/hooks/guard.sh").entityKind());
         partIds.forEach((path, partId) -> assertEquals(partId, files.get(path).entityId(), path));
     }

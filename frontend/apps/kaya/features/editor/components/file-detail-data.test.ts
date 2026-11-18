@@ -46,13 +46,13 @@ describe("historyCount", () => {
 });
 
 describe("breadcrumbOf", () => {
-  const MAIN = ".agents/skills/kaizen/SKILL.md";
+  const MAIN = ".agents/skills/kazan/SKILL.md";
 
   test("gives the folders and name of a part of the document", () => {
-    expect(breadcrumbOf(".agents/skills/kaizen/rules/forms.md", MAIN)).toEqual([
+    expect(breadcrumbOf(".agents/skills/kazan/rules/forms.md", MAIN)).toEqual([
       ".agents",
       "skills",
-      "kaizen",
+      "kazan",
       "rules",
       "forms.md",
     ]);

@@ -34,7 +34,7 @@ class SessionLinkConcurrencyIT extends AbstractSessionIT {
 
     private int addLink(Tenant tenant, Person person, String session, String reference) throws Exception {
         return mockMvc.perform(in(tenant, post("/kaya/sessions/" + session + "/links"), person.jwt(),
-                        "{\"kind\":\"KAIZEN_TICKET\",\"reference\":\"" + reference + "\"}"))
+                        "{\"kind\":\"KAZAN_TICKET\",\"reference\":\"" + reference + "\"}"))
                 .andReturn().getResponse().getStatus();
     }
 

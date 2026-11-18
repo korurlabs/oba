@@ -104,7 +104,7 @@ class UserMapperUnitTest {
         user.setOrganizationMemberships(List.of(active, disabled));
         // A disabled organization opens no app, so the apps read leaves it out.
         Map<UUID, List<App>> appsByOrganization = Map.of(active.getOrganization().getId(),
-                List.of(App.KAIZEN, App.KAYA));
+                List.of(App.KAZAN, App.KAYA));
 
         UserDetailResponse response = userMapper.toDetailResponse(user, appsByOrganization);
 
@@ -116,7 +116,7 @@ class UserMapperUnitTest {
         assertThat(response.organizations().get(1).id()).isEqualTo(disabled.getOrganization().getId());
         assertThat(response.organizations().get(1).name()).isEqualTo("Acme");
         assertThat(response.organizations()).extracting(UserOrganizationEmbeddedResponse::apps)
-                .containsExactly(List.of(App.KAIZEN, App.KAYA), List.of());
+                .containsExactly(List.of(App.KAZAN, App.KAYA), List.of());
     }
 
     @Test
@@ -139,13 +139,13 @@ class UserMapperUnitTest {
                 OrganizationMemberStatus.ACTIVE);
         user.setOrganizationMemberships(List.of(first, second));
         Map<UUID, List<App>> appsByOrganization = Map.of(
-                first.getOrganization().getId(), List.of(App.KAIZEN),
-                second.getOrganization().getId(), List.of(App.KAIZEN, App.KAYA, App.KALKAN, App.OTAK));
+                first.getOrganization().getId(), List.of(App.KAZAN),
+                second.getOrganization().getId(), List.of(App.KAZAN, App.KAYA, App.KALKAN, App.OTAK));
 
         UserDetailResponse response = userMapper.toDetailResponse(user, List.of(), appsByOrganization);
 
         assertThat(response.organizations()).extracting(UserOrganizationEmbeddedResponse::apps)
-                .containsExactly(List.of(App.KAIZEN), List.of(App.KAIZEN, App.KAYA, App.KALKAN, App.OTAK));
+                .containsExactly(List.of(App.KAZAN), List.of(App.KAZAN, App.KAYA, App.KALKAN, App.OTAK));
         assertThat(response.pendingInvitations()).isEmpty();
     }
 }

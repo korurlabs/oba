@@ -39,7 +39,7 @@ public record SeedFileRequest(
         FileMode mode,
 
         @Schema(description = "Relative target of a SYMLINK, as the link stores it", nullable = true,
-                example = "../../.agents/skills/kaizen")
+                example = "../../.agents/skills/kazan")
         @Size(max = ValidationConstant.PATH_MAX_LENGTH)
         String symlinkTarget
 ) {

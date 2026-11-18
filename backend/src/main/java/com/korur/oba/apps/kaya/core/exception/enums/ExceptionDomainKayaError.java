@@ -41,7 +41,7 @@ public enum ExceptionDomainKayaError implements ExceptionDomainError {
     VAL_BODY_TOO_LARGE("KAY_VAL_012", "The request body exceeds the size limit.", ExceptionCategory.API),
     VAL_EVENT_INVALID("KAY_VAL_013", "An event of the batch is invalid.", ExceptionCategory.API),
     VAL_BATCH_EMPTY("KAY_VAL_014", "A batch needs events or usage.", ExceptionCategory.API),
-    VAL_LINK_REFERENCE_INVALID("KAY_VAL_015", "A Kaizen ticket must be a key such as SEN-42, a pull request a https://github.com/ URL.", ExceptionCategory.VAL),
+    VAL_LINK_REFERENCE_INVALID("KAY_VAL_015", "A Kazan ticket must be a key such as SEN-42, a pull request a https://github.com/ URL.", ExceptionCategory.VAL),
     VAL_ACCOUNT_LEARNED_CONCURRENTLY("KAY_VAL_016", "The account was recorded by a concurrent batch; send the batch again.", ExceptionCategory.STA),
 
     // ── Not Found (KAY_NF) ───────────────────────────────────────────────────

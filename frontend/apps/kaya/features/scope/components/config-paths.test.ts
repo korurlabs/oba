@@ -37,8 +37,8 @@ const TAB_OF_PREFIX: [string, RuleTab | null][] = [
   [".agents/hooks/pre-bash-x.sh", "hooks"],
   [".claude/agents/coding-engineer.md", "subagents"],
   // Skills, the settings file and the convention docs have their own pages.
-  [".agents/skills/kaizen/SKILL.md", null],
-  [".claude/skills/kaizen/SKILL.md", null],
+  [".agents/skills/kazan/SKILL.md", null],
+  [".claude/skills/kazan/SKILL.md", null],
   [".claude/settings.json", null],
   ["docs/private/conventions/backend/a.md", null],
 ];
@@ -87,7 +87,7 @@ describe("rule tab assignment", () => {
 
 describe("skill detection", () => {
   test("only a SKILL.md directly under a skill directory counts", () => {
-    expect(skillDirectoryOf(".agents/skills/kaizen/SKILL.md")).toBe(".agents/skills/kaizen");
+    expect(skillDirectoryOf(".agents/skills/kazan/SKILL.md")).toBe(".agents/skills/kazan");
     expect(skillDirectoryOf(".claude/skills/x/SKILL.md")).toBe(".claude/skills/x");
     expect(skillDirectoryOf(".agents/skills/a/b/SKILL.md")).toBeNull();
     expect(skillDirectoryOf(".agents/skills/x/skill.md")).toBeNull();

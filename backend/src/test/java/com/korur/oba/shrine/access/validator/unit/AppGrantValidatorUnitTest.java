@@ -54,7 +54,7 @@ class AppGrantValidatorUnitTest {
         @Test
         void userOnly_passes() {
             // Arrange
-            AppGrantCreateRequest request = new AppGrantCreateRequest(App.KAIZEN, UUID.randomUUID(), null);
+            AppGrantCreateRequest request = new AppGrantCreateRequest(App.KAZAN, UUID.randomUUID(), null);
 
             // Act and assert
             assertDoesNotThrow(() -> appGrantValidator.ensureOneTarget(UUID.randomUUID(), request));
@@ -75,7 +75,7 @@ class AppGrantValidatorUnitTest {
         void noTarget_throwsGrantTargetInvalidAndLogsWarn() {
             // Arrange
             UUID organizationId = UUID.randomUUID();
-            AppGrantCreateRequest request = new AppGrantCreateRequest(App.KAIZEN, null, null);
+            AppGrantCreateRequest request = new AppGrantCreateRequest(App.KAZAN, null, null);
 
             // Act
             ValidationException exception = assertThrows(ValidationException.class,
@@ -91,7 +91,7 @@ class AppGrantValidatorUnitTest {
         void twoTargets_throwsGrantTargetInvalid() {
             // Arrange
             AppGrantCreateRequest request =
-                    new AppGrantCreateRequest(App.KAIZEN, UUID.randomUUID(), UUID.randomUUID());
+                    new AppGrantCreateRequest(App.KAZAN, UUID.randomUUID(), UUID.randomUUID());
 
             // Act
             ValidationException exception = assertThrows(ValidationException.class,
@@ -110,7 +110,7 @@ class AppGrantValidatorUnitTest {
             // Arrange
             UUID organizationId = UUID.randomUUID();
             UUID grantId = UUID.randomUUID();
-            AppGrant grant = AppGrant.builder().app(App.KAIZEN).build();
+            AppGrant grant = AppGrant.builder().app(App.KAZAN).build();
             when(appGrantRepository.findByIdAndOrganization_Id(grantId, organizationId))
                     .thenReturn(Optional.of(grant));
 

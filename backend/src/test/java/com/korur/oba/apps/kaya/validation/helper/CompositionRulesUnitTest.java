@@ -67,8 +67,8 @@ class CompositionRulesUnitTest {
 
     @Test
     void validate_symlinkToADeliveredDirectory_isFine() {
-        List<PathCandidate> files = List.of(file(".agents/skills/kaizen/SKILL.md", 10, false),
-                link(".claude/skills/kaizen", "../../.agents/skills/kaizen"));
+        List<PathCandidate> files = List.of(file(".agents/skills/kazan/SKILL.md", 10, false),
+                link(".claude/skills/kazan", "../../.agents/skills/kazan"));
         assertEquals(List.of(), rulesOf(files, null));
     }
 
@@ -100,7 +100,7 @@ class CompositionRulesUnitTest {
 
     @Test
     void validate_symlinkToAnUndeliveredDeliveredPath_isDangling() {
-        List<PathCandidate> files = List.of(link(".claude/skills/kaizen", "../../.agents/skills/kaizen"));
+        List<PathCandidate> files = List.of(link(".claude/skills/kazan", "../../.agents/skills/kazan"));
         assertEquals(List.of(ViolationRule.SYMLINK_DANGLING), rulesOf(files, null));
     }
 
@@ -168,9 +168,9 @@ class CompositionRulesUnitTest {
     @Test
     void validate_fileBelowALinkInsideTheAllowList_isStillRefused() {
         UUID otherSet = UUID.randomUUID();
-        PathCandidate fromOtherSet = new PathCandidate(".claude/skills/kaizen/run.js", false, null, 10, false, otherSet, null);
-        List<PathCandidate> files = List.of(file(".agents/skills/kaizen/SKILL.md", 10, false),
-                link(".claude/skills/kaizen", "../../.agents/skills/kaizen"), fromOtherSet);
+        PathCandidate fromOtherSet = new PathCandidate(".claude/skills/kazan/run.js", false, null, 10, false, otherSet, null);
+        List<PathCandidate> files = List.of(file(".agents/skills/kazan/SKILL.md", 10, false),
+                link(".claude/skills/kazan", "../../.agents/skills/kazan"), fromOtherSet);
         assertEquals(List.of(ViolationRule.PATH_THROUGH_SYMLINK), rulesOf(files, null));
     }
 
@@ -184,8 +184,8 @@ class CompositionRulesUnitTest {
 
     @Test
     void validate_linkToALinkToADeliveredDirectory_isFine() {
-        List<PathCandidate> files = List.of(file(".agents/skills/kaizen/SKILL.md", 10, false),
-                link(".agents/skills/alias", "kaizen"), link(".claude/skills/kaizen", "../../.agents/skills/alias"));
+        List<PathCandidate> files = List.of(file(".agents/skills/kazan/SKILL.md", 10, false),
+                link(".agents/skills/alias", "kazan"), link(".claude/skills/kazan", "../../.agents/skills/alias"));
         assertEquals(List.of(), rulesOf(files, null));
     }
 
@@ -228,9 +228,9 @@ class CompositionRulesUnitTest {
 
     @Test
     void validateLinks_targetFromAnotherSet_isLeftToTheComposition() {
-        assertEquals(List.of(), linkRulesOf(List.of(candidateLink(".claude/skills/kaizen", "../../.agents/skills/kaizen"))));
-        assertEquals(List.of(), linkRulesOf(List.of(candidate(".agents/skills/kaizen/SKILL.md"),
-                candidateLink(".agents/skills/alias", "kaizen"), candidateLink(".claude/skills/kaizen", "../../.agents/skills/alias"))));
+        assertEquals(List.of(), linkRulesOf(List.of(candidateLink(".claude/skills/kazan", "../../.agents/skills/kazan"))));
+        assertEquals(List.of(), linkRulesOf(List.of(candidate(".agents/skills/kazan/SKILL.md"),
+                candidateLink(".agents/skills/alias", "kazan"), candidateLink(".claude/skills/kazan", "../../.agents/skills/alias"))));
     }
 
     @Test

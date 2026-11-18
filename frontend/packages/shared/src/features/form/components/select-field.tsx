@@ -52,7 +52,7 @@ export type SelectFieldOrientation = "vertical" | "horizontal";
 
 /**
  * Grid for a horizontal row. The 7rem label column matches the horizontal
- * form fields in the kaizen app (`components/ui/form-fields`), so rows from
+ * form fields in the kazan app (`components/ui/form-fields`), so rows from
  * both packages line up when they share a panel.
  */
 const HORIZONTAL_ROW_CLASS = "grid grid-cols-[7rem_minmax(0,1fr)] items-center gap-x-3 gap-y-1";

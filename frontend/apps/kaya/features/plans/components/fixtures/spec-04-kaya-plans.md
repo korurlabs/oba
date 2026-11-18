@@ -38,7 +38,7 @@ In scope: capture (recorder, `.claude/settings.json` rows), ingest, the `plan`
 domain, the delivery endpoints, CLI delivery through `kaya watch` and two new
 hook events, the Plans page and the plan page, a "Plans" panel on the session
 page. Out of scope: editing a plan in Kaya, plans of sessions without the
-recorder, waking an idle session, Kaizen ticket creation from units, and
+recorder, waking an idle session, Kazan ticket creation from units, and
 changing the managed `plan`, `implement` and `orchestrator` commands (section 6
 names the follow-up).
 

@@ -87,7 +87,7 @@ public record SessionListResponse(
         @Schema(description = "Handoff directories the session wrote")
         List<String> features,
 
-        @Schema(description = "Pull requests and Kaizen tickets, PULL_REQUEST first, then by reference")
+        @Schema(description = "Pull requests and Kazan tickets, PULL_REQUEST first, then by reference")
         List<SessionLinkResponse> links,
 
         @Schema(description = "When the session row was created")

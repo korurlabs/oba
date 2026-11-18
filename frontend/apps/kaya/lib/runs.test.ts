@@ -18,7 +18,7 @@ describe("parseEvents", () => {
     const parsed = parseEvents(
       [
         '{"at":"2026-10-22T15:41:55Z","event":"PostToolUse","cwd":"/r","tool_name":"Agent","tool_use_id":"t1","ok":true,"spawned_agent_id":"a1"}',
-        '{"at":"2026-10-22T15:41:56Z","event":"PostToolUseFailure","cwd":"/r","tool_name":"Bash","tool_use_id":"t2","command":"kaizen ticket get KAI-42 --json","ok":false}',
+        '{"at":"2026-10-22T15:41:56Z","event":"PostToolUseFailure","cwd":"/r","tool_name":"Bash","tool_use_id":"t2","command":"kazan ticket get KAI-42 --json","ok":false}',
       ].join("\n")
     );
     expect(parsed.problems).toEqual([]);

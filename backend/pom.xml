@@ -108,7 +108,7 @@
         <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-websocket -->
         <dependency>
             <!-- Enables WebSocket endpoints with STOMP messaging and the in-memory simple broker.
-                Carries the live chat signals, typing and presence of the Kaizen Updates channel.
+                Carries the live chat signals, typing and presence of the Kazan Updates channel.
                 Date: Managed via parent pom -->
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-websocket</artifactId>

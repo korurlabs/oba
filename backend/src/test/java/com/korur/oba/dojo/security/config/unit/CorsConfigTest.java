@@ -27,8 +27,8 @@ class CorsConfigTest {
     private static final String PROD_PROFILE = "prod";
     private static final String LOCAL_PROFILE = "local";
 
-    private static final String PRODUCTION_ORIGIN = "https://kaizen.sensey.io";
-    private static final String KORUR_ORIGIN = "https://kaizen.korur.com";
+    private static final String PRODUCTION_ORIGIN = "https://kazan.sensey.io";
+    private static final String KORUR_ORIGIN = "https://kazan.korur.com";
     private static final String LOCALHOST_ORIGIN = "http://localhost:3002";
     private static final String INSTANCE_ORIGIN = "http://oba-x.localhost:26101";
 

@@ -181,13 +181,13 @@ class PushMessageHelperUnitTest {
     void toMessage_incident_isTimeSensitiveOnTheUrgentChannelAndIgnoresPreviews() {
         // Arrange
         PushRequest request = PushRequest.incident(ORGANIZATION_ID, java.util.List.of(RECIPIENT_ID), AUTHOR_ID,
-                "Kaizen Platform", "P1", "KZN-311", "Payment webhooks return 502");
+                "Kazan Platform", "P1", "KZN-311", "Payment webhooks return 502");
 
         // Act
         ExpoPushMessage message = toMessage(request, PushKind.INCIDENT, PREVIEWS_OFF);
 
         // Assert
-        assertEquals("P1 incident on Kaizen Platform", message.title());
+        assertEquals("P1 incident on Kazan Platform", message.title());
         assertEquals("KZN-311 Payment webhooks return 502", message.body());
         assertEquals("urgent_incidents", message.channelId());
         assertEquals("time-sensitive", message.interruptionLevel());

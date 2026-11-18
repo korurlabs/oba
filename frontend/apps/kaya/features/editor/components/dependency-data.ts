@@ -30,7 +30,7 @@ export function sharingSkills(dependencies: DependencyResponse | undefined): str
   return unique.length >= 2 ? unique : null;
 }
 
-/** "kaizen and kagi", "a, b and c": skill names for a sentence. */
+/** "kazan and kagi", "a, b and c": skill names for a sentence. */
 export function namesText(names: readonly string[]): string {
   if (names.length <= 1) return names[0] ?? "";
   return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1] ?? ""}`;

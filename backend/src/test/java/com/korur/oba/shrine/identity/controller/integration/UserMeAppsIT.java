@@ -54,7 +54,7 @@ class UserMeAppsIT extends ObaIntegrationTest {
         disabledMember = organizationWith(true, OrganizationStatus.DISABLED, OrganizationMemberRole.MEMBER);
         guestWithKayaGrant = organizationWith(false, OrganizationStatus.ACTIVE, OrganizationMemberRole.GUEST);
         grantDirectly(guestWithKayaGrant, "KAYA");
-        grantDirectly(guestWithKayaGrant, "KAIZEN");
+        grantDirectly(guestWithKayaGrant, "KAZAN");
     }
 
     private Organization organizationWith(boolean everyoneGranted, OrganizationStatus status, OrganizationMemberRole role) {
@@ -86,13 +86,13 @@ class UserMeAppsIT extends ObaIntegrationTest {
     }
 
     private void assertApps(Map<String, List<String>> apps) {
-        assertEquals(List.of("KAIZEN", "KAYA", "KALKAN", "OTAK"), apps.get(everyoneMember.getId().toString()));
-        assertEquals(List.of("KAIZEN", "KALKAN"), apps.get(everyoneGuest.getId().toString()),
+        assertEquals(List.of("KAZAN", "KAYA", "KALKAN", "OTAK"), apps.get(everyoneMember.getId().toString()));
+        assertEquals(List.of("KAZAN", "KALKAN"), apps.get(everyoneGuest.getId().toString()),
                 "a GUEST never gets KAYA or OTAK");
         assertEquals(List.of(), apps.get(noGrantMember.getId().toString()));
         assertEquals(List.of("KAYA"), apps.get(directKayaMember.getId().toString()));
-        assertEquals(List.of("KAIZEN", "KAYA", "KALKAN", "OTAK"), apps.get(noGrantOwner.getId().toString()));
-        assertEquals(List.of("KAIZEN"), apps.get(guestWithKayaGrant.getId().toString()),
+        assertEquals(List.of("KAZAN", "KAYA", "KALKAN", "OTAK"), apps.get(noGrantOwner.getId().toString()));
+        assertEquals(List.of("KAZAN"), apps.get(guestWithKayaGrant.getId().toString()),
                 "a KAYA grant does not raise a GUEST");
         assertTrue(apps.get(disabledMember.getId().toString()).isEmpty(), "a disabled organization lists no app");
     }

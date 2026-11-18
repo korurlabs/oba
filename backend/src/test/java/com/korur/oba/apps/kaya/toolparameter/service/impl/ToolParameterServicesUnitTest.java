@@ -73,7 +73,7 @@ class ToolParameterServicesUnitTest {
                 .name("openai.yml")
                 .format(ToolParameterFormat.YAML)
                 .build();
-        byte[] content = "interface:\n  display_name: Kaizen\n".getBytes(StandardCharsets.UTF_8);
+        byte[] content = "interface:\n  display_name: Kazan\n".getBytes(StandardCharsets.UTF_8);
         Blob blob = Blob.builder().id(toolParameter.getContentBlobId()).content(content).size(content.length).build();
         when(toolParameterRepository.findByIdAndOrganizationId(toolParameter.getId(), organizationId))
                 .thenReturn(Optional.of(toolParameter));
@@ -82,7 +82,7 @@ class ToolParameterServicesUnitTest {
         ToolParameterDetailResponse result = toolParameterQueryService.getToolParameter(organizationId,
                 toolParameter.getId());
 
-        assertEquals("interface:\n  display_name: Kaizen\n", result.content());
+        assertEquals("interface:\n  display_name: Kazan\n", result.content());
         assertEquals(ToolParameterFormat.YAML, result.format());
         assertEquals("openai.yml", result.name());
         assertEquals(content.length, result.sizeBytes());

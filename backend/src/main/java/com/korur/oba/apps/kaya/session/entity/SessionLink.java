@@ -29,8 +29,8 @@ import com.korur.oba.apps.kaya.session.enums.SessionLinkKind;
 import com.korur.oba.apps.kaya.session.enums.SessionLinkSource;
 
 /**
- * A pull request or Kaizen ticket linked to a session, found by the recorder or added by a member.
- * Kaya never calls Kaizen: a ticket is its key plus the URL the repository's template gives.
+ * A pull request or Kazan ticket linked to a session, found by the recorder or added by a member.
+ * Kaya never calls Kazan: a ticket is its key plus the URL the repository's template gives.
  */
 @Entity
 @Table(

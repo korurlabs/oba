@@ -20,7 +20,7 @@ import com.korur.oba.shrine.access.enums.App;
 @Schema(description = "App grant create request")
 public record AppGrantCreateRequest(
 
-        @Schema(description = "App to grant", requiredMode = Schema.RequiredMode.REQUIRED, example = "KAIZEN")
+        @Schema(description = "App to grant", requiredMode = Schema.RequiredMode.REQUIRED, example = "KAZAN")
         @NotNull(message = "App is required")
         App app,
 

@@ -132,7 +132,7 @@ class UserProfileQueryServiceImplUnitTest {
             UserDetailResponse response = mock(UserDetailResponse.class);
             when(userRepository.findByKeycloakId(KEYCLOAK_ID)).thenReturn(Optional.of(user));
             when(invitationQueryService.listPendingInvitationsByEmail(EMAIL)).thenReturn(invitations);
-            Map<UUID, List<App>> apps = Map.of(UUID.randomUUID(), List.of(App.KAIZEN, App.KAYA));
+            Map<UUID, List<App>> apps = Map.of(UUID.randomUUID(), List.of(App.KAZAN, App.KAYA));
             when(appAccessQueryService.listAccessibleAppsByOrganization(user)).thenReturn(apps);
             when(userMapper.toDetailResponse(user, invitations, apps)).thenReturn(response);
 

@@ -13,7 +13,7 @@ import java.util.UUID;
 import com.korur.oba.apps.kaya.session.enums.SessionLinkKind;
 import com.korur.oba.apps.kaya.session.enums.SessionLinkSource;
 
-@Schema(description = "A pull request or Kaizen ticket linked to a session")
+@Schema(description = "A pull request or Kazan ticket linked to a session")
 public record SessionLinkResponse(
         @Schema(description = "Link id")
         UUID id,

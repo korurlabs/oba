@@ -71,8 +71,8 @@
   },
   "apps": {
     "switchApp": "Uygulama değiştir",
-    "kaizen": {
-      "name": "Kaizen",
+    "kazan": {
+      "name": "Kazan",
       "description": "Panolar, biletler ve sprintler"
     },
     "kaya": {

@@ -29,6 +29,6 @@ func newAPI(t *testing.T) (*clitest.MockAPI, *client.Client) {
 	t.Helper()
 	clitest.SetupHome(t)
 	api := clitest.NewMockAPI(t)
-	api.Respond("GET /kaizen/boards", http.StatusOK, treeJSON)
+	api.Respond("GET /kazan/boards", http.StatusOK, treeJSON)
 	return api, client.NewWithToken(api.URL(), clitest.OrgIDAcme, "tok")
 }

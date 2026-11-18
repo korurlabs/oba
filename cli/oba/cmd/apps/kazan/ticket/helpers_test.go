@@ -61,14 +61,14 @@ func newTicketAPI(t *testing.T) *clitest.MockAPI {
 	clitest.SetupHome(t)
 	clitest.FakeTerminal(t, &stdinIsTerminal, false)
 	api := clitest.NewMockAPI(t)
-	api.Respond("GET /kaizen/boards", http.StatusOK, treeJSON)
-	api.Respond("GET /kaizen/tickets/by-key/OPS-42", http.StatusOK, `{"data":`+ticketJSON(idT42, "OPS-42", "Login crash", idOps, "OPS")+`}`)
-	api.Respond("GET /kaizen/tickets/by-key/OPS-43", http.StatusOK, `{"data":`+ticketJSON(idT43, "OPS-43", "Logout", idOps, "OPS")+`}`)
-	api.Respond("GET /kaizen/tickets/by-key/KAGI-7", http.StatusOK, `{"data":`+ticketJSON(idK7, "KAGI-7", "Vault", idKagi, "KAGI")+`}`)
-	api.Respond("GET /kaizen/boards/"+idOps+"/sprints", http.StatusOK, sprintsJSON)
-	api.Respond("GET /kaizen/boards/"+idKagi+"/sprints", http.StatusOK,
+	api.Respond("GET /kazan/boards", http.StatusOK, treeJSON)
+	api.Respond("GET /kazan/tickets/by-key/OPS-42", http.StatusOK, `{"data":`+ticketJSON(idT42, "OPS-42", "Login crash", idOps, "OPS")+`}`)
+	api.Respond("GET /kazan/tickets/by-key/OPS-43", http.StatusOK, `{"data":`+ticketJSON(idT43, "OPS-43", "Logout", idOps, "OPS")+`}`)
+	api.Respond("GET /kazan/tickets/by-key/KAGI-7", http.StatusOK, `{"data":`+ticketJSON(idK7, "KAGI-7", "Vault", idKagi, "KAGI")+`}`)
+	api.Respond("GET /kazan/boards/"+idOps+"/sprints", http.StatusOK, sprintsJSON)
+	api.Respond("GET /kazan/boards/"+idKagi+"/sprints", http.StatusOK,
 		`{"data":[{"id":"`+idSprintK+`","name":"Sprint 3","status":"PLANNED","createdAt":"2026-11-02T00:00:00Z"}]}`)
-	api.Respond("GET /kaizen/boards/"+idOps+"/backlog", http.StatusOK, `{"data":{"id":"`+idBacklog+`"}}`)
+	api.Respond("GET /kazan/boards/"+idOps+"/backlog", http.StatusOK, `{"data":{"id":"`+idBacklog+`"}}`)
 	clitest.LoginTo(t, api.URL(), clitest.OrgIDAcme)
 	if err := config.Save(config.File{KazanBoards: map[string]string{clitest.OrgIDAcme: idOps}}); err != nil {
 		t.Fatal(err)

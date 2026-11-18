@@ -37,13 +37,13 @@ describe("buildTimeline", () => {
     check(timelineOf("deliver-full"));
   });
 
-  test("a full run lists its push, pull request and Kaizen calls", () => {
+  test("a full run lists its push, pull request and Kazan calls", () => {
     const kinds = flatten(timelineOf("deliver-full")).flatMap((item) =>
       item.kind === "command" ? [item.command] : []
     );
     expect(kinds).toContain("push");
     expect(kinds).toContain("pull-request");
-    expect(kinds).toContain("kaizen");
+    expect(kinds).toContain("kazan");
   });
 
   test("a subagent's push sits under the subagent", () => {
@@ -138,10 +138,10 @@ describe("buildTimeline", () => {
 });
 
 describe("commandKind", () => {
-  test("lists pushes, pull requests and Kaizen calls only", () => {
+  test("lists pushes, pull requests and Kazan calls only", () => {
     expect(commandKind("cd x && git push -u origin b")).toBe("push");
     expect(commandKind("gh pr create --base main")).toBe("pull-request");
-    expect(commandKind("kaizen ticket get KAI-1 --json")).toBe("kaizen");
+    expect(commandKind("kazan ticket get KAI-1 --json")).toBe("kazan");
     expect(commandKind("bun run test")).toBeNull();
   });
 });

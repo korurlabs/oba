@@ -20,7 +20,7 @@ import { useMarkdownEditorComponents } from './markdown-editor-components';
  * the Image extension via:
  *   Image.extend({ addNodeView() { return ReactNodeViewRenderer(ImageNodeView); } })
  *
- * Spec: handoffs/kaizen-markdown-attachments/planning.md sections 6 and 7 #13.
+ * Spec: handoffs/kazan-markdown-attachments/planning.md sections 6 and 7 #13.
  */
 export function ImageNodeView(props: ReactNodeViewProps): React.JSX.Element {
   const { node, editor, deleteNode } = props;

@@ -55,9 +55,9 @@ class ReleaseSignatureIT extends AbstractVersionIT {
                 SourceFile.of(".agents/rules/style.md", FileMode.FILE, bytes("---\npaths: \"src/**\"\n---\nStyle\n")),
                 SourceFile.of(".agents/hooks/dispatch.sh", FileMode.EXECUTABLE, bytes("#!/bin/sh\n")),
                 SourceFile.of(".claude/settings.json", FileMode.FILE, bytes(SETTINGS)),
-                SourceFile.of(".agents/skills/kaizen/SKILL.md", FileMode.FILE,
-                        bytes("---\nname: kaizen\ndescription: Tickets\n---\n# Kaizen\n")),
-                new SourceFile(".claude/skills/kaizen", FileMode.SYMLINK, "../../.agents/skills/kaizen", null, null)));
+                SourceFile.of(".agents/skills/kazan/SKILL.md", FileMode.FILE,
+                        bytes("---\nname: kazan\ndescription: Tickets\n---\n# Kazan\n")),
+                new SourceFile(".claude/skills/kazan", FileMode.SYMLINK, "../../.agents/skills/kazan", null, null)));
         repository = saveRepository(tenant.organization());
     }
 

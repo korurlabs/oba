@@ -59,10 +59,10 @@ class SessionLinkAndDeleteIT extends AbstractSessionIT {
         void ticket_isStoredAsManualWithTheMembersId() throws Exception {
             Setup setup = newSetup();
 
-            MvcResult result = addLink(setup, setup.ada(), link("KAIZEN_TICKET", "SEN-42"));
+            MvcResult result = addLink(setup, setup.ada(), link("KAZAN_TICKET", "SEN-42"));
 
             assertEquals(201, result.getResponse().getStatus());
-            assertEquals("KAIZEN_TICKET", read(result, "$.data.kind"));
+            assertEquals("KAZAN_TICKET", read(result, "$.data.kind"));
             assertEquals("SEN-42", read(result, "$.data.reference"));
             assertEquals("MANUAL", read(result, "$.data.source"));
             assertEquals(setup.ada().user().getId().toString(), read(result, "$.data.createdBy"));
@@ -78,19 +78,19 @@ class SessionLinkAndDeleteIT extends AbstractSessionIT {
                             .with(jwtOf(setup.tenant().admin().getUser()))
                             .header("X-Organization-ID", setup.tenant().id())
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"ticketUrlTemplate\":\"https://kaizen.example/tickets/{key}\"}"))
+                            .content("{\"ticketUrlTemplate\":\"https://kazan.example/tickets/{key}\"}"))
                     .andExpect(status().isOk());
 
-            MvcResult result = addLink(setup, setup.ada(), link("KAIZEN_TICKET", "SEN-42"));
+            MvcResult result = addLink(setup, setup.ada(), link("KAZAN_TICKET", "SEN-42"));
 
-            assertEquals("https://kaizen.example/tickets/SEN-42", read(result, "$.data.url"));
+            assertEquals("https://kazan.example/tickets/SEN-42", read(result, "$.data.url"));
         }
 
         @Test
         void ticket_withoutATemplate_hasNoUrl() throws Exception {
             Setup setup = newSetup();
 
-            MvcResult result = addLink(setup, setup.ada(), link("KAIZEN_TICKET", "SEN-42"));
+            MvcResult result = addLink(setup, setup.ada(), link("KAZAN_TICKET", "SEN-42"));
 
             assertEquals("null", read(result, "$.data.url"));
         }
@@ -110,7 +110,7 @@ class SessionLinkAndDeleteIT extends AbstractSessionIT {
         void reference_isStrippedOfSurroundingWhitespace() throws Exception {
             Setup setup = newSetup();
 
-            MvcResult result = addLink(setup, setup.ada(), link("KAIZEN_TICKET", "  SEN-42  "));
+            MvcResult result = addLink(setup, setup.ada(), link("KAZAN_TICKET", "  SEN-42  "));
 
             assertEquals("SEN-42", read(result, "$.data.reference"));
         }
@@ -119,8 +119,8 @@ class SessionLinkAndDeleteIT extends AbstractSessionIT {
         void sameLinkTwice_returnsTheExistingLinkAndStoresOnce() throws Exception {
             Setup setup = newSetup();
 
-            MvcResult first = addLink(setup, setup.ada(), link("KAIZEN_TICKET", "SEN-42"));
-            MvcResult second = addLink(setup, setup.cy(), link("KAIZEN_TICKET", "SEN-42"));
+            MvcResult first = addLink(setup, setup.ada(), link("KAZAN_TICKET", "SEN-42"));
+            MvcResult second = addLink(setup, setup.cy(), link("KAZAN_TICKET", "SEN-42"));
 
             assertEquals(201, second.getResponse().getStatus());
             assertEquals(read(first, "$.data.id"), read(second, "$.data.id"));
@@ -133,7 +133,7 @@ class SessionLinkAndDeleteIT extends AbstractSessionIT {
             String session = ingestSession(setup.laptop(), remote(), 1, batch -> section(batch, "summary").put("ticket", "KAYA-7"));
 
             MvcResult result = mockMvc.perform(in(setup.tenant(), post("/kaya/sessions/" + session + "/links"), setup.ada().jwt(),
-                    link("KAIZEN_TICKET", "KAYA-7"))).andReturn();
+                    link("KAZAN_TICKET", "KAYA-7"))).andReturn();
 
             assertEquals("RECORDER", read(result, "$.data.source"));
             assertEquals(1L, linkRows(session));
@@ -156,12 +156,12 @@ class SessionLinkAndDeleteIT extends AbstractSessionIT {
             Setup setup = newSetup();
 
             for (String reference : new String[] {"sen-42", "SEN42", "S-1", "SEN-x", "SEN-42 extra"}) {
-                MvcResult result = addLink(setup, setup.ada(), link("KAIZEN_TICKET", reference));
+                MvcResult result = addLink(setup, setup.ada(), link("KAZAN_TICKET", reference));
 
                 assertEquals(422, result.getResponse().getStatus(), reference);
                 assertEquals("KAY_VAL_015", read(result, "$.error.code"));
-                assertEquals("KAIZEN_TICKET_KEY", read(result, "$.error.errorValues.rule"));
-                assertEquals("KAIZEN_TICKET", read(result, "$.error.errorValues.kind"));
+                assertEquals("KAZAN_TICKET_KEY", read(result, "$.error.errorValues.rule"));
+                assertEquals("KAZAN_TICKET", read(result, "$.error.errorValues.kind"));
             }
             assertEquals(0L, linkRows(setup.session()));
         }
@@ -185,11 +185,11 @@ class SessionLinkAndDeleteIT extends AbstractSessionIT {
         void malformedBody_answers422() throws Exception {
             Setup setup = newSetup();
 
-            for (String body : new String[] {"{\"kind\":\"KAIZEN_TICKET\",\"reference\":\"\"}",
-                    "{\"kind\":\"KAIZEN_TICKET\",\"reference\":\"   \"}",
-                    "{\"kind\":\"KAIZEN_TICKET\"}",
+            for (String body : new String[] {"{\"kind\":\"KAZAN_TICKET\",\"reference\":\"\"}",
+                    "{\"kind\":\"KAZAN_TICKET\",\"reference\":\"   \"}",
+                    "{\"kind\":\"KAZAN_TICKET\"}",
                     "{\"reference\":\"SEN-42\"}",
-                    link("KAIZEN_TICKET", "S".repeat(501))}) {
+                    link("KAZAN_TICKET", "S".repeat(501))}) {
                 assertEquals(422, addLink(setup, setup.ada(), body).getResponse().getStatus(), body);
             }
         }
@@ -208,9 +208,9 @@ class SessionLinkAndDeleteIT extends AbstractSessionIT {
         void anyMemberOfTheOrganization_mayAddALink() throws Exception {
             Setup setup = newSetup();
 
-            assertEquals(201, addLink(setup, setup.cy(), link("KAIZEN_TICKET", "SEN-1")).getResponse().getStatus());
+            assertEquals(201, addLink(setup, setup.cy(), link("KAZAN_TICKET", "SEN-1")).getResponse().getStatus());
             assertEquals(201, addLink(setup, jwtOf(setup.tenant().member().getUser()),
-                    link("KAIZEN_TICKET", "SEN-2")).getResponse().getStatus());
+                    link("KAZAN_TICKET", "SEN-2")).getResponse().getStatus());
         }
 
         @Test
@@ -219,7 +219,7 @@ class SessionLinkAndDeleteIT extends AbstractSessionIT {
             Tenant outsiderTenant = newTenant();
             Person outsider = signIn(outsiderTenant, "eve");
 
-            assertEquals(403, addLink(setup, outsider, link("KAIZEN_TICKET", "SEN-1")).getResponse().getStatus());
+            assertEquals(403, addLink(setup, outsider, link("KAZAN_TICKET", "SEN-1")).getResponse().getStatus());
             assertEquals(0L, linkRows(setup.session()));
         }
 
@@ -229,7 +229,7 @@ class SessionLinkAndDeleteIT extends AbstractSessionIT {
             Setup other = newSetup();
 
             MvcResult result = mockMvc.perform(in(other.tenant(), post("/kaya/sessions/" + setup.session() + "/links"),
-                    other.ada().jwt(), link("KAIZEN_TICKET", "SEN-1"))).andReturn();
+                    other.ada().jwt(), link("KAZAN_TICKET", "SEN-1"))).andReturn();
 
             assertEquals(404, result.getResponse().getStatus());
             assertEquals("KAY_NF_001", read(result, "$.error.code"));
@@ -243,7 +243,7 @@ class SessionLinkAndDeleteIT extends AbstractSessionIT {
         @Test
         void link_isRemovedAndTheRestStays() throws Exception {
             Setup setup = newSetup();
-            String keep = read(addLink(setup, setup.ada(), link("KAIZEN_TICKET", "SEN-1")), "$.data.id");
+            String keep = read(addLink(setup, setup.ada(), link("KAZAN_TICKET", "SEN-1")), "$.data.id");
             String drop = read(addLink(setup, setup.ada(), link("PULL_REQUEST", PULL_REQUEST)), "$.data.id");
 
             mockMvc.perform(in(setup.tenant(), delete("/kaya/sessions/" + setup.session() + "/links/" + drop), setup.cy().jwt(), null))
@@ -282,7 +282,7 @@ class SessionLinkAndDeleteIT extends AbstractSessionIT {
         void linkOfAnotherSession_answers404AndStays() throws Exception {
             Setup setup = newSetup();
             String otherSession = ingestSession(setup.laptop(), remote(), 1);
-            String linkId = read(addLink(setup, setup.ada(), link("KAIZEN_TICKET", "SEN-1")), "$.data.id");
+            String linkId = read(addLink(setup, setup.ada(), link("KAZAN_TICKET", "SEN-1")), "$.data.id");
 
             mockMvc.perform(in(setup.tenant(), delete("/kaya/sessions/" + otherSession + "/links/" + linkId), setup.ada().jwt(), null))
                     .andExpect(status().isNotFound());
@@ -294,7 +294,7 @@ class SessionLinkAndDeleteIT extends AbstractSessionIT {
         void sessionOfAnotherOrganization_answers404AndTheLinkStays() throws Exception {
             Setup setup = newSetup();
             Setup other = newSetup();
-            String linkId = read(addLink(setup, setup.ada(), link("KAIZEN_TICKET", "SEN-1")), "$.data.id");
+            String linkId = read(addLink(setup, setup.ada(), link("KAZAN_TICKET", "SEN-1")), "$.data.id");
 
             mockMvc.perform(in(other.tenant(), delete("/kaya/sessions/" + setup.session() + "/links/" + linkId), other.ada().jwt(), null))
                     .andExpect(status().isNotFound());

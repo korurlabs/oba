@@ -22,7 +22,7 @@ const (
 	sprintsJSON = `{"data":[` +
 		`{"id":"` + idS1 + `","name":"Sprint 1","status":"ACTIVE","createdAt":"2026-11-01T09:00:00Z"},` +
 		`{"id":"` + idS2 + `","name":"Sprint 2","status":"PLANNED","createdAt":"2026-11-10T09:00:00Z"}]}`
-	sprintsPath = "/kaizen/boards/" + idOps + "/sprints"
+	sprintsPath = "/kazan/boards/" + idOps + "/sprints"
 )
 
 func newRoot() *cobra.Command {
@@ -44,7 +44,7 @@ func newAPI(t *testing.T) *clitest.MockAPI {
 	clitest.SetupHome(t)
 	clitest.FakeTerminal(t, &stdinIsTerminal, false)
 	api := clitest.NewMockAPI(t)
-	api.Respond("GET /kaizen/boards", http.StatusOK, treeJSON)
+	api.Respond("GET /kazan/boards", http.StatusOK, treeJSON)
 	api.Respond("GET "+sprintsPath, http.StatusOK, sprintsJSON)
 	clitest.LoginTo(t, api.URL(), clitest.OrgIDAcme)
 	if err := config.Save(config.File{KazanBoards: map[string]string{clitest.OrgIDAcme: idOps}}); err != nil {

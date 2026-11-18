@@ -58,9 +58,9 @@ Top level: `nameOverride`, `fullnameOverride`, `imagePullSecrets` and `commonLab
 | `CONFIG_SIGNING_PREVIOUS_KEY_ID`, `CONFIG_SIGNING_PREVIOUS_PUBLIC_KEY`, `CONFIG_SIGNING_PREVIOUS_VALID_TO` | no | The previous signing key, during a key rotation. |
 | `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, `MISTRAL_API_KEY`, `DEEPSEEK_API_KEY`, `GROK_API_KEY` | no | AI providers. |
 | `MS_GRAPH_CLIENT_ID`, `MS_GRAPH_CLIENT_SECRET`, `MS_GRAPH_TENANT_ID` | no | Microsoft Graph, for Outlook mail. |
-| `KAIZEN_GITHUB_APP_ID`, `KAIZEN_GITHUB_INSTALLATION_ID`, `KAIZEN_GITHUB_ORGANIZATION_ID`, `KAIZEN_GITHUB_PRIVATE_KEY` | no | Credentials of the GitHub App that links repositories and pull requests. |
-| `KAIZEN_ALERTMANAGER_ORGANIZATION_ID`, `KAIZEN_ALERTMANAGER_WEBHOOK_TOKEN` | no | The Alertmanager webhook that files incident tickets. |
-| `KAIZEN_EXPO_ACCESS_TOKEN` | no | Push notifications to the mobile app. |
+| `KAZAN_GITHUB_APP_ID`, `KAZAN_GITHUB_INSTALLATION_ID`, `KAZAN_GITHUB_ORGANIZATION_ID`, `KAZAN_GITHUB_PRIVATE_KEY` | no | Credentials of the GitHub App that links repositories and pull requests. |
+| `KAZAN_ALERTMANAGER_ORGANIZATION_ID`, `KAZAN_ALERTMANAGER_WEBHOOK_TOKEN` | no | The Alertmanager webhook that files incident tickets. |
+| `KAZAN_EXPO_ACCESS_TOKEN` | no | Push notifications to the mobile app. |
 | `KAYA_SESSION_RETENTION_CRON` | no | Schedule of the Kaya session clean-up, default `0 30 3 * * *`. |
 
 The chart sets `SPRING_PROFILES_ACTIVE=prod` and `JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=60.0`.
@@ -77,7 +77,7 @@ Every web app reads the same keys:
 | `AUTH_SECRET` | Auth.js session secret, for example `openssl rand -base64 32`. |
 | `AUTH_KEYCLOAK_ISSUER` | Issuer URL of the OpenID Connect realm. |
 | `AUTH_KEYCLOAK_ID`, `AUTH_KEYCLOAK_SECRET` | The OpenID Connect client of this app. |
-| `KAIZEN_URL`, `KAYA_URL`, `KALKAN_URL`, `OTAK_URL`, `ADMIN_URL`, `ACCOUNT_URL` | Public URLs of the other apps, for the app switcher. |
+| `KAZAN_URL`, `KAYA_URL`, `KALKAN_URL`, `OTAK_URL`, `ADMIN_URL`, `ACCOUNT_URL` | Public URLs of the other apps, for the app switcher. |
 
 The chart sets `HOSTNAME=0.0.0.0`, so that Next.js listens on every interface of the pod.
 

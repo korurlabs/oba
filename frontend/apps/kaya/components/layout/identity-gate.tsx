@@ -35,7 +35,7 @@ export const IDENTITY_KEYS = {
  * a user with none Kaya may open (a guest membership does not count) sees
  * "You are not a member of an organization on Kaya". That user stays signed
  * in: the session is shared by every Oba app, so ending it here would also
- * sign the user out of Kaizen, where they may still belong to organizations.
+ * sign the user out of Kazan, where they may still belong to organizations.
  * A member to whom no organization grants Kaya sees "Kaya is not open to you"
  * instead, and so does a user whose call is refused because Kaya is no longer
  * granted in the organization open. A disabled user, refused by every Oba app, sees "Your account is disabled"
@@ -124,7 +124,7 @@ function GatePage({ children }: { children: ReactNode }) {
 
 /**
  * Keeps the session: it is shared by every Oba app, and the user may still
- * belong to organizations in Kaizen. Signing in with another account must end
+ * belong to organizations in Kazan. Signing in with another account must end
  * the browser's Keycloak session first, or the sign-in would silently reuse
  * this account; the sign-out lands on a sign-in that asks for credentials.
  * The account app is offered because the user answers invitations and

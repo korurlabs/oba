@@ -22,11 +22,11 @@ import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
  */
 public enum ResourceAccessType {
 
-    // A Kaizen ticket, reached through the organization of its board.
-    TICKET(App.KAIZEN, OrganizationMemberRole.MEMBER),
+    // A Kazan ticket, reached through the organization of its board.
+    TICKET(App.KAZAN, OrganizationMemberRole.MEMBER),
 
-    // A Kaizen chat message, reached through its channel.
-    CHAT_MESSAGE(App.KAIZEN, OrganizationMemberRole.MEMBER),
+    // A Kazan chat message, reached through its channel.
+    CHAT_MESSAGE(App.KAZAN, OrganizationMemberRole.MEMBER),
 
     // A Kalkan documentation page, reached through its root's level.
     KALKAN_PAGE(App.KALKAN, OrganizationMemberRole.MEMBER),

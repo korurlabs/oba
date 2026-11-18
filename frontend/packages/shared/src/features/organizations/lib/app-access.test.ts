@@ -30,25 +30,25 @@ const me = (organizations?: UserOrganization[]): UserMe => ({
 
 describe("hasApp", () => {
   test("is true for a listed app", () => {
-    expect(hasApp(organization("Korur", ["KAIZEN", "KAYA"]), "KAYA")).toBe(true);
+    expect(hasApp(organization("Korur", ["KAZAN", "KAYA"]), "KAYA")).toBe(true);
   });
 
   test("is false for an unlisted app", () => {
-    expect(hasApp(organization("Korur", ["KAIZEN"]), "KAYA")).toBe(false);
+    expect(hasApp(organization("Korur", ["KAZAN"]), "KAYA")).toBe(false);
   });
 
   test("is false for an empty list and for a missing apps field", () => {
-    expect(hasApp(organization("Korur", []), "KAIZEN")).toBe(false);
-    expect(hasApp(organization("Korur"), "KAIZEN")).toBe(false);
+    expect(hasApp(organization("Korur", []), "KAZAN")).toBe(false);
+    expect(hasApp(organization("Korur"), "KAZAN")).toBe(false);
   });
 });
 
 describe("organizationsWithApp", () => {
   test("keeps only the organizations that list the app", () => {
-    const both = organization("Both", ["KAIZEN", "KAYA"]);
+    const both = organization("Both", ["KAZAN", "KAYA"]);
     const kayaOnly = organization("Kaya", ["KAYA"]);
 
-    expect(organizationsWithApp(me([both, kayaOnly, organization("None")]), "KAIZEN")).toEqual([
+    expect(organizationsWithApp(me([both, kayaOnly, organization("None")]), "KAZAN")).toEqual([
       both,
     ]);
     expect(organizationsWithApp(me([both, kayaOnly]), "KAYA")).toEqual([both, kayaOnly]);
@@ -56,14 +56,14 @@ describe("organizationsWithApp", () => {
 
   test("excludes a DISABLED organization even when it lists the app", () => {
     expect(
-      organizationsWithApp(me([organization("Closed", ["KAIZEN"], "DISABLED")]), "KAIZEN")
+      organizationsWithApp(me([organization("Closed", ["KAZAN"], "DISABLED")]), "KAZAN")
     ).toEqual([]);
   });
 
   test("is empty for an unknown user and for a user without organizations", () => {
-    expect(organizationsWithApp(null, "KAIZEN")).toEqual([]);
-    expect(organizationsWithApp(undefined, "KAIZEN")).toEqual([]);
-    expect(organizationsWithApp(me(), "KAIZEN")).toEqual([]);
+    expect(organizationsWithApp(null, "KAZAN")).toEqual([]);
+    expect(organizationsWithApp(undefined, "KAZAN")).toEqual([]);
+    expect(organizationsWithApp(me(), "KAZAN")).toEqual([]);
   });
 });
 
@@ -73,10 +73,10 @@ describe("canOpenApp", () => {
     expect(canOpenApp(me([]), "account")).toBe(true);
   });
 
-  test("opens kaizen and kaya only where an ACTIVE organization lists the app", () => {
-    const user = me([organization("Korur", ["KAIZEN"])]);
+  test("opens kazan and kaya only where an ACTIVE organization lists the app", () => {
+    const user = me([organization("Korur", ["KAZAN"])]);
 
-    expect(canOpenApp(user, "kaizen")).toBe(true);
+    expect(canOpenApp(user, "kazan")).toBe(true);
     expect(canOpenApp(user, "kaya")).toBe(false);
   });
 
@@ -92,28 +92,28 @@ describe("canOpenApp", () => {
     expect(canOpenApp(null, "otak")).toBe(false);
   });
 
-  test("refuses kaizen and kaya when no membership has apps", () => {
+  test("refuses kazan and kaya when no membership has apps", () => {
     const user = me([organization("Korur"), organization("Other")]);
 
-    expect(canOpenApp(user, "kaizen")).toBe(false);
+    expect(canOpenApp(user, "kazan")).toBe(false);
     expect(canOpenApp(user, "kaya")).toBe(false);
   });
 
-  test("refuses kaizen and kaya when the only grant is in a DISABLED organization", () => {
-    const user = me([organization("Closed", ["KAIZEN", "KAYA"], "DISABLED")]);
+  test("refuses kazan and kaya when the only grant is in a DISABLED organization", () => {
+    const user = me([organization("Closed", ["KAZAN", "KAYA"], "DISABLED")]);
 
-    expect(canOpenApp(user, "kaizen")).toBe(false);
+    expect(canOpenApp(user, "kazan")).toBe(false);
     expect(canOpenApp(user, "kaya")).toBe(false);
   });
 
-  test("refuses kaizen and kaya while the user is unknown", () => {
-    expect(canOpenApp(null, "kaizen")).toBe(false);
+  test("refuses kazan and kaya while the user is unknown", () => {
+    expect(canOpenApp(null, "kazan")).toBe(false);
     expect(canOpenApp(undefined, "kaya")).toBe(false);
   });
 
   test("opens admin only for a user who manages an ACTIVE organization", () => {
     expect(canOpenApp(me([organization("Korur", [], "ACTIVE", "ADMIN")]), "admin")).toBe(true);
-    expect(canOpenApp(me([organization("Korur", ["KAIZEN"])]), "admin")).toBe(false);
+    expect(canOpenApp(me([organization("Korur", ["KAZAN"])]), "admin")).toBe(false);
     expect(canOpenApp(null, "admin")).toBe(false);
   });
 });

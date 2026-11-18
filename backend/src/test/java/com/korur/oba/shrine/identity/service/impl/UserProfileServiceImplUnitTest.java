@@ -147,7 +147,7 @@ class UserProfileServiceImplUnitTest {
                     .status(UserStatus.DISABLED)
                     .build();
             UserDetailResponse response = mock(UserDetailResponse.class);
-            Map<UUID, List<App>> apps = Map.of(UUID.randomUUID(), List.of(App.KAIZEN));
+            Map<UUID, List<App>> apps = Map.of(UUID.randomUUID(), List.of(App.KAZAN));
             when(userRepository.findByKeycloakId(KEYCLOAK_ID)).thenReturn(Optional.of(existing));
             when(appAccessQueryService.listAccessibleAppsByOrganization(existing)).thenReturn(apps);
             when(userMapper.toDetailResponse(existing, apps)).thenReturn(response);

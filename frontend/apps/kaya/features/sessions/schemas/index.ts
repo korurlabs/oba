@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // ── Enum Schemas ───────────────────────────────────────────────────
-export const SessionLinkKindSchema = z.enum(["PULL_REQUEST", "KAIZEN_TICKET"]);
+export const SessionLinkKindSchema = z.enum(["PULL_REQUEST", "KAZAN_TICKET"]);
 export type SessionLinkKind = z.infer<typeof SessionLinkKindSchema>;
 export const SessionLinkKind = SessionLinkKindSchema.enum;
 
@@ -42,7 +42,7 @@ export const sessionQueryRequestSchema = z.object({
 });
 
 /** The forms the server accepts per link kind; a reference that breaks them answers KAY_VAL_015. */
-export const KAIZEN_TICKET_KEY_PATTERN = /^[A-Z][A-Z0-9]+-[0-9]+$/;
+export const KAZAN_TICKET_KEY_PATTERN = /^[A-Z][A-Z0-9]+-[0-9]+$/;
 export const PULL_REQUEST_URL_PATTERN = /^https:\/\/github\.com\/[^/\s]+\/[^/\s]+\/pull\/[0-9]+$/;
 
 /** The body of `POST /sessions/{sessionId}/links`; the server strips the same whitespace. */
@@ -56,7 +56,7 @@ export const sessionLinkCreateRequestSchema = z
       .max(500, "A link has at most 500 characters."),
   })
   .superRefine((link, context) => {
-    if (link.kind === "KAIZEN_TICKET" && !KAIZEN_TICKET_KEY_PATTERN.test(link.reference)) {
+    if (link.kind === "KAZAN_TICKET" && !KAZAN_TICKET_KEY_PATTERN.test(link.reference)) {
       context.addIssue({
         code: "custom",
         path: ["reference"],

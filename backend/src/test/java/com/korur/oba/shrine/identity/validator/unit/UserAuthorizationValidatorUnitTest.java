@@ -53,7 +53,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class UserAuthorizationValidatorUnitTest {
 
-    private static final String PATH = "/kaizen/chat/channels";
+    private static final String PATH = "/kazan/chat/channels";
 
     @Mock
     private UserRepository userRepository;
@@ -300,7 +300,7 @@ class UserAuthorizationValidatorUnitTest {
     @Nested
     class EnsureAppAccess {
 
-        private static final String KAIZEN_PACKAGE = "com.korur.oba.apps.kaizen.board.controller";
+        private static final String KAZAN_PACKAGE = "com.korur.oba.apps.kazan.board.controller";
 
         @ParameterizedTest
         @ValueSource(strings = {
@@ -342,22 +342,22 @@ class UserAuthorizationValidatorUnitTest {
         void grantMissing_throwsAppAccessDeniedNamingTheApp() {
             UUID organizationId = UUID.randomUUID();
             OrganizationMember member = member(organizationId, OrganizationMemberStatus.ACTIVE, OrganizationStatus.ACTIVE);
-            when(appAccessQueryService.hasAppAccess(member, App.KAIZEN)).thenReturn(false);
+            when(appAccessQueryService.hasAppAccess(member, App.KAZAN)).thenReturn(false);
 
             ForbiddenException exception = assertThrows(ForbiddenException.class,
-                    () -> validator.ensureAppAccess(member, KAIZEN_PACKAGE, PATH));
+                    () -> validator.ensureAppAccess(member, KAZAN_PACKAGE, PATH));
 
             assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
             assertEquals("APP_SEC_001", exception.getErrorCode());
-            assertEquals("KAIZEN", exception.getErrorValues().get(AccessConstant.FIELD_APP));
+            assertEquals("KAZAN", exception.getErrorValues().get(AccessConstant.FIELD_APP));
         }
 
         @Test
         void grantPresent_passes() {
             OrganizationMember member = member(UUID.randomUUID(), OrganizationMemberStatus.ACTIVE, OrganizationStatus.ACTIVE);
-            when(appAccessQueryService.hasAppAccess(member, App.KAIZEN)).thenReturn(true);
+            when(appAccessQueryService.hasAppAccess(member, App.KAZAN)).thenReturn(true);
 
-            assertDoesNotThrow(() -> validator.ensureAppAccess(member, KAIZEN_PACKAGE, PATH));
+            assertDoesNotThrow(() -> validator.ensureAppAccess(member, KAZAN_PACKAGE, PATH));
         }
 
         @Test

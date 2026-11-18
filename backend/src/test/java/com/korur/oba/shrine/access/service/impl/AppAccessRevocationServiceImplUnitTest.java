@@ -67,25 +67,25 @@ class AppAccessRevocationServiceImplUnitTest {
             // Arrange
             UUID organizationId = UUID.randomUUID();
             UUID lostBoth = UUID.randomUUID();
-            UUID keptKaizen = UUID.randomUUID();
-            when(appAccessQueryService.hasAppAccess(organizationId, lostBoth, App.KAIZEN)).thenReturn(false);
-            when(appAccessQueryService.hasAppAccess(organizationId, keptKaizen, App.KAIZEN)).thenReturn(true);
+            UUID keptKazan = UUID.randomUUID();
+            when(appAccessQueryService.hasAppAccess(organizationId, lostBoth, App.KAZAN)).thenReturn(false);
+            when(appAccessQueryService.hasAppAccess(organizationId, keptKazan, App.KAZAN)).thenReturn(true);
             when(appAccessQueryService.hasAppAccess(organizationId, lostBoth, App.KAYA)).thenReturn(false);
 
             // Act
             appAccessRevocationServiceImpl.publishLostAppAccess(organizationId, Map.of(
-                    App.KAIZEN, Set.of(lostBoth, keptKaizen), App.KAYA, Set.of(lostBoth)));
+                    App.KAZAN, Set.of(lostBoth, keptKazan), App.KAYA, Set.of(lostBoth)));
 
             // Assert
             InOrder order = inOrder(appGrantRepository, appAccessQueryService);
             order.verify(appGrantRepository).flush();
             order.verify(appAccessQueryService, atLeastOnce()).hasAppAccess(any(), any(), any());
             verify(applicationEventPublisher)
-                    .publishEvent(new AppAccessRevokedEvent(lostBoth, organizationId, App.KAIZEN));
+                    .publishEvent(new AppAccessRevokedEvent(lostBoth, organizationId, App.KAZAN));
             verify(applicationEventPublisher)
                     .publishEvent(new AppAccessRevokedEvent(lostBoth, organizationId, App.KAYA));
             verify(applicationEventPublisher, never())
-                    .publishEvent(new AppAccessRevokedEvent(keptKaizen, organizationId, App.KAIZEN));
+                    .publishEvent(new AppAccessRevokedEvent(keptKazan, organizationId, App.KAZAN));
         }
     }
 }

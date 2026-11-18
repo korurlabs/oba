@@ -16,7 +16,7 @@ const VERSION = {
   baseVersionId: "v-6",
   proposedBy: "user-ada",
   source: "CLI",
-  reason: "Allow the kaizen CLI in every repository",
+  reason: "Allow the oba CLI in every repository",
   executableChange: true,
   manifestSha256: null,
   submittedAt: "2026-10-24T09:00:00Z",

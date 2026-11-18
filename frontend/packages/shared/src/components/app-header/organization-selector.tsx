@@ -49,7 +49,7 @@ export interface OrganizationSelectorProps {
   /**
    * Whether the "sidebar" variant draws the up/down chevron on the right.
    * Defaults to true so every existing caller keeps the chevron it has
-   * today; Kaizen opts out because its sidebar header reads as a title
+   * today; Kazan opts out because its sidebar header reads as a title
    * block rather than a form control. Ignored by the "default" variant,
    * which uses the Select's own chevron.
    */

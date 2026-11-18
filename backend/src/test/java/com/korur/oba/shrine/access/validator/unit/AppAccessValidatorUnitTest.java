@@ -53,7 +53,7 @@ class AppAccessValidatorUnitTest {
         @Test
         void noUsers_passesWithoutAQuery() {
             // Act and assert
-            assertDoesNotThrow(() -> appAccessValidator.ensureUsersHaveAppAccess(UUID.randomUUID(), App.KAIZEN,
+            assertDoesNotThrow(() -> appAccessValidator.ensureUsersHaveAppAccess(UUID.randomUUID(), App.KAZAN,
                     List.of()));
             verifyNoInteractions(appAccessQueryService, loggingService);
         }
@@ -65,11 +65,11 @@ class AppAccessValidatorUnitTest {
             UUID first = UUID.randomUUID();
             UUID second = UUID.randomUUID();
             List<UUID> userIds = List.of(first, second);
-            when(appAccessQueryService.findUserIdsWithAppAccess(organizationId, App.KAIZEN, userIds))
+            when(appAccessQueryService.findUserIdsWithAppAccess(organizationId, App.KAZAN, userIds))
                     .thenReturn(Set.of(first, second));
 
             // Act and assert
-            assertDoesNotThrow(() -> appAccessValidator.ensureUsersHaveAppAccess(organizationId, App.KAIZEN,
+            assertDoesNotThrow(() -> appAccessValidator.ensureUsersHaveAppAccess(organizationId, App.KAZAN,
                     userIds));
             verifyNoInteractions(loggingService);
         }
@@ -81,20 +81,20 @@ class AppAccessValidatorUnitTest {
             UUID holder = UUID.randomUUID();
             UUID refused = UUID.randomUUID();
             List<UUID> userIds = List.of(holder, refused, refused);
-            when(appAccessQueryService.findUserIdsWithAppAccess(organizationId, App.KAIZEN, userIds))
+            when(appAccessQueryService.findUserIdsWithAppAccess(organizationId, App.KAZAN, userIds))
                     .thenReturn(Set.of(holder));
 
             // Act
             ValidationException exception = assertThrows(ValidationException.class,
-                    () -> appAccessValidator.ensureUsersHaveAppAccess(organizationId, App.KAIZEN, userIds));
+                    () -> appAccessValidator.ensureUsersHaveAppAccess(organizationId, App.KAZAN, userIds));
 
             // Assert
             assertEquals("APP_VAL_002", exception.getErrorCode());
             assertEquals(refused, exception.getErrorValues().get(AccessConstant.FIELD_USER_ID));
-            assertEquals("KAIZEN", exception.getErrorValues().get(AccessConstant.FIELD_APP));
+            assertEquals("KAZAN", exception.getErrorValues().get(AccessConstant.FIELD_APP));
             assertEquals(organizationId, exception.getErrorValues().get(OrganizationConstant.FIELD_ORGANIZATION_ID));
             verify(loggingService).warn(any(), eq(LogLayer.VALIDATOR),
-                    eq(AccessExceptionLogConstant.MEMBER_WITHOUT_APP_ACCESS), eq(organizationId), eq(App.KAIZEN),
+                    eq(AccessExceptionLogConstant.MEMBER_WITHOUT_APP_ACCESS), eq(organizationId), eq(App.KAZAN),
                     eq(List.of(refused)));
         }
     }

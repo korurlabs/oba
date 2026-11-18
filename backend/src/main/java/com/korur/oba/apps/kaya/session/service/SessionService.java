@@ -21,7 +21,7 @@ public interface SessionService {
 
 
     /**
-     * Links a Kaizen ticket or a pull request to a session by hand. Adding a link the session already
+     * Links a Kazan ticket or a pull request to a session by hand. Adding a link the session already
      * has returns that link unchanged.
      *
      * @param user           the member adding the link

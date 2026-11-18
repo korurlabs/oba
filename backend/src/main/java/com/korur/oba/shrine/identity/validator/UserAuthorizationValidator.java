@@ -264,7 +264,7 @@ public class UserAuthorizationValidator {
     }
 
     /**
-     * Returns the package segment that names the app, such as kaizen for com.korur.oba.apps.kaizen.board.
+     * Returns the package segment that names the app, such as kazan for com.korur.oba.apps.kazan.board.
      */
     private static String appSegmentOf(String handlerPackage) {
         String rest = handlerPackage.substring(AccessConstant.APP_PACKAGE_PREFIX.length());

@@ -18,7 +18,7 @@ import {
 } from "@/lib/session-activity";
 
 /** The commands the timeline lists; other Bash calls stay off it. */
-export type CommandKind = "push" | "pull-request" | "kaizen";
+export type CommandKind = "push" | "pull-request" | "kazan";
 
 export type TimelineItem =
   | { kind: "prompt"; index: number; at: string; prompt: PromptRun }
@@ -30,7 +30,7 @@ export type TimelineItem =
 export function commandKind(command: string): CommandKind | null {
   if (commandStarts(command, "git push")) return "push";
   if (commandStarts(command, "gh pr create")) return "pull-request";
-  if (commandStarts(command, "kaizen")) return "kaizen";
+  if (commandStarts(command, "kazan")) return "kazan";
   return null;
 }
 

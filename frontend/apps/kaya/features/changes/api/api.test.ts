@@ -44,7 +44,7 @@ describe("change calls", () => {
   test("the list sends its filters as query params; a detail, a submit and a review by version", async () => {
     await changes.listChanges({ page: 2, amount: 25, status: "IN_REVIEW", packId: "p-1" });
     await changes.getChange("v-1");
-    await changes.submitChange("v-1", { reason: "Allow the kaizen CLI" });
+    await changes.submitChange("v-1", { reason: "Allow the oba CLI" });
     await changes.reviewChange("v-1", { decision: "REJECT", comment: "too broad" });
     expect(calls).toEqual([
       {
@@ -53,7 +53,7 @@ describe("change calls", () => {
         config: { params: { page: 2, amount: 25, status: "IN_REVIEW", packId: "p-1" } },
       },
       { method: "GET", url: "/kaya/changes/v-1", config: undefined },
-      { method: "POST", url: "/kaya/changes/v-1/submit", body: { reason: "Allow the kaizen CLI" } },
+      { method: "POST", url: "/kaya/changes/v-1/submit", body: { reason: "Allow the oba CLI" } },
       {
         method: "POST",
         url: "/kaya/changes/v-1/reviews",

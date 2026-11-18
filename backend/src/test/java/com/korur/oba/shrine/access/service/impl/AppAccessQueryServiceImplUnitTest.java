@@ -125,21 +125,21 @@ class AppAccessQueryServiceImplUnitTest {
         void ownerWithoutGrant_hasAccessWithoutReadingGrants() {
             OrganizationMember member = activeMember(OrganizationMemberRole.OWNER);
 
-            assertTrue(appAccessQueryServiceImpl.hasAppAccess(member, App.KAIZEN));
+            assertTrue(appAccessQueryServiceImpl.hasAppAccess(member, App.KAZAN));
             assertTrue(appAccessQueryServiceImpl.hasAppAccess(member, App.KAYA));
 
             verifyNoInteractions(appGrantRepository);
         }
 
         @Test
-        void adminMemberAndGuestWithoutGrant_haveNoAccessToKaizen() {
+        void adminMemberAndGuestWithoutGrant_haveNoAccessToKazan() {
             for (OrganizationMemberRole role : List.of(OrganizationMemberRole.ADMIN, OrganizationMemberRole.MEMBER,
                     OrganizationMemberRole.GUEST)) {
                 OrganizationMember member = activeMember(role);
                 when(appGrantRepository.existsGrantForUser(member.getOrganization().getId(),
-                        member.getUser().getId(), App.KAIZEN)).thenReturn(false);
+                        member.getUser().getId(), App.KAZAN)).thenReturn(false);
 
-                assertFalse(appAccessQueryServiceImpl.hasAppAccess(member, App.KAIZEN), role.name());
+                assertFalse(appAccessQueryServiceImpl.hasAppAccess(member, App.KAZAN), role.name());
             }
         }
 
@@ -147,9 +147,9 @@ class AppAccessQueryServiceImplUnitTest {
         void memberWithGrant_hasAccess() {
             OrganizationMember member = activeMember(OrganizationMemberRole.MEMBER);
             when(appGrantRepository.existsGrantForUser(member.getOrganization().getId(),
-                    member.getUser().getId(), App.KAIZEN)).thenReturn(true);
+                    member.getUser().getId(), App.KAZAN)).thenReturn(true);
 
-            assertTrue(appAccessQueryServiceImpl.hasAppAccess(member, App.KAIZEN));
+            assertTrue(appAccessQueryServiceImpl.hasAppAccess(member, App.KAZAN));
         }
 
         @Test
@@ -166,7 +166,7 @@ class AppAccessQueryServiceImplUnitTest {
             OrganizationMember member = member(organization(UUID.randomUUID(), OrganizationStatus.ACTIVE),
                     user("Ada", "Lovelace"), OrganizationMemberRole.OWNER, OrganizationMemberStatus.DISABLED);
 
-            assertFalse(appAccessQueryServiceImpl.hasAppAccess(member, App.KAIZEN));
+            assertFalse(appAccessQueryServiceImpl.hasAppAccess(member, App.KAZAN));
 
             verifyNoInteractions(appGrantRepository);
         }
@@ -176,14 +176,14 @@ class AppAccessQueryServiceImplUnitTest {
             OrganizationMember member = member(organization(UUID.randomUUID(), OrganizationStatus.DISABLED),
                     user("Ada", "Lovelace"), OrganizationMemberRole.OWNER, OrganizationMemberStatus.ACTIVE);
 
-            assertFalse(appAccessQueryServiceImpl.hasAppAccess(member, App.KAIZEN));
+            assertFalse(appAccessQueryServiceImpl.hasAppAccess(member, App.KAZAN));
 
             verifyNoInteractions(appGrantRepository);
         }
 
         @Test
         void nullMember_hasNoAccess() {
-            assertFalse(appAccessQueryServiceImpl.hasAppAccess((OrganizationMember) null, App.KAIZEN));
+            assertFalse(appAccessQueryServiceImpl.hasAppAccess((OrganizationMember) null, App.KAZAN));
         }
     }
 
@@ -196,7 +196,7 @@ class AppAccessQueryServiceImplUnitTest {
             UUID userId = UUID.randomUUID();
             when(organizationMemberQueryService.findMember(organizationId, userId)).thenReturn(Optional.empty());
 
-            assertFalse(appAccessQueryServiceImpl.hasAppAccess(organizationId, userId, App.KAIZEN));
+            assertFalse(appAccessQueryServiceImpl.hasAppAccess(organizationId, userId, App.KAZAN));
         }
 
         @Test
@@ -205,9 +205,9 @@ class AppAccessQueryServiceImplUnitTest {
             UUID organizationId = member.getOrganization().getId();
             UUID userId = member.getUser().getId();
             when(organizationMemberQueryService.findMember(organizationId, userId)).thenReturn(Optional.of(member));
-            when(appGrantRepository.existsGrantForUser(organizationId, userId, App.KAIZEN)).thenReturn(true);
+            when(appGrantRepository.existsGrantForUser(organizationId, userId, App.KAZAN)).thenReturn(true);
 
-            assertTrue(appAccessQueryServiceImpl.hasAppAccess(organizationId, userId, App.KAIZEN));
+            assertTrue(appAccessQueryServiceImpl.hasAppAccess(organizationId, userId, App.KAZAN));
         }
     }
 
@@ -254,9 +254,9 @@ class AppAccessQueryServiceImplUnitTest {
         void guestWithBothGrants_dropsKayaBelowMinimumRole() {
             OrganizationMember member = activeMember(OrganizationMemberRole.GUEST);
             when(appGrantRepository.existsGrantForUser(member.getOrganization().getId(),
-                    member.getUser().getId(), App.KAIZEN)).thenReturn(true);
+                    member.getUser().getId(), App.KAZAN)).thenReturn(true);
 
-            assertEquals(List.of(App.KAIZEN), appAccessQueryServiceImpl.listAccessibleApps(member));
+            assertEquals(List.of(App.KAZAN), appAccessQueryServiceImpl.listAccessibleApps(member));
         }
 
         @Test
@@ -264,7 +264,7 @@ class AppAccessQueryServiceImplUnitTest {
             OrganizationMember member = activeMember(OrganizationMemberRole.MEMBER);
             UUID organizationId = member.getOrganization().getId();
             UUID userId = member.getUser().getId();
-            when(appGrantRepository.existsGrantForUser(organizationId, userId, App.KAIZEN)).thenReturn(false);
+            when(appGrantRepository.existsGrantForUser(organizationId, userId, App.KAZAN)).thenReturn(false);
             when(appGrantRepository.existsGrantForUser(organizationId, userId, App.KAYA)).thenReturn(true);
 
             assertEquals(List.of(App.KAYA), appAccessQueryServiceImpl.listAccessibleApps(member));
@@ -330,8 +330,8 @@ class AppAccessQueryServiceImplUnitTest {
                     Set.of(adminOrganizationId, guestOrganizationId, ownerOrganizationId)))
                     .thenReturn(List.of(
                             grantRow(adminOrganizationId, App.OTAK),
-                            grantRow(adminOrganizationId, App.KAIZEN),
-                            grantRow(guestOrganizationId, App.KAIZEN),
+                            grantRow(adminOrganizationId, App.KAZAN),
+                            grantRow(guestOrganizationId, App.KAZAN),
                             grantRow(guestOrganizationId, App.KAYA)));
 
             // Act
@@ -340,8 +340,8 @@ class AppAccessQueryServiceImplUnitTest {
             // Assert
             // A guest keeps no Kaya grant, an owner needs no grant, and a closed membership is left out.
             assertEquals(Map.of(
-                    adminOrganizationId, List.of(App.KAIZEN, App.OTAK),
-                    guestOrganizationId, List.of(App.KAIZEN),
+                    adminOrganizationId, List.of(App.KAZAN, App.OTAK),
+                    guestOrganizationId, List.of(App.KAZAN),
                     ownerOrganizationId, List.of(App.values())), apps);
             verify(appGrantRepository, never()).existsGrantForUser(any(), any(), any());
         }
@@ -373,17 +373,17 @@ class AppAccessQueryServiceImplUnitTest {
             OrganizationGroup group = OrganizationGroup.builder().organization(organization).name("beta").build();
             group.setId(UUID.randomUUID());
             AppGrant kayaZoe = AppGrant.builder().organization(organization).app(App.KAYA).user(zoe).build();
-            AppGrant kaizenGroup = AppGrant.builder().organization(organization).app(App.KAIZEN).group(group)
+            AppGrant kazanGroup = AppGrant.builder().organization(organization).app(App.KAZAN).group(group)
                     .build();
-            AppGrant kaizenZoe = AppGrant.builder().organization(organization).app(App.KAIZEN).user(zoe).build();
-            AppGrant kaizenAda = AppGrant.builder().organization(organization).app(App.KAIZEN)
+            AppGrant kazanZoe = AppGrant.builder().organization(organization).app(App.KAZAN).user(zoe).build();
+            AppGrant kazanAda = AppGrant.builder().organization(organization).app(App.KAZAN)
                     .user(user("Ada", "Lovelace")).build();
             when(appGrantRepository.findByOrganization_Id(organizationId))
-                    .thenReturn(List.of(kayaZoe, kaizenZoe, kaizenGroup, kaizenAda));
+                    .thenReturn(List.of(kayaZoe, kazanZoe, kazanGroup, kazanAda));
 
             List<AppGrantResponse> result = appAccessQueryServiceImpl.listGrants(user("Ada", "Lovelace"), organizationId);
 
-            assertEquals(List.of(App.KAIZEN, App.KAIZEN, App.KAIZEN, App.KAYA),
+            assertEquals(List.of(App.KAZAN, App.KAZAN, App.KAZAN, App.KAYA),
                     result.stream().map(AppGrantResponse::app).toList());
             assertEquals("Ada Lovelace", result.get(0).userFullName());
             assertEquals("beta", result.get(1).groupName());
@@ -415,7 +415,7 @@ class AppAccessQueryServiceImplUnitTest {
                     response(memberId, "zed", OrganizationMemberRole.MEMBER, OrganizationMemberStatus.ACTIVE),
                     response(disabledId, "dis", OrganizationMemberRole.MEMBER, OrganizationMemberStatus.DISABLED),
                     response(ownerId, "Amy", OrganizationMemberRole.OWNER, OrganizationMemberStatus.ACTIVE)));
-            when(appGrantRepository.existsGrantForUser(organizationId, memberId, App.KAIZEN)).thenReturn(true);
+            when(appGrantRepository.existsGrantForUser(organizationId, memberId, App.KAZAN)).thenReturn(true);
             when(appGrantRepository.existsGrantForUser(organizationId, memberId, App.KAYA)).thenReturn(false);
 
             List<MemberAppAccessResponse> result = appAccessQueryServiceImpl.listMemberAccess(actor, organizationId);
@@ -424,7 +424,7 @@ class AppAccessQueryServiceImplUnitTest {
             assertEquals(ownerId, result.get(0).userId());
             assertEquals(List.of(App.values()), result.get(0).apps());
             assertEquals(memberId, result.get(1).userId());
-            assertEquals(List.of(App.KAIZEN), result.get(1).apps());
+            assertEquals(List.of(App.KAZAN), result.get(1).apps());
         }
 
         @Test
@@ -451,7 +451,7 @@ class AppAccessQueryServiceImplUnitTest {
         void userGrant_returnsTheTargetUserWithoutAGroupLookup() {
             // Arrange
             User target = user("Ada", "Lovelace");
-            AppGrant grant = AppGrant.builder().app(App.KAIZEN).user(target).build();
+            AppGrant grant = AppGrant.builder().app(App.KAZAN).user(target).build();
 
             // Act
             Set<UUID> result = appAccessQueryServiceImpl.findTargetUserIds(grant);
@@ -466,7 +466,7 @@ class AppAccessQueryServiceImplUnitTest {
             // Arrange
             OrganizationGroup group = OrganizationGroup.builder().name("Engineering").build();
             group.setId(UUID.randomUUID());
-            AppGrant grant = AppGrant.builder().app(App.KAIZEN).group(group).build();
+            AppGrant grant = AppGrant.builder().app(App.KAZAN).group(group).build();
             Set<UUID> groupUsers = Set.of(UUID.randomUUID(), UUID.randomUUID());
             when(organizationGroupQueryService.findGroupUserIds(group)).thenReturn(groupUsers);
 
@@ -484,7 +484,7 @@ class AppAccessQueryServiceImplUnitTest {
         @Test
         void noUsers_returnsEmptyWithoutAQuery() {
             // Act
-            Set<UUID> result = appAccessQueryServiceImpl.findUserIdsWithAppAccess(UUID.randomUUID(), App.KAIZEN,
+            Set<UUID> result = appAccessQueryServiceImpl.findUserIdsWithAppAccess(UUID.randomUUID(), App.KAZAN,
                     List.of());
 
             // Assert
@@ -498,11 +498,11 @@ class AppAccessQueryServiceImplUnitTest {
             UUID organizationId = UUID.randomUUID();
             UUID holderId = UUID.randomUUID();
             UUID otherId = UUID.randomUUID();
-            when(appGrantRepository.findUserIdsWithAppByAppName(organizationId, "KAIZEN", ALL_ROLES,
+            when(appGrantRepository.findUserIdsWithAppByAppName(organizationId, "KAZAN", ALL_ROLES,
                     Set.of(holderId, otherId))).thenReturn(List.of(holderId));
 
             // Act
-            Set<UUID> result = appAccessQueryServiceImpl.findUserIdsWithAppAccess(organizationId, App.KAIZEN,
+            Set<UUID> result = appAccessQueryServiceImpl.findUserIdsWithAppAccess(organizationId, App.KAZAN,
                     List.of(holderId, otherId, holderId));
 
             // Assert
@@ -533,11 +533,11 @@ class AppAccessQueryServiceImplUnitTest {
         void mixedUsersAndApps_returnsTheHoldersOfEachAppAndLeavesOutAppsNobodyHolds() {
             // Arrange
             UUID organizationId = UUID.randomUUID();
-            UUID kaizenHolderId = UUID.randomUUID();
+            UUID kazanHolderId = UUID.randomUUID();
             UUID bothHolderId = UUID.randomUUID();
-            Set<UUID> userIds = Set.of(kaizenHolderId, bothHolderId);
-            when(appGrantRepository.findUserIdsWithAppByAppName(organizationId, "KAIZEN", ALL_ROLES, userIds))
-                    .thenReturn(List.of(kaizenHolderId, bothHolderId));
+            Set<UUID> userIds = Set.of(kazanHolderId, bothHolderId);
+            when(appGrantRepository.findUserIdsWithAppByAppName(organizationId, "KAZAN", ALL_ROLES, userIds))
+                    .thenReturn(List.of(kazanHolderId, bothHolderId));
             when(appGrantRepository.findUserIdsWithAppByAppName(organizationId, "KAYA", MEMBER_AND_ABOVE, userIds))
                     .thenReturn(List.of(bothHolderId));
             when(appGrantRepository.findUserIdsWithAppByAppName(organizationId, "OTAK", MEMBER_AND_ABOVE, userIds))
@@ -545,10 +545,10 @@ class AppAccessQueryServiceImplUnitTest {
 
             // Act
             Map<App, Set<UUID>> result = appAccessQueryServiceImpl.findAppHolders(organizationId,
-                    List.of(App.KAIZEN, App.KAYA, App.OTAK), List.of(kaizenHolderId, bothHolderId));
+                    List.of(App.KAZAN, App.KAYA, App.OTAK), List.of(kazanHolderId, bothHolderId));
 
             // Assert
-            assertEquals(Map.of(App.KAIZEN, Set.of(kaizenHolderId, bothHolderId), App.KAYA, Set.of(bothHolderId)),
+            assertEquals(Map.of(App.KAZAN, Set.of(kazanHolderId, bothHolderId), App.KAYA, Set.of(bothHolderId)),
                     result);
         }
 

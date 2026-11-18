@@ -98,7 +98,7 @@ describe("draft writes", () => {
 describe("override writes", () => {
   test("a base move and a cleared record, by item path", async () => {
     await versions.setOverrideBase("d-1", {
-      path: ".agents/skills/kaizen/",
+      path: ".agents/skills/kazan/",
       baseVersionId: "v-5",
     });
     await versions.clearOverride("d-1", ".agents/rules/a b.md");
@@ -106,7 +106,7 @@ describe("override writes", () => {
       {
         method: "PUT",
         url: "/kaya/drafts/d-1/overrides",
-        body: { path: ".agents/skills/kaizen/", baseVersionId: "v-5" },
+        body: { path: ".agents/skills/kazan/", baseVersionId: "v-5" },
       },
       {
         method: "DELETE",

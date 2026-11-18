@@ -18,8 +18,8 @@ public final class AlertmanagerConstant {
     }
 
     // The webhook runs on its own chain, authenticated by a static bearer token, not a JWT.
-    // The path stays under /kaizen so the receiver URL in the cluster's Alertmanager is unchanged.
-    public static final String ALERTMANAGER_WEBHOOK_PATH_PATTERN = "/kaizen/integrations/alertmanager/**";
+    // The path lives under /kazan, the app whose boards the alerts become incident tickets on.
+    public static final String ALERTMANAGER_WEBHOOK_PATH_PATTERN = "/kazan/integrations/alertmanager/**";
     // Granted only to a caller with the configured token, and required by the webhook chain.
     public static final String AUTHORITY_INTEGRATION_ALERTMANAGER = "INTEGRATION_ALERTMANAGER";
 

@@ -147,10 +147,10 @@ describe("root page redirects", () => {
   test("sends a session with a refresh error to the sign-in", async () => {
     session = { ...ACTIVE, error: AuthError.REFRESH_TOKEN_ERROR };
 
-    const redirected = await redirectOf({ callbackUrl: "https://kaizen.korur.com/home" });
+    const redirected = await redirectOf({ callbackUrl: "https://kazan.korur.com/home" });
 
     expect(redirected.target).toBe(
-      `/api/auth/login?callbackUrl=${encodeURIComponent("https://kaizen.korur.com/home")}`,
+      `/api/auth/login?callbackUrl=${encodeURIComponent("https://kazan.korur.com/home")}`,
     );
   });
 
@@ -166,11 +166,11 @@ describe("root page redirects", () => {
   test("sends a user who has to onboard to /onboarding, keeping the callbackUrl", async () => {
     session = { ...ACTIVE, userStatus: "PENDING_ONBOARDING" };
 
-    const redirected = await redirectOf({ callbackUrl: "https://kaizen.korur.com/home" });
+    const redirected = await redirectOf({ callbackUrl: "https://kazan.korur.com/home" });
 
     expect(redirected.kind).toBe("localized");
     expect(redirected.target).toEqual({
-      href: { pathname: "/onboarding", query: { callbackUrl: "https://kaizen.korur.com/home" } },
+      href: { pathname: "/onboarding", query: { callbackUrl: "https://kazan.korur.com/home" } },
       locale: "en",
     });
   });
@@ -198,10 +198,10 @@ describe("root page redirects", () => {
   });
 
   test("sends an active user to the safe callbackUrl", async () => {
-    const redirected = await redirectOf({ callbackUrl: "https://kaizen.korur.com/home" });
+    const redirected = await redirectOf({ callbackUrl: "https://kazan.korur.com/home" });
 
     expect(redirected.kind).toBe("plain");
-    expect(redirected.target).toBe("https://kaizen.korur.com/home");
+    expect(redirected.target).toBe("https://kazan.korur.com/home");
   });
 
   test("drops a failed sign-in's error from the URL of an active user", async () => {

@@ -1,8 +1,10 @@
 name: Frontend
 
 # Installs the Bun workspace from its lockfile, builds every app and package, then runs the type
-# check and the tests of each workspace that defines them. The build reads no secret: the apps
-# read their URLs and sign-in settings at run time. It publishes nothing.
+# check and the tests of each workspace that defines them, and the lint of the
+# mobile app kazan-mobile, whose build is an `expo export` (no EAS account, no signing). The
+# build reads no secret: the apps read their URLs and sign-in settings at run time. It publishes
+# nothing.
 #
 # Fork safety: `pull_request` only (never `pull_request_target` or `workflow_run`), so a run from a
 # fork gets a read-only token and no secret.
@@ -90,3 +92,9 @@ jobs:
 
       - name: Test
         run: bun turbo run test
+
+      # The mobile app is linted here because nothing else checks it before a store build, and
+      # store builds run by hand with EAS, never in CI.
+      - name: Lint the mobile app
+        working-directory: frontend/apps/kazan-mobile
+        run: bun run lint

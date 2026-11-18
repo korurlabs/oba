@@ -117,7 +117,7 @@ func TestSprintStart(t *testing.T) {
 
 func TestSprintCompleteToASprintOfAnotherBoard(t *testing.T) {
 	api := newAPI(t)
-	api.Respond("GET /kaizen/boards/"+idMob+"/sprints", http.StatusOK, `{"data":[{"id":"m1","name":"Mob 1","status":"PLANNED"}]}`)
+	api.Respond("GET /kazan/boards/"+idMob+"/sprints", http.StatusOK, `{"data":[{"id":"m1","name":"Mob 1","status":"PLANNED"}]}`)
 	api.Respond("POST "+sprintsPath+"/"+idS1+"/complete", http.StatusOK, `{"data":null}`)
 	out, _, err := runCLI(t, "", "kazan", "sprint", "complete", "sprint", "--tickets-to", "sprint",
 		"--target-sprint", "Mob 1", "--target-board", "MOB")

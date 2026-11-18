@@ -36,7 +36,7 @@ public record DeliveryProposalRequest(
         Integer releaseNumber,
 
         @Schema(description = "Why the change is needed, 10 to 1000 characters; the reviewer reads it",
-                requiredMode = Schema.RequiredMode.REQUIRED, example = "Allow the kaizen CLI in every repository")
+                requiredMode = Schema.RequiredMode.REQUIRED, example = "Allow the oba CLI in every repository")
         @NotBlank(message = VersionConstant.REASON_REQUIRED_MESSAGE)
         @Size(min = VersionConstant.REASON_MIN_LENGTH, max = VersionConstant.REASON_MAX_LENGTH,
                 message = VersionConstant.REASON_SIZE_MESSAGE)

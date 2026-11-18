@@ -47,7 +47,7 @@ interface AttachmentListProps {
    * Attachment ids to omit from the rendered list. Attachments are a
    * single flat collection per (entityType, entityId) server-side, so a
    * caller that already renders some of them on another surface passes
-   * their ids here. The kaizen ticket sheet uses this for images
+   * their ids here. The kazan ticket sheet uses this for images
    * embedded in the description: the editor renders them inline, so
    * listing them again would both duplicate them and expose a delete
    * button that would leave a dangling img in the description.

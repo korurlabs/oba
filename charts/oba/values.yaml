@@ -128,7 +128,7 @@ kazan:
   # The image's command, written out so that a pod-mutating webhook that wraps
   # the command sees it. The server path keeps the name of the app's source
   # folder, which the image is built from.
-  command: ["node", ".next/standalone/apps/kaizen/server.js"]
+  command: ["node", ".next/standalone/apps/kazan/server.js"]
   args: []
   containerPort: 8080
   env:

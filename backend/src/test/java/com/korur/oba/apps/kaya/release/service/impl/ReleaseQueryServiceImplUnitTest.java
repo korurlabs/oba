@@ -171,16 +171,16 @@ class ReleaseQueryServiceImplUnitTest {
     @Test
     void getLockViolations_itemOfARequiredOrGuardrailAncestor_isLockedAndAnUnlockedItemIsNot() {
         // Arrange
-        Pack org = pack("org", null, true, List.of(".agents/rules/core.md", ".agents/skills/kaizen/SKILL.md"));
+        Pack org = pack("org", null, true, List.of(".agents/rules/core.md", ".agents/skills/kazan/SKILL.md"));
         Pack village = pack("village", org, false, List.of(".agents/rules/guardrails/no-push.md", ".agents/rules/village.md"));
         Pack kagi = pack("kagi", village, false, List.of());
 
         // Act
         List<Violation> violations = service.getLockViolations(ORGANIZATION, kagi.getId(), List.of(".agents/rules/core.md",
-                ".agents/skills/kaizen/extra.md", ".agents/rules/guardrails/no-push.md", ".agents/rules/village.md"));
+                ".agents/skills/kazan/extra.md", ".agents/rules/guardrails/no-push.md", ".agents/rules/village.md"));
 
         // Assert
-        assertEquals(List.of(".agents/rules/core.md", ".agents/skills/kaizen/", ".agents/rules/guardrails/no-push.md"),
+        assertEquals(List.of(".agents/rules/core.md", ".agents/skills/kazan/", ".agents/rules/guardrails/no-push.md"),
                 violations.stream().map(Violation::path).toList());
         assertTrue(violations.stream().allMatch(violation -> violation.rule() == ViolationRule.OVERRIDE_LOCKED));
         assertEquals(List.of(org.getId(), kagi.getId()), violations.get(0).ownerIds());
@@ -210,7 +210,7 @@ class ReleaseQueryServiceImplUnitTest {
     void getLockedOverrides_parentAddsAPathTheChildAlreadyHolds_isListedWithoutARecordedOverride() {
         // Arrange
         Pack org = pack("org", null, false, List.of(".agents/rules/core.md"));
-        Pack village = pack("village", org, false, List.of(".agents/skills/kaizen/SKILL.md", ".agents/rules/village.md"));
+        Pack village = pack("village", org, false, List.of(".agents/skills/kazan/SKILL.md", ".agents/rules/village.md"));
         when(packQueryService.getDescendantIds(ORGANIZATION, org.getId())).thenReturn(List.of(village.getId()));
         when(itemOverrideQueryService.getEntitiesByVersionIds(eq(ORGANIZATION), anyCollection())).thenReturn(List.of());
         // The parent's next version adds the skill; the child's version, saved before, records no override.
@@ -218,7 +218,7 @@ class ReleaseQueryServiceImplUnitTest {
         when(versionQueryService.getEntityById(ORGANIZATION, added.getId())).thenReturn(added);
         when(versionQueryService.render(ORGANIZATION, added)).thenReturn(List.of(
                 new RenderedFile(".agents/rules/core.md", FileMode.FILE, null, new byte[0], null, UUID.randomUUID(), null),
-                new RenderedFile(".agents/skills/kaizen/SKILL.md", FileMode.FILE, null, new byte[0], null, UUID.randomUUID(), null)));
+                new RenderedFile(".agents/skills/kazan/SKILL.md", FileMode.FILE, null, new byte[0], null, UUID.randomUUID(), null)));
         org.setCurrentVersionId(added.getId());
 
         // Act
@@ -227,7 +227,7 @@ class ReleaseQueryServiceImplUnitTest {
         // Assert
         assertEquals(1, violations.size());
         assertEquals(ViolationRule.OVERRIDE_LOCKED, violations.get(0).rule());
-        assertEquals(".agents/skills/kaizen/", violations.get(0).path());
+        assertEquals(".agents/skills/kazan/", violations.get(0).path());
         assertEquals(List.of(org.getId(), village.getId()), violations.get(0).ownerIds());
     }
 

@@ -53,8 +53,8 @@ class ResourceAccessTypeUnitTest {
 
     @Test
     void getApp_mapsEachTypeToItsApp() {
-        assertEquals(App.KAIZEN, ResourceAccessType.TICKET.getApp());
-        assertEquals(App.KAIZEN, ResourceAccessType.CHAT_MESSAGE.getApp());
+        assertEquals(App.KAZAN, ResourceAccessType.TICKET.getApp());
+        assertEquals(App.KAZAN, ResourceAccessType.CHAT_MESSAGE.getApp());
         assertEquals(App.KALKAN, ResourceAccessType.KALKAN_PAGE.getApp());
     }
 }

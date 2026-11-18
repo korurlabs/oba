@@ -79,7 +79,7 @@ public class OrganizationAccessQueryServiceImpl implements OrganizationAccessQue
                             IdentityConstant.FIELD_ORGANIZATION_STATUS, organization.getStatus().name()));
         }
 
-        // A platform GUEST may read what Kaizen shares with guests, but Kaya holds the
+        // A platform GUEST may read what Kazan shares with guests, but Kaya holds the
         // organization's agent sessions and configuration, so a guest gets no access at all.
         if (member.getRole() == OrganizationMemberRole.GUEST) {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE,

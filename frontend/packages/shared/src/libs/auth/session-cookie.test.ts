@@ -26,14 +26,14 @@ describe("authCookieOverrides on a plain-http AUTH_URL", () => {
   });
 
   test("gives two local apps disjoint handshake cookies and one shared session cookie", () => {
-    const kaizen = authCookieOverrides("http://localhost:3002");
+    const kazan = authCookieOverrides("http://localhost:3002");
     const admin = authCookieOverrides("http://localhost:3016");
 
-    expect(kaizen?.sessionToken?.name).toBe("oba.session-token");
+    expect(kazan?.sessionToken?.name).toBe("oba.session-token");
     expect(admin?.sessionToken?.name).toBe("oba.session-token");
-    const kaizenNames = handshakeNames("http://localhost:3002");
+    const kazanNames = handshakeNames("http://localhost:3002");
     for (const name of handshakeNames("http://localhost:3016")) {
-      expect(kaizenNames).not.toContain(name);
+      expect(kazanNames).not.toContain(name);
     }
   });
 
@@ -51,7 +51,7 @@ describe("authCookieOverrides on a plain-http AUTH_URL", () => {
 
 describe("authCookieOverrides on an https AUTH_URL", () => {
   test("overrides only the parent-domain session cookie in production", () => {
-    expect(authCookieOverrides("https://kaizen.korur.com")).toEqual({
+    expect(authCookieOverrides("https://kazan.korur.com")).toEqual({
       sessionToken: {
         name: "__Secure-authjs.session-token",
         options: { httpOnly: true, sameSite: "lax", path: "/", secure: true, domain: ".korur.com" },
@@ -60,7 +60,7 @@ describe("authCookieOverrides on an https AUTH_URL", () => {
   });
 
   test("overrides only the dev session cookie on a dev host", () => {
-    expect(authCookieOverrides("https://kaizen-dev.korur.com")).toEqual({
+    expect(authCookieOverrides("https://kazan-dev.korur.com")).toEqual({
       sessionToken: {
         name: "__Secure-authjs-dev.session-token",
         options: { httpOnly: true, sameSite: "lax", path: "/", secure: true, domain: ".korur.com" },

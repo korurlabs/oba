@@ -313,16 +313,16 @@ class OrganizationGroupServiceImplUnitTest {
             OrganizationGroup group = customGroup(organization(organizationId), groupId);
             User member = userWithId();
             OrganizationGroupMember row = OrganizationGroupMember.builder().group(group).user(member).build();
-            AppGrant kaizen = AppGrant.builder().group(group).app(App.KAIZEN).build();
+            AppGrant kazan = AppGrant.builder().group(group).app(App.KAZAN).build();
             AppGrant kaya = AppGrant.builder().group(group).app(App.KAYA).build();
             Map<App, Set<UUID>> holders = Map.of(
-                    App.KAIZEN, Set.of(member.getId()), App.KAYA, Set.of(member.getId()));
+                    App.KAZAN, Set.of(member.getId()), App.KAYA, Set.of(member.getId()));
             when(organizationGroupQueryService.getGroupEntity(organizationId, groupId)).thenReturn(group);
             when(organizationGroupMemberRepository.findByGroup_Id(groupId)).thenReturn(List.of(row));
-            when(appGrantRepository.findByGroup_Id(groupId)).thenReturn(List.of(kaizen, kaya));
-            when(accessHelper.appsOf(List.of(kaizen, kaya))).thenReturn(List.of(App.KAIZEN, App.KAYA));
+            when(appGrantRepository.findByGroup_Id(groupId)).thenReturn(List.of(kazan, kaya));
+            when(accessHelper.appsOf(List.of(kazan, kaya))).thenReturn(List.of(App.KAZAN, App.KAYA));
             when(accessHelper.userIdsOf(List.of(row))).thenReturn(Set.of(member.getId()));
-            when(appAccessQueryService.findAppHolders(organizationId, List.of(App.KAIZEN, App.KAYA),
+            when(appAccessQueryService.findAppHolders(organizationId, List.of(App.KAZAN, App.KAYA),
                     Set.of(member.getId()))).thenReturn(holders);
 
             organizationGroupServiceImpl.deleteGroup(actor(), organizationId, groupId);
@@ -330,11 +330,11 @@ class OrganizationGroupServiceImplUnitTest {
             org.mockito.InOrder order = org.mockito.Mockito.inOrder(appAccessQueryService, appAccessRevocationService,
                     organizationGroupRepository);
             order.verify(appAccessQueryService).findAppHolders(organizationId,
-                    List.of(App.KAIZEN, App.KAYA), Set.of(member.getId()));
+                    List.of(App.KAZAN, App.KAYA), Set.of(member.getId()));
             order.verify(organizationGroupRepository).delete(group);
             order.verify(appAccessRevocationService).publishLostAppAccess(organizationId, holders);
             verify(organizationGroupMemberRepository).deleteAll(List.of(row));
-            verify(appGrantRepository).deleteAll(List.of(kaizen, kaya));
+            verify(appGrantRepository).deleteAll(List.of(kazan, kaya));
         }
     }
 

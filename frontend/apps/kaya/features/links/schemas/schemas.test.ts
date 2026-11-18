@@ -39,12 +39,12 @@ describe("links", () => {
 
 describe("dependencies", () => {
   const RESPONSE = {
-    path: ".agents/skills/kaizen/workflows/sprint.md",
+    path: ".agents/skills/kazan/workflows/sprint.md",
     kind: "WORKFLOW",
     linksTo: [],
     usedBy: [
       {
-        path: ".agents/skills/kaizen/SKILL.md",
+        path: ".agents/skills/kazan/SKILL.md",
         kind: "SKILL",
         relation: "SKILL_PART",
         status: "FOUND",

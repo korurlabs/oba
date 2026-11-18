@@ -43,7 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * The group and grant endpoints end to end: the role gate, the status codes, the refusal of another
  * organization's ids, the Everyone group that never changes, soft delete and re-creation, the app
- * revoke events of grant, group and member role writes, and the realtime layer acting on a Kaizen loss
+ * revoke events of grant, group and member role writes, and the realtime layer acting on a Kazan loss
  * and not on a Kaya loss.
  */
 @RecordApplicationEvents
@@ -276,7 +276,7 @@ class GroupAndGrantEndpointsIT extends AbstractTenantIT {
         call(tenant, admin, MockMvcRequestBuilders.post(groupsPath(tenant) + "/" + group + "/members"),
                 "{\"userIds\":[\"" + member.getId() + "\"]}").andExpect(status().isOk());
         call(tenant, admin, MockMvcRequestBuilders.post(grantsPath(tenant)),
-                "{\"app\":\"KAIZEN\",\"groupId\":\"" + group + "\"}").andExpect(status().isCreated());
+                "{\"app\":\"KAZAN\",\"groupId\":\"" + group + "\"}").andExpect(status().isCreated());
 
         call(tenant, admin, MockMvcRequestBuilders.delete(groupsPath(tenant) + "/" + group), null)
                 .andExpect(status().isOk());
@@ -297,11 +297,11 @@ class GroupAndGrantEndpointsIT extends AbstractTenantIT {
     @Test
     void grantApp_toUserAndGroup_answers201AndRepeatingReturnsTheSameGrant() throws Exception {
         UUID group = createGroupThroughApi(tenant, admin, "Engineering");
-        String userBody = "{\"app\":\"KAIZEN\",\"userId\":\"" + member.getId() + "\"}";
+        String userBody = "{\"app\":\"KAZAN\",\"userId\":\"" + member.getId() + "\"}";
 
         String first = call(tenant, admin, MockMvcRequestBuilders.post(grantsPath(tenant)), userBody)
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.app").value("KAIZEN"))
+                .andExpect(jsonPath("$.data.app").value("KAZAN"))
                 .andExpect(jsonPath("$.data.userId").value(member.getId().toString()))
                 .andReturn().getResponse().getContentAsString();
         String second = call(tenant, admin, MockMvcRequestBuilders.post(grantsPath(tenant)), userBody)
@@ -309,7 +309,7 @@ class GroupAndGrantEndpointsIT extends AbstractTenantIT {
         assertEquals((String) JsonPath.read(first, "$.data.id"),
                 JsonPath.read(second, "$.data.id"));
         assertEquals(1, count("SELECT count(*) FROM shrine.organization_app_grants WHERE user_id = ?::uuid "
-                + "AND app = 'KAIZEN'::shrine_app_grant_app_enum AND deleted = FALSE", member.getId().toString()));
+                + "AND app = 'KAZAN'::shrine_app_grant_app_enum AND deleted = FALSE", member.getId().toString()));
 
         call(tenant, admin, MockMvcRequestBuilders.post(grantsPath(tenant)),
                 "{\"app\":\"KAYA\",\"groupId\":\"" + group + "\"}")
@@ -322,11 +322,11 @@ class GroupAndGrantEndpointsIT extends AbstractTenantIT {
     void grantApp_noTargetOrBothTargets_answers422TargetInvalid() throws Exception {
         UUID group = createGroupThroughApi(tenant, admin, "Engineering");
 
-        call(tenant, admin, MockMvcRequestBuilders.post(grantsPath(tenant)), "{\"app\":\"KAIZEN\"}")
+        call(tenant, admin, MockMvcRequestBuilders.post(grantsPath(tenant)), "{\"app\":\"KAZAN\"}")
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.error.code").value("APP_VAL_001"));
         call(tenant, admin, MockMvcRequestBuilders.post(grantsPath(tenant)),
-                "{\"app\":\"KAIZEN\",\"userId\":\"" + member.getId() + "\",\"groupId\":\"" + group + "\"}")
+                "{\"app\":\"KAZAN\",\"userId\":\"" + member.getId() + "\",\"groupId\":\"" + group + "\"}")
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.error.code").value("APP_VAL_001"));
     }
@@ -343,18 +343,18 @@ class GroupAndGrantEndpointsIT extends AbstractTenantIT {
         UUID foreignGroup = createGroupThroughApi(other, other.admin().getUser(), "Foreign");
 
         call(tenant, admin, MockMvcRequestBuilders.post(grantsPath(tenant)),
-                "{\"app\":\"KAIZEN\",\"groupId\":\"" + foreignGroup + "\"}")
+                "{\"app\":\"KAZAN\",\"groupId\":\"" + foreignGroup + "\"}")
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error.code").value("APP_NOT_001"));
         call(tenant, admin, MockMvcRequestBuilders.post(grantsPath(tenant)),
-                "{\"app\":\"KAIZEN\",\"userId\":\"" + other.member().getUser().getId() + "\"}")
+                "{\"app\":\"KAZAN\",\"userId\":\"" + other.member().getUser().getId() + "\"}")
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error.code").value("ORG_NOT_002"));
     }
 
     @Test
     void revokeGrant_grantOfAnotherOrganization_answers404GrantNotFound() throws Exception {
-        UUID foreignGrant = grantIdOf(everyoneGroupId(other), "KAIZEN");
+        UUID foreignGrant = grantIdOf(everyoneGroupId(other), "KAZAN");
 
         call(tenant, admin, MockMvcRequestBuilders.delete(grantsPath(tenant) + "/" + foreignGrant), null)
                 .andExpect(status().isNotFound())
@@ -389,20 +389,20 @@ class GroupAndGrantEndpointsIT extends AbstractTenantIT {
     }
 
     @Test
-    void revokeEveryoneKaizen_publishesTheKaizenEventOnlyForMembersWhoLostKaizen() throws Exception {
+    void revokeEveryoneKazan_publishesTheKazanEventOnlyForMembersWhoLostKazan() throws Exception {
         User keeper = signInMember("keeper");
-        addDirectGrant(tenant, keeper, "KAIZEN");
-        UUID everyoneKaizen = grantIdOf(everyoneGroupId(tenant), "KAIZEN");
+        addDirectGrant(tenant, keeper, "KAZAN");
+        UUID everyoneKazan = grantIdOf(everyoneGroupId(tenant), "KAZAN");
 
-        call(tenant, admin, MockMvcRequestBuilders.delete(grantsPath(tenant) + "/" + everyoneKaizen), null)
+        call(tenant, admin, MockMvcRequestBuilders.delete(grantsPath(tenant) + "/" + everyoneKazan), null)
                 .andExpect(status().isOk());
 
-        Set<UUID> revoked = revokedUsers(App.KAIZEN);
-        assertTrue(revoked.contains(member.getId()), "the MEMBER lost Kaizen");
-        assertTrue(revoked.contains(admin.getId()), "the ADMIN lost Kaizen");
-        assertTrue(!revoked.contains(keeper.getId()), "a direct grant keeps Kaizen, so no event");
-        assertTrue(!revoked.contains(tenant.owner().getUser().getId()), "the OWNER holds Kaizen through the role");
-        assertEquals(Set.of(App.KAIZEN), revokedUsersByApp().keySet(), "only the revoked app is announced");
+        Set<UUID> revoked = revokedUsers(App.KAZAN);
+        assertTrue(revoked.contains(member.getId()), "the MEMBER lost Kazan");
+        assertTrue(revoked.contains(admin.getId()), "the ADMIN lost Kazan");
+        assertTrue(!revoked.contains(keeper.getId()), "a direct grant keeps Kazan, so no event");
+        assertTrue(!revoked.contains(tenant.owner().getUser().getId()), "the OWNER holds Kazan through the role");
+        assertEquals(Set.of(App.KAZAN), revokedUsersByApp().keySet(), "only the revoked app is announced");
         assertEquals(0, applicationEvents.stream(AccessRevokedEvent.class).count(),
                 "the members keep the organization, so no organization access event");
     }
@@ -420,7 +420,7 @@ class GroupAndGrantEndpointsIT extends AbstractTenantIT {
     }
 
     @Test
-    void revokeKayaThenKaizen_onlyTheKaizenLossDropsTheMembersRealtimeTicket() throws Exception {
+    void revokeKayaThenKazan_onlyTheKazanLossDropsTheMembersRealtimeTicket() throws Exception {
         issueRealtimeTicket(tenant, member);
         assertEquals(1, realtimeTicketStore.countLive(member.getId(), Instant.now()));
 
@@ -431,23 +431,23 @@ class GroupAndGrantEndpointsIT extends AbstractTenantIT {
                 "Kaya sends no realtime signals, so its loss keeps the ticket");
 
         call(tenant, admin, MockMvcRequestBuilders.delete(grantsPath(tenant) + "/"
-                + grantIdOf(everyoneGroupId(tenant), "KAIZEN")), null).andExpect(status().isOk());
+                + grantIdOf(everyoneGroupId(tenant), "KAZAN")), null).andExpect(status().isOk());
 
         assertEquals(0, realtimeTicketStore.countLive(member.getId(), Instant.now()),
-                "the Kaizen loss drops the ticket after the commit");
+                "the Kazan loss drops the ticket after the commit");
     }
 
     @Test
-    void deleteKaizenGroup_publishesTheKaizenEventOnlyForUsersWhoLostKaizen() throws Exception {
-        // Start without Everyone's Kaizen grant so that the group is the only source.
+    void deleteKazanGroup_publishesTheKazanEventOnlyForUsersWhoLostKazan() throws Exception {
+        // Start without Everyone's Kazan grant so that the group is the only source.
         call(tenant, admin, MockMvcRequestBuilders.delete(grantsPath(tenant) + "/"
-                + grantIdOf(everyoneGroupId(tenant), "KAIZEN")), null).andExpect(status().isOk());
+                + grantIdOf(everyoneGroupId(tenant), "KAZAN")), null).andExpect(status().isOk());
         User holder = signInMember("holder");
         User keeper = signInMember("keeper");
-        addDirectGrant(tenant, keeper, "KAIZEN");
+        addDirectGrant(tenant, keeper, "KAZAN");
         UUID group = createGroupThroughApi(tenant, admin, "Engineering");
         call(tenant, admin, MockMvcRequestBuilders.post(grantsPath(tenant)),
-                "{\"app\":\"KAIZEN\",\"groupId\":\"" + group + "\"}").andExpect(status().isCreated());
+                "{\"app\":\"KAZAN\",\"groupId\":\"" + group + "\"}").andExpect(status().isCreated());
         call(tenant, admin, MockMvcRequestBuilders.post(groupsPath(tenant) + "/" + group + "/members"),
                 "{\"userIds\":[\"" + holder.getId() + "\",\"" + keeper.getId() + "\"]}").andExpect(status().isOk());
         applicationEvents.clear();
@@ -455,18 +455,18 @@ class GroupAndGrantEndpointsIT extends AbstractTenantIT {
         call(tenant, admin, MockMvcRequestBuilders.delete(groupsPath(tenant) + "/" + group), null)
                 .andExpect(status().isOk());
 
-        assertEquals(Map.of(App.KAIZEN, Set.of(holder.getId())), revokedUsersByApp());
+        assertEquals(Map.of(App.KAZAN, Set.of(holder.getId())), revokedUsersByApp());
     }
 
     @Test
-    void removeUserFromKaizenGroup_publishesTheKaizenEventForThatUser() throws Exception {
-        // Start without Everyone's Kaizen grant so that the group is the only source.
+    void removeUserFromKazanGroup_publishesTheKazanEventForThatUser() throws Exception {
+        // Start without Everyone's Kazan grant so that the group is the only source.
         call(tenant, admin, MockMvcRequestBuilders.delete(grantsPath(tenant) + "/"
-                + grantIdOf(everyoneGroupId(tenant), "KAIZEN")), null).andExpect(status().isOk());
+                + grantIdOf(everyoneGroupId(tenant), "KAZAN")), null).andExpect(status().isOk());
         User holder = signInMember("holder");
         UUID group = createGroupThroughApi(tenant, admin, "Engineering");
         call(tenant, admin, MockMvcRequestBuilders.post(grantsPath(tenant)),
-                "{\"app\":\"KAIZEN\",\"groupId\":\"" + group + "\"}").andExpect(status().isCreated());
+                "{\"app\":\"KAZAN\",\"groupId\":\"" + group + "\"}").andExpect(status().isCreated());
         call(tenant, admin, MockMvcRequestBuilders.post(groupsPath(tenant) + "/" + group + "/members"),
                 "{\"userIds\":[\"" + holder.getId() + "\"]}").andExpect(status().isOk());
         applicationEvents.clear();
@@ -474,7 +474,7 @@ class GroupAndGrantEndpointsIT extends AbstractTenantIT {
         call(tenant, admin, MockMvcRequestBuilders.delete(groupsPath(tenant) + "/" + group + "/members/"
                 + holder.getId()), null).andExpect(status().isOk());
 
-        assertEquals(Map.of(App.KAIZEN, Set.of(holder.getId())), revokedUsersByApp());
+        assertEquals(Map.of(App.KAZAN, Set.of(holder.getId())), revokedUsersByApp());
     }
 
     @Test
@@ -531,7 +531,7 @@ class GroupAndGrantEndpointsIT extends AbstractTenantIT {
                 .collect(Collectors.toMap(Function.identity(), (App app) -> Set.of(secondOwner.getId())));
         assertEquals(expected, revokedUsersByApp(), "an ADMIN without a grant holds no app");
         assertEquals(0, realtimeTicketStore.countLive(secondOwner.getId(), Instant.now()),
-                "the Kaizen loss drops the ticket after the commit");
+                "the Kazan loss drops the ticket after the commit");
         assertEquals(0, applicationEvents.stream(AccessRevokedEvent.class).count(),
                 "the member keeps the organization, so no organization access event");
     }
@@ -544,9 +544,9 @@ class GroupAndGrantEndpointsIT extends AbstractTenantIT {
         changeRole(tenant, admin, member, OrganizationMemberRole.GUEST).andExpect(status().isOk());
 
         assertEquals(Map.of(App.KAYA, Set.of(member.getId()), App.OTAK, Set.of(member.getId())),
-                revokedUsersByApp(), "a GUEST keeps Kaizen and Kalkan through the Everyone grants");
+                revokedUsersByApp(), "a GUEST keeps Kazan and Kalkan through the Everyone grants");
         assertEquals(1, realtimeTicketStore.countLive(member.getId(), Instant.now()),
-                "the member keeps Kaizen, so the ticket stays");
+                "the member keeps Kazan, so the ticket stays");
     }
 
     @Test
