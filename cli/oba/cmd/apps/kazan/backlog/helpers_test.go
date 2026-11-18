@@ -36,7 +36,7 @@ func newAPI(t *testing.T) *clitest.MockAPI {
 	t.Helper()
 	clitest.SetupHome(t)
 	api := clitest.NewMockAPI(t)
-	api.Respond("GET /kaizen/boards", http.StatusOK, treeJSON)
+	api.Respond("GET /kazan/boards", http.StatusOK, treeJSON)
 	clitest.LoginTo(t, api.URL(), clitest.OrgIDAcme)
 	if err := config.Save(config.File{KazanBoards: map[string]string{clitest.OrgIDAcme: idOps}}); err != nil {
 		t.Fatal(err)

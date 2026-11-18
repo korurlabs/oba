@@ -36,3 +36,22 @@ Install a release:
 ```sh
 helm install oba oci://ghcr.io/korurlabs/charts/oba --version X.Y.Z -f my-values.yaml
 ```
+
+## Release the oba CLI
+
+The oba CLI in `cli/oba` has its own version and its own tag, `oba-cli/vX.Y.Z` (or `oba-cli/vX.Y.Z-rc.N`). Pushing it runs `.github/workflows/cli-oba-release.yml`, which tests the module and publishes with goreleaser (`cli/oba/.goreleaser.yaml`):
+
+```sh
+git switch main && git pull
+git tag -a oba-cli/v0.4.0 -m "oba CLI 0.4.0"
+git push origin oba-cli/v0.4.0
+```
+
+| What | Where |
+|---|---|
+| Archives for macOS and Linux on amd64 and arm64, checksums, `install.sh` | release `vX.Y.Z` of `korurlabs/oba-cli` |
+| The Homebrew formula, stable versions only | `Formula/oba-cli.rb` in `korurlabs/homebrew-tap` (`brew install korurlabs/tap/oba-cli`) |
+
+The version must be higher than the latest release of `korurlabs/oba-cli`, or the workflow stops before it publishes. A manual run of the workflow only checks that the release GitHub App can still write to both repositories.
+
+The workflow runs in the GitHub environment `release` and needs, in that environment, the variable `RELEASE_APP_CLIENT_ID` (client id of a GitHub App installed on `korurlabs/oba-cli` and `korurlabs/homebrew-tap` with contents read and write) and the secret `RELEASE_APP_PRIVATE_KEY` (that App's private key). `korurlabs/oba-cli` must hold no tag-triggered workflow of its own.

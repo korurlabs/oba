@@ -19,12 +19,12 @@ const (
 )
 
 func projectRoute(method string) string {
-	return method + " /kaizen/boards/" + idOps + "/projects/" + projectID
+	return method + " /kazan/boards/" + idOps + "/projects/" + projectID
 }
 
 func TestProjectList(t *testing.T) {
 	api := newAPI(t)
-	api.Respond("GET /kaizen/boards/"+idOps+"/projects", http.StatusOK,
+	api.Respond("GET /kazan/boards/"+idOps+"/projects", http.StatusOK,
 		`{"data":[{"id":"p1","name":"Billing","color":"red"},{"id":"p2","name":"Infra","color":null}]}`)
 	out, _, err := runCLI(t, "", "kazan", "project", "list")
 	if err != nil {
@@ -56,12 +56,12 @@ func TestProjectGetForbiddenExitsThree(t *testing.T) {
 // --description is still accepted, so that older scripts run, and never sent.
 func TestProjectCreate(t *testing.T) {
 	api := newAPI(t)
-	api.Respond("POST /kaizen/boards/"+idOps+"/projects", http.StatusCreated, projectJSON)
+	api.Respond("POST /kazan/boards/"+idOps+"/projects", http.StatusCreated, projectJSON)
 	_, _, err := runCLI(t, "", "kazan", "project", "create", "--name", "Billing", "--color", "#3366ff", "--description", "x")
 	if err != nil {
 		t.Fatal(err)
 	}
-	body := api.Request("POST /kaizen/boards/" + idOps + "/projects").Body
+	body := api.Request("POST /kazan/boards/" + idOps + "/projects").Body
 	if body != `{"name":"Billing","color":"#3366ff"}` {
 		t.Errorf("body = %s", body)
 	}
@@ -69,12 +69,12 @@ func TestProjectCreate(t *testing.T) {
 
 func TestProjectCreateOutputAndNoColor(t *testing.T) {
 	api := newAPI(t)
-	api.Respond("POST /kaizen/boards/"+idOps+"/projects", http.StatusCreated, projectJSON)
+	api.Respond("POST /kazan/boards/"+idOps+"/projects", http.StatusCreated, projectJSON)
 	out, _, err := runCLI(t, "", "kazan", "project", "create", "--name", "Billing")
 	if err != nil || out != "Project created: Billing ("+projectID+")\n" {
 		t.Errorf("out %q err %v", out, err)
 	}
-	if body := api.Request("POST /kaizen/boards/" + idOps + "/projects").Body; body != `{"name":"Billing"}` {
+	if body := api.Request("POST /kazan/boards/" + idOps + "/projects").Body; body != `{"name":"Billing"}` {
 		t.Errorf("body = %s", body)
 	}
 }
@@ -145,7 +145,7 @@ func TestProjectDeleteCancelled(t *testing.T) {
 	}
 }
 
-// --json never asks, as kaizen did: an agent reading JSON has nobody to answer.
+// --json never asks: an agent reading JSON has nobody to answer.
 func TestProjectDeleteJSONDoesNotAsk(t *testing.T) {
 	api := newAPI(t)
 	clitest.FakeTerminal(t, &stdinIsTerminal, true)

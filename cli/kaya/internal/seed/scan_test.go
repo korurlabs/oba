@@ -49,7 +49,7 @@ func TestScanRepo_splitsDeliveredFromNotImported(t *testing.T) {
 	write(t, root, ".agents/memory/lessons.md", "lessons\n", 0o644)
 	write(t, root, ".claude/worktrees/a/AGENTS.md", "checkout\n", 0o644)
 	write(t, root, ".claude/worktrees/b/AGENTS.md", "checkout\n", 0o644)
-	link(t, root, ".claude/skills/kaizen", "../../.agents/skills/kaizen")
+	link(t, root, ".claude/skills/kazan", "../../.agents/skills/kazan")
 	write(t, root, ".agents/rules/big.md", strings.Repeat("x", MaxBlobBytes+1), 0o644)
 
 	scan, err := ScanRepo(root)
@@ -61,8 +61,8 @@ func TestScanRepo_splitsDeliveredFromNotImported(t *testing.T) {
 	if dispatch.Mode != client.ModeExecutable || dispatch.SHA256 != sum("#!/bin/sh\n") {
 		t.Errorf("dispatch = %+v", dispatch)
 	}
-	skill := scan.Delivered[".claude/skills/kaizen"]
-	if skill.Mode != client.ModeSymlink || skill.Target != "../../.agents/skills/kaizen" || skill.SHA256 != "" {
+	skill := scan.Delivered[".claude/skills/kazan"]
+	if skill.Mode != client.ModeSymlink || skill.Target != "../../.agents/skills/kazan" || skill.SHA256 != "" {
 		t.Errorf("skill link = %+v", skill)
 	}
 	if _, ok := scan.Delivered[".mcp.json"]; ok {
@@ -198,7 +198,7 @@ func TestInPackNamespace(t *testing.T) {
 		".agents/rules/16-kagi-api-first.md":                            false,
 		".agents/skills/kagi-api-first/SKILL.md":                        true,
 		".agents/skills/kagi/SKILL.md":                                  false,
-		".agents/skills/kaizen/SKILL.md":                                false,
+		".agents/skills/kazan/SKILL.md":                                 false,
 		".claude/skills/kagi-api-first":                                 true,
 		".claude/skills/kagi-api-first/x":                               false,
 		".claude/agents/kagi-reviewer.md":                               true,
@@ -209,7 +209,7 @@ func TestInPackNamespace(t *testing.T) {
 		".agents/templates/kagi/x.md":                                   true,
 		".agents/hooks/kagi/x.sh":                                       false,
 		"docs/private/conventions/projects/kagi/backend/32-x.md":        true,
-		"docs/private/conventions/projects/kaizen/backend/32-x.md":      false,
+		"docs/private/conventions/projects/kazan/backend/32-x.md":       false,
 		"docs/private/conventions/backend/32-soft-delete-convention.md": false,
 		"projects/kagi/AGENTS.md":                                       false,
 		".claude/settings.json":                                         false,
@@ -379,11 +379,11 @@ func TestBuild_refusesBadMounts(t *testing.T) {
 	}
 	for name, mounts := range map[string][]Mount{
 		"nested folders":   {{Name: "kagi", Root: "projects/kagi"}, {Name: "operator", Root: "projects/kagi/operator"}},
-		"one name twice":   {{Name: "kagi", Root: "projects/kagi"}, {Name: "kagi", Root: "projects/kaizen"}},
+		"one name twice":   {{Name: "kagi", Root: "projects/kagi"}, {Name: "kagi", Root: "projects/kazan"}},
 		"the family pack":  {{Name: "village", Root: "projects/kagi"}},
 		"the root pack":    {{Name: "org", Root: "projects/kagi"}},
 		"deprecated pack":  {{Name: "mdf", Root: "projects/kagi"}},
-		"missing folder":   {{Name: "kaizen", Root: "projects/kaizen"}},
+		"missing folder":   {{Name: "kazan", Root: "projects/kazan"}},
 		"a file as folder": {{Name: "app", Root: "projects/kagi/backend/App.java"}},
 	} {
 		if _, err := build(mounts); err == nil {

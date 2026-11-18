@@ -36,7 +36,7 @@
     },
     {
       "at": "2026-10-01T09:00:03Z",
-      "command": "kaizen ticket move KAI-77 IN_REVIEW",
+      "command": "oba kazan ticket move KAI-77 IN_REVIEW",
       "cwd": "{{REPO}}",
       "event": "PreToolUse",
       "seq": 4,

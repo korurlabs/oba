@@ -20,7 +20,7 @@
 //     seed carries one in the root AGENTS.md and one in the mounted pack's folder AGENTS.md,
 //     and the model must report the root codeword without reading anything, the folder
 //     codeword only after reading a file under projects/kagi, and NONE for the folder after
-//     reading a file under projects/kaizen.
+//     reading a file under projects/kazan.
 //     A second real Claude Code session, with the built binary first on its PATH, the e2e
 //     machine token and the test backend in its environment, is recorded by the kaya hook record
 //     rows of the delivered settings and sent by the detached kaya sender: GET /sessions/{id}
@@ -674,7 +674,7 @@ func TestConfigChainOnTheLocalStack(t *testing.T) {
 			".agents/rules/" + mountedPack + "/kagi-api.md": kagiRule,
 			mountFolder + "/AGENTS.md":                      kagiAgentsFile,
 			mountFolder + "/README.md":                      "kagi folder\n",
-			"projects/kaizen/README.md":                     "kaizen folder\n",
+			"projects/kazan/README.md":                      "kazan folder\n",
 			ownFile:                                         "a file only this repository has\n",
 		})
 		mustRun(t, source, "git", "init", "-q")
@@ -1040,8 +1040,8 @@ func TestConfigChainOnTheLocalStack(t *testing.T) {
 			t.Skip("claude is not on the PATH")
 		}
 		writeTree(t, checkout, map[string]string{
-			mountFolder + "/README.md":  "kagi folder\n",
-			"projects/kaizen/README.md": "kaizen folder\n",
+			mountFolder + "/README.md": "kagi folder\n",
+			"projects/kazan/README.md": "kazan folder\n",
 		})
 		settingsLocal := filepath.Join(checkout, ".claude", "settings.local.json")
 		t.Cleanup(func() {
@@ -1105,7 +1105,7 @@ func TestConfigChainOnTheLocalStack(t *testing.T) {
 		if len(kagiLoaded) == 0 {
 			t.Fatal("the InstructionsLoaded hook saw nothing: the hook did not run")
 		}
-		kaizenLoaded, kaizenReply := ask("claude-kaizen", "projects/kaizen/README.md")
+		kazanLoaded, kazanReply := ask("claude-kazan", "projects/kazan/README.md")
 
 		// loadedAfterTheRead requires that suffix was loaded, and not at session start.
 		loadedAfterTheRead := func(t *testing.T, suffix string) {
@@ -1137,18 +1137,18 @@ func TestConfigChainOnTheLocalStack(t *testing.T) {
 		}
 		t.Run("the root AGENTS.md is in context without a read", func(t *testing.T) {
 			wantCodeword(t, kagiReply, "ROOT", rootCodeword)
-			wantCodeword(t, kaizenReply, "ROOT", rootCodeword)
+			wantCodeword(t, kazanReply, "ROOT", rootCodeword)
 		})
 		t.Run("the mounted pack's folder AGENTS.md is in context after the read of a file under its folder", func(t *testing.T) {
 			wantCodeword(t, kagiReply, "FOLDER", folderCodeword)
 		})
 		t.Run("the mounted pack's folder AGENTS.md is not in context for a file under another folder", func(t *testing.T) {
-			wantCodeword(t, kaizenReply, "FOLDER", "NONE")
+			wantCodeword(t, kazanReply, "FOLDER", "NONE")
 		})
 		t.Run("nothing of the mounted pack loads for a file under another folder", func(t *testing.T) {
-			for _, event := range kaizenLoaded {
+			for _, event := range kazanLoaded {
 				if strings.Contains(event.FilePath, "/rules/"+mountedPack+"/") || strings.Contains(event.FilePath, mountFolder) {
-					t.Errorf("reading a file under projects/kaizen loaded %s: %+v", event.FilePath, event)
+					t.Errorf("reading a file under projects/kazan loaded %s: %+v", event.FilePath, event)
 				}
 			}
 		})

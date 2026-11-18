@@ -20,7 +20,7 @@ const (
 	treeJSON = `{"data":[{"id":"` + idOps + `","name":"Operations","prefix":"OPS","childBoards":[` +
 		`{"id":"` + idMob + `","name":"Mobile","prefix":"MOB","childBoards":[]}]}],` +
 		`"pagination":{"currentPage":1,"last":true}}`
-	milestonesPath = "/kaizen/boards/" + idOps + "/milestones"
+	milestonesPath = "/kazan/boards/" + idOps + "/milestones"
 	betaJSON       = `{"id":"` + idBeta + `","name":"Beta","status":"OPEN","targetDate":"2026-12-01","boardId":"` + idOps + `",` +
 		`"boardName":"Operations","boardPrefix":"OPS","doneCount":3,"totalCount":10,"health":"ON_TRACK"}`
 	gaJSON = `{"id":"` + idGA + `","name":"GA","status":"OPEN","startDate":"2026-11-25","targetDate":"2027-01-15","boardId":"` + idOps + `",` +
@@ -47,7 +47,7 @@ func newAPI(t *testing.T) *clitest.MockAPI {
 	clitest.SetupHome(t)
 	clitest.FakeTerminal(t, &stdinIsTerminal, false)
 	api := clitest.NewMockAPI(t)
-	api.Respond("GET /kaizen/boards", http.StatusOK, treeJSON)
+	api.Respond("GET /kazan/boards", http.StatusOK, treeJSON)
 	api.Respond("GET "+milestonesPath, http.StatusOK, milestonesJSON)
 	clitest.LoginTo(t, api.URL(), clitest.OrgIDAcme)
 	if err := config.Save(config.File{KazanBoards: map[string]string{clitest.OrgIDAcme: idOps}}); err != nil {

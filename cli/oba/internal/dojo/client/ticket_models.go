@@ -64,7 +64,7 @@ type Ticket struct {
 	Percentage int `json:"percentage"`
 }
 
-// TicketDetail is one ticket as GET /kaizen/boards/{boardId}/tickets/{id} returns it.
+// TicketDetail is one ticket as GET /kazan/boards/{boardId}/tickets/{id} returns it.
 type TicketDetail struct {
 	Ticket
 	Description    *string `json:"description"`
@@ -73,7 +73,7 @@ type TicketDetail struct {
 	MissionRank    *string `json:"missionRank"`
 }
 
-// TicketCreateRequest is the body of POST /kaizen/boards/{boardId}/tickets. MissionRank is
+// TicketCreateRequest is the body of POST /kazan/boards/{boardId}/tickets. MissionRank is
 // always sent: the API refuses a ticket without its size estimate. DueDate is an RFC 3339
 // instant.
 type TicketCreateRequest struct {
@@ -97,7 +97,7 @@ type TicketCreateRequest struct {
 	DueDate        *string  `json:"dueDate,omitempty"`
 }
 
-// TicketUpdateRequest is the body of PUT /kaizen/boards/{boardId}/tickets/{id}; a nil field is
+// TicketUpdateRequest is the body of PUT /kazan/boards/{boardId}/tickets/{id}; a nil field is
 // left unchanged. It carries no sprint or backlog: placement changes go through the moves.
 type TicketUpdateRequest struct {
 	Title          *string  `json:"title,omitempty"`
@@ -146,7 +146,7 @@ const (
 	RelocationMoveToSprint  = "MOVE_TO_SPRINT"
 )
 
-// TicketBulkMoveRequest is the body of POST /kaizen/boards/{boardId}/tickets/bulk-move. The
+// TicketBulkMoveRequest is the body of POST /kazan/boards/{boardId}/tickets/bulk-move. The
 // backlog is always the one of the board in the path, so the request names none.
 type TicketBulkMoveRequest struct {
 	TicketIDs      []string `json:"ticketIds"`

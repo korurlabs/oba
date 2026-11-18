@@ -4,16 +4,16 @@ stack: oba
 port-block: 26
 requires: ">=0.1.0"
 notes: |
-  Kaizen ${kaizen.url}   Admin ${admin.url}   Account ${account.url}   Otak ${otak.url}   Kalkan ${kalkan.url}   Kaya ${kaya.url}   API ${backend.url}
+  Kazan ${kazan.url}   Admin ${admin.url}   Account ${account.url}   Otak ${otak.url}   Kalkan ${kalkan.url}   Kaya ${kaya.url}   API ${backend.url}
   Keycloak admin console ${keycloak.url}/admin (bootstrap credentials: backend/docker-compose.yaml).
-  backend, kaizen, admin, account, otak, kalkan and kaya are Kagi-bound: each one's kagi.yaml carries a
+  backend, kazan, admin, account, otak, kalkan and kaya are Kagi-bound: each one's kagi.yaml carries a
   local: provider: devstack block owning exactly that unit's env and unset keys,
   so the unit launches through kagi run and devstack's provider layers the values
   written here over the ones Kagi serves. That is how the backend receives
   ENCRYPTION_SECRET, which application.properties:35 binds with no default, and
-  how kaizen, admin, account, otak, kalkan and kaya receive AUTH_SECRET,
+  how kazan, admin, account, otak, kalkan and kaya receive AUTH_SECRET,
   AUTH_KEYCLOAK_ID and AUTH_KEYCLOAK_SECRET. The AUTH_SECRET of admin, account,
-  otak and kalkan must equal Kaizen's, because all five apps read the one shared
+  otak and kalkan must equal Kazan's, because all five apps read the one shared
   session cookie. Kaya has a session cookie of its own, so its AUTH_SECRET may differ.
   Still inert: the backend's unset: keys, because
   application.properties:33,37 are literals.
@@ -39,7 +39,7 @@ infra:
       realms: [sensey]
       heap: small
       clients:
-        sensey/oba: [kaizen, admin, account, otak, kalkan, kaya]
+        sensey/oba: [kazan, admin, account, otak, kalkan, kaya]
     azurite:
       type: azurite
       service: azurite
@@ -87,11 +87,11 @@ apps:
       tcp: {}
       start-period: 180s
 
-  kaizen:
+  kazan:
     type: next
-    path: frontend/apps/kaizen
+    path: frontend/apps/kazan
     offset: 1
-    # frontend/apps/kaizen/kagi.yaml owns every key below; Kagi adds AUTH_SECRET,
+    # frontend/apps/kazan/kagi.yaml owns every key below; Kagi adds AUTH_SECRET,
     # AUTH_KEYCLOAK_ID and AUTH_KEYCLOAK_SECRET, which no manifest may set.
     kagi: true
     depends-on: [frontend-install, keycloak]
@@ -102,7 +102,7 @@ apps:
       # Public URLs, read by the server on each request (runtime config).
       BASE_URL: "${self.url}"
       API_BASE_URL: "${backend.url}"
-      KAIZEN_URL: "${self.url}"
+      KAZAN_URL: "${self.url}"
       ADMIN_URL: "${admin.url}"
       ACCOUNT_URL: "${account.url}"
       OTAK_URL: "${otak.url}"
@@ -124,7 +124,7 @@ apps:
       # Public URLs, read by the server on each request (runtime config).
       BASE_URL: "${self.url}"
       API_BASE_URL: "${backend.url}"
-      KAIZEN_URL: "${kaizen.url}"
+      KAZAN_URL: "${kazan.url}"
       ADMIN_URL: "${self.url}"
       ACCOUNT_URL: "${account.url}"
       OTAK_URL: "${otak.url}"
@@ -146,7 +146,7 @@ apps:
       # Public URLs, read by the server on each request (runtime config).
       BASE_URL: "${self.url}"
       API_BASE_URL: "${backend.url}"
-      KAIZEN_URL: "${kaizen.url}"
+      KAZAN_URL: "${kazan.url}"
       ADMIN_URL: "${admin.url}"
       ACCOUNT_URL: "${self.url}"
       OTAK_URL: "${otak.url}"
@@ -168,7 +168,7 @@ apps:
       # Public URLs, read by the server on each request (runtime config).
       BASE_URL: "${self.url}"
       API_BASE_URL: "${backend.url}"
-      KAIZEN_URL: "${kaizen.url}"
+      KAZAN_URL: "${kazan.url}"
       ADMIN_URL: "${admin.url}"
       ACCOUNT_URL: "${account.url}"
       OTAK_URL: "${self.url}"
@@ -190,7 +190,7 @@ apps:
       # Public URLs, read by the server on each request (runtime config).
       BASE_URL: "${self.url}"
       API_BASE_URL: "${backend.url}"
-      KAIZEN_URL: "${kaizen.url}"
+      KAZAN_URL: "${kazan.url}"
       ADMIN_URL: "${admin.url}"
       ACCOUNT_URL: "${account.url}"
       OTAK_URL: "${otak.url}"
@@ -212,7 +212,7 @@ apps:
       # Public URLs, read by the server on each request (runtime config).
       BASE_URL: "${self.url}"
       API_BASE_URL: "${backend.url}"
-      KAIZEN_URL: "${kaizen.url}"
+      KAZAN_URL: "${kazan.url}"
       ADMIN_URL: "${admin.url}"
       ACCOUNT_URL: "${account.url}"
       OTAK_URL: "${otak.url}"

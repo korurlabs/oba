@@ -7,8 +7,8 @@ import (
 	"strconv"
 )
 
-// Board is one Kazan board as GET /kaizen/boards lists it (BoardListWithChildrenResponse) and
-// GET /kaizen/boards/{id} returns it (BoardListResponse). ChildBoards is set by the list with
+// Board is one Kazan board as GET /kazan/boards lists it (BoardListWithChildrenResponse) and
+// GET /kazan/boards/{id} returns it (BoardListResponse). ChildBoards is set by the list with
 // includeChildren only, at every depth of the board tree. Raw keeps the board as the API sent
 // it, child boards included, so that --json can print a filtered tree without losing fields.
 type Board struct {
@@ -41,7 +41,7 @@ type BoardMemberRequest struct {
 	Role   string `json:"role"`
 }
 
-// BoardCreateRequest is the body of POST /kaizen/boards.
+// BoardCreateRequest is the body of POST /kazan/boards.
 type BoardCreateRequest struct {
 	Name          string               `json:"name"`
 	Description   string               `json:"description,omitempty"`
@@ -52,7 +52,7 @@ type BoardCreateRequest struct {
 	Members       []BoardMemberRequest `json:"members,omitempty"`
 }
 
-// BoardUpdateRequest is the body of PUT /kaizen/boards/{id}; a nil field is left unchanged.
+// BoardUpdateRequest is the body of PUT /kazan/boards/{id}; a nil field is left unchanged.
 type BoardUpdateRequest struct {
 	Name        *string `json:"name,omitempty"`
 	Description *string `json:"description,omitempty"`

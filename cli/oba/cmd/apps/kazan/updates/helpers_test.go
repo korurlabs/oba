@@ -28,7 +28,7 @@ const (
 	ticket1JSON      = `{"data":{"id":"` + idTicket1 + `","key":"OPS-7","title":"Menu","status":"IN_PROGRESS","percentage":30}}`
 	ticket2JSON      = `{"data":{"id":"` + idTicket2 + `","key":"KAGI-2","title":"Vault","status":"TODO","percentage":55}}`
 
-	updatesPath = "/kaizen/updates"
+	updatesPath = "/kazan/updates"
 	updatePath  = updatesPath + "/" + idUpdate
 )
 
@@ -49,11 +49,11 @@ func newAPI(t *testing.T) *clitest.MockAPI {
 	clitest.SetupHome(t)
 	clitest.FakeTerminal(t, &stdinIsTerminal, false)
 	api := clitest.NewMockAPI(t)
-	api.Respond("GET /kaizen/boards", http.StatusOK, treeJSON)
-	api.Respond("GET /kaizen/tickets/by-key/OPS-7", http.StatusOK, ticket1ByKeyJSON)
-	api.Respond("GET /kaizen/tickets/by-key/KAGI-2", http.StatusOK, ticket2ByKeyJSON)
-	api.Respond("GET /kaizen/boards/"+idOps+"/tickets/"+idTicket1, http.StatusOK, ticket1JSON)
-	api.Respond("GET /kaizen/boards/"+idKagi+"/tickets/"+idTicket2, http.StatusOK, ticket2JSON)
+	api.Respond("GET /kazan/boards", http.StatusOK, treeJSON)
+	api.Respond("GET /kazan/tickets/by-key/OPS-7", http.StatusOK, ticket1ByKeyJSON)
+	api.Respond("GET /kazan/tickets/by-key/KAGI-2", http.StatusOK, ticket2ByKeyJSON)
+	api.Respond("GET /kazan/boards/"+idOps+"/tickets/"+idTicket1, http.StatusOK, ticket1JSON)
+	api.Respond("GET /kazan/boards/"+idKagi+"/tickets/"+idTicket2, http.StatusOK, ticket2JSON)
 	clitest.LoginTo(t, api.URL(), clitest.OrgIDAcme)
 	return api
 }

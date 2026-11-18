@@ -26,7 +26,7 @@ func TestResolveTicketByKeyTakesTheTicketsBoard(t *testing.T) {
 	if got != (Target{Ref: "ops-12", ID: idTicket, BoardID: idOps, Key: "OPS-12"}) {
 		t.Errorf("got %+v", got)
 	}
-	if strings.Join(api.Calls(), ",") != "GET /kaizen/boards,GET /kaizen/tickets/by-key/OPS-12" {
+	if strings.Join(api.Calls(), ",") != "GET /kazan/boards,GET /kazan/tickets/by-key/OPS-12" {
 		t.Errorf("calls = %v", api.Calls())
 	}
 	if warn.Len() != 0 {
@@ -69,14 +69,14 @@ func TestResolveTicketByIDUsesTheSelectedBoard(t *testing.T) {
 	if err != nil || got.BoardID != idOps {
 		t.Fatalf("got %+v, %v", got, err)
 	}
-	if strings.Join(api.Calls(), ",") != "GET /kaizen/boards" {
+	if strings.Join(api.Calls(), ",") != "GET /kazan/boards" {
 		t.Errorf("calls = %v", api.Calls())
 	}
 }
 
 func TestResolveTicketNotFoundIsA404(t *testing.T) {
 	api, c := newAPI(t)
-	api.Respond("GET /kaizen/tickets/by-key/OPS-99", http.StatusNotFound, `{"error":{"code":"KAI_NF","message":"nope"}}`)
+	api.Respond("GET /kazan/tickets/by-key/OPS-99", http.StatusNotFound, `{"error":{"code":"KAI_NF","message":"nope"}}`)
 	for ref, want := range map[string]string{
 		"OPS-99":  `ticket "OPS-99" not found`,
 		"NOPE-1":  `no board with prefix "NOPE" is available to you`,

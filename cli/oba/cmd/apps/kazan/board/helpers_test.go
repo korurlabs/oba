@@ -39,7 +39,7 @@ func newBoardAPI(t *testing.T) *clitest.MockAPI {
 	clitest.SetupHome(t)
 	clitest.FakeTerminal(t, &stdinIsTerminal, false)
 	api := clitest.NewMockAPI(t)
-	api.Respond("GET /kaizen/boards", http.StatusOK, treeJSON)
+	api.Respond("GET /kazan/boards", http.StatusOK, treeJSON)
 	clitest.LoginTo(t, api.URL(), clitest.OrgIDAcme)
 	return api
 }

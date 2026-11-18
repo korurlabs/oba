@@ -43,7 +43,7 @@ func setup(t *testing.T) (*clitest.MockAPI, *client.Client) {
 	t.Helper()
 	clitest.SetupHome(t)
 	api := clitest.NewMockAPI(t)
-	api.Respond("GET /kaizen/boards", http.StatusOK, `{"data":[{"id":"`+idOps+`","name":"Operations","prefix":"OPS"}],`+
+	api.Respond("GET /kazan/boards", http.StatusOK, `{"data":[{"id":"`+idOps+`","name":"Operations","prefix":"OPS"}],`+
 		`"pagination":{"currentPage":1,"last":true}}`)
 	return api, client.NewWithToken(api.URL(), clitest.OrgIDAcme, "tok")
 }

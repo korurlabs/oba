@@ -77,7 +77,7 @@
     },
     {
       "at": "2026-10-01T09:00:09Z",
-      "command": "kaizen ticket get KAI-45 --json",
+      "command": "oba kazan ticket get KAI-45 --json",
       "cwd": "{{REPO}}",
       "event": "PreToolUse",
       "seq": 10,
@@ -218,7 +218,7 @@
     },
     {
       "at": "2026-10-01T09:00:23Z",
-      "command": "kaizen ticket list",
+      "command": "oba kazan ticket list",
       "cwd": "{{REPO}}",
       "event": "PostToolUseFailure",
       "ok": false,

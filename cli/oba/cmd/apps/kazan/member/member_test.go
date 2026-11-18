@@ -12,7 +12,7 @@ import (
 
 const (
 	userID      = "0b000000-0000-4000-8000-000000000001"
-	membersPath = "/kaizen/boards/" + idOps + "/members"
+	membersPath = "/kazan/boards/" + idOps + "/members"
 	memberJSON  = `{"data":{"id":"m1","userId":"` + userID + `","email":"ana@example.com","role":"ADMIN"}}`
 	orgMembers  = `{"data":[{"id":"o1","userId":"` + userID + `","email":"Ana@Example.com","role":"MEMBER","status":"ACTIVE"}]}`
 )

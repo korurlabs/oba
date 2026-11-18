@@ -601,10 +601,10 @@ func TestCollect_findsTheAgentsFileOfAProjectFolder(t *testing.T) {
 		t.Fatalf("check: %v", err)
 	}
 
-	write(t, root, "projects/kaizen/AGENTS.md", "# Kaizen\n", 0o644)
-	write(t, root, "projects/kaizen/cli/AGENTS.md", "stays in git\n", 0o644)
-	changes, err = Collect(src, []string{"projects/kaizen"}, nil)
-	if err != nil || describe(changes) != "A projects/kaizen/AGENTS.md" {
+	write(t, root, "projects/kazan/AGENTS.md", "# Kazan\n", 0o644)
+	write(t, root, "projects/kazan/cli/AGENTS.md", "stays in git\n", 0o644)
+	changes, err = Collect(src, []string{"projects/kazan"}, nil)
+	if err != nil || describe(changes) != "A projects/kazan/AGENTS.md" {
 		t.Fatalf("named folder:\n%s\nerr = %v", describe(changes), err)
 	}
 

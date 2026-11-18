@@ -127,7 +127,7 @@
     },
     {
       "at": "2026-10-01T09:00:11Z",
-      "command": "kaizen ticket get KAI-42 --json",
+      "command": "oba kazan ticket get KAI-42 --json",
       "cwd": "{{REPO}}",
       "event": "PostToolUseFailure",
       "ok": false,

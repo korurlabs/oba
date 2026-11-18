@@ -4,7 +4,7 @@ Oba is an application platform: one API and one web workspace that host several 
 
 | App | What it does |
 |---|---|
-| Kaizen | Workflow management: projects, boards, tickets, sprints, milestones, a roadmap and incidents. |
+| Kazan | Workflow management: projects, boards, tickets, sprints, milestones, a roadmap and incidents. |
 | Kaya | The agent configuration and session log of AI coding agents: rules, skills and lessons delivered to sessions as signed releases, and the sessions recorded back. |
 | Kalkan | A docs app: pages that developers and agents read and write from the browser or the terminal. |
 | Otak | Relations: leads, customers and suppliers, their contacts, events, document and mail templates, and outreach. |
@@ -14,7 +14,7 @@ Oba is an application platform: one API and one web workspace that host several 
 ## Stack
 
 - Backend: Spring Boot 3.5, Java 25, Maven; PostgreSQL 16 with Flyway migrations; Keycloak for sign-in; Azure Blob Storage (Azurite locally) for files.
-- Frontend: a Bun and Turborepo workspace of Next.js 16 apps with React 19 and Tailwind CSS v4, sharing the packages `@oba/ui` and `@oba/shared`; `kaizen-mobile` is an Expo app.
+- Frontend: a Bun and Turborepo workspace of Next.js 16 apps with React 19 and Tailwind CSS v4, sharing the packages `@oba/ui` and `@oba/shared`; `kazan-mobile` is an Expo app.
 - CLIs: Go 1.26 modules.
 
 ## Layout
@@ -23,7 +23,7 @@ Oba is an application platform: one API and one web workspace that host several 
 backend/             the Oba API (package com.korur.oba): apps under apps.<app>, platform packages dojo, shrine, connect
   docker-compose.yaml    PostgreSQL, Keycloak (realm "sensey", imported on start) and Azurite for local development
 frontend/            the Bun workspace
-  apps/              kaizen, kaya, kalkan, otak, admin, account, kaizen-mobile
+  apps/              kazan, kaya, kalkan, otak, admin, account, kazan-mobile
   packages/          ui, shared
   tooling/           eslint, prettier and typescript configs
 cli/
@@ -64,11 +64,11 @@ The API listens on `http://localhost:8080` and Flyway migrates the database on s
 ```sh
 cd frontend
 bun install
-cd apps/kaizen
+cd apps/kazan
 bun run dev
 ```
 
-Each web app has a fixed dev port (`kaizen` 3002, `kaya` 3014, `admin` 3016, `account` 3017, `otak` 3018, `kalkan` 3019). An app reads its settings from the environment at run time: `API_BASE_URL` (`http://localhost:8080`), `AUTH_URL` and `BASE_URL` (the app's own URL), `AUTH_SECRET` (any random string; Kaizen, Admin, Account, Otak and Kalkan share one session cookie, so they need the same value), and `AUTH_KEYCLOAK_ISSUER` (`http://localhost:8086/realms/sensey`), `AUTH_KEYCLOAK_ID` (`oba`) and `AUTH_KEYCLOAK_SECRET` (the secret of the `oba` client in the imported realm). The URLs of the other apps go in `KAIZEN_URL`, `KAYA_URL`, `KALKAN_URL`, `OTAK_URL`, `ADMIN_URL` and `ACCOUNT_URL`.
+Each web app has a fixed dev port (`kazan` 3002, `kaya` 3014, `admin` 3016, `account` 3017, `otak` 3018, `kalkan` 3019). An app reads its settings from the environment at run time: `API_BASE_URL` (`http://localhost:8080`), `AUTH_URL` and `BASE_URL` (the app's own URL), `AUTH_SECRET` (any random string; Kazan, Admin, Account, Otak and Kalkan share one session cookie, so they need the same value), and `AUTH_KEYCLOAK_ISSUER` (`http://localhost:8086/realms/sensey`), `AUTH_KEYCLOAK_ID` (`oba`) and `AUTH_KEYCLOAK_SECRET` (the secret of the `oba` client in the imported realm). The URLs of the other apps go in `KAZAN_URL`, `KAYA_URL`, `KALKAN_URL`, `OTAK_URL`, `ADMIN_URL` and `ACCOUNT_URL`.
 
 ### With devstack
 

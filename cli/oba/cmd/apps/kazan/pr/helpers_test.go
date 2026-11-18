@@ -19,9 +19,9 @@ const (
 	idTicket  = "0b000000-0000-4000-8000-000000000001"
 	idTicket2 = "0b000000-0000-4000-8000-000000000002"
 
-	sharesPath  = "/kaizen/pull-request-shares"
+	sharesPath  = "/kazan/pull-request-shares"
 	sharePath   = sharesPath + "/" + idShare
-	reposPath   = "/kaizen/github/repositories"
+	reposPath   = "/kazan/github/repositories"
 	pullsPath   = reposPath + "/101/pull-requests"
 	membersPath = "/organizations/" + clitest.OrgIDAcme + "/members"
 
@@ -68,8 +68,8 @@ func newAPI(t *testing.T) *clitest.MockAPI {
 	api.Respond("GET "+membersPath, http.StatusOK, membersJSON)
 	api.Respond("GET "+reposPath, http.StatusOK, reposJSON)
 	api.Respond("GET "+pullsPath+"/688", http.StatusOK, pullJSON("OPEN"))
-	api.Respond("GET /kaizen/boards", http.StatusOK, treeJSON)
-	api.Respond("GET /kaizen/tickets/by-key/OPS-12", http.StatusOK, ticketJSON)
+	api.Respond("GET /kazan/boards", http.StatusOK, treeJSON)
+	api.Respond("GET /kazan/tickets/by-key/OPS-12", http.StatusOK, ticketJSON)
 	api.Respond("GET "+sharePath, http.StatusOK, shareJSON)
 	clitest.LoginTo(t, api.URL(), clitest.OrgIDAcme)
 	return api

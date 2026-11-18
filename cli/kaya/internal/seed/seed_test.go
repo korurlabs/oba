@@ -62,7 +62,7 @@ func fixture(t *testing.T) (agents, repo string) {
 	agents = t.TempDir()
 	write(t, agents, "packs/org/rules/core.md", "core\n", 0o644)
 	write(t, agents, "packs/org/hooks/dispatch.sh", "#!/bin/sh\n", 0o755)
-	write(t, agents, "packs/org/skills/kaizen/SKILL.md", "kaizen\n", 0o644)
+	write(t, agents, "packs/org/skills/kazan/SKILL.md", "kazan\n", 0o644)
 	write(t, agents, "packs/org/agents/coding-engineer.md", "engineer\n", 0o644)
 	write(t, agents, "packs/org/README.md", "pack readme\n", 0o644)
 	write(t, agents, "packs/village/plugins/mod/plugin.json", "{}\n", 0o644)
@@ -74,8 +74,8 @@ func fixture(t *testing.T) (agents, repo string) {
 	repo = t.TempDir()
 	write(t, repo, ".agents/rules/core.md", "core\n", 0o644)
 	write(t, repo, ".agents/hooks/dispatch.sh", "#!/bin/sh\n", 0o755)
-	write(t, repo, ".agents/skills/kaizen/SKILL.md", "kaizen\n", 0o644)
-	link(t, repo, ".claude/skills/kaizen", "../../.agents/skills/kaizen")
+	write(t, repo, ".agents/skills/kazan/SKILL.md", "kazan\n", 0o644)
+	link(t, repo, ".claude/skills/kazan", "../../.agents/skills/kazan")
 	write(t, repo, ".claude/agents/coding-engineer.md", "engineer, edited here\n", 0o644)
 	write(t, repo, ".claude/skills/mod/plugin.json", "{}\n", 0o644)
 	write(t, repo, ".agents/rules/00-project-registry.md", "registry\n", 0o644)
@@ -92,8 +92,8 @@ func fixture(t *testing.T) (agents, repo string) {
 		Files: map[string]string{
 			".agents/rules/core.md":             sum("core\n"),
 			".agents/hooks/dispatch.sh":         sum("#!/bin/sh\n"),
-			".agents/skills/kaizen/SKILL.md":    sum("kaizen\n"),
-			".claude/skills/kaizen":             "symlink:../../.agents/skills/kaizen",
+			".agents/skills/kazan/SKILL.md":     sum("kazan\n"),
+			".claude/skills/kazan":              "symlink:../../.agents/skills/kazan",
 			".claude/agents/coding-engineer.md": sum("engineer\n"),
 			".claude/skills/mod/plugin.json":    sum("{}\n"),
 		},
@@ -171,8 +171,8 @@ func TestBuild_mapsPacksToConsumerPaths(t *testing.T) {
 	cases := map[string]client.SeedFile{
 		".agents/rules/core.md":             {Path: ".agents/rules/core.md", SHA256: sum("core\n"), Mode: client.ModeFile},
 		".agents/hooks/dispatch.sh":         {Path: ".agents/hooks/dispatch.sh", SHA256: sum("#!/bin/sh\n"), Mode: client.ModeExecutable},
-		".agents/skills/kaizen/SKILL.md":    {Path: ".agents/skills/kaizen/SKILL.md", SHA256: sum("kaizen\n"), Mode: client.ModeFile},
-		".claude/skills/kaizen":             {Path: ".claude/skills/kaizen", Mode: client.ModeSymlink, SymlinkTarget: "../../.agents/skills/kaizen"},
+		".agents/skills/kazan/SKILL.md":     {Path: ".agents/skills/kazan/SKILL.md", SHA256: sum("kazan\n"), Mode: client.ModeFile},
+		".claude/skills/kazan":              {Path: ".claude/skills/kazan", Mode: client.ModeSymlink, SymlinkTarget: "../../.agents/skills/kazan"},
 		".claude/agents/coding-engineer.md": {Path: ".claude/agents/coding-engineer.md", SHA256: sum("engineer\n"), Mode: client.ModeFile},
 	}
 	for path, want := range cases {
@@ -304,15 +304,15 @@ func TestBuild_repositoryWithoutFamilyPackGetsAPackNamedAfterIt(t *testing.T) {
 
 func TestBuild_repoPackChoosesTheFamilyPack(t *testing.T) {
 	agents, repo := fixture(t)
-	write(t, agents, "packs/kaizen/rules/kaizen.md", "kaizen\n", 0o644)
+	write(t, agents, "packs/kazan/rules/kazan.md", "kazan\n", 0o644)
 	git(t, agents, "add", ".")
-	git(t, agents, "commit", "-q", "-m", "kaizen")
-	writeManaged(t, repo, []string{"org", "village", "kaizen"})
+	git(t, agents, "commit", "-q", "-m", "kazan")
+	writeManaged(t, repo, []string{"org", "village", "kazan"})
 	plan, err := Build(Options{AgentsDir: agents, RepoDirs: []string{repo}})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, ok := fileOf(findSet(t, plan, client.KindPack, "kaizen"), ".agents/rules/00-project-registry.md"); !ok {
+	if _, ok := fileOf(findSet(t, plan, client.KindPack, "kazan"), ".agents/rules/00-project-registry.md"); !ok {
 		t.Error("without --repo-pack the last listed pack takes the repository's files")
 	}
 	for _, chosen := range []map[string]string{{"": "village"}, {"village": "village"}} {
@@ -323,8 +323,8 @@ func TestBuild_repoPackChoosesTheFamilyPack(t *testing.T) {
 		if _, ok := fileOf(findSet(t, plan, client.KindPack, "village"), ".agents/rules/00-project-registry.md"); !ok {
 			t.Errorf("--repo-pack %v did not give village the repository's files", chosen)
 		}
-		if _, ok := fileOf(findSet(t, plan, client.KindPack, "kaizen"), ".agents/rules/00-project-registry.md"); ok {
-			t.Errorf("--repo-pack %v left the repository's files in kaizen", chosen)
+		if _, ok := fileOf(findSet(t, plan, client.KindPack, "kazan"), ".agents/rules/00-project-registry.md"); ok {
+			t.Errorf("--repo-pack %v left the repository's files in kazan", chosen)
 		}
 	}
 	for name, chosen := range map[string]map[string]string{
