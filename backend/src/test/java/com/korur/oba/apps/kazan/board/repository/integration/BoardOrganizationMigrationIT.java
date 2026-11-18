@@ -116,7 +116,7 @@ class BoardOrganizationMigrationIT extends ObaIntegrationTest {
         UUID id = UUID.randomUUID();
         String suffix = id.toString().substring(0, 8);
         jdbc.update("""
-                INSERT INTO kazan.boards (id, name, prefix, slug, parent_board_id, deleted, created_at)
+                INSERT INTO kaizen.boards (id, name, prefix, slug, parent_board_id, deleted, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP + (? * INTERVAL '1 second'))
                 """, id, "board " + suffix, "B" + suffix, "board-" + suffix, parent, deleted, ++clock);
         return id;
@@ -128,13 +128,13 @@ class BoardOrganizationMigrationIT extends ObaIntegrationTest {
 
     private void boardMember(UUID board, UUID user, String role, boolean deleted) {
         jdbc.update("""
-                INSERT INTO kazan.board_members (id, role, board_id, user_id, deleted)
-                VALUES (?, ?::kazan_board_member_role_enum, ?, ?, ?)
+                INSERT INTO kaizen.board_members (id, role, board_id, user_id, deleted)
+                VALUES (?, ?::kaizen_board_member_role_enum, ?, ?, ?)
                 """, UUID.randomUUID(), role, board, user, deleted);
     }
 
     private void settingsSecurityBoard(UUID organization, UUID board) {
-        jdbc.update("INSERT INTO kazan.organization_settings (organization_id, security_board_id) VALUES (?, ?)",
+        jdbc.update("INSERT INTO kaizen.organization_settings (organization_id, security_board_id) VALUES (?, ?)",
                 organization, board);
     }
 
@@ -144,17 +144,17 @@ class BoardOrganizationMigrationIT extends ObaIntegrationTest {
 
     private UUID route(String systemKey, UUID board, boolean isDefault) {
         UUID id = UUID.randomUUID();
-        jdbc.update("INSERT INTO kazan.alert_routes (id, system_key, board_id, is_default) VALUES (?, ?, ?, ?)",
+        jdbc.update("INSERT INTO kaizen.alert_routes (id, system_key, board_id, is_default) VALUES (?, ?, ?, ?)",
                 id, systemKey, board, isDefault);
         return id;
     }
 
     private UUID organizationOfBoard(UUID board) {
-        return jdbc.queryForObject("SELECT organization_id FROM kazan.boards WHERE id = ?", UUID.class, board);
+        return jdbc.queryForObject("SELECT organization_id FROM kaizen.boards WHERE id = ?", UUID.class, board);
     }
 
     private UUID organizationOfRoute(UUID route) {
-        return jdbc.queryForObject("SELECT organization_id FROM kazan.alert_routes WHERE id = ?", UUID.class, route);
+        return jdbc.queryForObject("SELECT organization_id FROM kaizen.alert_routes WHERE id = ?", UUID.class, route);
     }
 
     // ---- V1_2_96 backfill rules ----
@@ -269,7 +269,7 @@ class BoardOrganizationMigrationIT extends ObaIntegrationTest {
         assertEquals(liveOldest, organizationOfBoard(orphan));
         assertEquals(liveOldest, organizationOfBoard(softDeletedRoot));
         assertEquals(0, jdbc.queryForObject(
-                "SELECT COUNT(*) FROM kazan.boards WHERE organization_id IN (?, ?)",
+                "SELECT COUNT(*) FROM kaizen.boards WHERE organization_id IN (?, ?)",
                 Integer.class, deletedOldest, liveNewer));
     }
 
@@ -326,11 +326,11 @@ class BoardOrganizationMigrationIT extends ObaIntegrationTest {
         migrateTo(AFTER);
 
         assertEquals(boardOfA, jdbc.queryForObject(
-                "SELECT security_board_id FROM kazan.organization_settings WHERE organization_id = ?", UUID.class, orgA));
+                "SELECT security_board_id FROM kaizen.organization_settings WHERE organization_id = ?", UUID.class, orgA));
         assertEquals(boardOfA, jdbc.queryForObject(
                 "SELECT security_board_id FROM shrine.organizations WHERE id = ?", UUID.class, orgA));
         assertNull(jdbc.queryForObject(
-                "SELECT security_board_id FROM kazan.organization_settings WHERE organization_id = ?", UUID.class, orgB));
+                "SELECT security_board_id FROM kaizen.organization_settings WHERE organization_id = ?", UUID.class, orgB));
         assertNull(jdbc.queryForObject(
                 "SELECT security_board_id FROM shrine.organizations WHERE id = ?", UUID.class, orgB));
     }
@@ -346,17 +346,17 @@ class BoardOrganizationMigrationIT extends ObaIntegrationTest {
         migrateTo(AFTER);
 
         assertThrowsDatabase(() -> jdbc.update(
-                "INSERT INTO kazan.boards (id, name, prefix, slug) VALUES (?, 'x', 'XX1', 'x-1')", UUID.randomUUID()));
+                "INSERT INTO kaizen.boards (id, name, prefix, slug) VALUES (?, 'x', 'XX1', 'x-1')", UUID.randomUUID()));
         assertThrowsDatabase(() -> jdbc.update("""
-                INSERT INTO kazan.boards (id, name, prefix, slug, parent_board_id, organization_id)
+                INSERT INTO kaizen.boards (id, name, prefix, slug, parent_board_id, organization_id)
                 VALUES (?, 'x', 'XX2', 'x-2', ?, ?)
                 """, UUID.randomUUID(), root, orgB));
         jdbc.update("""
-                INSERT INTO kazan.boards (id, name, prefix, slug, parent_board_id, organization_id)
+                INSERT INTO kaizen.boards (id, name, prefix, slug, parent_board_id, organization_id)
                 VALUES (?, 'x', 'XX3', 'x-3', ?, ?)
                 """, UUID.randomUUID(), root, orgA);
         assertEquals(2, jdbc.queryForObject(
-                "SELECT COUNT(*) FROM kazan.boards WHERE organization_id = ?", Integer.class, orgA));
+                "SELECT COUNT(*) FROM kaizen.boards WHERE organization_id = ?", Integer.class, orgA));
     }
 
     // ---- V1_2_97 ----
@@ -396,22 +396,22 @@ class BoardOrganizationMigrationIT extends ObaIntegrationTest {
         migrateTo(AFTER);
 
         jdbc.update("""
-                INSERT INTO kazan.alert_routes (id, system_key, board_id, is_default, organization_id)
+                INSERT INTO kaizen.alert_routes (id, system_key, board_id, is_default, organization_id)
                 VALUES (?, 'api', ?, true, ?)
                 """, UUID.randomUUID(), boardOfB, orgB);
 
         assertThrowsDatabase(() -> jdbc.update("""
-                INSERT INTO kazan.alert_routes (id, system_key, board_id, is_default, organization_id)
+                INSERT INTO kaizen.alert_routes (id, system_key, board_id, is_default, organization_id)
                 VALUES (?, 'api', ?, false, ?)
                 """, UUID.randomUUID(), secondBoardOfA, orgA));
         assertThrowsDatabase(() -> jdbc.update("""
-                INSERT INTO kazan.alert_routes (id, system_key, board_id, is_default, organization_id)
+                INSERT INTO kaizen.alert_routes (id, system_key, board_id, is_default, organization_id)
                 VALUES (?, 'web', ?, true, ?)
                 """, UUID.randomUUID(), secondBoardOfA, orgA));
         assertEquals(1, jdbc.queryForObject(
-                "SELECT COUNT(*) FROM kazan.alert_routes WHERE organization_id = ? AND is_default", Integer.class, orgA));
+                "SELECT COUNT(*) FROM kaizen.alert_routes WHERE organization_id = ? AND is_default", Integer.class, orgA));
         assertEquals(1, jdbc.queryForObject(
-                "SELECT COUNT(*) FROM kazan.alert_routes WHERE organization_id = ? AND is_default", Integer.class, orgB));
+                "SELECT COUNT(*) FROM kaizen.alert_routes WHERE organization_id = ? AND is_default", Integer.class, orgB));
     }
 
     @Test
@@ -425,11 +425,11 @@ class BoardOrganizationMigrationIT extends ObaIntegrationTest {
         migrateTo(AFTER);
 
         assertThrowsDatabase(() -> jdbc.update("""
-                INSERT INTO kazan.alert_routes (id, system_key, board_id, organization_id)
+                INSERT INTO kaizen.alert_routes (id, system_key, board_id, organization_id)
                 VALUES (?, 'api', ?, ?)
                 """, UUID.randomUUID(), boardOfB, orgA));
         assertThrowsDatabase(() -> jdbc.update("""
-                INSERT INTO kazan.alert_routes (id, system_key, board_id)
+                INSERT INTO kaizen.alert_routes (id, system_key, board_id)
                 VALUES (?, 'api', ?)
                 """, UUID.randomUUID(), boardOfA));
     }

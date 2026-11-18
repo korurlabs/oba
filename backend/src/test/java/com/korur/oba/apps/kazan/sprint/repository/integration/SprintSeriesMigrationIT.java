@@ -84,7 +84,7 @@ class SprintSeriesMigrationIT extends ObaIntegrationTest {
     private UUID board() {
         UUID id = UUID.randomUUID();
         String suffix = id.toString().substring(0, 8);
-        jdbc.update("INSERT INTO kazan.boards (id, name, prefix, slug) VALUES (?, ?, ?, ?)",
+        jdbc.update("INSERT INTO kaizen.boards (id, name, prefix, slug) VALUES (?, ?, ?, ?)",
                 id, "board " + suffix, "B" + suffix, "board-" + suffix);
         return id;
     }
@@ -92,35 +92,35 @@ class SprintSeriesMigrationIT extends ObaIntegrationTest {
     private UUID sprint(String name, String status, String start, String end) {
         UUID id = UUID.randomUUID();
         jdbc.update("""
-                INSERT INTO kazan.sprints (id, name, number, status, start_date, end_date)
-                VALUES (?, ?, 1, ?::kazan_sprint_status_enum, ?::timestamptz, ?::timestamptz)
+                INSERT INTO kaizen.sprints (id, name, number, status, start_date, end_date)
+                VALUES (?, ?, 1, ?::kaizen_sprint_status_enum, ?::timestamptz, ?::timestamptz)
                 """, id, name, status, start, end);
         return id;
     }
 
     private void link(UUID sprint, UUID board, int offsetSeconds) {
         jdbc.update("""
-                INSERT INTO kazan.board_sprints (id, board_id, sprint_id, slug, created_at)
+                INSERT INTO kaizen.board_sprints (id, board_id, sprint_id, slug, created_at)
                 VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP + (? * INTERVAL '1 second'))
                 """, UUID.randomUUID(), board, sprint, "s-" + sprint.toString().substring(0, 8), offsetSeconds);
     }
 
     private void recurrence(UUID sprint, UUID next, boolean enabled, String action) {
         jdbc.update("""
-                INSERT INTO kazan.sprint_recurrences (id, sprint_id, next_sprint_id, enabled, unfinished_ticket_action)
-                VALUES (?, ?, ?, ?, ?::kazan_sprint_recurrence_ticket_action_enum)
+                INSERT INTO kaizen.sprint_recurrences (id, sprint_id, next_sprint_id, enabled, unfinished_ticket_action)
+                VALUES (?, ?, ?, ?, ?::kaizen_sprint_recurrence_ticket_action_enum)
                 """, UUID.randomUUID(), sprint, next, enabled, action);
     }
 
     private Map<String, Object> seriesOf(UUID sprint) {
         return jdbc.queryForMap("""
-                SELECT ss.* FROM kazan.sprint_series ss
-                JOIN kazan.sprints s ON s.series_id = ss.id WHERE s.id = ?
+                SELECT ss.* FROM kaizen.sprint_series ss
+                JOIN kaizen.sprints s ON s.series_id = ss.id WHERE s.id = ?
                 """, sprint);
     }
 
     private Integer roundOf(UUID sprint) {
-        return jdbc.queryForObject("SELECT round FROM kazan.sprints WHERE id = ?", Integer.class, sprint);
+        return jdbc.queryForObject("SELECT round FROM kaizen.sprints WHERE id = ?", Integer.class, sprint);
     }
 
     @Test
@@ -145,11 +145,11 @@ class SprintSeriesMigrationIT extends ObaIntegrationTest {
         assertEquals("MOVE_TO_BACKLOG", series.get("unfinished_ticket_action").toString());
         assertEquals(1, roundOf(only));
         List<UUID> boards = jdbc.queryForList("""
-                SELECT board_id FROM kazan.sprint_series_boards WHERE series_id = ? ORDER BY position
+                SELECT board_id FROM kaizen.sprint_series_boards WHERE series_id = ? ORDER BY position
                 """, UUID.class, series.get("id"));
         assertEquals(List.of(alpha, beta, gamma), boards);
         assertEquals("Atasprint 1", jdbc.queryForObject(
-                "SELECT name FROM kazan.sprints WHERE id = ?", String.class, only));
+                "SELECT name FROM kaizen.sprints WHERE id = ?", String.class, only));
     }
 
     @Test
@@ -221,7 +221,7 @@ class SprintSeriesMigrationIT extends ObaIntegrationTest {
 
         migrateTo("1.2.91");
 
-        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM kazan.sprint_series", Integer.class));
+        assertEquals(0, jdbc.queryForObject("SELECT COUNT(*) FROM kaizen.sprint_series", Integer.class));
         assertNull(roundOf(disabled));
         assertNull(roundOf(plain));
     }
@@ -232,36 +232,36 @@ class SprintSeriesMigrationIT extends ObaIntegrationTest {
 
         migrateTo("1.2.91");
 
-        assertFalse(exists("SELECT to_regclass('kazan.sprint_recurrences') IS NOT NULL"));
+        assertFalse(exists("SELECT to_regclass('kaizen.sprint_recurrences') IS NOT NULL"));
         assertFalse(exists("""
                 SELECT EXISTS (SELECT 1 FROM information_schema.columns
-                WHERE table_schema = 'kazan' AND table_name = 'sprints' AND column_name = 'number')
+                WHERE table_schema = 'kaizen' AND table_name = 'sprints' AND column_name = 'number')
                 """));
-        assertTrue(exists("SELECT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'kazan_sprint_recurrence_run_status_enum')"));
+        assertTrue(exists("SELECT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'kaizen_sprint_recurrence_run_status_enum')"));
     }
 
     @Test
     void migrate_afterConversion_roundRulesAreEnforced() {
         migrateTo("1.2.91");
         UUID series = UUID.randomUUID();
-        jdbc.update("INSERT INTO kazan.sprint_series (id, name, next_round, length_days) VALUES (?, 'S', 2, 7)", series);
-        jdbc.update("INSERT INTO kazan.sprints (id, name, series_id, round) VALUES (?, 'S 1', ?, 1)",
+        jdbc.update("INSERT INTO kaizen.sprint_series (id, name, next_round, length_days) VALUES (?, 'S', 2, 7)", series);
+        jdbc.update("INSERT INTO kaizen.sprints (id, name, series_id, round) VALUES (?, 'S 1', ?, 1)",
                 UUID.randomUUID(), series);
 
         assertThrowsDatabase(() -> jdbc.update(
-                "INSERT INTO kazan.sprints (id, name, series_id, round) VALUES (?, 'S 1 again', ?, 1)",
+                "INSERT INTO kaizen.sprints (id, name, series_id, round) VALUES (?, 'S 1 again', ?, 1)",
                 UUID.randomUUID(), series));
         assertThrowsDatabase(() -> jdbc.update(
-                "INSERT INTO kazan.sprints (id, name, series_id, round) VALUES (?, 'S 0', ?, 0)",
+                "INSERT INTO kaizen.sprints (id, name, series_id, round) VALUES (?, 'S 0', ?, 0)",
                 UUID.randomUUID(), series));
         assertThrowsDatabase(() -> jdbc.update(
-                "INSERT INTO kazan.sprints (id, name, series_id) VALUES (?, 'S no round', ?)",
+                "INSERT INTO kaizen.sprints (id, name, series_id) VALUES (?, 'S no round', ?)",
                 UUID.randomUUID(), series));
         assertThrowsDatabase(() -> jdbc.update(
-                "INSERT INTO kazan.sprint_series (id, name, next_round, length_days) VALUES (?, 'S', 1, 366)",
+                "INSERT INTO kaizen.sprint_series (id, name, next_round, length_days) VALUES (?, 'S', 1, 366)",
                 UUID.randomUUID()));
         assertThrowsDatabase(() -> jdbc.update(
-                "INSERT INTO kazan.sprint_series (id, name, next_round, length_days, create_days_before) VALUES (?, 'S', 1, 7, 365)",
+                "INSERT INTO kaizen.sprint_series (id, name, next_round, length_days, create_days_before) VALUES (?, 'S', 1, 7, 365)",
                 UUID.randomUUID()));
     }
 
@@ -280,7 +280,7 @@ class SprintSeriesMigrationIT extends ObaIntegrationTest {
         UUID active = sprint("Korur 1", "ACTIVE", "2026-11-02T00:00:00Z", "2026-11-16T00:00:00Z");
         link(active, alpha, 0);
         recurrence(active, null, true, "MOVE_TO_NEXT_SPRINT");
-        jdbc.update("UPDATE kazan.sprint_recurrences SET next_creation_at = ?::timestamptz WHERE sprint_id = ?",
+        jdbc.update("UPDATE kaizen.sprint_recurrences SET next_creation_at = ?::timestamptz WHERE sprint_id = ?",
                 "2026-11-14T00:00:00Z", active);
 
         migrateTo("1.2.91");
@@ -294,7 +294,7 @@ class SprintSeriesMigrationIT extends ObaIntegrationTest {
     private UUID namedBoard(String name) {
         UUID id = UUID.randomUUID();
         String suffix = id.toString().substring(0, 8);
-        jdbc.update("INSERT INTO kazan.boards (id, name, prefix, slug) VALUES (?, ?, ?, ?)",
+        jdbc.update("INSERT INTO kaizen.boards (id, name, prefix, slug) VALUES (?, ?, ?, ?)",
                 id, name, "B" + suffix, "board-" + suffix);
         return id;
     }
@@ -302,9 +302,9 @@ class SprintSeriesMigrationIT extends ObaIntegrationTest {
     private UUID series(String name, boolean enabled, String lastRunAt) {
         UUID id = UUID.randomUUID();
         jdbc.update("""
-                INSERT INTO kazan.sprint_series
+                INSERT INTO kaizen.sprint_series
                     (id, name, next_round, enabled, length_days, next_creation_at, last_run_at, last_run_status, last_run_message)
-                VALUES (?, ?, 2, ?, 7, ?::timestamptz, ?::timestamptz, ?::kazan_sprint_recurrence_run_status_enum, ?)
+                VALUES (?, ?, 2, ?, 7, ?::timestamptz, ?::timestamptz, ?::kaizen_sprint_recurrence_run_status_enum, ?)
                 """, id, name, enabled,
                 enabled ? "2030-01-01T00:00:00Z" : null,
                 lastRunAt,
@@ -315,29 +315,29 @@ class SprintSeriesMigrationIT extends ObaIntegrationTest {
 
     private void seriesSprint(UUID series, int round, String start) {
         jdbc.update("""
-                INSERT INTO kazan.sprints (id, name, series_id, round, start_date)
+                INSERT INTO kaizen.sprints (id, name, series_id, round, start_date)
                 VALUES (?, 'S', ?, ?, ?::timestamptz)
                 """, UUID.randomUUID(), series, round, start);
     }
 
     private void seriesBoard(UUID series, UUID board, int position) {
-        jdbc.update("INSERT INTO kazan.sprint_series_boards (id, series_id, board_id, position) VALUES (?, ?, ?, ?)",
+        jdbc.update("INSERT INTO kaizen.sprint_series_boards (id, series_id, board_id, position) VALUES (?, ?, ?, ?)",
                 UUID.randomUUID(), series, board, position);
     }
 
     private List<UUID> boardsOf(UUID series) {
         return jdbc.queryForList(
-                "SELECT board_id FROM kazan.sprint_series_boards WHERE series_id = ? ORDER BY position",
+                "SELECT board_id FROM kaizen.sprint_series_boards WHERE series_id = ? ORDER BY position",
                 UUID.class, series);
     }
 
     private UUID ownerOf(UUID board) {
-        return jdbc.queryForObject("SELECT series_id FROM kazan.sprint_series_boards WHERE board_id = ?",
+        return jdbc.queryForObject("SELECT series_id FROM kaizen.sprint_series_boards WHERE board_id = ?",
                 UUID.class, board);
     }
 
     private Map<String, Object> seriesRow(UUID id) {
-        return jdbc.queryForMap("SELECT * FROM kazan.sprint_series WHERE id = ?", id);
+        return jdbc.queryForMap("SELECT * FROM kaizen.sprint_series WHERE id = ?", id);
     }
 
     @Test
@@ -407,7 +407,7 @@ class SprintSeriesMigrationIT extends ObaIntegrationTest {
         seriesSprint(earlier, 1, "2026-10-01T00:00:00Z");
         seriesSprint(later, 1, "2026-09-01T00:00:00Z");
         seriesSprint(later, 2, "2026-11-20T00:00:00Z");
-        jdbc.update("UPDATE kazan.sprints SET deleted = TRUE WHERE series_id = ? AND round = 2", later);
+        jdbc.update("UPDATE kaizen.sprints SET deleted = TRUE WHERE series_id = ? AND round = 2", later);
         seriesBoard(earlier, boardO, 0);
         seriesBoard(later, boardO, 0);
 
@@ -469,16 +469,16 @@ class SprintSeriesMigrationIT extends ObaIntegrationTest {
     @Test
     void migrateOneSeriesPerBoard_afterwards_boardIdIsUniqueAndTheOldIndexIsGone() {
         migrateTo("1.2.91");
-        assertTrue(exists("SELECT to_regclass('kazan.sprint_series_boards_board_id_idx') IS NOT NULL"));
+        assertTrue(exists("SELECT to_regclass('kaizen.sprint_series_boards_board_id_idx') IS NOT NULL"));
 
         migrateTo("1.2.95");
 
-        assertFalse(exists("SELECT to_regclass('kazan.sprint_series_boards_board_id_idx') IS NOT NULL"));
+        assertFalse(exists("SELECT to_regclass('kaizen.sprint_series_boards_board_id_idx') IS NOT NULL"));
         assertTrue(exists("""
                 SELECT EXISTS (SELECT 1 FROM pg_constraint
                 WHERE conname = 'sprint_series_boards_board_id_uk' AND contype = 'u')
                 """));
-        assertTrue(exists("SELECT to_regclass('kazan.sprint_series_boards_series_id_board_id_uk') IS NOT NULL"));
+        assertTrue(exists("SELECT to_regclass('kaizen.sprint_series_boards_series_id_board_id_uk') IS NOT NULL"));
         UUID board = namedBoard("Dup");
         UUID one = series("Nu", true, null);
         UUID two = series("Xi", true, null);

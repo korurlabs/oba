@@ -43,7 +43,7 @@ import com.korur.oba.support.ObaIntegrationTest;
  */
 class TicketHomeDashboardRepositoryIT extends ObaIntegrationTest {
 
-    private static final String MIGRATION = "db/migration/V1_2_89__Kazan_Add_Ticket_Completed_At.sql";
+    private static final String MIGRATION = "db/migration/V1_2_89__Kaizen_Add_Ticket_Completed_At.sql";
     private static final Instant NOW = Instant.now().truncatedTo(ChronoUnit.MILLIS);
 
     /** Every entity and only the ticket repositories, so no controller or service is created. */
@@ -431,9 +431,14 @@ class TicketHomeDashboardRepositoryIT extends ObaIntegrationTest {
     @Nested
     class CompletedAtBackfill {
 
+        /**
+         * The migration as released, pointed at the current schema: it predates the rename of the
+         * kaizen schema to kazan, while this test runs on a fully migrated database.
+         */
         private String migrationSql() {
             try {
-                return new ClassPathResource(MIGRATION).getContentAsString(StandardCharsets.UTF_8);
+                return new ClassPathResource(MIGRATION).getContentAsString(StandardCharsets.UTF_8)
+                        .replace("kaizen.", "kazan.");
             } catch (IOException exception) {
                 throw new UncheckedIOException(exception);
             }

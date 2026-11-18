@@ -382,7 +382,7 @@ class TicketListRootsRepositoryIT extends ObaIntegrationTest {
     class SubTicketPlacementMigration {
 
         private static final String MIGRATION =
-                "db/migration/V1_2_84__Kazan_Align_Sub_Ticket_Placement.sql";
+                "db/migration/V1_2_84__Kaizen_Align_Sub_Ticket_Placement.sql";
 
         private record Placement(UUID sprintId, UUID backlogId, UUID parentId, String status) {
         }
@@ -395,9 +395,14 @@ class TicketListRootsRepositoryIT extends ObaIntegrationTest {
                     ticketId);
         }
 
+        /**
+         * The migration as released, pointed at the current schema: it predates the rename of the
+         * kaizen schema to kazan, while this test runs on a fully migrated database.
+         */
         private String migrationSql() {
             try {
-                return new ClassPathResource(MIGRATION).getContentAsString(StandardCharsets.UTF_8);
+                return new ClassPathResource(MIGRATION).getContentAsString(StandardCharsets.UTF_8)
+                        .replace("kaizen.", "kazan.");
             } catch (IOException exception) {
                 throw new UncheckedIOException(exception);
             }

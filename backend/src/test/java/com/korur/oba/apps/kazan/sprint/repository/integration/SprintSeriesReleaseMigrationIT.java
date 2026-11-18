@@ -78,7 +78,7 @@ class SprintSeriesReleaseMigrationIT extends ObaIntegrationTest {
     private UUID board(String name) {
         UUID id = UUID.randomUUID();
         String suffix = id.toString().substring(0, 8);
-        jdbc.update("INSERT INTO kazan.boards (id, name, prefix, slug, organization_id) VALUES (?, ?, ?, ?, ?)",
+        jdbc.update("INSERT INTO kaizen.boards (id, name, prefix, slug, organization_id) VALUES (?, ?, ?, ?, ?)",
                 id, name, "B" + suffix, "board-" + suffix, organization);
         return id;
     }
@@ -86,9 +86,9 @@ class SprintSeriesReleaseMigrationIT extends ObaIntegrationTest {
     private UUID series(String name, boolean enabled, String lastRunMessage) {
         UUID id = UUID.randomUUID();
         jdbc.update("""
-                INSERT INTO kazan.sprint_series
+                INSERT INTO kaizen.sprint_series
                     (id, name, next_round, enabled, length_days, next_creation_at, last_run_status, last_run_message)
-                VALUES (?, ?, 3, ?, 14, ?::timestamptz, ?::kazan_sprint_recurrence_run_status_enum, ?)
+                VALUES (?, ?, 3, ?, 14, ?::timestamptz, ?::kaizen_sprint_recurrence_run_status_enum, ?)
                 """, id, name, enabled,
                 enabled ? "2026-11-18T00:00:00Z" : null,
                 lastRunMessage == null ? null : (enabled ? "OK" : "FAILED"),
@@ -99,29 +99,29 @@ class SprintSeriesReleaseMigrationIT extends ObaIntegrationTest {
     private UUID sprint(UUID series, int round, String status, String start, String end, UUID... boards) {
         UUID id = UUID.randomUUID();
         jdbc.update("""
-                INSERT INTO kazan.sprints (id, name, series_id, round, status, start_date, end_date)
-                VALUES (?, 'S', ?, ?, ?::kazan_sprint_status_enum, ?::timestamptz, ?::timestamptz)
+                INSERT INTO kaizen.sprints (id, name, series_id, round, status, start_date, end_date)
+                VALUES (?, 'S', ?, ?, ?::kaizen_sprint_status_enum, ?::timestamptz, ?::timestamptz)
                 """, id, series, round, status, start, end);
         for (UUID board : boards) {
-            jdbc.update("INSERT INTO kazan.board_sprints (id, board_id, sprint_id, slug) VALUES (?, ?, ?, ?)",
+            jdbc.update("INSERT INTO kaizen.board_sprints (id, board_id, sprint_id, slug) VALUES (?, ?, ?, ?)",
                     UUID.randomUUID(), board, id, "s-" + UUID.randomUUID().toString().substring(0, 8));
         }
         return id;
     }
 
     private void seriesBoard(UUID series, UUID board, int position) {
-        jdbc.update("INSERT INTO kazan.sprint_series_boards (id, series_id, board_id, position) VALUES (?, ?, ?, ?)",
+        jdbc.update("INSERT INTO kaizen.sprint_series_boards (id, series_id, board_id, position) VALUES (?, ?, ?, ?)",
                 UUID.randomUUID(), series, board, position);
     }
 
     private List<UUID> boardsOf(UUID series) {
         return jdbc.queryForList(
-                "SELECT board_id FROM kazan.sprint_series_boards WHERE series_id = ? ORDER BY position",
+                "SELECT board_id FROM kaizen.sprint_series_boards WHERE series_id = ? ORDER BY position",
                 UUID.class, series);
     }
 
     private Map<String, Object> seriesRow(UUID id) {
-        return jdbc.queryForMap("SELECT * FROM kazan.sprint_series WHERE id = ?", id);
+        return jdbc.queryForMap("SELECT * FROM kaizen.sprint_series WHERE id = ?", id);
     }
 
     @Test
@@ -132,7 +132,7 @@ class SprintSeriesReleaseMigrationIT extends ObaIntegrationTest {
         sprint(finished, 2, "COMPLETED", "2026-10-21T00:00:00Z", "2026-11-04T07:35:00Z", business);
         seriesBoard(finished, business, 0);
         UUID live = series("Atasprint", false, "Switched off: board Business belongs to series Sprint");
-        jdbc.update("UPDATE kazan.sprint_series SET creation_mode = 'DAYS_BEFORE', create_days_before = 2 WHERE id = ?",
+        jdbc.update("UPDATE kaizen.sprint_series SET creation_mode = 'DAYS_BEFORE', create_days_before = 2 WHERE id = ?",
                 live);
         sprint(live, 1, "ACTIVE", "2026-11-02T00:00:00Z", "2026-11-16T00:00:00Z", ata, business);
         seriesBoard(live, ata, 0);
