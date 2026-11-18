@@ -51,7 +51,7 @@ public record IngestSummaryRequest(
         @Schema(description = "Project directory name", nullable = true)
         String project,
 
-        @Schema(description = "Kaizen ticket key the session named", nullable = true, example = "KAYA-42")
+        @Schema(description = "Kazan ticket key the session named", nullable = true, example = "KAYA-42")
         String ticket,
 
         @Schema(description = "Handoff feature directories the session wrote", nullable = true)

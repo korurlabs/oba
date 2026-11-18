@@ -93,7 +93,7 @@ public final class MountPaths {
 
     /**
      * Classifies a paths pattern against a mount folder. Brace groups are expanded first, as Claude
-     * Code expands them, and each expansion is classified on its own, so projects/{kagi,kaizen}/**
+     * Code expands them, and each expansion is classified on its own, so projects/{kagi,kazan}/**
      * is one INSIDE and one OUTSIDE pattern for the root projects/kagi. A pattern with more than
      * BRACE_EXPANSIONS_MAX expansions counts as one SPANNING pattern, which is refused rather than
      * expanded without bound.

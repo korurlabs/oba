@@ -37,10 +37,10 @@ public record FileDiffResponse(
                 example = "60303ae22b998861bce3b28f33eec1be758a213c86c93c076dbe9f558c11c752")
         String newSha256,
 
-        @Schema(description = "Symlink target before; null unless it was a SYMLINK", nullable = true, example = "../.agents/skills/kaizen")
+        @Schema(description = "Symlink target before; null unless it was a SYMLINK", nullable = true, example = "../.agents/skills/kazan")
         String oldSymlinkTarget,
 
-        @Schema(description = "Symlink target after; null unless it is a SYMLINK", nullable = true, example = "../.agents/skills/kaizen")
+        @Schema(description = "Symlink target after; null unless it is a SYMLINK", nullable = true, example = "../.agents/skills/kazan")
         String newSymlinkTarget,
 
         @Schema(description = "Whether either side holds bytes that are not UTF-8 text, so no line diff is given",

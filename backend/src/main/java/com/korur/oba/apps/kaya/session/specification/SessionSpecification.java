@@ -85,7 +85,7 @@ public final class SessionSpecification {
     }
 
     /**
-     * Matches the title, the branch or the key of a linked Kaizen ticket, case ignored. The
+     * Matches the title, the branch or the key of a linked Kazan ticket, case ignored. The
      * wildcards of LIKE are escaped, so a search for "a_b" matches only that text.
      */
     public static Specification<Session> searchSpecification(String keyword) {
@@ -100,7 +100,7 @@ public final class SessionSpecification {
             Root<SessionLink> link = ticketMatch.from(SessionLink.class);
             ticketMatch.select(link.get(CommonConstant.ID)).where(
                     cb.equal(link.get(SessionConstant.FIELD_SESSION), root),
-                    cb.equal(link.get(SessionConstant.FIELD_KIND), SessionLinkKind.KAIZEN_TICKET),
+                    cb.equal(link.get(SessionConstant.FIELD_KIND), SessionLinkKind.KAZAN_TICKET),
                     cb.like(cb.lower(link.get(SessionConstant.FIELD_REFERENCE)), pattern, SessionConstant.LIKE_ESCAPE));
             return cb.or(
                     cb.like(cb.lower(root.get(SessionConstant.FIELD_TITLE)), pattern, SessionConstant.LIKE_ESCAPE),

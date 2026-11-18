@@ -38,7 +38,7 @@ public record OrganizationGroupResponse(
         @Schema(description = "Number of members in the group", example = "4")
         long memberCount,
 
-        @Schema(description = "Apps granted to the group, in app order", example = "[\"KAIZEN\"]")
+        @Schema(description = "Apps granted to the group, in app order", example = "[\"KAZAN\"]")
         List<App> apps,
 
         @Schema(description = "Creation time (UTC)", example = "2026-11-09T10:15:30Z")

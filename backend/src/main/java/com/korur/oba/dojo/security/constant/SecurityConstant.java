@@ -47,7 +47,7 @@ public class SecurityConstant {
         // device and preference to the caller
         "/push/**",
         // An author's daily updates span organizations; the service checks any organization it is given
-        "/kaizen/updates/**"
+        "/kazan/updates/**"
     };
 
     // Handlers of this package are guarded by the RequiredUserAccess check; framework handlers such

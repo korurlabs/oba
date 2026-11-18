@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li>{@code com.korur.oba.dojo.security.*}       → {@code dojo.security}</li>
  *   <li>{@code com.korur.oba.shrine.identity.*}     → {@code shrine.identity}</li>
  *   <li>{@code com.korur.oba.connect.anthropic.*}   → {@code connect.anthropic}</li>
- *   <li>{@code com.korur.oba.apps.kaizen.ticket.*}  → {@code kaizen.ticket}</li>
+ *   <li>{@code com.korur.oba.apps.kazan.ticket.*}  → {@code kazan.ticket}</li>
  * </ul>
  *
  * <p>The domain is stored as an MDC field in JSON structured logging output.</p>
@@ -64,7 +64,7 @@ public final class LogPrefix {
 
         String module = parts[0];
 
-        // apps.{app}.{area}... → app.area, such as kaizen.ticket, so each app's domains stay distinguishable
+        // apps.{app}.{area}... → app.area, such as kazan.ticket, so each app's domains stay distinguishable
         if (APPS_MODULE.equals(module) && parts.length >= 3) {
             return parts[1] + "." + parts[2];
         }

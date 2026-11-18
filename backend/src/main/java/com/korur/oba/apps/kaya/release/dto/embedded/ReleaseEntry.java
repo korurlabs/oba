@@ -30,7 +30,7 @@ public record ReleaseEntry(
         @Schema(description = "FILE, EXECUTABLE or SYMLINK", example = "FILE")
         FileMode mode,
 
-        @Schema(description = "Relative target of a SYMLINK; null otherwise", nullable = true, example = "../../.agents/skills/kaizen")
+        @Schema(description = "Relative target of a SYMLINK; null otherwise", nullable = true, example = "../../.agents/skills/kazan")
         String target,
 
         @Schema(description = "Content size in bytes; null for a SYMLINK", nullable = true, example = "2048")

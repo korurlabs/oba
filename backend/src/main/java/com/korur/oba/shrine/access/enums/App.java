@@ -25,7 +25,7 @@ import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 public enum App {
 
     // Workflow management app: boards, tickets, chat and daily updates.
-    KAIZEN(OrganizationMemberRole.GUEST),
+    KAZAN(OrganizationMemberRole.GUEST),
 
     // Agents log and agent configuration of Claude Code sessions.
     KAYA(OrganizationMemberRole.MEMBER),
@@ -52,8 +52,8 @@ public enum App {
     }
 
     /**
-     * Finds the app of a package segment under com.korur.oba.apps, such as "kaizen" for
-     * com.korur.oba.apps.kaizen.board.
+     * Finds the app of a package segment under com.korur.oba.apps, such as "kazan" for
+     * com.korur.oba.apps.kazan.board.
      *
      * @param segment the package segment after com.korur.oba.apps, in any case
      * @return the app whose name is the upper-cased segment, or empty when the segment is null, blank or no app

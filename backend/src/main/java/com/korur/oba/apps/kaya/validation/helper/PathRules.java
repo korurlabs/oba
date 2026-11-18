@@ -246,7 +246,7 @@ public final class PathRules {
         return SKILL_FILE.matcher(path).matches();
     }
 
-    /** The directory of a skill's SKILL.md, such as .agents/skills/kaizen. */
+    /** The directory of a skill's SKILL.md, such as .agents/skills/kazan. */
     public static String skillDirectory(String skillFilePath) {
         return skillFilePath.substring(0, skillFilePath.length() - ValidationConstant.SKILL_FILE_SUFFIX.length());
     }
@@ -290,7 +290,7 @@ public final class PathRules {
     }
 
     /**
-     * The item a delivered path belongs to: a skill's directory, such as .agents/skills/kaizen/, for
+     * The item a delivered path belongs to: a skill's directory, such as .agents/skills/kazan/, for
      * every file of the skill, since a skill is replaced whole; the path itself for every other file.
      */
     public static String itemOf(String path) {

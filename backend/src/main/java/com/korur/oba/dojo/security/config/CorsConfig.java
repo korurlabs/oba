@@ -26,7 +26,7 @@ public class CorsConfig {
 
     /**
      * Local origins let a developer's frontend on http://localhost or on a local stack
-     * instance host such as http://oba-kaizen-epics.localhost:26101 call this
+     * instance host such as http://oba-kazan-epics.localhost:26101 call this
      * backend. Production must never allow them, and an environment variable set in a
      * deployed environment outranks every properties file, so the prod profile with the
      * switch on stops startup instead of reopening CORS to localhost.

@@ -30,7 +30,7 @@ public record MemberAppAccessResponse(
         @Schema(description = "Role of the member in the organization", example = "MEMBER")
         OrganizationMemberRole role,
 
-        @Schema(description = "Apps the member can open, in app order", example = "[\"KAIZEN\",\"KAYA\"]")
+        @Schema(description = "Apps the member can open, in app order", example = "[\"KAZAN\",\"KAYA\"]")
         List<App> apps
 ) {
 }

@@ -17,7 +17,7 @@ import com.korur.oba.apps.kaya.session.enums.SessionLinkKind;
 @Schema(description = "A link a member adds to a session by hand")
 public record SessionLinkCreateRequest(
         @Schema(description = "What the link points at", requiredMode = Schema.RequiredMode.REQUIRED,
-                example = "KAIZEN_TICKET")
+                example = "KAZAN_TICKET")
         @NotNull(message = SessionConstant.LINK_KIND_REQUIRED_MESSAGE)
         SessionLinkKind kind,
 

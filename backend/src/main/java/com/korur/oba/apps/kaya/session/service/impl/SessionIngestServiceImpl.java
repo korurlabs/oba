@@ -65,7 +65,7 @@ public class SessionIngestServiceImpl implements SessionIngestService {
 
     private static final LogPrefix LOG_PREFIX = LogPrefix.fromClass(SessionIngestServiceImpl.class);
     private static final Pattern PULL_REQUEST_URL = Pattern.compile(SessionConstant.PULL_REQUEST_URL_PATTERN);
-    private static final Pattern KAIZEN_TICKET = Pattern.compile(SessionConstant.KAIZEN_TICKET_PATTERN);
+    private static final Pattern KAZAN_TICKET = Pattern.compile(SessionConstant.KAZAN_TICKET_PATTERN);
 
     private final SessionRepository sessionRepository;
     private final SessionEventRepository sessionEventRepository;
@@ -327,13 +327,13 @@ public class SessionIngestServiceImpl implements SessionIngestService {
         for (String url : pullRequests) {
             added += sessionLinkRepository.insertRecorderLinkIfAbsent(session.getId(), SessionLinkKind.PULL_REQUEST.name(), url, url);
         }
-        if (ticket != null && KAIZEN_TICKET.matcher(ticket).matches()) {
+        if (ticket != null && KAZAN_TICKET.matcher(ticket).matches()) {
             String url = ticketUrlTemplate == null ? null
                     : ticketUrlTemplate.replace(SessionConstant.TICKET_URL_KEY_PLACEHOLDER, ticket);
             if (url != null && url.length() > SessionConstant.LINK_URL_MAX_LENGTH) {
                 url = null;
             }
-            added += sessionLinkRepository.insertRecorderLinkIfAbsent(session.getId(), SessionLinkKind.KAIZEN_TICKET.name(),
+            added += sessionLinkRepository.insertRecorderLinkIfAbsent(session.getId(), SessionLinkKind.KAZAN_TICKET.name(),
                     ticket, url);
         }
         if (added > 0) {

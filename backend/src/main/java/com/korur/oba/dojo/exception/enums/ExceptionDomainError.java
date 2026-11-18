@@ -3,7 +3,7 @@ package com.korur.oba.dojo.exception.enums;
 /**
  * Marker interface for domain-specific exception error enums.
  *
- * <p>All domain error enums (e.g., {@code ExceptionDomainKaizenError},
+ * <p>All domain error enums (e.g., {@code ExceptionDomainKazanError},
  * {@code ExceptionDomainOutboxError}) implement this interface in addition
  * to {@link ExceptionError}.</p>
  *

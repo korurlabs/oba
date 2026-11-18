@@ -34,7 +34,7 @@ public record VersionFileContentResponse(
         @Schema(description = "Content size in bytes; null for a SYMLINK", nullable = true, example = "2048")
         Integer size,
 
-        @Schema(description = "Relative target of a SYMLINK; null otherwise", nullable = true, example = "../.agents/skills/kaizen")
+        @Schema(description = "Relative target of a SYMLINK; null otherwise", nullable = true, example = "../.agents/skills/kazan")
         String symlinkTarget,
 
         @Schema(description = "UTF_8 when content is the text itself, BASE64 when the bytes are not valid UTF-8; "

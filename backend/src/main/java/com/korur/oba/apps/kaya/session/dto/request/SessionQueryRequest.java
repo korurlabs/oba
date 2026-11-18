@@ -36,7 +36,7 @@ public class SessionQueryRequest extends QueryRequest {
     @Max(value = SessionConstant.LIST_MAX_AMOUNT, message = SessionConstant.AMOUNT_MAX_MESSAGE)
     private int amount = SessionConstant.LIST_DEFAULT_AMOUNT;
 
-    @Schema(description = "Matches the title, the branch or a Kaizen ticket key, case ignored", nullable = true,
+    @Schema(description = "Matches the title, the branch or a Kazan ticket key, case ignored", nullable = true,
             example = "KAYA-42")
     @Size(max = SessionConstant.SEARCH_MAX_LENGTH, message = SessionConstant.SEARCH_SIZE_MESSAGE)
     private String search;

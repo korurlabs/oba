@@ -202,7 +202,7 @@ public final class DeliveryPaths {
         };
     }
 
-    /** The directory of a skill, ending with a slash, such as .agents/skills/kaizen/. */
+    /** The directory of a skill, ending with a slash, such as .agents/skills/kazan/. */
     public static String skillDirectory(String name) {
         return RenderConstant.SKILLS_FOLDER + name + RenderConstant.PATH_SEPARATOR;
     }

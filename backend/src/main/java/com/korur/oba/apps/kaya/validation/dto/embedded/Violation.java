@@ -22,7 +22,7 @@ import com.korur.oba.apps.kaya.validation.enums.ViolationRule;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record Violation(
         @Schema(description = "Path the rule concerns; null for a rule about a pack list", nullable = true,
-                example = ".agents/skills/kaizen/SKILL.md")
+                example = ".agents/skills/kazan/SKILL.md")
         String path,
 
         @Schema(description = "The rule", example = "SKILL_TOO_LONG")

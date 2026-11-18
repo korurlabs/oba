@@ -25,7 +25,7 @@ public record RepositoryUpdateRequest(
         // string is the only way to remove it.
         @Schema(description = "Ticket URL template: an https URL containing {key}, which is replaced with the "
                 + "ticket key; an empty string removes it", nullable = true,
-                example = "https://kaizen.sensey.io/tickets/{key}")
+                example = "https://kazan.korur.com/tickets/{key}")
         @Size(max = RepositoryConstant.TICKET_URL_TEMPLATE_MAX_LENGTH,
                 message = RepositoryConstant.TICKET_URL_TEMPLATE_SIZE_MESSAGE)
         @Pattern(regexp = RepositoryConstant.TICKET_URL_TEMPLATE_PATTERN,
