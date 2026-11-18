@@ -1,0 +1,6 @@
+{"type": "user", "version": "2.1.98", "message": {"role": "user", "content": "hello"}}
+{"type": "assistant", "version": "2.1.99", "message": {"model": "claude-sonnet-5-5", "role": "assistant", "content": []}}
+{"type": "assistant", "version": "2.1.100", "message": {"model": "claude-opus-5-5", "role": "assistant", "content": []}}
+{"type": "assistant", "version": "2.1.100", "message": {"model": "<synthetic>", "role": "assistant", "content": []}}
+{"type": "system", "message": "no model here"}
+not json at the very end

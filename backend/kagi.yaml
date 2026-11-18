@@ -1,0 +1,32 @@
+# Kagi binding for this directory. Secrets are addressed by the stable
+# app-id; folder-path is a human reference only and is not used for addressing.
+folder-path: /oba/api
+app-id: c28e55a0-26ec-4fb1-98d4-977111fdb66c
+environment: local
+organization: sensey
+organization-id: 00000000-0000-0000-0000-000000000001
+
+# Local Context (Kagi spec 3.3): devstack serves this directory's per-machine
+# values under the provider name devstack, resolved at run time to the
+# executable kagi-context-devstack. keys lists exactly the env and unset keys
+# the backend unit of projects/oba/devstack.yaml declares, and nothing else.
+# testing is listed so that the integration tests, run as
+# kagi run --env testing --local-context=required -- mvn clean verify, reach
+# the PostgreSQL and Azurite of this worktree's devstack instance instead of
+# the fixed ports the testing environment holds.
+local:
+  provider: devstack
+  environments: [local, testing]
+  keys:
+    - SERVER_PORT
+    - SERVER_ADDRESS
+    - SPRING_DATASOURCE_URL
+    - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI
+    - OBA_OPENAPI_URL
+    - AZURE_STORAGE_CONNECTION_STRING
+    - AZURE_STORAGE_BLOB_BASE_URL
+    - SENSEY_CORS_ALLOW_LOCAL_ORIGINS
+    # The unit's unset: list. Inert today, because application.properties:33,37
+    # are literals, but owned so the provider may clear them.
+    - KEYCLOAK_ISSUER
+    - OPENAPI_URL

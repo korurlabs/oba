@@ -1,0 +1,110 @@
+{
+  "runs": [
+    {
+      "cursor": null,
+      "exit": 0,
+      "files": [
+        "config-release.json",
+        "events.jsonl",
+        "handoffs/kaya/other/recorder.md",
+        "handoffs/kaya/other/second.md",
+        "plans/session.json",
+        "plans/session.md",
+        "session.json",
+        "summary.json"
+      ],
+      "log": [
+        "stopped: Kaya refused the token (KAY_SEC_003); set a new token"
+      ],
+      "queueAfter": {},
+      "requests": [
+        {
+          "authorized": true,
+          "body": "same as ../batch.json",
+          "contentType": "application/json",
+          "method": "POST",
+          "path": "/kaya/ingest/batches"
+        }
+      ],
+      "state": {
+        "refusedFingerprint": "<fingerprint>",
+        "token": "refused"
+      },
+      "stderr": [],
+      "stdout": "",
+      "token": "A",
+      "usageFileLeft": true
+    },
+    {
+      "cursor": null,
+      "exit": 0,
+      "files": [
+        "config-release.json",
+        "events.jsonl",
+        "handoffs/kaya/other/recorder.md",
+        "handoffs/kaya/other/second.md",
+        "plans/session.json",
+        "plans/session.md",
+        "session.json",
+        "summary.json"
+      ],
+      "log": [
+        "KAYA_RECORDER_TOKEN was refused before; set a new token"
+      ],
+      "queueAfter": {},
+      "requests": [],
+      "state": {
+        "refusedFingerprint": "<fingerprint>",
+        "token": "refused"
+      },
+      "stderr": [],
+      "stdout": "",
+      "token": "A",
+      "usageFileLeft": true
+    },
+    {
+      "cursor": {
+        "acknowledgedSeq": 15,
+        "handoffs": {
+          "kaya/other/recorder.md": 1790845203000000000,
+          "kaya/other/second.md": 1790845204000000000
+        },
+        "plans": {
+          "session.md": 1790845212000000000
+        }
+      },
+      "exit": 0,
+      "files": [
+        "config-release.json",
+        "cursor.json",
+        "events.jsonl",
+        "handoffs/kaya/other/recorder.md",
+        "handoffs/kaya/other/second.md",
+        "plans/session.json",
+        "plans/session.md",
+        "session.json",
+        "summary.json"
+      ],
+      "log": [],
+      "queueAfter": {},
+      "requests": [
+        {
+          "authorized": true,
+          "body": "same as ../batch.json",
+          "contentType": "application/json",
+          "method": "POST",
+          "path": "/kaya/ingest/batches"
+        }
+      ],
+      "state": {
+        "refusedFingerprint": "<fingerprint>",
+        "token": "ok"
+      },
+      "stderr": [],
+      "stdout": "",
+      "token": "B",
+      "usageFileLeft": false
+    }
+  ],
+  "scenario": "unauthorized"
+}

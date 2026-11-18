@@ -1,0 +1,8 @@
+# Scoped to the oba CLI module. Entries already covered by the root .gitignore
+# (dist/, .idea/, .vscode/, *.swp, *.out, .DS_Store) are not repeated here.
+#
+# The leading slashes keep each pattern to this directory: an unanchored
+# pattern matches at any depth, and a bare "bin/" or "oba" would ignore
+# unrelated paths elsewhere in the monorepo.
+/bin/
+/oba

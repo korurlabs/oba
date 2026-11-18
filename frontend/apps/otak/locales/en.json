@@ -1,0 +1,1134 @@
+{
+  "metadata": {
+    "description": "Relations, leads and customers of your organization"
+  },
+  "sidebar": {
+    "navigation": "Navigation",
+    "relations": "Relations",
+    "battlefield": "Battlefield",
+    "language": "Language",
+    "icps": "ICPs",
+    "outreaches": "Outreaches",
+    "templates": "Templates",
+    "events": "Events"
+  },
+  "errors": {
+    "somethingWentWrong": "Something went wrong",
+    "unexpectedError": "An unexpected error occurred. Please try refreshing the page or contact support if the problem persists.",
+    "tryAgain": "Try Again",
+    "goHome": "Go Home",
+    "errorDetails": "Error Details (Development Only):",
+    "notFound": {
+      "title": "Page not found",
+      "description": "This page does not exist, or you do not have access to it. Check the link, or go back to Home."
+    },
+    "signInFailed": {
+      "title": "Signing in failed",
+      "description": "Your sign-in could not be completed. Try again; if it keeps failing, contact support.",
+      "action": "Sign in again",
+      "code": "Error code: {code}"
+    }
+  },
+  "organizationGate": {
+    "title": "No organization yet",
+    "description": "Otak keeps the relations of an organization. Create or join one in your account first.",
+    "action": "Open your account"
+  },
+  "relations": {
+    "title": "Relations",
+    "subtitle": "The companies your organization sells to, buys from or is trying to win.",
+    "eyebrow": "Companies",
+    "new": "New relation",
+    "loadError": "The relations could not be loaded.",
+    "reloadError": "The list could not be refreshed; it may be out of date.",
+    "emptyFiltered": "No relation matches these filters.",
+    "emptyFilteredHint": "Change the search or the filters, or clear them to see the whole list.",
+    "emptyByTab": {
+      "leads": "No open leads yet.",
+      "customers": "No customers yet.",
+      "suppliers": "No suppliers yet."
+    },
+    "emptyHintByTab": {
+      "leads": "Add a company you want to win, and follow it from first contact to proposal.",
+      "customers": "Add a company you sell to, or mark a won lead as a customer.",
+      "suppliers": "Add a company your organization buys from."
+    },
+    "noOwner": "No owner",
+    "noValue": "No expected value",
+    "tabs": {
+      "leads": "Leads",
+      "customers": "Customers",
+      "suppliers": "Suppliers"
+    },
+    "tabsLabel": "Relation type",
+    "types": {
+      "LEAD": "Lead",
+      "SUPPLIER": "Supplier",
+      "CUSTOMER": "Customer"
+    },
+    "stages": {
+      "NEW": "New",
+      "QUALIFIED": "Qualified",
+      "CONTACTED": "Contacted",
+      "WARM": "Warm",
+      "PROPOSAL": "Proposal",
+      "CLOSED": "Closed (won)",
+      "LOST": "Lost",
+      "PARKED": "Parked",
+      "DIRECT": "Direct"
+    },
+    "sizes": {
+      "SIZE_1_10": "1-10 employees",
+      "SIZE_11_50": "11-50 employees",
+      "SIZE_51_200": "51-200 employees",
+      "SIZE_201_500": "201-500 employees",
+      "SIZE_501_1000": "501-1,000 employees",
+      "SIZE_1001_5000": "1,001-5,000 employees",
+      "SIZE_5001_PLUS": "5,001+ employees"
+    },
+    "sources": {
+      "NETWORK": "Network",
+      "LINKEDIN": "LinkedIn",
+      "REFERRAL": "Referral",
+      "INBOUND": "Inbound",
+      "PARTNER": "Partner",
+      "EVENT": "Event",
+      "RESEARCH": "Research",
+      "OTHER": "Other"
+    },
+    "columns": {
+      "name": "Name",
+      "stage": "Stage",
+      "owner": "Owner",
+      "expectedValue": "Expected value",
+      "updatedAt": "Updated",
+      "mainContact": "Contact",
+      "type": "Type",
+      "contactMail": "Contact mail",
+      "companyMail": "Company mail"
+    },
+    "filters": {
+      "searchPlaceholder": "Search by name",
+      "stagePlaceholder": "Open stages",
+      "stagePlaceholderCustomers": "Every stage",
+      "ownerPlaceholder": "Any owner",
+      "clear": "Clear filters",
+      "ownersLoadError": "The owners could not be loaded.",
+      "searchLabel": "Search",
+      "stageLabel": "Stage",
+      "ownerLabel": "Owner",
+      "eventLabel": "Event",
+      "eventPlaceholder": "Any event",
+      "eventsLoadError": "The events could not be loaded."
+    },
+    "form": {
+      "sections": {
+        "company": "Company",
+        "address": "Address",
+        "sales": "Sales"
+      },
+      "name": "Name",
+      "type": "Type",
+      "typePlaceholder": "Select a type",
+      "website": "Website",
+      "websitePlaceholder": "https://example.com",
+      "sector": "Sector",
+      "size": "Size",
+      "sizePlaceholder": "Select a size",
+      "registrationNumber": "Registration number",
+      "vatNumber": "VAT number",
+      "street": "Street",
+      "postalCode": "Postal code",
+      "city": "City",
+      "country": "Country",
+      "countryPlaceholder": "Select a country",
+      "countrySearch": "Search countries...",
+      "owner": "Owner",
+      "ownerPlaceholder": "Select an owner",
+      "ownersLoadError": "The members could not be loaded.",
+      "ownerNoOtakAccess": "No Otak access. An owner or admin can grant Otak in Admin.",
+      "icp": "ICP",
+      "icpPlaceholder": "Select an ICP",
+      "icpsLoadError": "The ICPs could not be loaded.",
+      "source": "Source",
+      "sourcePlaceholder": "Select a source",
+      "expectedValue": "Expected value (EUR)",
+      "notes": "Notes",
+      "create": "Create relation",
+      "creating": "Creating...",
+      "save": "Save changes",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "discard": "Discard changes",
+      "unsavedChanges": "Unsaved changes",
+      "errors": {
+        "nameRequired": "Name is required",
+        "nameMax": "Name must be at most 200 characters",
+        "typeRequired": "Type is required",
+        "websiteMax": "Website must be at most 500 characters",
+        "websiteInvalid": "Enter a web address starting with http:// or https://",
+        "sectorMax": "Sector must be at most 100 characters",
+        "registrationNumberMax": "Registration number must be at most 50 characters",
+        "vatNumberMax": "VAT number must be at most 50 characters",
+        "streetMax": "Street must be at most 200 characters",
+        "postalCodeMax": "Postal code must be at most 20 characters",
+        "cityMax": "City must be at most 100 characters",
+        "expectedValueNegative": "Expected value cannot be negative",
+        "expectedValueTooLarge": "Expected value must be below 10,000,000,000",
+        "expectedValueDecimals": "Expected value can have at most two decimals",
+        "notesMax": "Notes must be at most 10,000 characters"
+      },
+      "event": "Event",
+      "eventPlaceholder": "Select an event",
+      "eventsLoadError": "The events could not be loaded."
+    },
+    "newPage": {
+      "title": "New relation",
+      "subtitle": "Add a company your organization deals with.",
+      "back": "Back to relations"
+    },
+    "detail": {
+      "title": "Relation",
+      "back": "Back to relations",
+      "backTo": {
+        "leads": "Back to leads",
+        "customers": "Back to customers",
+        "suppliers": "Back to suppliers"
+      },
+      "details": "Details",
+      "timestamps": "Created {created} · Updated {updated}",
+      "loading": "Loading the relation",
+      "loadError": "The relation could not be loaded.",
+      "notFoundTitle": "Relation not found",
+      "notFoundDescription": "This relation does not exist, or it belongs to another organization.",
+      "delete": "Delete relation",
+      "deleting": "Deleting...",
+      "deleteTitle": "Delete relation",
+      "deleteConfirm": "Delete {name} with its contacts? This cannot be undone.",
+      "cancel": "Cancel",
+      "event": "Event: {name}",
+      "eventUnnamed": "Event"
+    },
+    "notesCard": {
+      "title": "Notes",
+      "empty": "No notes yet."
+    },
+    "toast": {
+      "created": "Relation created",
+      "updated": "Relation saved",
+      "deleted": "Relation deleted",
+      "saveError": "The relation could not be saved",
+      "deleteError": "The relation could not be deleted",
+      "typeChangeError": "The type could not be changed",
+      "moveError": "The lead could not be moved; it is back in its column"
+    },
+    "errors": {
+      "notFound": "This relation no longer exists.",
+      "icpNotFound": "This ICP no longer exists.",
+      "ownerNotMember": "The owner must be an active member of the organization.",
+      "ownerWithoutOtakAccess": "This member has no Otak access, so they cannot own a relation. An owner or admin can grant Otak in Admin.",
+      "forbidden": "You do not have permission to do this.",
+      "validation": "Check the highlighted fields.",
+      "notLead": "Only a lead's stage can be set.",
+      "typeUnchanged": "The relation already has this type.",
+      "stageNotForType": "This stage does not belong to the relation's type.",
+      "loadHint": "Check your connection and try again.",
+      "eventNotFound": "This event no longer exists."
+    },
+    "battlefield": {
+      "title": "Battlefield",
+      "subtitle": "Where every lead and customer stands. Drag a lead or pick its stage to move it.",
+      "newLead": "New lead",
+      "loading": "Loading the Battlefield",
+      "loadError": "The Battlefield could not be loaded.",
+      "reloadError": "The Battlefield could not be refreshed; it may be out of date.",
+      "empty": "Add a lead to see it here.",
+      "emptyColumn": "Nothing here",
+      "columnCount": "{count, plural, one {# relation} other {# relations}}",
+      "columnTotal": "Expected value {value}",
+      "capped": "The Battlefield shows the first {max} relations.",
+      "stageOf": "Stage of {name}",
+      "moved": "{name} moved to {stage}.",
+      "emptyTitle": "No leads or customers yet",
+      "closedHint": "Drop a lead here when it is won. It becomes a customer.",
+      "closeOption": "Closed (won): becomes a customer",
+      "closedAsCustomer": "{name} is now a customer (stage Closed (won)). It is no longer a lead.",
+      "dropRefused": {
+        "directNotForLead": "Direct is for customers that never were leads. Drop {name} on Closed (won) to make it a customer.",
+        "notLead": "{name} is a customer; Otak sets its stage."
+      }
+    },
+    "typeChange": {
+      "markAsCustomer": "Mark as customer",
+      "done": {
+        "leadToCustomer": "{name} is now a customer (stage Closed (won)). It is no longer a lead.",
+        "toLead": "{name} is a lead again and restarted at stage New.",
+        "toCustomer": "{name} is now a customer (stage Direct).",
+        "toSupplier": "{name} is now a supplier. Its stage is cleared."
+      }
+    },
+    "tableLabel": "Relations",
+    "pagination": {
+      "label": "Pages",
+      "previous": "Previous",
+      "next": "Next",
+      "summary": "Page {page} of {pages} · {total, plural, one {# relation} other {# relations}}"
+    },
+    "loading": "Loading relations",
+    "noMainContact": "No contact",
+    "noContactMail": "No contact mail",
+    "noCompanyMail": "No company mail",
+    "attachments": {
+      "title": "Attachments"
+    }
+  },
+  "contacts": {
+    "title": "Contacts",
+    "new": "Add contact",
+    "newTitle": "New contact",
+    "editTitle": "Edit contact",
+    "dialogDescription": "A person to talk to at this relation.",
+    "loadError": "The contacts could not be loaded.",
+    "empty": "No contacts yet.",
+    "decisionMaker": "Decision maker",
+    "linkedinOpen": "LinkedIn",
+    "emailTypes": {
+      "COMPANY": "Company",
+      "SHARED": "Shared",
+      "PERSONAL": "Personal"
+    },
+    "edit": "Edit {name}",
+    "delete": "Delete {name}",
+    "deleteTitle": "Delete contact",
+    "deleteConfirm": "Delete {name}? This cannot be undone.",
+    "deleteAction": "Delete",
+    "columns": {
+      "name": "Name",
+      "role": "Role",
+      "email": "Email",
+      "phone": "Phone",
+      "linkedin": "LinkedIn",
+      "actions": "Actions"
+    },
+    "form": {
+      "name": "Name",
+      "role": "Role",
+      "rolePlaceholder": "Such as CEO or purchasing",
+      "email": "Email",
+      "emailType": "Email type",
+      "emailTypePlaceholder": "Not set",
+      "emailTypeNeedsEmail": "Enter an email first",
+      "phone": "Phone",
+      "linkedinUrl": "LinkedIn URL",
+      "linkedinUrlPlaceholder": "https://www.linkedin.com/in/...",
+      "decisionMaker": "Decision maker",
+      "decisionMakerDescription": "This person decides on a purchase.",
+      "create": "Add contact",
+      "save": "Save changes",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "errors": {
+        "nameRequired": "Name is required",
+        "nameMax": "Name must be at most 200 characters",
+        "roleMax": "Role must be at most 100 characters",
+        "emailMax": "Email must be at most 254 characters",
+        "emailInvalid": "Enter a valid email address",
+        "phoneMax": "Phone must be at most 50 characters",
+        "linkedinUrlMax": "LinkedIn URL must be at most 500 characters",
+        "linkedinUrlInvalid": "Enter a web address starting with http:// or https://"
+      },
+      "kind": "Kind"
+    },
+    "toast": {
+      "created": "Contact added",
+      "updated": "Contact saved",
+      "deleted": "Contact deleted",
+      "saveError": "The contact could not be saved",
+      "deleteError": "The contact could not be deleted"
+    },
+    "errors": {
+      "relationNotFound": "This relation no longer exists.",
+      "notFound": "This contact no longer exists.",
+      "emailTypeWithoutEmail": "An email type needs an email address.",
+      "forbidden": "You do not have permission to do this.",
+      "validation": "Check the highlighted fields.",
+      "loadHint": "Check your connection and try again.",
+      "mainFlagNotForKind": "A contact can only be the main contact of its own kind."
+    },
+    "tableLabel": "Contacts",
+    "loading": "Loading the contacts",
+    "mainContact": "Main contact",
+    "makeMain": "Make main contact",
+    "makeMainNamed": "Make {name} the main contact",
+    "kinds": {
+      "PERSON": "Person",
+      "BUSINESS": "Business"
+    },
+    "business": "Business",
+    "mainBusinessContact": "Main business contact",
+    "makeMainBusiness": "Make main business contact",
+    "makeMainBusinessNamed": "Make {name} the main business contact"
+  },
+  "icps": {
+    "title": "ICPs",
+    "subtitle": "Ideal customer profiles: the companies the organization wants to win.",
+    "new": "New ICP",
+    "newTitle": "New ICP",
+    "editTitle": "Edit ICP",
+    "dialogDescription": "Describe a kind of company to target. Leads can be linked to it.",
+    "loadError": "The ICPs could not be loaded.",
+    "reloadError": "The ICPs could not be refreshed; this list may be out of date.",
+    "loadOneError": "The ICP could not be loaded.",
+    "loading": "Loading the ICPs",
+    "loadingOne": "Loading the ICP",
+    "empty": "No ICPs yet",
+    "emptyHint": "Describe the companies you want to win, then link leads to them.",
+    "emptyFiltered": "No ICPs match this search",
+    "emptyFilteredHint": "Try another name or clear the search.",
+    "tableLabel": "ICPs",
+    "anyCountry": "Any",
+    "noRole": "No target role",
+    "edit": "Edit {name}",
+    "delete": "Delete {name}",
+    "deleteTitle": "Delete ICP",
+    "deleteConfirm": "Delete {name}? Relations linked to it stay and lose the link. This cannot be undone.",
+    "deleteAction": "Delete",
+    "sizeRange": {
+      "between": "{min} to {max} employees",
+      "from": "{min} employees or more",
+      "upTo": "Up to {max} employees",
+      "any": "Any size"
+    },
+    "columns": {
+      "name": "Name",
+      "industry": "Industry",
+      "country": "Country",
+      "size": "Company size",
+      "targetPersonRole": "Target role",
+      "updatedAt": "Updated",
+      "actions": "Actions"
+    },
+    "filters": {
+      "searchLabel": "Search",
+      "searchPlaceholder": "Search by name",
+      "clear": "Clear search"
+    },
+    "pagination": {
+      "label": "Pages",
+      "previous": "Previous",
+      "next": "Next",
+      "summary": "Page {page} of {pages} · {total, plural, one {# ICP} other {# ICPs}}"
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Such as Dutch MSPs",
+      "industry": "Industry",
+      "industryPlaceholder": "Select an industry",
+      "country": "Country",
+      "countryPlaceholder": "Any country",
+      "countrySearch": "Search countries",
+      "companySizeMin": "Minimum company size",
+      "companySizeMax": "Maximum company size",
+      "companySizePlaceholder": "No limit",
+      "targetPersonRole": "Target role",
+      "targetPersonRolePlaceholder": "Select a role",
+      "description": "Description",
+      "descriptionPlaceholder": "What these companies have in common and why they need us",
+      "create": "Create ICP",
+      "save": "Save changes",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "errors": {
+        "nameRequired": "Name is required",
+        "nameMax": "Name must be at most 100 characters",
+        "industryRequired": "Industry is required",
+        "descriptionMax": "Description must be at most 10,000 characters",
+        "sizeRange": "The maximum size cannot be below the minimum size"
+      }
+    },
+    "toast": {
+      "created": "ICP created",
+      "updated": "ICP saved",
+      "deleted": "ICP deleted",
+      "saveError": "The ICP could not be saved",
+      "deleteError": "The ICP could not be deleted"
+    },
+    "errors": {
+      "notFound": "This ICP no longer exists.",
+      "nameTaken": "The organization already has an ICP with this name.",
+      "sizeRange": "The minimum company size cannot be above the maximum.",
+      "forbidden": "You do not have permission to do this.",
+      "validation": "Check the highlighted fields.",
+      "loadHint": "Check your connection and try again."
+    },
+    "industries": {
+      "SOFTWARE": "Software",
+      "IT_SERVICES": "IT services",
+      "TELECOM": "Telecom",
+      "FINANCE": "Finance",
+      "INSURANCE": "Insurance",
+      "HEALTHCARE": "Healthcare",
+      "MANUFACTURING": "Manufacturing",
+      "LOGISTICS": "Logistics",
+      "RETAIL": "Retail",
+      "ECOMMERCE": "E-commerce",
+      "ENERGY": "Energy",
+      "CONSTRUCTION": "Construction",
+      "REAL_ESTATE": "Real estate",
+      "LEGAL": "Legal",
+      "ACCOUNTING": "Accounting",
+      "EDUCATION": "Education",
+      "GOVERNMENT": "Government",
+      "NON_PROFIT": "Non-profit",
+      "HOSPITALITY": "Hospitality",
+      "MEDIA": "Media",
+      "AUTOMOTIVE": "Automotive",
+      "AGRICULTURE": "Agriculture",
+      "DEFENSE": "Defense",
+      "OTHER": "Other"
+    },
+    "roles": {
+      "OWNER": "Owner",
+      "CEO": "CEO",
+      "CTO": "CTO",
+      "CIO": "CIO",
+      "CISO": "CISO",
+      "IT_MANAGER": "IT manager",
+      "OPERATIONS": "Operations",
+      "FINANCE": "Finance",
+      "OTHER": "Other"
+    },
+    "sizeBands": {
+      "SIZE_1_10": "1-10",
+      "SIZE_11_50": "11-50",
+      "SIZE_51_200": "51-200",
+      "SIZE_201_500": "201-500",
+      "SIZE_501_1000": "501-1,000",
+      "SIZE_1001_5000": "1,001-5,000",
+      "SIZE_5001_PLUS": "5,001+"
+    }
+  },
+  "documentTemplates": {
+    "title": "Templates",
+    "subtitle": "Approved documents every reach-out can carry, each an HTML file with the PDF made from it.",
+    "new": "New template",
+    "newTitle": "New template",
+    "editTitle": "Edit template",
+    "dialogDescription": "A document template is an HTML file with the PDF made from it.",
+    "loadError": "The templates could not be loaded.",
+    "reloadError": "The templates could not be refreshed; this list may be out of date.",
+    "loadOneError": "The template could not be loaded.",
+    "loading": "Loading the templates",
+    "loadingOne": "Loading the template",
+    "empty": "No templates yet",
+    "emptyHint": "Add a document once, then use it for every lead.",
+    "emptyHintMember": "An admin of the organization adds the templates.",
+    "emptyFiltered": "No templates match these filters",
+    "emptyFilteredHint": "Try another name, type or language, or clear the filters.",
+    "tableLabel": "Templates",
+    "preview": "Preview {name}",
+    "edit": "Edit {name}",
+    "delete": "Delete {name}",
+    "deleteTitle": "Delete template",
+    "deleteConfirm": "Delete {name}? Attachments copied from it stay as they are. This cannot be undone.",
+    "deleteAction": "Delete",
+    "previewTitle": "Template",
+    "previewDescription": "Loading the template",
+    "previewNoFiles": "This template has no files yet. An admin uploads its HTML and PDF file.",
+    "previewFrameTitle": "PDF of {name}",
+    "openPdf": "Open the PDF in a new tab",
+    "types": {
+      "PROPOSAL": "Proposal",
+      "NDA": "NDA",
+      "TERMS": "Terms",
+      "REPORT": "Report",
+      "SERVICE_SHEET": "Service sheet",
+      "PRESENTATION": "Presentation",
+      "OTHER": "Other"
+    },
+    "languages": {
+      "NL": "Dutch",
+      "TR": "Turkish",
+      "EN": "English"
+    },
+    "ready": {
+      "yes": "Ready",
+      "no": "Needs files"
+    },
+    "updated": {
+      "today": "Today",
+      "yesterday": "Yesterday"
+    },
+    "columns": {
+      "name": "Name",
+      "type": "Type",
+      "language": "Language",
+      "ready": "Status",
+      "updatedAt": "Updated",
+      "actions": "Actions"
+    },
+    "filters": {
+      "searchLabel": "Search",
+      "searchPlaceholder": "Search by name",
+      "typeLabel": "Type",
+      "typeAll": "All types",
+      "languageLabel": "Language",
+      "languageAll": "All languages",
+      "clear": "Clear filters"
+    },
+    "pagination": {
+      "label": "Pages",
+      "previous": "Previous",
+      "next": "Next",
+      "summary": "Page {page} of {pages} · {total, plural, one {# template} other {# templates}}"
+    },
+    "form": {
+      "type": "Type",
+      "language": "Language",
+      "name": "Name",
+      "namePlaceholder": "Such as First contact",
+      "filesHint": "Upload the HTML file and the PDF made from it, together. Without them the template is saved but cannot be used yet.",
+      "filesReplaceHint": "The stored files stay unless you pick a new HTML file and a new PDF, together.",
+      "htmlFile": "HTML file",
+      "pdfFile": "PDF file",
+      "openCurrentPdf": "Open the current PDF",
+      "create": "Create template",
+      "save": "Save changes",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "errors": {
+        "nameRequired": "Name is required",
+        "nameMax": "Name must be at most 100 characters",
+        "htmlFileType": "Choose an .html file",
+        "pdfFileType": "Choose a .pdf file",
+        "htmlFileRequired": "Choose the HTML file too; both files are uploaded together",
+        "pdfFileRequired": "Choose the PDF file too; both files are uploaded together",
+        "filesTooLarge": "The two files together must be at most 12 MB"
+      }
+    },
+    "toast": {
+      "created": "Template created",
+      "updated": "Template saved",
+      "filesUploaded": "Files uploaded",
+      "deleted": "Template deleted",
+      "saveError": "The template could not be saved",
+      "uploadError": "The files could not be uploaded",
+      "deleteError": "The template could not be deleted"
+    },
+    "errors": {
+      "notFound": "This template no longer exists.",
+      "nameTaken": "The organization already has a template with this name in this language.",
+      "fileNotHtmlOrPdf": "The file is not the HTML or PDF file it should be.",
+      "uploadFailed": "The files could not be stored. Try again later.",
+      "forbidden": "You do not have permission to do this.",
+      "validation": "Check the highlighted fields.",
+      "loadHint": "Check your connection and try again."
+    },
+    "tabsLabel": "Template sections",
+    "tabs": {
+      "documents": "Documents",
+      "mail": "Mail"
+    },
+    "attach": {
+      "button": "Add from template",
+      "title": "Add from template",
+      "description": "Pick a document template; a copy of its PDF is attached here. Later changes to the template leave the copy as it is.",
+      "pick": "Document template",
+      "empty": "No document templates yet. Add them on the Templates page.",
+      "add": "Add",
+      "adding": "Adding...",
+      "cancel": "Cancel",
+      "toast": {
+        "added": "Attachment added",
+        "addError": "The attachment could not be added"
+      },
+      "errors": {
+        "mailNotFound": "This mail no longer exists.",
+        "relationNotFound": "This relation no longer exists.",
+        "notUsable": "This document template cannot be used here: it still needs its PDF.",
+        "mailSent": "This mail was sent or is being sent; its attachments can no longer change.",
+        "duplicate": "This PDF is already attached here."
+      }
+    }
+  },
+  "mailTemplates": {
+    "title": "Mail templates",
+    "subtitle": "Approved mails every mail outreach can start from.",
+    "new": "New mail template",
+    "newTitle": "New mail template",
+    "editTitle": "Edit mail template",
+    "dialogDescription": "A subject and a plain text. An outreach copies it, so later changes do not change mails already prepared.",
+    "loadError": "The mail templates could not be loaded.",
+    "reloadError": "The mail templates could not be refreshed; this list may be out of date.",
+    "loadOneError": "The mail template could not be loaded.",
+    "loading": "Loading the mail templates",
+    "loadingOne": "Loading the mail template",
+    "empty": "No mail templates yet",
+    "emptyHint": "Write a mail once, then start every mail outreach from it.",
+    "emptyHintMember": "An admin of the organization adds the mail templates.",
+    "emptyFiltered": "No mail templates match these filters",
+    "emptyFilteredHint": "Try another name or language, or clear the filters.",
+    "tableLabel": "Mail templates",
+    "preview": "Preview {name}",
+    "edit": "Edit {name}",
+    "delete": "Delete {name}",
+    "deleteTitle": "Delete mail template",
+    "deleteConfirm": "Delete {name}? Mails copied from it keep their text. This cannot be undone.",
+    "deleteAction": "Delete",
+    "previewTitle": "Mail template",
+    "columns": {
+      "name": "Name",
+      "subject": "Subject",
+      "language": "Language",
+      "updatedAt": "Updated",
+      "actions": "Actions"
+    },
+    "filters": {
+      "searchLabel": "Search",
+      "searchPlaceholder": "Search by name",
+      "languageLabel": "Language",
+      "languageAll": "All languages",
+      "clear": "Clear filters"
+    },
+    "pagination": {
+      "label": "Pages",
+      "previous": "Previous",
+      "next": "Next",
+      "summary": "Page {page} of {pages} · {total, plural, one {# mail template} other {# mail templates}}"
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Such as First contact",
+      "language": "Language",
+      "subject": "Subject",
+      "subjectPlaceholder": "The subject line of the mail",
+      "body": "Body",
+      "bodyPlaceholder": "The text of the mail",
+      "create": "Create mail template",
+      "save": "Save changes",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "errors": {
+        "nameRequired": "Name is required",
+        "nameMax": "Name must be at most 100 characters",
+        "subjectRequired": "Subject is required",
+        "subjectMax": "Subject must be at most 255 characters",
+        "bodyRequired": "Body is required",
+        "bodyMax": "Body must be at most 10,000 characters"
+      }
+    },
+    "toast": {
+      "created": "Mail template created",
+      "updated": "Mail template saved",
+      "deleted": "Mail template deleted",
+      "saveError": "The mail template could not be saved",
+      "deleteError": "The mail template could not be deleted"
+    },
+    "errors": {
+      "notFound": "This mail template no longer exists.",
+      "nameTaken": "The organization already has a mail template with this name in this language.",
+      "forbidden": "You do not have permission to do this.",
+      "validation": "Check the highlighted fields.",
+      "loadHint": "Check your connection and try again."
+    }
+  },
+  "outreaches": {
+    "title": "Outreaches",
+    "subtitle": "Every reach-out to the contacts of leads, by mail, WhatsApp or call: what was prepared, what was sent or done, and from which mailbox.",
+    "tabsLabel": "Outreach sections",
+    "tabs": {
+      "outreaches": "Outreaches",
+      "senders": "Senders"
+    },
+    "cardTitle": "Outreaches",
+    "cardEmpty": "No outreaches yet. Use Reach out on a lead to prepare one.",
+    "cardEmptyMember": "No outreaches yet. An admin of the organization prepares them.",
+    "editTitle": "Edit outreach",
+    "editDescription": "Change the contact or the title, and for a mail the text or the attachments, before the outreach is sent or done.",
+    "viewTitle": "Outreach",
+    "viewDescription": "The channel, to whom and when, and for a mail the mailbox, the text and the attachments.",
+    "loadError": "The outreaches could not be loaded.",
+    "reloadError": "The outreaches could not be refreshed; this list may be out of date.",
+    "loadOneError": "The outreach could not be loaded.",
+    "loading": "Loading the outreaches",
+    "loadingOne": "Loading the outreach",
+    "empty": "No outreaches yet",
+    "emptyHint": "Open a lead and use Reach out to prepare a mail, a WhatsApp message or a call to one of its contacts.",
+    "emptyHintMember": "An admin of the organization prepares the outreaches on the leads.",
+    "emptyFiltered": "No outreaches with this status",
+    "emptyFilteredHint": "Choose another status, or clear the filter.",
+    "goToLeads": "Go to relations",
+    "mailTemplates": "Mail templates",
+    "tableLabel": "Outreaches",
+    "view": "View {title}",
+    "edit": "Edit {title}",
+    "send": "Send {title}",
+    "delete": "Delete {title}",
+    "deleteTitle": "Delete outreach",
+    "deleteConfirm": "Delete {title} with its mail and the mail's attachments? This cannot be undone.",
+    "deleteAction": "Delete",
+    "openLead": "Open lead",
+    "contactDeleted": "Deleted contact",
+    "notSent": "Not sent",
+    "noSender": "None",
+    "statuses": {
+      "DRAFT": "Draft",
+      "SENT": "Sent",
+      "FAILED": "Failed"
+    },
+    "types": {
+      "MAIL": "Mail",
+      "WHATSAPP": "WhatsApp",
+      "CALL": "Call"
+    },
+    "columns": {
+      "title": "Title",
+      "lead": "Lead",
+      "contact": "Contact",
+      "status": "Status",
+      "sentAt": "Sent at",
+      "sender": "Sender",
+      "updatedAt": "Updated",
+      "actions": "Actions",
+      "type": "Channel"
+    },
+    "details": {
+      "sentTo": "Sent to"
+    },
+    "filters": {
+      "statusLabel": "Status",
+      "statusAll": "All statuses",
+      "clear": "Clear filter"
+    },
+    "pagination": {
+      "label": "Pages",
+      "previous": "Previous",
+      "next": "Next",
+      "summary": "Page {page} of {pages} · {total, plural, one {# outreach} other {# outreaches}}"
+    },
+    "form": {
+      "title": "Title",
+      "titlePlaceholder": "Such as Intro security check",
+      "contact": "Contact",
+      "contactsLoadError": "The contacts could not be loaded, so only the current contact can be chosen.",
+      "language": "Language",
+      "subject": "Subject",
+      "subjectPlaceholder": "The subject line of the mail",
+      "body": "Body",
+      "bodyPlaceholder": "The text of the mail",
+      "save": "Save changes",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "errors": {
+        "titleRequired": "Title is required",
+        "titleMax": "Title must be at most 200 characters",
+        "contactRequired": "Choose a contact",
+        "subjectRequired": "Subject is required",
+        "subjectMax": "Subject must be at most 255 characters",
+        "bodyRequired": "Body is required",
+        "bodyMax": "Body must be at most 10,000 characters"
+      }
+    },
+    "attachments": {
+      "templatesLegend": "Attach from templates",
+      "templatesHint": "Optional. Each picked document template goes as a copy of its PDF; with the files below, together at most 3 MB.",
+      "noTemplates": "No document templates with their files yet. Add them on the Templates page.",
+      "filesLegend": "Attach files"
+    },
+    "toast": {
+      "created": "Outreach saved as a draft",
+      "updated": "Outreach saved",
+      "deleted": "Outreach deleted",
+      "sent": "Outreach sent",
+      "saveError": "The outreach could not be saved",
+      "deleteError": "The outreach could not be deleted",
+      "sendError": "The outreach could not be sent",
+      "completed": "Outreach marked as done",
+      "completeError": "The outreach could not be marked as done",
+      "attachmentsUploadError": "The outreach was saved, but its attachments could not be uploaded. Add them on the outreach."
+    },
+    "errors": {
+      "relationNotFound": "This relation no longer exists.",
+      "contactNotFound": "This contact no longer belongs to the lead. Choose another contact.",
+      "notFound": "This outreach no longer exists.",
+      "senderNotFound": "This sender no longer exists. Choose another one.",
+      "templateNotFound": "This mail template no longer exists.",
+      "notEditable": "This outreach was sent or is being sent and can no longer change.",
+      "sharedMailboxNotFound": "The shared mailbox of this sender is no longer in the Microsoft 365 tenant.",
+      "contactWithoutAddress": "The contact has no mail address. Add one in the Contacts card.",
+      "attachmentsTooLarge": "The attachments together are larger than 3 MB. Remove an attachment.",
+      "sendFailed": "Microsoft 365 did not send the mail.",
+      "storageFailed": "The attachments could not be read from storage. Try again later.",
+      "forbidden": "You do not have permission to do this.",
+      "validation": "Check the highlighted fields.",
+      "loadHint": "Check your connection and try again.",
+      "actionNotForType": "This action does not fit the outreach's channel.",
+      "contactWithoutPhone": "The contact has no phone number. Add one in the Contacts card.",
+      "documentTemplateNotFound": "One of the document templates no longer exists.",
+      "documentTemplateNotUsable": "One of the document templates cannot be attached: it still needs its PDF.",
+      "attachmentDuplicate": "This file is already attached here."
+    },
+    "sendDialog": {
+      "title": "Send {title}",
+      "description": "The mail goes to the current address of {name}, with its attachments.",
+      "descriptionNoContact": "The contact of this outreach was deleted. Edit the outreach and choose another contact first.",
+      "previouslyFailed": "The last attempt to send this outreach failed. You can send it again.",
+      "noSendersTitle": "No senders yet",
+      "noSendersHint": "Mail goes out from a mailbox of the organization. An admin adds one on the Senders tab.",
+      "goToSenders": "Go to Senders",
+      "senderLegend": "Send from",
+      "failedTitle": "The mail was not sent",
+      "refusedTitle": "The outreach cannot be sent",
+      "failedHint": "The outreach is now marked as failed. Try again, or choose another sender.",
+      "send": "Send",
+      "sending": "Sending..."
+    },
+    "reachOut": {
+      "button": "Reach out",
+      "title": "Reach out to {name}",
+      "description": "Prepare a mail, a WhatsApp message or a call to one contact. It is saved as a draft; a mail is sent later, a WhatsApp message or a call is marked as done.",
+      "stepsLabel": "Steps",
+      "steps": {
+        "contact": "Contact",
+        "mail": "Mail",
+        "attachments": "Attachments",
+        "save": "Save",
+        "channel": "Channel"
+      },
+      "contactLegend": "Which contact gets the mail?",
+      "noContactsTitle": "No contact with a business email address",
+      "noContactsHint": "A mail needs a contact with a company or shared email address. Add one, or add an address to a contact, in the Contacts card on this page.",
+      "goToContacts": "Go to Contacts",
+      "mailLegend": "Start from a mail template or write the mail yourself",
+      "templateSearchPlaceholder": "Search mail templates by name",
+      "fromScratch": "Write from scratch",
+      "noTemplates": "No mail templates yet. Write the mail from scratch, or add mail templates on the Templates page.",
+      "languageHint": "The language the mail is written in.",
+      "templateLanguage": "Language: {language}, from the template.",
+      "titleHint": "A short name that tells this outreach apart in the lists.",
+      "summary": {
+        "contact": "Contact",
+        "mail": "Mail",
+        "subject": "Subject",
+        "attachments": "Attachments",
+        "attachmentCount": "{count, plural, =0 {None} one {# attachment} other {# attachments}}",
+        "channel": "Channel"
+      },
+      "back": "Back",
+      "next": "Next",
+      "saveDraft": "Save draft",
+      "channelLegend": "How do you reach out?",
+      "channelHints": {
+        "MAIL": "Sent from a mailbox of the organization, with attachments.",
+        "WHATSAPP": "Sent outside Oba; mark it as done once it went out.",
+        "CALL": "Made outside Oba; mark it as done once you called."
+      },
+      "phoneContactLegend": "Which contact do you reach?",
+      "noPhoneContactsTitle": "No contact with a phone number",
+      "noPhoneContactsHint": "A WhatsApp message or a call needs a contact with a phone number. Add one in the Contacts card on this page."
+    },
+    "complete": "Mark {title} as done",
+    "completeTitle": "Mark as done",
+    "completeConfirm": "Record {title} as done? The {type} counts as made now, to the contact's current phone number. It can no longer change afterwards.",
+    "completeAction": "Mark as done",
+    "detailTabs": {
+      "label": "Outreach sections",
+      "details": "Details",
+      "attachments": "Attachments"
+    }
+  },
+  "mailSenders": {
+    "subtitle": "The mailboxes of your organization's Microsoft 365 tenant that it sends its outreach mail from.",
+    "new": "Add sender",
+    "newTitle": "Add sender",
+    "dialogDescription": "Enter the address of a mailbox in your organization's Microsoft 365 tenant.",
+    "loadError": "The senders could not be loaded.",
+    "reloadError": "The senders could not be refreshed; this list may be out of date.",
+    "loading": "Loading the senders",
+    "empty": "No senders yet",
+    "emptyHint": "Add a mailbox of your organization's Microsoft 365 tenant to send outreach mail from.",
+    "emptyHintMember": "An admin of the organization adds the senders.",
+    "tableLabel": "Senders",
+    "delete": "Delete {mailAddress}",
+    "deleteTitle": "Delete sender",
+    "deleteConfirm": "Delete {mailAddress}? Outreach mail can no longer be sent from it.",
+    "deleteAction": "Delete",
+    "types": {
+      "PERSONAL": "Personal",
+      "SHARED": "Shared"
+    },
+    "columns": {
+      "mailAddress": "Mail address",
+      "type": "Type",
+      "createdAt": "Added",
+      "actions": "Actions"
+    },
+    "form": {
+      "type": "Type",
+      "mailAddress": "Mail address",
+      "mailAddressPlaceholder": "name@example.com",
+      "mailAddressHint": "Must be a mailbox in your organization's Microsoft 365 tenant.",
+      "create": "Add sender",
+      "saving": "Checking...",
+      "cancel": "Cancel",
+      "errors": {
+        "mailAddressRequired": "Mail address is required",
+        "mailAddressMax": "Mail address must be at most 254 characters",
+        "mailAddressInvalid": "Enter a valid mail address"
+      }
+    },
+    "toast": {
+      "created": "Sender added",
+      "deleted": "Sender deleted",
+      "saveError": "The sender could not be added",
+      "deleteError": "The sender could not be deleted"
+    },
+    "errors": {
+      "notFound": "This sender no longer exists.",
+      "mailAddressTaken": "The organization already has a sender with this mail address.",
+      "accountNotInTenant": "There is no account with this address in your organization's Microsoft 365 tenant. Check the spelling. If it is a shared mailbox, choose Shared.",
+      "accountWithoutMailbox": "This account exists in Microsoft 365 but has no mailbox, so Otak cannot send from it. Ask an admin to give it a mailbox.",
+      "sharedMailboxNotFound": "There is no shared mailbox with this address in your organization's Microsoft 365 tenant. Check the spelling.",
+      "microsoftUnreachable": "Microsoft 365 could not be reached. Try again later.",
+      "forbidden": "You do not have permission to do this.",
+      "validation": "Check the highlighted fields.",
+      "loadHint": "Check your connection and try again."
+    }
+  },
+  "events": {
+    "title": "Events",
+    "subtitle": "Expos, conferences and meetups where the organization meets companies.",
+    "new": "New event",
+    "newTitle": "New event",
+    "editTitle": "Edit event",
+    "dialogDescription": "Record an event where you meet companies. Relations can be linked to it.",
+    "loadError": "The events could not be loaded.",
+    "reloadError": "The events could not be refreshed; this list may be out of date.",
+    "loadOneError": "The event could not be loaded.",
+    "loading": "Loading the events",
+    "loadingOne": "Loading the event",
+    "emptyFiltered": "No events match this search",
+    "emptyFilteredHint": "Try another name or clear the search.",
+    "emptyByTab": {
+      "upcoming": "No upcoming events",
+      "past": "No past events"
+    },
+    "emptyHintByTab": {
+      "upcoming": "Add the next expo, conference or meetup you will attend.",
+      "past": "Events move here the day after they end."
+    },
+    "tableLabel": "Events",
+    "tabsLabel": "Period",
+    "tabs": {
+      "upcoming": "Upcoming",
+      "past": "Past"
+    },
+    "noPlace": "No place",
+    "noWebsite": "No website",
+    "edit": "Edit {name}",
+    "delete": "Delete {name}",
+    "deleteTitle": "Delete event",
+    "deleteConfirm": "Delete {name}? Relations linked to it stay and lose the link. This cannot be undone.",
+    "deleteAction": "Delete",
+    "types": {
+      "EXPO": "Expo",
+      "CONFERENCE": "Conference",
+      "MEETUP": "Meetup",
+      "WEBINAR": "Webinar",
+      "OTHER": "Other"
+    },
+    "columns": {
+      "name": "Name",
+      "type": "Type",
+      "dates": "Dates",
+      "place": "Place",
+      "website": "Website",
+      "actions": "Actions"
+    },
+    "filters": {
+      "searchLabel": "Search",
+      "searchPlaceholder": "Search by name",
+      "clear": "Clear search"
+    },
+    "pagination": {
+      "label": "Pages",
+      "previous": "Previous",
+      "next": "Next",
+      "summary": "Page {page} of {pages} · {total, plural, one {# event} other {# events}}"
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Such as IGEF 2026",
+      "type": "Type",
+      "typePlaceholder": "Select a type",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "city": "City",
+      "cityPlaceholder": "Such as Ankara",
+      "country": "Country",
+      "countryPlaceholder": "Select a country",
+      "countrySearch": "Search countries",
+      "website": "Website",
+      "websitePlaceholder": "https://example.com",
+      "notes": "Notes",
+      "notesPlaceholder": "Stand number, who went, what to follow up",
+      "create": "Create event",
+      "save": "Save changes",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "errors": {
+        "nameRequired": "Name is required",
+        "nameMax": "Name must be at most 200 characters",
+        "typeRequired": "Type is required",
+        "startDateRequired": "Start date is required",
+        "dateInvalid": "Enter a valid date",
+        "dateRange": "The end date cannot be before the start date",
+        "cityMax": "City must be at most 100 characters",
+        "websiteMax": "Website must be at most 500 characters",
+        "websiteInvalid": "Enter a web address that starts with http:// or https://",
+        "notesMax": "Notes must be at most 10,000 characters"
+      }
+    },
+    "toast": {
+      "created": "Event created",
+      "updated": "Event saved",
+      "deleted": "Event deleted",
+      "saveError": "The event could not be saved",
+      "deleteError": "The event could not be deleted"
+    },
+    "errors": {
+      "notFound": "This event no longer exists.",
+      "nameTaken": "The organization already has an event with this name.",
+      "dateRange": "The end date cannot be before the start date.",
+      "periodWithoutToday": "The list could not tell which events are upcoming. Reload the page.",
+      "forbidden": "You do not have permission to do this.",
+      "validation": "Check the highlighted fields.",
+      "loadHint": "Check your connection and try again."
+    },
+    "detail": {
+      "title": "Event",
+      "back": "Back to events",
+      "loading": "Loading the event",
+      "loadError": "The event could not be loaded.",
+      "notFoundTitle": "Event not found",
+      "notFoundDescription": "This event does not exist, or it belongs to another organization.",
+      "timestamps": "Created {created} · Updated {updated}",
+      "edit": "Edit event",
+      "delete": "Delete event",
+      "deleting": "Deleting...",
+      "details": "Details",
+      "dates": "Dates",
+      "place": "Place",
+      "website": "Website",
+      "notes": "Notes",
+      "noNotes": "No notes yet."
+    },
+    "relationsCard": {
+      "title": "Relations",
+      "loading": "Loading the relations",
+      "loadError": "The relations could not be loaded.",
+      "empty": "No relations are linked to this event yet.",
+      "tableLabel": "Relations of this event"
+    }
+  }
+}

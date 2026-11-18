@@ -1,0 +1,176 @@
+{
+  "realm": "sensey",
+  "enabled": true,
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 864000,
+  "ssoSessionMaxLifespan": 2592000,
+  "clients": [
+    {
+      "clientId": "oba-jwt-test-client",
+      "name": "Oba JWT Test Client",
+      "description": "Confidential client for testing JWT-based authentication in Spring Boot",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "jwt-test-secret-12345",
+      "redirectUris": ["*"],
+      "webOrigins": ["*"],
+      "fullScopeAllowed": true,
+      "attributes": {
+        "access.token.lifespan": "3600"
+      }
+    },
+    {
+      "clientId": "oba",
+      "name": "Oba Frontend Client",
+      "description": "Confidential client for NextAuth SSO across all Oba frontend apps",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "authorizationServicesEnabled": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "oba-frontend-secret-12345",
+      "redirectUris": [
+        "http://localhost:3000/*",
+        "http://localhost:3001/*",
+        "http://localhost:3002/*",
+        "http://localhost:3003/*",
+        "http://localhost:3004/*",
+        "http://localhost:3005/*",
+        "http://localhost:3006/*",
+        "http://localhost:3007/*",
+        "http://localhost:3008/*",
+        "http://localhost:3014/*",
+        "http://localhost:3016/*",
+        "http://localhost:3017/*",
+        "http://localhost:3018/*",
+        "http://localhost:3019/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:3002",
+        "http://localhost:3003",
+        "http://localhost:3004",
+        "http://localhost:3005",
+        "http://localhost:3006",
+        "http://localhost:3007",
+        "http://localhost:3008",
+        "http://localhost:3014",
+        "http://localhost:3016",
+        "http://localhost:3017",
+        "http://localhost:3018",
+        "http://localhost:3019"
+      ],
+      "fullScopeAllowed": true,
+      "attributes": {
+        "post.logout.redirect.uris": "http://localhost:3000/*##http://localhost:3001/*##http://localhost:3002/*##http://localhost:3003/*##http://localhost:3004/*##http://localhost:3005/*##http://localhost:3006/*##http://localhost:3007/*##http://localhost:3008/*##http://localhost:3014/*##http://localhost:3016/*##http://localhost:3017/*##http://localhost:3018/*##http://localhost:3019/*"
+      }
+    },
+    {
+      "clientId": "kaya-cli",
+      "name": "Kaya CLI",
+      "description": "Public client for the kaya CLI terminal sign-in with the device grant",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "authorizationServicesEnabled": false,
+      "redirectUris": [],
+      "webOrigins": [],
+      "fullScopeAllowed": true,
+      "attributes": {
+        "oauth2.device.authorization.grant.enabled": "true"
+      }
+    },
+    {
+      "clientId": "oba-cli",
+      "name": "Oba CLI",
+      "description": "Public client for the oba CLI terminal sign-in with the device grant",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "bearerOnly": false,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "authorizationServicesEnabled": false,
+      "redirectUris": [],
+      "webOrigins": [],
+      "fullScopeAllowed": true,
+      "attributes": {
+        "oauth2.device.authorization.grant.enabled": "true"
+      }
+    },
+    {
+      "clientId": "kaizen-mobile",
+      "name": "Kaizen mobile",
+      "description": "Public client for the Kaizen mobile app sign-in with the authorization code flow and PKCE",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "bearerOnly": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "authorizationServicesEnabled": false,
+      "redirectUris": ["kaizen://oauthredirect"],
+      "webOrigins": [],
+      "fullScopeAllowed": true,
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "access.token.lifespan": "900"
+      },
+      "defaultClientScopes": ["acr", "basic", "email", "profile", "roles", "web-origins"],
+      "optionalClientScopes": ["address", "microprofile-jwt", "offline_access", "organization", "phone"]
+    }
+  ],
+  "users": [
+    {
+      "username": "senseyadmin",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Sensey",
+      "lastName": "Admin",
+      "email": "admin@example.com",
+      "realmRoles": ["default-roles-sensey"],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "securepassword123",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "dev",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Dev",
+      "lastName": "User",
+      "email": "dev@example.com",
+      "realmRoles": ["default-roles-sensey"],
+      "credentials": [
+        {
+          "type": "password",
+          "value": "1234",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}

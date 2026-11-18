@@ -1,0 +1,2043 @@
+{
+  "search": "Zoeken",
+  "logout": "Afmelden",
+  "total": "Totaal",
+  "empty": {
+    "title": "Geen items yet",
+    "description": "Er zijn geen items in deze sectie. Voeg er wat toe om te beginnen.",
+    "action": "Toevoegen"
+  },
+  "common": {
+    "skipToContent": "Naar de hoofdinhoud",
+    "cancel": "Annuleren",
+    "save": "Opslaan",
+    "delete": "Verwijderen",
+    "create": "Aanmaken",
+    "loading": "Laden...",
+    "search": "Zoeken",
+    "settings": "Instellingen",
+    "actions": "Acties",
+    "profile": "Profiel",
+    "logOut": "Uitloggen",
+    "back": "Terug",
+    "change": "Wijzigen",
+    "saving": "Opslaan...",
+    "creating": "Aanmaken...",
+    "unassigned": "Niet toegewezen",
+    "clearSelection": "Selectie wissen",
+    "selectDate": "Kies een datum",
+    "confirmDeleteTitle": "Weet je het zeker?",
+    "confirmDelete": "Weet je zeker dat je dit wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+    "myTickets": "Mijn Tickets",
+    "allTickets": "Alle Tickets",
+    "colorPicker": {
+      "label": "Kleur",
+      "custom": "Aangepast",
+      "customColor": "Aangepaste kleur {color}",
+      "hex": "Hexkleur"
+    }
+  },
+  "board": {
+    "create": "Bord Aanmaken",
+    "createNew": "Nieuw Bord Aanmaken",
+    "createChild": "Onderliggend Bord Aanmaken",
+    "createChildDescription": "Maak een onderliggend bord aan dat erft van het hoofdbord",
+    "createNewDescription": "Maak een nieuw bord aan om je projecten en taken te organiseren",
+    "startNewProject": "Start een nieuw project",
+    "noBoards": "Nog geen borden",
+    "searchParent": "Zoek hoofdbord...",
+    "settings": {
+      "title": "Bordinstellingen",
+      "description": "Beheer je bordinstellingen en leden.",
+      "tabs": {
+        "general": "Algemeen",
+        "members": "Leden",
+        "labels": "Labels",
+        "projects": "Projecten",
+        "childBoards": "Onderliggende Borden"
+      },
+      "labels": "Labels",
+      "projects": "Projecten",
+      "addLabel": "Label Toevoegen",
+      "addProject": "Project Toevoegen",
+      "deleteLabel": "Label Verwijderen",
+      "deleteProject": "Project Verwijderen",
+      "deleteLabelConfirm": "Weet je zeker dat je dit label wilt verwijderen? Het wordt verwijderd van alle tickets.",
+      "deleteProjectConfirm": "Weet je zeker dat je dit project wilt verwijderen? Het wordt verwijderd van alle tickets.",
+      "noLabelsYet": "Nog geen labels. Maak er een om je tickets te categoriseren.",
+      "noProjectsYet": "Nog geen projecten. Maak er een om je tickets te groeperen.",
+      "labelName": "Labelnaam",
+      "projectName": "Projectnaam",
+      "boardName": "Bordnaam",
+      "boardNamePlaceholder": "Voer bordnaam in",
+      "dangerZone": "Gevarenzone",
+      "deleteWarning": "Je kunt instellen hoe tickets en onderliggende borden worden afgehandeld voor de verwijdering.",
+      "deleteButton": "Bord Verwijderen...",
+      "deleting": "Verwijderen...",
+      "saveChanges": "Wijzigingen Opslaan"
+    },
+    "delete": {
+      "title": "Bord Verwijderen",
+      "description": "Configureer hoe tickets en onderliggende borden worden afgehandeld voordat u verwijdert.",
+      "confirm": "Bord Verwijderen",
+      "ticketAction": {
+        "sectionTitle": "Wat moet er met de tickets gebeuren?",
+        "delete": "Alle Tickets Verwijderen",
+        "moveToBacklog": "Naar Backlog van een Ander Bord Verplaatsen",
+        "moveToSprint": "Naar Sprint van een Ander Bord Verplaatsen"
+      },
+      "destination": {
+        "targetBoard": "Doelbord",
+        "targetBoardPlaceholder": "Selecteer doelbord...",
+        "sprint": "Naar sprint verplaatsen",
+        "sprintPlaceholder": "Selecteer sprint..."
+      },
+      "childBoardAction": {
+        "title": "Wat moet er met de onderliggende borden gebeuren?",
+        "promote": "Onderliggende borden zelfstandig maken (bovenliggende verwijderen)",
+        "move": "Onderliggende borden onder een nieuw bovenliggend bord verplaatsen",
+        "delete": "Alle onderliggende borden verwijderen",
+        "newParentPlaceholder": "Selecteer nieuw bovenliggend bord..."
+      },
+      "insufficientRole": "Onvoldoende rol"
+    },
+    "name": "Bordnaam",
+    "description": "Beschrijving",
+    "prefix": "Prefix",
+    "prefixHelper": "Gebruikt voor ticket-ID's (bijv. PRJ-123)",
+    "prefixRequired": "Prefix is verplicht",
+    "prefixUppercase": "Prefix mag alleen hoofdletters, cijfers en underscores bevatten",
+    "prefixTooLong": "Prefix moet 5 tekens of minder zijn",
+    "nameRequired": "Bordnaam is verplicht",
+    "namePlaceholder": "Mijn Geweldige Project",
+    "prefixPlaceholder": "PRJ",
+    "descriptionPlaceholder": "Een korte beschrijving waar dit bord voor is...",
+    "color": "Bord Kleur",
+    "members": {
+      "loading": "Leden laden...",
+      "title": "Bordleden",
+      "addMember": "Lid toevoegen",
+      "addMemberDescription": "Zoek een gebruiker in je organisatie en voeg deze toe aan dit bord.",
+      "editMember": "Lid bewerken",
+      "editMemberDescription": "Werk de rol bij voor dit bordlid.",
+      "selectUser": "Selecteer gebruiker",
+      "searchUsers": "Zoek op naam of e-mail...",
+      "noUsersFound": "Geen gebruikers gevonden",
+      "role": "Rol",
+      "roles": {
+        "OWNER": "Eigenaar",
+        "ADMIN": "Beheerder",
+        "MEMBER": "Lid",
+        "VIEWER": "Kijker"
+      }
+    },
+    "childBoards": "Onderliggende Borden",
+    "addChild": "Onderliggend Bord Toevoegen",
+    "addChildChoice": {
+      "title": "Onderliggend Bord Toevoegen",
+      "description": "Kies hoe je een onderliggend bord wilt toevoegen.",
+      "newOption": "Nieuw Aanmaken",
+      "newOptionDescription": "Maak een nieuw bord aan als onderliggend bord.",
+      "existingOption": "Bestaand Koppelen",
+      "existingOptionDescription": "Voeg een bestaand bord toe als onderliggend bord."
+    },
+    "addExisting": {
+      "title": "Bestaande Borden als Onderliggende Borden Toevoegen",
+      "description": "Selecteer borden uit je organisatie om als onderliggende borden van dit bord te koppelen.",
+      "selectBoards": "Selecteer borden...",
+      "previewTitle": "Voorbeeld",
+      "parentLabel": "Dit bord wordt het hoofdbord",
+      "alreadyChild": "Al een onderliggend bord",
+      "confirmButton": "Toevoegen als Onderliggende Borden",
+      "adding": "Toevoegen...",
+      "infoMessage": "Geselecteerde borden worden onder {boardName} geplaatst als onderliggende borden. Als ze al een hoofdbord hebben, worden ze verplaatst.",
+      "includedAsSub": "inbegrepen"
+    },
+    "removeChild": "{name} verwijderen uit {parent}",
+    "removeChildDialog": {
+      "title": "Onderliggend bord verwijderen",
+      "description": "{child} is dan geen onderliggend bord meer van {parent}. Het wordt een bord op het hoogste niveau en behoudt zijn tickets, leden en onderliggende borden.",
+      "confirm": "Verwijderen"
+    },
+    "parent": "Hoofdbord",
+    "selectParent": "Selecteer hoofdbord",
+    "noParent": "Geen hoofdbord (zelfstandig)",
+    "includeAllBoards": "Inclusief alle borden"
+  },
+  "ticket": {
+    "systemActor": {
+      "badge": "Systeem"
+    },
+    "title": "Tickets",
+    "ticket": "ticket",
+    "tickets": "tickets",
+    "create": "Ticket Aanmaken",
+    "edit": "Ticket Bewerken",
+    "noTickets": "Geen tickets",
+    "titleLabel": "Titel",
+    "titlePlaceholder": "Voer ticket titel in...",
+    "description": "Beschrijving",
+    "descriptionPlaceholder": "Beschrijf het ticket in detail...",
+    "boardField": "Bord",
+    "selectBoard": "Selecteer bord...",
+    "typeField": "Type",
+    "priorityField": "Prioriteit",
+    "assigneeField": "Toegewezen aan",
+    "statusField": "Status",
+    "placementField": "Plaatsing",
+    "backlogStatusHint": "Tickets in de backlog staan altijd op Te Doen.",
+    "subTicketPlacementHint": "Een subticket wordt bij zijn hoofdticket geplaatst.",
+    "detachedPlacementHint": "Een subticket staat altijd bij zijn hoofdticket, dus hier wordt dit ticket een los ticket zonder hoofdticket.",
+    "properties": "Eigenschappen",
+    "sections": {
+      "workflow": "Workflow",
+      "people": "Personen",
+      "details": "Details",
+      "planning": "Planning"
+    },
+    "tabs": {
+      "details": "Details",
+      "attachments": "Bijlagen"
+    },
+    "status": {
+      "TODO": "Te Doen",
+      "IN_PROGRESS": "In Uitvoering",
+      "WAITING_FOR_THIRD_PARTY": "Wacht op derde partij",
+      "IN_REVIEW": "In Review",
+      "DONE": "Klaar",
+      "filterBy": "Filter op {status}",
+      "filterByWithCount": "Filter op {status} ({count})"
+    },
+    "missionRank": {
+      "XS": "XS",
+      "S": "S",
+      "M": "M",
+      "L": "L",
+      "XL": "XL",
+      "XXL": "XXL"
+    },
+    "delete": "Verwijderen",
+    "dangerZone": "Gevarenzone",
+    "deleteWarning": "Het verwijderen van dit ticket verwijdert het en al zijn gegevens. Wees er zeker van.",
+    "deleteButton": "Ticket Verwijderen",
+    "deleting": "Verwijderen...",
+    "types": {
+      "BUG": "Bug",
+      "FEATURE": "Feature",
+      "TECH_DEBT": "Technische schuld",
+      "IMPROVEMENT": "Verbetering",
+      "INCIDENT": "Incident",
+      "PROBLEM": "Probleem",
+      "REFACTOR": "Refactor"
+    },
+    "priority": {
+      "LOWEST": "Laagste",
+      "LOW": "Laag",
+      "MEDIUM": "Gemiddeld",
+      "HIGH": "Hoog",
+      "HIGHEST": "Hoogste",
+      "P1": "P1",
+      "P2": "P2",
+      "P3": "P3"
+    },
+    "assignee": "Toegewezen aan",
+    "subTickets": {
+      "addNew": "Sub-ticket toevoegen",
+      "dragHandle": "Sleep om de volgorde te wijzigen",
+      "reorderBusy": "De nieuwe volgorde wordt opgeslagen, probeer het zo opnieuw",
+      "reorderCrossBoard": "Sub-tickets op verschillende borden kunnen niet onderling worden herschikt",
+      "clickToAdd": "Klik om toe te voegen...",
+      "title": "Sub-tickets"
+    },
+    "fields": {
+      "reviewer": "Reviewer",
+      "percentage": "Voortgang",
+      "weight": "Gewicht",
+      "missionRank": "Missie Rang",
+      "dueDate": "Deadline",
+      "dueDatePlaceholder": "Selecteer deadline...",
+      "overdue": "Verlopen",
+      "dueSoon": "Bijna verlopen",
+      "project": "Project",
+      "labels": "Labels",
+      "selectLabels": "Selecteer labels...",
+      "parent": "Bovenliggend Ticket",
+      "selectParent": "Selecteer bovenliggend ticket",
+      "searchParent": "Zoek tickets...",
+      "noParent": "Geen bovenliggend (zelfstandig ticket)",
+      "selectProject": "Selecteer project...",
+      "createOption": "Maak \"{name}\" aan",
+      "placementBacklog": "Backlog",
+      "placementSprints": "Sprints",
+      "searchSprint": "Zoek sprints...",
+      "noDueDate": "Geen deadline",
+      "noProject": "Geen project",
+      "noLabels": "Geen labels",
+      "parentNone": "Geen",
+      "missionRankRequired": "Missie Rang is verplicht",
+      "percentageRange": "Voer een heel getal van 0 tot en met 100 in.",
+      "milestone": "Mijlpaal",
+      "noMilestone": "Geen mijlpaal"
+    },
+    "markdown": {
+      "descriptionTooLong": "De beschrijving is te lang nadat afbeeldings-URL's zijn toegevoegd. Maak hem korter."
+    },
+    "inlineSubTickets": {
+      "toggle": "Sub-tickets wisselen",
+      "showMore": "Toon {count} meer",
+      "showLess": "Toon minder",
+      "quickAdd": "Sub-ticket toevoegen...",
+      "markComplete": "Markeer als voltooid",
+      "markIncomplete": "Markeer als niet voltooid",
+      "progress": {
+        "summary": "{done} klaar, {inThisSprint} in deze sprint, {inOtherSprints} in andere sprints, {inBacklog} in de backlog, van {total, plural, one {# sub-ticket} other {# sub-tickets}}",
+        "done": "{count, plural, one {# sub-ticket} other {# sub-tickets}} klaar",
+        "inThisSprint": "{count, plural, one {# sub-ticket} other {# sub-tickets}} in deze sprint",
+        "inOtherSprints": "{count, plural, one {# sub-ticket} other {# sub-tickets}} in andere sprints",
+        "inBacklog": "{count, plural, one {# sub-ticket} other {# sub-tickets}} in de backlog"
+      }
+    },
+    "groupHeader": {
+      "parent": "Bovenliggend"
+    },
+    "actions": {
+      "openMenu": "Menu openen",
+      "edit": "Bewerken",
+      "createSubTicket": "Sub-ticket aanmaken",
+      "duplicate": "Dupliceren",
+      "moveToSprint": "Naar Sprint verplaatsen",
+      "activeLabel": "(Actief)",
+      "moveToBacklog": "Naar Backlog verplaatsen",
+      "moveTo": "Verplaatsen naar...",
+      "delete": "Verwijderen",
+      "copyLink": "Link kopiëren",
+      "moveToSprintDescription": "Selecteer een sprint om dit ticket naartoe te verplaatsen.",
+      "selectSprint": "Selecteer sprint",
+      "noAvailableSprints": "Geen beschikbare sprints",
+      "confirmMove": "Verplaatsen",
+      "moveToBacklogDescription": "Verplaats dit ticket naar de backlog van het board."
+    },
+    "table": {
+      "reviewer": "Reviewer",
+      "key": "Sleutel",
+      "type": "Type",
+      "title": "Titel",
+      "priority": "Prioriteit",
+      "assignee": "Toegewezen",
+      "board": "Bord",
+      "status": "Status",
+      "dueDate": "Deadline",
+      "createdAt": "Aangemaakt",
+      "sprint": "Sprint",
+      "backlog": "Backlog",
+      "inBacklog": "In Backlog",
+      "labels": "Labels",
+      "project": "Project",
+      "progress": "Voortgang"
+    },
+    "bulkMove": {
+      "title": "Geselecteerde Tickets Verplaatsen",
+      "selectedCount": "{count} ticket(s) worden verplaatst",
+      "selectTargetBoard": "Doelbord",
+      "currentBoard": "Huidig Bord",
+      "otherBoard": "Ander Bord",
+      "moveToBacklog": "Naar Backlog Verplaatsen",
+      "moveToSprint": "Naar Sprint Verplaatsen",
+      "selectAction": "Verplaatsactie",
+      "selectSprint": "Selecteer een sprint",
+      "noAvailableSprints": "Geen beschikbare sprints voor het geselecteerde bord",
+      "confirm": "Tickets Verplaatsen",
+      "currentBoardHint": "Huidig bord"
+    },
+    "bulkDelete": {
+      "action": "Geselecteerde Verwijderen",
+      "pending": "Verwijderen...",
+      "confirmTitle": "{count} ticket(s) verwijderen?",
+      "confirmDescription": "{count} ticket(s) en al hun gegevens worden permanent verwijderd. Deze actie kan niet ongedaan worden gemaakt."
+    },
+    "selection": {
+      "count": "{count} ticket(s) geselecteerd"
+    },
+    "expandToFullPage": "Openen op volledige pagina",
+    "expandBlockedPendingImages": "Sla het ticket eerst op — toegevoegde afbeeldingen zijn nog niet geüpload en zouden verloren gaan.",
+    "expandDraftFailed": "Kon de volledige pagina niet openen zonder je wijzigingen te verliezen. Sla het ticket eerst op.",
+    "subTicketChoice": {
+      "label": "Subtickets",
+      "none": "Alleen dit ticket",
+      "unfinished": "Dit ticket en de onafgeronde subtickets",
+      "selected": "Dit ticket en de subtickets die ik kies",
+      "checklistLabel": "Te verplaatsen subtickets",
+      "done": "Klaar",
+      "backlog": "Backlog"
+    },
+    "incidentClose": {
+      "title": "Incident sluiten",
+      "description": "Leg vast wat dit incident veroorzaakte en wat het team ervan heeft geleerd voordat je het op Klaar zet.",
+      "warning": "Een incident kan pas worden gesloten als beide velden zijn ingevuld.",
+      "rcaLabel": "Oorzaakanalyse (RCA)",
+      "rcaPlaceholder": "Wat veroorzaakte het incident?",
+      "lessonsLabel": "Geleerde lessen",
+      "lessonsPlaceholder": "Wat doet het team voortaan anders?",
+      "required": "Dit veld is verplicht",
+      "confirm": "Incident sluiten",
+      "cancel": "Annuleren",
+      "loadFailed": "Het incident kon niet worden geladen, dus de oorzaakanalyse en geleerde lessen kunnen niet worden getoond.",
+      "retry": "Opnieuw proberen"
+    },
+    "moveBoard": {
+      "title": "{key} verplaatsen naar {board}",
+      "description": "Kies waar het ticket op het nieuwe bord komt. De verplaatsing gebeurt wanneer je het ticket opslaat.",
+      "placementLabel": "Waar op {board}?",
+      "sprintShared": "Sprint {sprint} wordt gedeeld met {board}, dus het ticket kan erin blijven.",
+      "sprintNotShared": "Sprint {sprint} hoort niet bij {board}. Kies een sprint van {board} of de backlog.",
+      "fromBacklog": "Het ticket staat nu in de backlog. Kies een sprint van {board} of de backlog.",
+      "sprintsLoadFailed": "De sprints van dit bord konden niet worden geladen. Sluit het venster en probeer het opnieuw.",
+      "changesLabel": "Wat de verplaatsing verandert",
+      "changes": {
+        "newKey": "{key} krijgt een nieuwe sleutel: {prefix}-…",
+        "newKeyNoPrefix": "{key} krijgt een nieuwe sleutel op het nieuwe bord.",
+        "subTickets": "{count, plural, one {# subticket gaat} other {# subtickets gaan}} mee.",
+        "project": "Project {project} wordt verwijderd, omdat het bij het oude bord hoort.",
+        "milestone": "Mijlpaal {milestone} wordt verwijderd als die niet bij het nieuwe bord of een verwant bord hoort.",
+        "backlogStatus": "In de backlog wordt de status To Do.",
+        "subTicketsDetached": "{count, plural, one {# subticket blijft} other {# subtickets blijven}} als los ticket op {board}."
+      },
+      "confirm": "Verplaatsen naar {board}",
+      "pendingHint": "Wordt naar dit bord verplaatst wanneer je opslaat.",
+      "subTicketHint": "Een subticket blijft op het bord van zijn bovenliggende ticket.",
+      "subTicketsLabel": "Wat gebeurt er met {count, plural, one {het subticket} other {de # subtickets}}?",
+      "subTicketsMove": "Mee verplaatsen naar {board}",
+      "subTicketsMoveDesc": "Ze blijven subtickets van dit ticket en krijgen nieuwe {prefix}-sleutels, samen met hun eigen subtickets.",
+      "subTicketsDetach": "Op {board} laten zonder bovenliggend ticket",
+      "subTicketsDetachDesc": "Ze worden losse tickets op het huidige bord en houden hun sleutels, sprint en eigen subtickets. Een ticket in de backlog wordt To Do."
+    }
+  },
+  "sprint": {
+    "title": "Sprint",
+    "create": "Sprint Aanmaken",
+    "start": "Sprint Starten",
+    "complete": "Sprint Afronden",
+    "noActiveSprint": "Geen Actieve Sprint",
+    "noActiveSprintDescription": "Maak je eerste sprint aan om je werk te beheren in tijdgebonden iteraties. Je kunt tickets toevoegen vanuit de backlog aan je sprint.",
+    "noTicketsInSprint": "Geen tickets in sprint",
+    "noTicketsDescription": "Voeg tickets toe vanuit de backlog om aan deze sprint te werken.",
+    "goal": "Sprint Doel",
+    "goalPlaceholder": "Wat wil je bereiken in deze sprint?",
+    "goalDescription": "Optioneel: Een duidelijk, beknopt doel voor deze sprint",
+    "startDate": "Startdatum",
+    "endDate": "Einddatum",
+    "name": "Sprint Naam",
+    "namePlaceholder": "Sprint 1",
+    "nameRequired": "Sprint naam is verplicht",
+    "seriesNameTooLong": "Een reeksnaam heeft maximaal 240 tekens.",
+    "seriesNamePlaceholder": "Sprint",
+    "seriesNameCreateTooltip": "Met herhalen aan is dit de naam van de reeks. De sprints krijgen deze naam met een rondenummer: {name} 1, {name} 2 enzovoort.",
+    "seriesNameEditTooltip": "Deze sprint is ronde {round} van zijn reeks. Een nieuwe reeksnaam hernoemt de onafgeronde sprints van de reeks.",
+    "endDateAfterStart": "Einddatum moet na startdatum zijn",
+    "creating": "Aanmaken...",
+    "createFirst": "Eerste Sprint Aanmaken",
+    "createNewSprint": "Nieuwe Sprint Aanmaken",
+    "planYourNextSprint": "Plan je volgende sprint met doelen en tijdlijn",
+    "addTicket": "Ticket Toevoegen",
+    "selectSprint": "Selecteer Sprint",
+    "active": "Actief",
+    "planned": "Gepland",
+    "completed": "Afgerond",
+    "daysLeft": "{count}d resterend",
+    "noTicketsInColumn": "Nog geen tickets",
+    "completeDialog": {
+      "title": "Sprint Afronden",
+      "description": "Bekijk de voortgang van de sprint en besluit wat je wilt doen met onvoltooide tickets",
+      "summary": "Sprint Samenvatting",
+      "completed": "Voltooid",
+      "incomplete": "Onvoltooid",
+      "completionRate": "Voltooiingspercentage",
+      "incompleteAction": "Wat moeten we doen met onvoltooide tickets?",
+      "moveToBacklog": "Naar Backlog Verplaatsen",
+      "moveToBacklogDesc": "Onvoltooide tickets worden terug verplaatst naar de backlog voor toekomstige planning",
+      "moveToSprint": "Naar Een Andere Sprint Verplaatsen",
+      "moveToSprintDesc": "Onvoltooide tickets worden verplaatst naar de geselecteerde geplande sprint",
+      "moveToNextSprint": "Verplaatsen naar de volgende sprint",
+      "moveToNextSprintDesc": "Onvoltooide tickets worden verplaatst naar de volgende sprint van {series}, op hun eigen borden",
+      "seriesStartsNext": "De volgende sprint van {series} start meteen.",
+      "deleteTickets": "Onvoltooide Tickets Verwijderen",
+      "deleteTicketsDesc": "Onvoltooide tickets worden permanent verwijderd",
+      "noPlannedSprints": "Geen geplande sprints beschikbaar",
+      "selectTargetBoard": "Doelbord",
+      "currentBoard": "Huidig Bord",
+      "otherBoard": "Ander Bord",
+      "selectTargetSprint": "Selecteer doelsprint",
+      "warning": "Het afronden van een sprint zal deze als voltooid markeren en kan niet opnieuw worden geopend. Voltooide tickets blijven in deze sprint.",
+      "completing": "Afronden...",
+      "button": "Sprint Afronden",
+      "currentBoardHint": "Huidig bord"
+    },
+    "unlinkDialog": {
+      "title": "Sprint Ontkoppelen",
+      "description": "Kies wat er gebeurt met tickets op dit bord wanneer de sprint wordt ontkoppeld",
+      "action": "Wat moet er gebeuren met de tickets in deze sprint?",
+      "moveToBacklog": "Naar Backlog Verplaatsen",
+      "moveToBacklogDesc": "Tickets worden verplaatst naar de backlog van het geselecteerde bord",
+      "moveToSprint": "Naar Een Andere Sprint Verplaatsen",
+      "moveToSprintDesc": "Tickets worden verplaatst naar de geselecteerde sprint op het doelbord",
+      "deleteTickets": "Tickets Verwijderen",
+      "deleteTicketsDesc": "Tickets op de sprint van dit bord worden permanent verwijderd",
+      "selectTargetBoard": "Doelbord",
+      "selectTargetSprint": "Selecteer doelsprint",
+      "currentBoard": "Huidig Bord",
+      "otherBoard": "Ander Bord",
+      "currentBoardHint": "Huidig bord",
+      "noPlannedSprints": "Geen geplande sprints beschikbaar",
+      "warning": "Het ontkoppelen van een sprint verwijdert deze van dit bord. Tickets moeten worden verplaatst of verwijderd voor het ontkoppelen.",
+      "unlinking": "Ontkoppelen...",
+      "button": "Sprint Ontkoppelen"
+    },
+    "editTitle": "Sprint Bewerken",
+    "editDescription": "Werk de sprintnaam, doel en datums bij",
+    "saving": "Opslaan...",
+    "save": "Wijzigingen Opslaan",
+    "tabs": {
+      "general": "Algemeen",
+      "boards": "Borden",
+      "automation": "Automatisering"
+    },
+    "recurrence": {
+      "repeat": "Automatisch herhalen",
+      "repeatDescription": "Sluit deze sprint op de einddatum en start de volgende van de reeks",
+      "lengthDaysLabel": "Lengte (dagen)",
+      "lengthDaysTooltip": "Elke nieuwe sprint duurt zoveel dagen.",
+      "unfinishedTickets": "Onafgeronde tickets",
+      "moveToNextSprint": "Volgende sprint",
+      "moveToBacklog": "Backlog",
+      "createNext": "Volgende sprint aanmaken",
+      "atEnd": "Op de einddatum",
+      "daysBefore": "Dagen voor de einddatum",
+      "daysBeforeLabel": "Dagen voor de einddatum",
+      "daysBeforeHint": "Van 1 tot {max}. De volgende sprint wordt als gepland aangemaakt, zodat je er tickets aan kunt toevoegen.",
+      "lengthLine": "Deze sprint: {days} dagen. Gaat over om 00:00 UTC op {date} ({localTime} jouw tijd).",
+      "utcDatesNote": "Met automatisering aan zijn datums kalenderdagen in UTC. De sprint gaat over om 00:00 UTC.",
+      "normalizeDatesNote": "Bij opslaan worden de sprintdatums {start} - {end}, om 00:00 UTC.",
+      "completedReadOnly": "Afgeronde sprints worden niet herhaald.",
+      "noPermission": "Alleen eigenaren en beheerders van het bord kunnen deze instellingen wijzigen.",
+      "loadError": "De automatiseringsinstellingen van de sprint konden niet worden geladen.",
+      "errors": {
+        "lengthRange": "Automatisering vereist een sprint van 1 tot 365 dagen.",
+        "daysBeforeRequired": "Vul het aantal dagen in.",
+        "daysBeforeRange": "Vul een getal in van 1 tot een dag minder dan de lengte.",
+        "seriesLengthRange": "Vul een lengte in van 1 tot 365 dagen."
+      },
+      "status": {
+        "title": "Status",
+        "nextSprint": "Volgende sprint",
+        "nextRollover": "Volgende overgang",
+        "nextCreation": "Volgende sprint aangemaakt",
+        "lastRun": "Laatste uitvoering",
+        "lastStatus": "Laatste resultaat",
+        "message": "Bericht",
+        "none": "Niet gepland",
+        "never": "Nooit",
+        "scheduledTime": "{time} (00:00 UTC)",
+        "runStatus": {
+          "OK": "OK",
+          "BLOCKED": "Geblokkeerd",
+          "FAILED": "Mislukt"
+        }
+      },
+      "reasons": {
+        "noLiveSprint": "Er was geen lopende of geplande sprint meer, bijvoorbeeld nadat een andere sprint de borden overnam.",
+        "boardInOtherSeries": "Bord {board} hoort bij de reeks {series}."
+      }
+    },
+    "boards": {
+      "title": "Gekoppelde Borden",
+      "empty": "Geen borden gekoppeld",
+      "emptyDescription": "Koppel borden om deze sprint over meerdere borden te delen",
+      "linkBoard": "Bord Koppelen",
+      "linkBoards": "Borden Koppelen",
+      "selectBoards": "Selecteer borden om te koppelen...",
+      "linking": "Koppelen...",
+      "alreadyLinked": "Al gekoppeld",
+      "currentBoard": "Huidig Bord"
+    },
+    "deleteTitle": "Sprint Verwijderen",
+    "deleteDescription": "Deze sprint wordt verwijderd. Je kunt instellen hoe tickets worden afgehandeld voor de verwijdering.",
+    "deleteWarning": "De sprint wordt verwijderd van dit bord. Tickets kunnen worden verplaatst voor de verwijdering.",
+    "deleteAction": "Wat moet er gebeuren met de tickets in deze sprint?",
+    "deleting": "Verwijderen...",
+    "delete": "Sprint Verwijderen",
+    "deleteButton": "Sprint Verwijderen",
+    "childBoards": {
+      "title": "Gebruik deze sprint ook op subborden",
+      "adminRequired": "Beheerdersrol vereist",
+      "hasActiveSprint": "Heeft actieve sprint {name}",
+      "selectAll": "Alles selecteren",
+      "selectNone": "Niets selecteren",
+      "loadFailed": "De subborden konden niet worden geladen. De sprint wordt alleen op dit bord aangemaakt.",
+      "tooMany": "Selecteer maximaal 50 subborden",
+      "noneSelected": "Geen subborden geselecteerd",
+      "searchPlaceholder": "Zoek op naam of prefix",
+      "noMatches": "Geen borden gevonden",
+      "selectedCount": "{count} geselecteerd",
+      "moreCount": "+{count}"
+    },
+    "takeover": {
+      "warning": "{count, plural, one {# geselecteerd bord heeft al een actieve sprint} other {# geselecteerde borden hebben al een actieve sprint}}. {name} kan alleen overnemen als die sprints worden afgesloten en hun onafgeronde tickets ernaar worden verplaatst.",
+      "goesToBacklog": "tickets gaan naar de eigen backlog",
+      "adminRequired": "Beheerdersrol vereist",
+      "infoLabel": "Actieve sprints die worden afgesloten",
+      "optionTakeOver": "Sluit ze af, verplaats onafgeronde tickets naar {name} en start die",
+      "optionPlanOnly": "Plan alleen {name}, huidige sprints blijven",
+      "createAndStart": "Aanmaken en starten",
+      "moveAndStart": "Tickets verplaatsen en starten",
+      "startTitle": "{name} starten",
+      "seriesStops": "De herhalende reeks {series} stopt: {sprint} is de laatste lopende sprint ervan. De borden kunnen daarna bij een andere reeks."
+    },
+    "joinParent": {
+      "openButton": "Sprint van een bovenliggend bord volgen",
+      "createOwn": "Eigen sprint maken",
+      "emptyDescription": "Dit bord heeft nog geen sprint. Doe mee met de actieve sprint van een bord erboven, of maak een sprint voor alleen dit bord.",
+      "title": "Sprint van een bovenliggend bord volgen",
+      "description": "Kies een bord boven {board}. De actieve sprint wordt getoond voordat {board} meedoet.",
+      "boardLabel": "Bord",
+      "selectBoard": "Kies een bord",
+      "parent": "bovenliggend",
+      "grandparent": "twee niveaus hoger",
+      "ancestor": "hoger niveau",
+      "noActiveSprint": "Geen actieve sprint",
+      "noRole": "Je hebt beheerrechten nodig op {board}",
+      "activeSprintOf": "Actieve sprint van {board}",
+      "goal": "Doel",
+      "once": "{board} doet alleen mee met deze sprint.",
+      "detailsLoadFailed": "De sprintgegevens konden niet worden geladen.",
+      "join": "Meedoen met sprint",
+      "repeatOff": "{board} komt in de reeks en volgt de volgende sprints zodra herhalen weer aan staat.",
+      "repeatOffReason": "Waarom het uit staat: {reason}",
+      "dates": "Datums",
+      "repeat": "Herhalen",
+      "repeatNone": "Nee",
+      "repeatOffShort": "Uitgeschakeld (reeks {series})",
+      "repeatEveryWeeks": "Elke {weeks, plural, one {week} other {# weken}}",
+      "repeatEveryDays": "Elke {days, plural, one {dag} other {# dagen}}",
+      "repeats": "{board} doet ook mee met de volgende sprints.",
+      "boardsInSprint": "Borden in deze sprint ({count})",
+      "joins": "doet mee"
+    }
+  },
+  "backlog": {
+    "title": "Backlog",
+    "emptyDescription": "Maak je eerste ticket aan om je werk te organiseren.",
+    "noTicketsInColumn": "Geen tickets",
+    "emptyTitle": "Geen tickets in backlog",
+    "emptySubtitle": "Maak een ticket aan om te beginnen",
+    "addTicket": "Ticket Toevoegen",
+    "plannedInSprint": "Gepland: {sprint}"
+  },
+  "all": {
+    "title": "Alles",
+    "sprintSection": "Sprint",
+    "addToSprint": "Toevoegen aan Sprint",
+    "addToBacklog": "Toevoegen aan Backlog",
+    "dnd": {
+      "sprintSection": "Sprinttickets",
+      "backlogSection": "Backlogtickets",
+      "announceLift": "Ticket {ticket} opgepakt.",
+      "announceOver": "Ticket {ticket} bevindt zich boven {section}.",
+      "announceDropped": "Ticket {ticket} is losgelaten op {section}.",
+      "announceCancelled": "Slepen van ticket {ticket} is geannuleerd.",
+      "sprintUnavailable": "Selecteer eerst een sprint om tickets naartoe te verplaatsen",
+      "backlogUnavailable": "Geen backlog gevonden voor het board van dit ticket"
+    }
+  },
+  "views": {
+    "kanban": "Kanban",
+    "list": "Lijst",
+    "modeToggle": "Weergavemodus schakelen",
+    "switchToList": "Schakel naar lijstweergave",
+    "switchToKanban": "Schakel naar kanbanweergave",
+    "options": "Weergave"
+  },
+  "guest": {
+    "invite": "Gast Uitnodigen",
+    "email": "Gast E-mail",
+    "role": "Rol",
+    "viewer": "Kijker",
+    "member": "Lid",
+    "viewerDesc": "Kan bekijken maar niet bewerken",
+    "memberDesc": "Kan bekijken en bewerken",
+    "inviteDescription": "Nodig een gebruiker uit om samen te werken aan dit bord",
+    "emailPlaceholder": "gast@voorbeeld.nl",
+    "sendInvite": "Uitnodiging Versturen",
+    "comingSoon": "Deze functie is nog niet beschikbaar. Gastuitnodigingen worden in een toekomstige update ondersteund."
+  },
+  "home": {
+    "title": "Home",
+    "boardsError": "Je borden konden niet worden geladen.",
+    "retry": "Opnieuw proberen",
+    "opensInNewTab": "(opent in een nieuw tabblad)",
+    "noBoardsTitle": "Nog geen borden",
+    "noBoardsDescription": "Borden bevatten je tickets, sprints en backlog. Maak er een aan om je werk te organiseren.",
+    "createBoard": "Maak je eerste bord",
+    "apps": {
+      "kagi": {
+        "name": "Kagi",
+        "description": "Wachtwoorden, secrets en certificaten op één plek"
+      },
+      "kaya": {
+        "name": "Kaya",
+        "description": "Ons agentplatform, waar al onze agents 24/7 draaien"
+      },
+      "kaizen": {
+        "name": "Kaizen",
+        "description": "Tickets, incidentbeheer, documentatie en berichten"
+      },
+      "kalkan": {
+        "name": "Kalkan",
+        "description": "ISO 27001-compliance, later ook andere kaders"
+      },
+      "otag": {
+        "name": "Otag",
+        "description": "Bedrijfsbeheer: contracten en socialemediaberichten"
+      },
+      "betiks": {
+        "name": "Betiks",
+        "description": "Onze waarden en werkwijze, online te lezen als boeken"
+      }
+    },
+    "links": {
+      "label": "Links",
+      "kaizen": "Kaizen",
+      "apps": "Korur-apps",
+      "openIncidents": "Open incidenten",
+      "openSprintTickets": "Open sprinttickets",
+      "countUnavailable": "Aantal kon niet worden geladen"
+    },
+    "sprint": {
+      "label": "Sprint",
+      "daysLeft": "{count, plural, one {Nog # dag} other {Nog # dagen}}",
+      "ended": "{count, plural, one {# dag geleden afgelopen} other {# dagen geleden afgelopen}}",
+      "noActive": "Geen actieve sprint",
+      "openSprintPage": "Open de sprintpagina",
+      "noEndDate": "Geen einddatum",
+      "dateRange": "{start} tot {end}",
+      "focusBoard": "Bord",
+      "elapsed": "{percent}% van de sprint is voorbij",
+      "error": "De sprint kon niet worden geladen."
+    },
+    "burndown": {
+      "summary": "{remaining} van {total} tickets open",
+      "infoLabel": "Hoe de burndown wordt geteld",
+      "info": "De doorgetrokken lijn toont de tickets die aan het eind van elke dag nog open zijn, de gestippelde lijn een gelijkmatig tempo naar nul. De scope is de tickets van de sprint op je borden vandaag. Subtickets die onder hun parent staan, tellen niet mee. Een ticket telt als klaar op de dag dat het Done bereikte.",
+      "chartLabel": "Burndown van {name}: {remaining} van {total} tickets open",
+      "today": "Vandaag",
+      "remaining": "Open",
+      "ideal": "Gelijkmatig tempo",
+      "date": "Datum"
+    },
+    "leaderboard": {
+      "title": "Ranglijst",
+      "infoLabel": "Hoe punten worden geteld",
+      "info": "Elk afgerond ticket scoort naar grootte: XS 1, S 2, M 3, L 5, XL 8, XXL 13. De punten worden gelijk verdeeld over de toegewezen personen, en een ticket zonder toegewezen persoon telt voor niemand. Deze sprint telt de Done-tickets in elke actieve sprint op je borden, subtickets inbegrepen. Laatste 30 dagen telt de tickets die in de laatste 30 dagen Done bereikten.",
+      "period": "Periode",
+      "periods": {
+        "SPRINT": "Deze sprint",
+        "LAST_30_DAYS": "Laatste 30 dagen"
+      },
+      "points": "{points} ptn",
+      "tickets": "{count, plural, one {# ticket} other {# tickets}}",
+      "rank": "Plaats {rank}",
+      "you": "Jij",
+      "empty": "Geen afgeronde tickets in deze periode.",
+      "error": "De ranglijst kon niet worden geladen."
+    },
+    "deadlines": {
+      "title": "Deadlines",
+      "dueIn": "{count, plural, =0 {Vandaag} one {over # dag} other {over # dagen}}",
+      "overdue": "{count, plural, one {# dag te laat} other {# dagen te laat}}",
+      "progress": "{done} van {total} klaar",
+      "viewRoadmap": "Roadmap bekijken",
+      "empty": "Geen deadlines in de komende 60 dagen.",
+      "error": "De deadlines konden niet worden geladen."
+    },
+    "staleBacklog": {
+      "title": "Verouderde backlog",
+      "titleWithTotal": "Verouderde backlog ({total})",
+      "infoLabel": "Welke tickets hier staan",
+      "info": "Backlogtickets op je borden die niet in een sprint zitten, niet Klaar zijn en 30 dagen geen wijziging of reactie hadden, oudste eerst. Er staan er maximaal 50; de titel geeft het totaal. Verwijderen vraagt om bevestiging en kun je direct daarna ongedaan maken in de melding.",
+      "columns": {
+        "key": "Sleutel",
+        "title": "Titel",
+        "board": "Bord",
+        "lastActivity": "Laatste activiteit",
+        "actions": "Acties"
+      },
+      "daysAgo": "{count, plural, one {# dag geleden} other {# dagen geleden}}",
+      "selectAll": "Alle tickets selecteren",
+      "selectTicket": "{key} selecteren",
+      "deleteTicket": "{key} verwijderen",
+      "deleteSelected": "Selectie verwijderen",
+      "deleteSelectedCount": "Selectie verwijderen ({count})",
+      "confirmTitle": "{count, plural, one {# ticket verwijderen?} other {# tickets verwijderen?}}",
+      "confirmDescription": "{count, plural, one {Het ticket wordt uit de backlog verwijderd. Je kunt dit direct daarna ongedaan maken.} other {De tickets worden uit de backlog verwijderd. Je kunt dit direct daarna ongedaan maken.}}",
+      "cancel": "Annuleren",
+      "delete": "Verwijderen",
+      "deleted": "{count, plural, one {# ticket verwijderd} other {# tickets verwijderd}}",
+      "undo": "Ongedaan maken",
+      "restored": "{count, plural, one {# ticket hersteld} other {# tickets hersteld}}",
+      "empty": "Geen verouderde backlogtickets.",
+      "error": "De verouderde backlog kon niet worden geladen."
+    }
+  },
+  "filters": {
+    "search": "Zoeken",
+    "title": "Filters",
+    "clearAll": "Alles wissen",
+    "noResults": "Geen tickets gevonden",
+    "assignee": "Toegewezen aan",
+    "reviewer": "Reviewer",
+    "reporter": "Melder",
+    "status": "Status",
+    "type": "Type",
+    "priority": "Prioriteit",
+    "project": "Project",
+    "label": "Label",
+    "board": "Bord",
+    "quickFilters": "Snelfilters",
+    "allBoards": "Alle Borden",
+    "dueDate": "Einddatum",
+    "dueDateStart": "Van",
+    "dueDateEnd": "Tot",
+    "selectField": "Selecteer een filterveld om te beginnen",
+    "searchOptions": "Zoeken...",
+    "optionCount": "{visible} van {total}",
+    "savePreferences": "Opslaan",
+    "resetPreferences": "Herstellen",
+    "resetPreferencesTooltip": "Filters herstellen naar standaardinstellingen",
+    "noMembers": "Geen leden gevonden",
+    "noLabels": "Geen labels gevonden",
+    "noBoards": "Geen borden gevonden",
+    "today": "Vandaag",
+    "thisWeek": "Deze week",
+    "thisMonth": "Deze maand",
+    "thisYear": "Dit jaar"
+  },
+  "errors": {
+    "somethingWentWrong": "Er is iets misgegaan",
+    "unexpectedError": "Er is een onverwachte fout opgetreden. Probeer de pagina te vernieuwen of neem contact op met support als het probleem aanhoudt.",
+    "tryAgain": "Probeer Opnieuw",
+    "goHome": "Naar Home",
+    "errorDetails": "Fout Details (Alleen Ontwikkeling):",
+    "notFound": {
+      "title": "Pagina niet gevonden",
+      "description": "Deze pagina bestaat niet, of je hebt er geen toegang toe. Controleer de link of ga terug naar Home."
+    },
+    "signInFailed": {
+      "title": "Inloggen mislukt",
+      "description": "Je aanmelding kon niet worden voltooid. Probeer het opnieuw; neem contact op met support als het blijft mislukken.",
+      "action": "Opnieuw inloggen",
+      "code": "Foutcode: {code}"
+    }
+  },
+  "noAppAccess": {
+    "title": "Kaizen is niet voor je open in {organization}",
+    "description": "Een eigenaar of beheerder van de organisatie geeft je toegang tot Kaizen in Admin.",
+    "openAccount": "Account openen"
+  },
+  "noOrganization": {
+    "title": "Kies een organisatie",
+    "description": "Borden, tickets en chats horen bij een organisatie. Kies er een om in Kaizen te werken."
+  },
+  "project": {
+    "noProject": "Geen project",
+    "name": "Projectnaam",
+    "color": "Kleur"
+  },
+  "ai": {
+    "ticketCreator": {
+      "title": "Tickets Aanmaken met AI",
+      "description": "Beschrijf wat je wilt bouwen en Claude zal tickets voorstellen",
+      "inputPlaceholder": "Beschrijf wat je wilt bouwen...\n\nVoorbeeld: Ik heb een gebruikersauthenticatiesysteem nodig met inloggen, registratie, wachtwoord resetten en e-mailverificatie.",
+      "analyzeButton": "Analyseren & Voorstellen",
+      "analyzing": "Analyseren...",
+      "analyzeError": "Analyse mislukt. Probeer het opnieuw.",
+      "aiAnalysis": "AI Analyse",
+      "editRequest": "Verzoek Bewerken",
+      "createButton": "{count} Tickets Aanmaken",
+      "creating": "Aanmaken...",
+      "createError": "Tickets aanmaken mislukt. Probeer het opnieuw.",
+      "selectAtLeastOne": "Selecteer ten minste één ticket om aan te maken",
+      "success": "Tickets Aangemaakt!",
+      "addedToBacklog": "Toegevoegd aan backlog",
+      "notConfigured": "AI niet geconfigureerd",
+      "notConfiguredDescription": "Voeg ANTHROPIC_API_KEY toe aan je omgeving om AI-functies in te schakelen."
+    }
+  },
+  "kaizen": {
+    "boards": {
+      "messages": {
+        "created": "Bord succesvol aangemaakt",
+        "updated": "Bord succesvol bijgewerkt",
+        "deleted": "Bord succesvol verwijderd",
+        "childrenAdded": "Subborden succesvol toegevoegd",
+        "moved": "{name} verplaatst onder {parent}",
+        "movedToTopLevel": "{name} verplaatst naar het hoogste niveau",
+        "removedFromParent": "{name} verwijderd uit {parent}",
+        "moveError": "Kan {name} niet verplaatsen"
+      }
+    },
+    "boardMembers": {
+      "messages": {
+        "added": "Lid succesvol toegevoegd",
+        "removed": "Lid succesvol verwijderd",
+        "updated": "Rol succesvol bijgewerkt",
+        "specialtiesUpdated": "Specialiteiten bijgewerkt"
+      }
+    },
+    "tickets": {
+      "messages": {
+        "created": "Ticket succesvol aangemaakt",
+        "createdImagesFailed": "Ticket aangemaakt, maar de geplakte afbeeldingen konden niet worden geüpload",
+        "createdAttachmentsFailed": "Ticket aangemaakt, maar de bijlagen konden niet worden geüpload",
+        "createdImagesAndAttachmentsFailed": "Ticket aangemaakt, maar de geplakte afbeeldingen en de bijlagen konden niet worden geüpload",
+        "updated": "Ticket succesvol bijgewerkt",
+        "deleted": "Ticket succesvol verwijderd",
+        "moved": "Ticket succesvol verplaatst",
+        "bulkMoved": "Tickets succesvol verplaatst",
+        "backlogUnavailable": "De backlog van dit bord is niet gevonden, dus het ticket is niet verplaatst.",
+        "bulkDeleted": "{count} ticket(s) succesvol verwijderd",
+        "bulkDeletePartial": "{succeeded} ticket(s) verwijderd, {failed} mislukt",
+        "bulkDeleteFailed": "Verwijderen van {count} ticket(s) mislukt",
+        "linkCopied": "Link gekopieerd",
+        "linkCopyError": "Link kopiëren mislukt",
+        "ticketNotFound": "Ticket {key} niet gevonden",
+        "ticketLoadFailed": "Ticket niet gevonden of geen toegang",
+        "ticketBoardMissing": "Deze ticketlink is onvolledig — het board ontbreekt, dus het ticket kon niet worden geopend",
+        "createTargetNotFound": "Het board, de sprint of de backlog van deze link is niet gevonden of je hebt er geen toegang toe, dus het ticketformulier is niet geopend",
+        "milestoneCleared": "{count, plural, one {# ticket is} other {# tickets zijn}} de mijlpaal kwijt, omdat die niet bij het doelbord of een gerelateerd bord hoort: {keys}",
+        "backlogStatusNotAllowed": "Een ticket in de backlog kan alleen op Te Doen staan. Verplaats het eerst naar een sprint en wijzig daarna de status.",
+        "incidentCloseRequiresRca": "Een incident kan pas op Klaar worden gezet als de oorzaakanalyse (RCA) en de geleerde lessen zijn ingevuld.",
+        "movedToBoard": "Ticket verplaatst naar {key}"
+      }
+    },
+    "sprints": {
+      "messages": {
+        "created": "Sprint succesvol aangemaakt",
+        "updated": "Sprint succesvol bijgewerkt",
+        "deleted": "Sprint succesvol verwijderd",
+        "started": "Sprint gestart",
+        "completed": "Sprint voltooid",
+        "linked": "Sprint gekoppeld aan bord",
+        "bulkLinked": "Borden succesvol gekoppeld",
+        "unlinked": "Sprint ontkoppeld van bord",
+        "seriesUpdated": "Sprintreeks bijgewerkt",
+        "seriesNameInvalid": "Een sprint in een reeks is vernoemd naar de reeks. Wijzig de reeksnaam, 1 tot 240 tekens, vanuit een onafgeronde sprint van de reeks.",
+        "nextSprintUnavailable": "Alleen een sprint van een herhalende reeks met een bord kan zijn onafgeronde tickets naar de volgende sprint verplaatsen.",
+        "boardInOtherSeries": "{board} hoort al bij de herhalende reeks {series}. Zet die reeks eerst uit of ontkoppel het bord van de sprint.",
+        "boardInOtherSeriesUnnamed": "{board} hoort al bij een andere herhalende reeks. Zet die reeks eerst uit of ontkoppel het bord van de sprint.",
+        "joinedParentSprint": "Bord doet mee met de sprint",
+        "joinPartiallyLinked": "Al gekoppeld: {boards}"
+      }
+    },
+    "projects": {
+      "messages": {
+        "created": "Project succesvol aangemaakt",
+        "createError": "Project aanmaken mislukt",
+        "updated": "Project succesvol bijgewerkt",
+        "updateError": "Project bijwerken mislukt",
+        "deleted": "Project succesvol verwijderd",
+        "deleteError": "Project verwijderen mislukt"
+      }
+    },
+    "labels": {
+      "messages": {
+        "created": "Label succesvol aangemaakt",
+        "createError": "Label aanmaken mislukt",
+        "updated": "Label succesvol bijgewerkt",
+        "updateError": "Label bijwerken mislukt",
+        "deleted": "Label succesvol verwijderd",
+        "deleteError": "Label verwijderen mislukt"
+      }
+    },
+    "backlog": {
+      "messages": {
+        "ticketAdded": "Ticket toegevoegd aan backlog",
+        "ticketAddError": "Ticket toevoegen aan backlog mislukt"
+      }
+    },
+    "ai": {
+      "messages": {
+        "analyzeError": "AI-analyse mislukt",
+        "createError": "Tickets aanmaken vanuit suggesties mislukt",
+        "ticketsCreated": "Tickets aangemaakt vanuit suggesties"
+      }
+    },
+    "milestones": {
+      "messages": {
+        "created": "Mijlpaal aangemaakt",
+        "updated": "Mijlpaal bijgewerkt",
+        "closed": "Mijlpaal gesloten",
+        "reopened": "Mijlpaal heropend",
+        "linked": "{count, plural, one {# ticket} other {# tickets}} gekoppeld aan de mijlpaal",
+        "unlinked": "{count, plural, one {# ticket} other {# tickets}} losgekoppeld van de mijlpaal",
+        "deleted": "Mijlpaal verwijderd",
+        "dependencyAdded": "Afhankelijkheid toegevoegd",
+        "dependencyRemoved": "Afhankelijkheid verwijderd"
+      }
+    },
+    "memberAccess": {
+      "noAccess": "Geen toegang tot Kaizen",
+      "noAccessHint": "Geen toegang tot Kaizen. Een eigenaar of beheerder kan Kaizen toekennen in Admin.",
+      "refused": "Dit lid heeft geen toegang tot Kaizen. Een eigenaar of beheerder kan Kaizen toekennen in Admin."
+    }
+  },
+  "sidebar": {
+    "home": "Home",
+    "downloads": "CLI downloaden",
+    "navigation": "Navigatie",
+    "workspace": "Werkruimte",
+    "toggleSidebar": "Zijbalk in-/uitklappen",
+    "resizeSidebar": "Zijbalk vergroten of verkleinen",
+    "boards": "Borden",
+    "newBoard": "Nieuw Bord",
+    "noBoards": "Nog geen borden",
+    "createFirstBoard": "Maak je eerste bord",
+    "pinned": "Vastgepind",
+    "tickets": "Tickets",
+    "incidents": "Incidenten",
+    "chats": "Chats",
+    "dailyUpdates": "Updates",
+    "pullRequests": "PR",
+    "expandBoard": "{name} uitklappen",
+    "collapseBoard": "{name} inklappen",
+    "boardActions": "Acties voor {name}",
+    "moveToTopLevel": "Naar hoogste niveau verplaatsen",
+    "contextMenu": {
+      "createChildBoard": "Onderliggend bord aanmaken",
+      "settings": "Instellingen",
+      "pin": "Bovenaan vastpinnen",
+      "unpin": "Losmaken"
+    },
+    "language": "Taal",
+    "general": "Algemeen",
+    "organizations": "Organisaties",
+    "organization": "Organisatie",
+    "newOrganization": "Nieuwe organisatie",
+    "profile": "Profiel",
+    "settings": "Instellingen",
+    "invitations": "Mijn uitnodigingen",
+    "alerts": "Meldingen",
+    "updatesUnread": "{count} ongelezen",
+    "updatesUnreadMentions": "{count} ongelezen, {mentions, plural, one {# melding} other {# meldingen}}",
+    "updatesUnreadMentionsCapped": "{count} ongelezen, meer dan {mentions} meldingen",
+    "showChannels": "Kanalen tonen",
+    "hideChannels": "Kanalen verbergen",
+    "showBoards": "Borden tonen",
+    "hideBoards": "Borden verbergen",
+    "tableColumns": "Tabelkolommen"
+  },
+  "columns": "Kolommen",
+  "preferences": {
+    "filtersSaved": "Filtervoorkeuren opgeslagen",
+    "filtersSaveError": "Filtervoorkeuren opslaan mislukt",
+    "filtersReset": "Filtervoorkeuren hersteld naar standaard",
+    "filtersResetError": "Filtervoorkeuren herstellen mislukt",
+    "columnsSaved": "Kolomvoorkeuren opgeslagen",
+    "columnsSaveError": "Kolomvoorkeuren opslaan mislukt",
+    "columnsReset": "Kolomvoorkeuren hersteld naar standaard",
+    "columnsResetError": "Kolomvoorkeuren herstellen mislukt",
+    "sidebarSaveError": "Volgorde van de borden in de zijbalk opslaan mislukt",
+    "saveColumnsTooltip": "Kolominstellingen opslaan voor dit bord",
+    "saveFiltersTooltip": "Filterinstellingen opslaan voor dit bord",
+    "saveForTable": "Opslaan voor deze tabel",
+    "saveAsDefault": "Opslaan als standaard voor alle tabellen",
+    "useDefault": "Standaard gebruiken",
+    "customLayout": "Eigen indeling voor deze tabel",
+    "usingDefault": "Je standaardindeling wordt gebruikt",
+    "usingBuiltInLayout": "De ingebouwde indeling wordt gebruikt",
+    "defaultSaved": "Standaard kolomindeling opgeslagen",
+    "defaultSaveError": "Standaard kolomindeling opslaan mislukt",
+    "defaultCleared": "Standaard kolomindeling verwijderd; tabellen gebruiken de ingebouwde indeling",
+    "defaultClearError": "Standaard kolomindeling verwijderen mislukt"
+  },
+  "incidentsPage": {
+    "emptyTitle": "Geen incidenten",
+    "emptyDescription": "Geen incidenten gevonden met je filters."
+  },
+  "allTicketsPage": {
+    "emptyDescription": "Geen tickets gevonden met de huidige filters. Pas de filters aan of maak een nieuw ticket aan.",
+    "noTicketsInColumn": "Nog geen tickets",
+    "addTicket": "Ticket toevoegen"
+  },
+  "selectOrganization": "Organisatie selecteren",
+  "organizationSwitchFailed": "Wisselen van organisatie is mislukt. Probeer het opnieuw.",
+  "personalWorkspace": "Persoonlijk",
+  "yourOrganizations": "Jouw organisaties",
+  "createOrganization": "Organisatie aanmaken",
+  "organization": {
+    "members": {
+      "roles": {
+        "OWNER": "Eigenaar",
+        "ADMIN": "Beheerder",
+        "MEMBER": "Lid",
+        "GUEST": "Gast"
+      }
+    }
+  },
+  "milestone": {
+    "badgeTitle": "Mijlpaal {name}, streefdatum {date}",
+    "progressCount": "{done}/{total}",
+    "health": {
+      "ON_TRACK": "Op schema",
+      "AT_RISK": "Risico",
+      "OVERDUE": "Te laat",
+      "DONE": "Afgerond"
+    },
+    "status": {
+      "OPEN": "Open",
+      "CLOSED": "Gesloten"
+    },
+    "form": {
+      "createTitle": "Nieuwe mijlpaal",
+      "editTitle": "Mijlpaal bewerken",
+      "description": "Een doel met een datum op dit bord. Tickets van dit bord en de gerelateerde borden kunnen eraan gekoppeld worden.",
+      "create": "Aanmaken",
+      "name": "Naam",
+      "namePlaceholder": "Publieke bèta",
+      "descriptionField": "Beschrijving",
+      "descriptionPlaceholder": "Wat is er klaar als deze mijlpaal bereikt is?",
+      "startDate": "Startdatum",
+      "targetDate": "Streefdatum",
+      "dependsOn": "Afhankelijk van",
+      "dependsOnPlaceholder": "Geen afhankelijkheden",
+      "dependsOnTooMany": "Kies maximaal 50 mijlpalen",
+      "nameRequired": "Naam is verplicht",
+      "nameTooLong": "Naam mag maximaal 255 tekens zijn",
+      "descriptionTooLong": "Beschrijving mag maximaal 2000 tekens zijn",
+      "targetDateRequired": "Streefdatum is verplicht",
+      "startAfterTarget": "Startdatum moet op of voor de streefdatum liggen",
+      "color": "Kleur"
+    },
+    "sheet": {
+      "boardLine": "{board} ({prefix})",
+      "loadingTitle": "Mijlpaal",
+      "dateRange": "{start} – {target}",
+      "targetOnly": "Streefdatum {target}",
+      "progress": "Voortgang",
+      "tickets": "Tickets ({count})",
+      "noTickets": "Er zijn geen tickets aan deze mijlpaal gekoppeld.",
+      "loadError": "Deze mijlpaal kon niet geladen worden.",
+      "ticketsLoadError": "De gekoppelde tickets konden niet geladen worden."
+    },
+    "actions": {
+      "edit": "Bewerken",
+      "close": "Mijlpaal sluiten",
+      "reopen": "Heropenen",
+      "detachTicket": "{key} loskoppelen van deze mijlpaal"
+    },
+    "deleteDialog": {
+      "title": "Mijlpaal verwijderen?",
+      "description": "\"{name}\" wordt verwijderd en elk gekoppeld ticket wordt losgekoppeld. Een beheerder kan de mijlpaal herstellen, maar niet de koppelingen met tickets."
+    },
+    "attach": {
+      "action": "Koppelen aan mijlpaal",
+      "title": "Koppelen aan mijlpaal",
+      "description": "Koppel {count, plural, one {# ticket} other {# tickets}} aan een open mijlpaal van dit bord of een gerelateerd bord.",
+      "milestone": "Mijlpaal",
+      "placeholder": "Kies een mijlpaal",
+      "noMilestones": "Er zijn geen open mijlpalen op dit bord of de gerelateerde borden.",
+      "tooMany": "Er kunnen maximaal {max} tickets tegelijk gekoppeld worden.",
+      "confirm": "Koppelen"
+    },
+    "dependsOn": {
+      "title": "Afhankelijk van ({count})",
+      "none": "Deze mijlpaal is niet afhankelijk van een andere.",
+      "conflict": "Conflict",
+      "conflictHint": "Deze mijlpaal begint voordat de mijlpaal waarvan hij afhangt klaar moet zijn. Datums worden niet automatisch verschoven.",
+      "remove": "Afhankelijkheid van {name} verwijderen",
+      "add": "Afhankelijkheid toevoegen",
+      "search": "Mijlpalen zoeken"
+    }
+  },
+  "roadmap": {
+    "title": "Roadmap",
+    "today": "Vandaag",
+    "newMilestone": "Nieuwe mijlpaal",
+    "zoom": {
+      "label": "Zoom",
+      "month": "Maand",
+      "quarter": "Kwartaal",
+      "year": "Jaar"
+    },
+    "empty": {
+      "title": "Nog geen mijlpalen",
+      "description": "Voeg een mijlpaal met een streefdatum toe om dit bord en de onderliggende borden op een tijdlijn te plannen."
+    },
+    "loadError": "De roadmap kon niet geladen worden.",
+    "noMilestonesInLane": "Geen mijlpalen",
+    "itemLabel": "{name}, streefdatum {date}, {counts} klaar, {health}",
+    "columnHeader": "Mijlpaal",
+    "columnResize": "Breedte van de mijlpaalkolom aanpassen",
+    "todayMarker": "Vandaag, {date}",
+    "dragHint": "Sleep om te verplaatsen, of druk op Alt en een pijltoets om een dag op te schuiven",
+    "rescheduleError": "\"{name}\" kon niet verplaatst worden",
+    "filters": {
+      "status": "Status",
+      "statusValue": "Status: {value}",
+      "health": "Gezondheid",
+      "healthCount": "Gezondheid ({count})",
+      "all": "Alle",
+      "clear": "Filters wissen",
+      "noMatches": "Geen mijlpalen voldoen aan deze filters",
+      "noMatchesDescription": "Wijzig of wis de status- en gezondheidsfilters om meer mijlpalen te zien."
+    },
+    "inlineCreate": {
+      "action": "Mijlpaal aanmaken",
+      "placeholder": "Naam van de mijlpaal, Enter om aan te maken"
+    },
+    "tickets": {
+      "expand": "Tickets van {name} tonen",
+      "collapse": "Tickets van {name} verbergen",
+      "none": "Geen tickets gekoppeld",
+      "loadError": "De tickets konden niet geladen worden"
+    },
+    "dependency": {
+      "connector": "{dependent} hangt af van {dependency}",
+      "dependsOn": "Afhankelijk van",
+      "conflict": "Begint voordat een afhankelijkheid klaar is"
+    }
+  },
+  "downloads": {
+    "title": "Kaizen CLI downloaden",
+    "description": "Beheer Kaizen-borden, tickets en sprints vanuit je terminal. Installeer op macOS of Linux, met ondersteuning voor amd64 en arm64.",
+    "openKaizen": "Kaizen openen",
+    "homebrew": {
+      "title": "Homebrew",
+      "description": "Installeer op macOS of Linux via de Korur-tap."
+    },
+    "script": {
+      "title": "Installatieprogramma voor macOS en Linux",
+      "description": "Download het installatieprogramma en voer het uit. Het selecteert je architectuur en controleert de controlesom vóór installatie. Het gebruikt /usr/local/bin als die schrijfbaar is, anders ~/.local/bin.",
+      "userInstall": "Voer het gedownloade installatieprogramma uit met de onderstaande map om zonder beheerdersrechten te installeren. Voeg indien nodig ~/.local/bin toe aan je PATH."
+    },
+    "direct": {
+      "title": "Direct downloaden",
+      "description": "Kies het tar.gz-archief voor macOS of Linux. Gebruik amd64 voor Intel/AMD-processors en arm64 voor Apple Silicon en ARM Linux.",
+      "link": "Releasebestanden op GitHub bekijken",
+      "checksums": "Elke release bevat een bestand met controlesommen. Het installatieprogramma controleert dit automatisch. Vergelijk bij handmatige downloads de SHA-256-controlesom vóór installatie."
+    },
+    "verify": {
+      "title": "Aan de slag met Kaizen",
+      "description": "Log via je browser in met je bestaande Kaizen-account. Werk later bij met Homebrew of voer het installatieprogramma opnieuw uit."
+    }
+  },
+  "updates": {
+    "retry": "Opnieuw proberen",
+    "none": "Geen",
+    "progressSynced": "voortgang bijgewerkt",
+    "progressSyncedHint": "Dit percentage is als voortgang van het ticket opgeslagen.",
+    "sections": {
+      "tickets": "Aan welk ticket werk ik?",
+      "focus": "Waar focus ik vandaag op?",
+      "finishedCount": "Afgerond deze sprint ({count})",
+      "questions": "Vragen aan mijn collega's?"
+    },
+    "sizing": {
+      "label": "Ticketgrootte",
+      "XS": "XS = 0-3 uur",
+      "S": "S = 1 dag",
+      "M": "M = 2-3 dagen",
+      "L": "L = 1 week van de sprint, dus meestal 1 week",
+      "XL": "XL = de hele sprint, dus meestal 2 weken",
+      "XXL": "XXL = langer dan 1 sprint"
+    },
+    "actions": {
+      "copy": "Kopiëren",
+      "edit": "Bewerken",
+      "delete": "Verwijderen"
+    },
+    "delete": {
+      "title": "Deze update verwijderen?",
+      "description": "De update verdwijnt voor iedereen uit de feed. De voortgang die hij op tickets heeft gezet, blijft staan."
+    },
+    "messages": {
+      "created": "Update geplaatst",
+      "updated": "Update opgeslagen",
+      "deleted": "Update verwijderd",
+      "copied": "Update naar het klembord gekopieerd",
+      "copyError": "De update kon niet worden gekopieerd"
+    },
+    "form": {
+      "createTitle": "Update maken",
+      "editTitle": "Update bewerken",
+      "backToUpdates": "Terug naar updates",
+      "loading": "Laden...",
+      "pickerTitle": "Tickets",
+      "pickerDescription": "Vink de tickets voor je update aan. De lijst begint met je opgeslagen filters, of met je eigen tickets als er geen zijn opgeslagen; elk filter kan worden aangepast.",
+      "saveFiltersTooltip": "Deze filters opslaan voor de ticketlijst van updates",
+      "progressColumn": "Voortgang",
+      "ticketsLoadError": "De tickets konden niet worden geladen.",
+      "selectedTitle": "Geselecteerde tickets",
+      "selectedCount": "{count} van {max}",
+      "selectedEmpty": "Nog geen ticket geselecteerd. Vink tickets aan in de lijst.",
+      "addMyInProgress": "Mijn tickets in uitvoering toevoegen ({count})",
+      "addMyInProgressHint": "Voegt je tickets met status In Uitvoering toe uit de lijst zoals die nu gefilterd is.",
+      "remove": "{key} verwijderen",
+      "percentageLabel": "Percentage voor {key}",
+      "noteLabel": "Notitie voor {key}",
+      "notePlaceholder": "Notitie (optioneel)",
+      "progressSync": "Werkt ticketvoortgang bij",
+      "progressSyncHint": "Dit percentage wijkt af van de voortgang van het ticket, dus bij opslaan wordt ook de voortgang van het ticket ingesteld.",
+      "noAccess": "Geen toegang",
+      "noAccessHint": "Je bent geen lid meer van het bord van dit ticket, of het ticket is verwijderd. De regel behoudt zijn sleutel en titel.",
+      "ticketDeleted": "Ticket verwijderd",
+      "ticketDeletedHint": "Dit ticket bestaat niet meer. De regel blijft zoals hij is.",
+      "focusPlaceholder": "Eén punt per regel",
+      "questionsPlaceholder": "Eén vraag per regel",
+      "previewTitle": "Voorbeeld",
+      "previewLoading": "Voorbeeld laden...",
+      "previewEmpty": "Selecteer minstens één ticket om het voorbeeld te zien.",
+      "previewInvalid": "Corrigeer de gemarkeerde velden om het voorbeeld te zien.",
+      "previewError": "Het voorbeeld kon niet worden geladen.",
+      "confirm": "Bevestigen",
+      "save": "Opslaan",
+      "posted": "Je update is geplaatst",
+      "postedDescription": "Kopieer hem naar Teams, of ga terug naar de feed.",
+      "loadError": "De update kon niet worden geladen.",
+      "meError": "Je account kon niet worden geladen.",
+      "notAuthor": "Je kunt alleen je eigen updates bewerken.",
+      "notAuthorDescription": "Iemand anders heeft deze update geschreven, dus hij kan hier niet worden gewijzigd.",
+      "ticketsRequired": "Selecteer minstens één ticket.",
+      "ticketsTooMany": "Selecteer maximaal 30 tickets.",
+      "percentageRange": "Voer een geheel getal van 0 tot 100 in.",
+      "noteTooLong": "Een notitie mag maximaal 500 tekens bevatten.",
+      "textTooLong": "Deze tekst mag maximaal 2000 tekens bevatten.",
+      "focusRequired": "Vul in waar je je vandaag op richt.",
+      "fromSelection": {
+        "unresolved": "{count, plural, one {# geselecteerd ticket is} other {# geselecteerde tickets zijn}} niet toegevoegd (niet gevonden, niet geladen of op een bord dat je niet kunt openen):",
+        "overLimit": "Een update bevat maximaal {max} tickets, dus {count, plural, one {# ticket is} other {# tickets zijn}} weggelaten:"
+      },
+      "previous": {
+        "title": "Vorige update",
+        "toggle": "Vorige update tonen of verbergen",
+        "copy": "Naar vandaag kopiëren",
+        "copyHint": "Voegt de tickets van deze update toe die nog niet op de kaart van vandaag staan, met hun huidige percentage en hun notities, en de focus als die van vandaag leeg is. Er wordt niets geplaatst tot je bevestigt.",
+        "loading": "Je vorige update wordt geladen…",
+        "empty": "Nog geen eerdere update",
+        "loadError": "Je vorige update kon niet worden geladen.",
+        "retry": "Opnieuw proberen",
+        "copied": "{count, plural, one {# ticket is} other {# tickets zijn}} toegevoegd uit je vorige update.",
+        "nothingToCopy": "Niets te kopiëren: elk ticket van je vorige update staat al op de kaart of is weggelaten.",
+        "leftOutUnavailable": "{count, plural, one {# ticket is} other {# tickets zijn}} niet gekopieerd (verwijderd, niet gevonden of op een bord dat je niet kunt openen):",
+        "leftOutDone": "{count, plural, one {# ticket is} other {# tickets zijn}} klaar en niet gekopieerd:",
+        "leftOutOverLimit": "Een update bevat maximaal {max} tickets, dus {count, plural, one {# ticket is} other {# tickets zijn}} niet gekopieerd:"
+      }
+    },
+    "fromSelection": {
+      "action": "Update maken",
+      "tooMany": "Selecteer maximaal {max} tickets om een update te maken."
+    },
+    "missing": {
+      "action": "Niet geplaatst",
+      "title": "Niet geplaatst",
+      "titlePending": "Nog niet geplaatst",
+      "late": "Te laat geplaatst",
+      "postedAt": "geplaatst om {time}",
+      "deadline": "Deadline 10:30 (Turkse tijd)",
+      "weekend": "In het weekend wordt geen update verwacht",
+      "allPosted": "Iedereen heeft een update geplaatst",
+      "organization": "Organisatie",
+      "date": "Dag",
+      "today": "Vandaag",
+      "yesterday": "Gisteren",
+      "loadError": "De lijst van wie geen update heeft geplaatst kon niet worden geladen."
+    },
+    "filters": {
+      "day": "Dag",
+      "yesterday": "Gisteren",
+      "empty": "Geen updates op deze dag.",
+      "emptyDescription": "Kies een andere dag of persoon in de filters.",
+      "startOfDay": "Begin van {day}"
+    }
+  },
+  "alertRoutes": {
+    "title": "Meldingen",
+    "subtitle": "Welk bord de incidenten ontvangt die de meldingen van elk systeem aanmaken.",
+    "columns": {
+      "system": "Systeem",
+      "board": "Bord",
+      "default": "Standaard"
+    },
+    "add": "Koppeling toevoegen",
+    "edit": "Koppeling bewerken",
+    "remove": "Verwijderen",
+    "removeTitle": "Koppeling verwijderen?",
+    "removeConfirm": "Meldingen van {system} gaan dan naar het standaardbord.",
+    "fields": {
+      "system": "Systeem",
+      "systemHint": "De waarde van het meldingslabel system, bijvoorbeeld acme.",
+      "board": "Bord",
+      "boardPlaceholder": "Kies een bord",
+      "boardSearch": "Zoek op naam, prefix of id",
+      "default": "Standaardbord voor niet-gekoppelde systemen",
+      "defaultHint": "Meldingen zonder gekoppeld systeem gaan naar dit bord."
+    },
+    "errors": {
+      "duplicate": "Dit systeem heeft al een bord.",
+      "systemRequired": "Vul het systeem in.",
+      "systemPattern": "Gebruik 1 tot 50 kleine letters, cijfers en koppeltekens, beginnend met een letter of cijfer.",
+      "boardRequired": "Kies een bord."
+    },
+    "empty": "Nog geen koppelingen",
+    "readOnly": "Alleen organisatiebeheerders kunnen koppelingen wijzigen.",
+    "noDefault": "Geen standaardbord. Meldingen van niet-gekoppelde systemen worden geweigerd.",
+    "toast": {
+      "created": "Koppeling toegevoegd",
+      "updated": "Koppeling opgeslagen",
+      "removed": "Koppeling verwijderd",
+      "saveError": "De koppeling kon niet worden opgeslagen.",
+      "removeError": "De koppeling kon niet worden verwijderd."
+    }
+  },
+  "incidents": {
+    "alert": {
+      "title": "{priority}-incident op {board}",
+      "open": "Openen",
+      "dismiss": "Sluiten",
+      "more": "Nog {count} urgente incidenten",
+      "pollFailed": "Kon niet controleren op urgente incidenten.",
+      "region": "Urgente incidenten"
+    }
+  },
+  "metadata": {
+    "description": "Moderne projectmanagementtool, geïnspireerd door de eenvoud van Notion en Jira",
+    "dashboard": "Dashboard"
+  },
+  "chat": {
+    "channel": {
+      "title": "Chat",
+      "postDailyUpdate": "Dagelijkse update plaatsen",
+      "logLabelNamed": "Berichten in {name}"
+    },
+    "list": {
+      "loading": "Berichten laden…",
+      "loadError": "De berichten konden niet worden geladen.",
+      "refreshError": "De berichten konden niet worden vernieuwd.",
+      "retry": "Opnieuw proberen",
+      "loadingOlder": "Oudere berichten laden…",
+      "loadOlderError": "Oudere berichten konden niet worden geladen.",
+      "loadingNewer": "Nieuwere berichten laden…",
+      "loadNewerError": "Nieuwere berichten konden niet worden geladen.",
+      "startOfChannel": "Begin van het kanaal",
+      "today": "Vandaag",
+      "yesterday": "Gisteren",
+      "newMessagesDivider": "Nieuwe berichten",
+      "unreadBar": "{count, plural, one {# nieuw bericht} other {# nieuwe berichten}}",
+      "unreadBarCapped": "{count}+ nieuwe berichten",
+      "unreadSince": "sinds {time}",
+      "markAsRead": "Als gelezen markeren",
+      "dismiss": "Sluiten",
+      "newMessages": "{count, plural, one {# nieuw bericht} other {# nieuwe berichten}}",
+      "jumpToPresent": "Naar het heden",
+      "newMessagesJumpLabel": "{messages}, naar het heden",
+      "jumpNotFound": "Dat bericht bestaat niet meer.",
+      "empty": {
+        "title": "Nog geen berichten",
+        "description": "Zeg hallo tegen je team, of plaats je dagelijkse update."
+      },
+      "noOrganization": {
+        "title": "Geen organisatie",
+        "description": "Word lid van een organisatie of maak er een aan om het Updates-kanaal te gebruiken."
+      }
+    },
+    "message": {
+      "unknownMember": "onbekend lid",
+      "unknownTicket": "onbekend ticket",
+      "edited": "(bewerkt)",
+      "editedAt": "Bewerkt op {time}",
+      "pinned": "Vastgezet",
+      "deleted": "Het oorspronkelijke bericht is verwijderd",
+      "threadPlaceholder": "Draad: {title}",
+      "pending": "Versturen…",
+      "notSent": "Niet verstuurd",
+      "tooFast": "Je verstuurt te snel berichten. Wacht even en probeer het opnieuw.",
+      "retry": "Opnieuw proberen",
+      "discard": "Verwijderen"
+    },
+    "reply": {
+      "deleted": "Het oorspronkelijke bericht is verwijderd",
+      "jump": "Ga naar het bericht van {name}",
+      "attachmentOnly": "Bijlage",
+      "photo": "Foto"
+    },
+    "messageLink": {
+      "loading": "Gekoppeld bericht laden",
+      "unavailable": "Bericht niet beschikbaar",
+      "error": "Het gekoppelde bericht kon niet worden geladen",
+      "jump": "Ga naar het bericht van {name}",
+      "inThread": "in {title}"
+    },
+    "attachments": {
+      "open": "{name} openen",
+      "download": "{name} downloaden"
+    },
+    "connection": {
+      "connecting": "Verbinden…",
+      "reconnecting": "Opnieuw verbinden…",
+      "offline": "Live-updates zijn gepauzeerd. Nieuwe berichten verschijnen als je de pagina herlaadt of opnieuw probeert.",
+      "browserOffline": "Je bent offline. Nieuwe berichten verschijnen zodra de verbinding terug is.",
+      "noAccess": "Je hebt geen toegang meer tot dit kanaal.",
+      "retry": "Opnieuw proberen"
+    },
+    "composer": {
+      "placeholder": "Schrijf een bericht",
+      "placeholderChannel": "Bericht in #{name}",
+      "guest": "Gasten kunnen het kanaal lezen, maar er niet in schrijven.",
+      "empty": "Schrijf een bericht of voeg een bestand toe.",
+      "tooLong": "Een bericht mag maximaal {max} tekens bevatten.",
+      "tooManyMentions": "Een bericht mag maximaal {max} leden vermelden.",
+      "tooManyTicketRefs": "Een bericht mag naar maximaal {max} tickets verwijzen.",
+      "tooManyFiles": "Je kunt maximaal {max} bestanden toevoegen.",
+      "filesTooLarge": "De bestanden mogen samen maximaal {max} zijn.",
+      "tooFast": "Je verstuurt te snel berichten. Wacht even en probeer het opnieuw.",
+      "replyingTo": "Antwoord op <user>{name}</user>",
+      "replyingToLabel": "Antwoord op {name}",
+      "cancelReply": "Antwoord annuleren",
+      "editing": "Bericht bewerken",
+      "editHint": "Enter om op te slaan, Escape om te annuleren",
+      "cancelEdit": "Bewerken annuleren",
+      "files": "Te versturen bestanden",
+      "attach": "Bestanden toevoegen",
+      "removeFile": "{name} verwijderen",
+      "dropFiles": "Zet bestanden hier neer om ze toe te voegen",
+      "emoji": "Emoji",
+      "send": "Versturen",
+      "save": "Opslaan",
+      "counter": "{count}/{max}",
+      "mentionWithoutKaizenAccess": "Je noemt een lid zonder toegang tot Kaizen. Verwijder de vermelding, of vraag een eigenaar of beheerder om Kaizen toe te kennen in Admin."
+    },
+    "mentions": {
+      "title": "Leden",
+      "loading": "Leden laden…",
+      "loadError": "De leden konden niet worden geladen.",
+      "retry": "Opnieuw proberen",
+      "empty": "Geen leden gevonden",
+      "online": "Online",
+      "offline": "Offline",
+      "everyoneHint": "Alle leden een melding sturen",
+      "hereHint": "De leden die online zijn een melding sturen"
+    },
+    "tickets": {
+      "title": "Tickets",
+      "loading": "Tickets zoeken…",
+      "loadError": "De tickets konden niet worden geladen.",
+      "retry": "Opnieuw proberen",
+      "empty": "Geen tickets gevonden"
+    },
+    "emoji": {
+      "search": "Emoji zoeken",
+      "loading": "Emoji laden…",
+      "empty": "Geen emoji gevonden",
+      "recent": "Recent gebruikt",
+      "hint": "Kies een emoji",
+      "skinTone": "Huidskleur"
+    },
+    "reactions": {
+      "label": "Reacties",
+      "add": "Reactie toevoegen",
+      "unknownMember": "onbekend lid",
+      "limitReached": "Een bericht kan maximaal {max} verschillende reacties hebben.",
+      "whoMore": "{names} en {count} anderen",
+      "reactedWith": "{names} reageerde met {emoji}",
+      "toggleMine": "{emoji} {count}, jij hebt gereageerd. Je reactie verwijderen",
+      "toggleOther": "{emoji} {count}. Je reactie toevoegen"
+    },
+    "typing": {
+      "one": "{name} is aan het typen…",
+      "two": "{first} en {second} zijn aan het typen…",
+      "several": "Meerdere mensen zijn aan het typen…",
+      "someone": "Iemand"
+    },
+    "thread": {
+      "titleRequired": "Vul een titel in.",
+      "titleTooLong": "Een titel mag maximaal {max} tekens bevatten.",
+      "panelLabel": "Draad",
+      "newTitle": "Nieuwe draad",
+      "close": "Paneel sluiten",
+      "resize": "Breedte van het draadpaneel aanpassen",
+      "loading": "Draad laden…",
+      "loadError": "De draad kon niet worden geladen.",
+      "notFound": "Deze draad bestaat niet meer.",
+      "retry": "Opnieuw proberen",
+      "archivedHint": "Deze draad is gearchiveerd. Een nieuwe reactie haalt hem terug.",
+      "status": {
+        "closed": "Gesloten",
+        "archived": "Gearchiveerd",
+        "closedBy": "Gesloten door {name}",
+        "archivedBy": "Gearchiveerd door {name}",
+        "menu": "Draadstatus",
+        "actions": {
+          "close": "Draad sluiten",
+          "reopen": "Draad heropenen",
+          "archive": "Draad archiveren",
+          "unarchive": "Draad uit archief halen"
+        },
+        "closedNotice": "Deze draad is gesloten.",
+        "closedNoticeHint": "Alleen de maker of een beheerder kan hem heropenen.",
+        "reopen": "Heropenen",
+        "closedError": "Deze draad is gesloten. Hij moet eerst worden heropend."
+      },
+      "members": "{count, plural, one {# lid} other {# leden}}",
+      "join": "Deelnemen aan draad",
+      "leave": "Draad verlaten",
+      "logLabel": "Berichten in de draad {title}",
+      "composerPlaceholder": "Reageer in de draad",
+      "empty": {
+        "title": "Nog geen reacties",
+        "description": "Begin de discussie: de eerste reactie is aan jou."
+      },
+      "create": "Draad maken",
+      "cancel": "Annuleren",
+      "defaultTitle": "Draad",
+      "dailyUpdateTitle": "Dagelijkse update - {name} - {day}",
+      "settings": {
+        "title": "Draad bewerken",
+        "name": "Naam van de draad",
+        "autoArchive": "Archiveren na inactiviteit",
+        "autoArchiveHint": "De draad wordt gearchiveerd als niemand zo lang heeft gereageerd.",
+        "autoArchiveOptions": {
+          "60": "1 uur",
+          "1440": "24 uur",
+          "4320": "3 dagen",
+          "10080": "1 week"
+        },
+        "save": "Opslaan"
+      },
+      "summary": {
+        "replies": "{count, plural, =0 {Nog geen reacties} one {# reactie} other {# reacties}}",
+        "open": "Open de draad {title}"
+      },
+      "list": {
+        "button": "Draden",
+        "title": "Draden",
+        "active": "Actief",
+        "archived": "Gearchiveerd",
+        "closed": "Gesloten",
+        "loading": "Draden laden…",
+        "loadError": "De draden konden niet worden geladen.",
+        "loadMoreError": "Meer draden konden niet worden geladen.",
+        "retry": "Opnieuw proberen",
+        "loadMore": "Meer laden",
+        "emptyActive": "Geen actieve draden",
+        "emptyClosed": "Geen gesloten draden",
+        "emptyArchived": "Geen gearchiveerde draden",
+        "unread": "{count, plural, one {# ongelezen bericht} other {# ongelezen berichten}}",
+        "notifications": "{count, plural, one {# melding} other {# meldingen}}",
+        "notificationsCapped": "meer dan {count} meldingen",
+        "hasUnread": "ongelezen berichten"
+      },
+      "start": "Begin van de draad"
+    },
+    "found": {
+      "inThread": "in draad {title}",
+      "inAThread": "in een draad",
+      "noText": "Geen tekst",
+      "jump": "Ga naar",
+      "jumpTo": "Ga naar het bericht van {name}"
+    },
+    "filters": {
+      "person": "Persoon",
+      "peopleUnavailable": "De personen van dit kanaal konden niet worden geladen."
+    },
+    "search": {
+      "button": "Zoeken",
+      "title": "Berichten zoeken",
+      "placeholder": "Berichten zoeken…",
+      "author": "Auteur",
+      "anyAuthor": "Elke auteur",
+      "selectedAuthor": "Gekozen auteur",
+      "authorsLoadError": "Leden konden niet worden geladen",
+      "hint": "Typ minstens {min} tekens om het kanaal en de draden te doorzoeken.",
+      "loading": "Zoeken…",
+      "loadError": "Het zoeken is mislukt.",
+      "retry": "Opnieuw proberen",
+      "empty": "Geen berichten gevonden.",
+      "results": "Zoekresultaten",
+      "loadMore": "Meer laden",
+      "loadMoreError": "Meer resultaten konden niet worden geladen."
+    },
+    "pins": {
+      "button": "Vastgezet",
+      "title": "Vastgezette berichten",
+      "loading": "Vastgezette berichten laden…",
+      "loadError": "Vastgezette berichten konden niet worden geladen.",
+      "retry": "Opnieuw proberen",
+      "emptyTitle": "Geen vastgezette berichten",
+      "emptyDescription": "Zet een belangrijk bericht vast om het hier later terug te vinden.",
+      "loadMore": "Meer laden",
+      "loadMoreError": "Meer vastgezette berichten konden niet worden geladen."
+    },
+    "members": {
+      "button": "Leden",
+      "title": "Leden",
+      "loading": "Leden laden…",
+      "loadError": "Leden konden niet worden geladen.",
+      "retry": "Opnieuw proberen",
+      "empty": "Geen leden",
+      "online": "Online — {count}",
+      "offline": "Offline — {count}",
+      "statusOnline": "online",
+      "statusOffline": "offline"
+    },
+    "copy": {
+      "text": "Berichttekst gekopieerd",
+      "code": "Code gekopieerd",
+      "link": "Berichtlink gekopieerd",
+      "error": "Kopiëren naar het klembord is mislukt"
+    },
+    "codeBlock": {
+      "plain": "tekst",
+      "copy": "Kopiëren",
+      "copied": "Gekopieerd",
+      "showMore": "Meer tonen ({count} regels)",
+      "showLess": "Minder tonen"
+    },
+    "actions": {
+      "toolbar": "Berichtacties",
+      "more": "Meer",
+      "reply": "Beantwoorden",
+      "react": "Reactie toevoegen",
+      "createThread": "Thread starten",
+      "openThread": "Thread openen",
+      "pin": "Bericht vastmaken",
+      "unpin": "Bericht losmaken",
+      "copyText": "Tekst kopiëren",
+      "copyLink": "Berichtlink kopiëren",
+      "edit": "Bericht bewerken",
+      "delete": "Bericht verwijderen",
+      "sheetTitle": "Berichtacties"
+    },
+    "deleteMessage": {
+      "title": "Bericht verwijderen",
+      "description": "Het bericht verdwijnt voor iedereen. Antwoorden die het citeren melden dat het is verwijderd, en een thread eronder blijft bestaan. Houd Shift ingedrukt terwijl je Verwijderen kiest om deze vraag over te slaan.",
+      "cancel": "Annuleren",
+      "confirm": "Verwijderen",
+      "refused": "Alleen de auteur of een eigenaar of beheerder van de organisatie kan dit bericht verwijderen."
+    },
+    "shortcuts": {
+      "button": "Sneltoetsen",
+      "title": "Sneltoetsen",
+      "description": "Sneltoetsen van het Updates-kanaal. Ze werken niet terwijl een dialoog, popover of menu open is.",
+      "or": "of",
+      "groups": {
+        "composer": "Een bericht schrijven",
+        "channel": "In het kanaal",
+        "message": "Op een geselecteerd bericht"
+      },
+      "composer": {
+        "send": "Bericht versturen",
+        "newLine": "Nieuwe regel",
+        "sendFromCode": "Versturen, ook in een codeblok",
+        "codeIndent": "Inspringen in een codeblok",
+        "editLast": "Je laatste bericht bewerken (leeg invoerveld)",
+        "escape": "Antwoord of bewerking annuleren; anders het kanaal als gelezen markeren, of een lege thread sluiten",
+        "bold": "Vet",
+        "italic": "Cursief",
+        "strike": "Doorhalen",
+        "inlineCode": "Inlinecode",
+        "codeBlock": "Codeblok"
+      },
+      "channel": {
+        "typeToCompose": "Begin met typen van een bericht",
+        "jumpToUnread": "Naar de scheidingslijn Nieuwe berichten",
+        "previousMessage": "Vorig bericht selecteren",
+        "nextMessage": "Volgend bericht selecteren",
+        "search": "Het kanaal doorzoeken",
+        "shortcuts": "Deze sneltoetsen tonen"
+      },
+      "message": {
+        "reply": "Beantwoorden",
+        "edit": "Bewerken (eigen bericht)",
+        "thread": "Thread starten of openen",
+        "pin": "Vastmaken of losmaken",
+        "react": "Reactie toevoegen",
+        "copy": "Tekst kopiëren",
+        "delete": "Verwijderen (eigen bericht; Shift slaat de vraag over)",
+        "openThread": "De thread openen",
+        "backToComposer": "Terug naar het invoerveld"
+      },
+      "keys": {
+        "enter": "Enter",
+        "escape": "Esc",
+        "tab": "Tab",
+        "pageUp": "Page Up",
+        "backspace": "Backspace",
+        "delete": "Delete",
+        "anyCharacter": "Elk teken"
+      }
+    },
+    "channels": {
+      "listLabel": "Kanalen",
+      "loadError": "De kanalen konden niet worden geladen.",
+      "retry": "Opnieuw proberen",
+      "empty": "Geen kanalen",
+      "new": "Nieuw kanaal",
+      "unread": "{count} ongelezen",
+      "unreadMentions": "{count} ongelezen, {mentions, plural, one {# melding} other {# meldingen}}",
+      "dailyUpdatesBadge": "Dagelijkse updates",
+      "notMember": "Je bent geen lid van dit privékanaal. Open de leden om jezelf toe te voegen.",
+      "rowActions": "Acties voor {name}",
+      "moveUp": "Omhoog",
+      "moveDown": "Omlaag",
+      "orderSaveError": "Je volgorde van kanalen kon niet worden opgeslagen.",
+      "drag": {
+        "picked": "{name} opgepakt.",
+        "over": "{name} staat op positie {position} van {total}.",
+        "dropped": "{name} is neergezet op positie {position} van {total}.",
+        "cancelled": "{name} is niet verplaatst."
+      },
+      "private": "Privékanaal",
+      "menu": "Kanaalinstellingen",
+      "change": "Kanaal wijzigen",
+      "manageMembers": "Leden beheren",
+      "leaveChannel": "Kanaal verlaten",
+      "deleteChannel": "Kanaal verwijderen",
+      "created": "Kanaal aangemaakt.",
+      "updated": "Kanaal opgeslagen.",
+      "deleted": "{name} is verwijderd.",
+      "left": "Je hebt {name} verlaten.",
+      "lost": {
+        "title": "Je hebt geen toegang meer tot dit kanaal",
+        "description": "Het is verwijderd of privé gemaakt, of je bent eruit verwijderd.",
+        "notice": "Je hebt geen toegang meer tot {name}. Er is nu een ander kanaal geopend.",
+        "dismiss": "Sluiten"
+      },
+      "none": {
+        "title": "Geen kanalen",
+        "description": "Er is geen kanaal dat je kunt lezen. Een eigenaar of beheerder van de organisatie kan er een aanmaken of je aan een kanaal toevoegen."
+      },
+      "dialog": {
+        "createTitle": "Nieuw kanaal",
+        "createDescription": "Iedereen in de organisatie leest een openbaar kanaal. Alleen de leden lezen een privékanaal.",
+        "changeTitle": "Kanaal wijzigen",
+        "changeDescription": "Wijzig de naam, wie het kanaal kan lezen en het doel.",
+        "name": "Naam",
+        "namePlaceholder": "Bijvoorbeeld: ontwerp",
+        "visibility": "Zichtbaarheid",
+        "visibilityPublic": "Openbaar: iedereen in de organisatie",
+        "visibilityPrivate": "Privé: alleen de leden",
+        "makesPublicWarning": "Alle eerdere berichten van dit kanaal worden zichtbaar voor de hele organisatie.",
+        "members": "Leden",
+        "membersHint": "Je wordt zelf als lid toegevoegd.",
+        "membersAuthorsHint": "Iedereen die in dit kanaal heeft geschreven is geselecteerd. Je wordt zelf als lid toegevoegd.",
+        "membersPlaceholder": "Kies leden",
+        "membersSearch": "Leden zoeken",
+        "purpose": "Doel",
+        "purposeGeneral": "Algemeen",
+        "purposeDailyUpdates": "Dagelijkse updates",
+        "purposePullRequests": "Pull requests",
+        "autoPostPrivate": "Dit doel vraagt om een openbaar kanaal. Maak het kanaal openbaar of kies Algemeen.",
+        "dailyUpdatesTaken": "{name} ontvangt de dagelijkse updates. Zet dat kanaal eerst op Algemeen om hier Dagelijkse updates te kiezen.",
+        "pullRequestsTaken": "{name} is het kanaal voor pull requests. Zet dat kanaal eerst op Algemeen om hier Pull requests te kiezen.",
+        "saving": "Opslaan…",
+        "save": "Opslaan",
+        "create": "Aanmaken"
+      },
+      "delete": {
+        "title": "{name} verwijderen?",
+        "description": "Het kanaal wordt voor iedereen verwijderd, met de berichten, threads en bestanden.",
+        "descriptionDailyUpdates": "Het kanaal wordt voor iedereen verwijderd, met de berichten, threads en bestanden. Nieuwe dagelijkse updates verschijnen niet in de chat tot een ander kanaal het doel dagelijkse updates krijgt.",
+        "descriptionPullRequests": "Het kanaal wordt voor iedereen verwijderd, met de berichten, threads en bestanden. Nieuwe pull requests verschijnen niet in de chat tot een ander kanaal het doel pull requests krijgt.",
+        "cancel": "Annuleren",
+        "confirm": "Verwijderen"
+      },
+      "leave": {
+        "title": "{name} verlaten?",
+        "description": "Je ziet dit privékanaal dan niet meer. Alleen een eigenaar of beheerder kan je opnieuw toevoegen.",
+        "cancel": "Annuleren",
+        "confirm": "Verlaten"
+      },
+      "members": {
+        "title": "Leden van {name}",
+        "description": "Alleen de leden van een privékanaal lezen de berichten.",
+        "listLabel": "Kanaalleden",
+        "loading": "Leden laden…",
+        "loadError": "De leden konden niet worden geladen.",
+        "retry": "Opnieuw proberen",
+        "empty": "Geen leden",
+        "you": "Jij",
+        "me": "{name} (jij)",
+        "remove": "{name} verwijderen",
+        "add": "Leden toevoegen",
+        "addPlaceholder": "Kies personen",
+        "addSearch": "Personen zoeken",
+        "addButton": "Toevoegen",
+        "added": "{count, plural, one {# lid toegevoegd.} other {# leden toegevoegd.}}",
+        "removed": "{name} is uit het kanaal verwijderd.",
+        "notOnList": "Je bent geen lid van dit privékanaal, daarom zie je de leden niet.",
+        "addMe": "Voeg mij toe"
+      },
+      "errors": {
+        "membersNotExpected": "Leden kunnen alleen worden gekozen als een kanaal privé wordt.",
+        "notPrivate": "Leden worden alleen in een privékanaal beheerd.",
+        "purposePrivate": "Stel dit kanaal in op Algemeen voordat je het privé maakt.",
+        "purposeTaken": "Een ander kanaal heeft dit doel al. Zet dat kanaal eerst op Algemeen.",
+        "memberNotActive": "Iedereen die je toevoegt moet een actief lid van de organisatie zijn.",
+        "notFound": "Dit kanaal bestaat niet meer, of je hebt er geen toegang meer toe.",
+        "notAllowed": "Alleen een eigenaar of beheerder van de organisatie kan dit doen.",
+        "noKaizenAccess": "Iedereen die je toevoegt moet toegang tot Kaizen hebben. Een eigenaar of beheerder kan Kaizen toekennen in Admin."
+      }
+    }
+  },
+  "pullRequests": {
+    "shareButton": "PR delen",
+    "messages": {
+      "shared": "Pull request gedeeld",
+      "updated": "Gedeelde pull request bijgewerkt",
+      "deleted": "Gedeelde pull request verwijderd",
+      "approved": "Goedgekeurd",
+      "withdrawn": "Goedkeuring ingetrokken"
+    },
+    "statuses": {
+      "DRAFT": "Concept",
+      "OPEN": "Open",
+      "IN_REVIEW": "In review",
+      "MERGED": "Gemerged",
+      "DISCUSS": "Bespreken"
+    },
+    "filters": {
+      "status": "Status",
+      "empty": "Geen pull requests voldoen aan deze filters.",
+      "emptyDescription": "Kies andere statussen of een andere persoon in de filters."
+    },
+    "states": {
+      "OPEN": "Open",
+      "DRAFT": "Concept",
+      "MERGED": "Gemerged",
+      "CLOSED": "Gesloten"
+    },
+    "picker": {
+      "title": "Pull request",
+      "description": "Kies de pull request die je wilt delen, laatst bijgewerkt eerst.",
+      "repository": "Repository",
+      "repositoryPlaceholder": "Kies een repository",
+      "repositorySearchPlaceholder": "Zoek repositories",
+      "noRepositoryMatches": "Geen repository past bij deze zoekopdracht.",
+      "privateRepository": "privé",
+      "searchPlaceholder": "#nummer, titel of tekst",
+      "columns": {
+        "number": "#",
+        "title": "Titel",
+        "state": "Status",
+        "author": "Auteur",
+        "updated": "Bijgewerkt"
+      },
+      "loadMore": "Meer laden",
+      "empty": "Deze repository heeft geen pull requests.",
+      "noResults": "Geen pull request past bij deze zoekopdracht.",
+      "noFilterResults": "Geen pull request past bij deze filters.",
+      "resultsLimited": "GitHub toont alleen de eerste 1000 resultaten. Verfijn de filters.",
+      "filters": {
+        "state": "Status",
+        "author": "Auteur",
+        "noAuthors": "Geen auteur gevonden. De lijst bevat de bijdragers van deze repository en de hier geziene auteurs.",
+        "authorsUnavailable": "De volledige auteurslijst kon niet worden geladen. De tot nu toe geziene auteurs worden getoond.",
+        "authorsLimit": "Maximaal {max} auteurs.",
+        "searchNote": "Filters gebruiken GitHub-zoeken: 30 zoekopdrachten per minuut, eerste 1000 resultaten.",
+        "saveTooltip": "Deze filters opslaan voor dit scherm"
+      },
+      "noRepositories": "De GitHub App is nog op geen enkele repository geïnstalleerd.",
+      "repositoriesError": "De repositories konden niet worden geladen.",
+      "loadError": "De pull requests konden niet worden geladen.",
+      "loadMoreError": "Meer pull requests konden niet worden geladen.",
+      "notConnectedDescription": "Een beheerder richt de Kaizen GitHub App in voor één organisatie; tot dan kunnen hier geen pull requests worden gedeeld."
+    },
+    "form": {
+      "createTitle": "Pull request delen",
+      "editTitle": "Gedeelde pull request bewerken",
+      "backToChannel": "Terug naar PR-kanaal",
+      "loading": "Laden...",
+      "send": "Versturen",
+      "save": "Opslaan",
+      "detailsTitle": "Status en review",
+      "status": "Status",
+      "statusPlaceholder": "Kies een status",
+      "statusRequired": "Kies een status.",
+      "note": "Notitie",
+      "notePlaceholder": "Optioneel, bijvoorbeeld: gemerged om in productie te testen",
+      "noteCounter": "{count} / {max}",
+      "noteTooLong": "Een notitie mag maximaal 500 tekens bevatten.",
+      "reviewers": "Reviewers",
+      "reviewersPlaceholder": "Kies reviewers",
+      "reviewersSearch": "Leden zoeken",
+      "reviewersHint": "{count} van {max} gekozen. Reviewers krijgen een melding zoals bij een vermelding.",
+      "reviewersTooMany": "Kies maximaal 10 reviewers.",
+      "membersError": "De leden van de organisatie konden niet worden geladen, dus er kan geen reviewer worden gekozen.",
+      "relatedTickets": "Gerelateerde tickets",
+      "relatedTicketsTooMany": "Kies maximaal 10 gerelateerde tickets.",
+      "relatedTicketRemove": "{key} verwijderen",
+      "relatedTicketsPickerTitle": "Tickets",
+      "relatedTicketsPickerDescription": "Vink de tickets aan waar deze pull request bij hoort. De lijst begint met je opgeslagen filters, of met je eigen tickets als er geen zijn opgeslagen; elk filter kan worden aangepast.",
+      "relatedTicketsSaveFilters": "Deze filters opslaan voor de ticketlijst van pull requests",
+      "relatedTicketsEmpty": "Nog geen gerelateerd ticket. Vink tickets aan in de lijst.",
+      "relatedTicketNoAccessHint": "Je bent geen lid meer van het bord van dit ticket, of het ticket is verwijderd. Het behoudt zijn opgeslagen sleutel en titel, en je kunt het verwijderen.",
+      "loadError": "De gedeelde pull request kon niet worden geladen.",
+      "meError": "Je account kon niet worden geladen.",
+      "notAuthor": "Je kunt alleen je eigen gedeelde pull requests bewerken.",
+      "notAuthorDescription": "Iemand anders heeft deze pull request gedeeld, dus hij kan hier niet worden gewijzigd.",
+      "fixedFacts": "De pull request zelf kan niet veranderen; bewerk de status, de notitie, de reviewers en de gerelateerde tickets."
+    },
+    "preview": {
+      "title": "Voorbeeld",
+      "empty": "Kies een pull request om het voorbeeld te zien.",
+      "noStatus": "Kies een status om de tekst te zien zoals hij wordt geplaatst.",
+      "loading": "Pull request laden...",
+      "error": "De pull request kon niet worden geladen.",
+      "byAuthor": "door {login}",
+      "openInGithub": "Openen in GitHub",
+      "reviewers": "Reviewers",
+      "noReviewers": "Geen reviewers",
+      "relatedTickets": "Gerelateerde tickets",
+      "postedText": "Geplaatste tekst"
+    },
+    "errors": {
+      "notConnected": "GitHub is niet gekoppeld voor deze organisatie",
+      "repositoryNotFound": "Deze repository is niet meer beschikbaar voor de GitHub App.",
+      "pullRequestNotFound": "GitHub heeft deze pull request niet.",
+      "shareNotFound": "Deze gedeelde pull request bestaat niet meer.",
+      "rateLimited": "De limiet van GitHub is bereikt. Wacht een minuut en probeer het opnieuw.",
+      "unreachable": "GitHub is niet bereikbaar. Probeer het zo opnieuw.",
+      "credentialsRefused": "GitHub weigert de gegevens van Kaizen. Een beheerder moet de GitHub App controleren."
+    },
+    "retry": "Opnieuw proberen",
+    "card": {
+      "label": "Pull request gedeeld door {name}",
+      "unknownReviewer": "Onbekend lid",
+      "copy": "Kopiëren",
+      "approve": "Goedkeuren",
+      "withdraw": "Goedkeuring intrekken",
+      "edit": "Bewerken",
+      "delete": "Verwijderen",
+      "byGithubAuthor": "door {login}",
+      "openInGithub": "Openen in GitHub",
+      "status": "Status",
+      "reviewers": "Reviewers",
+      "noReviewers": "Geen reviewers",
+      "relatedTickets": "Gerelateerde tickets",
+      "approved": "Goedgekeurd"
+    },
+    "delete": {
+      "title": "Deze deling verwijderen?",
+      "description": "De kaart verdwijnt voor iedereen uit het PR-kanaal. De pull request op GitHub blijft zoals hij is."
+    }
+  },
+  "columnSettings": {
+    "title": "Tabelkolommen",
+    "subtitle": "Kies welke kolommen je tickettabellen standaard tonen.",
+    "cardTitle": "Standaard kolomindeling",
+    "cardSubtitle": "Toon, verberg en sleep kolommen in volgorde. Tabellen met een eigen indeling houden die.",
+    "usingDefault": "Je opgeslagen standaardindeling wordt gebruikt.",
+    "usingBuiltIn": "Geen standaard opgeslagen: tabellen gebruiken de ingebouwde indeling.",
+    "save": "Standaard opslaan",
+    "reset": "Herstellen naar ingebouwde indeling",
+    "discard": "Wijzigingen negeren"
+  }
+}

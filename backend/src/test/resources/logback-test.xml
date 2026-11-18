@@ -1,0 +1,26 @@
+<configuration>
+
+    <!--
+        Logging of the test run. Spring Boot picks this file before logback-spring.xml, so tests
+        log WARN and ERROR only, one plain line per event: thousands of expected error-path logs
+        otherwise make the run slow to stream and its output unreadable. Surefire and failsafe
+        write the output to target/*-reports/*-output.txt.
+
+        For more detail in one run, pass a level to Maven, which hands it to the test JVM:
+          mvn verify -Dlogging.level.com.korur.oba=DEBUG
+    -->
+    <statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <!-- %ex{5}: the expected error paths log a stack trace each; five frames name the
+                 cause without burying the next event. -->
+            <pattern>%d{HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n%ex{5}</pattern>
+        </encoder>
+    </appender>
+
+    <root level="WARN">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</configuration>

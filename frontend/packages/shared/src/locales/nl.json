@@ -1,0 +1,123 @@
+{
+  "logout": "Afmelden",
+  "columns": "Kolommen",
+  "save": "Opslaan",
+  "reset": "Herstellen",
+  "resetTooltip": "Herstellen naar standaardinstellingen",
+  "selectOrganization": "Selecteer organisatie",
+  "organizationSwitchFailed": "Wisselen van organisatie is mislukt. Probeer het opnieuw.",
+  "yourOrganizations": "Uw organisaties",
+  "createOrganization": "Organisatie aanmaken",
+  "personalWorkspace": "Persoonlijk",
+  "noResults": "Geen resultaten gevonden.",
+  "attachments": {
+    "upload": {
+      "dragAndDrop": "Sleep bestanden hierheen",
+      "dropHere": "Laat bestanden hier los",
+      "supportedFormats": "PDF, PNG, JPG of JPEG",
+      "selectFiles": "Bestanden selecteren",
+      "uploading": "Uploaden...",
+      "uploadFiles": "Upload {count, plural, one {# bestand} other {# bestanden}}"
+    },
+    "list": {
+      "empty": "Nog geen bijlagen",
+      "loadError": "Bijlagen konden niet worden geladen. Probeer het opnieuw.",
+      "retry": "Opnieuw proberen",
+      "retrying": "Bezig met opnieuw proberen...",
+      "open": "Bestand openen",
+      "deleteConfirmTitle": "Bijlage verwijderen?",
+      "deleteConfirmDescription": "Deze actie kan niet ongedaan worden gemaakt. Het bestand wordt permanent verwijderd.",
+      "cancel": "Annuleren",
+      "confirmDelete": "Verwijderen"
+    },
+    "section": {
+      "title": "Bijlagen"
+    },
+    "preview": {
+      "download": "Bestand downloaden",
+      "unsupportedType": "Voorbeeld niet beschikbaar voor dit bestandstype"
+    },
+    "messages": {
+      "uploadSuccess": "Bestanden succesvol geüpload",
+      "uploadError": "Fout bij het uploaden van bestanden",
+      "deleteSuccess": "Bijlage verwijderd",
+      "deleteError": "Fout bij het verwijderen van bijlage",
+      "imageUploadError": "Afbeelding kon niet worden geüpload. Probeer het opnieuw.",
+      "imageSizeTooLarge": "Afbeelding is te groot. Maximaal 10 MB toegestaan.",
+      "imageTypeBlocked": "Dit afbeeldingstype is niet toegestaan.",
+      "orphanGcFailed": "Sommige verwijderde afbeeldingen konden niet worden opgeruimd. Ze staan mogelijk nog in de opslag.",
+      "fileTypeNotAllowed": "{name} is geen ondersteund bestandstype. Gebruik PNG, JPG of PDF.",
+      "fileTooLarge": "{name} is groter dan {max} MB en is niet toegevoegd.",
+      "batchTooLarge": "{name} zou de selectie boven de totale limiet van {max} MB brengen.",
+      "duplicateContent": "Al gekoppeld aan een ander ticket: {names}. De server weigert dubbele bestandsinhoud, verwijder deze om door te gaan."
+    }
+  },
+  "session": {
+    "expiredTitle": "Je sessie is verlopen",
+    "expiredDescription": "Je werk op deze pagina blijft behouden totdat je de pagina verlaat.",
+    "signInAction": "Inloggen"
+  },
+  "search": "Zoeken",
+  "common": {
+    "profile": "Profiel",
+    "settings": "Instellingen",
+    "logOut": "Uitloggen"
+  },
+  "organizationRoles": {
+    "OWNER": "Eigenaar",
+    "ADMIN": "Beheerder",
+    "MEMBER": "Lid",
+    "GUEST": "Gast"
+  },
+  "apps": {
+    "switchApp": "Wissel van app",
+    "kaizen": {
+      "name": "Kaizen",
+      "description": "Borden, tickets en sprints"
+    },
+    "kaya": {
+      "name": "Kaya",
+      "description": "Agentsessies en configuratie"
+    },
+    "kalkan": {
+      "name": "Kalkan",
+      "description": "Compliance en documenten"
+    },
+    "otak": {
+      "name": "Otak",
+      "description": "Relaties, leads en klanten"
+    },
+    "admin": {
+      "name": "Beheer",
+      "description": "Organisaties, leden en uitnodigingen"
+    },
+    "account": {
+      "name": "Account",
+      "description": "Profiel, instellingen en uitnodigingen"
+    }
+  },
+  "markdownEditor": {
+    "bold": "Vet",
+    "italic": "Cursief",
+    "strikethrough": "Doorhalen",
+    "code": "Inline code",
+    "link": "Link",
+    "heading1": "Kop 1",
+    "heading2": "Kop 2",
+    "heading3": "Kop 3",
+    "bulletList": "Opsommingslijst",
+    "orderedList": "Genummerde lijst",
+    "taskList": "Takenlijst",
+    "blockquote": "Citaat",
+    "codeBlock": "Codeblok",
+    "horizontalRule": "Horizontale lijn",
+    "uploadFile": "Bestand uploaden",
+    "dropFiles": "Sleep bestanden hierheen",
+    "linkUrl": "Voer URL in",
+    "linkUrlPlaceholder": "https://voorbeeld.nl",
+    "linkInsert": "Link invoegen",
+    "linkRemove": "Link verwijderen",
+    "formatCode": "Formatteren",
+    "imageDelete": "Afbeelding verwijderen"
+  }
+}

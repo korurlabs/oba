@@ -1,0 +1,18 @@
+{
+  "handoffs/big/h.md": {
+    "content": {
+      "$concat": [
+        {
+          "$repeat": "x",
+          "$times": 199990
+        },
+        "\nAPI_KEY=supersecretvalue12345 tail\n",
+        {
+          "$repeat": "y",
+          "$times": 50000
+        }
+      ]
+    },
+    "mtime": "2026-10-01T09:00:19Z"
+  }
+}

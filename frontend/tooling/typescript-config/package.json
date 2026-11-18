@@ -1,0 +1,14 @@
+{
+  "name": "@oba/typescript-config",
+  "version": "0.0.0",
+  "private": true,
+  "license": "AGPL-3.0-only",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    "./base.json": "./base.json",
+    "./nextjs.json": "./nextjs.json",
+    "./react-library.json": "./react-library.json"
+  }
+}

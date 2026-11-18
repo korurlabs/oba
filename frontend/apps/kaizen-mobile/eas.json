@@ -1,0 +1,50 @@
+{
+  "cli": { "version": ">= 16.17.4", "appVersionSource": "remote" },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "NODE_ENV": "development",
+        "EXPO_PUBLIC_OBA_API_URL": "http://localhost:8080",
+        "EXPO_PUBLIC_KEYCLOAK_ISSUER": "http://localhost:8086/realms/sensey",
+        "EXPO_PUBLIC_KEYCLOAK_CLIENT_ID": "kaizen-mobile",
+        "EXPO_PUBLIC_ACCOUNT_URL": "http://localhost:3017",
+        "EXPO_PUBLIC_ADMIN_URL": "http://localhost:3016",
+        "EXPO_PUBLIC_KAIZEN_WEB_URL": "http://localhost:3002"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "environment": "preview",
+      "ios": { "simulator": false },
+      "env": {
+        "NODE_ENV": "production",
+        "EXPO_PUBLIC_OBA_API_URL": "https://api.korur.com",
+        "EXPO_PUBLIC_KEYCLOAK_ISSUER": "https://auth.korur.com/realms/sensey",
+        "EXPO_PUBLIC_KEYCLOAK_CLIENT_ID": "kaizen-mobile",
+        "EXPO_PUBLIC_ACCOUNT_URL": "https://account.korur.com",
+        "EXPO_PUBLIC_ADMIN_URL": "https://admin.korur.com",
+        "EXPO_PUBLIC_KAIZEN_WEB_URL": "https://kaizen.korur.com"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "environment": "production",
+      "env": {
+        "NODE_ENV": "production",
+        "EXPO_PUBLIC_OBA_API_URL": "https://api.korur.com",
+        "EXPO_PUBLIC_KEYCLOAK_ISSUER": "https://auth.korur.com/realms/sensey",
+        "EXPO_PUBLIC_KEYCLOAK_CLIENT_ID": "kaizen-mobile",
+        "EXPO_PUBLIC_ACCOUNT_URL": "https://account.korur.com",
+        "EXPO_PUBLIC_ADMIN_URL": "https://admin.korur.com",
+        "EXPO_PUBLIC_KAIZEN_WEB_URL": "https://kaizen.korur.com"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": { "track": "internal" }
+    }
+  }
+}

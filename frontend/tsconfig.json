@@ -1,0 +1,3 @@
+{
+  "extends": "@oba/typescript-config/base.json"
+}

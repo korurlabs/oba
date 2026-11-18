@@ -1,0 +1,41 @@
+{
+  "runs": [
+    {
+      "cursor": {
+        "acknowledgedSeq": 10,
+        "handoffs": {},
+        "plans": {
+          "session.md": 1790845208000000000
+        }
+      },
+      "exit": 0,
+      "files": [
+        "cursor.json",
+        "events.jsonl",
+        "plans/session.json",
+        "plans/session.md",
+        "session.json",
+        "summary.json"
+      ],
+      "log": [],
+      "queueAfter": {},
+      "requests": [
+        {
+          "authorized": true,
+          "body": "same as ../batch.json",
+          "contentType": "application/json",
+          "method": "POST",
+          "path": "/kaya/ingest/batches"
+        }
+      ],
+      "state": {
+        "token": "ok"
+      },
+      "stderr": [],
+      "stdout": "",
+      "token": "A",
+      "usageFileLeft": false
+    }
+  ],
+  "scenario": "ok"
+}

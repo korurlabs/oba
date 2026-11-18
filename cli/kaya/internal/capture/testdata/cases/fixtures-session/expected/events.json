@@ -1,0 +1,149 @@
+[
+  {
+    "at": "2026-10-01T09:00:00Z",
+    "branch": "feature/golden",
+    "cwd": "{{REPO}}",
+    "event": "SessionStart",
+    "model": "claude-opus-5-5",
+    "seq": 1,
+    "session_title": "Recorder work",
+    "source": "startup"
+  },
+  {
+    "at": "2026-10-01T09:00:01Z",
+    "cwd": "{{REPO}}",
+    "event": "UserPromptSubmit",
+    "prompt": "/deliver KAI-42 add the recorder",
+    "seq": 2
+  },
+  {
+    "at": "2026-10-01T09:00:02Z",
+    "command_args": "KAI-42",
+    "command_name": "deliver",
+    "cwd": "{{REPO}}",
+    "event": "UserPromptExpansion",
+    "seq": 3
+  },
+  {
+    "at": "2026-10-01T09:00:03Z",
+    "cwd": "{{REPO}}",
+    "description": "Kaya recorder",
+    "event": "PreToolUse",
+    "handoff": "kaya/other/recorder.md",
+    "seq": 4,
+    "subagent_type": "coding-engineer",
+    "tool_name": "Agent",
+    "tool_use_id": "toolu_agent"
+  },
+  {
+    "agent_id": "a1b2c3",
+    "agent_type": "coding-engineer",
+    "at": "2026-10-01T09:00:04Z",
+    "cwd": "{{REPO}}",
+    "event": "SubagentStart",
+    "seq": 5
+  },
+  {
+    "agent_id": "a1b2c3",
+    "agent_type": "coding-engineer",
+    "at": "2026-10-01T09:00:05Z",
+    "cwd": "{{REPO}}",
+    "event": "PreToolUse",
+    "seq": 6,
+    "skill": "no-silent-failures",
+    "tool_name": "Skill",
+    "tool_use_id": "toolu_skill"
+  },
+  {
+    "agent_id": "a1b2c3",
+    "agent_type": "coding-engineer",
+    "at": "2026-10-01T09:00:06Z",
+    "cwd": "{{REPO}}",
+    "event": "PostToolUse",
+    "ok": true,
+    "seq": 7,
+    "skill": "no-silent-failures",
+    "tool_name": "Skill",
+    "tool_use_id": "toolu_skill"
+  },
+  {
+    "agent_id": "a1b2c3",
+    "agent_type": "coding-engineer",
+    "at": "2026-10-01T09:00:07Z",
+    "cwd": "{{REPO}}",
+    "event": "PostToolUse",
+    "file_path": "{{REPO}}/handoffs/kaya/other/recorder.md",
+    "ok": true,
+    "seq": 8,
+    "tool_name": "Write",
+    "tool_use_id": "toolu_write"
+  },
+  {
+    "agent_id": "a1b2c3",
+    "agent_type": "coding-engineer",
+    "at": "2026-10-01T09:00:08Z",
+    "cwd": "{{REPO}}",
+    "event": "SubagentStop",
+    "last_assistant_message": "DONE. Files changed: record.py.",
+    "model": "claude-sonnet-5-5",
+    "seq": 9
+  },
+  {
+    "at": "2026-10-01T09:00:09Z",
+    "cwd": "{{REPO}}",
+    "description": "Kaya recorder",
+    "event": "PostToolUse",
+    "handoff": "kaya/other/recorder.md",
+    "ok": true,
+    "seq": 10,
+    "spawned_agent_id": "a1b2c3",
+    "subagent_type": "coding-engineer",
+    "tool_name": "Agent",
+    "tool_use_id": "toolu_agent"
+  },
+  {
+    "at": "2026-10-01T09:00:10Z",
+    "command": "gh pr create --base main --title x --body y",
+    "cwd": "{{REPO}}",
+    "event": "PostToolUse",
+    "ok": true,
+    "seq": 11,
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_bash",
+    "url": "https://github.com/senseylabs/village/pull/643"
+  },
+  {
+    "at": "2026-10-01T09:00:11Z",
+    "command": "kaizen ticket get KAI-42 --json",
+    "cwd": "{{REPO}}",
+    "event": "PostToolUseFailure",
+    "ok": false,
+    "seq": 12,
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_fail"
+  },
+  {
+    "at": "2026-10-01T09:00:12Z",
+    "cwd": "{{REPO}}",
+    "event": "PreToolUse",
+    "seq": 13,
+    "tool_name": "ExitPlanMode",
+    "tool_use_id": "toolu_exit_plan"
+  },
+  {
+    "at": "2026-10-01T09:00:13Z",
+    "branch": "feature/golden",
+    "cwd": "{{REPO}}",
+    "event": "Stop",
+    "last_assistant_message": "Which option do you want?",
+    "seq": 14
+  },
+  {
+    "at": "2026-10-01T09:00:14Z",
+    "branch": "feature/golden",
+    "cwd": "{{REPO}}",
+    "event": "SessionEnd",
+    "reason": "prompt_input_exit",
+    "seq": 15
+  }
+]

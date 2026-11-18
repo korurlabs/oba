@@ -1,0 +1,29 @@
+{
+  "account": true,
+  "branch": "feature/golden",
+  "description": "No state.json and no sender.started: no warning.",
+  "email": "dev@example.com",
+  "queue_edits": [],
+  "queue_files": {},
+  "remote": "git@github.com:senseylabs/village.git",
+  "repo_files": [],
+  "scenarios": [],
+  "session_id": "44444444-aaaa-4bbb-8ccc-0000000000ff",
+  "ssh_aliases": {},
+  "state_files": {},
+  "steps": [
+    {
+      "at": "2026-10-01T09:00:00Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SessionStart",
+        "permission_mode": "default",
+        "session_id": "44444444-aaaa-4bbb-8ccc-0000000000ff",
+        "source": "startup",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    }
+  ],
+  "usage": null,
+  "worktree": null
+}

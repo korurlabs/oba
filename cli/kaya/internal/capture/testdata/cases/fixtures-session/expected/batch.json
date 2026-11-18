@@ -1,0 +1,227 @@
+{
+  "machine": {
+    "account": {
+      "billingType": "stripe_subscription",
+      "emailAddress": "dev@example.com",
+      "organizationName": "Korur",
+      "organizationType": "claude_max",
+      "organizationUuid": "11111111-2222-3333-4444-555555555555",
+      "seatTier": "max_5x"
+    },
+    "claudeCodeVersion": "2.1.100",
+    "machineName": "golden-host"
+  },
+  "events": [
+    {
+      "at": "2026-10-01T09:00:00Z",
+      "branch": "feature/golden",
+      "cwd": "{{REPO}}",
+      "event": "SessionStart",
+      "model": "claude-opus-5-5",
+      "seq": 1,
+      "session_title": "Recorder work",
+      "source": "startup"
+    },
+    {
+      "at": "2026-10-01T09:00:01Z",
+      "cwd": "{{REPO}}",
+      "event": "UserPromptSubmit",
+      "prompt": "/deliver KAI-42 add the recorder",
+      "seq": 2
+    },
+    {
+      "at": "2026-10-01T09:00:02Z",
+      "command_args": "KAI-42",
+      "command_name": "deliver",
+      "cwd": "{{REPO}}",
+      "event": "UserPromptExpansion",
+      "seq": 3
+    },
+    {
+      "at": "2026-10-01T09:00:03Z",
+      "cwd": "{{REPO}}",
+      "description": "Kaya recorder",
+      "event": "PreToolUse",
+      "handoff": "kaya/other/recorder.md",
+      "seq": 4,
+      "subagent_type": "coding-engineer",
+      "tool_name": "Agent",
+      "tool_use_id": "toolu_agent"
+    },
+    {
+      "agent_id": "a1b2c3",
+      "agent_type": "coding-engineer",
+      "at": "2026-10-01T09:00:04Z",
+      "cwd": "{{REPO}}",
+      "event": "SubagentStart",
+      "seq": 5
+    },
+    {
+      "agent_id": "a1b2c3",
+      "agent_type": "coding-engineer",
+      "at": "2026-10-01T09:00:05Z",
+      "cwd": "{{REPO}}",
+      "event": "PreToolUse",
+      "seq": 6,
+      "skill": "no-silent-failures",
+      "tool_name": "Skill",
+      "tool_use_id": "toolu_skill"
+    },
+    {
+      "agent_id": "a1b2c3",
+      "agent_type": "coding-engineer",
+      "at": "2026-10-01T09:00:06Z",
+      "cwd": "{{REPO}}",
+      "event": "PostToolUse",
+      "ok": true,
+      "seq": 7,
+      "skill": "no-silent-failures",
+      "tool_name": "Skill",
+      "tool_use_id": "toolu_skill"
+    },
+    {
+      "agent_id": "a1b2c3",
+      "agent_type": "coding-engineer",
+      "at": "2026-10-01T09:00:07Z",
+      "cwd": "{{REPO}}",
+      "event": "PostToolUse",
+      "file_path": "{{REPO}}/handoffs/kaya/other/recorder.md",
+      "ok": true,
+      "seq": 8,
+      "tool_name": "Write",
+      "tool_use_id": "toolu_write"
+    },
+    {
+      "agent_id": "a1b2c3",
+      "agent_type": "coding-engineer",
+      "at": "2026-10-01T09:00:08Z",
+      "cwd": "{{REPO}}",
+      "event": "SubagentStop",
+      "last_assistant_message": "DONE. Files changed: record.py.",
+      "model": "claude-sonnet-5-5",
+      "seq": 9
+    },
+    {
+      "at": "2026-10-01T09:00:09Z",
+      "cwd": "{{REPO}}",
+      "description": "Kaya recorder",
+      "event": "PostToolUse",
+      "handoff": "kaya/other/recorder.md",
+      "ok": true,
+      "seq": 10,
+      "spawned_agent_id": "a1b2c3",
+      "subagent_type": "coding-engineer",
+      "tool_name": "Agent",
+      "tool_use_id": "toolu_agent"
+    },
+    {
+      "at": "2026-10-01T09:00:10Z",
+      "command": "gh pr create --base main --title x --body y",
+      "cwd": "{{REPO}}",
+      "event": "PostToolUse",
+      "ok": true,
+      "seq": 11,
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_bash",
+      "url": "https://github.com/senseylabs/village/pull/643"
+    },
+    {
+      "at": "2026-10-01T09:00:11Z",
+      "command": "kaizen ticket get KAI-42 --json",
+      "cwd": "{{REPO}}",
+      "event": "PostToolUseFailure",
+      "ok": false,
+      "seq": 12,
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_fail"
+    },
+    {
+      "at": "2026-10-01T09:00:12Z",
+      "cwd": "{{REPO}}",
+      "event": "PreToolUse",
+      "seq": 13,
+      "tool_name": "ExitPlanMode",
+      "tool_use_id": "toolu_exit_plan"
+    },
+    {
+      "at": "2026-10-01T09:00:13Z",
+      "branch": "feature/golden",
+      "cwd": "{{REPO}}",
+      "event": "Stop",
+      "last_assistant_message": "Which option do you want?",
+      "seq": 14
+    },
+    {
+      "at": "2026-10-01T09:00:14Z",
+      "branch": "feature/golden",
+      "cwd": "{{REPO}}",
+      "event": "SessionEnd",
+      "reason": "prompt_input_exit",
+      "seq": 15
+    }
+  ],
+  "handoffs": [
+    {
+      "capturedAt": "2026-10-01T09:00:03Z",
+      "content": "# Handoff\n\nStatus: PARTIAL\n",
+      "path": "kaya/other/recorder.md"
+    },
+    {
+      "capturedAt": "2026-10-01T09:00:04Z",
+      "content": "# Second handoff\ntoken=[redacted]\nAPI_KEY=[redacted]\n",
+      "path": "kaya/other/second.md"
+    }
+  ],
+  "plans": [
+    {
+      "capturedAt": "2026-10-01T09:00:12Z",
+      "content": "1. **Goal**: the recorder captures plans.\n2. **Steps**:\n   1. Add `snapshot_plan` to `record.py`.\n3. **Verification**: the tests pass.\n",
+      "kind": "SESSION",
+      "path": null,
+      "source": "PLAN_MODE"
+    }
+  ],
+  "repository": {
+    "name": "village",
+    "remoteUrl": "git@github.com:senseylabs/village.git"
+  },
+  "sessionId": "fixture-session",
+  "summary": {
+    "branch": "feature/golden",
+    "briefed_features": [
+      "kaya"
+    ],
+    "configRelease": {
+      "deliveredBy": "LAUNCHER",
+      "manifestSha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+      "number": 7,
+      "state": "FRESH"
+    },
+    "cwd": "{{REPO}}",
+    "ended": true,
+    "event_count": 15,
+    "features": [
+      "kaya"
+    ],
+    "first_prompt": "/deliver KAI-42 add the recorder",
+    "gitAuthorEmail": "dev@example.com",
+    "last_event_at": "2026-10-01T09:00:14Z",
+    "model": "claude-opus-5-5",
+    "project": null,
+    "session_title": "Recorder work",
+    "started_at": "2026-10-01T09:00:00Z",
+    "ticket": "KAI-42",
+    "title": "Recorder work"
+  },
+  "usage": {
+    "capturedAt": "2026-10-01T09:00:00Z",
+    "fiveHour": {
+      "resetsAt": "2026-10-01T14:00:00Z",
+      "utilization": 12.5
+    },
+    "sevenDay": {
+      "resetsAt": "2026-10-07T09:00:00Z",
+      "utilization": 3.0
+    }
+  }
+}

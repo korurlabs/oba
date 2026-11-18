@@ -1,0 +1,16 @@
+# Build outputs
+.next/
+out/
+dist/
+build/
+
+# Dependencies
+node_modules/
+
+# Cache
+.turbo/
+*.tsbuildinfo
+
+# Local
+.env*.local
+

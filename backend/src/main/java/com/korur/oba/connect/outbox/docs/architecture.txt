@@ -1,0 +1,82 @@
+===========================================================================
+ OUTBOX DOMAIN — connect/outbox
+===========================================================================
+
+PURPOSE
+-------
+Transactional outbox pattern for reliable, at-least-once delivery of domain
+events to external systems. Events are written to the outbox_events table in
+the same transaction as the domain change. A scheduler polls for pending
+events and dispatches them to the appropriate handler.
+
+PATTERN
+-------
+1. Domain service creates an OutboxEvent (ENQUEUED) in the same transaction
+   as the domain change via OutboxEventService.create().
+2. OutboxEventScheduler polls every 30s for ENQUEUED events.
+3. OutboxEventProcessor claims the event atomically (optimistic locking),
+   dispatches to the matching OutboxEventHandler, and marks as PROCESSED.
+4. On failure: re-enqueues with backoff (±20% jitter) or moves to the
+   dead letter table (outbox_dead_events) after max retries.
+
+ENUMS
+-----
+ConnectOutboxSystem — plain identifier for which external system:
+  NOTIFICATION, AZURE_BLOB_STORAGE, KUBERNETES, INTELLIGENCE
+
+ConnectOutboxPolicy — config holder referencing a system:
+  - system (ConnectOutboxSystem)
+  - maxAttempts (int)
+  - delaysMinutes (int[])
+
+  NOTIFICATION:        3 retries (10, 30, 60 min)
+  AZURE_BLOB_STORAGE:  4 retries (5, 15, 60, 240 min)
+  KUBERNETES:          5 retries (5, 15, 60, 240, 720 min)
+  INTELLIGENCE:        3 retries (5, 30, 60 min)
+
+ENTITY
+------
+OutboxEvent (outbox_events):
+  - payload (TEXT, JSON)
+  - event_type (enum: OutboxEventType)
+  - status (enum: OutboxStatus — ENQUEUED, PROCESSING, PROCESSED, FAILED)
+  - connect_outbox_system (enum: ConnectOutboxSystem, column: target_system)
+  - attempts (int)
+  - next_attempt_at (timestamp)
+  - processed_at (timestamp)
+  - last_error_message, last_error_values, last_error_stack_trace (TEXT)
+  - version (optimistic locking)
+
+DEAD LETTER
+-----------
+When an event permanently fails (max retries exhausted or immediate internal
+error), it is moved from outbox_events to outbox_dead_events:
+
+  1. OutboxEventProcessor detects permanent failure
+  2. OutboxDeadEventService.moveToDeadLetter() maps and persists the dead event
+  3. Original event is deleted from outbox_events
+
+OutboxDeadEvent (outbox_dead_events):
+  - original_event_id, payload, event_type, target_system
+  - attempts, last_error_message, last_error_values, last_error_stack_trace
+  - failed_at, original_created_at
+  - resolution (nullable: DeadLetterResolution — REPLAYED / DISCARDED)
+  - resolved_at (nullable)
+
+HANDLER PATTERN
+---------------
+OutboxEventHandler interface:
+  - supports(ConnectOutboxSystem) → boolean
+  - handle(OutboxEvent) → void
+
+NotificationOutboxEventHandler:
+  - Deserializes payload as EmailRequest and sends via EmailNotificationService.
+
+USAGE EXAMPLE
+-------------
+  OutboxCreateDTO dto = new OutboxCreateDTO(
+      emailRequest,                          // payload (will be JSON-serialized)
+      OutboxEventType.INVITATION_NEW_USER,   // event type
+      ConnectOutboxSystem.NOTIFICATION       // target system
+  );
+  outboxEventService.create(dto);

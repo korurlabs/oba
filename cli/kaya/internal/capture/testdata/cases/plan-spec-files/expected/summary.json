@@ -1,0 +1,16 @@
+{
+  "branch": "wt",
+  "briefed_features": [],
+  "cwd": "{{REPO}}/.claude/worktrees/wt",
+  "ended": false,
+  "event_count": 16,
+  "features": [],
+  "first_prompt": null,
+  "last_event_at": "2026-10-01T09:00:34Z",
+  "project": null,
+  "session_id": "11111111-aaaa-4bbb-8ccc-000000000005",
+  "session_title": null,
+  "started_at": "2026-10-01T09:00:10Z",
+  "ticket": null,
+  "title": null
+}

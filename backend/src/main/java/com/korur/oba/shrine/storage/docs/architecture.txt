@@ -1,0 +1,85 @@
+===========================================================================
+ STORAGE DOMAIN — shrine/storage
+===========================================================================
+
+PURPOSE
+-------
+File storage management using Azure Blob Storage for the attachment
+sub-domain (generic files). Uses a polymorphic entityType + entityId
+pattern to link files to any domain entity without direct foreign keys.
+
+DOMAIN STRUCTURE
+----------------
+shrine/storage/
+├── enums/common/StorageEntityType.java                    (shared enum)
+├── constant/common/StorageConstant.java                   (shared field names)
+├── constant/service/attachment/AttachmentServiceLogConstant.java
+├── constant/controller/attachment/AttachmentController{Log,Response}Constant.java
+├── exception/ExceptionDomainStorageError.java
+├── entity/attachment/Attachment.java
+├── dto/request/attachment/Attachment{Create,ExistsCheck}Request.java
+├── dto/request/attachment/AttachmentMetadata.java
+├── dto/response/attachment/Attachment{,Exists}Response.java
+├── helper/attachment/AttachmentHashHelper.java
+├── repository/attachment/AttachmentRepository.java
+├── mapper/attachment/AttachmentMapper.java
+├── validator/attachment/AttachmentValidator.java
+├── service/attachment/AttachmentService.java              (write)
+├── service/attachment/AttachmentQueryService.java         (read)
+├── service/attachment/impl/Attachment{Service,QueryService}Impl.java
+├── controller/attachment/AttachmentController.java
+└── docs/architecture.txt
+
+ENTITIES
+--------
+Attachment (shrine.attachments):
+  - url (TEXT) — full URL in cloud storage
+  - file_name (VARCHAR 255) — original file name
+  - content_type (VARCHAR 100) — MIME type
+  - file_size (BIGINT) — size in bytes
+  - entity_type (ENUM: StorageEntityType) — type of owning entity
+  - entity_id (UUID) — ID of owning entity
+
+ENTITY TYPES
+-----------
+- ORGANIZATION — files attached to an organization
+- USER — files attached to a user profile
+- INVOICE — files attached to an invoice
+- TICKET — files attached to a ticket
+
+ENDPOINTS
+---------
+| Method | Endpoint                                   | Auth  | Purpose              |
+|--------|--------------------------------------------|-------|----------------------|
+| POST   | /storage/attachments                       | GUEST | Upload attachments   |
+| GET    | /storage/attachments?entityType&entityId   | GUEST | List by entity       |
+| POST   | /storage/attachments/exists                | GUEST | Duplicate pre-check  |
+| DELETE | /storage/attachments/{id}                  | GUEST | Delete an attachment |
+
+Every endpoint needs the X-Organization-ID header (@RequiredUserAccess(GUEST)).
+The parent must belong to that organization; ResourceAccessQueryService checks
+the action's role, the app and the type's rules on it (READ, WRITE, DELETE).
+
+CQRS
+----
+- AttachmentService (write): uploadAttachments, deleteAttachment
+- AttachmentQueryService (read): listAttachmentsByEntity
+
+INTEGRATION
+-----------
+Uses AzureBlobStorageService from connect/azure/ for cloud storage operations.
+File names are sanitized (non-alphanumeric chars replaced with _) before upload.
+
+CONVENTIONS
+-----------
+- Follows village CQRS, constants, LoggingService, and controller patterns.
+- Attachment extends BaseEntity with UUID PK.
+- DTOs are Java records.
+- MapStruct mappers with componentModel = "spring".
+
+HISTORY
+-------
+The photo sub-domain and the excel/pdf export services (Apache POI,
+iText) were removed as dead code — they had zero callers across backend
+and frontend. The shrine.photos table and the POI/iText pom dependencies
+are cleaned up in later batches.

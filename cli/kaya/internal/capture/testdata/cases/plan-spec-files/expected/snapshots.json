@@ -1,0 +1,44 @@
+{
+  "plans/files/docs/claude/plans/kaya/07_X.md": {
+    "content": "# Spec 07\nAPI_KEY=specsecret99\n",
+    "mtime": "2026-10-01T09:00:19Z"
+  },
+  "plans/files/docs/plans/dots.md": {
+    "content": "# Dots normalised\n",
+    "mtime": "2026-10-01T09:00:22Z"
+  },
+  "plans/files/docs/plans/exactly-limit.md": {
+    "content": {
+      "$repeat": "0123456789abcdef",
+      "$times": 12500
+    },
+    "mtime": "2026-10-01T09:00:29Z"
+  },
+  "plans/files/docs/plans/multibyte.md": {
+    "content": {
+      "$concat": [
+        {
+          "$repeat": "é",
+          "$times": 100000
+        },
+        {
+          "$repeat": "漢",
+          "$times": 100000
+        }
+      ]
+    },
+    "mtime": "2026-10-01T09:00:29Z"
+  },
+  "plans/files/docs/plans/new.md": {
+    "content": "# Changed after the start\n",
+    "mtime": "2026-10-01T09:00:25Z"
+  },
+  "plans/files/docs/plans/z.md": {
+    "content": "# Plan z, rewritten\n",
+    "mtime": "2026-10-01T09:00:33Z"
+  },
+  "plans/files/docs/private/plans/kaya/18_Y.md": {
+    "content": "# Spec 18\n",
+    "mtime": "2026-10-01T09:00:20Z"
+  }
+}

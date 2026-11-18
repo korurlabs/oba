@@ -1,0 +1,123 @@
+{
+  "logout": "Çıkış Yap",
+  "columns": "Sütunlar",
+  "save": "Kaydet",
+  "reset": "Sıfırla",
+  "resetTooltip": "Varsayılan ayarlara sıfırla",
+  "selectOrganization": "Organizasyon seçin",
+  "organizationSwitchFailed": "Organizasyon değiştirilemedi. Lütfen tekrar deneyin.",
+  "yourOrganizations": "Organizasyonlarınız",
+  "createOrganization": "Organizasyon oluştur",
+  "personalWorkspace": "Kişisel",
+  "noResults": "Sonuç bulunamadı.",
+  "attachments": {
+    "upload": {
+      "dragAndDrop": "Dosyaları buraya sürükleyin",
+      "dropHere": "Dosyaları bırakın",
+      "supportedFormats": "PDF, PNG, JPG veya JPEG",
+      "selectFiles": "Dosya seç",
+      "uploading": "Yükleniyor...",
+      "uploadFiles": "{count, plural, one {# dosya} other {# dosya}} yükle"
+    },
+    "list": {
+      "empty": "Henüz ek dosya yok",
+      "loadError": "Ek dosyalar yüklenemedi. Lütfen tekrar deneyin.",
+      "retry": "Tekrar dene",
+      "retrying": "Yeniden deneniyor...",
+      "open": "Dosyayı aç",
+      "deleteConfirmTitle": "Ek dosya silinsin mi?",
+      "deleteConfirmDescription": "Bu işlem geri alınamaz. Dosya kalıcı olarak silinecektir.",
+      "cancel": "İptal",
+      "confirmDelete": "Sil"
+    },
+    "section": {
+      "title": "Ek Dosyalar"
+    },
+    "preview": {
+      "download": "Dosyayı indir",
+      "unsupportedType": "Bu dosya tipi için önizleme mevcut değil"
+    },
+    "messages": {
+      "uploadSuccess": "Dosyalar başarıyla yüklendi",
+      "uploadError": "Dosyalar yüklenemedi",
+      "deleteSuccess": "Ek dosya silindi",
+      "deleteError": "Ek dosya silinemedi",
+      "imageUploadError": "Görsel yüklenemedi. Lütfen tekrar deneyin.",
+      "imageSizeTooLarge": "Görsel çok büyük. En fazla 10 MB olabilir.",
+      "imageTypeBlocked": "Bu görsel türüne izin verilmiyor.",
+      "orphanGcFailed": "Kaldırılan bazı görseller temizlenemedi. Hâlâ depolamada görünebilirler.",
+      "fileTypeNotAllowed": "{name} desteklenen bir dosya türü değil. PNG, JPG veya PDF kullanın.",
+      "fileTooLarge": "{name} {max} MB sınırından büyük ve eklenmedi.",
+      "batchTooLarge": "{name} seçimi toplam {max} MB sınırının üzerine çıkarır.",
+      "duplicateContent": "Başka bir bilete zaten eklenmiş: {names}. Sunucu yinelenen dosya içeriğini reddeder, devam etmek için bunları kaldırın."
+    }
+  },
+  "session": {
+    "expiredTitle": "Oturumunuzun süresi doldu",
+    "expiredDescription": "Bu sayfadaki çalışmanız siz ayrılana kadar korunur.",
+    "signInAction": "Giriş yap"
+  },
+  "search": "Ara",
+  "common": {
+    "profile": "Profil",
+    "settings": "Ayarlar",
+    "logOut": "Çıkış Yap"
+  },
+  "organizationRoles": {
+    "OWNER": "Sahip",
+    "ADMIN": "Yönetici",
+    "MEMBER": "Üye",
+    "GUEST": "Misafir"
+  },
+  "apps": {
+    "switchApp": "Uygulama değiştir",
+    "kaizen": {
+      "name": "Kaizen",
+      "description": "Panolar, biletler ve sprintler"
+    },
+    "kaya": {
+      "name": "Kaya",
+      "description": "Ajan oturumları ve yapılandırma"
+    },
+    "kalkan": {
+      "name": "Kalkan",
+      "description": "Uyum ve dokümanlar"
+    },
+    "otak": {
+      "name": "Otak",
+      "description": "İlişkiler, potansiyel müşteriler ve müşteriler"
+    },
+    "admin": {
+      "name": "Yönetim",
+      "description": "Organizasyonlar, üyeler ve davetler"
+    },
+    "account": {
+      "name": "Hesap",
+      "description": "Profil, ayarlar ve davetler"
+    }
+  },
+  "markdownEditor": {
+    "bold": "Kalın",
+    "italic": "İtalik",
+    "strikethrough": "Üstü çizili",
+    "code": "Satır içi kod",
+    "link": "Bağlantı",
+    "heading1": "Başlık 1",
+    "heading2": "Başlık 2",
+    "heading3": "Başlık 3",
+    "bulletList": "Madde listesi",
+    "orderedList": "Numaralı liste",
+    "taskList": "Görev listesi",
+    "blockquote": "Alıntı",
+    "codeBlock": "Kod bloğu",
+    "horizontalRule": "Yatay çizgi",
+    "uploadFile": "Dosya yükle",
+    "dropFiles": "Dosyaları buraya bırakın",
+    "linkUrl": "URL girin",
+    "linkUrlPlaceholder": "https://ornek.com",
+    "linkInsert": "Bağlantı ekle",
+    "linkRemove": "Bağlantıyı kaldır",
+    "formatCode": "Biçimlendir",
+    "imageDelete": "Görseli sil"
+  }
+}

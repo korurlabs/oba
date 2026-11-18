@@ -1,0 +1,2460 @@
+{
+  "cases": [
+    {
+      "expected": " KBearermonkey",
+      "input": " KBearermonkey"
+    },
+    {
+      "expected": "=hunter2éhunter2 ",
+      "input": "=hunter2éhunter2 "
+    },
+    {
+      "expected": "My-Secretabc123API_KEY=[redacted] PASSWORD:",
+      "input": "My-Secretabc123API_KEY=API_KEYpaſſword PASSWORD:"
+    },
+    {
+      "expected": "-p5432'quoted value' \"double quoted\"\" \"=-nKEY_[redacted]",
+      "input": "-p5432'quoted value' \"double quoted\"\" \"=-nKEY_[redacted]"
+    },
+    {
+      "expected": "\"double quoted\"KEY-p5432hunter2==",
+      "input": "\"double quoted\"KEY-p5432hunter2=="
+    },
+    {
+      "expected": "x.TOKENAPI_KEY--tokenmonkeysecret'end--flagsecret-turkeya_",
+      "input": "x.TOKENAPI_KEY--tokenmonkeysecret'end--flagsecret-turkeya_"
+    },
+    {
+      "expected": "api_keyapi_keyZhttps://x.example/a?b=cx.TOKEN. My-Secrets3cr3t_",
+      "input": "api_keyapi_keyZhttps://x.example/a?b=cx.TOKEN. My-Secrets3cr3t_"
+    },
+    {
+      "expected": "\nhunter2KEY'quoted value'é'quoted value' ===ſecret",
+      "input": "\nhunter2KEY'quoted value'é'quoted value' ===ſecret"
+    },
+    {
+      "expected": "\"double quoted\"authorization:\t[redacted]",
+      "input": "\"double quoted\"authorization:\tAuthorization:[redacted]s3cr3t_ https://x.example/a?b=c=aAPI_KEY"
+    },
+    {
+      "expected": "monkey'quoted value'\"double quoted\"K-s3cr3t-pxhunter2\ns3cr3t",
+      "input": "monkey'quoted value'\"double quoted\"K-s3cr3t-pxhunter2\ns3cr3t"
+    },
+    {
+      "expected": "hunter2-px\"ſecret",
+      "input": "hunter2-px\"ſecret"
+    },
+    {
+      "expected": "-turkey=[redacted]",
+      "input": "-turkey=="
+    },
+    {
+      "expected": "ésecret'quoted value'a-KEY-p5432:--token\t[redacted]",
+      "input": "ésecret'quoted value'a-KEY-p5432:--token\tendpaſſword-pxs3cr3t"
+    },
+    {
+      "expected": "secret tokenAuthorization:\t[redacted]",
+      "input": "secret tokenAuthorization:\tapi_keyhttps://x.example/a?b=csecret"
+    },
+    {
+      "expected": "paſſwordKEY\nmonkeymonkey--flag9x.TOKEN\tauthorization:[redacted]",
+      "input": "paſſwordKEY\nmonkeymonkey--flag9x.TOKEN\tauthorization:paſſword-"
+    },
+    {
+      "expected": "_authorization:",
+      "input": "_authorization:"
+    },
+    {
+      "expected": "end 9-n",
+      "input": "end 9-n"
+    },
+    {
+      "expected": "ſecretauthorization:[redacted]",
+      "input": "ſecretauthorization:--token[redacted]..abc123. --tokenendZendAPI_KEY"
+    },
+    {
+      "expected": "-nsecrets3cr3t9.s3cr3tAuthorization:'quoted value'",
+      "input": "-nsecrets3cr3t9.s3cr3tAuthorization:'quoted value'"
+    },
+    {
+      "expected": "' 'quoted value' ",
+      "input": "' 'quoted value' "
+    },
+    {
+      "expected": "--flagéx.TOKENhunter2--password=[redacted]",
+      "input": "--flagéx.TOKENhunter2--password=end-px"
+    },
+    {
+      "expected": "-p5432--n :\n==",
+      "input": "-p5432--n :\n=="
+    },
+    {
+      "expected": "-p [redacted] value''",
+      "input": "-p _paſſword'quoted value''"
+    },
+    {
+      "expected": "x.TOKEN aKEY",
+      "input": "x.TOKEN aKEY"
+    },
+    {
+      "expected": "turkeymonkey-px",
+      "input": "turkeymonkey-px"
+    },
+    {
+      "expected": "api_keyturkey--flag secretpaſſwordAuthorization:[redacted]",
+      "input": "api_keyturkey--flag secretpaſſwordAuthorization:[redacted]Authorization:-n:"
+    },
+    {
+      "expected": "--tokenapi_keyauthorization:\"double quoted\"-n--token=[redacted]",
+      "input": "--tokenapi_keyauthorization:\"double quoted\"-n--token=_API_KEYsecretapi_key-px==My-Secret"
+    },
+    {
+      "expected": "KEY\tpaſſwordKEY",
+      "input": "KEY\tpaſſwordKEY"
+    },
+    {
+      "expected": "Bearer-px -p5432PASSWORDKEYAPI_KEYend.endabc123:",
+      "input": "Bearer-px -p5432PASSWORDKEYAPI_KEYend.endabc123:"
+    },
+    {
+      "expected": "-px'https://x.example/a?b=c-pabc123endPASSWORD -p5432--flag-px",
+      "input": "-px'https://x.example/a?b=c-pabc123endPASSWORD -p5432--flag-px"
+    },
+    {
+      "expected": "KEY-éhunter2:",
+      "input": "KEY-éhunter2:"
+    },
+    {
+      "expected": "[redacted]endtokensecretKEYx.TOKENabc123-p5432--password[redacted]ſecret=[redacted]",
+      "input": "[redacted]endtokensecretKEYx.TOKENabc123-p5432--password[redacted]ſecret=K=="
+    },
+    {
+      "expected": "-pxsecret",
+      "input": "-pxsecret"
+    },
+    {
+      "expected": "-p5432KEYhttps://x.example/a?b=c-p_--tokenapi_key=[redacted]\thttps://x.example/a?b=c",
+      "input": "-p5432KEYhttps://x.example/a?b=c-p_--tokenapi_key==\"-\thttps://x.example/a?b=c"
+    },
+    {
+      "expected": "PASSWORD--password\t[redacted]",
+      "input": "PASSWORD--password\t'https://x.example/a?b=chttps://x.example/a?b=cBearerapi_key--password:authorization:KEY"
+    },
+    {
+      "expected": "[redacted] api_keyAuthorization:\t[redacted]\"9api_keys3cr3t--password=[redacted]",
+      "input": "[redacted] api_keyAuthorization:\thunter29\"9api_keys3cr3t--password=:"
+    },
+    {
+      "expected": "https://x.example/a?b=c'quoted value'turkey[redacted]--password=[redacted] quoted\"paſſwordMy-Secret",
+      "input": "https://x.example/a?b=c'quoted value'turkey[redacted]--password=9abc123My-Secret\"double quoted\"paſſwordMy-Secret"
+    },
+    {
+      "expected": "9--token=[redacted] x.TOKEN\"=",
+      "input": "9--token=Ké:_==--password x.TOKEN\"="
+    },
+    {
+      "expected": "-p. --passwordabc123-é\"",
+      "input": "-p. --passwordabc123-é\""
+    },
+    {
+      "expected": "-px-npaſſwordhunter2s3cr3t===-p5432Bearer",
+      "input": "-px-npaſſwordhunter2s3cr3t===-p5432Bearer"
+    },
+    {
+      "expected": "éAPI_KEYauthorization:[redacted]",
+      "input": "éAPI_KEYauthorization:x.TOKEN\t=token"
+    },
+    {
+      "expected": "monkey-npaſſwordKEY.-API_KEYKEY=[redacted]",
+      "input": "monkey-npaſſwordKEY.-API_KEYKEY==--token=Kſecret"
+    },
+    {
+      "expected": "-p9\nsecret-p-pxhunter2API_KEYturkey=[redacted]",
+      "input": "-p9\nsecret-p-pxhunter2API_KEYturkey==s3cr3t-p-p"
+    },
+    {
+      "expected": "\nmonkeymonkey--tokenauthorization:[redacted]",
+      "input": "\nmonkeymonkey--tokenauthorization:turkey="
+    },
+    {
+      "expected": "My-Secret=[redacted]",
+      "input": "My-Secret=="
+    },
+    {
+      "expected": " 9\nturkeyé",
+      "input": " 9\nturkeyé"
+    },
+    {
+      "expected": "--passworda--token=\t.",
+      "input": "--passworda--token=\t."
+    },
+    {
+      "expected": "'quoted value'PASSWORD\n--password=[redacted] value'--flag monkeyx.TOKENpaſſword.PASSWORD",
+      "input": "'quoted value'PASSWORD\n--password=\"K'quoted value'--flag monkeyx.TOKENpaſſword.PASSWORD"
+    },
+    {
+      "expected": "aPASSWORD:amonkeyAPI_KEYMy-Secretturkey's3cr3tKEYAuthorization:[redacted]",
+      "input": "aPASSWORD:amonkeyAPI_KEYMy-Secretturkey's3cr3tKEYAuthorization:Authorization:KEY"
+    },
+    {
+      "expected": "-'quoted value' api_keyabc123\nKEY=[redacted] quoted\"",
+      "input": "-'quoted value' api_keyabc123\nKEY==hunter2KEY'abc123My-Secret\"double quoted\""
+    },
+    {
+      "expected": "s3cr3t\nAPI_KEYx.TOKENtoken",
+      "input": "s3cr3t\nAPI_KEYx.TOKENtoken"
+    },
+    {
+      "expected": "turkey-p5432API_KEYhunter2x.TOKEN=[redacted]",
+      "input": "turkey-p5432API_KEYhunter2x.TOKEN=My-Secret_--passwordpaſſwordtokenKEY'"
+    },
+    {
+      "expected": "-p5432KEYhttps://x.example/a?b=csecret--token=[redacted] Kturkey--password=[redacted]",
+      "input": "-p5432KEYhttps://x.example/a?b=csecret--token=:Z Kturkey--password=endendsecret"
+    },
+    {
+      "expected": "authorization:[redacted]",
+      "input": "authorization:-p5432-pAuthorization:9https://x.example/a?b=cKEYturkeys3cr3tturkey.=KEYauthorization:"
+    },
+    {
+      "expected": "x.TOKEN-secret_\"https://x.example/a?b=c\"double quoted\"-p5432:-px'-p-p5432-p5432",
+      "input": "x.TOKEN-secret_\"https://x.example/a?b=c\"double quoted\"-p5432:-px'-p-p5432-p5432"
+    },
+    {
+      "expected": "[redacted]authorization:[redacted]\"double quoted\"API_KEYauthorization:[redacted]",
+      "input": "[redacted]authorization:monkey\"double quoted\"API_KEYauthorization:turkeyKEYPASSWORD-KEY"
+    },
+    {
+      "expected": "turkeyhttps://x.example/a?b=caK My-Secret --token=[redacted]",
+      "input": "turkeyhttps://x.example/a?b=caK My-Secret --token=PASSWORD--passwordhttps://x.example/a?b=c"
+    },
+    {
+      "expected": "tokenend\"PASSWORD.",
+      "input": "tokenend\"PASSWORD."
+    },
+    {
+      "expected": " s3cr3tx.TOKENPASSWORD\né-pxx.TOKEN'",
+      "input": " s3cr3tx.TOKENPASSWORD\né-pxx.TOKEN'"
+    },
+    {
+      "expected": "'paſſwordAuthorization:[redacted]",
+      "input": "'paſſwordAuthorization:Authorization:==-p"
+    },
+    {
+      "expected": "Authorization:[redacted]",
+      "input": "Authorization:PASSWORDPASSWORD"
+    },
+    {
+      "expected": "'quoted value'9==--flag--password-px'quoted value'",
+      "input": "'quoted value'9==--flag--password-px'quoted value'"
+    },
+    {
+      "expected": "KEY.9_  KEY--token--token.\t",
+      "input": "KEY.9_  KEY--token--token.\t"
+    },
+    {
+      "expected": ": _\t[redacted]9==Authorization:",
+      "input": ": _\t[redacted]9==Authorization:"
+    },
+    {
+      "expected": "'monkey\tKatokenauthorization:[redacted]",
+      "input": "'monkey\tKatokenauthorization:--password="
+    },
+    {
+      "expected": "token=[redacted]",
+      "input": "token==hunter2paſſwordPASSWORDabc123KEY9abc123--password="
+    },
+    {
+      "expected": "-px--token=[redacted] --password=[redacted]",
+      "input": "-px--token=:ZAPI_KEY --password=KEY"
+    },
+    {
+      "expected": "-napi_key9\tſecretmonkeyé --passwordKEY--password=[redacted] ",
+      "input": "-napi_key9\tſecretmonkeyé --passwordKEY--password=--password "
+    },
+    {
+      "expected": "monkeyapi_keyx.TOKENabc123-\n",
+      "input": "monkeyapi_keyx.TOKENabc123-\n"
+    },
+    {
+      "expected": "secretMy-Secret-n-px-p':",
+      "input": "secretMy-Secret-n-px-p':"
+    },
+    {
+      "expected": "Authorization:[redacted]\".--token=[redacted]",
+      "input": "Authorization:-p\tAPI_KEYK:PASSWORD\".--token=--password"
+    },
+    {
+      "expected": "endZ-p5432Beareré tokenmonkey-p[redacted]",
+      "input": "endZ-p5432Beareré tokenmonkey-p[redacted]"
+    },
+    {
+      "expected": "K api_keyé KEYhttps://x.example/a?b=c--password=",
+      "input": "K api_keyé KEYhttps://x.example/a?b=c--password="
+    },
+    {
+      "expected": "'quoted value'--token=[redacted] ",
+      "input": "'quoted value'--token=-x.TOKEN==Authorization: "
+    },
+    {
+      "expected": "\"double quoted\"\thttps://x.example/a?b=cs3cr3tabc123",
+      "input": "\"double quoted\"\thttps://x.example/a?b=cs3cr3tabc123"
+    },
+    {
+      "expected": "[redacted]\"https://x.example/a?b=c--password=\n:turkeyKEYapi_keypaſſword[redacted]",
+      "input": "[redacted]\"https://x.example/a?b=c--password=\n:turkeyKEYapi_keypaſſword[redacted]"
+    },
+    {
+      "expected": "9tokenBearer:",
+      "input": "9tokenBearer:"
+    },
+    {
+      "expected": "KEY\"ſecretmonkeyZ",
+      "input": "KEY\"ſecretmonkeyZ"
+    },
+    {
+      "expected": "--flagtokenturkeyhunter2\"authorization:[redacted]",
+      "input": "--flagtokenturkeyhunter2\"authorization:-tokenend"
+    },
+    {
+      "expected": "s3cr3t--passwordKEY ",
+      "input": "s3cr3t--passwordKEY "
+    },
+    {
+      "expected": "é==hunter2abc123x.TOKENauthorization:\" 'quoted value'x.TOKEN",
+      "input": "é==hunter2abc123x.TOKENauthorization:\" 'quoted value'x.TOKEN"
+    },
+    {
+      "expected": "--token--token=[redacted]",
+      "input": "--token--token='quoted value'paſſword-pxs3cr3t\"9authorization:-pxKEYtoken[redacted]"
+    },
+    {
+      "expected": "--token=[redacted]",
+      "input": "--token=.https://x.example/a?b=c-p5432My-Secret--token=monkey"
+    },
+    {
+      "expected": "turkey\". ",
+      "input": "turkey\". "
+    },
+    {
+      "expected": "\tK'quoted value'Zaaend \" monkey--token=",
+      "input": "\tK'quoted value'Zaaend \" monkey--token="
+    },
+    {
+      "expected": "_api_keysecret\thunter2==ſecretKEY",
+      "input": "_api_keysecret\thunter2==ſecretKEY"
+    },
+    {
+      "expected": "\n-pxAPI_KEY'quoted value'",
+      "input": "\n-pxAPI_KEY'quoted value'"
+    },
+    {
+      "expected": "authorization:[redacted]",
+      "input": "authorization:a 9KEYAPI_KEYZtokené_--password==-pAPI_KEY"
+    },
+    {
+      "expected": "s3cr3t-:My-Secret\"double quoted\"endabc123Authorization:[redacted]",
+      "input": "s3cr3t-:My-Secret\"double quoted\"endabc123Authorization:aabc123authorization:Bearer "
+    },
+    {
+      "expected": "hunter2-Khunter2-n[redacted]turkey---token= -p5432.",
+      "input": "hunter2-Khunter2-n[redacted]turkey---token= -p5432."
+    },
+    {
+      "expected": " https://x.example/a?b=cKEYAPI_KEYpaſſword.--token=[redacted]\n",
+      "input": " https://x.example/a?b=cKEYAPI_KEYpaſſword.--token=s3cr3t--flag=\n"
+    },
+    {
+      "expected": " \"double quoted\"",
+      "input": " \"double quoted\""
+    },
+    {
+      "expected": "https://x.example/a?b=c-pxendapi_key ",
+      "input": "https://x.example/a?b=c-pxendapi_key "
+    },
+    {
+      "expected": "--passwordmonkey\"",
+      "input": "--passwordmonkey\""
+    },
+    {
+      "expected": "9s3cr3t\"ends3cr3t--token \n[redacted]",
+      "input": "9s3cr3t\"ends3cr3t--token \n-p5432x.TOKENsecreta"
+    },
+    {
+      "expected": "--tokentoken",
+      "input": "--tokentoken"
+    },
+    {
+      "expected": "--token=[redacted] quoted\"",
+      "input": "--token==turkeyſecreta.:\"double quoted\""
+    },
+    {
+      "expected": "My-Secretauthorization: [redacted]",
+      "input": "My-Secretauthorization: ==:x.TOKENapi_keyauthorization:Authorization:api_key-p5432"
+    },
+    {
+      "expected": "monkey KEY--token= --token=",
+      "input": "monkey KEY--token= --token="
+    },
+    {
+      "expected": "K\"double quoted\"token--password=[redacted]\t",
+      "input": "K\"double quoted\"token--password=[redacted]aKEY.KEY\t"
+    },
+    {
+      "expected": "   --flagé--flag ",
+      "input": "   --flagé--flag "
+    },
+    {
+      "expected": "--tokenend",
+      "input": "--tokenend"
+    },
+    {
+      "expected": "API_KEYabc123abc123-px  abc123--token9authorization:[redacted]",
+      "input": "API_KEYabc123abc123-px  abc123--token9authorization:turkey"
+    },
+    {
+      "expected": "==-\n'quoted value'authorization:[redacted]",
+      "input": "==-\n'quoted value'authorization:_KEYſecret"
+    },
+    {
+      "expected": "KEY=[redacted]\n",
+      "input": "KEY=-n\"ax.TOKEN--password\n"
+    },
+    {
+      "expected": ":-Zturkey=[redacted]",
+      "input": ":-Zturkey=abc123ſecretAuthorization:a--flag-p5432--flag--flags3cr3t"
+    },
+    {
+      "expected": "é=--token=[redacted] quoted\" ",
+      "input": "é=--token=paſſword[redacted]--password:monkeyMy-SecretBearer\"double quoted\" "
+    },
+    {
+      "expected": " [redacted]Z--password--token [redacted]",
+      "input": " [redacted]Z--password--token PASSWORDMy-Secret"
+    },
+    {
+      "expected": "-n-p",
+      "input": "-n-p"
+    },
+    {
+      "expected": " KEY9endabc123abc123--password=[redacted]",
+      "input": " KEY9endabc123abc123--password=paſſword"
+    },
+    {
+      "expected": " --flag",
+      "input": " --flag"
+    },
+    {
+      "expected": "paſſword_token--password.",
+      "input": "paſſword_token--password."
+    },
+    {
+      "expected": "\t-pſecret",
+      "input": "\t-pſecret"
+    },
+    {
+      "expected": "abc123monkeymonkey\tsecret- [redacted]ſecretsecretéa",
+      "input": "abc123monkeymonkey\tsecret- [redacted]ſecretsecretéa"
+    },
+    {
+      "expected": "abc123token ",
+      "input": "abc123token "
+    },
+    {
+      "expected": "KEY[redacted][redacted]authorization:[redacted]'[redacted]--password=[redacted]",
+      "input": "KEY[redacted][redacted]authorization:-pxZ== '[redacted]--password=--password="
+    },
+    {
+      "expected": "api_keyauthorization:[redacted]",
+      "input": "api_keyauthorization:--token=abc123"
+    },
+    {
+      "expected": "monkey--token= ==--token=[redacted]",
+      "input": "monkey--token= ==--token=s3cr3t"
+    },
+    {
+      "expected": "9:-n--password",
+      "input": "9:-n--password"
+    },
+    {
+      "expected": "-phunter2KEYhunter2\tPASSWORD",
+      "input": "-phunter2KEYhunter2\tPASSWORD"
+    },
+    {
+      "expected": "Zmonkey'quoted value'API_KEYmonkeyZZx.TOKEN--password=[redacted]",
+      "input": "Zmonkey'quoted value'API_KEYmonkeyZZx.TOKEN--password=authorization:token:"
+    },
+    {
+      "expected": "-pKEY.",
+      "input": "-pKEY."
+    },
+    {
+      "expected": "--password=[redacted]",
+      "input": "--password=PASSWORD==x.TOKEN9x.TOKEN"
+    },
+    {
+      "expected": "--token=[redacted]\n==--password=[redacted]",
+      "input": "--token='quoted value'My-Secret\n==--password=KEY"
+    },
+    {
+      "expected": "\"-pxs3cr3tabc123--tokenMy-Secrettoken API_KEYpaſſword'api_keytokenauthorization:",
+      "input": "\"-pxs3cr3tabc123--tokenMy-Secrettoken API_KEYpaſſword'api_keytokenauthorization:"
+    },
+    {
+      "expected": "ſecret--token--token= K",
+      "input": "ſecret--token--token= K"
+    },
+    {
+      "expected": "ſecretſecret\t-p5432--token=[redacted]",
+      "input": "ſecretſecret\t-p5432--token=--tokens3cr3t"
+    },
+    {
+      "expected": "x.TOKENend--passwordpaſſwordtokenAuthorization:'quoted value'--password::éapi_key'quoted value'",
+      "input": "x.TOKENend--passwordpaſſwordtokenAuthorization:'quoted value'--password::éapi_key'quoted value'"
+    },
+    {
+      "expected": "end. KEY-px[redacted]",
+      "input": "end. KEY-px[redacted]"
+    },
+    {
+      "expected": "==abc123paſſwordKEY--px--tokenMy-Secret-p5432KEY",
+      "input": "==abc123paſſwordKEY--px--tokenMy-Secret-p5432KEY"
+    },
+    {
+      "expected": "paſſwordabc123==",
+      "input": "paſſwordabc123=="
+    },
+    {
+      "expected": "--flags3cr3tBearerZ",
+      "input": "--flags3cr3tBearerZ"
+    },
+    {
+      "expected": "PASSWORDx.TOKEN_api_keyAPI_KEYhttps://x.example/a?b=c_-nKEY[redacted]monkeyMy-Secret",
+      "input": "PASSWORDx.TOKEN_api_keyAPI_KEYhttps://x.example/a?b=c_-nKEY[redacted]monkeyMy-Secret"
+    },
+    {
+      "expected": "==\nend\"double quoted\"PASSWORDturkey=[redacted]",
+      "input": "==\nend\"double quoted\"PASSWORDturkey==paſſword-hunter2--flagK9"
+    },
+    {
+      "expected": "9\t-x.TOKEN-p5432-phttps://x.example/a?b=c",
+      "input": "9\t-x.TOKEN-p5432-phttps://x.example/a?b=c"
+    },
+    {
+      "expected": "authorization:[redacted]'quoted value'-pxKEYMy-SecretZhttps://x.example/a?b=c",
+      "input": "authorization:-pabc123authorization:KEY='quoted value'-pxKEYMy-SecretZhttps://x.example/a?b=c"
+    },
+    {
+      "expected": "-n\"api_keyMy-SecretAuthorization: [redacted]",
+      "input": "-n\"api_keyMy-SecretAuthorization: :monkeyabc123secret"
+    },
+    {
+      "expected": "éAPI_KEY\"double quoted\" 9",
+      "input": "éAPI_KEY\"double quoted\" 9"
+    },
+    {
+      "expected": "=abc123My-Secret--passwordPASSWORDMy-Secret-px_KEY--token=",
+      "input": "=abc123My-Secret--passwordPASSWORDMy-Secret-px_KEY--token="
+    },
+    {
+      "expected": "My-Secretauthorization:[redacted]'quoted value'authorization:[redacted]",
+      "input": "My-Secretauthorization: 'quoted value'authorization:ſecretK==_KEY"
+    },
+    {
+      "expected": "-pxa== ",
+      "input": "-pxa== "
+    },
+    {
+      "expected": "-p  [redacted]\tauthorization:'paſſword",
+      "input": "-p  paſſword\tauthorization:'paſſword"
+    },
+    {
+      "expected": ":9KEYKEY-p54329-n\"double quoted\"abc123\"double quoted\"--tokensecret_",
+      "input": ":9KEYKEY-p54329-n\"double quoted\"abc123\"double quoted\"--tokensecret_"
+    },
+    {
+      "expected": "hunter2end9",
+      "input": "hunter2end9"
+    },
+    {
+      "expected": "end==KEY-px api_keyabc123\t'quoted value'\t ",
+      "input": "end==KEY-px api_keyabc123\t'quoted value'\t "
+    },
+    {
+      "expected": " --passwordé",
+      "input": " --passwordé"
+    },
+    {
+      "expected": "--flagPASSWORD--token=[redacted]",
+      "input": "--flagPASSWORD--token=--password."
+    },
+    {
+      "expected": "turkeyK-px-\npaſſword\t\"double quoted\"-p5432-nMy-Secretx.TOKENauthorization:[redacted]",
+      "input": "turkeyK-px-\npaſſword\t\"double quoted\"-p5432-nMy-Secretx.TOKENauthorization:-p5432"
+    },
+    {
+      "expected": "Zs3cr3tx.TOKENAuthorization:[redacted]",
+      "input": "Zs3cr3tx.TOKENAuthorization:Z--flag-p5432"
+    },
+    {
+      "expected": "Z_turkeyZx.TOKENAuthorization:[redacted]\n",
+      "input": "Z_turkeyZx.TOKENAuthorization:-p5432\n"
+    },
+    {
+      "expected": "PASSWORD'quoted value'abc123Bearer--px --tokens3cr3t==PASSWORDKEY--token=",
+      "input": "PASSWORD'quoted value'abc123Bearer--px --tokens3cr3t==PASSWORDKEY--token="
+    },
+    {
+      "expected": "aBearerKEYmonkey -phttps://x.example/a?b=c\n-px\n\"a",
+      "input": "aBearerKEYmonkey -phttps://x.example/a?b=c\n-px\n\"a"
+    },
+    {
+      "expected": "My-Secrettoken--password'K.x.TOKEN-p5432Z--flagKEY",
+      "input": "My-Secrettoken--password'K.x.TOKEN-p5432Z--flagKEY"
+    },
+    {
+      "expected": "9authorization:[redacted]",
+      "input": "9authorization:BearerPASSWORD9=API_KEY authorization:--passworda-p5432end"
+    },
+    {
+      "expected": "\n\"double quoted\"My-Secreté--token=",
+      "input": "\n\"double quoted\"My-Secreté--token="
+    },
+    {
+      "expected": "authorization:[redacted]\"KEYabc123s3cr3t'quoted value'BearerPASSWORD",
+      "input": "authorization:endKEY[redacted]api_keymonkey\"KEYabc123s3cr3t'quoted value'BearerPASSWORD"
+    },
+    {
+      "expected": " ſecretPASSWORD.Z\n",
+      "input": " ſecretPASSWORD.Z\n"
+    },
+    {
+      "expected": " --password-px-nturkey-BearertokenMy-Secret",
+      "input": " --password-px-nturkey-BearertokenMy-Secret"
+    },
+    {
+      "expected": "\"double quoted\"é--password [redacted]",
+      "input": "\"double quoted\"é--password -p"
+    },
+    {
+      "expected": "\"\n",
+      "input": "\"\n"
+    },
+    {
+      "expected": ":Authorization:[redacted]",
+      "input": ":Authorization:--token="
+    },
+    {
+      "expected": "--password=[redacted]",
+      "input": "--password=api_key"
+    },
+    {
+      "expected": "'authorization:[redacted]",
+      "input": "'authorization:My-Secrethunter2--tokenx.TOKEN"
+    },
+    {
+      "expected": "\tAPI_KEY",
+      "input": "\tAPI_KEY"
+    },
+    {
+      "expected": "https://x.example/a?b=c-n_",
+      "input": "https://x.example/a?b=c-n_"
+    },
+    {
+      "expected": "é--password=[redacted]",
+      "input": "é--password=.authorization:"
+    },
+    {
+      "expected": "paſſword=",
+      "input": "paſſword="
+    },
+    {
+      "expected": "hunter2KEYturkeyBearer--token=[redacted] token",
+      "input": "hunter2KEYturkeyBearer--token=API_KEY--password=-n==ſecret- token"
+    },
+    {
+      "expected": ".==99",
+      "input": ".==99"
+    },
+    {
+      "expected": "x.TOKENſecretsecret:--passwordx.TOKENtoken",
+      "input": "x.TOKENſecretsecret:--passwordx.TOKENtoken"
+    },
+    {
+      "expected": "My-SecretKEY",
+      "input": "My-SecretKEY"
+    },
+    {
+      "expected": "PASSWORD[redacted][redacted]paſſword turkey[redacted][redacted]-p-",
+      "input": "PASSWORD[redacted][redacted]paſſword turkey[redacted][redacted]-p-"
+    },
+    {
+      "expected": "-pxmonkey_secretéK",
+      "input": "-pxmonkey_secretéK"
+    },
+    {
+      "expected": "_ſecret:API_KEYKEY",
+      "input": "_ſecret:API_KEYKEY"
+    },
+    {
+      "expected": "\npaſſword",
+      "input": "\npaſſword"
+    },
+    {
+      "expected": "KEY--flagBearerabc123secretmonkey--flag_paſſwordPASSWORD",
+      "input": "KEY--flagBearerabc123secretmonkey--flag_paſſwordPASSWORD"
+    },
+    {
+      "expected": "-p5432KEYmonkey",
+      "input": "-p5432KEYmonkey"
+    },
+    {
+      "expected": "[redacted]KEYBearerapi_keyabc123[redacted]My-Secret-p",
+      "input": "[redacted]KEYBearerapi_keyabc123[redacted]My-Secret-p"
+    },
+    {
+      "expected": "== :==--password=[redacted]",
+      "input": "== :==--password=-nhttps://x.example/a?b=c'"
+    },
+    {
+      "expected": "_ſecretAPI_KEY",
+      "input": "_ſecretAPI_KEY"
+    },
+    {
+      "expected": "\"-=--token\"s3cr3t PASSWORDsecret ==éapi_keyx.TOKEN",
+      "input": "\"-=--token\"s3cr3t PASSWORDsecret ==éapi_keyx.TOKEN"
+    },
+    {
+      "expected": "x.TOKENend[redacted]--token--passwordtoken_",
+      "input": "x.TOKENend[redacted]--token--passwordtoken_"
+    },
+    {
+      "expected": "ſecret\"--token=[redacted]\napi_key--token=[redacted]\nhttps://x.example/a?b=c'.abc123",
+      "input": "ſecret\"--token===\napi_key--token=\"double quoted\"\nhttps://x.example/a?b=c'.abc123"
+    },
+    {
+      "expected": "BearerZ \n9-n api_keyturkeytoken-ps3cr3tAPI_KEY",
+      "input": "BearerZ \n9-n api_keyturkeytoken-ps3cr3tAPI_KEY"
+    },
+    {
+      "expected": "--flaghttps://x.example/a?b=c:end--token=[redacted]",
+      "input": "--flaghttps://x.example/a?b=c:end--token=aſecretéhunter2"
+    },
+    {
+      "expected": "[redacted]--flag.api_key--password=[redacted]",
+      "input": "[redacted]--flag.api_key--password=--token===\"token-p5432"
+    },
+    {
+      "expected": "--password=[redacted]",
+      "input": "--password='9Authorization:s3cr3ta"
+    },
+    {
+      "expected": "ZpaſſwordZAuthorization:[redacted]",
+      "input": "ZpaſſwordZAuthorization:--token=\"authorization:"
+    },
+    {
+      "expected": "--flagx.TOKEN",
+      "input": "--flagx.TOKEN"
+    },
+    {
+      "expected": "end'quoted value'https://x.example/a?b=c_x.TOKEN\"==",
+      "input": "end'quoted value'https://x.example/a?b=c_x.TOKEN\"=="
+    },
+    {
+      "expected": "https://x.example/a?b=cpaſſwordtokenpaſſwordtokené \"double quoted\"--password=[redacted]",
+      "input": "https://x.example/a?b=cpaſſwordtokenpaſſwordtokené \"double quoted\"--password=hunter2"
+    },
+    {
+      "expected": " 'ZéKAPI_KEY--password=[redacted] K",
+      "input": " 'ZéKAPI_KEY--password=Bearer K"
+    },
+    {
+      "expected": "paſſwordſecret\nhunter2paſſword 9[redacted]\nBearerhunter2 ",
+      "input": "paſſwordſecret\nhunter2paſſword 9[redacted]\nBearerhunter2 "
+    },
+    {
+      "expected": "--password-p5432\"double quoted\"a:x.TOKEN",
+      "input": "--password-p5432\"double quoted\"a:x.TOKEN"
+    },
+    {
+      "expected": "_paſſwordZ--passwordhunter2--password=[redacted]",
+      "input": "_paſſwordZ--passwordhunter2--password=-n9aMy-Secret-p5432[redacted]="
+    },
+    {
+      "expected": "turkeyturkey-pxs3cr3tZ\"double quoted\"\n",
+      "input": "turkeyturkey-pxs3cr3tZ\"double quoted\"\n"
+    },
+    {
+      "expected": "API_KEYa=tokenMy-Secret --flagſecret",
+      "input": "API_KEYa=tokenMy-Secret --flagſecret"
+    },
+    {
+      "expected": "x.TOKENtoken  secret=[redacted]",
+      "input": "x.TOKENtoken  secret=https://x.example/a?b=c"
+    },
+    {
+      "expected": "-=x.TOKEN\"double quoted\":monkeymonkey--password=[redacted]",
+      "input": "-=x.TOKEN\"double quoted\":monkeymonkey--password=--token="
+    },
+    {
+      "expected": "\"secret:KEYa \"double quoted\"9secret\n--password=[redacted]",
+      "input": "\"secret:KEYa \"double quoted\"9secret\n--password=My-Secret"
+    },
+    {
+      "expected": "s3cr3t_-n-pmonkeyBearer",
+      "input": "s3cr3t_-n-pmonkeyBearer"
+    },
+    {
+      "expected": "--flag[redacted]9--flag",
+      "input": "--flag[redacted]9--flag"
+    },
+    {
+      "expected": "ſecret--tokenmonkey[redacted]end-pZ9",
+      "input": "ſecret--tokenmonkey[redacted]end-pZ9"
+    },
+    {
+      "expected": "abc123 -p5432--password\t[redacted]",
+      "input": "abc123 -p5432--password\tKEYKEY-px"
+    },
+    {
+      "expected": "api_keya \"double quoted\"\"double quoted\"",
+      "input": "api_keya \"double quoted\"\"double quoted\""
+    },
+    {
+      "expected": ".====x.TOKENendx.TOKENatokené--pAuthorization:",
+      "input": ".====x.TOKENendx.TOKENatokené--pAuthorization:"
+    },
+    {
+      "expected": "--password--tokenKEY[redacted]PASSWORD'quoted value''quoted value'\n--flag-n--token",
+      "input": "--password--tokenKEY[redacted]PASSWORD'quoted value''quoted value'\n--flag-n--token"
+    },
+    {
+      "expected": "ſecrettoken:abc123:Kend",
+      "input": "ſecrettoken:abc123:Kend"
+    },
+    {
+      "expected": "monkey --password=[redacted]\t.--flag",
+      "input": "monkey --password=9Z\t.--flag"
+    },
+    {
+      "expected": "éhttps://x.example/a?b=cendhttps://x.example/a?b=c9[redacted] -nauthorization:[redacted]",
+      "input": "éhttps://x.example/a?b=cendhttps://x.example/a?b=c9[redacted] -nauthorization:hunter2"
+    },
+    {
+      "expected": "--token=[redacted]\t-p5432a==-nPASSWORD\napi_key[redacted]",
+      "input": "--token=a-p5432s3cr3tPASSWORD\t-p5432a==-nPASSWORD\napi_key[redacted]"
+    },
+    {
+      "expected": ": KEYturkeyhunter2--password=[redacted]",
+      "input": ": KEYturkeyhunter2--password=====My-Secret-"
+    },
+    {
+      "expected": "turkey\t\"turkeytokenturkey-px-na",
+      "input": "turkey\t\"turkeytokenturkey-px-na"
+    },
+    {
+      "expected": "token https://x.example/a?b=cZK-pxBearer.authorization:[redacted]'Authorization:[redacted]",
+      "input": "token https://x.example/a?b=cZK-pxBearer.authorization:api_key'Authorization:="
+    },
+    {
+      "expected": "--tokenK-pxa https://x.example/a?b=c",
+      "input": "--tokenK-pxa https://x.example/a?b=c"
+    },
+    {
+      "expected": "x.TOKEN--password=[redacted]",
+      "input": "x.TOKEN--password=abc123--password=--tokenKEY-p==turkeyhttps://x.example/a?b=c--flag\"'"
+    },
+    {
+      "expected": "--flag:hunter2aabc123authorization:",
+      "input": "--flag:hunter2aabc123authorization:"
+    },
+    {
+      "expected": "éhunter2Bearer--token=[redacted]",
+      "input": "éhunter2Bearer--token=Authorization:ſecretſecretabc123KEYauthorization::KEY"
+    },
+    {
+      "expected": "-p5432==monkeyhttps://x.example/a?b=c_--flagſecretMy-Secret paſſword\"double quoted\"",
+      "input": "-p5432==monkeyhttps://x.example/a?b=c_--flagſecretMy-Secret paſſword\"double quoted\""
+    },
+    {
+      "expected": "PASSWORD--flag -p-nhttps://x.example/a?b=c",
+      "input": "PASSWORD--flag -p-nhttps://x.example/a?b=c"
+    },
+    {
+      "expected": "'paſſword\t--tokenſecretturkey--password=[redacted]",
+      "input": "'paſſword\t--tokenſecretturkey--password=[redacted]hunter2abc123"
+    },
+    {
+      "expected": "secret--passwordKEYsecret--token=[redacted]",
+      "input": "secret--passwordKEYsecret--token=-p9My-SecretaZ"
+    },
+    {
+      "expected": "--flagBearerendmonkey",
+      "input": "--flagBearerendmonkey"
+    },
+    {
+      "expected": "authorization:[redacted]'quoted value'",
+      "input": "authorization:.'quoted value'"
+    },
+    {
+      "expected": "https://x.example/a?b=ctokenhttps://x.example/a?b=c",
+      "input": "https://x.example/a?b=ctokenhttps://x.example/a?b=c"
+    },
+    {
+      "expected": "\nturkeytokenAPI_KEY\t--token=[redacted]",
+      "input": "\nturkeytokenAPI_KEY\t--token==-n--passwordtokenhttps://x.example/a?b=c-p[redacted]--token"
+    },
+    {
+      "expected": "api_keyabc123\n[redacted]'turkey",
+      "input": "api_keyabc123\n[redacted]'turkey"
+    },
+    {
+      "expected": "hunter2authorization:[redacted]",
+      "input": "hunter2authorization:_PASSWORDPASSWORD"
+    },
+    {
+      "expected": "turkeyx.TOKEN\"'quoted value' 'KEY=",
+      "input": "turkeyx.TOKEN\"'quoted value' 'KEY="
+    },
+    {
+      "expected": "--token-pK.'quoted value'x.TOKEN éhunter29My-Secretturkeymonkey",
+      "input": "--token-pK.'quoted value'x.TOKEN éhunter29My-Secretturkeymonkey"
+    },
+    {
+      "expected": "==:--passwordsecretK ",
+      "input": "==:--passwordsecretK "
+    },
+    {
+      "expected": "https://x.example/a?b=c--flagturkeyAuthorization:[redacted]\n'",
+      "input": "https://x.example/a?b=c--flagturkeyAuthorization::hunter2s3cr3thunter2s3cr3tendauthorization:[redacted]\n'"
+    },
+    {
+      "expected": "_9-p5432KEY\tAPI_KEY Authorization:[redacted]'-px",
+      "input": "_9-p5432KEY\tAPI_KEY Authorization:turkey'-px"
+    },
+    {
+      "expected": "[redacted]hunter2   .--passwordZ\t\thttps://x.example/a?b=c-p5432\tK",
+      "input": "[redacted]hunter2   .--passwordZ\t\thttps://x.example/a?b=c-p5432\tK"
+    },
+    {
+      "expected": "paſſwordturkey--tokenauthorization:[redacted]'PASSWORDend",
+      "input": "paſſwordturkey--tokenauthorization:9-pxPASSWORD[redacted]'PASSWORDend"
+    },
+    {
+      "expected": "abc123paſſworda--flagKEYAPI_KEYPASSWORD\"double quoted\"--token=",
+      "input": "abc123paſſworda--flagKEYAPI_KEYPASSWORD\"double quoted\"--token="
+    },
+    {
+      "expected": " :[redacted]\ntoken\"secrethttps://x.example/a?b=cturkey-p==KEY",
+      "input": " :[redacted]\ntoken\"secrethttps://x.example/a?b=cturkey-p==KEY"
+    },
+    {
+      "expected": "-pxx.TOKEN=[redacted]",
+      "input": "-pxx.TOKEN=="
+    },
+    {
+      "expected": ".a-p5432\"double quoted\"--token",
+      "input": ".a-p5432\"double quoted\"--token"
+    },
+    {
+      "expected": "==--token=[redacted] paſſwordsecret -ppaſſword Z",
+      "input": "==--token=s3cr3t paſſwordsecret -ppaſſword Z"
+    },
+    {
+      "expected": " --flagAuthorization: [redacted]",
+      "input": " --flagAuthorization: 9turkey ==endhunter2\thunter2"
+    },
+    {
+      "expected": "x.TOKEN'quoted value'x.TOKENmonkeyturkeyKpaſſword[redacted]:secretaapi_key\"double quoted\"",
+      "input": "x.TOKEN'quoted value'x.TOKENmonkeyturkeyKpaſſword[redacted]:secretaapi_key\"double quoted\""
+    },
+    {
+      "expected": "KEYMy-SecretKEYé-n",
+      "input": "KEYMy-SecretKEYé-n"
+    },
+    {
+      "expected": " \"--token=[redacted] s3cr3tBearer",
+      "input": " \"--token=end_Z s3cr3tBearer"
+    },
+    {
+      "expected": "s3cr3t -p",
+      "input": "s3cr3t -p"
+    },
+    {
+      "expected": "--token=[redacted] ==API_KEY",
+      "input": "--token=KEYa-p5432==Authorization:authorization:\"hunter2 ==API_KEY"
+    },
+    {
+      "expected": "=hunter2--token=[redacted] API_KEY",
+      "input": "=hunter2--token=--px API_KEY"
+    },
+    {
+      "expected": "PASSWORD turkey\n'quoted value'token",
+      "input": "PASSWORD turkey\n'quoted value'token"
+    },
+    {
+      "expected": "éhttps://x.example/a?b=cZ",
+      "input": "éhttps://x.example/a?b=cZ"
+    },
+    {
+      "expected": "API_KEY=\n.monkeyauthorization:[redacted]",
+      "input": "API_KEY=\n.monkeyauthorization:-pxſecretAPI_KEYMy-Secretx.TOKEN"
+    },
+    {
+      "expected": "--password=[redacted] monkeyturkey-\"double quoted\"",
+      "input": "--password=Zſecret= monkeyturkey-\"double quoted\""
+    },
+    {
+      "expected": "-n--token=\tBearer-p5432API_KEYſecret9https://x.example/a?b=c",
+      "input": "-n--token=\tBearer-p5432API_KEYſecret9https://x.example/a?b=c"
+    },
+    {
+      "expected": "KEYhttps://x.example/a?b=cKEYend abc123Bearer_",
+      "input": "KEYhttps://x.example/a?b=cKEYend abc123Bearer_"
+    },
+    {
+      "expected": "s3cr3t\"hunter2x.TOKEN'quoted value'éé Bearermonkey-p5432",
+      "input": "s3cr3t\"hunter2x.TOKEN'quoted value'éé Bearermonkey-p5432"
+    },
+    {
+      "expected": "KEY--flagauthorization:[redacted]",
+      "input": "KEY--flagauthorization:_ Authorization:paſſword"
+    },
+    {
+      "expected": " --flag-p'quoted value'My-Secret\"--token",
+      "input": " --flag-p'quoted value'My-Secret\"--token"
+    },
+    {
+      "expected": "--passwordturkey\"",
+      "input": "--passwordturkey\""
+    },
+    {
+      "expected": " =-KKEY Authorization:",
+      "input": " =-KKEY Authorization:"
+    },
+    {
+      "expected": "authorization: [redacted]",
+      "input": "authorization: turkeyſecret My-Secret "
+    },
+    {
+      "expected": "API_KEY\thttps://x.example/a?b=cK\"double quoted\"\"double quoted\"Authorization:[redacted]'",
+      "input": "API_KEY\thttps://x.example/a?b=cK\"double quoted\"\"double quoted\"Authorization:authorization:Z:secret'"
+    },
+    {
+      "expected": "tokenBearer-p5432--token ",
+      "input": "tokenBearer-p5432--token "
+    },
+    {
+      "expected": "K\"double quoted\"=",
+      "input": "K\"double quoted\"="
+    },
+    {
+      "expected": "\nſecret.end",
+      "input": "\nſecret.end"
+    },
+    {
+      "expected": "9\"double quoted\"[redacted]",
+      "input": "9\"double quoted\"[redacted]"
+    },
+    {
+      "expected": "ſecret--tokenapi_key turkey-p5432=My-Secret_monkeytoken",
+      "input": "ſecret--tokenapi_key turkey-p5432=My-Secret_monkeytoken"
+    },
+    {
+      "expected": "9\t:s3cr3taZ.ſecreta--flagabc123-p5432authorization:",
+      "input": "9\t:s3cr3taZ.ſecreta--flagabc123-p5432authorization:"
+    },
+    {
+      "expected": "'quoted value'secretAPI_KEYpaſſword \thttps://x.example/a?b=c-p_\"",
+      "input": "'quoted value'secretAPI_KEYpaſſword \thttps://x.example/a?b=c-p_\""
+    },
+    {
+      "expected": "ſecret--tokenKEY9",
+      "input": "ſecret--tokenKEY9"
+    },
+    {
+      "expected": "monkeyx.TOKEN-p5432'quoted value' Authorization: [redacted]",
+      "input": "monkeyx.TOKEN-p5432'quoted value' Authorization: --token=-"
+    },
+    {
+      "expected": "--tokentokenAuthorization: [redacted]",
+      "input": "--tokentokenAuthorization: https://x.example/a?b=cAuthorization:hunter2"
+    },
+    {
+      "expected": "-p'My-Secret-nx.TOKENx.TOKEN",
+      "input": "-p'My-Secret-nx.TOKENx.TOKEN"
+    },
+    {
+      "expected": " ZZ",
+      "input": " ZZ"
+    },
+    {
+      "expected": "turkey--flag='[redacted]--token=[redacted] abc123--password=[redacted]",
+      "input": "turkey--flag='[redacted]--token=_== abc123--password=x.TOKENéhunter2"
+    },
+    {
+      "expected": "--flag'quoted value'",
+      "input": "--flag'quoted value'"
+    },
+    {
+      "expected": "KEYKEYa[redacted]token authorization:",
+      "input": "KEYKEYa[redacted]token authorization:"
+    },
+    {
+      "expected": "ſecret ",
+      "input": "ſecret "
+    },
+    {
+      "expected": "ax.TOKEN--tokenapi_key",
+      "input": "ax.TOKEN--tokenapi_key"
+    },
+    {
+      "expected": "-p==a",
+      "input": "-p==a"
+    },
+    {
+      "expected": "API_KEY\t KEYMy-SecretK-nauthorization:[redacted]",
+      "input": "API_KEY\t KEYMy-SecretK-nauthorization:PASSWORD-:"
+    },
+    {
+      "expected": "API_KEY KEYsecret -tokenZ.",
+      "input": "API_KEY KEYsecret -tokenZ."
+    },
+    {
+      "expected": " --token=[redacted]",
+      "input": " --token=ſecret:ſecretBearer"
+    },
+    {
+      "expected": "'quoted value'end'monkeyAPI_KEY:abc123authorization:[redacted]",
+      "input": "'quoted value'end'monkeyAPI_KEY:abc123authorization:x.TOKENa"
+    },
+    {
+      "expected": "s3cr3t api_key--flag-n[redacted]-na-nKEY_",
+      "input": "s3cr3t api_key--flag-n[redacted]-na-nKEY_"
+    },
+    {
+      "expected": "-px é",
+      "input": "-px é"
+    },
+    {
+      "expected": "Zaapi_key-n\tturkeyMy-Secret--password=[redacted]\n_",
+      "input": "Zaapi_key-n\tturkeyMy-Secret--password=hunter2a\n_"
+    },
+    {
+      "expected": "--flag--flag-n[redacted]",
+      "input": "--flag--flag-n[redacted]"
+    },
+    {
+      "expected": "--flagabc123-n ",
+      "input": "--flagabc123-n "
+    },
+    {
+      "expected": "ſecretſecret=[redacted] quoted\"Bearer-px=hunter2secretK",
+      "input": "ſecretſecret==\"double quoted\"Bearer-px=hunter2secretK"
+    },
+    {
+      "expected": "--password-px secretKEYAPI_KEY",
+      "input": "--password-px secretKEYAPI_KEY"
+    },
+    {
+      "expected": "KEY:-nauthorization:[redacted]'quoted value'--password=[redacted] ",
+      "input": "KEY:-nauthorization:--flag'quoted value'--password=authorization:Z-pxauthorization:BearerBearer "
+    },
+    {
+      "expected": "-px9My-Secret\"double quoted\"s3cr3thttps://x.example/a?b=c=\t [redacted]",
+      "input": "-px9My-Secret\"double quoted\"s3cr3thttps://x.example/a?b=c=\t [redacted]"
+    },
+    {
+      "expected": "-ZmonkeyAuthorization:[redacted]",
+      "input": "-ZmonkeyAuthorization:9API_KEYx.TOKEN---password= monkey"
+    },
+    {
+      "expected": "\".My-Secret authorization:",
+      "input": "\".My-Secret authorization:"
+    },
+    {
+      "expected": "Bearerabc123 --flag-pAPI_KEYMy-SecretKEY\"-p5432turkeya-n",
+      "input": "Bearerabc123 --flag-pAPI_KEYMy-SecretKEY\"-p5432turkeya-n"
+    },
+    {
+      "expected": "-p5432https://x.example/a?b=c[redacted]api_keyBearer-px'quoted value'[redacted]KEY--flag'quoted value'.=-p5432",
+      "input": "-p5432https://x.example/a?b=c[redacted]api_keyBearer-px'quoted value'[redacted]KEY--flag'quoted value'.=-p5432"
+    },
+    {
+      "expected": "Authorization:[redacted]",
+      "input": "Authorization:secret"
+    },
+    {
+      "expected": "=Bearerhunter2Bearer\t9K\nabc123--token=[redacted]",
+      "input": "=Bearerhunter2Bearer\t9K\nabc123--token=x.TOKEN"
+    },
+    {
+      "expected": " My-Secret--passwordabc123KEY::My-Secret-px===-n",
+      "input": " My-Secret--passwordabc123KEY::My-Secret-px===-n"
+    },
+    {
+      "expected": " aPASSWORDabc123-n--flaghttps://x.example/a?b=capi_key[redacted]--flag-px",
+      "input": " aPASSWORDabc123-n--flaghttps://x.example/a?b=capi_key[redacted]--flag-px"
+    },
+    {
+      "expected": "-n-psecretMy-Secret:",
+      "input": "-n-psecretMy-Secret:"
+    },
+    {
+      "expected": ":turkey'paſſword turkey --token",
+      "input": ":turkey'paſſword turkey --token"
+    },
+    {
+      "expected": "api_keyſecretend'",
+      "input": "api_keyſecretend'"
+    },
+    {
+      "expected": "s3cr3t==as3cr3t =.",
+      "input": "s3cr3t==as3cr3t =."
+    },
+    {
+      "expected": "=--password..é--token=[redacted] ",
+      "input": "=--password..é--token=PASSWORDſecret "
+    },
+    {
+      "expected": "é[redacted]'_--password=[redacted]",
+      "input": "é[redacted]'_--password=KEY[redacted]'endBearer--tokensecret-p5432"
+    },
+    {
+      "expected": "s3cr3ttokenauthorization:[redacted]",
+      "input": "s3cr3ttokenauthorization:."
+    },
+    {
+      "expected": " Bearer\n9PASSWORD'-p-ns3cr3té:hunter2",
+      "input": " Bearer\n9PASSWORD'-p-ns3cr3té:hunter2"
+    },
+    {
+      "expected": "\n[redacted]monkey--token",
+      "input": "\n[redacted]monkey--token"
+    },
+    {
+      "expected": "turkeyé=",
+      "input": "turkeyé="
+    },
+    {
+      "expected": "--token=[redacted]",
+      "input": "--token=-pxPASSWORD"
+    },
+    {
+      "expected": "'turkeytoken=[redacted]",
+      "input": "'turkeytoken==Khttps://x.example/a?b=c"
+    },
+    {
+      "expected": "==--tokenhunter2:--token=[redacted]\tKK",
+      "input": "==--tokenhunter2:--token=paſſword'secret\tKK"
+    },
+    {
+      "expected": "\nKAPI_KEYMy-Secret'api_keyhttps://x.example/a?b=c  ",
+      "input": "\nKAPI_KEYMy-Secret'api_keyhttps://x.example/a?b=c  "
+    },
+    {
+      "expected": "KEYx.TOKEN--password--tokenBearermonkey[redacted]Z[redacted]abc123\"api_keyAPI_KEY",
+      "input": "KEYx.TOKEN--password--tokenBearermonkey[redacted]Z[redacted]abc123\"api_keyAPI_KEY"
+    },
+    {
+      "expected": "paſſword :[redacted]x.TOKEN PASSWORD =KEY--flagK [redacted]",
+      "input": "paſſword :[redacted]x.TOKEN PASSWORD =KEY--flagK [redacted]"
+    },
+    {
+      "expected": "9KEY=[redacted]turkeyPASSWORDAuthorization:",
+      "input": "9KEY=\"double quoted\"turkeyPASSWORDAuthorization:"
+    },
+    {
+      "expected": "--password=[redacted] value'turkey",
+      "input": "--password=abc123PASSWORD==:token--flagpaſſword:hunter2K'quoted value'turkey"
+    },
+    {
+      "expected": "api_key-nabc1239 api_keysecret",
+      "input": "api_key-nabc1239 api_keysecret"
+    },
+    {
+      "expected": "monkey-pxKEYZ:--token",
+      "input": "monkey-pxKEYZ:--token"
+    },
+    {
+      "expected": "My-Secret\n:Bearerx.TOKENKEY-n--password",
+      "input": "My-Secret\n:Bearerx.TOKENKEY-n--password"
+    },
+    {
+      "expected": "\"double quoted\"secret-pAuthorization:[redacted]\nBearer",
+      "input": "\"double quoted\"secret-pAuthorization:turkeyx.TOKENZZendſecretx.TOKEN\nBearer"
+    },
+    {
+      "expected": "PASSWORD9'quoted value'  Bearer-p-\"hunter2-tokenAPI_KEY",
+      "input": "PASSWORD9'quoted value'  Bearer-p-\"hunter2-tokenAPI_KEY"
+    },
+    {
+      "expected": "'quoted value' _ [redacted]--tokenKEY-[redacted]Z ",
+      "input": "'quoted value' _ [redacted]--tokenKEY-[redacted]Z "
+    },
+    {
+      "expected": "authorization:[redacted]",
+      "input": "authorization:.KEY--tokenhttps://x.example/a?b=c-px==.Authorization:hunter2"
+    },
+    {
+      "expected": "é-s3cr3t -p5432-p[redacted]Authorization:[redacted]",
+      "input": "é-s3cr3t -p5432-p[redacted]Authorization:x.TOKEN=KEYhttps://x.example/a?b=cauthorization:-n"
+    },
+    {
+      "expected": "'\t--password= -p5432",
+      "input": "'\t--password= -p5432"
+    },
+    {
+      "expected": "9--passwordAuthorization:[redacted]'quoted value'PASSWORDKEY",
+      "input": "9--passwordAuthorization:KEYBearer'quoted value'PASSWORDKEY"
+    },
+    {
+      "expected": "--password--password_--password=[redacted] value'",
+      "input": "--password--password_--password=-phttps://x.example/a?b=cſecret'KEY-px-nsecret'quoted value'"
+    },
+    {
+      "expected": "K=endmonkeys3cr3tmonkeyMy-Secrets3cr3t  ",
+      "input": "K=endmonkeys3cr3tmonkeyMy-Secrets3cr3t  "
+    },
+    {
+      "expected": "authorization:\"KEY authorization:[redacted]",
+      "input": "authorization:\"KEY authorization:aZZKEY"
+    },
+    {
+      "expected": "My-SecretZ-n--password=\t",
+      "input": "My-SecretZ-n--password=\t"
+    },
+    {
+      "expected": "PASSWORD-napi_key-pxKEYKEYmonkey-pxKEYKEY--password=[redacted]",
+      "input": "PASSWORD-napi_key-pxKEYKEYmonkey-pxKEYKEY--password=end"
+    },
+    {
+      "expected": "endpaſſwordAPI_KEY9 Authorization:[redacted]",
+      "input": "endpaſſwordAPI_KEY9 Authorization:hunter2--passwordapi_keyendpaſſwordtoken"
+    },
+    {
+      "expected": "---password= My-Secret",
+      "input": "---password= My-Secret"
+    },
+    {
+      "expected": "\nturkeymonkeyBearer",
+      "input": "\nturkeymonkeyBearer"
+    },
+    {
+      "expected": "-p5432api_key-px-n é  authorization:'secretapi_keys3cr3t",
+      "input": "-p5432api_key-px-n é  authorization:'secretapi_keys3cr3t"
+    },
+    {
+      "expected": "\"double quoted\"--passwordBearersecretK_\t :é",
+      "input": "\"double quoted\"--passwordBearersecretK_\t :é"
+    },
+    {
+      "expected": "9Bearerapi_key -p5432 KBearer",
+      "input": "9Bearerapi_key -p5432 KBearer"
+    },
+    {
+      "expected": "authorization:[redacted]",
+      "input": "authorization:turkey"
+    },
+    {
+      "expected": "\"KEY",
+      "input": "\"KEY"
+    },
+    {
+      "expected": "turkeyhttps://x.example/a?b=c",
+      "input": "turkeyhttps://x.example/a?b=c"
+    },
+    {
+      "expected": "My-SecretAuthorization:\"double quoted\"'",
+      "input": "My-SecretAuthorization:\"double quoted\"'"
+    },
+    {
+      "expected": "My-SecretPASSWORD",
+      "input": "My-SecretPASSWORD"
+    },
+    {
+      "expected": "KEY\"My-Secret=[redacted] -pxhttps://x.example/a?b=c_\"hunter2",
+      "input": "KEY\"My-Secret=:K -pxhttps://x.example/a?b=c_\"hunter2"
+    },
+    {
+      "expected": "api_key--password=",
+      "input": "api_key--password="
+    },
+    {
+      "expected": ":-n",
+      "input": ":-n"
+    },
+    {
+      "expected": "API_KEY-p",
+      "input": "API_KEY-p"
+    },
+    {
+      "expected": " turkeyéKEYéſecret.",
+      "input": " turkeyéKEYéſecret."
+    },
+    {
+      "expected": "secret--password",
+      "input": "secret--password"
+    },
+    {
+      "expected": "Bearer'quoted value'aſecret--token",
+      "input": "Bearer'quoted value'aſecret--token"
+    },
+    {
+      "expected": "KEY- \n:=BearerAuthorization:[redacted]",
+      "input": "KEY- \n:=BearerAuthorization:--password=--token"
+    },
+    {
+      "expected": "'quoted value'ſecrethunter2_turkey.secret--flag",
+      "input": "'quoted value'ſecrethunter2_turkey.secret--flag"
+    },
+    {
+      "expected": "api_key[redacted]9",
+      "input": "api_key[redacted]9"
+    },
+    {
+      "expected": "x.TOKEN\t._",
+      "input": "x.TOKEN\t._"
+    },
+    {
+      "expected": "api_key monkey--passwordsecret--passwordAuthorization: [redacted]",
+      "input": "api_key monkey--passwordsecret--passwordAuthorization: 9:=x.TOKEN"
+    },
+    {
+      "expected": "secretend-p\"double quoted\"--flagPASSWORDAPI_KEY",
+      "input": "secretend-p\"double quoted\"--flagPASSWORDAPI_KEY"
+    },
+    {
+      "expected": "\"x.TOKENa==-px9API_KEY '",
+      "input": "\"x.TOKENa==-px9API_KEY '"
+    },
+    {
+      "expected": " Bearer. --flag9KEY=[redacted] _Z",
+      "input": " Bearer. --flag9KEY=paſſwordK _Z"
+    },
+    {
+      "expected": "--tokenabc123monkey",
+      "input": "--tokenabc123monkey"
+    },
+    {
+      "expected": "Zabc123\"\"--password--password",
+      "input": "Zabc123\"\"--password--password"
+    },
+    {
+      "expected": "x.TOKENend",
+      "input": "x.TOKENend"
+    },
+    {
+      "expected": ":--token-px[redacted] 'My-Secret",
+      "input": ":--token-px[redacted] 'My-Secret"
+    },
+    {
+      "expected": "===monkey=[redacted]",
+      "input": "===monkey==paſſwordAPI_KEYAPI_KEYsecret"
+    },
+    {
+      "expected": "-px[redacted]\t:",
+      "input": "-px[redacted]\t:"
+    },
+    {
+      "expected": "api_keyſecret=[redacted] KEY =\"double quoted\"authorization:",
+      "input": "api_keyſecret===--password= KEY =\"double quoted\"authorization:"
+    },
+    {
+      "expected": "turkeyAPI_KEY",
+      "input": "turkeyAPI_KEY"
+    },
+    {
+      "expected": "'quoted value'turkey [redacted]-p5432=='hunter2https://x.example/a?b=cAPI_KEYés3cr3thttps://x.example/a?b=c'quoted value'",
+      "input": "'quoted value'turkey [redacted]-p5432=='hunter2https://x.example/a?b=cAPI_KEYés3cr3thttps://x.example/a?b=c'quoted value'"
+    },
+    {
+      "expected": "[redacted]\t",
+      "input": "[redacted]\t"
+    },
+    {
+      "expected": "https://x.example/a?b=cmonkeys3cr3tsecretPASSWORDſecret--token[redacted]",
+      "input": "https://x.example/a?b=cmonkeys3cr3tsecretPASSWORDſecret--token[redacted]"
+    },
+    {
+      "expected": "éBearerPASSWORDKEYpaſſword--password\t[redacted] API_KEY",
+      "input": "éBearerPASSWORDKEYpaſſword--password\t[redacted]-px--password API_KEY"
+    },
+    {
+      "expected": "end-endMy-Secreté-p-n-p5432BearerKEY",
+      "input": "end-endMy-Secreté-p-n-p5432BearerKEY"
+    },
+    {
+      "expected": " --password=[redacted]",
+      "input": " --password=-nhunter2My-Secret"
+    },
+    {
+      "expected": "\ttokenAPI_KEYZ--password",
+      "input": "\ttokenAPI_KEYZ--password"
+    },
+    {
+      "expected": "KEYapi_key\napi_keyMy-Secrethttps://x.example/a?b=c\"PASSWORDhttps://x.example/a?b=c--tokenturkey- --token=",
+      "input": "KEYapi_key\napi_keyMy-Secrethttps://x.example/a?b=c\"PASSWORDhttps://x.example/a?b=c--tokenturkey- --token="
+    },
+    {
+      "expected": "KEY_",
+      "input": "KEY_"
+    },
+    {
+      "expected": "[redacted]\"double quoted\" s3cr3t.\"\"double quoted\"My-Secret  \"double quoted\"API_KEY",
+      "input": "[redacted]\"double quoted\" s3cr3t.\"\"double quoted\"My-Secret  \"double quoted\"API_KEY"
+    },
+    {
+      "expected": "--token[redacted]",
+      "input": "--token[redacted]"
+    },
+    {
+      "expected": "\"double quoted\" monkey'",
+      "input": "\"double quoted\" monkey'"
+    },
+    {
+      "expected": "a\t'quoted value''\"a--password=",
+      "input": "a\t'quoted value''\"a--password="
+    },
+    {
+      "expected": "x.TOKEN_My-Secret--token=[redacted] .'",
+      "input": "x.TOKEN_My-Secret--token=turkeysecretauthorization: .'"
+    },
+    {
+      "expected": "\"double quoted\"x.TOKEN--password--password= 'quoted value'API_KEYmonkey\n \té-p",
+      "input": "\"double quoted\"x.TOKEN--password--password= 'quoted value'API_KEYmonkey\n \té-p"
+    },
+    {
+      "expected": " [redacted]tokenturkeyK 'quoted value'",
+      "input": " [redacted]tokenturkeyK 'quoted value'"
+    },
+    {
+      "expected": " s3cr3t[redacted]\"x.TOKEN__--password=[redacted]\tsecret-p5432",
+      "input": " s3cr3t[redacted]\"x.TOKEN__--password=authorization:secretBearer\tsecret-p5432"
+    },
+    {
+      "expected": "My-SecretaK'éKEYtoken",
+      "input": "My-SecretaK'éKEYtoken"
+    },
+    {
+      "expected": "\nBearerabc123x.TOKENBearer-p5432.--token[redacted]_hunter2-n-px",
+      "input": "\nBearerabc123x.TOKENBearer-p5432.--token[redacted]_hunter2-n-px"
+    },
+    {
+      "expected": "x.TOKEN x.TOKEN-pKEYéturkey\t :ZKEYsecretmonkey",
+      "input": "x.TOKEN x.TOKEN-pKEYéturkey\t :ZKEYsecretmonkey"
+    },
+    {
+      "expected": "authorization:[redacted]'K_==hunter2--passwordauthorization:[redacted]",
+      "input": "authorization:KEY api_key'K_==hunter2--passwordauthorization:-ppaſſwordapi_key"
+    },
+    {
+      "expected": "9KEY--flag[redacted]s3cr3t--password--token=",
+      "input": "9KEY--flag[redacted]s3cr3t--password--token="
+    },
+    {
+      "expected": "--password=[redacted]",
+      "input": "--password=\"double quoted\"[redacted]--flag."
+    },
+    {
+      "expected": ":API_KEY paſſwordAPI_KEYKEY x.TOKEN=[redacted] quoted\"API_KEY",
+      "input": ":API_KEY paſſwordAPI_KEYKEY x.TOKEN==Z\"double quoted\"API_KEY"
+    },
+    {
+      "expected": "\"Bearer\t",
+      "input": "\"Bearer\t"
+    },
+    {
+      "expected": " --password=",
+      "input": " --password="
+    },
+    {
+      "expected": "https://x.example/a?b=c[redacted]\nmonkeyhttps://x.example/a?b=c--passwordAuthorization:[redacted]\"Authorization:[redacted]",
+      "input": "https://x.example/a?b=c[redacted]\nmonkeyhttps://x.example/a?b=c--passwordAuthorization:monkeyAPI_KEY KEY\"Authorization:end"
+    },
+    {
+      "expected": " .KEY--password-",
+      "input": " .KEY--password-"
+    },
+    {
+      "expected": "token x.TOKENs3cr3tKEY_Bearertoken--token=[redacted]",
+      "input": "token x.TOKENs3cr3tKEY_Bearertoken--token=My-Secretx.TOKEN"
+    },
+    {
+      "expected": "=\thttps://x.example/a?b=c[redacted]",
+      "input": "=\thttps://x.example/a?b=c[redacted]"
+    },
+    {
+      "expected": "https://x.example/a?b=c==API_KEY--flag",
+      "input": "https://x.example/a?b=c==API_KEY--flag"
+    },
+    {
+      "expected": "KEYPASSWORD",
+      "input": "KEYPASSWORD"
+    },
+    {
+      "expected": "paſſword--tokenZ",
+      "input": "paſſword--tokenZ"
+    },
+    {
+      "expected": "paſſword --nBearer\"-p--passworda--flag'quoted value'--token=[redacted]",
+      "input": "paſſword --nBearer\"-p--passworda--flag'quoted value'--token=-p"
+    },
+    {
+      "expected": "--token=[redacted] --password=[redacted] token",
+      "input": "--token=Authorization:- --password=-p5432x.TOKENſecret--flagMy-Secret token"
+    },
+    {
+      "expected": "secretmonkeyabc123-p5432Zhunter2Z[redacted]aKEY",
+      "input": "secretmonkeyabc123-p5432Zhunter2Z[redacted]aKEY"
+    },
+    {
+      "expected": "s3cr3tauthorization:[redacted]",
+      "input": "s3cr3tauthorization:secretabc123KEY abc123"
+    },
+    {
+      "expected": "--flagmonkey 9API_KEY-n -n====Kmonkey'-p",
+      "input": "--flagmonkey 9API_KEY-n -n====Kmonkey'-p"
+    },
+    {
+      "expected": " API_KEY_===9secretmonkey'",
+      "input": " API_KEY_===9secretmonkey'"
+    },
+    {
+      "expected": "monkey--token=[redacted] 9-n_x.TOKEN",
+      "input": "monkey--token=secret[redacted]a 9-n_x.TOKEN"
+    },
+    {
+      "expected": "'My-Secret=[redacted] quoted\"--flag--token=[redacted]",
+      "input": "'My-Secret=authorization: \"double quoted\"--flag--token=--passwordhttps://x.example/a?b=capi_key=="
+    },
+    {
+      "expected": "Zend ",
+      "input": "Zend "
+    },
+    {
+      "expected": "Z--token=  --password=[redacted]",
+      "input": "Z--token=  --password=authorization:=hunter2api_key"
+    },
+    {
+      "expected": ".turkey=[redacted]",
+      "input": ".turkey==-pxKEY--token=[redacted]aabc123Authorization:"
+    },
+    {
+      "expected": "https://x.example/a?b=c--token=[redacted]",
+      "input": "https://x.example/a?b=c--token=9====Authorization:s3cr3t--password=-px"
+    },
+    {
+      "expected": "--token[redacted]hunter2\ntokenhunter2authorization:[redacted]'quoted value'",
+      "input": "--token[redacted]hunter2\ntokenhunter2authorization:x.TOKEN'quoted value'"
+    },
+    {
+      "expected": "API_KEY--passwordendMy-Secretturkeyabc123.Authorization:[redacted]'quoted value'",
+      "input": "API_KEY--passwordendMy-Secretturkeyabc123.Authorization:authorization:api_key'quoted value'"
+    },
+    {
+      "expected": "paſſwordPASSWORD\nPASSWORDhunter2",
+      "input": "paſſwordPASSWORD\nPASSWORDhunter2"
+    },
+    {
+      "expected": "_monkeyKEY--flagZ --flagAuthorization:[redacted]",
+      "input": "_monkeyKEY--flagZ --flagAuthorization:turkeyabc123"
+    },
+    {
+      "expected": "Zmonkeyx.TOKEN'quoted value'x.TOKENPASSWORDKEYKEY ",
+      "input": "Zmonkeyx.TOKEN'quoted value'x.TOKENPASSWORDKEYKEY "
+    },
+    {
+      "expected": "secret a",
+      "input": "secret a"
+    },
+    {
+      "expected": "api_key\"PASSWORD--passwordapi_keyhttps://x.example/a?b=c--token= aabc123\t--password [redacted]",
+      "input": "api_key\"PASSWORD--passwordapi_keyhttps://x.example/a?b=c--token= aabc123\t--password [redacted]"
+    },
+    {
+      "expected": "Authorization:[redacted]",
+      "input": "Authorization:KKEY"
+    },
+    {
+      "expected": "-n:tokenturkey https://x.example/a?b=c \"",
+      "input": "-n:tokenturkey https://x.example/a?b=c \""
+    },
+    {
+      "expected": "ſecretauthorization:[redacted]",
+      "input": "ſecretauthorization:--flag"
+    },
+    {
+      "expected": "\"tokenx.TOKENK\n--password [redacted] ",
+      "input": "\"tokenx.TOKENK\n--password API_KEYauthorization: "
+    },
+    {
+      "expected": "api_key Zmonkey-px_API_KEY--password=[redacted]",
+      "input": "api_key Zmonkey-px_API_KEY--password=My-Secretx.TOKEN:_[redacted]"
+    },
+    {
+      "expected": "-n:--passwordturkey-p9é\n\"double quoted\"secretabc123---token=[redacted]",
+      "input": "-n:--passwordturkey-p9é\n\"double quoted\"secretabc123---token=end"
+    },
+    {
+      "expected": ".--passwordPASSWORD--passwordAPI_KEY-n",
+      "input": ".--passwordPASSWORD--passwordAPI_KEY-n"
+    },
+    {
+      "expected": "'quoted value'authorization:[redacted]\"double quoted\"",
+      "input": "'quoted value'authorization:s3cr3t\"double quoted\""
+    },
+    {
+      "expected": "KEYAPI_KEY[redacted].API_KEY'\"authorization:\t[redacted]",
+      "input": "KEYAPI_KEY[redacted].API_KEY'\"authorization:\tmonkey-p5432="
+    },
+    {
+      "expected": "==s3cr3t-n Bearer --password ",
+      "input": "==s3cr3t-n Bearer --password "
+    },
+    {
+      "expected": "-nhunter2é\"--token=[redacted] ",
+      "input": "-nhunter2é\"--token=_ "
+    },
+    {
+      "expected": "'quoted value' https://x.example/a?b=cAPI_KEYPASSWORDend--password=[redacted]",
+      "input": "'quoted value' https://x.example/a?b=cAPI_KEYPASSWORDend--password='endabc123:KEYpaſſword"
+    },
+    {
+      "expected": " [redacted]PASSWORD--password--flag --token",
+      "input": " [redacted]PASSWORD--password--flag --token"
+    },
+    {
+      "expected": "'Authorization:[redacted]",
+      "input": "'Authorization:_--flag:====\tKEYhttps://x.example/a?b=cs3cr3ttoken=hunter2"
+    },
+    {
+      "expected": " amonkeyend K:paſſword'quoted value'-nAuthorization:[redacted]",
+      "input": " amonkeyend K:paſſword'quoted value'-nAuthorization::a-n"
+    },
+    {
+      "expected": "K[redacted]monkey",
+      "input": "K[redacted]monkey"
+    },
+    {
+      "expected": "'.=-é.--password'._KEY",
+      "input": "'.=-é.--password'._KEY"
+    },
+    {
+      "expected": "'quoted value'abc123--token=[redacted] quoted\"-n[redacted]KEYapi_key ",
+      "input": "'quoted value'abc123--token=PASSWORD'.==KEY\"double quoted\"-n[redacted]KEYapi_key "
+    },
+    {
+      "expected": "hunter2hunter2endPASSWORDabc123:PASSWORD-n KEYſecretapi_keyſecretZ",
+      "input": "hunter2hunter2endPASSWORDabc123:PASSWORD-n KEYſecretapi_keyſecretZ"
+    },
+    {
+      "expected": " secret--password-p5432api_key--flagendhttps://x.example/a?b=c--password=[redacted] hunter2",
+      "input": " secret--password-p5432api_key--flagendhttps://x.example/a?b=c--password=PASSWORD hunter2"
+    },
+    {
+      "expected": "tokenKEYPASSWORDpaſſword' abc123--token-px'quoted value'",
+      "input": "tokenKEYPASSWORDpaſſword' abc123--token-px'quoted value'"
+    },
+    {
+      "expected": "https://x.example/a?b=cBearer:",
+      "input": "https://x.example/a?b=cBearer:"
+    },
+    {
+      "expected": "-p5432secret-n'quoted value'secret--token--token= \n9",
+      "input": "-p5432secret-n'quoted value'secret--token--token= \n9"
+    },
+    {
+      "expected": "'quoted value'--password= --token.https://x.example/a?b=cmonkeypaſſword[redacted]9-px--token",
+      "input": "'quoted value'--password= --token.https://x.example/a?b=cmonkeypaſſword[redacted]9-px--token"
+    },
+    {
+      "expected": "\"Z\"double quoted\"api_key's3cr3t'quoted value'KEY",
+      "input": "\"Z\"double quoted\"api_key's3cr3t'quoted value'KEY"
+    },
+    {
+      "expected": " ſecretMy-SecretK'quoted value'\"double quoted\"turkeymonkey--password=[redacted]\nſecretKEY",
+      "input": " ſecretMy-SecretK'quoted value'\"double quoted\"turkeymonkey--password=K\nſecretKEY"
+    },
+    {
+      "expected": " API_KEY-p5432--password=[redacted]",
+      "input": " API_KEY-p5432--password=Zpaſſwordmonkey"
+    },
+    {
+      "expected": "''==:\"--password=[redacted]",
+      "input": "''==:\"--password=tokenAuthorization:-px-end"
+    },
+    {
+      "expected": "PASSWORD-pxsecret--token=[redacted]\nPASSWORDK",
+      "input": "PASSWORD-pxsecret--token=turkey\"\nPASSWORDK"
+    },
+    {
+      "expected": ":My-Secretx.TOKEN--token=[redacted]",
+      "input": ":My-Secretx.TOKEN--token=PASSWORDturkey"
+    },
+    {
+      "expected": "BearerKEY=[redacted] https://x.example/a?b=c",
+      "input": "BearerKEY=-ahunter2[redacted]x.TOKENabc123--password=--token= https://x.example/a?b=c"
+    },
+    {
+      "expected": "abc123ends3cr3tapi_keysecret--password=[redacted] ",
+      "input": "abc123ends3cr3tapi_keysecret--password=--password=KEYhttps://x.example/a?b=cabc123 "
+    },
+    {
+      "expected": "KEYauthorization:[redacted]",
+      "input": "KEYauthorization::9paſſwordabc123"
+    },
+    {
+      "expected": ".x.TOKENmonkeyturkey--flag--password=[redacted]",
+      "input": ".x.TOKENmonkeyturkey--flag--password=[redacted]éAPI_KEYmonkey"
+    },
+    {
+      "expected": "9é",
+      "input": "9é"
+    },
+    {
+      "expected": "--password=[redacted] quoted\"--tokenKEYpaſſwordBearertoken",
+      "input": "--password=monkeyAPI_KEYAuthorization:-n\"\"double quoted\"--tokenKEYpaſſwordBearertoken"
+    },
+    {
+      "expected": "_Khunter2PASSWORD\"double quoted\"--password=[redacted]",
+      "input": "_Khunter2PASSWORD\"double quoted\"--password=ſecretBearer=Authorization:é"
+    },
+    {
+      "expected": "api_key--flag --token--token[redacted]",
+      "input": "api_key--flag --token--token[redacted]"
+    },
+    {
+      "expected": "K-p5432abc123as3cr3tAPI_KEY.--token",
+      "input": "K-p5432abc123as3cr3tAPI_KEY.--token"
+    },
+    {
+      "expected": "hunter2-p5432KEYapi_keyéauthorization:[redacted]",
+      "input": "hunter2-p5432KEYapi_keyéauthorization:PASSWORDKEYBearer-p--token='"
+    },
+    {
+      "expected": "é--password=[redacted]",
+      "input": "é--password='.--token=.-nBearerturkeyPASSWORD\"--token"
+    },
+    {
+      "expected": "api_key.\n ",
+      "input": "api_key.\n "
+    },
+    {
+      "expected": "My-Secret '\"authorization:",
+      "input": "My-Secret '\"authorization:"
+    },
+    {
+      "expected": "'abc123",
+      "input": "'abc123"
+    },
+    {
+      "expected": "ſecrethunter2 --password=[redacted] quoted\"-p--password=[redacted] quoted\"ZAPI_KEYAuthorization:",
+      "input": "ſecrethunter2 --password=:\"double quoted\"-p--password=Z\"double quoted\"ZAPI_KEYAuthorization:"
+    },
+    {
+      "expected": "-é9:Bearermonkey-PASSWORDZ ",
+      "input": "-é9:Bearermonkey-PASSWORDZ "
+    },
+    {
+      "expected": "API_KEY --password--tokenZ",
+      "input": "API_KEY --password--tokenZ"
+    },
+    {
+      "expected": "ſecreta--flagſecret-\nsecret-nAPI_KEYx.TOKENBearerſecretsecrethunter2",
+      "input": "ſecreta--flagſecret-\nsecret-nAPI_KEYx.TOKENBearerſecretsecrethunter2"
+    },
+    {
+      "expected": "-p5432paſſwordhunter2ſecretsecret",
+      "input": "-p5432paſſwordhunter2ſecretsecret"
+    },
+    {
+      "expected": "--password\t",
+      "input": "--password\t"
+    },
+    {
+      "expected": "endMy-Secret=",
+      "input": "endMy-Secret="
+    },
+    {
+      "expected": "API_KEYéturkey KEY",
+      "input": "API_KEYéturkey KEY"
+    },
+    {
+      "expected": "hunter2tokenapi_key Bearer",
+      "input": "hunter2tokenapi_key Bearer"
+    },
+    {
+      "expected": "secretKEYs3cr3tK.",
+      "input": "secretKEYs3cr3tK."
+    },
+    {
+      "expected": "Z--password [redacted]",
+      "input": "Z--password monkey--token=My-Secrethttps://x.example/a?b=c--flagKKAPI_KEY"
+    },
+    {
+      "expected": "--passwordPASSWORD.secret[redacted]=KEY's3cr3t\"--password= --password=[redacted]",
+      "input": "--passwordPASSWORD.secret[redacted]=KEY's3cr3t\"--password= --password=ſecret"
+    },
+    {
+      "expected": "--password=[redacted] \"Zend --password=",
+      "input": "--password=s3cr3t \"Zend --password="
+    },
+    {
+      "expected": "secretabc123-aMy-Secret\t[redacted]\"Authorization:",
+      "input": "secretabc123-aMy-Secret\t[redacted]\"Authorization:"
+    },
+    {
+      "expected": "My-Secretapi_keyx.TOKEN\" ",
+      "input": "My-Secretapi_keyx.TOKEN\" "
+    },
+    {
+      "expected": "a monkey-nPASSWORDMy-Secret ",
+      "input": "a monkey-nPASSWORDMy-Secret "
+    },
+    {
+      "expected": "monkeypaſſwords3cr3t",
+      "input": "monkeypaſſwords3cr3t"
+    },
+    {
+      "expected": "==-",
+      "input": "==-"
+    },
+    {
+      "expected": "abc123-px-p--tokenPASSWORD-n=monkeyapi_key--token=[redacted] \"double quoted\"",
+      "input": "abc123-px-p--tokenPASSWORD-n=monkeyapi_key--token=Z \"double quoted\""
+    },
+    {
+      "expected": "API_KEY  api_keyZ",
+      "input": "API_KEY  api_keyZ"
+    },
+    {
+      "expected": "9abc123 My-Secret\nabc123turkeyMy-Secretx.TOKENsecret",
+      "input": "9abc123 My-Secret\nabc123turkeyMy-Secretx.TOKENsecret"
+    },
+    {
+      "expected": "-p5432api_key. secret--token=[redacted] [redacted]monkeyſecret",
+      "input": "-p5432api_key. secret--token=--flagpaſſword [redacted]monkeyſecret"
+    },
+    {
+      "expected": "tokenBearer[redacted]hunter2api_key-n\t-==token--token\"",
+      "input": "tokenBearer[redacted]hunter2api_key-n\t-==token--token\""
+    },
+    {
+      "expected": "9My-Secrethunter2endhunter2-",
+      "input": "9My-Secrethunter2endhunter2-"
+    },
+    {
+      "expected": "API_KEYBearer--tokens3cr3t-n",
+      "input": "API_KEYBearer--tokens3cr3t-n"
+    },
+    {
+      "expected": "x.TOKEN-p54329==x.TOKENMy-Secret-p'quoted value'ZKEYſecret",
+      "input": "x.TOKEN-p54329==x.TOKENMy-Secret-p'quoted value'ZKEYſecret"
+    },
+    {
+      "expected": "tokenauthorization:[redacted]\n-n",
+      "input": "tokenauthorization:--tokenKEY\n-n"
+    },
+    {
+      "expected": " -p54329",
+      "input": " -p54329"
+    },
+    {
+      "expected": "enda-n hunter2\n",
+      "input": "enda-n hunter2\n"
+    },
+    {
+      "expected": "KEY'quoted value'Z\"authorization:[redacted]",
+      "input": "KEY'quoted value'Z\"authorization:x.TOKENſecreta:"
+    },
+    {
+      "expected": "PASSWORDx.TOKENBearer--token\t[redacted] turkey-turkey-n",
+      "input": "PASSWORDx.TOKENBearer--token\t\"abc123KEY turkey-turkey-n"
+    },
+    {
+      "expected": "paſſword-p54329",
+      "input": "paſſword-p54329"
+    },
+    {
+      "expected": "--tokenaKEYhunter2  é'quoted value'-=-n",
+      "input": "--tokenaKEYhunter2  é'quoted value'-=-n"
+    },
+    {
+      "expected": "Bearertoken",
+      "input": "Bearertoken"
+    },
+    {
+      "expected": "authorization:[redacted]",
+      "input": "authorization:s3cr3tſecrettokenMy-Secret-p5432KEY:x.TOKENKEY"
+    },
+    {
+      "expected": "\t asecretaax.TOKEN=[redacted]",
+      "input": "\t asecretaax.TOKEN=https://x.example/a?b=cPASSWORD"
+    },
+    {
+      "expected": ":-phunter2KEYauthorization:[redacted]'quoted value'--flag\"--token=\t-n--token=[redacted]",
+      "input": ":-phunter2KEYauthorization:PASSWORD'quoted value'--flag\"--token=\t-n--token=Z"
+    },
+    {
+      "expected": "' ",
+      "input": "' "
+    },
+    {
+      "expected": "paſſwordé--flag\t\tmonkeyſecret",
+      "input": "paſſwordé--flag\t\tmonkeyſecret"
+    },
+    {
+      "expected": "token--password--password \n[redacted]",
+      "input": "token--password--password \nAuthorization:API_KEYauthorization:"
+    },
+    {
+      "expected": "'quoted value'9",
+      "input": "'quoted value'9"
+    },
+    {
+      "expected": "s3cr3t9\t--password \t[redacted]",
+      "input": "s3cr3t9\t--password \tabc123--password"
+    },
+    {
+      "expected": "\"double quoted\"9-pxhttps://x.example/a?b=chunter29",
+      "input": "\"double quoted\"9-pxhttps://x.example/a?b=chunter29"
+    },
+    {
+      "expected": "end-né",
+      "input": "end-né"
+    },
+    {
+      "expected": "end-pPASSWORD x.TOKENBearerZ.--flag",
+      "input": "end-pPASSWORD x.TOKENBearerZ.--flag"
+    },
+    {
+      "expected": "Z[redacted]==token\"double quoted\"",
+      "input": "Z[redacted]==token\"double quoted\""
+    },
+    {
+      "expected": "=Zmonkeya -\n\n",
+      "input": "=Zmonkeya -\n\n"
+    },
+    {
+      "expected": "\"_end--token=[redacted]\tBearer",
+      "input": "\"_end--token=Authorization:Zs3cr3t--token=secret==-_\tBearer"
+    },
+    {
+      "expected": "'quoted value'x.TOKENabc123Z--tokenend_\n",
+      "input": "'quoted value'x.TOKENabc123Z--tokenend_\n"
+    },
+    {
+      "expected": "https://x.example/a?b=capi_key. :--password",
+      "input": "https://x.example/a?b=capi_key. :--password"
+    },
+    {
+      "expected": "'quoted value'-p5432--token=[redacted] \tturkey_",
+      "input": "'quoted value'-p5432--token=My-Secret \tturkey_"
+    },
+    {
+      "expected": "s3cr3tsecret'KK-pabc123é \nsecret-n",
+      "input": "s3cr3tsecret'KK-pabc123é \nsecret-n"
+    },
+    {
+      "expected": "--token=[redacted]",
+      "input": "--token=-n"
+    },
+    {
+      "expected": "--token=[redacted] -pxKEYmonkeyBearer--password=[redacted] ",
+      "input": "--token=--password= -pxKEYmonkeyBearer--password=endBearerturkeyhttps://x.example/a?b=c[redacted] "
+    },
+    {
+      "expected": "KEY-",
+      "input": "KEY-"
+    },
+    {
+      "expected": " 'quoted value'--password=[redacted]",
+      "input": " 'quoted value'--password=é==K9paſſwordAPI_KEYapi_key_"
+    },
+    {
+      "expected": "-p5432https://x.example/a?b=chunter2K-p--passwordAPI_KEY[redacted]",
+      "input": "-p5432https://x.example/a?b=chunter2K-p--passwordAPI_KEY[redacted]"
+    },
+    {
+      "expected": ".--token-nBearer9é-p5432abc123-p",
+      "input": ".--token-nBearer9é-p5432abc123-p"
+    },
+    {
+      "expected": "9--password=[redacted] Kabc123s3cr3tAuthorization:[redacted]",
+      "input": "9--password=a:Z\"token Kabc123s3cr3tAuthorization:[redacted]"
+    },
+    {
+      "expected": "tokenauthorization:[redacted]",
+      "input": "tokenauthorization:My-Secretauthorization::KEY"
+    },
+    {
+      "expected": "secret=",
+      "input": "secret="
+    },
+    {
+      "expected": "-pxBearerapi_keyaſecretAuthorization:[redacted]",
+      "input": "-pxBearerapi_keyaſecretAuthorization:secret"
+    },
+    {
+      "expected": "asecret",
+      "input": "asecret"
+    },
+    {
+      "expected": "turkeyKEY",
+      "input": "turkeyKEY"
+    },
+    {
+      "expected": "-p5432Z",
+      "input": "-p5432Z"
+    },
+    {
+      "expected": "-p5432'quoted value'authorization:\"https://x.example/a?b=c-n'quoted value'",
+      "input": "-p5432'quoted value'authorization:\"https://x.example/a?b=c-n'quoted value'"
+    },
+    {
+      "expected": "é--password=[redacted] aturkey",
+      "input": "é--password=API_KEYAuthorization:-n-PASSWORD=paſſword aturkey"
+    },
+    {
+      "expected": " --passwordturkey-px\n --password=[redacted]",
+      "input": " --passwordturkey-px\n --password='KAuthorization:end"
+    },
+    {
+      "expected": "=\n  API_KEYaZ a 'quoted value'",
+      "input": "=\n  API_KEYaZ a 'quoted value'"
+    },
+    {
+      "expected": "ésecret",
+      "input": "ésecret"
+    },
+    {
+      "expected": ". -p5432",
+      "input": ". -p5432"
+    },
+    {
+      "expected": " authorization:[redacted]",
+      "input": " authorization:- --token\t"
+    },
+    {
+      "expected": "9PASSWORD-n.secret-pmonkey'monkey",
+      "input": "9PASSWORD-n.secret-pmonkey'monkey"
+    },
+    {
+      "expected": "[redacted]--passwordsecretKEY-authorization:[redacted]",
+      "input": "[redacted]--passwordsecretKEY-authorization:Bearer"
+    },
+    {
+      "expected": ":==-p5432KEY\t",
+      "input": ":==-p5432KEY\t"
+    },
+    {
+      "expected": "authorization:[redacted]\nhunter2",
+      "input": "authorization:-ntoken-pxKEYhttps://x.example/a?b=c--tokenMy-Secretauthorization:\nhunter2"
+    },
+    {
+      "expected": "K\"double quoted\"",
+      "input": "K\"double quoted\""
+    },
+    {
+      "expected": "KEY=[redacted]",
+      "input": "KEY=-pxZ-pxKEYapi_keyhunter29"
+    },
+    {
+      "expected": "abc123--token= -pxturkeyBearers3cr3ts3cr3t.-n[redacted]--token \t",
+      "input": "abc123--token= -pxturkeyBearers3cr3ts3cr3t.-n[redacted]--token \t"
+    },
+    {
+      "expected": "9 _API_KEY",
+      "input": "9 _API_KEY"
+    },
+    {
+      "expected": "\"double quoted\"-p5432\"s3cr3tKEY",
+      "input": "\"double quoted\"-p5432\"s3cr3tKEY"
+    },
+    {
+      "expected": "-n--flagturkey",
+      "input": "-n--flagturkey"
+    },
+    {
+      "expected": "api_keyZKendAuthorization:[redacted]",
+      "input": "api_keyZKendAuthorization:paſſword"
+    },
+    {
+      "expected": "'KEY--token=[redacted]",
+      "input": "'KEY--token=x.TOKENabc123My-SecretAuthorization:turkeyKauthorization:--flag--flag"
+    },
+    {
+      "expected": " monkeyhunter2éhttps://x.example/a?b=cZ token",
+      "input": " monkeyhunter2éhttps://x.example/a?b=cZ token"
+    },
+    {
+      "expected": " 'quoted value'===KZ'secret",
+      "input": " 'quoted value'===KZ'secret"
+    },
+    {
+      "expected": "abc123KEY-pAPI_KEYſecret9authorization:[redacted]",
+      "input": "abc123KEY-pAPI_KEYſecret9authorization:end-px-.--password="
+    },
+    {
+      "expected": "https://x.example/a?b=c--tokenAuthorization:[redacted]",
+      "input": "https://x.example/a?b=c--tokenAuthorization:API_KEY--password=-aAPI_KEYéauthorization:é-pxK "
+    },
+    {
+      "expected": " -pxapi_keyK-p5432PASSWORDKEYAuthorization:[redacted]",
+      "input": " -pxapi_keyK-p5432PASSWORDKEYAuthorization: "
+    },
+    {
+      "expected": "Bearerabc123==.=PASSWORD:",
+      "input": "Bearerabc123==.=PASSWORD:"
+    },
+    {
+      "expected": "éAPI_KEY=[redacted] quoted\"tokenſecret\nBearer=",
+      "input": "éAPI_KEY==KEY-px\"double quoted\"tokenſecret\nBearer="
+    },
+    {
+      "expected": "My-Secret-n-\"double quoted\" é-n[redacted]",
+      "input": "My-Secret-n-\"double quoted\" é-n[redacted]"
+    },
+    {
+      "expected": "turkeyend_API_KEYKEY",
+      "input": "turkeyend_API_KEYKEY"
+    },
+    {
+      "expected": "\"Z-p5432a\"monkeyauthorization:[redacted]",
+      "input": "\"Z-p5432a\"monkeyauthorization:--flag -px"
+    },
+    {
+      "expected": "turkey--token=[redacted]\nKEYhunter2a==https://x.example/a?b=catoken--password--token=",
+      "input": "turkey--token=hunter2Z\nKEYhunter2a==https://x.example/a?b=catoken--password--token="
+    },
+    {
+      "expected": "-p5432PASSWORD9==--password=[redacted]",
+      "input": "-p5432PASSWORD9==--password=K-px-nturkeyPASSWORD9[redacted]"
+    },
+    {
+      "expected": "- --flagaBearermonkeyZAPI_KEYhttps://x.example/a?b=c9",
+      "input": "- --flagaBearermonkeyZAPI_KEYhttps://x.example/a?b=c9"
+    },
+    {
+      "expected": ".\nKEY:paſſwordtokenhttps://x.example/a?b=c",
+      "input": ".\nKEY:paſſwordtokenhttps://x.example/a?b=c"
+    },
+    {
+      "expected": "--token=[redacted]",
+      "input": "--token='quoted value'-nſecret--flag"
+    },
+    {
+      "expected": "ſecretBearer[redacted]9token--token=[redacted]",
+      "input": "ſecretBearer[redacted]9token--token==My-Secretx.TOKENhttps://x.example/a?b=cKEY=="
+    },
+    {
+      "expected": "-p5432-px",
+      "input": "-p5432-px"
+    },
+    {
+      "expected": "éſecret--passwordBearer==KtokenK",
+      "input": "éſecret--passwordBearer==KtokenK"
+    },
+    {
+      "expected": "turkey --flagKEY",
+      "input": "turkey --flagKEY"
+    },
+    {
+      "expected": "--flag\n9abc123turkey\t--tokenBearersecret",
+      "input": "--flag\n9abc123turkey\t--tokenBearersecret"
+    },
+    {
+      "expected": "--password=[redacted]",
+      "input": "--password=Authorization:"
+    },
+    {
+      "expected": "\nKturkeyé\tauthorization:'quoted value'https://x.example/a?b=cZ=--token",
+      "input": "\nKturkeyé\tauthorization:'quoted value'https://x.example/a?b=cZ=--token"
+    },
+    {
+      "expected": "ſecret.Authorization:",
+      "input": "ſecret.Authorization:"
+    },
+    {
+      "expected": "Authorization:[redacted]'[redacted]-p5432==\"double quoted\"--token=[redacted]",
+      "input": "Authorization:API_KEY==-p5432api_key '[redacted]-p5432==\"double quoted\"--token=BearerAPI_KEY"
+    },
+    {
+      "expected": "authorization:[redacted]",
+      "input": "authorization:-api_keyturkeys3cr3t-pxs3cr3t"
+    },
+    {
+      "expected": "Bearerhttps://x.example/a?b=c  --password=[redacted]",
+      "input": "Bearerhttps://x.example/a?b=c  --password=K.endKendtoken--flag"
+    },
+    {
+      "expected": " ZAuthorization:[redacted]",
+      "input": " ZAuthorization:abc123https://x.example/a?b=cs3cr3tAuthorization:-p5432- ZPASSWORD-n"
+    },
+    {
+      "expected": "endsecret[redacted]--password=[redacted]",
+      "input": "endsecret[redacted]--password=\"double quoted\"api_keyZſecret"
+    },
+    {
+      "expected": "-\nKEYturkey_",
+      "input": "-\nKEYturkey_"
+    },
+    {
+      "expected": "-px-px-api_key ",
+      "input": "-px-px-api_key "
+    },
+    {
+      "expected": "authorization:[redacted]",
+      "input": "authorization:hunter2--token="
+    },
+    {
+      "expected": "é--token",
+      "input": "é--token"
+    },
+    {
+      "expected": "api_key--token=[redacted]",
+      "input": "api_key--token==ſecret"
+    },
+    {
+      "expected": "-p [redacted]\t-p5432x.TOKEN\n--password=[redacted]",
+      "input": "-p --password=secret--password=\t-p5432x.TOKEN\n--password=s3cr3t[redacted]"
+    },
+    {
+      "expected": "-KEY=[redacted] \t=hunter2s3cr3t--password=[redacted]",
+      "input": "-KEY== \t=hunter2s3cr3t--password=_éPASSWORD[redacted]\""
+    },
+    {
+      "expected": " '[redacted]",
+      "input": " '[redacted]"
+    },
+    {
+      "expected": "K-p5432ſecretBearerKEYaBearerBearer--password=",
+      "input": "K-p5432ſecretBearerKEYaBearerBearer--password="
+    },
+    {
+      "expected": "My-SecretMy-Secret[redacted]",
+      "input": "My-SecretMy-Secret[redacted]"
+    },
+    {
+      "expected": "KEY--flag.x.TOKENauthorization:\"double quoted\"Zturkey KEY'\"double quoted\"",
+      "input": "KEY--flag.x.TOKENauthorization:\"double quoted\"Zturkey KEY'\"double quoted\""
+    },
+    {
+      "expected": "https://x.example/a?b=cauthorization:[redacted]",
+      "input": "https://x.example/a?b=cauthorization:monkeymonkey ==é: --token="
+    },
+    {
+      "expected": "x.TOKEN--token-p-p\t-ps3cr3tapi_key-p5432",
+      "input": "x.TOKEN--token-p-p\t-ps3cr3tapi_key-p5432"
+    },
+    {
+      "expected": "--password=[redacted]\t-px. ",
+      "input": "--password=:--token=-p5432Authorization:\t-px. "
+    },
+    {
+      "expected": "\"a\"double quoted\" ='",
+      "input": "\"a\"double quoted\" ='"
+    },
+    {
+      "expected": "\"double quoted\"==",
+      "input": "\"double quoted\"=="
+    },
+    {
+      "expected": "[redacted]=KEYZPASSWORD-n authorization:",
+      "input": "[redacted]=KEYZPASSWORD-n authorization:"
+    },
+    {
+      "expected": "Bearer =9Z--flag'- s3cr3t",
+      "input": "Bearer =9Z--flag'- s3cr3t"
+    },
+    {
+      "expected": " https://x.example/a?b=c-psecretBearerauthorization: [redacted]\n",
+      "input": " https://x.example/a?b=c-psecretBearerauthorization: My-Secretauthorization:\n"
+    },
+    {
+      "expected": "s3cr3t [redacted]authorization:[redacted]",
+      "input": "s3cr3t [redacted]authorization:é\tZé  [redacted]"
+    },
+    {
+      "expected": "\t[redacted]hunter2Z--password--password-pxKEY-p5432ſecret_hunter2",
+      "input": "\t[redacted]hunter2Z--password--password-pxKEY-p5432ſecret_hunter2"
+    },
+    {
+      "expected": "-p\"double quoted\"",
+      "input": "-p\"double quoted\""
+    },
+    {
+      "expected": "KEY-n_--password=[redacted]\n",
+      "input": "KEY-n_--password=[redacted]API_KEYmonkeypaſſword\n"
+    },
+    {
+      "expected": "'hunter2\tmonkey--password=[redacted] ",
+      "input": "'hunter2\tmonkey--password=éabc123token "
+    },
+    {
+      "expected": "monkeyapi_key-api_key--password=[redacted] 'quoted value'turkey",
+      "input": "monkeyapi_key-api_key--password=KéAuthorization:: 'quoted value'turkey"
+    },
+    {
+      "expected": "abc123''quoted value'\"double quoted\"-phttps://x.example/a?b=c.:KAuthorization:[redacted]",
+      "input": "abc123''quoted value'\"double quoted\"-phttps://x.example/a?b=c.:KAuthorization:==K"
+    }
+  ],
+  "generator": "random.Random(18); 600 strings of 2 to 14 fragments of the pool listed in the README",
+  "pool": [
+    "--token",
+    "--password",
+    "--token=",
+    "--password=",
+    "-p",
+    "-px",
+    " ",
+    " ",
+    "\t",
+    "\n",
+    " ",
+    " ",
+    "=",
+    "==",
+    "'",
+    "\"",
+    "API_KEY",
+    "api_key",
+    "My-Secret",
+    "x.TOKEN",
+    "PASSWORD",
+    "monkey",
+    "turkey",
+    "KEY",
+    "token",
+    "secret",
+    "Authorization:",
+    "authorization:",
+    "Bearer",
+    "abc123",
+    "s3cr3t",
+    "hunter2",
+    "[redacted]",
+    ":",
+    "-",
+    ".",
+    "_",
+    "a",
+    "Z",
+    "9",
+    "é",
+    "ſecret",
+    "K",
+    "KEY",
+    "paſſword",
+    "https://x.example/a?b=c",
+    "--flag",
+    "-n",
+    "-p5432",
+    "end",
+    "'quoted value'",
+    "\"double quoted\""
+  ],
+  "seed": 18
+}

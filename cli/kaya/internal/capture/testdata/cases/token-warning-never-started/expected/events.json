@@ -1,0 +1,10 @@
+[
+  {
+    "at": "2026-10-01T09:00:00Z",
+    "branch": "feature/golden",
+    "cwd": "{{REPO}}",
+    "event": "SessionStart",
+    "seq": 1,
+    "source": "startup"
+  }
+]

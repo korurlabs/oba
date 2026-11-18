@@ -1,0 +1,136 @@
+{
+  "account": true,
+  "branch": "feature/golden",
+  "description": "Secrets in prompts, command arguments, descriptions, commands and messages are redacted before the cut.",
+  "email": "dev@example.com",
+  "queue_edits": [],
+  "queue_files": {},
+  "remote": "git@github.com:senseylabs/village.git",
+  "repo_files": [],
+  "scenarios": [],
+  "session_id": "11111111-aaaa-4bbb-8ccc-00000000000a",
+  "ssh_aliases": {},
+  "state_files": {},
+  "steps": [
+    {
+      "at": "2026-10-01T09:00:00Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SessionStart",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000a",
+        "source": "startup",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:01Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "UserPromptSubmit",
+        "permission_mode": "default",
+        "prompt": "use kagi secrets set --personal KAYA_RECORDER_TOKEN=kyt_abcdefghijklmnopqrstuvwxyz0123456789ABCDEFG now",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000a",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:02Z",
+      "hook": {
+        "command_args": "--password hunter2 --token=t0k3n",
+        "command_name": "login",
+        "cwd": "{{REPO}}",
+        "hook_event_name": "UserPromptExpansion",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000a",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:03Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000a",
+        "tool_input": {
+          "command": "curl -H 'Authorization: Bearer abc.def' -u me --password 'my pass' https://x"
+        },
+        "tool_name": "Bash",
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:04Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000a",
+        "tool_input": {
+          "command": "mysql -p s3cret -h db && psql -p5432"
+        },
+        "tool_name": "Bash",
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:05Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000a",
+        "tool_input": {
+          "command": "export DB_PASSWORD=\"quoted secret\" MY_SECRET='single quoted' AWS_ACCESS_KEY=AKIA123"
+        },
+        "tool_name": "Bash",
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:06Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000a",
+        "tool_input": {
+          "description": "run with GITHUB_TOKEN=ghp_abc123",
+          "prompt": "Handoff: handoffs/x/y.md",
+          "subagent_type": "a"
+        },
+        "tool_name": "Agent",
+        "tool_use_id": "toolu_agent",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:07Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "Stop",
+        "last_assistant_message": "I set API_KEY=sk-123 and the Authorization: Basic Zm9v header\nnext line",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000a",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:08Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SessionEnd",
+        "permission_mode": "default",
+        "reason": "other",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000a",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    }
+  ],
+  "usage": null,
+  "worktree": null
+}

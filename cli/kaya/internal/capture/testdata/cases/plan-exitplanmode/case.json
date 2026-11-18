@@ -1,0 +1,118 @@
+{
+  "account": true,
+  "branch": "feature/golden",
+  "description": "ExitPlanMode captures the plan before the developer answers; an empty plan, a non-string plan and an unchanged plan capture nothing.",
+  "email": "dev@example.com",
+  "queue_edits": [],
+  "queue_files": {},
+  "remote": "git@github.com:senseylabs/village.git",
+  "repo_files": [],
+  "scenarios": [],
+  "session_id": "11111111-aaaa-4bbb-8ccc-000000000004",
+  "ssh_aliases": {},
+  "state_files": {},
+  "steps": [
+    {
+      "at": "2026-10-01T09:00:00Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SessionStart",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000004",
+        "source": "startup",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:01Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000004",
+        "tool_input": {
+          "plan": "   \n"
+        },
+        "tool_name": "ExitPlanMode",
+        "tool_use_id": "toolu_exitplanmode",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:02Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000004",
+        "tool_input": {
+          "plan": 42
+        },
+        "tool_name": "ExitPlanMode",
+        "tool_use_id": "toolu_exitplanmode",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:03Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000004",
+        "tool_input": {
+          "plan": "# Plan\n\n1. Do the thing with --token abcdef and TOKEN=xyz123\n"
+        },
+        "tool_name": "ExitPlanMode",
+        "tool_use_id": "toolu_exitplanmode",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:04Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000004",
+        "tool_input": {
+          "plan": "# Plan\n\n1. Do the thing with --token abcdef and TOKEN=xyz123\n"
+        },
+        "tool_name": "ExitPlanMode",
+        "tool_use_id": "toolu_exitplanmode",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:05Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000004",
+        "tool_input": {
+          "plan": "# Plan changed after"
+        },
+        "tool_name": "ExitPlanMode",
+        "tool_response": {
+          "success": true
+        },
+        "tool_use_id": "toolu_exitplanmode",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:06Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SessionEnd",
+        "permission_mode": "default",
+        "reason": "other",
+        "session_id": "11111111-aaaa-4bbb-8ccc-000000000004",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    }
+  ],
+  "usage": null,
+  "worktree": null
+}

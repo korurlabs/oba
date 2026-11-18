@@ -1,0 +1,33 @@
+# gitleaks configuration of the Oba repository: the default rules plus allowlist
+# entries for values that are not credentials. Keep every entry narrow, so that a
+# real key pasted next to one of these values is still reported.
+
+title = "Oba gitleaks configuration"
+
+[extend]
+useDefault = true
+
+# Test fixtures that hold fake tokens and keys on purpose.
+[[allowlists]]
+description = "Test fixtures with fake tokens and keys"
+paths = [
+    # Generated redaction cases of the Kaya CLI: secret-shaped inputs the redactor must mask.
+    '''cli/kaya/internal/redact/testdata/''',
+    # A user JWT with a dummy signature, used to assert that a user token is refused.
+    '''backend/src/test/java/com/korur/oba/apps/kaya/delivery/integration/DeliveryIT\.java''',
+    # A PKCS#1 PEM with an 8-character body, used to test that the PKCS#1 format is rejected.
+    '''backend/src/test/java/com/korur/oba/connect/github/client/GithubAppTokenProviderUnitTest\.java''',
+]
+
+# Lines that match a rule but carry no secret.
+[[allowlists]]
+description = "Lines that look like secrets but are not"
+regexTarget = "line"
+regexes = [
+    # Microsoft's published Azurite emulator key; it only works against a local Azurite.
+    '''AccountName=devstoreaccount1;''',
+    # A constant name followed by a blob name in BlobUrlRewriterUnitTest.
+    '''ACCOUNTING_CONTAINER_KEY, "invoice-''',
+    # The PEM marker constants of GithubConstant, without a key body.
+    '''PEM_PKCS8_(HEADER|FOOTER) = "-----''',
+]

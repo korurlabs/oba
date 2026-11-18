@@ -1,0 +1,20 @@
+{
+  "branch": "feature/golden",
+  "briefed_features": [
+    "kaya"
+  ],
+  "cwd": "{{REPO}}",
+  "ended": true,
+  "event_count": 15,
+  "features": [
+    "kaya"
+  ],
+  "first_prompt": "/deliver KAI-42 add the recorder",
+  "last_event_at": "2026-10-01T09:00:14Z",
+  "project": null,
+  "session_id": "fixture-session",
+  "session_title": "Recorder work",
+  "started_at": "2026-10-01T09:00:00Z",
+  "ticket": "KAI-42",
+  "title": "Recorder work"
+}

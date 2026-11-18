@@ -1,0 +1,98 @@
+{
+  "runs": [
+    {
+      "cursor": {
+        "acknowledgedSeq": 1,
+        "handoffs": {},
+        "plans": {}
+      },
+      "exit": 0,
+      "files": [
+        "config-release.json",
+        "cursor.json",
+        "events.jsonl",
+        "session.json",
+        "summary.json"
+      ],
+      "log": [],
+      "queueAfter": {},
+      "requests": [
+        {
+          "authorized": true,
+          "body": {
+            "machine": {
+              "account": {
+                "billingType": "stripe_subscription",
+                "emailAddress": "dev@example.com",
+                "organizationName": "Korur",
+                "organizationType": "claude_max",
+                "organizationUuid": "11111111-2222-3333-4444-555555555555",
+                "seatTier": "max_5x"
+              },
+              "claudeCodeVersion": "2.1.100",
+              "machineName": "golden-host"
+            },
+            "events": [
+              {
+                "at": "2026-10-01T09:00:00Z",
+                "branch": "feature/golden",
+                "cwd": "{{REPO}}",
+                "event": "SessionStart",
+                "seq": 1,
+                "source": "startup"
+              }
+            ],
+            "handoffs": [],
+            "plans": [],
+            "repository": {
+              "name": "village",
+              "remoteUrl": "git@github.com:senseylabs/village.git"
+            },
+            "sessionId": "11111111-aaaa-4bbb-8ccc-00000000000e",
+            "summary": {
+              "branch": "feature/golden",
+              "briefed_features": [],
+              "configRelease": {
+                "deliveredBy": "LAUNCHER",
+                "manifestSha256": null,
+                "number": null,
+                "state": "CACHED"
+              },
+              "cwd": "{{REPO}}",
+              "ended": false,
+              "event_count": 1,
+              "features": [],
+              "first_prompt": null,
+              "gitAuthorEmail": "dev@example.com",
+              "last_event_at": "2026-10-01T09:00:00Z",
+              "model": "claude-opus-5-5",
+              "project": null,
+              "session_title": null,
+              "started_at": "2026-10-01T09:00:00Z",
+              "ticket": null,
+              "title": null
+            },
+            "usage": {
+              "capturedAt": "2026-10-01T09:00:00Z",
+              "sevenDay": {
+                "resetsAt": "2026-10-07T09:00:00Z",
+                "utilization": 99.0
+              }
+            }
+          },
+          "contentType": "application/json",
+          "method": "POST",
+          "path": "/kaya/ingest/batches"
+        }
+      ],
+      "state": {
+        "token": "ok"
+      },
+      "stderr": [],
+      "stdout": "",
+      "token": "A",
+      "usageFileLeft": false
+    }
+  ],
+  "scenario": "bad-digest"
+}

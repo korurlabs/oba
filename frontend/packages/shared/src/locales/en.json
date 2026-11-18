@@ -1,0 +1,123 @@
+{
+  "logout": "Logout",
+  "columns": "Columns",
+  "save": "Save",
+  "reset": "Reset",
+  "resetTooltip": "Reset to default settings",
+  "selectOrganization": "Select organization",
+  "organizationSwitchFailed": "Could not switch organization. Please try again.",
+  "yourOrganizations": "Your organizations",
+  "createOrganization": "Create organization",
+  "personalWorkspace": "Personal",
+  "noResults": "No results found.",
+  "attachments": {
+    "upload": {
+      "dragAndDrop": "Drag and drop files here",
+      "dropHere": "Drop files here",
+      "supportedFormats": "PDF, PNG, JPG or JPEG",
+      "selectFiles": "Select files",
+      "uploading": "Uploading...",
+      "uploadFiles": "Upload {count, plural, one {# file} other {# files}}"
+    },
+    "list": {
+      "empty": "No attachments yet",
+      "loadError": "Couldn't load attachments. Please try again.",
+      "retry": "Try again",
+      "retrying": "Retrying...",
+      "open": "Open file",
+      "deleteConfirmTitle": "Delete attachment?",
+      "deleteConfirmDescription": "This action cannot be undone. The file will be permanently removed.",
+      "cancel": "Cancel",
+      "confirmDelete": "Delete"
+    },
+    "section": {
+      "title": "Attachments"
+    },
+    "preview": {
+      "download": "Download file",
+      "unsupportedType": "Preview not available for this file type"
+    },
+    "messages": {
+      "uploadSuccess": "Files uploaded successfully",
+      "uploadError": "Failed to upload files",
+      "deleteSuccess": "Attachment deleted",
+      "deleteError": "Failed to delete attachment",
+      "imageUploadError": "Couldn't upload image. Please try again.",
+      "imageSizeTooLarge": "Image is too large. Maximum size is 10 MB.",
+      "imageTypeBlocked": "This image type is not allowed.",
+      "orphanGcFailed": "Some removed images couldn't be cleaned up. They may still appear in storage.",
+      "fileTypeNotAllowed": "{name} is not a supported file type. Use PNG, JPG or PDF.",
+      "fileTooLarge": "{name} is larger than {max} MB and was not added.",
+      "batchTooLarge": "{name} would push the selection past the {max} MB total limit.",
+      "duplicateContent": "Already attached to another ticket: {names}. The server rejects duplicate file content, so remove these to continue."
+    }
+  },
+  "session": {
+    "expiredTitle": "Your session has expired",
+    "expiredDescription": "Your work on this page is preserved until you leave.",
+    "signInAction": "Sign in"
+  },
+  "search": "Search",
+  "common": {
+    "profile": "Profile",
+    "settings": "Settings",
+    "logOut": "Log out"
+  },
+  "organizationRoles": {
+    "OWNER": "Owner",
+    "ADMIN": "Admin",
+    "MEMBER": "Member",
+    "GUEST": "Guest"
+  },
+  "apps": {
+    "switchApp": "Switch app",
+    "kaizen": {
+      "name": "Kaizen",
+      "description": "Boards, tickets and sprints"
+    },
+    "kaya": {
+      "name": "Kaya",
+      "description": "Agent sessions and configuration"
+    },
+    "kalkan": {
+      "name": "Kalkan",
+      "description": "Compliance and documents"
+    },
+    "otak": {
+      "name": "Otak",
+      "description": "Relations, leads and customers"
+    },
+    "admin": {
+      "name": "Admin",
+      "description": "Organizations, members and invitations"
+    },
+    "account": {
+      "name": "Account",
+      "description": "Profile, settings and invitations"
+    }
+  },
+  "markdownEditor": {
+    "bold": "Bold",
+    "italic": "Italic",
+    "strikethrough": "Strikethrough",
+    "code": "Inline code",
+    "link": "Link",
+    "heading1": "Heading 1",
+    "heading2": "Heading 2",
+    "heading3": "Heading 3",
+    "bulletList": "Bullet list",
+    "orderedList": "Numbered list",
+    "taskList": "Task list",
+    "blockquote": "Blockquote",
+    "codeBlock": "Code block",
+    "horizontalRule": "Horizontal rule",
+    "uploadFile": "Upload file",
+    "dropFiles": "Drop files here",
+    "linkUrl": "Enter URL",
+    "linkUrlPlaceholder": "https://example.com",
+    "linkInsert": "Insert link",
+    "linkRemove": "Remove link",
+    "formatCode": "Format",
+    "imageDelete": "Delete image"
+  }
+}

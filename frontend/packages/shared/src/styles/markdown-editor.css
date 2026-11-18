@@ -1,0 +1,446 @@
+/**
+ * Styles of the shared Markdown editor (`@oba/shared/components/markdown-editor`).
+ *
+ * TipTap renders plain HTML elements inside `.wysiwyg-editor .tiptap`, which
+ * Tailwind's preflight strips of all list, heading and code styling, so the
+ * document needs its own rules. They read only the theme variables of the
+ * app (`--border`, `--muted`, `--primary`, `--success`, ...), so its palette
+ * carries over. An app that renders the editor imports this file in its
+ * global stylesheet: `@import "@oba/shared/styles/markdown-editor.css";`.
+ */
+
+/* ── WYSIWYG Markdown Editor (Tiptap) ──────────────────────────────── */
+
+.wysiwyg-editor {
+  display: flex;
+  flex-direction: column;
+}
+
+.wysiwyg-editor .tiptap {
+  padding: 0.75rem;
+  min-height: 120px;
+  height: 100%;
+  flex: 1;
+  outline: none;
+  border: none;
+  font-size: 0.875rem;
+  line-height: 1.625;
+}
+
+.wysiwyg-editor .tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--muted-foreground);
+  pointer-events: none;
+  height: 0;
+}
+
+/* Headings */
+.wysiwyg-editor .tiptap h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
+.wysiwyg-editor .tiptap h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 0.875rem;
+  margin-bottom: 0.375rem;
+  line-height: 1.35;
+}
+
+.wysiwyg-editor .tiptap h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-top: 0.75rem;
+  margin-bottom: 0.25rem;
+  line-height: 1.4;
+}
+
+.wysiwyg-editor .tiptap h4,
+.wysiwyg-editor .tiptap h5,
+.wysiwyg-editor .tiptap h6 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Lists */
+.wysiwyg-editor .tiptap ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin: 0.375rem 0;
+}
+
+.wysiwyg-editor .tiptap ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin: 0.375rem 0;
+}
+
+.wysiwyg-editor .tiptap li {
+  margin: 0.125rem 0;
+}
+
+.wysiwyg-editor .tiptap li p {
+  margin: 0;
+}
+
+/* Task lists */
+.wysiwyg-editor .tiptap ul[data-type="taskList"] {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.wysiwyg-editor .tiptap ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.wysiwyg-editor .tiptap ul[data-type="taskList"] li > label {
+  flex-shrink: 0;
+  margin-top: 0.2rem;
+}
+
+.wysiwyg-editor .tiptap ul[data-type="taskList"] li > label input[type="checkbox"] {
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--border);
+  border-radius: 0.25rem;
+  cursor: pointer;
+  position: relative;
+  display: block;
+}
+
+.wysiwyg-editor .tiptap ul[data-type="taskList"] li > label input[type="checkbox"]:checked {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.wysiwyg-editor .tiptap ul[data-type="taskList"] li > label input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 0px;
+  width: 5px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.wysiwyg-editor .tiptap ul[data-type="taskList"] li[data-checked="true"] > div > p {
+  text-decoration: line-through;
+  color: var(--muted-foreground);
+}
+
+/* Blockquote */
+.wysiwyg-editor .tiptap blockquote {
+  border-left: 3px solid var(--border);
+  padding-left: 1rem;
+  margin: 0.5rem 0;
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
+/* Code */
+.wysiwyg-editor .tiptap code {
+  background-color: var(--muted);
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.375rem;
+  font-size: 0.8125rem;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+.wysiwyg-editor .tiptap pre {
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  padding: 0.75rem 1rem;
+  margin: 0.5rem 0;
+  overflow-x: auto;
+}
+
+.wysiwyg-editor .tiptap pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  font-size: 0.8125rem;
+  color: var(--foreground);
+}
+
+/* Code block wrapper with language selector (NodeView) */
+.wysiwyg-editor .code-block-wrapper {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  padding: 0;
+  margin: 0.5rem 0;
+  overflow: hidden;
+}
+
+.wysiwyg-editor .code-block-wrapper code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  font-size: 0.8125rem;
+  color: var(--foreground);
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+}
+
+.code-block-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  padding: 0.375rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  background-color: color-mix(in srgb, var(--muted) 100%, var(--border) 20%);
+}
+
+.code-block-content {
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+}
+
+.code-block-format-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.375rem;
+  height: 1.375rem;
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  outline: none;
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.code-block-format-button:hover:not(:disabled) {
+  color: var(--foreground);
+  border-color: var(--ring);
+  background: var(--accent);
+}
+
+.code-block-format-button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.code-block-format-success {
+  color: var(--success) !important;
+  border-color: var(--success) !important;
+}
+
+.code-block-format-error {
+  color: var(--error) !important;
+  border-color: var(--error) !important;
+}
+
+.code-block-language-select {
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.6875rem;
+  line-height: 1.25rem;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  outline: none;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+.code-block-language-select option {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+.code-block-language-select:hover {
+  color: var(--foreground);
+  border-color: var(--ring);
+  background: var(--accent);
+}
+
+.code-block-language-select:focus {
+  border-color: var(--primary);
+  background: var(--accent);
+}
+
+/* Syntax highlighting tokens (lowlight/highlight.js)
+   Uses colors that provide readable contrast on both light (--muted ~#F5F5F5) and dark (--muted ~hsl(0,0%,18%)) backgrounds. */
+.wysiwyg-editor .tiptap .hljs-comment,
+.wysiwyg-editor .tiptap .hljs-quote {
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
+.wysiwyg-editor .tiptap .hljs-keyword,
+.wysiwyg-editor .tiptap .hljs-selector-tag,
+.wysiwyg-editor .tiptap .hljs-type {
+  color: oklch(0.55 0.2 300); /* muted purple — readable on both backgrounds */
+}
+
+.wysiwyg-editor .tiptap .hljs-string,
+.wysiwyg-editor .tiptap .hljs-addition {
+  color: oklch(0.52 0.15 155); /* muted green */
+}
+
+.wysiwyg-editor .tiptap .hljs-number,
+.wysiwyg-editor .tiptap .hljs-literal {
+  color: oklch(0.58 0.16 50); /* muted orange */
+}
+
+.wysiwyg-editor .tiptap .hljs-built_in,
+.wysiwyg-editor .tiptap .hljs-title,
+.wysiwyg-editor .tiptap .hljs-name,
+.wysiwyg-editor .tiptap .hljs-section {
+  color: oklch(0.55 0.15 250); /* muted blue */
+}
+
+.wysiwyg-editor .tiptap .hljs-attr,
+.wysiwyg-editor .tiptap .hljs-attribute {
+  color: oklch(0.55 0.12 200); /* muted teal */
+}
+
+.wysiwyg-editor .tiptap .hljs-variable,
+.wysiwyg-editor .tiptap .hljs-template-variable {
+  color: oklch(0.55 0.18 10); /* muted red */
+}
+
+.wysiwyg-editor .tiptap .hljs-deletion {
+  color: oklch(0.55 0.18 10);
+  background-color: oklch(0.55 0.18 10 / 0.1);
+}
+
+.wysiwyg-editor .tiptap .hljs-meta {
+  color: oklch(0.58 0.14 85); /* muted yellow-gold */
+}
+
+.wysiwyg-editor .tiptap .hljs-tag {
+  color: var(--foreground);
+}
+
+.wysiwyg-editor .tiptap .hljs-symbol,
+.wysiwyg-editor .tiptap .hljs-bullet,
+.wysiwyg-editor .tiptap .hljs-link {
+  color: oklch(0.55 0.12 340); /* muted pink */
+}
+
+.wysiwyg-editor .tiptap .hljs-params {
+  color: var(--foreground);
+}
+
+.wysiwyg-editor .tiptap .hljs-regexp {
+  color: oklch(0.55 0.15 330); /* muted magenta */
+}
+
+/* Horizontal rule */
+.wysiwyg-editor .tiptap hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1rem 0;
+}
+
+/* Links */
+.wysiwyg-editor .tiptap a {
+  color: var(--primary);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.wysiwyg-editor .tiptap a:hover {
+  opacity: 0.8;
+}
+
+/* Images */
+.wysiwyg-editor .tiptap img {
+  max-width: 100%;
+  border-radius: 0.375rem;
+  margin: 0.5rem 0;
+}
+
+/* Strong / Em / Strikethrough */
+.wysiwyg-editor .tiptap strong {
+  font-weight: 600;
+}
+
+.wysiwyg-editor .tiptap em {
+  font-style: italic;
+}
+
+.wysiwyg-editor .tiptap s {
+  text-decoration: line-through;
+}
+
+/* Paragraph spacing */
+.wysiwyg-editor .tiptap p {
+  margin: 0.25rem 0;
+}
+
+.wysiwyg-editor .tiptap > *:first-child {
+  margin-top: 0;
+}
+
+.wysiwyg-editor .tiptap > *:last-child {
+  margin-bottom: 0;
+}
+
+/* Tables (GFM) */
+.wysiwyg-editor .tiptap .tableWrapper {
+  margin: 0.5rem 0;
+  overflow-x: auto;
+}
+
+.wysiwyg-editor .tiptap table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+  margin: 0.5rem 0;
+  overflow: hidden;
+}
+
+.wysiwyg-editor .tiptap .tableWrapper table {
+  margin: 0;
+}
+
+.wysiwyg-editor .tiptap th,
+.wysiwyg-editor .tiptap td {
+  border: 1px solid var(--border);
+  padding: 0.375rem 0.625rem;
+  vertical-align: top;
+  text-align: left;
+  min-width: 4rem;
+  position: relative;
+}
+
+.wysiwyg-editor .tiptap th {
+  background-color: var(--muted);
+  font-weight: 600;
+}
+
+.wysiwyg-editor .tiptap th > p,
+.wysiwyg-editor .tiptap td > p {
+  margin: 0;
+}
+
+.wysiwyg-editor .tiptap .selectedCell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: color-mix(in srgb, var(--primary) 12%, transparent);
+  pointer-events: none;
+}

@@ -1,0 +1,540 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <!-- Spring Boot parent POM that provides:
+            - Centralized dependency versions
+            - Plugin management
+            - Build configuration defaults
+            Ensures consistency across Spring Boot modules and simplifies version management.
+            Date: Oct 23, 2025 -->
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.7</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+    <groupId>com.korur</groupId>
+    <artifactId>oba-api</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>oba-api</name>
+    <description>Oba platform backend</description>
+
+    <properties>
+        <java.version>25</java.version>
+        <lombok.version>1.18.42</lombok.version>
+        <mapstruct.version>1.6.3</mapstruct.version>
+        <lombok.mapstruct.binding.version>0.2.0</lombok.mapstruct.binding.version>
+        <flyway.version>11.20.3</flyway.version>
+        <spring-ai.version>1.0.2</spring-ai.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <!-- Spring AI BOM — centralizes versions for all Spring AI modules.
+                     Date: Dec 08, 2025 -->
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+
+        <!-- =======================
+            Spring Boot Starters START
+        ======================= -->
+
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-actuator -->
+        <dependency>
+            <!-- Provides production-ready features such as monitoring, metrics, and health checks.
+                Used to expose Actuator endpoints for service observability and diagnostics.
+                Date: Managed via parent pom -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa -->
+        <dependency>
+            <!-- Enables Spring Data JPA for ORM and repository abstraction using Hibernate.
+                Powers all JPA-based repositories across shrine, connect, and app domains.
+                Date: Managed via parent pom -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-security -->
+        <dependency>
+            <!-- Integrates Spring Security, supporting authentication and authorization logic.
+                Enables OAuth2 and role-based access across controllers and resources.
+                Date: Managed via parent pom -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-oauth2-resource-server -->
+        <dependency>
+            <!-- Provides OAuth2 Resource Server features to validate JWT tokens.
+                Used to protect REST APIs with Keycloak-issued JWTs.
+                Date: Managed via parent pom -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-validation -->
+        <dependency>
+            <!-- Integrates Java Bean Validation (JSR-380) using Hibernate Validator.
+                Used for DTO and form validation throughout controller layers.
+                Date: Managed via parent pom -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web -->
+        <dependency>
+            <!-- Enables building REST APIs and web applications using embedded Tomcat.
+                Foundation for all HTTP endpoints in the Village application.
+                Date: Managed via parent pom -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-websocket -->
+        <dependency>
+            <!-- Enables WebSocket endpoints with STOMP messaging and the in-memory simple broker.
+                Carries the live chat signals, typing and presence of the Kaizen Updates channel.
+                Date: Managed via parent pom -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-thymeleaf -->
+        <dependency>
+            <!-- Enables Thymeleaf template engine integration.
+                Used for rendering HTML email templates in the notification domain.
+                Date: Managed via parent pom -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.springframework.retry/spring-retry -->
+        <dependency>
+            <!-- Provides declarative retry logic for transient failures (e.g., network hiccups,
+                temporary unavailability of downstream services like Keycloak).
+                Date: May 16, 2025 -->
+            <groupId>org.springframework.retry</groupId>
+            <artifactId>spring-retry</artifactId>
+            <version>2.0.13</version>
+        </dependency>
+
+        <!-- =======================
+            Spring Boot Starters END
+        ======================= -->
+
+        <!-- =======================
+            Test Dependencies START
+        ======================= -->
+
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-test -->
+        <dependency>
+            <!-- Test starter that includes JUnit, Mockito, Spring TestContext framework, and AssertJ.
+                Scope is test-only.
+                Date: Managed via parent pom -->
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.springframework.security/spring-security-test -->
+        <dependency>
+            <!-- Spring Security test support for method security, JWT mocking, etc.
+                Date: Managed via parent pom -->
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- =======================
+            Test Dependencies END
+        ======================= -->
+
+        <!-- =======================
+            Documentation Dependencies START
+        ======================= -->
+
+        <!-- https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-ui -->
+        <dependency>
+            <!-- SpringDoc OpenAPI integration for Spring Web MVC.
+                Auto-generates OpenAPI documentation and Swagger UI from annotated controllers.
+                Date: Dec 31, 2025 -->
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.8.15</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-annotations -->
+        <dependency>
+            <!-- Swagger Annotations for documenting REST APIs.
+                Used for annotating controllers with @Operation, @ApiResponse, etc.
+                Date: Jan 16, 2026 -->
+            <groupId>io.swagger.core.v3</groupId>
+            <artifactId>swagger-annotations</artifactId>
+            <version>2.2.37</version>
+        </dependency>
+
+        <!-- =======================
+            Documentation Dependencies END
+        ======================= -->
+
+        <!-- =======================
+            Cloud & Networking Dependencies START
+        ======================= -->
+
+        <!-- https://mvnrepository.com/artifact/com.azure/azure-storage-blob -->
+        <dependency>
+            <!-- Azure Blob Storage SDK for Java.
+                Enables file upload/download to Azure blob containers.
+                Pinned to 12.32.0 (API version 2025-11-05) for Azurite compatibility.
+                Azurite 3.35.0 does not support API version 2026-02-06 used by 12.33.x+. -->
+            <groupId>com.azure</groupId>
+            <artifactId>azure-storage-blob</artifactId>
+            <version>12.32.0</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.microsoft.graph/microsoft-graph -->
+        <dependency>
+            <!-- Microsoft Graph SDK for Java.
+                Enables access to Office 365 APIs (emails, users, calendar) via Graph API.
+                Date: Feb 07, 2026 -->
+            <groupId>com.microsoft.graph</groupId>
+            <artifactId>microsoft-graph</artifactId>
+            <version>6.61.0</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.azure/azure-identity -->
+        <dependency>
+            <!-- Azure Identity SDK for authentication with Azure services.
+                Used for acquiring tokens via client credentials or managed identities.
+                Date: Jan 17, 2026 -->
+            <groupId>com.azure</groupId>
+            <artifactId>azure-identity</artifactId>
+            <version>1.18.0</version>
+        </dependency>
+
+        <!-- Spring AI Starters for multi-model intelligence layer -->
+        <dependency>
+            <!-- Anthropic Claude AI provider via Spring AI.
+                 Used for conversation, task generation, and ticket analysis.
+                 Date: Feb 21, 2026 -->
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-anthropic</artifactId>
+        </dependency>
+
+        <dependency>
+            <!-- OpenAI-compatible provider via Spring AI.
+                 Used for Grok/xAI (exposes OpenAI-compatible API).
+                 Date: Feb 21, 2026 -->
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-openai</artifactId>
+        </dependency>
+
+        <dependency>
+            <!-- Mistral AI provider via Spring AI.
+                 Used for threat analysis use-cases.
+                 Date: Feb 21, 2026 -->
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-mistral-ai</artifactId>
+        </dependency>
+
+        <dependency>
+            <!-- Deepseek AI provider via Spring AI.
+                 Used for scan analysis use-cases.
+                 Date: Feb 21, 2026 -->
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-deepseek</artifactId>
+        </dependency>
+
+        <!-- =======================
+            Cloud & Networking Dependencies END
+        ======================= -->
+
+        <!-- =======================
+            Database Dependencies START
+        ======================= -->
+
+        <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+        <dependency>
+            <!-- PostgreSQL JDBC driver.
+                Date: Managed via parent pom -->
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-core -->
+        <dependency>
+            <!-- Flyway Core - Database migration framework.
+                Enables versioned database migrations with rollback capabilities.
+                Date: Jan 27, 2026 -->
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>${flyway.version}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-database-postgresql -->
+        <dependency>
+            <!-- Flyway PostgreSQL-specific extensions and drivers.
+                Provides enhanced PostgreSQL support including advanced data types and JSON/JSONB handling.
+                Date: Jan 27, 2026 -->
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+            <version>${flyway.version}</version>
+        </dependency>
+
+        <!-- =======================
+            Database Dependencies END
+        ======================= -->
+
+        <!-- =======================
+            Development Tools Dependencies START
+        ======================= -->
+
+        <!-- https://mvnrepository.com/artifact/org.mapstruct/mapstruct -->
+        <dependency>
+            <!-- MapStruct annotation-based code generator for type-safe bean mappers.
+                Used in all *Mapper classes across domain modules.
+                Date: Nov 09, 2024 -->
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${mapstruct.version}</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
+        <dependency>
+            <!-- Lombok eliminates boilerplate Java code via annotations like @Getter, @Builder.
+                Used throughout DTOs, entities, and service layers.
+                Date: Jan 18, 2026 -->
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.mapstruct/mapstruct-processor -->
+        <dependency>
+            <!-- MapStruct annotation processor for compile-time code generation.
+                Generates mapping implementations based on mapper interfaces.
+                Date: Nov 09, 2024 -->
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+            <version>${mapstruct.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok-mapstruct-binding -->
+        <dependency>
+            <!-- Enables Lombok + MapStruct compatibility.
+                Prevents annotation processing conflicts between Lombok and MapStruct.
+                Date: Dec 04, 2020 -->
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok-mapstruct-binding</artifactId>
+            <version>${lombok.mapstruct.binding.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/commons-codec/commons-codec -->
+        <dependency>
+            <!-- Apache Commons Codec: Provides encoders and decoders for various formats.
+                Used for hashing and encoding operations (SHA-256, Base64, etc.).
+                Date: Jan 23, 2026 -->
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.21.0</version>
+        </dependency>
+
+        <!-- =======================
+            Development Tools Dependencies END
+        ======================= -->
+
+        <!-- =======================
+            Image Dependencies START
+        ======================= -->
+
+        <!-- https://mvnrepository.com/artifact/com.twelvemonkeys.imageio/imageio-webp -->
+        <dependency>
+            <!-- TwelveMonkeys WebP plugin for javax.imageio, registered through the service loader.
+                The JDK ships no WebP reader; attachment uploads read the image header for width and height.
+                Date: Nov 06, 2026 -->
+            <groupId>com.twelvemonkeys.imageio</groupId>
+            <artifactId>imageio-webp</artifactId>
+            <version>3.15.3</version>
+        </dependency>
+
+        <!-- =======================
+            Image Dependencies END
+        ======================= -->
+
+        <!-- =======================
+            Logging Dependencies
+        ======================= -->
+
+        <!-- https://mvnrepository.com/artifact/net.logstash.logback/logstash-logback-encoder -->
+        <dependency>
+            <!-- Logstash Logback Encoder: Serializes log events as JSON (NDJSON).
+                Provides LogstashEncoder, UuidJsonProvider, and MDC field whitelisting
+                for structured logging output.
+                Date: Feb 28, 2026 -->
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>8.0</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.fasterxml.uuid/java-uuid-generator -->
+        <dependency>
+            <!-- Java UUID Generator: Required by LogstashEncoder's UuidJsonProvider
+                for generating unique log event IDs.
+                Date: Feb 28, 2026 -->
+            <groupId>com.fasterxml.uuid</groupId>
+            <artifactId>java-uuid-generator</artifactId>
+            <version>5.2.0</version>
+        </dependency>
+
+        <!-- =======================
+            Logging Dependencies END
+        ======================= -->
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Spring Boot Plugin -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+            <!-- Flyway Plugin -->
+            <plugin>
+                <!-- Flyway Maven Plugin.
+                    Provides database migration management through Maven goals during build time.
+                    Enables flyway:migrate, flyway:clean, flyway:info, etc.
+                    Date: Jan 27, 2026 -->
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-maven-plugin</artifactId>
+                <version>${flyway.version}</version>
+            </plugin>
+
+            <!-- Maven Compiler Plugin -->
+            <plugin>
+                <!-- Configures Java compilation with annotation processor paths for Lombok and MapStruct.
+                    Date: Jan 27, 2026 -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.15.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <annotationProcessorPaths>
+                        <annotationProcessorPath>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </annotationProcessorPath>
+                        <annotationProcessorPath>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>${mapstruct.version}</version>
+                        </annotationProcessorPath>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+
+            <!-- Surefire Plugin -->
+            <plugin>
+                <!-- Unit tests (*Test) run in one forked JVM per CPU core: they are Mockito tests that share
+                    no database or server, and separate JVMs keep static state (clocks, mockStatic, locale)
+                    of one class away from another. Their output goes to target/surefire-reports/*-output.txt.
+                    Version managed via parent pom -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <forkCount>1C</forkCount>
+                    <reuseForks>true</reuseForks>
+                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                </configuration>
+            </plugin>
+
+            <!-- Failsafe Plugin -->
+            <plugin>
+                <!-- Integration tests (*IT) run in `mvn verify`, never in `mvn test`, and are never skipped.
+                    `mvn test`   : unit tests only; needs nothing running.
+                    `mvn verify` : unit tests, then every *IT. Each *IT starts the whole application, so first
+                                   start the stack (`docker compose up -d`), then run `mvn verify` under
+                                   `kagi run` with /oba/api, environment testing. CI does the same.
+                    The integration tests run one after another in one JVM: they share one database and
+                    commit real transactions, and the race and scheduler tests depend on running alone.
+                    Their output goes to target/failsafe-reports/*-output.txt.
+                    Version managed via parent pom -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Jacoco Plugin -->
+            <plugin>
+                <!-- Automatically generates HTML and XML test coverage reports.
+                    SonarCloud consumes coverage data exclusively via the XML report (jacoco.xml).
+                    A run that needs no coverage skips the agent and the report with -Djacoco.skip=true.
+                    Date: Oct 09, 2025 -->
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.14</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <formats>
+                                <format>XML</format>
+                            </formats>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

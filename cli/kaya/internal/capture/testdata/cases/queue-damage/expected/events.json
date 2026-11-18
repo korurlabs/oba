@@ -1,0 +1,33 @@
+[
+  {
+    "at": "2026-10-01T09:00:00Z",
+    "branch": "feature/golden",
+    "cwd": "{{REPO}}",
+    "event": "SessionStart",
+    "seq": 1,
+    "source": "startup"
+  },
+  {
+    "at": "2026-10-01T09:00:01Z",
+    "cwd": "{{REPO}}",
+    "event": "UserPromptSubmit",
+    "prompt": "one",
+    "seq": 2
+  },
+  {
+    "$raw": "this is not json"
+  },
+  {
+    "seq": "x"
+  },
+  {
+    "at": "2026-10-01T09:00:04Z",
+    "cwd": "{{REPO}}",
+    "event": "UserPromptSubmit",
+    "prompt": "four",
+    "seq": 5
+  },
+  {
+    "$raw": "{\"seq\":6,\"at\":\"2026-10-01T09:00:09Z\",\"event\":\"Stop\""
+  }
+]

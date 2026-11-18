@@ -1,0 +1,170 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Oba API",
+    "version": "v1"
+  },
+  "paths": {},
+  "components": {
+    "schemas": {
+      "IcpCreateRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "industry"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "industry": {
+            "type": "string",
+            "enum": [
+              "SOFTWARE",
+              "MANUFACTURING",
+              "LOGISTICS",
+              "OTHER"
+            ]
+          },
+          "country": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Country"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "companySizeMin": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "SIZE_1_10",
+              "SIZE_11_50",
+              "SIZE_51_200",
+              null
+            ]
+          },
+          "companySizeMax": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "SIZE_1_10",
+              "SIZE_11_50",
+              "SIZE_51_200",
+              null
+            ]
+          },
+          "targetPersonRole": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "CEO",
+              "CISO",
+              null
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 10000
+          }
+        }
+      },
+      "IcpUpdateRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "industry"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "industry": {
+            "type": "string",
+            "enum": [
+              "SOFTWARE",
+              "MANUFACTURING",
+              "LOGISTICS",
+              "OTHER"
+            ]
+          },
+          "country": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Country"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "companySizeMin": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "SIZE_1_10",
+              "SIZE_11_50",
+              "SIZE_51_200",
+              null
+            ]
+          },
+          "companySizeMax": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "SIZE_1_10",
+              "SIZE_11_50",
+              "SIZE_51_200",
+              null
+            ]
+          },
+          "targetPersonRole": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "CEO",
+              "CISO",
+              null
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 10000
+          }
+        }
+      },
+      "Country": {
+        "type": "string",
+        "enum": [
+          "NL",
+          "DE",
+          "BE"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "extends": "@oba/typescript-config/nextjs.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@oba/shared/*": ["./src/*"]
+    },
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
+  },
+  "include": [".", "src/types/**/*.d.ts"],
+  "exclude": ["node_modules"]
+}

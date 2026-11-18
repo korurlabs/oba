@@ -1,0 +1,1134 @@
+{
+  "metadata": {
+    "description": "Organizasyonunuzun ilişkileri, potansiyel müşterileri ve müşterileri"
+  },
+  "sidebar": {
+    "navigation": "Gezinme",
+    "relations": "İlişkiler",
+    "battlefield": "Battlefield",
+    "language": "Dil",
+    "icps": "ICP'ler",
+    "outreaches": "Erişimler",
+    "templates": "Şablonlar",
+    "events": "Etkinlikler"
+  },
+  "errors": {
+    "somethingWentWrong": "Bir şeyler yanlış gitti",
+    "unexpectedError": "Beklenmeyen bir hata oluştu. Lütfen sayfayı yenilemeyi deneyin veya sorun devam ederse destek ile iletişime geçin.",
+    "tryAgain": "Tekrar Dene",
+    "goHome": "Ana Sayfaya Git",
+    "errorDetails": "Hata Detayları (Sadece Geliştirme):",
+    "notFound": {
+      "title": "Sayfa bulunamadı",
+      "description": "Bu sayfa yok ya da bu sayfaya erişiminiz yok. Bağlantıyı kontrol edin veya ana sayfaya dönün."
+    },
+    "signInFailed": {
+      "title": "Giriş başarısız oldu",
+      "description": "Girişiniz tamamlanamadı. Tekrar deneyin; sorun devam ederse destek ile iletişime geçin.",
+      "action": "Tekrar giriş yap",
+      "code": "Hata kodu: {code}"
+    }
+  },
+  "organizationGate": {
+    "title": "Henüz bir organizasyon yok",
+    "description": "Otak bir organizasyonun ilişkilerini tutar. Önce hesabınızda bir organizasyon oluşturun veya birine katılın.",
+    "action": "Hesabınızı açın"
+  },
+  "relations": {
+    "title": "İlişkiler",
+    "subtitle": "Organizasyonunuzun satış yaptığı, satın aldığı veya kazanmaya çalıştığı şirketler.",
+    "eyebrow": "Şirketler",
+    "new": "Yeni ilişki",
+    "loadError": "İlişkiler yüklenemedi.",
+    "reloadError": "Liste yenilenemedi; güncel olmayabilir.",
+    "emptyFiltered": "Bu filtrelere uyan ilişki yok.",
+    "emptyFilteredHint": "Aramayı veya filtreleri değiştirin ya da tüm listeyi görmek için temizleyin.",
+    "emptyByTab": {
+      "leads": "Henüz açık potansiyel müşteri yok.",
+      "customers": "Henüz müşteri yok.",
+      "suppliers": "Henüz tedarikçi yok."
+    },
+    "emptyHintByTab": {
+      "leads": "Kazanmak istediğiniz bir şirketi ekleyin ve ilk temastan teklife kadar takip edin.",
+      "customers": "Satış yaptığınız bir şirketi ekleyin veya kazanılan bir potansiyel müşteriyi müşteri olarak işaretleyin.",
+      "suppliers": "Kuruluşunuzun satın aldığı bir şirketi ekleyin."
+    },
+    "noOwner": "Sahibi yok",
+    "noValue": "Beklenen değer yok",
+    "tabs": {
+      "leads": "Potansiyel müşteriler",
+      "customers": "Müşteriler",
+      "suppliers": "Tedarikçiler"
+    },
+    "tabsLabel": "İlişki türü",
+    "types": {
+      "LEAD": "Potansiyel müşteri",
+      "SUPPLIER": "Tedarikçi",
+      "CUSTOMER": "Müşteri"
+    },
+    "stages": {
+      "NEW": "Yeni",
+      "QUALIFIED": "Nitelikli",
+      "CONTACTED": "İletişime geçildi",
+      "WARM": "Sıcak",
+      "PROPOSAL": "Teklif",
+      "CLOSED": "Kapandı (kazanıldı)",
+      "LOST": "Kaybedildi",
+      "PARKED": "Beklemede",
+      "DIRECT": "Doğrudan"
+    },
+    "sizes": {
+      "SIZE_1_10": "1-10 çalışan",
+      "SIZE_11_50": "11-50 çalışan",
+      "SIZE_51_200": "51-200 çalışan",
+      "SIZE_201_500": "201-500 çalışan",
+      "SIZE_501_1000": "501-1.000 çalışan",
+      "SIZE_1001_5000": "1.001-5.000 çalışan",
+      "SIZE_5001_PLUS": "5.001+ çalışan"
+    },
+    "sources": {
+      "NETWORK": "Ağ",
+      "LINKEDIN": "LinkedIn",
+      "REFERRAL": "Tavsiye",
+      "INBOUND": "Gelen talep",
+      "PARTNER": "İş ortağı",
+      "EVENT": "Etkinlik",
+      "RESEARCH": "Araştırma",
+      "OTHER": "Diğer"
+    },
+    "columns": {
+      "name": "Ad",
+      "stage": "Aşama",
+      "owner": "Sahibi",
+      "expectedValue": "Beklenen değer",
+      "updatedAt": "Güncellendi",
+      "mainContact": "Kişi",
+      "type": "Tür",
+      "contactMail": "Kişi e-postası",
+      "companyMail": "Şirket e-postası"
+    },
+    "filters": {
+      "searchPlaceholder": "Ada göre ara",
+      "stagePlaceholder": "Açık aşamalar",
+      "stagePlaceholderCustomers": "Her aşama",
+      "ownerPlaceholder": "Herhangi bir sahip",
+      "clear": "Filtreleri temizle",
+      "ownersLoadError": "Sahipler yüklenemedi.",
+      "searchLabel": "Ara",
+      "stageLabel": "Aşama",
+      "ownerLabel": "Sahip",
+      "eventLabel": "Etkinlik",
+      "eventPlaceholder": "Herhangi bir etkinlik",
+      "eventsLoadError": "Etkinlikler yüklenemedi."
+    },
+    "form": {
+      "sections": {
+        "company": "Şirket",
+        "address": "Adres",
+        "sales": "Satış"
+      },
+      "name": "Ad",
+      "type": "Tür",
+      "typePlaceholder": "Bir tür seçin",
+      "website": "Web sitesi",
+      "websitePlaceholder": "https://ornek.com",
+      "sector": "Sektör",
+      "size": "Büyüklük",
+      "sizePlaceholder": "Bir büyüklük seçin",
+      "registrationNumber": "Sicil numarası",
+      "vatNumber": "Vergi numarası",
+      "street": "Sokak",
+      "postalCode": "Posta kodu",
+      "city": "Şehir",
+      "country": "Ülke",
+      "countryPlaceholder": "Bir ülke seçin",
+      "countrySearch": "Ülke ara...",
+      "owner": "Sahibi",
+      "ownerPlaceholder": "Bir sahip seçin",
+      "ownersLoadError": "Üyeler yüklenemedi.",
+      "ownerNoOtakAccess": "Otak erişimi yok. Organizasyonun sahibi veya yöneticisi Otak erişimini Admin'den verebilir.",
+      "icp": "ICP",
+      "icpPlaceholder": "Bir ICP seçin",
+      "icpsLoadError": "ICP'ler yüklenemedi.",
+      "source": "Kaynak",
+      "sourcePlaceholder": "Bir kaynak seçin",
+      "expectedValue": "Beklenen değer (EUR)",
+      "notes": "Notlar",
+      "create": "İlişki oluştur",
+      "creating": "Oluşturuluyor...",
+      "save": "Değişiklikleri kaydet",
+      "saving": "Kaydediliyor...",
+      "cancel": "İptal",
+      "discard": "Değişiklikleri geri al",
+      "unsavedChanges": "Kaydedilmemiş değişiklikler",
+      "errors": {
+        "nameRequired": "Ad zorunludur",
+        "nameMax": "Ad en fazla 200 karakter olabilir",
+        "typeRequired": "Tür zorunludur",
+        "websiteMax": "Web sitesi en fazla 500 karakter olabilir",
+        "websiteInvalid": "http:// veya https:// ile başlayan bir web adresi girin",
+        "sectorMax": "Sektör en fazla 100 karakter olabilir",
+        "registrationNumberMax": "Sicil numarası en fazla 50 karakter olabilir",
+        "vatNumberMax": "Vergi numarası en fazla 50 karakter olabilir",
+        "streetMax": "Sokak en fazla 200 karakter olabilir",
+        "postalCodeMax": "Posta kodu en fazla 20 karakter olabilir",
+        "cityMax": "Şehir en fazla 100 karakter olabilir",
+        "expectedValueNegative": "Beklenen değer negatif olamaz",
+        "expectedValueTooLarge": "Beklenen değer 10.000.000.000'dan küçük olmalıdır",
+        "expectedValueDecimals": "Beklenen değer en fazla iki ondalık basamak içerebilir",
+        "notesMax": "Notlar en fazla 10.000 karakter olabilir"
+      },
+      "event": "Etkinlik",
+      "eventPlaceholder": "Bir etkinlik seçin",
+      "eventsLoadError": "Etkinlikler yüklenemedi."
+    },
+    "newPage": {
+      "title": "Yeni ilişki",
+      "subtitle": "Organizasyonunuzun iş yaptığı bir şirket ekleyin.",
+      "back": "İlişkilere dön"
+    },
+    "detail": {
+      "title": "İlişki",
+      "back": "İlişkilere dön",
+      "backTo": {
+        "leads": "Potansiyel müşterilere dön",
+        "customers": "Müşterilere dön",
+        "suppliers": "Tedarikçilere dön"
+      },
+      "details": "Ayrıntılar",
+      "timestamps": "Oluşturuldu {created} · Güncellendi {updated}",
+      "loading": "İlişki yükleniyor",
+      "loadError": "İlişki yüklenemedi.",
+      "notFoundTitle": "İlişki bulunamadı",
+      "notFoundDescription": "Bu ilişki yok veya başka bir organizasyona ait.",
+      "delete": "İlişkiyi sil",
+      "deleting": "Siliniyor...",
+      "deleteTitle": "İlişkiyi sil",
+      "deleteConfirm": "{name} kişileriyle birlikte silinsin mi? Bu işlem geri alınamaz.",
+      "cancel": "İptal",
+      "event": "Etkinlik: {name}",
+      "eventUnnamed": "Etkinlik"
+    },
+    "notesCard": {
+      "title": "Notlar",
+      "empty": "Henüz not yok."
+    },
+    "toast": {
+      "created": "İlişki oluşturuldu",
+      "updated": "İlişki kaydedildi",
+      "deleted": "İlişki silindi",
+      "saveError": "İlişki kaydedilemedi",
+      "deleteError": "İlişki silinemedi",
+      "typeChangeError": "Tür değiştirilemedi",
+      "moveError": "Kart taşınamadı; eski sütununa geri alındı"
+    },
+    "errors": {
+      "notFound": "Bu ilişki artık yok.",
+      "icpNotFound": "Bu ICP artık yok.",
+      "ownerNotMember": "Sahip, organizasyonun aktif bir üyesi olmalıdır.",
+      "ownerWithoutOtakAccess": "Bu üyenin Otak erişimi yok, bu yüzden bir ilişkinin sahibi olamaz. Organizasyonun sahibi veya yöneticisi Otak erişimini Admin'den verebilir.",
+      "forbidden": "Bunu yapma yetkiniz yok.",
+      "validation": "İşaretli alanları kontrol edin.",
+      "notLead": "Yalnızca potansiyel müşterinin aşaması ayarlanabilir.",
+      "typeUnchanged": "İlişki zaten bu türde.",
+      "stageNotForType": "Bu aşama ilişkinin türüne ait değil.",
+      "loadHint": "Bağlantınızı kontrol edip tekrar deneyin.",
+      "eventNotFound": "Bu etkinlik artık yok."
+    },
+    "battlefield": {
+      "title": "Battlefield",
+      "subtitle": "Her potansiyel müşterinin ve müşterinin durumu. Taşımak için bir potansiyel müşteriyi sürükleyin veya aşamasını seçin.",
+      "newLead": "Yeni potansiyel müşteri",
+      "loading": "Battlefield yükleniyor",
+      "loadError": "Battlefield yüklenemedi.",
+      "reloadError": "Battlefield yenilenemedi; güncel olmayabilir.",
+      "empty": "Burada görmek için bir tane ekleyin.",
+      "emptyColumn": "Burada bir şey yok",
+      "columnCount": "{count, plural, other {# ilişki}}",
+      "columnTotal": "Beklenen değer {value}",
+      "capped": "Battlefield ilk {max} ilişkiyi gösteriyor.",
+      "stageOf": "{name} aşaması",
+      "moved": "{name}, {stage} aşamasına taşındı.",
+      "emptyTitle": "Henüz potansiyel müşteri veya müşteri yok",
+      "closedHint": "Kazanılan bir potansiyel müşteriyi buraya bırakın. Müşteri olur.",
+      "closeOption": "Kapandı (kazanıldı): müşteri olur",
+      "closedAsCustomer": "{name} artık bir müşteri (aşama Kapandı (kazanıldı)). Artık potansiyel müşteri değil.",
+      "dropRefused": {
+        "directNotForLead": "Doğrudan, hiç potansiyel müşteri olmamış müşteriler içindir. {name} kaydını müşteri yapmak için Kapandı (kazanıldı) sütununa bırakın.",
+        "notLead": "{name} bir müşteri; aşamasını Otak belirler."
+      }
+    },
+    "typeChange": {
+      "markAsCustomer": "Müşteri olarak işaretle",
+      "done": {
+        "leadToCustomer": "{name} artık bir müşteri (aşama Kapandı (kazanıldı)). Artık potansiyel müşteri değil.",
+        "toLead": "{name} yeniden potansiyel müşteri ve Yeni aşamasından yeniden başladı.",
+        "toCustomer": "{name} artık bir müşteri (aşama Doğrudan).",
+        "toSupplier": "{name} artık bir tedarikçi. Aşaması temizlendi."
+      }
+    },
+    "tableLabel": "İlişkiler",
+    "pagination": {
+      "label": "Sayfalar",
+      "previous": "Önceki",
+      "next": "Sonraki",
+      "summary": "Sayfa {page} / {pages} · {total} ilişki"
+    },
+    "loading": "İlişkiler yükleniyor",
+    "noMainContact": "Kişi yok",
+    "noContactMail": "Kişi e-postası yok",
+    "noCompanyMail": "Şirket e-postası yok",
+    "attachments": {
+      "title": "Ekler"
+    }
+  },
+  "contacts": {
+    "title": "Kişiler",
+    "new": "Kişi ekle",
+    "newTitle": "Yeni kişi",
+    "editTitle": "Kişiyi düzenle",
+    "dialogDescription": "Bu ilişkide görüştüğünüz biri.",
+    "loadError": "Kişiler yüklenemedi.",
+    "empty": "Henüz kişi yok.",
+    "decisionMaker": "Karar verici",
+    "linkedinOpen": "LinkedIn",
+    "emailTypes": {
+      "COMPANY": "Şirket",
+      "SHARED": "Ortak",
+      "PERSONAL": "Kişisel"
+    },
+    "edit": "{name} kişisini düzenle",
+    "delete": "{name} kişisini sil",
+    "deleteTitle": "Kişiyi sil",
+    "deleteConfirm": "{name} silinsin mi? Bu işlem geri alınamaz.",
+    "deleteAction": "Sil",
+    "columns": {
+      "name": "Ad",
+      "role": "Görev",
+      "email": "E-posta",
+      "phone": "Telefon",
+      "linkedin": "LinkedIn",
+      "actions": "İşlemler"
+    },
+    "form": {
+      "name": "Ad",
+      "role": "Görev",
+      "rolePlaceholder": "Örneğin CEO veya satın alma",
+      "email": "E-posta",
+      "emailType": "E-posta türü",
+      "emailTypePlaceholder": "Belirtilmedi",
+      "emailTypeNeedsEmail": "Önce bir e-posta girin",
+      "phone": "Telefon",
+      "linkedinUrl": "LinkedIn URL'si",
+      "linkedinUrlPlaceholder": "https://www.linkedin.com/in/...",
+      "decisionMaker": "Karar verici",
+      "decisionMakerDescription": "Bu kişi satın alma kararını verir.",
+      "create": "Kişi ekle",
+      "save": "Değişiklikleri kaydet",
+      "saving": "Kaydediliyor...",
+      "cancel": "İptal",
+      "errors": {
+        "nameRequired": "Ad zorunludur",
+        "nameMax": "Ad en fazla 200 karakter olabilir",
+        "roleMax": "Görev en fazla 100 karakter olabilir",
+        "emailMax": "E-posta en fazla 254 karakter olabilir",
+        "emailInvalid": "Geçerli bir e-posta adresi girin",
+        "phoneMax": "Telefon en fazla 50 karakter olabilir",
+        "linkedinUrlMax": "LinkedIn URL'si en fazla 500 karakter olabilir",
+        "linkedinUrlInvalid": "http:// veya https:// ile başlayan bir web adresi girin"
+      },
+      "kind": "Tür"
+    },
+    "toast": {
+      "created": "Kişi eklendi",
+      "updated": "Kişi kaydedildi",
+      "deleted": "Kişi silindi",
+      "saveError": "Kişi kaydedilemedi",
+      "deleteError": "Kişi silinemedi"
+    },
+    "errors": {
+      "relationNotFound": "Bu ilişki artık yok.",
+      "notFound": "Bu kişi artık yok.",
+      "emailTypeWithoutEmail": "E-posta türü için bir e-posta adresi gerekir.",
+      "forbidden": "Bunu yapma yetkiniz yok.",
+      "validation": "İşaretli alanları kontrol edin.",
+      "loadHint": "Bağlantınızı kontrol edip tekrar deneyin.",
+      "mainFlagNotForKind": "Bir kişi yalnızca kendi türünün ana kişisi olabilir."
+    },
+    "tableLabel": "Kişiler",
+    "loading": "Kişiler yükleniyor",
+    "mainContact": "Ana kişi",
+    "makeMain": "Ana kişi yap",
+    "makeMainNamed": "{name} ana kişi yap",
+    "kinds": {
+      "PERSON": "Kişi",
+      "BUSINESS": "Şirket"
+    },
+    "business": "Şirket",
+    "mainBusinessContact": "Ana şirket iletişimi",
+    "makeMainBusiness": "Ana şirket iletişimi yap",
+    "makeMainBusinessNamed": "{name} ana şirket iletişimi yap"
+  },
+  "icps": {
+    "title": "ICP'ler",
+    "subtitle": "İdeal müşteri profilleri: organizasyonun kazanmak istediği şirketler.",
+    "new": "Yeni ICP",
+    "newTitle": "Yeni ICP",
+    "editTitle": "ICP'yi düzenle",
+    "dialogDescription": "Hedeflenecek şirket türünü tanımlayın. Adaylar buna bağlanabilir.",
+    "loadError": "ICP'ler yüklenemedi.",
+    "reloadError": "ICP'ler yenilenemedi; bu liste güncel olmayabilir.",
+    "loadOneError": "ICP yüklenemedi.",
+    "loading": "ICP'ler yükleniyor",
+    "loadingOne": "ICP yükleniyor",
+    "empty": "Henüz ICP yok",
+    "emptyHint": "Kazanmak istediğiniz şirketleri tanımlayın, ardından adayları bunlara bağlayın.",
+    "emptyFiltered": "Bu aramayla eşleşen ICP yok",
+    "emptyFilteredHint": "Başka bir ad deneyin veya aramayı temizleyin.",
+    "tableLabel": "ICP'ler",
+    "anyCountry": "Tümü",
+    "noRole": "Hedef rol yok",
+    "edit": "{name} düzenle",
+    "delete": "{name} sil",
+    "deleteTitle": "ICP'yi sil",
+    "deleteConfirm": "{name} silinsin mi? Bağlı ilişkiler kalır ve bağlantıyı kaybeder. Bu işlem geri alınamaz.",
+    "deleteAction": "Sil",
+    "sizeRange": {
+      "between": "{min} - {max} çalışan",
+      "from": "{min} çalışan veya daha fazla",
+      "upTo": "En fazla {max} çalışan",
+      "any": "Her büyüklük"
+    },
+    "columns": {
+      "name": "Ad",
+      "industry": "Sektör",
+      "country": "Ülke",
+      "size": "Şirket büyüklüğü",
+      "targetPersonRole": "Hedef rol",
+      "updatedAt": "Güncellendi",
+      "actions": "İşlemler"
+    },
+    "filters": {
+      "searchLabel": "Ara",
+      "searchPlaceholder": "Ada göre ara",
+      "clear": "Aramayı temizle"
+    },
+    "pagination": {
+      "label": "Sayfalar",
+      "previous": "Önceki",
+      "next": "Sonraki",
+      "summary": "Sayfa {page} / {pages} · {total} ICP"
+    },
+    "form": {
+      "name": "Ad",
+      "namePlaceholder": "Örneğin Hollandalı MSP'ler",
+      "industry": "Sektör",
+      "industryPlaceholder": "Bir sektör seçin",
+      "country": "Ülke",
+      "countryPlaceholder": "Herhangi bir ülke",
+      "countrySearch": "Ülke ara",
+      "companySizeMin": "En küçük şirket büyüklüğü",
+      "companySizeMax": "En büyük şirket büyüklüğü",
+      "companySizePlaceholder": "Sınır yok",
+      "targetPersonRole": "Hedef rol",
+      "targetPersonRolePlaceholder": "Bir rol seçin",
+      "description": "Açıklama",
+      "descriptionPlaceholder": "Bu şirketlerin ortak noktası ve bize neden ihtiyaç duydukları",
+      "create": "ICP oluştur",
+      "save": "Değişiklikleri kaydet",
+      "saving": "Kaydediliyor...",
+      "cancel": "İptal",
+      "errors": {
+        "nameRequired": "Ad zorunludur",
+        "nameMax": "Ad en fazla 100 karakter olabilir",
+        "industryRequired": "Sektör zorunludur",
+        "descriptionMax": "Açıklama en fazla 10.000 karakter olabilir",
+        "sizeRange": "En büyük boyut en küçük boyutun altında olamaz"
+      }
+    },
+    "toast": {
+      "created": "ICP oluşturuldu",
+      "updated": "ICP kaydedildi",
+      "deleted": "ICP silindi",
+      "saveError": "ICP kaydedilemedi",
+      "deleteError": "ICP silinemedi"
+    },
+    "errors": {
+      "notFound": "Bu ICP artık mevcut değil.",
+      "nameTaken": "Organizasyonda bu ada sahip bir ICP zaten var.",
+      "sizeRange": "En küçük şirket büyüklüğü en büyükten fazla olamaz.",
+      "forbidden": "Bunu yapma yetkiniz yok.",
+      "validation": "İşaretli alanları kontrol edin.",
+      "loadHint": "Bağlantınızı kontrol edip tekrar deneyin."
+    },
+    "industries": {
+      "SOFTWARE": "Yazılım",
+      "IT_SERVICES": "BT hizmetleri",
+      "TELECOM": "Telekom",
+      "FINANCE": "Finans",
+      "INSURANCE": "Sigorta",
+      "HEALTHCARE": "Sağlık",
+      "MANUFACTURING": "Üretim",
+      "LOGISTICS": "Lojistik",
+      "RETAIL": "Perakende",
+      "ECOMMERCE": "E-ticaret",
+      "ENERGY": "Enerji",
+      "CONSTRUCTION": "İnşaat",
+      "REAL_ESTATE": "Gayrimenkul",
+      "LEGAL": "Hukuk",
+      "ACCOUNTING": "Muhasebe",
+      "EDUCATION": "Eğitim",
+      "GOVERNMENT": "Kamu",
+      "NON_PROFIT": "Kâr amacı gütmeyen",
+      "HOSPITALITY": "Konaklama",
+      "MEDIA": "Medya",
+      "AUTOMOTIVE": "Otomotiv",
+      "AGRICULTURE": "Tarım",
+      "DEFENSE": "Savunma",
+      "OTHER": "Diğer"
+    },
+    "roles": {
+      "OWNER": "Sahip",
+      "CEO": "CEO",
+      "CTO": "CTO",
+      "CIO": "CIO",
+      "CISO": "CISO",
+      "IT_MANAGER": "BT yöneticisi",
+      "OPERATIONS": "Operasyon",
+      "FINANCE": "Finans",
+      "OTHER": "Diğer"
+    },
+    "sizeBands": {
+      "SIZE_1_10": "1-10",
+      "SIZE_11_50": "11-50",
+      "SIZE_51_200": "51-200",
+      "SIZE_201_500": "201-500",
+      "SIZE_501_1000": "501-1.000",
+      "SIZE_1001_5000": "1.001-5.000",
+      "SIZE_5001_PLUS": "5.001+"
+    }
+  },
+  "documentTemplates": {
+    "title": "Şablonlar",
+    "subtitle": "Her erişimin ekleyebileceği onaylı belgeler; her biri bir HTML dosyası ve ondan üretilen PDF.",
+    "new": "Yeni şablon",
+    "newTitle": "Yeni şablon",
+    "editTitle": "Şablonu düzenle",
+    "dialogDescription": "Belge şablonu, bir HTML dosyası ve ondan üretilen PDF'dir.",
+    "loadError": "Şablonlar yüklenemedi.",
+    "reloadError": "Şablonlar yenilenemedi; bu liste güncel olmayabilir.",
+    "loadOneError": "Şablon yüklenemedi.",
+    "loading": "Şablonlar yükleniyor",
+    "loadingOne": "Şablon yükleniyor",
+    "empty": "Henüz şablon yok",
+    "emptyHint": "Bir belgeyi bir kez ekle, sonra her müşteri adayı için kullan.",
+    "emptyHintMember": "Şablonları organizasyonun bir yöneticisi ekler.",
+    "emptyFiltered": "Bu filtrelere uyan şablon yok",
+    "emptyFilteredHint": "Başka bir ad, tür veya dil deneyin ya da filtreleri temizleyin.",
+    "tableLabel": "Şablonlar",
+    "preview": "{name} önizlemesi",
+    "edit": "{name} düzenle",
+    "delete": "{name} sil",
+    "deleteTitle": "Şablonu sil",
+    "deleteConfirm": "{name} silinsin mi? Ondan kopyalanan ekler olduğu gibi kalır. Bu işlem geri alınamaz.",
+    "deleteAction": "Sil",
+    "previewTitle": "Şablon",
+    "previewDescription": "Şablon yükleniyor",
+    "previewNoFiles": "Bu şablonun henüz dosyası yok. HTML ve PDF dosyasını bir yönetici yükler.",
+    "previewFrameTitle": "{name} PDF'i",
+    "openPdf": "PDF'i yeni sekmede aç",
+    "types": {
+      "PROPOSAL": "Teklif",
+      "NDA": "Gizlilik sözleşmesi",
+      "TERMS": "Koşullar",
+      "REPORT": "Rapor",
+      "SERVICE_SHEET": "Hizmet sayfası",
+      "PRESENTATION": "Sunum",
+      "OTHER": "Diğer"
+    },
+    "languages": {
+      "NL": "Felemenkçe",
+      "TR": "Türkçe",
+      "EN": "İngilizce"
+    },
+    "ready": {
+      "yes": "Hazır",
+      "no": "Dosya gerekli"
+    },
+    "updated": {
+      "today": "Bugün",
+      "yesterday": "Dün"
+    },
+    "columns": {
+      "name": "Ad",
+      "type": "Tür",
+      "language": "Dil",
+      "ready": "Durum",
+      "updatedAt": "Güncellendi",
+      "actions": "İşlemler"
+    },
+    "filters": {
+      "searchLabel": "Ara",
+      "searchPlaceholder": "Ada göre ara",
+      "typeLabel": "Tür",
+      "typeAll": "Tüm türler",
+      "languageLabel": "Dil",
+      "languageAll": "Tüm diller",
+      "clear": "Filtreleri temizle"
+    },
+    "pagination": {
+      "label": "Sayfalar",
+      "previous": "Önceki",
+      "next": "Sonraki",
+      "summary": "Sayfa {page} / {pages} · {total, plural, one {# şablon} other {# şablon}}"
+    },
+    "form": {
+      "type": "Tür",
+      "language": "Dil",
+      "name": "Ad",
+      "namePlaceholder": "Örneğin İlk temas",
+      "filesHint": "HTML dosyasını ve ondan üretilen PDF'i birlikte yükleyin. Dosyalar olmadan şablon kaydedilir ama henüz kullanılamaz.",
+      "filesReplaceHint": "Yeni bir HTML dosyası ve yeni bir PDF'i birlikte seçmezseniz kayıtlı dosyalar kalır.",
+      "htmlFile": "HTML dosyası",
+      "pdfFile": "PDF dosyası",
+      "openCurrentPdf": "Mevcut PDF'i aç",
+      "create": "Şablon oluştur",
+      "save": "Değişiklikleri kaydet",
+      "saving": "Kaydediliyor...",
+      "cancel": "İptal",
+      "errors": {
+        "nameRequired": "Ad zorunludur",
+        "nameMax": "Ad en fazla 100 karakter olabilir",
+        "htmlFileType": "Bir .html dosyası seçin",
+        "pdfFileType": "Bir .pdf dosyası seçin",
+        "htmlFileRequired": "HTML dosyasını da seçin; iki dosya birlikte yüklenir",
+        "pdfFileRequired": "PDF dosyasını da seçin; iki dosya birlikte yüklenir",
+        "filesTooLarge": "İki dosya birlikte en fazla 12 MB olabilir"
+      }
+    },
+    "toast": {
+      "created": "Şablon oluşturuldu",
+      "updated": "Şablon kaydedildi",
+      "filesUploaded": "Dosyalar yüklendi",
+      "deleted": "Şablon silindi",
+      "saveError": "Şablon kaydedilemedi",
+      "uploadError": "Dosyalar yüklenemedi",
+      "deleteError": "Şablon silinemedi"
+    },
+    "errors": {
+      "notFound": "Bu şablon artık mevcut değil.",
+      "nameTaken": "Organizasyonda bu dilde bu ada sahip bir şablon zaten var.",
+      "fileNotHtmlOrPdf": "Dosya, olması gereken HTML veya PDF dosyası değil.",
+      "uploadFailed": "Dosyalar saklanamadı. Daha sonra tekrar deneyin.",
+      "forbidden": "Bunu yapma yetkiniz yok.",
+      "validation": "İşaretli alanları kontrol edin.",
+      "loadHint": "Bağlantınızı kontrol edip tekrar deneyin."
+    },
+    "tabsLabel": "Şablon bölümleri",
+    "tabs": {
+      "documents": "Belgeler",
+      "mail": "E-posta"
+    },
+    "attach": {
+      "button": "Şablondan ekle",
+      "title": "Şablondan ekle",
+      "description": "Bir belge şablonu seç; PDF'inin bir kopyası buraya eklenir. Şablondaki sonraki değişiklikler kopyayı etkilemez.",
+      "pick": "Belge şablonu",
+      "empty": "Henüz belge şablonu yok. Şablonlar sayfasından ekle.",
+      "add": "Ekle",
+      "adding": "Ekleniyor...",
+      "cancel": "İptal",
+      "toast": {
+        "added": "Ek eklendi",
+        "addError": "Ek eklenemedi"
+      },
+      "errors": {
+        "mailNotFound": "Bu e-posta artık yok.",
+        "relationNotFound": "Bu ilişki artık yok.",
+        "notUsable": "Bu belge şablonu burada kullanılamaz: PDF'i hâlâ eksik.",
+        "mailSent": "Bu e-posta gönderildi veya gönderiliyor; ekleri artık değiştirilemez.",
+        "duplicate": "Bu PDF burada zaten ekli."
+      }
+    }
+  },
+  "mailTemplates": {
+    "title": "E-posta şablonları",
+    "subtitle": "Her e-posta erişiminin başlayabileceği onaylı e-postalar.",
+    "new": "Yeni e-posta şablonu",
+    "newTitle": "Yeni e-posta şablonu",
+    "editTitle": "E-posta şablonunu düzenle",
+    "dialogDescription": "Bir konu ve düz bir metin. Erişim onu kopyalar; sonraki değişiklikler hazırlanmış e-postaları değiştirmez.",
+    "loadError": "E-posta şablonları yüklenemedi.",
+    "reloadError": "E-posta şablonları yenilenemedi; bu liste güncel olmayabilir.",
+    "loadOneError": "E-posta şablonu yüklenemedi.",
+    "loading": "E-posta şablonları yükleniyor",
+    "loadingOne": "E-posta şablonu yükleniyor",
+    "empty": "Henüz e-posta şablonu yok",
+    "emptyHint": "Bir e-postayı bir kez yaz, sonra her e-posta erişimine onunla başla.",
+    "emptyHintMember": "E-posta şablonlarını kuruluşun bir yöneticisi ekler.",
+    "emptyFiltered": "Bu filtrelere uyan e-posta şablonu yok",
+    "emptyFilteredHint": "Başka bir ad veya dil dene ya da filtreleri temizle.",
+    "tableLabel": "E-posta şablonları",
+    "preview": "{name} önizle",
+    "edit": "{name} düzenle",
+    "delete": "{name} sil",
+    "deleteTitle": "E-posta şablonunu sil",
+    "deleteConfirm": "{name} silinsin mi? Ondan kopyalanan e-postalar metinlerini korur. Bu işlem geri alınamaz.",
+    "deleteAction": "Sil",
+    "previewTitle": "E-posta şablonu",
+    "columns": {
+      "name": "Ad",
+      "subject": "Konu",
+      "language": "Dil",
+      "updatedAt": "Güncellendi",
+      "actions": "İşlemler"
+    },
+    "filters": {
+      "searchLabel": "Ara",
+      "searchPlaceholder": "Ada göre ara",
+      "languageLabel": "Dil",
+      "languageAll": "Tüm diller",
+      "clear": "Filtreleri temizle"
+    },
+    "pagination": {
+      "label": "Sayfalar",
+      "previous": "Önceki",
+      "next": "Sonraki",
+      "summary": "Sayfa {page} / {pages} · {total, plural, one {# e-posta şablonu} other {# e-posta şablonu}}"
+    },
+    "form": {
+      "name": "Ad",
+      "namePlaceholder": "Örneğin İlk temas",
+      "language": "Dil",
+      "subject": "Konu",
+      "subjectPlaceholder": "E-postanın konu satırı",
+      "body": "Metin",
+      "bodyPlaceholder": "E-postanın metni",
+      "create": "E-posta şablonu oluştur",
+      "save": "Değişiklikleri kaydet",
+      "saving": "Kaydediliyor...",
+      "cancel": "İptal",
+      "errors": {
+        "nameRequired": "Ad zorunludur",
+        "nameMax": "Ad en fazla 100 karakter olabilir",
+        "subjectRequired": "Konu zorunludur",
+        "subjectMax": "Konu en fazla 255 karakter olabilir",
+        "bodyRequired": "Metin zorunludur",
+        "bodyMax": "Metin en fazla 10.000 karakter olabilir"
+      }
+    },
+    "toast": {
+      "created": "E-posta şablonu oluşturuldu",
+      "updated": "E-posta şablonu kaydedildi",
+      "deleted": "E-posta şablonu silindi",
+      "saveError": "E-posta şablonu kaydedilemedi",
+      "deleteError": "E-posta şablonu silinemedi"
+    },
+    "errors": {
+      "notFound": "Bu e-posta şablonu artık yok.",
+      "nameTaken": "Kuruluşta bu dilde bu ada sahip bir e-posta şablonu zaten var.",
+      "forbidden": "Bunu yapma yetkin yok.",
+      "validation": "İşaretli alanları kontrol et.",
+      "loadHint": "Bağlantını kontrol edip tekrar dene."
+    }
+  },
+  "outreaches": {
+    "title": "Erişimler",
+    "subtitle": "Müşteri adaylarının kişilerine e-posta, WhatsApp veya arama ile yapılan her erişim: ne hazırlandı, ne gönderildi veya yapıldı ve hangi posta kutusundan.",
+    "tabsLabel": "Erişim bölümleri",
+    "tabs": {
+      "outreaches": "Erişimler",
+      "senders": "Gönderenler"
+    },
+    "cardTitle": "Erişimler",
+    "cardEmpty": "Henüz erişim yok. Hazırlamak için potansiyel müşteride Ulaş düğmesini kullan.",
+    "cardEmptyMember": "Henüz erişim yok. Kuruluşun bir yöneticisi hazırlar.",
+    "editTitle": "Erişimi düzenle",
+    "editDescription": "Erişim gönderilmeden veya yapılmadan önce kişiyi ya da başlığı, e-postada ise metni veya ekleri değiştir.",
+    "viewTitle": "Erişim",
+    "viewDescription": "Kanal, kime ve ne zaman; e-postada ise posta kutusu, metin ve ekler.",
+    "loadError": "Erişimler yüklenemedi.",
+    "reloadError": "Erişimler yenilenemedi; bu liste güncel olmayabilir.",
+    "loadOneError": "Erişim yüklenemedi.",
+    "loading": "Erişimler yükleniyor",
+    "loadingOne": "Erişim yükleniyor",
+    "empty": "Henüz erişim yok",
+    "emptyHint": "Bir müşteri adayını aç ve kişilerinden birine e-posta, WhatsApp mesajı veya arama hazırlamak için Erişim'i kullan.",
+    "emptyHintMember": "Erişimleri potansiyel müşterilerde kuruluşun bir yöneticisi hazırlar.",
+    "emptyFiltered": "Bu durumda erişim yok",
+    "emptyFilteredHint": "Başka bir durum seç veya filtreyi temizle.",
+    "goToLeads": "İlişkilere git",
+    "mailTemplates": "E-posta şablonları",
+    "tableLabel": "Erişimler",
+    "view": "{title} görüntüle",
+    "edit": "{title} düzenle",
+    "send": "{title} gönder",
+    "delete": "{title} sil",
+    "deleteTitle": "Erişimi sil",
+    "deleteConfirm": "{title}, e-postası ve e-postanın ekleri silinsin mi? Bu işlem geri alınamaz.",
+    "deleteAction": "Sil",
+    "openLead": "Potansiyel müşteriyi aç",
+    "contactDeleted": "Silinmiş kişi",
+    "notSent": "Gönderilmedi",
+    "noSender": "Yok",
+    "statuses": {
+      "DRAFT": "Taslak",
+      "SENT": "Gönderildi",
+      "FAILED": "Başarısız"
+    },
+    "types": {
+      "MAIL": "E-posta",
+      "WHATSAPP": "WhatsApp",
+      "CALL": "Arama"
+    },
+    "columns": {
+      "title": "Başlık",
+      "lead": "Potansiyel müşteri",
+      "contact": "Kişi",
+      "status": "Durum",
+      "sentAt": "Gönderilme",
+      "sender": "Gönderen",
+      "updatedAt": "Güncellendi",
+      "actions": "İşlemler",
+      "type": "Kanal"
+    },
+    "details": {
+      "sentTo": "Gönderildiği adres"
+    },
+    "filters": {
+      "statusLabel": "Durum",
+      "statusAll": "Tüm durumlar",
+      "clear": "Filtreyi temizle"
+    },
+    "pagination": {
+      "label": "Sayfalar",
+      "previous": "Önceki",
+      "next": "Sonraki",
+      "summary": "Sayfa {page} / {pages} · {total, plural, one {# erişim} other {# erişim}}"
+    },
+    "form": {
+      "title": "Başlık",
+      "titlePlaceholder": "Örneğin Tanışma güvenlik kontrolü",
+      "contact": "Kişi",
+      "contactsLoadError": "Kişiler yüklenemedi, bu yüzden yalnızca mevcut kişi seçilebilir.",
+      "language": "Dil",
+      "subject": "Konu",
+      "subjectPlaceholder": "E-postanın konu satırı",
+      "body": "Metin",
+      "bodyPlaceholder": "E-postanın metni",
+      "save": "Değişiklikleri kaydet",
+      "saving": "Kaydediliyor...",
+      "cancel": "İptal",
+      "errors": {
+        "titleRequired": "Başlık zorunludur",
+        "titleMax": "Başlık en fazla 200 karakter olabilir",
+        "contactRequired": "Bir kişi seç",
+        "subjectRequired": "Konu zorunludur",
+        "subjectMax": "Konu en fazla 255 karakter olabilir",
+        "bodyRequired": "Metin zorunludur",
+        "bodyMax": "Metin en fazla 10.000 karakter olabilir"
+      }
+    },
+    "attachments": {
+      "templatesLegend": "Şablonlardan ekle",
+      "templatesHint": "İsteğe bağlı. Seçilen her belge şablonu PDF'inin bir kopyası olarak gider; aşağıdaki dosyalarla birlikte toplamda en fazla 3 MB.",
+      "noTemplates": "Henüz dosyaları olan belge şablonu yok. Şablonlar sayfasından ekle.",
+      "filesLegend": "Dosya ekle"
+    },
+    "toast": {
+      "created": "Erişim taslak olarak kaydedildi",
+      "updated": "Erişim kaydedildi",
+      "deleted": "Erişim silindi",
+      "sent": "Erişim gönderildi",
+      "saveError": "Erişim kaydedilemedi",
+      "deleteError": "Erişim silinemedi",
+      "sendError": "Erişim gönderilemedi",
+      "completed": "Erişim yapıldı olarak işaretlendi",
+      "completeError": "Erişim yapıldı olarak işaretlenemedi",
+      "attachmentsUploadError": "Erişim kaydedildi, ancak ekleri yüklenemedi. Ekleri erişimin üzerinden ekle."
+    },
+    "errors": {
+      "relationNotFound": "Bu ilişki artık mevcut değil.",
+      "contactNotFound": "Bu kişi artık potansiyel müşteriye ait değil. Başka bir kişi seç.",
+      "notFound": "Bu erişim artık mevcut değil.",
+      "senderNotFound": "Bu gönderen artık mevcut değil. Başka birini seç.",
+      "templateNotFound": "Bu e-posta şablonu artık yok.",
+      "notEditable": "Bu erişim gönderildi veya gönderiliyor ve artık değiştirilemez.",
+      "sharedMailboxNotFound": "Bu gönderenin paylaşılan posta kutusu artık Microsoft 365 kiracısında değil.",
+      "contactWithoutAddress": "Kişinin e-posta adresi yok. Kişiler kartından bir adres ekle.",
+      "attachmentsTooLarge": "Ekler toplamda 3 MB'tan büyük. Bir eki kaldır.",
+      "sendFailed": "Microsoft 365 e-postayı göndermedi.",
+      "storageFailed": "Ekler depolamadan okunamadı. Daha sonra tekrar dene.",
+      "forbidden": "Bunu yapma iznin yok.",
+      "validation": "İşaretli alanları kontrol et.",
+      "loadHint": "Bağlantını kontrol et ve tekrar dene.",
+      "actionNotForType": "Bu işlem erişimin kanalına uymuyor.",
+      "contactWithoutPhone": "Kişinin telefon numarası yok. Kişiler kartında bir numara ekle.",
+      "documentTemplateNotFound": "Belge şablonlarından biri artık yok.",
+      "documentTemplateNotUsable": "Belge şablonlarından biri eklenemiyor: PDF'i hâlâ eksik.",
+      "attachmentDuplicate": "Bu dosya burada zaten ekli."
+    },
+    "sendDialog": {
+      "title": "{title} gönder",
+      "description": "E-posta, ekleriyle birlikte {name} kişisinin güncel adresine gider.",
+      "descriptionNoContact": "Bu erişimin kişisi silindi. Önce erişimi düzenleyip başka bir kişi seç.",
+      "previouslyFailed": "Bu erişimi göndermenin son denemesi başarısız oldu. Tekrar gönderebilirsin.",
+      "noSendersTitle": "Henüz gönderen yok",
+      "noSendersHint": "E-posta kuruluşun bir posta kutusundan gider. Bir yönetici Gönderenler sekmesinden ekler.",
+      "goToSenders": "Gönderenlere git",
+      "senderLegend": "Gönderen",
+      "failedTitle": "E-posta gönderilmedi",
+      "refusedTitle": "Erişim gönderilemiyor",
+      "failedHint": "Erişim artık başarısız olarak işaretli. Tekrar dene veya başka bir gönderen seç.",
+      "send": "Gönder",
+      "sending": "Gönderiliyor..."
+    },
+    "reachOut": {
+      "button": "Ulaş",
+      "title": "{name} ile iletişime geç",
+      "description": "Bir kişiye e-posta, WhatsApp mesajı veya arama hazırla. Taslak olarak kaydedilir; e-posta daha sonra gönderilir, WhatsApp mesajı veya arama yapıldı olarak işaretlenir.",
+      "stepsLabel": "Adımlar",
+      "steps": {
+        "contact": "Kişi",
+        "mail": "E-posta",
+        "attachments": "Ekler",
+        "save": "Kaydet",
+        "channel": "Kanal"
+      },
+      "contactLegend": "E-postayı hangi kişi alacak?",
+      "noContactsTitle": "İş e-posta adresi olan kişi yok",
+      "noContactsHint": "Bir e-posta için şirket veya paylaşılan e-posta adresi olan bir kişi gerekir. Bu sayfadaki Kişiler kartında bir kişi ekle ya da bir kişiye adres ekle.",
+      "goToContacts": "Kişilere git",
+      "mailLegend": "Bir e-posta şablonuyla başla veya e-postayı kendin yaz",
+      "templateSearchPlaceholder": "E-posta şablonlarını ada göre ara",
+      "fromScratch": "Sıfırdan yaz",
+      "noTemplates": "Henüz e-posta şablonu yok. E-postayı kendin yaz ya da Şablonlar sayfasında e-posta şablonu ekle.",
+      "languageHint": "E-postanın yazıldığı dil.",
+      "templateLanguage": "Dil: {language}, şablondan.",
+      "titleHint": "Bu erişimi listelerde ayırt eden kısa bir ad.",
+      "summary": {
+        "contact": "Kişi",
+        "mail": "E-posta",
+        "subject": "Konu",
+        "attachments": "Ekler",
+        "attachmentCount": "{count, plural, =0 {Yok} one {# ek} other {# ek}}",
+        "channel": "Kanal"
+      },
+      "back": "Geri",
+      "next": "İleri",
+      "saveDraft": "Taslağı kaydet",
+      "channelLegend": "Nasıl erişiyorsun?",
+      "channelHints": {
+        "MAIL": "Kuruluşun bir posta kutusundan, eklerle gönderilir.",
+        "WHATSAPP": "Oba dışında gönderilir; gönderildiğinde yapıldı olarak işaretle.",
+        "CALL": "Oba dışında yapılır; aradığında yapıldı olarak işaretle."
+      },
+      "phoneContactLegend": "Hangi kişiye erişiyorsun?",
+      "noPhoneContactsTitle": "Telefon numarası olan kişi yok",
+      "noPhoneContactsHint": "WhatsApp mesajı veya arama için telefon numarası olan bir kişi gerekir. Bu sayfadaki Kişiler kartında bir numara ekle."
+    },
+    "complete": "{title} yapıldı olarak işaretle",
+    "completeTitle": "Yapıldı olarak işaretle",
+    "completeConfirm": "{title} yapıldı olarak kaydedilsin mi? {type} şimdi, kişinin güncel telefon numarasına yapılmış sayılır. Sonrasında erişim değiştirilemez.",
+    "completeAction": "Yapıldı olarak işaretle",
+    "detailTabs": {
+      "label": "Erişim bölümleri",
+      "details": "Ayrıntılar",
+      "attachments": "Ekler"
+    }
+  },
+  "mailSenders": {
+    "subtitle": "Organizasyonun erişim e-postalarını gönderdiği Microsoft 365 kiracısındaki posta kutuları.",
+    "new": "Gönderen ekle",
+    "newTitle": "Gönderen ekle",
+    "dialogDescription": "Organizasyonunuzun Microsoft 365 kiracısındaki bir posta kutusunun adresini girin.",
+    "loadError": "Gönderenler yüklenemedi.",
+    "reloadError": "Gönderenler yenilenemedi; bu liste güncel olmayabilir.",
+    "loading": "Gönderenler yükleniyor",
+    "empty": "Henüz gönderen yok",
+    "emptyHint": "Erişim e-postalarını göndermek için organizasyonunuzun Microsoft 365 kiracısından bir posta kutusu ekleyin.",
+    "emptyHintMember": "Gönderenleri organizasyonun bir yöneticisi ekler.",
+    "tableLabel": "Gönderenler",
+    "delete": "{mailAddress} sil",
+    "deleteTitle": "Göndereni sil",
+    "deleteConfirm": "{mailAddress} silinsin mi? Bu adresten artık erişim e-postası gönderilemez.",
+    "deleteAction": "Sil",
+    "types": {
+      "PERSONAL": "Kişisel",
+      "SHARED": "Paylaşılan"
+    },
+    "columns": {
+      "mailAddress": "E-posta adresi",
+      "type": "Tür",
+      "createdAt": "Eklendi",
+      "actions": "İşlemler"
+    },
+    "form": {
+      "type": "Tür",
+      "mailAddress": "E-posta adresi",
+      "mailAddressPlaceholder": "ad@example.com",
+      "mailAddressHint": "Organizasyonunuzun Microsoft 365 kiracısında bir posta kutusu olmalıdır.",
+      "create": "Gönderen ekle",
+      "saving": "Kontrol ediliyor...",
+      "cancel": "İptal",
+      "errors": {
+        "mailAddressRequired": "E-posta adresi zorunludur",
+        "mailAddressMax": "E-posta adresi en fazla 254 karakter olabilir",
+        "mailAddressInvalid": "Geçerli bir e-posta adresi girin"
+      }
+    },
+    "toast": {
+      "created": "Gönderen eklendi",
+      "deleted": "Gönderen silindi",
+      "saveError": "Gönderen eklenemedi",
+      "deleteError": "Gönderen silinemedi"
+    },
+    "errors": {
+      "notFound": "Bu gönderen artık mevcut değil.",
+      "mailAddressTaken": "Organizasyonda bu e-posta adresine sahip bir gönderen zaten var.",
+      "accountNotInTenant": "Organizasyonunuzun Microsoft 365 kiracısında bu adrese sahip bir hesap yok. Yazımı kontrol edin. Paylaşılan bir posta kutusuysa Paylaşılan'ı seçin.",
+      "accountWithoutMailbox": "Bu hesap Microsoft 365'te var ama posta kutusu yok, bu yüzden Otak bu hesaptan gönderemez. Bir yöneticiden hesaba posta kutusu vermesini isteyin.",
+      "sharedMailboxNotFound": "Organizasyonunuzun Microsoft 365 kiracısında bu adrese sahip paylaşılan bir posta kutusu yok. Yazımı kontrol edin.",
+      "microsoftUnreachable": "Microsoft 365'e ulaşılamadı. Daha sonra tekrar deneyin.",
+      "forbidden": "Bunu yapma yetkiniz yok.",
+      "validation": "İşaretli alanları kontrol edin.",
+      "loadHint": "Bağlantınızı kontrol edip tekrar deneyin."
+    }
+  },
+  "events": {
+    "title": "Etkinlikler",
+    "subtitle": "Organizasyonun şirketlerle tanıştığı fuarlar, konferanslar ve buluşmalar.",
+    "new": "Yeni etkinlik",
+    "newTitle": "Yeni etkinlik",
+    "editTitle": "Etkinliği düzenle",
+    "dialogDescription": "Şirketlerle tanıştığınız bir etkinliği kaydedin. İlişkiler ona bağlanabilir.",
+    "loadError": "Etkinlikler yüklenemedi.",
+    "reloadError": "Etkinlikler yenilenemedi; bu liste güncel olmayabilir.",
+    "loadOneError": "Etkinlik yüklenemedi.",
+    "loading": "Etkinlikler yükleniyor",
+    "loadingOne": "Etkinlik yükleniyor",
+    "emptyFiltered": "Bu aramayla eşleşen etkinlik yok",
+    "emptyFilteredHint": "Başka bir ad deneyin veya aramayı temizleyin.",
+    "emptyByTab": {
+      "upcoming": "Yaklaşan etkinlik yok",
+      "past": "Geçmiş etkinlik yok"
+    },
+    "emptyHintByTab": {
+      "upcoming": "Katılacağınız bir sonraki fuarı, konferansı veya buluşmayı ekleyin.",
+      "past": "Etkinlikler bittikleri günün ertesinde buraya taşınır."
+    },
+    "tableLabel": "Etkinlikler",
+    "tabsLabel": "Dönem",
+    "tabs": {
+      "upcoming": "Yaklaşan",
+      "past": "Geçmiş"
+    },
+    "noPlace": "Yer yok",
+    "noWebsite": "Web sitesi yok",
+    "edit": "{name} düzenle",
+    "delete": "{name} sil",
+    "deleteTitle": "Etkinliği sil",
+    "deleteConfirm": "{name} silinsin mi? Bağlı ilişkiler kalır ve bağlantıyı kaybeder. Bu işlem geri alınamaz.",
+    "deleteAction": "Sil",
+    "types": {
+      "EXPO": "Fuar",
+      "CONFERENCE": "Konferans",
+      "MEETUP": "Buluşma",
+      "WEBINAR": "Webinar",
+      "OTHER": "Diğer"
+    },
+    "columns": {
+      "name": "Ad",
+      "type": "Tür",
+      "dates": "Tarihler",
+      "place": "Yer",
+      "website": "Web sitesi",
+      "actions": "İşlemler"
+    },
+    "filters": {
+      "searchLabel": "Ara",
+      "searchPlaceholder": "Ada göre ara",
+      "clear": "Aramayı temizle"
+    },
+    "pagination": {
+      "label": "Sayfalar",
+      "previous": "Önceki",
+      "next": "Sonraki",
+      "summary": "Sayfa {page} / {pages} · {total} etkinlik"
+    },
+    "form": {
+      "name": "Ad",
+      "namePlaceholder": "Örneğin IGEF 2026",
+      "type": "Tür",
+      "typePlaceholder": "Bir tür seçin",
+      "startDate": "Başlangıç tarihi",
+      "endDate": "Bitiş tarihi",
+      "city": "Şehir",
+      "cityPlaceholder": "Örneğin Ankara",
+      "country": "Ülke",
+      "countryPlaceholder": "Bir ülke seçin",
+      "countrySearch": "Ülke ara",
+      "website": "Web sitesi",
+      "websitePlaceholder": "https://example.com",
+      "notes": "Notlar",
+      "notesPlaceholder": "Stant numarası, kimin gittiği, neyin takip edileceği",
+      "create": "Etkinlik oluştur",
+      "save": "Değişiklikleri kaydet",
+      "saving": "Kaydediliyor...",
+      "cancel": "İptal",
+      "errors": {
+        "nameRequired": "Ad zorunludur",
+        "nameMax": "Ad en fazla 200 karakter olabilir",
+        "typeRequired": "Tür zorunludur",
+        "startDateRequired": "Başlangıç tarihi zorunludur",
+        "dateInvalid": "Geçerli bir tarih girin",
+        "dateRange": "Bitiş tarihi başlangıç tarihinden önce olamaz",
+        "cityMax": "Şehir en fazla 100 karakter olabilir",
+        "websiteMax": "Web sitesi en fazla 500 karakter olabilir",
+        "websiteInvalid": "http:// veya https:// ile başlayan bir web adresi girin",
+        "notesMax": "Notlar en fazla 10.000 karakter olabilir"
+      }
+    },
+    "toast": {
+      "created": "Etkinlik oluşturuldu",
+      "updated": "Etkinlik kaydedildi",
+      "deleted": "Etkinlik silindi",
+      "saveError": "Etkinlik kaydedilemedi",
+      "deleteError": "Etkinlik silinemedi"
+    },
+    "errors": {
+      "notFound": "Bu etkinlik artık mevcut değil.",
+      "nameTaken": "Organizasyonda bu ada sahip bir etkinlik zaten var.",
+      "dateRange": "Bitiş tarihi başlangıç tarihinden önce olamaz.",
+      "periodWithoutToday": "Liste hangi etkinliklerin yaklaşan olduğunu belirleyemedi. Sayfayı yeniden yükleyin.",
+      "forbidden": "Bunu yapma yetkiniz yok.",
+      "validation": "İşaretli alanları kontrol edin.",
+      "loadHint": "Bağlantınızı kontrol edip tekrar deneyin."
+    },
+    "detail": {
+      "title": "Etkinlik",
+      "back": "Etkinliklere dön",
+      "loading": "Etkinlik yükleniyor",
+      "loadError": "Etkinlik yüklenemedi.",
+      "notFoundTitle": "Etkinlik bulunamadı",
+      "notFoundDescription": "Bu etkinlik mevcut değil veya başka bir organizasyona ait.",
+      "timestamps": "Oluşturuldu {created} · Güncellendi {updated}",
+      "edit": "Etkinliği düzenle",
+      "delete": "Etkinliği sil",
+      "deleting": "Siliniyor...",
+      "details": "Ayrıntılar",
+      "dates": "Tarihler",
+      "place": "Yer",
+      "website": "Web sitesi",
+      "notes": "Notlar",
+      "noNotes": "Henüz not yok."
+    },
+    "relationsCard": {
+      "title": "İlişkiler",
+      "loading": "İlişkiler yükleniyor",
+      "loadError": "İlişkiler yüklenemedi.",
+      "empty": "Bu etkinliğe henüz bağlı ilişki yok.",
+      "tableLabel": "Bu etkinliğin ilişkileri"
+    }
+  }
+}

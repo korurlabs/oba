@@ -1,0 +1,11 @@
+{
+  "account": null,
+  "claudeCodeVersion": "2.1.100",
+  "cwd": "{{REPO}}",
+  "gitAuthorEmail": null,
+  "machineName": "golden-host",
+  "model": "claude-opus-5-5",
+  "remoteUrl": "git@github.com:senseylabs/village.git",
+  "repositoryName": "village",
+  "sessionId": "33333333-aaaa-4bbb-8ccc-000000000001"
+}

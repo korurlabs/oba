@@ -1,0 +1,31 @@
+{
+  "metadata": {
+    "description": "Organizasyonunuzun politikaları, prosedürleri ve dokümanları"
+  },
+  "sidebar": {
+    "label": "Sayfalar",
+    "language": "Dil"
+  },
+  "errors": {
+    "somethingWentWrong": "Bir şeyler yanlış gitti",
+    "unexpectedError": "Beklenmeyen bir hata oluştu. Lütfen sayfayı yenilemeyi deneyin veya sorun devam ederse destek ile iletişime geçin.",
+    "tryAgain": "Tekrar Dene",
+    "goHome": "Ana Sayfaya Git",
+    "errorDetails": "Hata Detayları (Sadece Geliştirme):",
+    "notFound": {
+      "title": "Sayfa bulunamadı",
+      "description": "Bu sayfa yok ya da bu sayfaya erişiminiz yok. Bağlantıyı kontrol edin veya ana sayfaya dönün."
+    },
+    "signInFailed": {
+      "title": "Giriş başarısız oldu",
+      "description": "Girişiniz tamamlanamadı. Tekrar deneyin; sorun devam ederse destek ile iletişime geçin.",
+      "action": "Tekrar giriş yap",
+      "code": "Hata kodu: {code}"
+    }
+  },
+  "organizationGate": {
+    "title": "Henüz organizasyon yok",
+    "description": "Kalkan bir organizasyonun dokümanlarını tutar. Önce hesabınızda bir organizasyon oluşturun veya birine katılın.",
+    "action": "Hesabınızı açın"
+  }
+}

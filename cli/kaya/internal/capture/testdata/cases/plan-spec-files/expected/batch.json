@@ -1,0 +1,268 @@
+{
+  "machine": {
+    "account": {
+      "billingType": "stripe_subscription",
+      "emailAddress": "dev@example.com",
+      "organizationName": "Korur",
+      "organizationType": "claude_max",
+      "organizationUuid": "11111111-2222-3333-4444-555555555555",
+      "seatTier": "max_5x"
+    },
+    "claudeCodeVersion": "2.1.100",
+    "machineName": "golden-host"
+  },
+  "events": [
+    {
+      "at": "2026-10-01T09:00:10Z",
+      "branch": "wt",
+      "cwd": "{{REPO}}/.claude/worktrees/wt",
+      "event": "SessionStart",
+      "seq": 1,
+      "source": "startup"
+    },
+    {
+      "at": "2026-10-01T09:00:20Z",
+      "cwd": "{{REPO}}/.claude/worktrees/wt",
+      "event": "PostToolUse",
+      "file_path": "{{REPO}}/.claude/worktrees/wt/docs/claude/plans/kaya/07_X.md",
+      "ok": true,
+      "seq": 2,
+      "tool_name": "Write",
+      "tool_use_id": "toolu_write"
+    },
+    {
+      "at": "2026-10-01T09:00:21Z",
+      "cwd": "{{REPO}}/.claude/worktrees/wt",
+      "event": "PostToolUse",
+      "file_path": "docs/private/plans/kaya/18_Y.md",
+      "ok": true,
+      "seq": 3,
+      "tool_name": "Edit",
+      "tool_use_id": "toolu_edit"
+    },
+    {
+      "at": "2026-10-01T09:00:22Z",
+      "cwd": "{{REPO}}",
+      "event": "PostToolUse",
+      "file_path": "{{REPO}}/docs/plans/z.md",
+      "ok": true,
+      "seq": 4,
+      "tool_name": "MultiEdit",
+      "tool_use_id": "toolu_multiedit"
+    },
+    {
+      "at": "2026-10-01T09:00:23Z",
+      "cwd": "{{REPO}}",
+      "event": "PostToolUse",
+      "file_path": "{{REPO}}/docs/plans/failed.md",
+      "ok": false,
+      "seq": 5,
+      "tool_name": "Write",
+      "tool_use_id": "toolu_write"
+    },
+    {
+      "at": "2026-10-01T09:00:24Z",
+      "cwd": "{{REPO}}",
+      "event": "PostToolUseFailure",
+      "file_path": "{{REPO}}/docs/plans/failure-event.md",
+      "ok": false,
+      "seq": 6,
+      "tool_name": "Write",
+      "tool_use_id": "toolu_write"
+    },
+    {
+      "at": "2026-10-01T09:00:25Z",
+      "cwd": "{{REPO}}",
+      "event": "PostToolUse",
+      "file_path": "{{REPO}}/docs/notaplan/readme.md",
+      "ok": true,
+      "seq": 7,
+      "tool_name": "Write",
+      "tool_use_id": "toolu_write"
+    },
+    {
+      "at": "2026-10-01T09:00:26Z",
+      "cwd": "{{REPO}}",
+      "event": "PostToolUse",
+      "file_path": "{{REPO}}/docs/plans/../plans/dots.md",
+      "ok": true,
+      "seq": 8,
+      "tool_name": "Write",
+      "tool_use_id": "toolu_write"
+    },
+    {
+      "at": "2026-10-01T09:00:27Z",
+      "cwd": "{{REPO}}",
+      "event": "PostToolUse",
+      "file_path": "/elsewhere/docs/plans/outside.md",
+      "ok": true,
+      "seq": 9,
+      "tool_name": "Write",
+      "tool_use_id": "toolu_write"
+    },
+    {
+      "at": "2026-10-01T09:00:28Z",
+      "command": "cat docs/plans/old.md docs/plans/new.md && echo \"docs/plans/missing.md\"",
+      "cwd": "{{REPO}}",
+      "event": "PostToolUse",
+      "ok": true,
+      "seq": 10,
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_bash"
+    },
+    {
+      "at": "2026-10-01T09:00:29Z",
+      "command": "sed -i s/a/b/ docs/claude/plans/kaya/08.md",
+      "cwd": "{{REPO}}",
+      "event": "PostToolUse",
+      "ok": false,
+      "seq": 11,
+      "tool_name": "Bash",
+      "tool_use_id": "toolu_bash"
+    },
+    {
+      "at": "2026-10-01T09:00:30Z",
+      "cwd": "{{REPO}}",
+      "event": "PostToolUse",
+      "file_path": "{{REPO}}/docs/plans/exactly-limit.md",
+      "ok": true,
+      "seq": 12,
+      "tool_name": "Write",
+      "tool_use_id": "toolu_write"
+    },
+    {
+      "at": "2026-10-01T09:00:31Z",
+      "cwd": "{{REPO}}",
+      "event": "PostToolUse",
+      "file_path": "{{REPO}}/docs/plans/over-limit.md",
+      "ok": true,
+      "seq": 13,
+      "tool_name": "Write",
+      "tool_use_id": "toolu_write"
+    },
+    {
+      "at": "2026-10-01T09:00:32Z",
+      "cwd": "{{REPO}}",
+      "event": "PostToolUse",
+      "file_path": "{{REPO}}/docs/plans/multibyte.md",
+      "ok": true,
+      "seq": 14,
+      "tool_name": "Write",
+      "tool_use_id": "toolu_write"
+    },
+    {
+      "at": "2026-10-01T09:00:33Z",
+      "cwd": "{{REPO}}",
+      "event": "PostToolUse",
+      "file_path": "{{REPO}}/docs/plans/multibyte-over.md",
+      "ok": true,
+      "seq": 15,
+      "tool_name": "Write",
+      "tool_use_id": "toolu_write"
+    },
+    {
+      "at": "2026-10-01T09:00:34Z",
+      "cwd": "{{REPO}}",
+      "event": "PostToolUse",
+      "file_path": "{{REPO}}/docs/plans/z.md",
+      "ok": true,
+      "seq": 16,
+      "tool_name": "Write",
+      "tool_use_id": "toolu_write"
+    }
+  ],
+  "handoffs": [],
+  "plans": [
+    {
+      "capturedAt": "2026-10-01T09:00:19Z",
+      "content": "# Spec 07\nAPI_KEY=[redacted]\n",
+      "kind": "SPEC",
+      "path": "docs/claude/plans/kaya/07_X.md",
+      "source": "FILE"
+    },
+    {
+      "capturedAt": "2026-10-01T09:00:20Z",
+      "content": "# Spec 18\n",
+      "kind": "SPEC",
+      "path": "docs/private/plans/kaya/18_Y.md",
+      "source": "FILE"
+    },
+    {
+      "capturedAt": "2026-10-01T09:00:22Z",
+      "content": "# Dots normalised\n",
+      "kind": "SPEC",
+      "path": "docs/plans/dots.md",
+      "source": "FILE"
+    },
+    {
+      "capturedAt": "2026-10-01T09:00:25Z",
+      "content": "# Changed after the start\n",
+      "kind": "SPEC",
+      "path": "docs/plans/new.md",
+      "source": "FILE"
+    },
+    {
+      "capturedAt": "2026-10-01T09:00:29Z",
+      "content": {
+        "$repeat": "0123456789abcdef",
+        "$times": 12500
+      },
+      "kind": "SPEC",
+      "path": "docs/plans/exactly-limit.md",
+      "source": "FILE"
+    },
+    {
+      "capturedAt": "2026-10-01T09:00:29Z",
+      "content": {
+        "$concat": [
+          {
+            "$repeat": "é",
+            "$times": 100000
+          },
+          {
+            "$repeat": "漢",
+            "$times": 100000
+          }
+        ]
+      },
+      "kind": "SPEC",
+      "path": "docs/plans/multibyte.md",
+      "source": "FILE"
+    },
+    {
+      "capturedAt": "2026-10-01T09:00:33Z",
+      "content": "# Plan z, rewritten\n",
+      "kind": "SPEC",
+      "path": "docs/plans/z.md",
+      "source": "FILE"
+    }
+  ],
+  "repository": {
+    "name": "village",
+    "remoteUrl": "git@github.com:senseylabs/village.git"
+  },
+  "sessionId": "11111111-aaaa-4bbb-8ccc-000000000005",
+  "summary": {
+    "branch": "wt",
+    "briefed_features": [],
+    "configRelease": {
+      "deliveredBy": null,
+      "manifestSha256": null,
+      "number": null,
+      "state": "NONE"
+    },
+    "cwd": "{{REPO}}/.claude/worktrees/wt",
+    "ended": false,
+    "event_count": 16,
+    "features": [],
+    "first_prompt": null,
+    "gitAuthorEmail": "dev@example.com",
+    "last_event_at": "2026-10-01T09:00:34Z",
+    "model": "claude-opus-5-5",
+    "project": null,
+    "session_title": null,
+    "started_at": "2026-10-01T09:00:10Z",
+    "ticket": null,
+    "title": null
+  }
+}

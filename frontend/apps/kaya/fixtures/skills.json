@@ -1,0 +1,148 @@
+{
+  "generated_at": "2026-10-20T08:59:00Z",
+  "skills": [
+    {
+      "name": "agent-config-location",
+      "path": ".agents/skills/agent-config-location/SKILL.md",
+      "managed": false,
+      "pack": "local",
+      "scopes": ["Every scope"],
+      "routing": ["Task context for agent-config-location"],
+      "preloaded_by": [],
+      "lines": 120,
+      "description": "Use when the task needs agent-config-location. Second sentence."
+    },
+    {
+      "name": "broken-skill",
+      "path": ".agents/skills/broken-skill/SKILL.md",
+      "managed": false,
+      "pack": "local",
+      "scopes": [],
+      "routing": [],
+      "preloaded_by": [],
+      "error": "[Errno 2] No such file or directory: '.agents/skills/broken-skill/SKILL.md'"
+    },
+    {
+      "name": "code-review-convention",
+      "path": ".agents/skills/code-review-convention/SKILL.md",
+      "managed": true,
+      "pack": "managed",
+      "scopes": ["Every scope"],
+      "routing": ["Task context for code-review-convention"],
+      "preloaded_by": ["feature-code-reviewer"],
+      "lines": 120,
+      "description": "Use when the task needs code-review-convention. Second sentence."
+    },
+    {
+      "name": "entity-dto-convention",
+      "path": ".agents/skills/entity-dto-convention/SKILL.md",
+      "managed": true,
+      "pack": "managed",
+      "scopes": ["Backend"],
+      "routing": ["Task context for entity-dto-convention"],
+      "preloaded_by": [],
+      "lines": 120,
+      "description": "Use when the task needs entity-dto-convention. Second sentence."
+    },
+    {
+      "name": "github-actions-convention",
+      "path": ".agents/skills/github-actions-convention/SKILL.md",
+      "managed": true,
+      "pack": "managed",
+      "scopes": ["CI/CD"],
+      "routing": ["Task context for github-actions-convention"],
+      "preloaded_by": [],
+      "lines": 120,
+      "description": "Use when the task needs github-actions-convention. Second sentence."
+    },
+    {
+      "name": "kagi-api-client",
+      "path": ".agents/skills/kagi-api-client/SKILL.md",
+      "managed": false,
+      "pack": "local",
+      "scopes": ["Frontend", "Mobile", "Go"],
+      "routing": ["Task context for kagi-api-client", "Task context for kagi-api-client", "Task context for kagi-api-client"],
+      "preloaded_by": [],
+      "lines": 120,
+      "description": "Use when the task needs kagi-api-client. Second sentence."
+    },
+    {
+      "name": "kagi-cli-release",
+      "path": ".agents/skills/kagi-cli-release/SKILL.md",
+      "managed": false,
+      "pack": "local",
+      "scopes": ["Go"],
+      "routing": ["Task context for kagi-cli-release"],
+      "preloaded_by": [],
+      "lines": 120,
+      "description": "Use when the task needs kagi-cli-release. Second sentence."
+    },
+    {
+      "name": "kaizen",
+      "path": ".agents/skills/kaizen/SKILL.md",
+      "managed": true,
+      "pack": "managed",
+      "scopes": [],
+      "routing": [],
+      "preloaded_by": [],
+      "lines": 120,
+      "description": "Use when the task needs kaizen. Second sentence."
+    },
+    {
+      "name": "mobile-app-architecture",
+      "path": ".agents/skills/mobile-app-architecture/SKILL.md",
+      "managed": false,
+      "pack": "local",
+      "scopes": ["Mobile"],
+      "routing": ["Task context for mobile-app-architecture"],
+      "preloaded_by": [],
+      "lines": 120,
+      "description": "Use when the task needs mobile-app-architecture. Second sentence."
+    },
+    {
+      "name": "no-silent-failures",
+      "path": ".agents/skills/no-silent-failures/SKILL.md",
+      "managed": true,
+      "pack": "managed",
+      "scopes": ["Every scope"],
+      "routing": ["Task context for no-silent-failures"],
+      "preloaded_by": [],
+      "lines": 120,
+      "description": "Use when the task needs no-silent-failures. Second sentence."
+    },
+    {
+      "name": "schema-convention",
+      "path": ".agents/skills/schema-convention/SKILL.md",
+      "managed": true,
+      "pack": "managed",
+      "scopes": ["Frontend"],
+      "routing": ["Task context for schema-convention"],
+      "preloaded_by": [],
+      "lines": 120,
+      "description": "Use when the task needs schema-convention. Second sentence.",
+      "paths": ["**/schemas/**"]
+    },
+    {
+      "name": "spike-notes",
+      "path": ".agents/skills/spike-notes/SKILL.md",
+      "managed": false,
+      "pack": "local",
+      "scopes": ["Experiments"],
+      "routing": ["Task context for spike-notes"],
+      "preloaded_by": [],
+      "lines": 120,
+      "description": "Use when the task needs spike-notes. Second sentence."
+    },
+    {
+      "name": "testing-patterns",
+      "path": ".agents/skills/testing-patterns/SKILL.md",
+      "managed": true,
+      "pack": "managed",
+      "scopes": ["Backend"],
+      "routing": ["Task context for testing-patterns"],
+      "preloaded_by": [],
+      "lines": 120,
+      "description": "Use when the task needs testing-patterns. Second sentence."
+    }
+  ]
+}

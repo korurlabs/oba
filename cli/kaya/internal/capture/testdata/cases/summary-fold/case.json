@@ -1,0 +1,265 @@
+{
+  "account": true,
+  "branch": "feature/golden",
+  "description": "Title, first prompt, ticket, project, features, briefed features, branch, cwd and ended across a session.",
+  "email": "dev@example.com",
+  "queue_edits": [],
+  "queue_files": {},
+  "remote": "git@github.com:senseylabs/village.git",
+  "repo_files": [],
+  "scenarios": [],
+  "session_id": "11111111-aaaa-4bbb-8ccc-00000000000b",
+  "ssh_aliases": {},
+  "state_files": {},
+  "steps": [
+    {
+      "at": "2026-10-01T09:00:00Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SessionStart",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000b",
+        "session_title": null,
+        "source": "startup",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:01Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "UserPromptSubmit",
+        "permission_mode": "default",
+        "prompt": "please   do the   thing described in the long   sentence that goes beyond the eighty character title limit for sure, yes",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000b",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:02Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "UserPromptSubmit",
+        "permission_mode": "default",
+        "prompt": "second prompt mentions ABC-9 which is the ticket",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000b",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:03Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000b",
+        "tool_input": {
+          "command": "kaizen ticket move KAI-77 IN_REVIEW"
+        },
+        "tool_name": "Bash",
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:04Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000b",
+        "tool_input": {
+          "command": "echo KAI-88"
+        },
+        "tool_name": "Bash",
+        "tool_use_id": "toolu_bash",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:05Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000b",
+        "tool_input": {
+          "file_path": "{{REPO}}/projects/kaya/frontend/a.ts"
+        },
+        "tool_name": "Write",
+        "tool_response": {
+          "type": "create"
+        },
+        "tool_use_id": "toolu_write",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:06Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000b",
+        "tool_input": {
+          "file_path": "{{REPO}}/company/cop/agent/backend/b.java"
+        },
+        "tool_name": "Write",
+        "tool_response": {
+          "type": "create"
+        },
+        "tool_use_id": "toolu_write",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:07Z",
+      "files": [
+        {
+          "content": "# x\n",
+          "mtime": "2026-10-01T09:00:08Z",
+          "path": "handoffs/feat/backend/x.md"
+        }
+      ],
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000b",
+        "tool_input": {
+          "file_path": "{{REPO}}/handoffs/feat/backend/x.md"
+        },
+        "tool_name": "Write",
+        "tool_response": {
+          "type": "create"
+        },
+        "tool_use_id": "toolu_write",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:08Z",
+      "files": [
+        {
+          "content": "# solo\n",
+          "mtime": "2026-10-01T09:00:09Z",
+          "path": "handoffs/solo.md"
+        }
+      ],
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000b",
+        "tool_input": {
+          "file_path": "{{REPO}}/handoffs/solo.md"
+        },
+        "tool_name": "Write",
+        "tool_response": {
+          "type": "create"
+        },
+        "tool_use_id": "toolu_write",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:09Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PostToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000b",
+        "tool_input": {
+          "file_path": "{{REPO}}/.claude/worktrees/wt/projects/kagi/cli/x.go"
+        },
+        "tool_name": "Write",
+        "tool_response": {
+          "type": "create"
+        },
+        "tool_use_id": "toolu_write",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:10Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000b",
+        "tool_input": {
+          "description": "d",
+          "prompt": "Handoff: handoffs/briefed/part/z.md",
+          "subagent_type": "a"
+        },
+        "tool_name": "Agent",
+        "tool_use_id": "toolu_agent",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:11Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "PreToolUse",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000b",
+        "tool_input": {
+          "description": "d",
+          "prompt": "Handoff: handoffs/briefed/other.md",
+          "subagent_type": "a"
+        },
+        "tool_name": "Agent",
+        "tool_use_id": "toolu_agent",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:12Z",
+      "files": [
+        {
+          "content": "# z\n",
+          "mtime": "2026-10-01T09:00:11Z",
+          "path": "handoffs/briefed/part/z.md"
+        },
+        {
+          "content": "# m\n",
+          "mtime": "2026-10-01T09:00:11Z",
+          "path": "handoffs/briefed/more/m.md"
+        }
+      ],
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "Stop",
+        "last_assistant_message": "done",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000b",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:13Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SessionEnd",
+        "permission_mode": "default",
+        "reason": "other",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000b",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:14Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "UserPromptSubmit",
+        "permission_mode": "default",
+        "prompt": "a prompt after the session ended",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000b",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    }
+  ],
+  "usage": null,
+  "worktree": null
+}

@@ -1,0 +1,68 @@
+{
+  "openapi": "3.1.0",
+  "info": {"title": "Oba API", "version": "v1"},
+  "paths": {},
+  "components": {
+    "schemas": {
+      "ContactCreateRequest": {
+        "type": "object",
+        "required": ["name", "kind", "decisionMaker", "mainPersonContact", "mainBusinessContact"],
+        "properties": {
+          "name": {"type": "string", "maxLength": 200},
+          "kind": {"type": "string", "enum": ["PERSON", "BUSINESS"]},
+          "role": {"type": ["string", "null"], "maxLength": 100},
+          "email": {"type": ["string", "null"], "maxLength": 254},
+          "emailType": {"type": ["string", "null"], "enum": ["COMPANY", "SHARED", "PERSONAL", null]},
+          "phone": {"type": ["string", "null"], "maxLength": 50},
+          "linkedinUrl": {"type": ["string", "null"], "maxLength": 500},
+          "decisionMaker": {"type": "boolean"},
+          "sourceUrl": {"type": ["string", "null"], "maxLength": 500},
+          "mainPersonContact": {"type": "boolean"},
+          "mainBusinessContact": {"type": "boolean"}
+        }
+      },
+      "ContactUpdateRequest": {
+        "type": "object",
+        "required": ["name", "kind", "decisionMaker", "mainPersonContact", "mainBusinessContact"],
+        "properties": {
+          "name": {"type": "string", "maxLength": 200},
+          "kind": {"type": "string", "enum": ["PERSON", "BUSINESS"]},
+          "role": {"type": ["string", "null"], "maxLength": 100},
+          "email": {"type": ["string", "null"], "maxLength": 254},
+          "emailType": {"type": ["string", "null"], "enum": ["COMPANY", "SHARED", "PERSONAL", null]},
+          "phone": {"type": ["string", "null"], "maxLength": 50},
+          "linkedinUrl": {"type": ["string", "null"], "maxLength": 500},
+          "decisionMaker": {"type": "boolean"},
+          "mainPersonContact": {"type": "boolean"},
+          "mainBusinessContact": {"type": "boolean"}
+        }
+      },
+      "RelationCreateRequest": {
+        "type": "object",
+        "required": ["name", "type"],
+        "properties": {
+          "name": {"type": "string", "maxLength": 255},
+          "type": {"type": "string", "enum": ["LEAD", "SUPPLIER", "CUSTOMER"]},
+          "stage": {"type": "string", "enum": ["NEW", "QUALIFIED", "CONTACTED", "WARM", "PROPOSAL", "CLOSED", "LOST", "PARKED", "DIRECT"]},
+          "country": {"type": "string"},
+          "size": {"type": "string", "enum": ["SIZE_1_10", "SIZE_11_50"]},
+          "source": {"type": "string", "enum": ["REFERRAL", "WEBSITE"]},
+          "ownerUserId": {"type": "string", "format": "uuid"},
+          "expectedValue": {"type": "number"}
+        }
+      },
+      "RelationUpdateRequest": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {"type": "string", "maxLength": 255},
+          "country": {"type": "string"},
+          "size": {"type": "string", "enum": ["SIZE_1_10", "SIZE_11_50"]},
+          "source": {"type": "string", "enum": ["REFERRAL", "WEBSITE"]},
+          "ownerUserId": {"type": "string", "format": "uuid"},
+          "expectedValue": {"type": "number"}
+        }
+      }
+    }
+  }
+}

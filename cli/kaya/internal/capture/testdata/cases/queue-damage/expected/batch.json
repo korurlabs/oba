@@ -1,0 +1,78 @@
+{
+  "machine": {
+    "account": {
+      "billingType": "stripe_subscription",
+      "emailAddress": "dev@example.com",
+      "organizationName": "Korur",
+      "organizationType": "claude_max",
+      "organizationUuid": "11111111-2222-3333-4444-555555555555",
+      "seatTier": "max_5x"
+    },
+    "claudeCodeVersion": "2.1.100",
+    "machineName": "golden-host"
+  },
+  "events": [
+    {
+      "at": "2026-10-01T09:00:00Z",
+      "branch": "feature/golden",
+      "cwd": "{{REPO}}",
+      "event": "SessionStart",
+      "seq": 1,
+      "source": "startup"
+    },
+    {
+      "at": "2026-10-01T09:00:01Z",
+      "cwd": "{{REPO}}",
+      "event": "UserPromptSubmit",
+      "prompt": "one",
+      "seq": 2
+    },
+    {
+      "at": "2026-10-01T09:00:01Z",
+      "event": "RecorderLostLine",
+      "seq": 3
+    },
+    {
+      "at": "2026-10-01T09:00:01Z",
+      "event": "RecorderLostLine",
+      "seq": 4
+    },
+    {
+      "at": "2026-10-01T09:00:04Z",
+      "cwd": "{{REPO}}",
+      "event": "UserPromptSubmit",
+      "prompt": "four",
+      "seq": 5
+    }
+  ],
+  "handoffs": [],
+  "plans": [],
+  "repository": {
+    "name": "village",
+    "remoteUrl": "git@github.com:senseylabs/village.git"
+  },
+  "sessionId": "11111111-aaaa-4bbb-8ccc-00000000000c",
+  "summary": {
+    "branch": "feature/golden",
+    "briefed_features": [],
+    "configRelease": {
+      "deliveredBy": null,
+      "manifestSha256": null,
+      "number": null,
+      "state": "NONE"
+    },
+    "cwd": "{{REPO}}",
+    "ended": false,
+    "event_count": 5,
+    "features": [],
+    "first_prompt": "one",
+    "gitAuthorEmail": "dev@example.com",
+    "last_event_at": "2026-10-01T09:00:04Z",
+    "model": "claude-opus-5-5",
+    "project": null,
+    "session_title": null,
+    "started_at": "2026-10-01T09:00:00Z",
+    "ticket": null,
+    "title": "one"
+  }
+}

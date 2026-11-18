@@ -1,0 +1,19 @@
+[
+  {
+    "exit": 0,
+    "stderr": [
+      "kaya recorder: Kaya refused KAYA_RECORDER_TOKEN: this session is recorded on this machine only and sent once a valid token is set (kagi secrets set --personal --path /kaya/recorder KAYA_RECORDER_TOKEN=<token>)"
+    ],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [],
+    "stdout": ""
+  }
+]

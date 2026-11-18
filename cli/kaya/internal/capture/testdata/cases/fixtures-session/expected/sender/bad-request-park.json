@@ -1,0 +1,47 @@
+{
+  "runs": [
+    {
+      "cursor": {
+        "acknowledgedSeq": 0,
+        "handoffs": {},
+        "parked": {
+          "code": "KAY_VAL_002",
+          "status": 400,
+          "tokenFingerprint": "<fingerprint>"
+        },
+        "plans": {}
+      },
+      "exit": 0,
+      "files": [
+        "config-release.json",
+        "cursor.json",
+        "events.jsonl",
+        "handoffs/kaya/other/recorder.md",
+        "handoffs/kaya/other/second.md",
+        "plans/session.json",
+        "plans/session.md",
+        "session.json",
+        "summary.json"
+      ],
+      "log": [
+        "fixture-session: parked, Kaya answered 400 KAY_VAL_002"
+      ],
+      "queueAfter": {},
+      "requests": [
+        {
+          "authorized": true,
+          "body": "same as ../batch.json",
+          "contentType": "application/json",
+          "method": "POST",
+          "path": "/kaya/ingest/batches"
+        }
+      ],
+      "state": null,
+      "stderr": [],
+      "stdout": "",
+      "token": "A",
+      "usageFileLeft": true
+    }
+  ],
+  "scenario": "bad-request-park"
+}

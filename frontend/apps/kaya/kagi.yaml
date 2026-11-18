@@ -1,0 +1,26 @@
+# Kagi binding for this directory. Secrets are addressed by the stable
+# app-id; folder-path is a human reference only and is not used for addressing.
+folder-path: /oba/kaya
+app-id: 4627fb3f-73c9-4602-aa52-e36e12c1e033
+environment: local
+organization: sensey
+organization-id: 00000000-0000-0000-0000-000000000001
+# Local Context: devstack serves this directory's per-machine
+# values. environments lists this file's own environment: slug, local.
+# keys lists exactly the env keys the kaya unit of
+# projects/oba/devstack.yaml declares, and nothing else.
+local:
+  provider: devstack
+  environments: [local]
+  keys:
+    - PORT
+    - AUTH_URL
+    - AUTH_KEYCLOAK_ISSUER
+    - BASE_URL
+    - API_BASE_URL
+    - KAIZEN_URL
+    - ADMIN_URL
+    - ACCOUNT_URL
+    - OTAK_URL
+    - KALKAN_URL
+    - KAYA_URL

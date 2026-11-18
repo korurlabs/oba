@@ -1,0 +1,24 @@
+{
+  "runs": [
+    {
+      "cursor": null,
+      "exit": 0,
+      "files": [
+        "events.jsonl",
+        "session.json",
+        "summary.json"
+      ],
+      "log": [
+        "22222222-aaaa-4bbb-8ccc-000000000019: not sent, no git remote for the session's directory"
+      ],
+      "queueAfter": {},
+      "requests": [],
+      "state": null,
+      "stderr": [],
+      "stdout": "",
+      "token": "A",
+      "usageFileLeft": false
+    }
+  ],
+  "scenario": "ok"
+}

@@ -1,0 +1,39 @@
+{
+  "runs": [
+    {
+      "cursor": {
+        "acknowledgedSeq": 3,
+        "handoffs": {},
+        "plans": {}
+      },
+      "exit": 0,
+      "files": [
+        "cursor.json",
+        "events.jsonl",
+        "session.json",
+        "summary.json"
+      ],
+      "log": [
+        "ssh -G broken-host exited 255, the remote is sent as git reports it: ssh: broken"
+      ],
+      "queueAfter": {},
+      "requests": [
+        {
+          "authorized": true,
+          "body": "same as ../batch.json",
+          "contentType": "application/json",
+          "method": "POST",
+          "path": "/kaya/ingest/batches"
+        }
+      ],
+      "state": {
+        "token": "ok"
+      },
+      "stderr": [],
+      "stdout": "",
+      "token": "A",
+      "usageFileLeft": false
+    }
+  ],
+  "scenario": "ok"
+}

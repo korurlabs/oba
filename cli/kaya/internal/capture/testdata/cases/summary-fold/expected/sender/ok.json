@@ -1,0 +1,46 @@
+{
+  "runs": [
+    {
+      "cursor": {
+        "acknowledgedSeq": 15,
+        "handoffs": {
+          "briefed/more/m.md": 1790845211000000000,
+          "briefed/part/z.md": 1790845211000000000,
+          "feat/backend/x.md": 1790845208000000000,
+          "solo.md": 1790845209000000000
+        },
+        "plans": {}
+      },
+      "exit": 0,
+      "files": [
+        "cursor.json",
+        "events.jsonl",
+        "handoffs/briefed/more/m.md",
+        "handoffs/briefed/part/z.md",
+        "handoffs/feat/backend/x.md",
+        "handoffs/solo.md",
+        "session.json",
+        "summary.json"
+      ],
+      "log": [],
+      "queueAfter": {},
+      "requests": [
+        {
+          "authorized": true,
+          "body": "same as ../batch.json",
+          "contentType": "application/json",
+          "method": "POST",
+          "path": "/kaya/ingest/batches"
+        }
+      ],
+      "state": {
+        "token": "ok"
+      },
+      "stderr": [],
+      "stdout": "",
+      "token": "A",
+      "usageFileLeft": false
+    }
+  ],
+  "scenario": "ok"
+}

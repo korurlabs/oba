@@ -1,0 +1,83 @@
+================================================================================
+                       Connect Retry — Architecture
+================================================================================
+
+1. PURPOSE
+----------
+Provides synchronous retry with exponential backoff for connect layer
+integrations that need an immediate result (upload URLs,
+AI responses, command output).
+
+2. DESIGN
+---------
+Annotation-driven:
+  - @ConnectRetry(ConnectRetryPolicy.AZURE_BLOB_STORAGE)
+  - Policy enum holds all config: maxAttempts, delayMs, multiplier,
+    retryFor, noRetryFor
+  - System enum identifies the external system
+
+AOP aspect:
+  - ConnectRetryAspect intercepts @ConnectRetry methods
+  - Builds a RetryTemplate from the policy
+  - Wraps the method call in the retry loop
+
+3. EXCEPTION CLASSIFICATION
+----------------------------
+Retried:
+  - Network timeouts, 5xx server errors, connection refused
+  - Rate limits (429) with exponential backoff
+
+NOT retried:
+  - InternalProcessException (programming errors)
+  - 4xx client errors (invalid input)
+  - Business logic exceptions
+
+4. RETRY POLICIES
+-----------------
+AZURE_BLOB_STORAGE: 3 attempts, 1s, 2x  (~7s total)
+INTELLIGENCE:       2 attempts, 3s, 2x  (~9s total)
+KUBERNETES:         3 attempts, 2s, 2x  (~14s total)
+NOTIFICATION:       3 attempts, 2s, 2x  (~14s total)
+EXPO_PUSH:          3 attempts, 1s, 2x  (~3s total)
+
+5. RETRY EVENT PERSISTENCE
+---------------------------
+ConnectRetryAspect persists retry outcomes to the database:
+
+  - SUCCESS (first try):    No record created (avoid noise)
+  - SUCCESS (with retries): RetryEvent created with status=COMPLETED
+  - EXHAUSTED:              RetryEvent (status=EXHAUSTED) + RetryDeadEvent
+
+RetryEvent (retry_events):
+  - method_name (VARCHAR 255)
+  - system (ConnectRetrySystem enum)
+  - attempts, max_attempts (int)
+  - status (RetryEventStatus — COMPLETED / EXHAUSTED)
+  - last_error_message, last_error_stack_trace (TEXT, nullable)
+  - duration_ms (BIGINT)
+
+RetryDeadEvent (retry_dead_events):
+  - original_retry_event_id (UUID, link to retry_events)
+  - method_name, system, attempts
+  - last_error_message, last_error_stack_trace
+  - failed_at
+  - resolution (nullable: DeadLetterResolution — REPLAYED / DISCARDED)
+  - resolved_at (nullable)
+
+Persistence uses REQUIRES_NEW propagation so it does not interfere with
+the caller's transaction (which may be rolling back on exhaustion).
+
+6. DIRECTORY STRUCTURE
+----------------------
+connect/retry/
+  annotation/    ConnectRetry.java
+  aspect/        ConnectRetryAspect.java
+  entity/        RetryEvent.java, RetryDeadEvent.java
+  enums/         ConnectRetrySystem.java, ConnectRetryPolicy.java, RetryEventStatus.java
+  repository/    RetryEventRepository.java, RetryDeadEventRepository.java
+  service/       RetryEventService.java
+  service/impl/  RetryEventServiceImpl.java
+  constant/      ConnectRetryLogConstant.java
+  constant/service/ RetryEventServiceLogConstant.java, RetryDeadEventServiceLogConstant.java
+  exception/     ExceptionDomainRetryError.java
+  docs/          architecture.txt

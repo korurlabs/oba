@@ -1,0 +1,8 @@
+[
+  "queue/sessions/12345/events.jsonl",
+  "queue/sessions/12345/session.json",
+  "queue/sessions/12345/summary.json",
+  "queue/sessions/abcd/events.jsonl",
+  "queue/sessions/abcd/session.json",
+  "queue/sessions/abcd/summary.json"
+]

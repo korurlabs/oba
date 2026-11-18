@@ -1,0 +1,9 @@
+-- Village Database Schema - Create Sage Intelligence Tables (Superseded)
+-- V1_0_7__Create_Sage_Intelligence_Tables.sql
+--
+-- All sage intelligence tables (agent registrations, sessions, memories,
+-- profiles, permissions, guardrails, schedules, tool registry, prompt
+-- templates, instructions, events, metrics, feedback) have been consolidated
+-- into V1_1_18__Create_Sage_Schema.sql as part of the sage schema clean-up.
+--
+-- This file is intentionally empty (no-op) to preserve the version sequence.

@@ -1,0 +1,88 @@
+{
+  "account": true,
+  "branch": "feature/golden",
+  "description": "A damaged line in events.jsonl is quarantined and a RecorderLostLine keeps the seqs gapless; a half-written last line waits.",
+  "email": "dev@example.com",
+  "queue_edits": [
+    {
+      "file": "events.jsonl",
+      "replace_line": 3,
+      "with": "this is not json\n"
+    },
+    {
+      "file": "events.jsonl",
+      "replace_line": 4,
+      "with": "{\"seq\": \"x\"}\n"
+    },
+    {
+      "append": "{\"seq\":6,\"at\":\"2026-10-01T09:00:09Z\",\"event\":\"Stop\"",
+      "file": "events.jsonl"
+    }
+  ],
+  "queue_files": {},
+  "remote": "git@github.com:senseylabs/village.git",
+  "repo_files": [],
+  "scenarios": [],
+  "session_id": "11111111-aaaa-4bbb-8ccc-00000000000c",
+  "ssh_aliases": {},
+  "state_files": {},
+  "steps": [
+    {
+      "at": "2026-10-01T09:00:00Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "SessionStart",
+        "permission_mode": "default",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000c",
+        "source": "startup",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:01Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "UserPromptSubmit",
+        "permission_mode": "default",
+        "prompt": "one",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000c",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:02Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "UserPromptSubmit",
+        "permission_mode": "default",
+        "prompt": "two",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000c",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:03Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "UserPromptSubmit",
+        "permission_mode": "default",
+        "prompt": "three",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000c",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    },
+    {
+      "at": "2026-10-01T09:00:04Z",
+      "hook": {
+        "cwd": "{{REPO}}",
+        "hook_event_name": "UserPromptSubmit",
+        "permission_mode": "default",
+        "prompt": "four",
+        "session_id": "11111111-aaaa-4bbb-8ccc-00000000000c",
+        "transcript_path": "{{TRANSCRIPTS}}/main.jsonl"
+      }
+    }
+  ],
+  "usage": null,
+  "worktree": null
+}

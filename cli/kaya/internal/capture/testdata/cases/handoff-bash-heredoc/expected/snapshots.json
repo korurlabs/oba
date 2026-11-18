@@ -1,0 +1,14 @@
+{
+  "handoffs/feat/backend/report.md": {
+    "content": "# Report\nLATE_SECRET=topsecretvalue\n",
+    "mtime": "2026-10-01T09:00:49Z"
+  },
+  "handoffs/feat/backend/unit.md": {
+    "content": "# Handoff\nStatus: DONE\nFiles: a.go\n",
+    "mtime": "2026-10-01T09:00:39Z"
+  },
+  "handoffs/feat/notes/deep/y.md": {
+    "content": "# Deep\nAuthorization: Bearer abc.def.ghi\n",
+    "mtime": "2026-10-01T09:00:25Z"
+  }
+}

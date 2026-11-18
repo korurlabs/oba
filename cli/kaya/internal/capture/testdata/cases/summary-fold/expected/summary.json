@@ -1,0 +1,21 @@
+{
+  "branch": "feature/golden",
+  "briefed_features": [
+    "briefed"
+  ],
+  "cwd": "{{REPO}}",
+  "ended": false,
+  "event_count": 15,
+  "features": [
+    "feat",
+    "briefed"
+  ],
+  "first_prompt": "please   do the   thing described in the long   sentence that goes beyond the eighty character title limit for sure, yes",
+  "last_event_at": "2026-10-01T09:00:14Z",
+  "project": "kaya",
+  "session_id": "11111111-aaaa-4bbb-8ccc-00000000000b",
+  "session_title": null,
+  "started_at": "2026-10-01T09:00:00Z",
+  "ticket": "ABC-9",
+  "title": "please do the thing described in the long sentence that goes beyond the eighty"
+}

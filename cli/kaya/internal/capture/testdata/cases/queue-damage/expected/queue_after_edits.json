@@ -1,0 +1,3 @@
+{
+  "events.jsonl": "{\"at\":\"2026-10-01T09:00:00Z\",\"event\":\"SessionStart\",\"cwd\":\"{{REPO}}\",\"source\":\"startup\",\"branch\":\"feature/golden\",\"seq\":1}\n{\"at\":\"2026-10-01T09:00:01Z\",\"event\":\"UserPromptSubmit\",\"cwd\":\"{{REPO}}\",\"prompt\":\"one\",\"seq\":2}\nthis is not json\n{\"seq\": \"x\"}\n{\"at\":\"2026-10-01T09:00:04Z\",\"event\":\"UserPromptSubmit\",\"cwd\":\"{{REPO}}\",\"prompt\":\"four\",\"seq\":5}\n{\"seq\":6,\"at\":\"2026-10-01T09:00:09Z\",\"event\":\"Stop\""
+}

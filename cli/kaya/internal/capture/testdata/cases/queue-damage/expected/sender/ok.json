@@ -1,0 +1,43 @@
+{
+  "runs": [
+    {
+      "cursor": {
+        "acknowledgedSeq": 5,
+        "handoffs": {},
+        "plans": {}
+      },
+      "exit": 0,
+      "files": [
+        "cursor.json",
+        "events.invalid.jsonl",
+        "events.jsonl",
+        "session.json",
+        "summary.json"
+      ],
+      "log": [
+        "{{STATE}}/queue/sessions/11111111-aaaa-4bbb-8ccc-00000000000c: 2 event lines are not JSON events, moved to events.invalid.jsonl"
+      ],
+      "queueAfter": {
+        "events.invalid.jsonl": "this is not json\n{\"seq\": \"x\"}\n",
+        "events.jsonl": "{\"at\":\"2026-10-01T09:00:00Z\",\"event\":\"SessionStart\",\"cwd\":\"{{REPO}}\",\"source\":\"startup\",\"branch\":\"feature/golden\",\"seq\":1}\n{\"at\":\"2026-10-01T09:00:01Z\",\"event\":\"UserPromptSubmit\",\"cwd\":\"{{REPO}}\",\"prompt\":\"one\",\"seq\":2}\n{\"seq\":3,\"at\":\"2026-10-01T09:00:01Z\",\"event\":\"RecorderLostLine\"}\n{\"seq\":4,\"at\":\"2026-10-01T09:00:01Z\",\"event\":\"RecorderLostLine\"}\n{\"at\":\"2026-10-01T09:00:04Z\",\"event\":\"UserPromptSubmit\",\"cwd\":\"{{REPO}}\",\"prompt\":\"four\",\"seq\":5}\n{\"seq\":6,\"at\":\"2026-10-01T09:00:09Z\",\"event\":\"Stop\""
+      },
+      "requests": [
+        {
+          "authorized": true,
+          "body": "same as ../batch.json",
+          "contentType": "application/json",
+          "method": "POST",
+          "path": "/kaya/ingest/batches"
+        }
+      ],
+      "state": {
+        "token": "ok"
+      },
+      "stderr": [],
+      "stdout": "",
+      "token": "A",
+      "usageFileLeft": false
+    }
+  ],
+  "scenario": "ok"
+}

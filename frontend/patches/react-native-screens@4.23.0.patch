@@ -1,0 +1,89 @@
+diff --git a/ios/RNSScreen.mm b/ios/RNSScreen.mm
+index 1c447628d505fbf1bc0c296aee1b6d78321f4559..9a9167b5064eca5a3f196ff6026026328803c2d7 100644
+--- a/ios/RNSScreen.mm
++++ b/ios/RNSScreen.mm
+@@ -70,6 +70,12 @@ @interface RNSScreenView () <
+ 
+ @implementation RNSScreenView {
+   __weak RNS_REACT_SCROLL_VIEW_COMPONENT *_sheetsScrollView;
++  /// Tag of `_sheetsScrollView` when this sheet started observing it. Fabric gives a recycled view a new tag, so
++  /// a different tag means the instance now renders content of another component, possibly in another screen.
++  NSInteger _sheetsScrollViewTag;
++  /// Set once React has deleted this screen. A deleted sheet must not size a scroll view any more, because the
++  /// view may already show the content of the screen that replaced it.
++  BOOL _invalidated;
+ 
+   /// Up-to-date only when sheet is in `fitToContents` mode.
+   CGFloat _sheetContentHeight;
+@@ -141,6 +147,8 @@ - (void)initCommonProps
+   _sheetExpandsWhenScrolledToEdge = YES;
+ #endif // !TARGET_OS_TV
+   _sheetsScrollView = nil;
++  _sheetsScrollViewTag = 0;
++  _invalidated = NO;
+   _sheetContentHeight = 0.0;
+ #ifdef RCT_NEW_ARCH_ENABLED
+   _markedForUnmountInCurrentTransaction = NO;
+@@ -241,6 +249,14 @@ - (void)updateBounds
+ 
+ - (void)applyFrameCorrectionForDescendantScrollView
+ {
++  // A dismissed sheet can still receive a layout pass after React has deleted it. By then Fabric may have
++  // recycled its scroll view into the screen that replaced the sheet, and observing or sizing that scroll view
++  // to the sheet's frame would clip the new screen's content. Upstream fix:
++  // software-mansion/react-native-screens#4822.
++  if (_invalidated) {
++    return;
++  }
++
+   RNS_REACT_SCROLL_VIEW_COMPONENT *scrollView = [self tryFindDescendantScrollView];
+   if (_sheetsScrollView != scrollView) {
+     [_sheetsScrollView removeObserver:self forKeyPath:@"bounds" context:nil];
+@@ -250,6 +266,9 @@ - (void)applyFrameCorrectionForDescendantScrollView
+     // we are going to overwrite it anyway.
+     [scrollView addObserver:self forKeyPath:@"bounds" options:0 context:nil];
+   }
++  // Refreshed even when the instance is unchanged: Fabric may have recycled the same view back into this sheet
++  // under a new tag.
++  _sheetsScrollViewTag = scrollView != nil ? scrollView.tag : 0;
+   if (scrollView != nil) {
+     [self correctScrollViewFrame:scrollView withHeader:nil];
+   }
+@@ -278,6 +297,18 @@ - (void)observeValueForKeyPath:(NSString *)keyPath
+     return;
+   }
+ 
++  // The observed scroll view no longer belongs to this sheet. The sheet's content can remove its scroll view
++  // while the sheet stays presented, and a dismissed sheet's observer can outlive the sheet; in both cases
++  // Fabric recycles the view, possibly into another screen, under a new tag. Forcing it to this sheet's frame
++  // would resize that screen's content, so stop observing it instead. Upstream fix:
++  // software-mansion/react-native-screens#4833.
++  if (scrollView.tag != _sheetsScrollViewTag) {
++    [scrollView removeObserver:self forKeyPath:@"bounds" context:nil];
++    _sheetsScrollView = nil;
++    _sheetsScrollViewTag = 0;
++    return;
++  }
++
+   RNSScreenContentWrapper *_Nullable contentWrapper = _contentWrapperBox.contentWrapper;
+   if (contentWrapper != nil && [contentWrapper coerceChildScrollViewComponentSizeToSize:self.frame.size]) {
+     return;
+@@ -962,8 +993,17 @@ - (BOOL)isTransparentModal
+ 
+ - (void)invalidateImpl
+ {
++  _invalidated = YES;
+   _controller = nil;
+-  [_sheetsScrollView removeObserver:self forKeyPath:@"bounds" context:nil];
++  // Fabric may recycle the scroll view into another screen right after this one is deleted, so stop observing
++  // it now rather than leave a dismissed sheet's observer on the reused view. Clearing the reference keeps a
++  // later call from removing the observer a second time, which KVO rejects with an exception. Upstream fix:
++  // software-mansion/react-native-screens#4091.
++  if (_sheetsScrollView != nil) {
++    [_sheetsScrollView removeObserver:self forKeyPath:@"bounds" context:nil];
++    _sheetsScrollView = nil;
++    _sheetsScrollViewTag = 0;
++  }
+ }
+ 
+ #ifndef RCT_NEW_ARCH_ENABLED

@@ -1,0 +1,24 @@
+[
+  {
+    "exit": 0,
+    "stderr": [],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [
+      "kaya recorder: plan of the session not captured: it has more than 200000 characters"
+    ],
+    "stdout": ""
+  },
+  {
+    "exit": 0,
+    "stderr": [],
+    "stdout": ""
+  }
+]

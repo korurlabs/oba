@@ -1,0 +1,72 @@
+# OS
+.DS_Store
+
+# IDE and editor
+.idea/
+.vscode/
+.classpath
+.factorypath
+.project
+.settings/
+*.swp
+*.swo
+*~
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.jks
+*.p8
+*.p12
+*.key
+
+# Agent configuration
+.claude/
+.agents/
+AGENTS.md
+CLAUDE.md
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+bun.lockb
+
+# JavaScript and TypeScript build output and caches
+dist/
+out/
+.next/
+.turbo/
+*.tsbuildinfo
+.cache/
+.eslintcache
+
+# Expo
+.expo/
+
+# Logs and runtime files
+*.log
+logs/
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.pid
+
+# Testing and coverage
+coverage/
+*.lcov
+.nyc_output/
+**/test-results/
+**/playwright-report/
+
+# Java and Maven
+target/
+*.class
+
+# Go
+cli/*/bin/
+cli/*/dist/
+*.test
+*.out

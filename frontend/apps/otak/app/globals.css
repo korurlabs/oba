@@ -1,0 +1,19 @@
+@import "tailwindcss";
+/* Otak's look (tokens, typography, the menu panel) is the shared sky design, as Kaya's. */
+@import "@oba/ui/sky/styles.css";
+
+/*
+ * Tailwind scans only this app and the sky module. The account menu, the app
+ * switcher, the toaster and the form fields come from the shared packages, so
+ * their folders are named here or their classes would be missing.
+ */
+@source "../../../packages/shared/src/components/**/*.{ts,tsx}";
+@source "../../../packages/shared/src/features/**/*.{ts,tsx}";
+@source "../../../packages/ui/src/components/**/*.{ts,tsx}";
+
+/*
+ * The sky design has no dark mode, and the theme provider keeps the page
+ * light. The shared components carry `dark:` classes; tied to the `.dark`
+ * class they never apply, where the default would follow the system setting.
+ */
+@custom-variant dark (&:is(.dark *));

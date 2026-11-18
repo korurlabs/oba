@@ -1,0 +1,294 @@
+/*
+ * The description editor's page inside its WebView. The document styles are
+ * the web editor's own file (`@oba/shared/styles/markdown-editor.css`), which
+ * the component imports right before this one, so a description looks the
+ * same on both; this file adds the page around it, the touch-sized toolbar
+ * and controls, and the theme values the native side passes in as CSS
+ * variables on :root. It must not `@import` the web file: the development
+ * bundle never loads a stylesheet that is only imported from another one.
+ */
+
+:root {
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
+  --border: #e5e5e5;
+  --accent: #f5f5f5;
+  --primary: #171717;
+  --ring: #a3a3a3;
+  --secondary: #f5f5f5;
+  --success: #16a34a;
+  --error: #dc2626;
+  -webkit-text-size-adjust: 100%;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family:
+    -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/*
+ * Editing: the page itself scrolls, under a sticky toolbar. The WebView's own
+ * scroll view then takes a drag inside the sheet, and WebKit keeps the caret
+ * above the keyboard as it does on any web page; an inner scrolling box gets
+ * neither.
+ */
+
+/* Reading view: the page is as tall as the text, so the native view can match it. */
+html.description-editor-reading,
+html.description-editor-reading body,
+html.description-editor-reading #root {
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+}
+
+.description-editor {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+}
+
+/*
+ * Editing: the text fills at least the visible page, so a tap anywhere below
+ * the last line still places the caret. The sides match the sheet header's
+ * 16 pt gutter, and the room at the bottom keeps the last line off the
+ * keyboard's edge.
+ */
+html.description-editor-editing .description-editor {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+html.description-editor-editing .description-editor .wysiwyg-editor {
+  flex: 1;
+}
+
+html.description-editor-editing .wysiwyg-editor .tiptap {
+  padding: 12px 16px 32px;
+}
+
+/* 16 px text, so iOS does not zoom in when the editor takes focus. */
+.description-editor .wysiwyg-editor .tiptap {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.description-editor .wysiwyg-editor .tiptap code,
+.description-editor .wysiwyg-editor .tiptap pre code,
+.description-editor .wysiwyg-editor .code-block-wrapper code {
+  font-size: 0.875rem;
+}
+
+html.description-editor-reading .wysiwyg-editor .tiptap {
+  min-height: 0;
+  padding: 0;
+}
+
+/* ── Toolbar ─────────────────────────────────────────────────────── */
+
+.description-editor-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  flex: none;
+  background: var(--background);
+  border-bottom: 1px solid var(--border);
+}
+
+.description-editor-toolbar-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.description-editor-toolbar-row::-webkit-scrollbar {
+  display: none;
+}
+
+.description-editor-toolbar-button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--foreground);
+  touch-action: manipulation;
+}
+
+.description-editor-toolbar-button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--primary);
+}
+
+.description-editor-toolbar-button:disabled {
+  opacity: 0.4;
+}
+
+.description-editor-toolbar-separator {
+  flex: none;
+  width: 1px;
+  height: 20px;
+  margin: 0 4px;
+  background: var(--border);
+}
+
+.description-editor-busy {
+  animation: description-editor-pulse 1s ease-in-out infinite;
+}
+
+@keyframes description-editor-pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* ── Link row ────────────────────────────────────────────────────── */
+
+.description-editor-link-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.description-editor-link-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.description-editor-link-fields {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.description-editor-link-input {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--background);
+  color: var(--foreground);
+  font: inherit;
+  font-size: 1rem;
+  outline: none;
+}
+
+.description-editor-link-input:focus {
+  border-color: var(--primary);
+}
+
+.description-editor-link-insert {
+  flex: none;
+  height: 40px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 8px;
+  background: var(--primary);
+  color: var(--background);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.description-editor-link-remove {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--error);
+  font: inherit;
+  font-size: 0.8125rem;
+}
+
+/* ── Images ──────────────────────────────────────────────────────── */
+
+.description-editor-image {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: baseline;
+}
+
+.description-editor .wysiwyg-editor .tiptap img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.description-editor-image-missing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  min-height: 64px;
+  margin: 0.5rem 0;
+  padding: 8px;
+  border: 1px dashed var(--border);
+  border-radius: 0.375rem;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+/* Always visible while editing: touch has no hover to reveal it. */
+.description-editor-image-delete {
+  position: absolute;
+  top: 12px;
+  right: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: var(--error);
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+  touch-action: manipulation;
+}
+
+/* ── Code blocks: touch-sized controls ───────────────────────────── */
+
+.description-editor .code-block-format-button {
+  width: 32px;
+  height: 32px;
+}
+
+.description-editor .code-block-language-select {
+  min-height: 32px;
+  font-size: 0.8125rem;
+}

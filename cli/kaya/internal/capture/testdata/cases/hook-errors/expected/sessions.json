@@ -1,0 +1,22 @@
+{
+  "12345": [
+    {
+      "at": "2026-10-01T09:00:07Z",
+      "branch": "feature/golden",
+      "cwd": "{{REPO}}",
+      "event": "SessionStart",
+      "seq": 1,
+      "source": "startup"
+    }
+  ],
+  "abcd": [
+    {
+      "at": "2026-10-01T09:00:05Z",
+      "branch": "feature/golden",
+      "cwd": "{{REPO}}",
+      "event": "SessionStart",
+      "seq": 1,
+      "source": "startup"
+    }
+  ]
+}
