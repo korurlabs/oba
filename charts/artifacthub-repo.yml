@@ -8,7 +8,7 @@
 # repositoryID is the id Artifact Hub gave the repository when it was added
 # there (kind "Helm charts", URL oci://ghcr.io/korurlabs/charts/oba). It lets
 # Artifact Hub mark the listing as a verified publisher.
-repositoryID: "a2079e17-63d2-4e36-9649-6244fc1a04bb"
+repositoryID: "9a130117-5ace-42a4-b7a9-57666535d81b"
 
 # Artifact Hub users with these emails may claim the repository.
 owners:
