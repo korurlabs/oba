@@ -99,7 +99,7 @@ const { AccessTab } = await import("./organization-access-tab");
 function grant(overrides: Partial<AppGrant>): AppGrant {
   return {
     id: "grant-1",
-    app: "KAIZEN",
+    app: "KAZAN",
     targetType: "USER",
     userId: "u-1",
     userFullName: "Ada Lovelace",
@@ -134,7 +134,7 @@ describe("AccessTab grants", () => {
   test("shows a card for each grantable app, with the empty text when it has no grants", () => {
     const html = render();
 
-    expect(html).toContain("kaizen.name");
+    expect(html).toContain("kazan.name");
     expect(html).toContain("kaya.name");
     expect(html).toContain("kalkan.name");
     expect(html).toContain("otak.name");
@@ -207,7 +207,7 @@ describe("AccessTab grants", () => {
     const html = render();
 
     expect(html).toContain("access.revokeConfirmDescription");
-    expect(html).toContain("kaizen.name");
+    expect(html).toContain("kazan.name");
     expect(html).toContain("Ada Lovelace");
   });
 

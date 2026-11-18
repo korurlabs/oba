@@ -21,7 +21,7 @@ const ACCEPTED_EXTENSIONS = ".png,.jpg,.jpeg,.pdf";
 /**
  * Mirrors the server's `spring.servlet.multipart` max-file-size AND
  * max-request-size (both 12MB), so it is the per-file cap and the cap on the
- * combined batch. Same constant the kaizen CLI enforces
+ * combined batch. Same constant the kazan CLI enforces
  * (`MaxAttachmentBytes`).
  *
  * Checking client-side turns an opaque 413 into an actionable message. That

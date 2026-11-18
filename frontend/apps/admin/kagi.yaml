@@ -19,7 +19,7 @@ local:
     - AUTH_KEYCLOAK_ISSUER
     - BASE_URL
     - API_BASE_URL
-    - KAIZEN_URL
+    - KAZAN_URL
     - ADMIN_URL
     - ACCOUNT_URL
     - OTAK_URL

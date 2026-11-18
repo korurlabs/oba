@@ -72,7 +72,7 @@ const everyone: OrganizationGroup = {
   description: null,
   type: "EVERYONE",
   memberCount: 7,
-  apps: ["KAIZEN", "KAYA"],
+  apps: ["KAZAN", "KAYA"],
 } as OrganizationGroup;
 
 const custom: OrganizationGroup = {
@@ -81,7 +81,7 @@ const custom: OrganizationGroup = {
   description: "Builds things",
   type: "CUSTOM",
   memberCount: 3,
-  apps: ["KAIZEN"],
+  apps: ["KAZAN"],
 } as OrganizationGroup;
 
 const handlers = {
@@ -151,7 +151,7 @@ describe("useGroupColumns", () => {
       "groups.deleteConfirmDescription:{&quot;name&quot;:&quot;Developers&quot;}"
     );
     expect(html).toContain("groups.deleteConfirmGrants");
-    expect(html).toContain("kaizen.name");
+    expect(html).toContain("kazan.name");
   });
 
   test("a group without grants says so in the delete confirmation", () => {

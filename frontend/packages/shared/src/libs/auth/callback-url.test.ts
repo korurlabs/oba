@@ -28,7 +28,7 @@ describe("sanitizeCallbackUrl", () => {
   );
 
   test.each([
-    "https://kaizen.korur.com/home",
+    "https://kazan.korur.com/home",
     "https://admin.korur.com/",
     "https://korur.com",
     "https://app.sensey.io/x",
@@ -52,7 +52,7 @@ describe("sanitizeCallbackUrl", () => {
 
 describe("isSafeCallbackUrl", () => {
   test("trusts an http *.localhost instance host only in development", () => {
-    const url = "http://oba-kaizen-epics.localhost:26101/home";
+    const url = "http://oba-kazan-epics.localhost:26101/home";
 
     process.env.NODE_ENV = "production";
     expect(isSafeCallbackUrl(url)).toBe(false);

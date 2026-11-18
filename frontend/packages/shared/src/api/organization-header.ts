@@ -1,4 +1,4 @@
-/** The organization segment of a platform or app path, such as `/organizations/{id}/members` or `/kaizen/organizations/{id}/security-board`. */
+/** The organization segment of a platform or app path, such as `/organizations/{id}/members` or `/kazan/organizations/{id}/security-board`. */
 const ORGANIZATION_PATH_PATTERN = /\/organizations\/([^/?#]+)/;
 
 /** The organization a request path names, or undefined when it names none. */

@@ -4,7 +4,7 @@ import type { GrantedApp } from "../features/users/schema";
 import { getRuntimeConfig } from "../lib/runtime-config";
 
 /** Identifier of an Oba web app; also its key under `apps` in the shared locales. */
-export type ObaAppId = "kaizen" | "kaya" | "kalkan" | "otak" | "admin" | "account";
+export type ObaAppId = "kazan" | "kaya" | "kalkan" | "otak" | "admin" | "account";
 
 export interface ObaApp {
   id: ObaAppId;
@@ -69,10 +69,10 @@ export function accountOnboardingUrl(callbackUrl: string, appBaseUrl: string): s
 }
 
 /** The Oba web apps, in the order the app switcher lists them. */
-export const OBA_APP_IDS: readonly ObaAppId[] = ["kaizen", "kaya", "kalkan", "otak", "admin", "account"];
+export const OBA_APP_IDS: readonly ObaAppId[] = ["kazan", "kaya", "kalkan", "otak", "admin", "account"];
 
 const APP_ICONS: Record<ObaAppId, LucideIcon> = {
-  kaizen: Ticket,
+  kazan: Ticket,
   kaya: Bot,
   kalkan: ShieldCheck,
   otak: Handshake,
@@ -90,7 +90,7 @@ export function obaApps(appUrls: Record<ObaAppId, string>): ObaApp[] {
  * Admin is gated by the organization role and Account is open to every user.
  */
 export const GRANTED_APP_OF: Partial<Record<ObaAppId, GrantedApp>> = {
-  kaizen: "KAIZEN",
+  kazan: "KAZAN",
   kaya: "KAYA",
   kalkan: "KALKAN",
   otak: "OTAK",

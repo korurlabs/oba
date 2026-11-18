@@ -76,13 +76,13 @@ function settingsOf(allow: string[]) {
 
 describe("SettingsAllowlist", () => {
   test("shows the rules the server read from the version's settings file", () => {
-    settingsQuery = settingsOf(["Bash(kaizen:*)"]);
+    settingsQuery = settingsOf(["Bash(oba:*)"]);
     const html = renderAllowlist();
-    expect(html).toContain('<code class="font-mono text-sm break-all">kaizen:*</code>');
+    expect(html).toContain('<code class="font-mono text-sm break-all">oba:*</code>');
   });
 
   test("counts the rules, the hooks and the file's links on their tabs", () => {
-    settingsQuery = settingsOf(["Bash(kaizen:*)", "Read"]);
+    settingsQuery = settingsOf(["Bash(oba:*)", "Read"]);
     const html = renderAllowlist();
     expect(html).toContain("Rules 2");
     expect(html).toContain("Hooks 0");
@@ -93,23 +93,23 @@ describe("SettingsAllowlist", () => {
   });
 
   test("opens the Rules tab without a tab in the URL", () => {
-    settingsQuery = settingsOf(["Bash(kaizen:*)"]);
+    settingsQuery = settingsOf(["Bash(oba:*)"]);
     const html = renderAllowlist();
-    expect(html).toContain("kaizen:*");
+    expect(html).toContain("oba:*");
     expect(html).not.toContain("No hook is registered.");
   });
 
   test("a link with ?tab=hooks opens the Hooks tab, which links to the hook scripts", () => {
-    settingsQuery = settingsOf(["Bash(kaizen:*)"]);
+    settingsQuery = settingsOf(["Bash(oba:*)"]);
     const html = renderAllowlist("?tab=hooks");
     expect(html).toContain("No hook is registered.");
     expect(html).toContain('href="/rules?scope=pack%3Ak-1&amp;tab=hooks"');
-    expect(html).not.toContain("kaizen:*");
+    expect(html).not.toContain("oba:*");
   });
 
   test("an unknown tab in the URL opens Rules", () => {
-    settingsQuery = settingsOf(["Bash(kaizen:*)"]);
-    expect(renderAllowlist("?tab=other")).toContain("kaizen:*");
+    settingsQuery = settingsOf(["Bash(oba:*)"]);
+    expect(renderAllowlist("?tab=other")).toContain("oba:*");
   });
 
   test("a failed read says so", () => {

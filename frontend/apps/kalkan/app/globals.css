@@ -43,7 +43,7 @@
     --primary-medium: #beddff; /* korur-blue-medium */
 
     /*
-     * Surface ramp (mirrors the Kagi portal's architecture, Kaizen's hue).
+     * Surface ramp (mirrors the Kagi portal's architecture, Kazan's hue).
      * Three surfaces, in the order they stack:
      *   --sidebar    tinted page ground the whole shell sits on (see the
      *                unlayered :root block below -- it has to be unlayered to
@@ -158,18 +158,18 @@
  * the same names in its own unlayered :root/.dark, and an
  * unlayered declaration always beats a layered one regardless of source order.
  * Declaring them here, after that import, is what scopes the override to
- * Kaizen alone; the shared package is deliberately left untouched.
+ * Kazan alone; the shared package is deliberately left untouched.
  *
- * Structure is Kagi's, hue is Kaizen's: the neutral surface/border ramp
+ * Structure is Kagi's, hue is Kazan's: the neutral surface/border ramp
  * (--sidebar, --sidebar-foreground, --sidebar-border) is copied verbatim, and
  * the brand-derived tokens (--sidebar-primary, --sidebar-accent,
  * --sidebar-accent-foreground, --sidebar-ring) are expressed as var() onto
- * Kaizen's Korur blue primary so they can never drift from it.
+ * Kazan's Korur blue primary so they can never drift from it.
  */
 :root {
   --sidebar: hsl(0 0% 98%); /* #FAFAFA - tinted page ground */
   --sidebar-foreground: hsl(240 5.3% 26.1%);
-  /* Brand token, so it carries Kaizen's Korur blue rather than Kagi's
+  /* Brand token, so it carries Kazan's Korur blue rather than Kagi's
      leftover shadcn neutral -- this is the org avatar square in the header. */
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);

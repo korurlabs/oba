@@ -25,9 +25,9 @@ describe("CollapsibleSearch", () => {
   });
 
   test("renders the input with its text while it holds a search", () => {
-    const html = markup("kaizen");
+    const html = markup("kazan");
     expect(html).toContain("<input");
-    expect(html).toContain('value="kaizen"');
+    expect(html).toContain('value="kazan"');
     expect(html).not.toContain("<button");
   });
 

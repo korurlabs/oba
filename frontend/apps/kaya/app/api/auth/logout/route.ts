@@ -17,7 +17,7 @@ const SAME_ORIGIN = "same-origin";
  *
  * The browser has to go there itself. The SSO session lives in Keycloak's
  * cookie, and it may be newer than the session that issued Kaya's id token,
- * for example after the user signed out of Kaizen and in again. A server-side
+ * for example after the user signed out of Kazan and in again. A server-side
  * logout with that id token would end only the old session, and the next
  * sign-in would silently reuse the new one.
  */

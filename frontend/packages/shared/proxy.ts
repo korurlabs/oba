@@ -19,7 +19,7 @@ import { ProxyOptions } from "./src/types";
 //
 // CAUTION — the `auth()` wrapper runs next-auth's `reqWithEnvURL`, which rewrites
 // the incoming request's ORIGIN to AUTH_URL before our handler sees it. In prod
-// AUTH_URL is the PUBLIC origin (https://kaizen.korur.com), which is NOT the
+// AUTH_URL is the PUBLIC origin (https://kazan.korur.com), which is NOT the
 // internal origin Next's middleware adapter sees behind Traefik. next-intl
 // builds its `/` -> `/<locale>` rewrite as an ABSOLUTE url against the request
 // origin it is given; if that origin is the AUTH_URL (public) host, the adapter

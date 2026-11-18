@@ -57,16 +57,16 @@ const OVERRIDE: EffectiveOverrideResponse = {
 
 describe("items", () => {
   test("every file of a skill belongs to its directory; any other file is its own item", () => {
-    expect(itemOf(".agents/skills/kaizen/SKILL.md")).toBe(".agents/skills/kaizen/");
-    expect(itemOf(".agents/skills/kaizen/scripts/run.sh")).toBe(".agents/skills/kaizen/");
+    expect(itemOf(".agents/skills/kazan/SKILL.md")).toBe(".agents/skills/kazan/");
+    expect(itemOf(".agents/skills/kazan/scripts/run.sh")).toBe(".agents/skills/kazan/");
     expect(itemOf(".agents/rules/core.md")).toBe(".agents/rules/core.md");
-    expect(itemOf(".claude/skills/kaizen")).toBe(".claude/skills/kaizen");
+    expect(itemOf(".claude/skills/kazan")).toBe(".claude/skills/kazan");
   });
 
   test("a file finds the effective item of its skill", () => {
-    const skill = item({ path: ".agents/skills/kaizen/", kind: "SKILL" });
+    const skill = item({ path: ".agents/skills/kazan/", kind: "SKILL" });
     const effective = effectiveByItem([skill]);
-    expect(effectiveOf(effective, ".agents/skills/kaizen/SKILL.md")).toBe(skill);
+    expect(effectiveOf(effective, ".agents/skills/kazan/SKILL.md")).toBe(skill);
     expect(effectiveOf(effective, ".agents/rules/core.md")).toBeUndefined();
   });
 });
@@ -77,8 +77,8 @@ describe("inherited files", () => {
     packId: "p-org",
     files: [
       { path: ".agents/rules/core.md", mode: "FILE" },
-      { path: ".agents/skills/kaizen/SKILL.md", mode: "FILE" },
-      { path: ".agents/skills/kaizen/run.sh", mode: "EXECUTABLE" },
+      { path: ".agents/skills/kazan/SKILL.md", mode: "FILE" },
+      { path: ".agents/skills/kazan/run.sh", mode: "EXECUTABLE" },
       { path: "AGENTS.md", mode: "FILE" },
     ],
   } as VersionDetailResponse;
@@ -86,26 +86,26 @@ describe("inherited files", () => {
   test("only the inherited items' files are read from the version that gives them", () => {
     const items = [
       item({ path: ".agents/rules/core.md" }),
-      item({ path: ".agents/skills/kaizen/", kind: "SKILL" }),
+      item({ path: ".agents/skills/kazan/", kind: "SKILL" }),
       item({ path: "AGENTS.md", own: true, sourcePackId: "p-village", sourceVersionId: "v-v" }),
     ];
     expect(inheritedFiles(items, [org]).map((entry: ScopeFile) => entry.path)).toEqual([
       ".agents/rules/core.md",
-      ".agents/skills/kaizen/SKILL.md",
-      ".agents/skills/kaizen/run.sh",
+      ".agents/skills/kazan/SKILL.md",
+      ".agents/skills/kazan/run.sh",
     ]);
     expect(inheritedFiles(items, [])).toEqual([]);
   });
 
   test("an item the pack holds keeps only its own files, in path order", () => {
-    const own = [file("AGENTS.md"), file(".agents/skills/kaizen/SKILL.md")];
+    const own = [file("AGENTS.md"), file(".agents/skills/kazan/SKILL.md")];
     const inherited = [
       file(".agents/rules/core.md", "p-org", "v-org"),
-      file(".agents/skills/kaizen/run.sh", "p-org", "v-org"),
+      file(".agents/skills/kazan/run.sh", "p-org", "v-org"),
     ];
     expect(withInherited(own, inherited).map((entry: ScopeFile) => entry.path)).toEqual([
       ".agents/rules/core.md",
-      ".agents/skills/kaizen/SKILL.md",
+      ".agents/skills/kazan/SKILL.md",
       "AGENTS.md",
     ]);
   });

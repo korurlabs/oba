@@ -16,7 +16,7 @@ export interface RuntimeConfig {
 
 /** Where an app runs when its URL is not configured: its local dev server, or its Korur host. */
 const APP_DEFAULTS: Record<ObaAppId, { devPort: number; host: string }> = {
-  kaizen: { devPort: 3002, host: "kaizen.korur.com" },
+  kazan: { devPort: 3002, host: "kazan.korur.com" },
   kaya: { devPort: 3014, host: "kaya.korur.com" },
   kalkan: { devPort: 3019, host: "kalkan.korur.com" },
   otak: { devPort: 3018, host: "otak.korur.com" },
@@ -47,7 +47,7 @@ export function readRuntimeConfig(): RuntimeConfig {
     apiBaseUrl: configuredValue(process.env.API_BASE_URL),
     baseUrl: configuredValue(process.env.BASE_URL),
     appUrls: {
-      kaizen: appUrl(process.env.KAIZEN_URL, "kaizen"),
+      kazan: appUrl(process.env.KAZAN_URL, "kazan"),
       kaya: appUrl(process.env.KAYA_URL, "kaya"),
       kalkan: appUrl(process.env.KALKAN_URL, "kalkan"),
       otak: appUrl(process.env.OTAK_URL, "otak"),

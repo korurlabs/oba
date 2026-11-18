@@ -46,9 +46,9 @@ describe("useAppAccessColumns", () => {
   });
 
   test("shows one badge per app with the app name", () => {
-    const html = renderCell("apps", member({ apps: ["KAIZEN", "KAYA"] }));
+    const html = renderCell("apps", member({ apps: ["KAZAN", "KAYA"] }));
 
-    expect(html).toContain("kaizen.name");
+    expect(html).toContain("kazan.name");
     expect(html).toContain("kaya.name");
   });
 

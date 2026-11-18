@@ -19,14 +19,14 @@ describe("readRuntimeConfig", () => {
   test("reads the environment on every call, so a changed value needs no rebuild", () => {
     process.env.NODE_ENV = "production";
     process.env.API_BASE_URL = "https://api.one.test";
-    process.env.BASE_URL = "https://kaizen.one.test";
+    process.env.BASE_URL = "https://kazan.one.test";
     expect(readRuntimeConfig().apiBaseUrl).toBe("https://api.one.test");
-    expect(readRuntimeConfig().baseUrl).toBe("https://kaizen.one.test");
+    expect(readRuntimeConfig().baseUrl).toBe("https://kazan.one.test");
 
     process.env.API_BASE_URL = "https://api.two.test";
-    process.env.BASE_URL = "https://kaizen.two.test";
+    process.env.BASE_URL = "https://kazan.two.test";
     expect(readRuntimeConfig().apiBaseUrl).toBe("https://api.two.test");
-    expect(readRuntimeConfig().baseUrl).toBe("https://kaizen.two.test");
+    expect(readRuntimeConfig().baseUrl).toBe("https://kazan.two.test");
   });
 
   test("an unset or empty API and base URL stay undefined", () => {
@@ -56,9 +56,9 @@ describe("getRuntimeConfig", () => {
 
       const config: RuntimeConfig = {
         apiBaseUrl: "https://api.example.test",
-        baseUrl: "https://kaizen.example.test",
+        baseUrl: "https://kazan.example.test",
         appUrls: {
-          kaizen: "https://kaizen.example.test",
+          kazan: "https://kazan.example.test",
           kaya: "https://kaya.example.test",
           kalkan: "https://kalkan.example.test",
           otak: "https://otak.example.test",

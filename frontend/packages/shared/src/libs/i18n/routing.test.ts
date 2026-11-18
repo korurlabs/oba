@@ -5,11 +5,11 @@ import { LOCALE_COOKIE_NAME, localeCookieConfig } from "./routing";
 describe("localeCookieConfig", () => {
   test("names the cookie OBA_LOCALE, not next-intl's default", () => {
     expect(LOCALE_COOKIE_NAME).toBe("OBA_LOCALE");
-    expect(localeCookieConfig("https://kaizen.korur.com").name).toBe("OBA_LOCALE");
+    expect(localeCookieConfig("https://kazan.korur.com").name).toBe("OBA_LOCALE");
   });
 
   test("keeps the choice for one year", () => {
-    expect(localeCookieConfig("https://kaizen.korur.com").maxAge).toBe(31_536_000);
+    expect(localeCookieConfig("https://kazan.korur.com").maxAge).toBe(31_536_000);
   });
 
   test("shares the cookie across the subdomains of a https base URL", () => {

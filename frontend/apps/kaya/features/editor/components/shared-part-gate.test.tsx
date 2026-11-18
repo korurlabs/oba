@@ -26,7 +26,7 @@ afterAll(() => {
 
 const { SharedPartGate } = await import("./shared-part-gate");
 
-const PART = ".agents/skills/kaizen/workflows/sprint.md";
+const PART = ".agents/skills/kazan/workflows/sprint.md";
 
 function file(path: string): ScopeFile {
   return {
@@ -96,17 +96,17 @@ describe("SharedPartGate", () => {
       path: PART,
       kind: "WORKFLOW",
       linksTo: [],
-      usedBy: [skill("kaizen"), skill("kagi")],
+      usedBy: [skill("kazan"), skill("kagi")],
     };
     const { html, asks } = render(PART);
     expect(html).toContain('<textarea aria-label="editor">');
-    expect(html).toContain("The skills kagi and kaizen share this part.");
+    expect(html).toContain("The skills kagi and kazan share this part.");
     expect(html).not.toContain("Edit the shared part");
     expect(asks).toBeDefined();
   });
 
   test("a file that is no shared part saves without a question", () => {
-    dependencies = { path: PART, kind: "WORKFLOW", linksTo: [], usedBy: [skill("kaizen")] };
+    dependencies = { path: PART, kind: "WORKFLOW", linksTo: [], usedBy: [skill("kazan")] };
     const own = render(PART);
     expect(own.asks).toBeUndefined();
     expect(own.html).toContain('<textarea aria-label="editor"></textarea>');
@@ -118,7 +118,7 @@ describe("SharedPartGate", () => {
   test("the editor keeps its place when a loading part turns out to be one skill's own", () => {
     dependencies = undefined;
     const loading = shape(PART);
-    dependencies = { path: PART, kind: "WORKFLOW", linksTo: [], usedBy: [skill("kaizen")] };
+    dependencies = { path: PART, kind: "WORKFLOW", linksTo: [], usedBy: [skill("kazan")] };
     const own = shape(PART);
     expect(own.root).toBe(loading.root);
     expect(own.slots.length).toBe(loading.slots.length);

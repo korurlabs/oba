@@ -12,7 +12,7 @@ import {
   USED_BY_LABELS,
 } from "./dependency-data";
 
-const PART = ".agents/skills/kaizen/workflows/sprint.md";
+const PART = ".agents/skills/kazan/workflows/sprint.md";
 
 function used(path: string, relation: Dependency["relation"] = "SKILL_PART"): Dependency {
   return { path, kind: "SKILL", relation, status: "FOUND", versionId: "v-1" };
@@ -25,35 +25,35 @@ function response(usedBy: Dependency[]): DependencyResponse {
 describe("shared parts", () => {
   test("two or more skills made of the part share it, named in order", () => {
     const shared = response([
-      used(".agents/skills/kaizen/SKILL.md"),
+      used(".agents/skills/kazan/SKILL.md"),
       used(".agents/skills/kagi/SKILL.md"),
       used("docs/a.md", "MARKDOWN_LINK"),
     ]);
-    expect(sharingSkills(shared)).toEqual(["kagi", "kaizen"]);
+    expect(sharingSkills(shared)).toEqual(["kagi", "kazan"]);
   });
 
   test("a part of one skill only is not shared", () => {
-    expect(sharingSkills(response([used(".agents/skills/kaizen/SKILL.md")]))).toBeNull();
+    expect(sharingSkills(response([used(".agents/skills/kazan/SKILL.md")]))).toBeNull();
     expect(sharingSkills(undefined)).toBeNull();
   });
 
   test("skill names read as a sentence", () => {
     expect(namesText(["kagi"])).toBe("kagi");
-    expect(namesText(["kagi", "kaizen"])).toBe("kagi and kaizen");
+    expect(namesText(["kagi", "kazan"])).toBe("kagi and kazan");
     expect(namesText(["a", "b", "c"])).toBe("a, b and c");
   });
 
   test("only a file of a skill directory other than SKILL.md is a part", () => {
     expect(isSkillPart(PART)).toBe(true);
-    expect(isSkillPart(".claude/skills/kaizen/scripts/run.sh")).toBe(true);
-    expect(isSkillPart(".agents/skills/kaizen/SKILL.md")).toBe(false);
+    expect(isSkillPart(".claude/skills/kazan/scripts/run.sh")).toBe(true);
+    expect(isSkillPart(".agents/skills/kazan/SKILL.md")).toBe(false);
     expect(isSkillPart(".agents/rules/a.md")).toBe(false);
   });
 });
 
 describe("partGate", () => {
   const shared = response([
-    used(".agents/skills/kaizen/SKILL.md"),
+    used(".agents/skills/kazan/SKILL.md"),
     used(".agents/skills/kagi/SKILL.md"),
   ]);
 
@@ -66,7 +66,7 @@ describe("partGate", () => {
   test("a shared part asks first with the skills' names", () => {
     expect(partGate({ path: PART, dependencies: shared, failed: false })).toEqual({
       kind: "ASK",
-      skills: ["kagi", "kaizen"],
+      skills: ["kagi", "kazan"],
     });
   });
 
@@ -79,7 +79,7 @@ describe("partGate", () => {
   });
 
   test("a part of one skill opens at once", () => {
-    const own = response([used(".agents/skills/kaizen/SKILL.md")]);
+    const own = response([used(".agents/skills/kazan/SKILL.md")]);
     expect(partGate({ path: PART, dependencies: own, failed: false }).kind).toBe("OPEN");
   });
 });
@@ -90,8 +90,8 @@ describe("sharedPartWarning", () => {
   });
 
   test("a save of a shared part asks with the skills' names", () => {
-    expect(sharedPartWarning({ kind: "ASK", skills: ["kagi", "kaizen"] })).toBe(
-      "The skills kagi and kaizen share this part. A save changes all of them."
+    expect(sharedPartWarning({ kind: "ASK", skills: ["kagi", "kazan"] })).toBe(
+      "The skills kagi and kazan share this part. A save changes all of them."
     );
   });
 

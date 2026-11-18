@@ -157,7 +157,7 @@ interface LanguageSwitcherSubMenuProps {
 
 /**
  * The same locale list as `LanguageSwitcher`, presented as a submenu row so it
- * can live INSIDE another dropdown (Kaizen nests it in the sidebar account
+ * can live INSIDE another dropdown (Kazan nests it in the sidebar account
  * menu). It renders no menu root of its own -- it must be a child of a
  * `DropdownMenuContent`.
  *
@@ -176,7 +176,7 @@ export function LanguageSwitcherSubMenu({ supportedLocales, label }: LanguageSwi
         <span className="text-muted-foreground text-xs">{currentLanguage?.nativeName}</span>
       </DropdownMenuSubTrigger>
       <DropdownMenuSubContent
-        // The host menu can sit at the very bottom of the viewport (Kaizen opens this from
+        // The host menu can sit at the very bottom of the viewport (Kazan opens this from
         // the sidebar footer, so the trigger row is always ~110px above the window edge).
         // Radix already shifts a submenu up to keep it on screen, but with the default
         // collisionPadding of 0 it lands flush against the window edge and hangs below the

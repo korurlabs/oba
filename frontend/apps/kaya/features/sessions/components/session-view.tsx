@@ -141,13 +141,13 @@ function facts(detail: SessionDetailResponse): { label: string; value: string }[
 }
 
 const LINK_KIND_LABELS: Record<SessionLinkKind, string> = {
-  KAIZEN_TICKET: "Kaizen ticket",
+  KAZAN_TICKET: "Kazan ticket",
   PULL_REQUEST: "Pull request",
 };
 
 function AddSessionLink({ sessionId }: { sessionId: string }) {
   const add = useAddSessionLink();
-  const [kind, setKind] = useState<SessionLinkKind>(SessionLinkKind.KAIZEN_TICKET);
+  const [kind, setKind] = useState<SessionLinkKind>(SessionLinkKind.KAZAN_TICKET);
   const [reference, setReference] = useState("");
   const [error, setError] = useState<string | null>(null);
   const submit = (event: FormEvent) => {
@@ -185,7 +185,7 @@ function AddSessionLink({ sessionId }: { sessionId: string }) {
           value={reference}
           maxLength={500}
           placeholder={
-            kind === SessionLinkKind.KAIZEN_TICKET
+            kind === SessionLinkKind.KAZAN_TICKET
               ? "KAYA-42"
               : "https://github.com/owner/repo/pull/42"
           }
@@ -206,7 +206,7 @@ function AddSessionLink({ sessionId }: { sessionId: string }) {
 }
 
 /**
- * The session's pull requests and Kaizen tickets. Every member may add or remove
+ * The session's pull requests and Kazan tickets. Every member may add or remove
  * one; a link the recorder found comes back when a later batch names it again.
  */
 export function SessionLinks({ detail }: { detail: SessionDetailResponse }) {

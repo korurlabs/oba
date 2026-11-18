@@ -162,10 +162,10 @@ describe("root page redirects", () => {
   test("sends a session with a refresh error to the sign-in", async () => {
     session = { ...ACTIVE, error: AuthError.REFRESH_TOKEN_ERROR };
 
-    const redirected = await redirectOf({ callbackUrl: "https://kaizen.korur.com/home" });
+    const redirected = await redirectOf({ callbackUrl: "https://kazan.korur.com/home" });
 
     expect(redirected.target).toBe(
-      `/api/auth/login?callbackUrl=${encodeURIComponent("https://kaizen.korur.com/home")}`,
+      `/api/auth/login?callbackUrl=${encodeURIComponent("https://kazan.korur.com/home")}`,
     );
   });
 
@@ -181,10 +181,10 @@ describe("root page redirects", () => {
   test("sends a user who has to onboard to account onboarding, keeping the callbackUrl", async () => {
     session = { ...ACTIVE, userStatus: "PENDING_ONBOARDING" };
 
-    const redirected = await redirectOf({ callbackUrl: "https://kaizen.korur.com/home" });
+    const redirected = await redirectOf({ callbackUrl: "https://kazan.korur.com/home" });
 
     expect(redirected.kind).toBe("plain");
-    expect(redirected.target).toBe(accountOnboardingUrl("https://kaizen.korur.com/home", appUrl("admin")));
+    expect(redirected.target).toBe(accountOnboardingUrl("https://kazan.korur.com/home", appUrl("admin")));
   });
 
   test("sends a user who has to onboard to account onboarding with the list as callbackUrl when there is none", async () => {
@@ -207,10 +207,10 @@ describe("root page redirects", () => {
   });
 
   test("sends an active user to the safe callbackUrl", async () => {
-    const redirected = await redirectOf({ callbackUrl: "https://kaizen.korur.com/home" });
+    const redirected = await redirectOf({ callbackUrl: "https://kazan.korur.com/home" });
 
     expect(redirected.kind).toBe("plain");
-    expect(redirected.target).toBe("https://kaizen.korur.com/home");
+    expect(redirected.target).toBe("https://kazan.korur.com/home");
   });
 
   test("drops a failed sign-in's error from the URL of an active user", async () => {

@@ -22,7 +22,7 @@ const IN_REVIEW: ChangeDetailResponse = {
     baseVersionId: "v-6",
     proposedBy: "user-ada",
     source: "CLI",
-    reason: "Allow the kaizen CLI in every repository",
+    reason: "Allow the oba CLI in every repository",
     executableChange: false,
     manifestSha256: null,
     submittedAt: "2026-10-24T09:00:00Z",
@@ -37,7 +37,7 @@ const IN_REVIEW: ChangeDetailResponse = {
       versionId: "v-7",
       reviewerId: "user-bob",
       decision: "COMMENT",
-      comment: "Limit it to kaizen tickets",
+      comment: "Limit it to kazan tickets",
       createdAt: "2026-10-24T10:00:00Z",
     },
   ],
@@ -121,7 +121,7 @@ mock.module("@/features/versions/hooks/use-versions", () => ({
         oldSymlinkTarget: null,
         newSymlinkTarget: null,
         binary: false,
-        unifiedDiff: '--- a/x\n+++ b/x\n@@ -1 +1 @@\n-"old"\n+"Bash(kaizen:*)"\n',
+        unifiedDiff: '--- a/x\n+++ b/x\n@@ -1 +1 @@\n-"old"\n+"Bash(oba:*)"\n',
       },
     ]),
 }));
@@ -208,11 +208,11 @@ describe("ChangeDetail", () => {
     expect(html).toContain("Version 7 of Pack village");
     expect(html).toContain("kaya propose");
     expect(html).toContain("Ada");
-    expect(html).toContain("Allow the kaizen CLI in every repository");
+    expect(html).toContain("Allow the oba CLI in every repository");
     expect(html).toContain(".claude/settings.json");
-    expect(html).toContain("Bash(kaizen:*)");
+    expect(html).toContain("Bash(oba:*)");
     expect(html).toContain("Bob");
-    expect(html).toContain("Limit it to kaizen tickets");
+    expect(html).toContain("Limit it to kazan tickets");
   });
 
   test("a child pack's change names the pack, not a repository", () => {

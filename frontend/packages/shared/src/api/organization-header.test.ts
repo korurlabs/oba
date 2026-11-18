@@ -10,14 +10,14 @@ describe("organizationIdFromPath", () => {
   test.each([
     [`/organizations/${PATH_ORG}`, PATH_ORG],
     [`/organizations/${PATH_ORG}/members/u-1/role`, PATH_ORG],
-    [`/kaizen/organizations/${PATH_ORG}/security-board`, PATH_ORG],
+    [`/kazan/organizations/${PATH_ORG}/security-board`, PATH_ORG],
     [`/organizations/${PATH_ORG}?tab=members`, PATH_ORG],
     [`https://api.example.test/organizations/${PATH_ORG}/members`, PATH_ORG],
   ])("reads the organization of %s", (url, expected) => {
     expect(organizationIdFromPath(url)).toBe(expected);
   });
 
-  test.each(["/organizations", "/organizations/", "/users/me", "/kaizen/boards/b-1", undefined])(
+  test.each(["/organizations", "/organizations/", "/users/me", "/kazan/boards/b-1", undefined])(
     "finds none in %s",
     (url) => {
       expect(organizationIdFromPath(url)).toBeUndefined();
@@ -44,7 +44,7 @@ describe("resolveOrganizationHeader", () => {
   });
 
   test("sends the default organization on a path without one", () => {
-    expect(resolveOrganizationHeader("/kaizen/chat/channels", undefined, DEFAULT_ORG)).toBe(
+    expect(resolveOrganizationHeader("/kazan/chat/channels", undefined, DEFAULT_ORG)).toBe(
       DEFAULT_ORG,
     );
   });
