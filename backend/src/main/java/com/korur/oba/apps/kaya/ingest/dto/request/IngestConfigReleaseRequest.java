@@ -13,7 +13,7 @@ import com.korur.oba.apps.kaya.session.enums.SessionDeliveredBy;
 import com.korur.oba.apps.kaya.session.enums.SessionReleaseState;
 
 /**
- * The config release the session started on, as `kaya hook session-start` wrote it into the
+ * The config release the session started on, as `oba kaya hook session-start` wrote it into the
  * recorder's session record. No field is refused: a number and hash that match no release of the
  * repository, or a missing state, are stored as UNVERIFIED, because a refused batch would stop
  * the session from recording. For the same reason a state or delivery the server does not know,

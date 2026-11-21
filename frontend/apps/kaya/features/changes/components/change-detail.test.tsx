@@ -206,7 +206,7 @@ describe("ChangeDetail", () => {
   test("shows the change, its diff and its reviews by name", () => {
     const html = render("MEMBER", IN_REVIEW);
     expect(html).toContain("Version 7 of Pack village");
-    expect(html).toContain("kaya propose");
+    expect(html).toContain("oba kaya propose");
     expect(html).toContain("Ada");
     expect(html).toContain("Allow the oba CLI in every repository");
     expect(html).toContain(".claude/settings.json");

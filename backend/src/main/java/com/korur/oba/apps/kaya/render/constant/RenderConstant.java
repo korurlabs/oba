@@ -85,7 +85,7 @@ public final class RenderConstant {
     public static final String NOTE_SKILL_REFERENCE = "every other file of the skill directory";
     public static final String NOTE_SKILL_LINK = "a link to ../../.agents/skills/<name>, rendered from the skill and never stored";
     public static final String NOTE_GUARDRAIL = "always-on; its deny rules go into .claude/settings.json";
-    public static final String NOTE_TOOL_LINK = "a link to %s that a tool reads; it comes from a seed or kaya propose";
+    public static final String NOTE_TOOL_LINK = "a link to %s that a tool reads; it comes from a seed or oba kaya propose";
 
     // --- Tool view: names, summaries and notes of what each AI tool reads ---
     public static final String TOOL_NAME_CLAUDE_CODE = "Claude Code";

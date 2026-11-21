@@ -4,6 +4,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -12,11 +13,13 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/korurlabs/oba-cli/cmd/apps/admin"
+	"github.com/korurlabs/oba-cli/cmd/apps/kaya"
 	"github.com/korurlabs/oba-cli/cmd/apps/kazan"
 	"github.com/korurlabs/oba-cli/cmd/apps/otak"
 	"github.com/korurlabs/oba-cli/cmd/shrine"
 	"github.com/korurlabs/oba-cli/internal/dojo/client"
 	"github.com/korurlabs/oba-cli/internal/dojo/config"
+	"github.com/korurlabs/oba-cli/internal/dojo/exitcode"
 )
 
 // SetVersion sets the version main received through ldflags.
@@ -40,6 +43,7 @@ func init() {
 	rootCmd.AddCommand(otak.NewCmd())
 	rootCmd.AddCommand(kazan.NewCmd())
 	rootCmd.AddCommand(admin.NewCmd())
+	rootCmd.AddCommand(kaya.NewCmd())
 	for _, child := range rootCmd.Commands() {
 		rejectUnknownSubcommands(child)
 	}
@@ -95,11 +99,16 @@ func suggestions(cmd *cobra.Command, typed string) string {
 }
 
 // Execute runs the command line. An error is printed as "Error: <message>" to stderr and ends
-// the process with 2 for an API 404, 3 for an API 403 and 1 otherwise.
+// the process with 2 for an API 404, 3 for an API 403 and 1 otherwise. An exitcode.Error ends it
+// with its own code and prints nothing, since the command has printed its outcome.
 func Execute() {
 	err := rootCmd.Execute()
 	if err == nil {
 		return
+	}
+	var exitErr *exitcode.Error
+	if errors.As(err, &exitErr) {
+		os.Exit(exitErr.Code)
 	}
 	_, _ = fmt.Fprintln(os.Stderr, "Error:", err)
 	os.Exit(client.ExitCode(err))

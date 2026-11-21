@@ -78,25 +78,6 @@
       }
     },
     {
-      "clientId": "kaya-cli",
-      "name": "Kaya CLI",
-      "description": "Public client for the kaya CLI terminal sign-in with the device grant",
-      "enabled": true,
-      "protocol": "openid-connect",
-      "publicClient": true,
-      "bearerOnly": false,
-      "standardFlowEnabled": false,
-      "directAccessGrantsEnabled": false,
-      "serviceAccountsEnabled": false,
-      "authorizationServicesEnabled": false,
-      "redirectUris": [],
-      "webOrigins": [],
-      "fullScopeAllowed": true,
-      "attributes": {
-        "oauth2.device.authorization.grant.enabled": "true"
-      }
-    },
-    {
       "clientId": "oba-cli",
       "name": "Oba CLI",
       "description": "Public client for the oba CLI terminal sign-in with the device grant",

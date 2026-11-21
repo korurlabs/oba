@@ -46,7 +46,7 @@ const KIND_ROWS: Readonly<Record<Exclude<FileKind, "AGENTS_FILE">, KindRow>> = {
   SETTINGS: { label: "Settings", page: allowlistTab("Allowlist: Settings file", "content") },
   SKILL: { label: "Skill", page: SKILLS },
   SKILL_LINK: { label: "Skill link", page: SKILLS },
-  // A tool link comes from a seed or kaya propose; no page edits it.
+  // A tool link comes from a seed or oba kaya propose; no page edits it.
   TOOL_LINK: { label: "Tool link", page: null },
 };
 

@@ -27,8 +27,7 @@ frontend/            the Bun workspace
   packages/          ui, shared
   tooling/           eslint, prettier and typescript configs
 cli/
-  oba/               `oba`, the Oba apps from the terminal
-  kaya/              `kaya`, delivers agent config to sessions and records them
+  oba/               `oba`, the Oba apps from the terminal; `oba kaya` delivers agent config to sessions and records them
   kalkan/            `kalkan`, reads and writes Kalkan pages
 scripts/             local start and stop scripts
 devstack.yaml        the local stack for devstack
@@ -77,7 +76,7 @@ Each web app has a fixed dev port (`kazan` 3002, `kaya` 3014, `admin` 3016, `acc
 ### CLIs
 
 ```sh
-cd cli/oba       # or cli/kaya, cli/kalkan
+cd cli/oba       # or cli/kalkan
 make build       # bin/<name>
 make test
 ```
@@ -88,7 +87,7 @@ Every pull request and every push to `main` runs the workflows in `.github/workf
 
 - `backend.yml`: `mvn clean verify`, the unit and integration tests against PostgreSQL and Azurite.
 - `frontend.yml`: `bun install --frozen-lockfile`, `bun run build`, the type check and the tests of every workspace.
-- `cli-oba.yml`, `cli-kaya.yml`, `cli-kalkan.yml`: `make build`, `go vet`, `make test` and golangci-lint.
+- `cli-oba.yml`, `cli-kalkan.yml`: `make build`, `go vet`, `make test` and golangci-lint.
 
 ## Contributing
 
@@ -96,4 +95,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Licence
 
-Oba is free software under the GNU Affero General Public License v3.0; see [LICENSE](LICENSE). The three CLIs are under the MIT License: `oba` in `cli/oba` ([cli/oba/LICENSE](cli/oba/LICENSE)), `kaya` in `cli/kaya` ([cli/kaya/LICENSE](cli/kaya/LICENSE)) and `kalkan` in `cli/kalkan` ([cli/kalkan/LICENSE](cli/kalkan/LICENSE)). Everything else in this repository is under the AGPL-3.0.
+Oba is free software under the GNU Affero General Public License v3.0; see [LICENSE](LICENSE). The two CLIs are under the MIT License: `oba` in `cli/oba` ([cli/oba/LICENSE](cli/oba/LICENSE)) and `kalkan` in `cli/kalkan` ([cli/kalkan/LICENSE](cli/kalkan/LICENSE)). Everything else in this repository is under the AGPL-3.0.

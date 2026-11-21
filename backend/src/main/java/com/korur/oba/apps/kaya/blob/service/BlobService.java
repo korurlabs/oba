@@ -18,7 +18,7 @@ import com.korur.oba.shrine.identity.entity.User;
  * hashes the bytes itself wherever a client names a hash, so a stored blob always matches its hash.
  *
  * Called by {@link com.korur.oba.apps.kaya.blob.controller.BlobController} for the uploads of
- * kaya seed, and by the domains that store rendered or edited file bytes (version, release, seed).
+ * oba kaya seed, and by the domains that store rendered or edited file bytes (version, release, seed).
  */
 public interface BlobService {
 
