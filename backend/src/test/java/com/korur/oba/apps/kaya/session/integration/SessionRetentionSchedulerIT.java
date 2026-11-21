@@ -53,6 +53,8 @@ class SessionRetentionSchedulerIT extends AbstractSessionIT {
         String fresh = ingestSession(laptop, remote, 2);
         setAge(expired, 31);
         setAge(justInside, 29);
+        // The events of a test batch are dated from a fixed day, so the fresh session is dated from now too.
+        setAge(fresh, 0);
 
         scheduler.deleteExpiredSessions();
 
