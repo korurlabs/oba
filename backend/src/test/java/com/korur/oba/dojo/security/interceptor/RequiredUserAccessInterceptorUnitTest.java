@@ -13,7 +13,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -24,10 +27,15 @@ import org.springframework.web.servlet.HandlerMapping;
 // 3. Java SDK
 import java.lang.reflect.Method;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 // 4. Internal
+import com.korur.oba.dojo.exception.enums.ExceptionDomainError;
+import com.korur.oba.dojo.exception.enums.ExceptionSecurityError;
 import com.korur.oba.dojo.exception.internal.auth.ForbiddenException;
 import com.korur.oba.dojo.exception.internal.business.BadRequestException;
 import com.korur.oba.dojo.logging.enums.LogLayer;
@@ -36,7 +44,16 @@ import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.dojo.security.annotation.RequiredUserAccess;
 import com.korur.oba.dojo.security.constant.SecurityConstant;
 import com.korur.oba.dojo.security.constant.SecurityLogConstant;
+import com.korur.oba.dojo.security.token.authentication.ApiTokenAuthentication;
+import com.korur.oba.dojo.security.token.dto.ApiTokenBodyLimit;
+import com.korur.oba.dojo.security.token.dto.ApiTokenEndpoint;
+import com.korur.oba.dojo.security.token.dto.ApiTokenPrincipal;
+import com.korur.oba.dojo.security.token.entity.ApiToken;
+import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
+import com.korur.oba.dojo.security.token.handler.ApiTokenKindHandler;
+import com.korur.oba.dojo.security.token.helper.ApiTokenKindRegistry;
 import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.shrine.identity.exception.ExceptionDomainIdentityError;
 import com.korur.oba.shrine.identity.validator.UserAuthorizationValidator;
 import com.korur.oba.shrine.organization.constant.OrganizationConstant;
 import com.korur.oba.shrine.organization.entity.Organization;
@@ -64,6 +81,44 @@ import static org.mockito.Mockito.when;
 class RequiredUserAccessInterceptorUnitTest {
 
     private static final String SUBJECT = "kc-subject";
+    private static final UUID TOKEN_ID = UUID.randomUUID();
+
+    private record TestPrincipal(UUID tokenId, UUID userId, UUID organizationId) implements ApiTokenPrincipal {
+    }
+
+    /** An agent-like kind: any path its role allows, and only GET /users/me unannotated. */
+    private static final class AgentLikeHandler implements ApiTokenKindHandler {
+
+        @Override
+        public ApiTokenKind kind() {
+            return ApiTokenKind.AGENT;
+        }
+
+        @Override
+        public List<String> reservedPaths() {
+            return List.of();
+        }
+
+        @Override
+        public List<ApiTokenEndpoint> exemptEndpoints() {
+            return List.of(new ApiTokenEndpoint(HttpMethod.GET, "/users/me"));
+        }
+
+        @Override
+        public Optional<ApiTokenBodyLimit> bodyLimit() {
+            return Optional.empty();
+        }
+
+        @Override
+        public ApiTokenPrincipal resolvePrincipal(ApiToken token) {
+            return new TestPrincipal(token.getId(), token.getUserId(), token.getOrganizationId());
+        }
+
+        @Override
+        public ExceptionDomainError invalidTokenError() {
+            return ExceptionDomainIdentityError.NOT_USER_FOUND;
+        }
+    }
 
     /** A controller of the application package, so the interceptor treats it as guarded. */
     static class Fixture {
@@ -94,7 +149,7 @@ class RequiredUserAccessInterceptorUnitTest {
 
     @BeforeEach
     void setUp() {
-        interceptor = new RequiredUserAccessInterceptor(validator, loggingService);
+        interceptor = new RequiredUserAccessInterceptor(validator, registryOf(new AgentLikeHandler()), loggingService);
         request = new MockHttpServletRequest("GET", "/kazan/chat/channels");
         signInWithJwt();
     }
@@ -108,6 +163,22 @@ class RequiredUserAccessInterceptorUnitTest {
         Jwt jwt = Jwt.withTokenValue("token").header("alg", "none").subject(SUBJECT)
                 .issuedAt(Instant.now()).expiresAt(Instant.now().plusSeconds(60)).build();
         SecurityContextHolder.getContext().setAuthentication(new JwtAuthenticationToken(jwt));
+    }
+
+    private static AnonymousAuthenticationToken anonymous() {
+        return new AnonymousAuthenticationToken("key", "anonymous", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
+    }
+
+    private void signInWithToken(UUID tokenOrganizationId) {
+        SecurityContextHolder.getContext().setAuthentication(
+                new ApiTokenAuthentication(ApiTokenKind.AGENT, new TestPrincipal(TOKEN_ID, user.getId(), tokenOrganizationId)));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static ApiTokenKindRegistry registryOf(ApiTokenKindHandler... handlers) {
+        ObjectProvider<ApiTokenKindHandler> provider = org.mockito.Mockito.mock(ObjectProvider.class);
+        when(provider.orderedStream()).thenReturn(Stream.of(handlers));
+        return new ApiTokenKindRegistry(provider);
     }
 
     private static HandlerMethod handler(String methodName) throws NoSuchMethodException {
@@ -150,19 +221,21 @@ class RequiredUserAccessInterceptorUnitTest {
         }
 
         @Test
-        void preHandle_authenticationIsNotAJwt_passes() throws Exception {
-            SecurityContextHolder.getContext().setAuthentication(new AnonymousAuthenticationToken(
-                    "key", "anonymous", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")));
+        void preHandle_anonymousOnPublicPath_passes() throws Exception {
+            SecurityContextHolder.getContext().setAuthentication(anonymous());
+            request.setRequestURI("/invitations/preview");
 
-            assertTrue(interceptor.preHandle(request, response, handler("adminOnly")));
+            assertTrue(interceptor.preHandle(request, response, handler("unannotated")));
             verifyNoInteractions(validator);
         }
 
         @Test
-        void preHandle_noAuthentication_passes() throws Exception {
-            SecurityContextHolder.clearContext();
+        void preHandle_integrationChainAuthenticationOnItsPath_passes() throws Exception {
+            SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
+                    "alertmanager", null, AuthorityUtils.createAuthorityList("INTEGRATION_ALERTMANAGER")));
+            request.setRequestURI("/kazan/integrations/alertmanager/hook");
 
-            assertTrue(interceptor.preHandle(request, response, handler("adminOnly")));
+            assertTrue(interceptor.preHandle(request, response, handler("unannotated")));
             verifyNoInteractions(validator);
         }
 
@@ -193,6 +266,51 @@ class RequiredUserAccessInterceptorUnitTest {
 
     @Nested
     class DefaultDeny {
+
+        @Test
+        void preHandle_anonymousOnGuardedPath_throwsForbidden() throws Exception {
+            SecurityContextHolder.getContext().setAuthentication(anonymous());
+
+            ForbiddenException exception = assertThrows(ForbiddenException.class,
+                    () -> interceptor.preHandle(request, response, handler("adminOnly")));
+
+            assertEquals("GEN_SEC_002", exception.getErrorCode());
+            verifyNoInteractions(validator);
+        }
+
+        @Test
+        void preHandle_noAuthenticationOnGuardedPath_throwsForbidden() throws Exception {
+            SecurityContextHolder.clearContext();
+
+            ForbiddenException exception = assertThrows(ForbiddenException.class,
+                    () -> interceptor.preHandle(request, response, handler("adminOnly")));
+
+            assertEquals("GEN_SEC_002", exception.getErrorCode());
+        }
+
+        @Test
+        void preHandle_unknownAuthenticationTypeOutsideIntegrationPaths_throwsForbidden() throws Exception {
+            SecurityContextHolder.getContext().setAuthentication(UsernamePasswordAuthenticationToken.authenticated(
+                    "someone", null, AuthorityUtils.NO_AUTHORITIES));
+
+            ForbiddenException exception = assertThrows(ForbiddenException.class,
+                    () -> interceptor.preHandle(request, response, handler("adminOnly")));
+
+            assertEquals("GEN_SEC_002", exception.getErrorCode());
+            verifyNoInteractions(validator);
+            verify(loggingService).error(any(LogPrefix.class), eq(LogLayer.HANDLER),
+                    eq(SecurityLogConstant.ACCESS_DENIED_AUTHENTICATION_UNSUPPORTED), any(HandlerMethod.class),
+                    eq("/kazan/chat/channels"), eq(UsernamePasswordAuthenticationToken.class.getName()));
+        }
+
+        @Test
+        void preHandle_anonymousOnIntegrationPath_throwsForbidden() throws Exception {
+            SecurityContextHolder.getContext().setAuthentication(anonymous());
+            request.setRequestURI("/kaya/delivery/conventions");
+
+            assertThrows(ForbiddenException.class,
+                    () -> interceptor.preHandle(request, response, handler("unannotated")));
+        }
 
         @Test
         void preHandle_unannotatedUnlistedPath_throwsHandlerUnannotated() throws Exception {
@@ -431,6 +549,113 @@ class RequiredUserAccessInterceptorUnitTest {
                     () -> interceptor.preHandle(request, response, handler("adminOnly")));
 
             assertEquals("ORG_API_002", exception.getErrorCode());
+        }
+    }
+
+    @Nested
+    class ApiTokenCaller {
+
+        @Test
+        void preHandle_exemptMethodAndPath_passesWithoutChecks() throws Exception {
+            signInWithToken(organizationId);
+            request.setRequestURI("/users/me");
+
+            assertTrue(interceptor.preHandle(request, response, handler("unannotated")));
+            verifyNoInteractions(validator);
+        }
+
+        @Test
+        void preHandle_exemptPathWithAnotherMethod_throwsHandlerUnannotated() throws Exception {
+            signInWithToken(organizationId);
+            request.setMethod("DELETE");
+            request.setRequestURI("/users/me");
+
+            ForbiddenException exception = assertThrows(ForbiddenException.class,
+                    () -> interceptor.preHandle(request, response, handler("unannotated")));
+
+            assertEquals("GEN_SEC_004", exception.getErrorCode());
+            verifyNoInteractions(validator);
+        }
+
+        @Test
+        void preHandle_organizationExemptPathIsNotExemptForTokens_throwsHandlerUnannotated() throws Exception {
+            signInWithToken(organizationId);
+            request.setRequestURI("/onboarding/profile");
+
+            ForbiddenException exception = assertThrows(ForbiddenException.class,
+                    () -> interceptor.preHandle(request, response, handler("unannotated")));
+
+            assertEquals("GEN_SEC_004", exception.getErrorCode());
+        }
+
+        @Test
+        void preHandle_annotatedHandler_runsTheStepsForTheTokenUserAndStoresThePrincipal() throws Exception {
+            signInWithToken(organizationId);
+            OrganizationMember member = member(OrganizationMemberRole.MEMBER);
+            when(validator.ensureUserExistsById(user.getId(), "/kazan/chat/channels")).thenReturn(user);
+            when(validator.ensureApiTokenOrganizationId(null, null, organizationId, "/kazan/chat/channels"))
+                    .thenReturn(organizationId);
+            when(validator.ensureUserIsMember(user.getId(), organizationId, "/kazan/chat/channels")).thenReturn(member);
+
+            assertTrue(interceptor.preHandle(request, response, handler("guestOk")));
+
+            InOrder order = inOrder(validator);
+            order.verify(validator).ensureUserExistsById(user.getId(), "/kazan/chat/channels");
+            order.verify(validator).ensureUserIsActive(user, "/kazan/chat/channels");
+            order.verify(validator).ensureApiTokenOrganizationId(null, null, organizationId, "/kazan/chat/channels");
+            order.verify(validator).ensureUserIsMember(user.getId(), organizationId, "/kazan/chat/channels");
+            order.verify(validator).ensureMembershipIsActive(member, "/kazan/chat/channels");
+            order.verify(validator).ensureOrganizationIsActive(member, "/kazan/chat/channels");
+            order.verify(validator).ensureAppAccess(member, Fixture.class.getPackageName(), "/kazan/chat/channels");
+            verify(validator, never()).ensureUserIsProvisioned(any(), anyString());
+            verify(validator, never()).ensureOrganizationIdIsValid(any(), any(), anyString());
+            assertSame(user, request.getAttribute(SecurityConstant.REQUEST_ATTRIBUTE_CURRENT_USER));
+            assertSame(member, request.getAttribute(SecurityConstant.REQUEST_ATTRIBUTE_ORGANIZATION_MEMBER));
+        }
+
+        @Test
+        void preHandle_roleBelowTheAnnotation_throwsInsufficientPermissions() throws Exception {
+            signInWithToken(organizationId);
+            when(validator.ensureUserExistsById(user.getId(), "/kazan/chat/channels")).thenReturn(user);
+            when(validator.ensureApiTokenOrganizationId(any(), any(), eq(organizationId), anyString()))
+                    .thenReturn(organizationId);
+            when(validator.ensureUserIsMember(user.getId(), organizationId, "/kazan/chat/channels"))
+                    .thenReturn(member(OrganizationMemberRole.MEMBER));
+
+            ForbiddenException exception = assertThrows(ForbiddenException.class,
+                    () -> interceptor.preHandle(request, response, handler("adminOnly")));
+
+            assertEquals("ORG_SEC_003", exception.getErrorCode());
+            assertNull(request.getAttribute(SecurityConstant.REQUEST_ATTRIBUTE_CURRENT_USER));
+        }
+
+        @Test
+        void preHandle_anotherOrganizationThanTheToken_stopsBeforeTheMembershipLookup() throws Exception {
+            signInWithToken(organizationId);
+            String otherOrganization = UUID.randomUUID().toString();
+            request.addHeader("X-Organization-ID", otherOrganization);
+            when(validator.ensureUserExistsById(user.getId(), "/kazan/chat/channels")).thenReturn(user);
+            when(validator.ensureApiTokenOrganizationId(null, otherOrganization, organizationId, "/kazan/chat/channels"))
+                    .thenThrow(new ForbiddenException(ExceptionSecurityError.API_TOKEN_ORGANIZATION_MISMATCH));
+
+            ForbiddenException exception = assertThrows(ForbiddenException.class,
+                    () -> interceptor.preHandle(request, response, handler("guestOk")));
+
+            assertEquals("GEN_SEC_005", exception.getErrorCode());
+            verify(validator, never()).ensureUserIsMember(any(), any(), anyString());
+        }
+
+        @Test
+        void preHandle_tokenUserMissing_stopsBeforeEveryLaterStep() throws Exception {
+            signInWithToken(organizationId);
+            when(validator.ensureUserExistsById(user.getId(), "/kazan/chat/channels"))
+                    .thenThrow(new ForbiddenException());
+
+            assertThrows(ForbiddenException.class,
+                    () -> interceptor.preHandle(request, response, handler("guestOk")));
+
+            verify(validator, never()).ensureUserIsActive(any(), anyString());
+            verify(validator, never()).ensureApiTokenOrganizationId(any(), any(), any(), anyString());
         }
     }
 }

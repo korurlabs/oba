@@ -24,6 +24,8 @@ import com.korur.oba.dojo.exception.internal.business.NotFoundException;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.dojo.security.token.authentication.ApiTokenAuthentication;
+import com.korur.oba.dojo.security.token.dto.ApiTokenPrincipal;
 import com.korur.oba.shrine.access.service.AppAccessQueryService;
 import com.korur.oba.shrine.identity.constant.UserConstant;
 import com.korur.oba.shrine.identity.constant.service.UserServiceLogConstant;
@@ -39,7 +41,7 @@ import com.korur.oba.shrine.invitation.service.InvitationQueryService;
 
 /**
  * Purpose:
- * Handles read-only user profile retrieval from the JWT SecurityContext.
+ * Handles read-only user profile retrieval from the JWT or API token SecurityContext.
  *
  * Bigger picture:
  * Acts as the read side of the user profile CQRS split. Resolves the
@@ -95,6 +97,12 @@ public class UserProfileQueryServiceImpl implements UserProfileQueryService {
                 LogLayer.SERVICE,
                 UserServiceLogConstant.USER_GET_CURRENT_USER_START);
 
+        // A token caller has no Keycloak subject and is never synced; the token names its user directly.
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof ApiTokenAuthentication tokenAuthentication) {
+            return toDetailResponse(getApiTokenUser(tokenAuthentication.getPrincipal()));
+        }
+
         Jwt jwt = extractJwt();
         String keycloakId = jwt.getSubject();
 
@@ -106,13 +114,37 @@ public class UserProfileQueryServiceImpl implements UserProfileQueryService {
             throw new NotFoundException(ExceptionDomainIdentityError.NOT_USER_NOT_SYNCED,
                     Map.of(UserConstant.FIELD_USER_KEYCLOAK_ID, keycloakId != null ? keycloakId : "unknown"));
         }
-        User user = optionalUser.get();
+        return toDetailResponse(optionalUser.get());
+    }
 
+    /**
+     * Builds the profile of a user with its pending invitations and the apps it may open.
+     */
+    private UserDetailResponse toDetailResponse(User user) {
         List<InvitationResponse> pendingInvitations = invitationQueryService
                 .listPendingInvitationsByEmail(user.getEmail());
 
         return userMapper.toDetailResponse(user, pendingInvitations,
                 appAccessQueryService.listAccessibleAppsByOrganization(user));
+    }
+
+    /**
+     * Loads the user an API token acts as. The token filter has already checked that the token is live
+     * and that its subject may act.
+     *
+     * @param principal the token's caller
+     * @return the user
+     * @throws NotFoundException if the user no longer exists
+     */
+    private User getApiTokenUser(ApiTokenPrincipal principal) {
+        return userRepository.findById(principal.userId())
+                .orElseThrow(() -> {
+                    loggingService.warn(LOG_PREFIX, LogLayer.SERVICE,
+                            UserServiceLogConstant.USER_GET_CURRENT_API_TOKEN_USER_NOT_FOUND,
+                            principal.userId(), principal.tokenId());
+                    return new NotFoundException(ExceptionDomainIdentityError.NOT_USER_FOUND,
+                            Map.of(UserConstant.FIELD_USER_DATABASE_ID, principal.userId()));
+                });
     }
 
     /**

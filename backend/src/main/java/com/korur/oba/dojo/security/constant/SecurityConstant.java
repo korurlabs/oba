@@ -50,6 +50,16 @@ public class SecurityConstant {
         "/kazan/updates/**"
     };
 
+    // Paths whose own security chain authenticates the caller with a credential that is neither a JWT
+    // nor an API token, and checks what it may do. Only there does the RequiredUserAccess check let such
+    // an authentication through; anywhere else it is refused. The Alertmanager webhook keeps a static
+    // token of one organization, and the Kaya machine token chain guards its ingest and delivery paths.
+    public static final String[] INTEGRATION_CHAIN_PATHS = {
+        "/kazan/integrations/alertmanager/**",
+        "/kaya/ingest/**",
+        "/kaya/delivery/**"
+    };
+
     // Handlers of this package are guarded by the RequiredUserAccess check; framework handlers such
     // as SpringDoc and the error page are not
     public static final String OBA_PACKAGE_PREFIX = "com.korur.oba.";
