@@ -8,7 +8,7 @@ BINARY="oba"
 err() { printf 'error: %s\n' "$*" >&2; exit 1; }
 info() { printf '==> %s\n' "$*"; }
 
-for cmd in curl tar uname awk mktemp mkdir mv chmod rm; do
+for cmd in curl tar uname awk mktemp mkdir mv chmod rm ln; do
   command -v "$cmd" >/dev/null 2>&1 || err "required command '$cmd' not found in PATH"
 done
 
@@ -68,7 +68,9 @@ fi
 mkdir -p "$INSTALL_DIR" || err "could not create $INSTALL_DIR"
 [ ! -d "$INSTALL_DIR/$BINARY" ] || err "$INSTALL_DIR/$BINARY is a directory"
 mv -f "$WORKDIR/$BINARY" "$INSTALL_DIR/$BINARY" || err "could not install in $INSTALL_DIR; set OBA_INSTALL_DIR to a writable directory"
-info "installed the oba CLI $TAG in $INSTALL_DIR/$BINARY"
+# The VS Code extension starts Claude Code through oba-kaya-launch, the same binary under that name.
+ln -sf "$BINARY" "$INSTALL_DIR/oba-kaya-launch" || err "could not link $INSTALL_DIR/oba-kaya-launch"
+info "installed the oba CLI $TAG in $INSTALL_DIR/$BINARY; for Kaya, run 'oba kaya install' once to start Claude Code through it"
 case ":$PATH:" in
   *":$INSTALL_DIR:"*) ;;
   *) printf "Add this directory to PATH:\n  export PATH=\"%s:\$PATH\"\n" "$INSTALL_DIR" ;;

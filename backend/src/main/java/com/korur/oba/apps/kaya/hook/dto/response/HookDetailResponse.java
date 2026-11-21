@@ -31,7 +31,7 @@ public record HookDetailResponse(
         @Schema(description = "Byte length of the file", example = "4096")
         Integer sizeBytes,
 
-        @Schema(description = "The whole file as UTF-8 text", example = "#!/usr/bin/env bash\nexec kaya hook \"$@\"\n")
+        @Schema(description = "The whole file as UTF-8 text", example = "#!/usr/bin/env bash\nexec oba kaya hook \"$@\"\n")
         String content,
 
         @Schema(description = "When the hook was stored", example = "2026-10-23T09:15:00Z")

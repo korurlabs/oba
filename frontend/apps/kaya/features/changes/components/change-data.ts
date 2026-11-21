@@ -40,7 +40,7 @@ export const STATUS_FILTERS: readonly VersionStatus[] = [
 
 export const SOURCE_LABELS: Readonly<Record<VersionSource, string>> = {
   MANUAL: "Kaya web",
-  CLI: "kaya propose",
+  CLI: "oba kaya propose",
   SEED: "Seed",
   ROLLBACK: "Restore",
 };
