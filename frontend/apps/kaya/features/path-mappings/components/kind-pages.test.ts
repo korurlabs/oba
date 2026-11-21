@@ -13,7 +13,7 @@ describe("kindRowOf", () => {
     }
   });
 
-  test("a tool link reads as one and links to no page, since only a seed or kaya propose writes it", () => {
+  test("a tool link reads as one and links to no page, since only a seed or oba kaya propose writes it", () => {
     expect(kindRowOf({ kind: "TOOL_LINK", part: null, placement: null })).toEqual({
       label: "Tool link",
       page: null,

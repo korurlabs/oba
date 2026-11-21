@@ -12,7 +12,7 @@ import com.korur.oba.apps.kaya.delivery.dto.response.DeliveryProposalResponse;
 import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
 
 /**
- * A change proposed from a checkout with a machine token, as kaya propose sends it. The proposer is
+ * A change proposed from a checkout with a machine token, as oba kaya propose sends it. The proposer is
  * the user of the token, so a proposal is reviewed under the same rules as a
  * change made in the web app: never by its proposer, and by an OWNER when it is executable.
  *

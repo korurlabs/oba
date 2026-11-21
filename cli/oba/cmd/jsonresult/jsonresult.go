@@ -48,3 +48,13 @@ func SetPartial(value json.RawMessage) error {
 	jsonout.KeepOnFailure()
 	return nil
 }
+
+// SetValue makes value, encoded as JSON, the result of the run, for a command whose result is
+// not the data of an API call, such as the state of a checkout.
+func SetValue(value any) error {
+	data, err := json.Marshal(value)
+	if err != nil {
+		return fmt.Errorf("failed to encode the JSON output: %w", err)
+	}
+	return Set(data)
+}

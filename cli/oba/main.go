@@ -1,6 +1,12 @@
 package main
 
-import "github.com/korurlabs/oba-cli/cmd"
+import (
+	"os"
+	"path/filepath"
+
+	"github.com/korurlabs/oba-cli/cmd"
+	"github.com/korurlabs/oba-cli/cmd/apps/kaya"
+)
 
 // A release build sets these through ldflags (.goreleaser.yaml); a local build
 // keeps the defaults.
@@ -12,6 +18,11 @@ var (
 
 func main() {
 	cmd.SetVersion(buildVersion())
+	// Called as oba-kaya-launch, the binary is the wrapper VS Code starts Claude Code through.
+	if filepath.Base(os.Args[0]) == kaya.LaunchName {
+		kaya.ExecuteLaunch(os.Args[1:])
+		return
+	}
 	cmd.Execute()
 }
 

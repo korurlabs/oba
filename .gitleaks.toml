@@ -11,8 +11,8 @@ useDefault = true
 [[allowlists]]
 description = "Test fixtures with fake tokens and keys"
 paths = [
-    # Generated redaction cases of the Kaya CLI: secret-shaped inputs the redactor must mask.
-    '''cli/kaya/internal/redact/testdata/''',
+    # Generated redaction cases of oba kaya: secret-shaped inputs the redactor must mask.
+    '''cli/oba/internal/apps/kaya/redact/testdata/''',
     # A user JWT with a dummy signature, used to assert that a user token is refused.
     '''backend/src/test/java/com/korur/oba/apps/kaya/delivery/integration/DeliveryIT\.java''',
     # A PKCS#1 PEM with an 8-character body, used to test that the PKCS#1 format is rejected.

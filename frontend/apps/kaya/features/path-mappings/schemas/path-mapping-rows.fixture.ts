@@ -87,14 +87,14 @@ export const PATH_MAPPING_ROWS: PathMappingResponse[] = [
   }),
   row("TOOL_LINK", "AGENTS.md", ["SYMLINK"], {
     link: "ROOT_AGENTS_FILE",
-    note: "a link to .agents/AGENTS.md that a tool reads; it comes from a seed or kaya propose",
+    note: "a link to .agents/AGENTS.md that a tool reads; it comes from a seed or oba kaya propose",
   }),
   row("TOOL_LINK", ".claude/rules", ["SYMLINK"], {
     link: "CLAUDE_RULES",
-    note: "a link to ../.agents/rules that a tool reads; it comes from a seed or kaya propose",
+    note: "a link to ../.agents/rules that a tool reads; it comes from a seed or oba kaya propose",
   }),
   row("TOOL_LINK", ".claude/templates", ["SYMLINK"], {
     link: "CLAUDE_TEMPLATES",
-    note: "a link to ../.agents/templates that a tool reads; it comes from a seed or kaya propose",
+    note: "a link to ../.agents/templates that a tool reads; it comes from a seed or oba kaya propose",
   }),
 ];

@@ -10,6 +10,13 @@ version: 2
 # (oba-cli_<version>_<os>_<arch>.tar.gz). The binary inside is `oba`.
 project_name: oba-cli
 
+before:
+  hooks:
+    # oba kaya must trust the production signing key of Kaya's config releases:
+    # with the compiled-in key map empty, every developer machine would refuse
+    # every release. This test fails the release instead.
+    - go test -tags release -run TestReleaseTrustsAKey ./internal/apps/kaya/delivery/
+
 builds:
   - id: oba
     main: .
@@ -57,10 +64,13 @@ brews:
       name: korur-prod-release-write[bot]
       email: 327959077+korur-prod-release-write[bot]@users.noreply.github.com
     homepage: "https://github.com/korurlabs/oba-cli"
-    description: "Oba CLI: the Oba apps from your terminal"
+    description: "Oba CLI: the Oba apps from your terminal, Kaya's signed agent config of Claude Code among them"
     license: "MIT"
+    # oba-kaya-launch is the same binary; the VS Code extension starts Claude
+    # Code through it (claudeCode.claudeProcessWrapper, set by `oba kaya install`).
     install: |
       bin.install "oba"
+      bin.install_symlink "oba" => "oba-kaya-launch"
     test: |
       system "#{bin}/oba", "--version"
     # Rehearsal tags (e.g. v1.2.0-rc.1) must NOT reach the tap: brew has no

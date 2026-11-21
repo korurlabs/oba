@@ -119,7 +119,7 @@ export function ChangesPage() {
       <div className="flex flex-col gap-1">
         <h1>Changes</h1>
         <p className="text-muted-foreground">
-          Config changes proposed in Kaya, on the web or with <code>kaya propose</code>. A change is
+          Config changes proposed in Kaya, on the web or with <code>oba kaya propose</code>. A change is
           released once an admin or owner other than its proposer approves it.
         </p>
       </div>
