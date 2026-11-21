@@ -21,7 +21,9 @@ const EnvDevTrustedKeys = "KAYA_DEV_TRUSTED_KEYS"
 // lists it). Two entries are valid while a key is rotated. They are compiled in, not fetched,
 // so a compromised API or network path cannot change what the CLI trusts. The release build
 // refuses to run with this map empty (keys_release_test.go).
-var releaseKeys = map[string]string{}
+var releaseKeys = map[string]string{
+	"oba-2026-11": "mtL8Ohq83/KSCXA1jWKX6YwQTCC+2ZbhTtWyw5lIM1U=",
+}
 
 // Keys are the public keys a signature may be made with, by key id.
 type Keys map[string]ed25519.PublicKey

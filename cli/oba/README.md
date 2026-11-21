@@ -64,7 +64,7 @@ Against the local Oba stack (`projects/oba/scripts/start.sh`):
 OBA_API_URL=http://localhost:8080 OBA_ISSUER=http://localhost:8086/realms/sensey bin/oba login
 ```
 
-The local realm file `projects/oba/backend/src/main/resources/podman/keycloak/realm/sensey-realm.json` holds the client `oba-cli`, but Keycloak imports it only when the realm is created. On a local Keycloak created before that client existed, add `OBA_CLIENT_ID=kaya-cli`, a device-grant client of the same realm, until the Keycloak container is recreated.
+The local realm file `projects/oba/backend/src/main/resources/podman/keycloak/realm/sensey-realm.json` holds the client `oba-cli`, but Keycloak imports it only when the realm is created. On a local Keycloak created before that client existed, recreate the Keycloak container.
 
 ## Organization
 
@@ -382,16 +382,6 @@ A mail's attachments change only while its outreach is not SENT (`OTK_STA_011`) 
 
 `seed` and `signing-keys` act as you, with the sign-in of `oba login` (or `OBA_TOKEN`) in the current organization. Everything that runs inside sessions or in the background sends the machine token instead (see Kaya config delivery).
 
-### Moving from the kaya CLI
-
-The `kaya` binary is gone; its commands are `oba kaya ...`. Once per machine:
-
-1. `brew uninstall korurlabs/tap/kaya-cli` (or remove `kaya` and `kaya-launch` from your `PATH`), then install `oba` as above.
-2. `oba login`: `oba kaya seed` and `oba kaya signing-keys` use the Oba sign-in now, not `~/.config/kaya/credentials.json`, which you can delete.
-3. `oba kaya install`: it moves the VS Code wrapper to `oba-kaya-launch`, the `claude()` function to `oba kaya launch` and the Claude Code hooks to `oba kaya hook`, and removes what `kaya install` wrote. The link `~/.local/share/kaya/bin/kaya-launch` is no longer used.
-
-The queue, the blob cache and the checkouts' `.kaya/` stay where they are, so nothing recorded or delivered is lost. `KAYA_API_URL` is no longer read: set `OBA_API_URL`.
-
 ## Kaya seed
 
 ```sh
@@ -440,7 +430,7 @@ oba kaya statusline     # the status line: usage limits into the queue, then you
 oba kaya sender --once  # hidden: send the queue once; hooks start the sender by themselves
 ```
 
-- Registration: the repository's `.claude/settings.json`, not `oba kaya install`. It runs `oba kaya hook record` for `PreToolUse` (`Agent|Skill|ExitPlanMode`), `PostToolUse` and `PostToolUseFailure` (`Agent|Skill|Bash|Edit|Write|MultiEdit`), `UserPromptSubmit`, `UserPromptExpansion`, `SessionStart`, `SubagentStart`, `SubagentStop`, `Stop` and `SessionEnd`, and `oba kaya statusline` as its `statusLine`. Without `kaya` on the `PATH`, each hook prints `kaya recorder: kaya not found, nothing recorded` on stderr and exits 0, and the status line shows `oba kaya status line: kaya not found`; the session itself is not affected.
+- Registration: the repository's `.claude/settings.json`, not `oba kaya install`. It runs `oba kaya hook record` for `PreToolUse` (`Agent|Skill|ExitPlanMode`), `PostToolUse` and `PostToolUseFailure` (`Agent|Skill|Bash|Edit|Write|MultiEdit`), `UserPromptSubmit`, `UserPromptExpansion`, `SessionStart`, `SubagentStart`, `SubagentStop`, `Stop` and `SessionEnd`, and `oba kaya statusline` as its `statusLine`. Without `oba` on the `PATH` the hooks record nothing; the session itself is not affected.
 - Scope: an event is recorded only in a checkout with a committed `kaya.yaml`. In any other checkout the hook writes nothing.
 - `oba kaya hook record` reads no network, prints nothing on stdout, runs git only on `SessionStart`, `Stop` and `SessionEnd`, and exits 0 on every error with one `oba kaya hook: nothing recorded: ...` line on stderr. Prompts, command arguments, commands and messages are redacted before they are written; plan and handoff snapshots are redacted when the sender builds the batch. After it queued an event it starts `oba kaya sender` unless one runs or `KAYA_SENDER=off` is set.
 - `oba kaya sender` is one process per machine (`sender.lock`). It reads the machine token once (as config delivery does), sends only over https or to a loopback address, follows no redirect, and every 2 seconds sends each session one batch to `POST /kaya/ingest/batches`. A 401 stops it until the token changes; 400, 409, 413 and 422 park the session until the token changes; 403 `KAY_SEC_007` (no Kaya user holds the session's git email), 429, 5xx and network errors back off from 2 seconds to 5 minutes and keep the queue. It exits after 10 idle minutes and removes an ended, acknowledged session after 7 days.
