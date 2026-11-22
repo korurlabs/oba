@@ -8,6 +8,8 @@ name: Release
 #   - a GitHub release with the chart package
 #
 # The chart is pushed only after every image is, so no chart version names a missing image.
+# Each image is scanned before it is pushed, and a CRITICAL or HIGH vulnerability with a fixed
+# version stops the release before anything is published.
 # The only credential is GITHUB_TOKEN. Images build on the public base images that the
 # Dockerfiles name.
 
@@ -154,6 +156,58 @@ jobs:
             fi
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
+
+      # A release never publishes an image with a CRITICAL or HIGH vulnerability that has a
+      # fixed version. The image is first built into the local Docker daemon, scanned there,
+      # and pushed only if the scan passes. The push step below keeps its inputs unchanged and
+      # runs on the same builder, so every layer comes from the build cache: the image pushed
+      # is the image scanned, with the provenance the push has always attached.
+      - name: Build the image for the vulnerability scan
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: ${{ matrix.kind }}
+          file: ${{ matrix.kind }}/Dockerfile
+          platforms: linux/amd64
+          build-args: ${{ matrix.kind == 'frontend' && format('APP_NAME={0}', matrix.name) || '' }}
+          load: true
+          push: false
+          tags: ${{ env.REGISTRY }}/oba-${{ matrix.name }}:${{ needs.version.outputs.version }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ needs.version.outputs.version }}
+            org.opencontainers.image.licenses=AGPL-3.0-only
+
+      # The vulnerability database is rebuilt every few hours; one cache entry a day, shared
+      # with the Trivy workflow on main, keeps the download off most runs.
+      - name: Date for the Trivy cache key
+        id: trivy-date
+        run: echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache the Trivy database
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ runner.temp }}/trivy-cache
+          key: trivy-db-${{ runner.os }}-${{ steps.trivy-date.outputs.date }}
+          restore-keys: trivy-db-${{ runner.os }}-
+
+      # trivy-action had its version tags hijacked on 2026-03-19 (GHSA-69fq-xp46-6x23): it is
+      # pinned to the commit of 0.35.0, which Aqua states was not affected, and the binary to
+      # a fixed version published after the incident. Never move either to a tag or `latest`.
+      - name: Scan the image for fixable CRITICAL and HIGH vulnerabilities
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
+        with:
+          version: v0.76.2
+          # The database is cached by the step above.
+          cache: 'false'
+          cache-dir: ${{ runner.temp }}/trivy-cache
+          scan-type: image
+          image-ref: ${{ env.REGISTRY }}/oba-${{ matrix.name }}:${{ needs.version.outputs.version }}
+          scanners: vuln
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          format: table
+          exit-code: '1'
 
       # amd64 only, as the images Oba has always run on.
       - name: Build and push the image
