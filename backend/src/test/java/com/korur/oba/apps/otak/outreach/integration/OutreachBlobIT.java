@@ -22,7 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.otak.documenttemplate.integration.AbstractOtakDocumentsIT;
+import com.korur.oba.apps.otak.support.AbstractOtakDocumentsIT;
 import com.korur.oba.connect.notification.client.MsGraphClient;
 import com.korur.oba.connect.notification.dto.Mail;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
@@ -108,7 +108,7 @@ class OutreachBlobIT extends AbstractOtakDocumentsIT {
                 .andExpect(status().isCreated()).andReturn();
 
         assertThat(read(result, "$.data.fileName")).isEqualTo(templateName + ".pdf");
-        assertThat(count("SELECT count(*) FROM shrine.attachments a, otak.document_templates t "
+        assertThat(count("SELECT count(*) FROM shrine.attachments a, shrine.document_templates t "
                 + "WHERE a.id = ?::uuid AND t.id = ?::uuid "
                 + "AND a.entity_type = 'RELATION'::shrine_storage_entity_type_enum AND a.entity_id = ?::uuid "
                 + "AND a.content_type = 'application/pdf' AND a.url <> t.pdf_blob_url",
@@ -116,14 +116,14 @@ class OutreachBlobIT extends AbstractOtakDocumentsIT {
     }
 
     @Test
-    void admin_copyOfATemplateWithoutFiles_answers422OTK_VAL_012AndStoresNothing() throws Exception {
+    void admin_copyOfATemplateWithoutFiles_answers422DOC_VAL_002AndStoresNothing() throws Exception {
         String templateId = createFileTemplate(tenant, admin, "Empty " + uniqueSuffix());
 
         MvcResult result = mockMvc.perform(in(tenant, post(TEMPLATES_PATH + "/" + templateId + "/attachments"),
                         admin.jwt(), "{\"entityType\":\"RELATION\",\"entityId\":\"" + relationId + "\"}"))
                 .andExpect(status().isUnprocessableEntity()).andReturn();
 
-        assertThat(result.getResponse().getContentAsString()).contains("OTK_VAL_012");
+        assertThat(result.getResponse().getContentAsString()).contains("DOC_VAL_002");
         assertThat(count("SELECT count(*) FROM shrine.attachments WHERE entity_id = ?::uuid", relationId)).isZero();
     }
 
@@ -147,7 +147,7 @@ class OutreachBlobIT extends AbstractOtakDocumentsIT {
                 .andExpect(status().isOk());
 
         assertThat(mailAttachments(mailId)).isZero();
-        assertThat(count("SELECT count(*) FROM otak.document_templates WHERE id = ?::uuid", templateId))
+        assertThat(count("SELECT count(*) FROM shrine.document_templates WHERE id = ?::uuid", templateId))
                 .isEqualTo(1L);
     }
 

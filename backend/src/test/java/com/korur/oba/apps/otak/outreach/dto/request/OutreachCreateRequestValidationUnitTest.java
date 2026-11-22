@@ -21,11 +21,11 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 // 4. Internal
-import com.korur.oba.apps.otak.documenttemplate.enums.DocumentLanguage;
 import com.korur.oba.apps.otak.mail.constant.MailConstant;
 import com.korur.oba.apps.otak.mail.dto.request.MailRequest;
 import com.korur.oba.apps.otak.outreach.constant.OutreachConstant;
 import com.korur.oba.apps.otak.outreach.enums.OutreachType;
+import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
 
 class OutreachCreateRequestValidationUnitTest {
 

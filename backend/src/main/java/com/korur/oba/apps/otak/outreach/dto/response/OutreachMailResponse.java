@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.otak.documenttemplate.enums.DocumentLanguage;
+import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
 
 /**
  * The mail of an outreach, read from its own {@link com.korur.oba.apps.otak.mail.entity.Mail}.

@@ -27,6 +27,7 @@ import com.korur.oba.dojo.exception.enums.ExceptionStateError;
 import com.korur.oba.dojo.exception.enums.ExceptionUpstreamError;
 import com.korur.oba.dojo.exception.enums.ExceptionValidationError;
 import com.korur.oba.dojo.logging.exception.ExceptionDomainLoggingError;
+import com.korur.oba.shrine.document.exception.ExceptionDomainDocumentError;
 import com.korur.oba.shrine.identity.exception.ExceptionDomainIdentityError;
 import com.korur.oba.shrine.invitation.exception.ExceptionDomainInvitationError;
 import com.korur.oba.shrine.legalentity.exception.ExceptionDomainLegalEntityError;
@@ -70,6 +71,7 @@ class ExceptionErrorConsistencyUnitTest {
         addAll(all, ExceptionDomainDailyUpdateError.values());
         addAll(all, ExceptionDomainRealtimeError.values());
         addAll(all, ExceptionDomainLoggingError.values());
+        addAll(all, ExceptionDomainDocumentError.values());
         addAll(all, ExceptionDomainIdentityError.values());
         addAll(all, ExceptionDomainInvitationError.values());
         addAll(all, ExceptionDomainLegalEntityError.values());

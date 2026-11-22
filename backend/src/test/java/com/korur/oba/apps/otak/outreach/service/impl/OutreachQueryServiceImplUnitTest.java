@@ -31,7 +31,6 @@ import com.korur.oba.apps.otak.contact.dto.response.ContactListResponse;
 import com.korur.oba.apps.otak.contact.entity.Contact;
 import com.korur.oba.apps.otak.contact.service.ContactQueryService;
 import com.korur.oba.apps.otak.contact.validator.ContactValidator;
-import com.korur.oba.apps.otak.documenttemplate.enums.DocumentLanguage;
 import com.korur.oba.apps.otak.exception.ExceptionDomainOtakError;
 import com.korur.oba.apps.otak.mail.entity.Mail;
 import com.korur.oba.apps.otak.mail.service.MailQueryService;
@@ -51,6 +50,7 @@ import com.korur.oba.apps.otak.outreach.validator.OutreachValidator;
 import com.korur.oba.apps.otak.relation.service.RelationQueryService;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
 
 @ExtendWith(MockitoExtension.class)
 class OutreachQueryServiceImplUnitTest {

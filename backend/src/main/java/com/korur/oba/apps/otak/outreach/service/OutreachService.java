@@ -60,7 +60,7 @@ public interface OutreachService {
      * the template itself, so a later change of the template never changes an outreach, and a
      * sent outreach keeps the exact text that went out. The type comes from the request and
      * never changes afterwards. Each template is copied through
-     * {@link com.korur.oba.apps.otak.documenttemplate.service.DocumentTemplateService#copyToAttachment},
+     * {@link com.korur.oba.shrine.document.service.template.DocumentTemplateService#copyToAttachment},
      * in the order of the request, a repeated id once.
      *
      * Called by {@link com.korur.oba.apps.otak.outreach.controller.OutreachController#createOutreach}.
@@ -76,13 +76,13 @@ public interface OutreachService {
      *         contact is not of the relation,
      *         {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#NOT_MAIL_TEMPLATE_FOUND}
      *         if the mail template is missing, or
-     *         {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#NOT_DOCUMENT_TEMPLATE_FOUND} if
+     *         {@link com.korur.oba.shrine.document.exception.ExceptionDomainDocumentError#NOT_DOCUMENT_TEMPLATE_FOUND} if
      *         a document template is missing
      * @throws com.korur.oba.dojo.exception.internal.business.ValidationException
      *         {@link com.korur.oba.dojo.exception.enums.ExceptionValidationError#VALIDATION} if a MAIL
      *         outreach has both or neither mail sources, or a WHATSAPP or CALL outreach has any mail
      *         field, or
-     *         {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#VAL_DOCUMENT_NOT_USABLE}
+     *         {@link com.korur.oba.shrine.document.exception.ExceptionDomainDocumentError#VAL_DOCUMENT_NOT_USABLE}
      *         if a document template has no PDF
      * @see com.korur.oba.apps.otak.outreach.service.impl.OutreachServiceImpl#create
      */
