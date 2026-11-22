@@ -100,10 +100,11 @@ public class LoggingService {
      *
      * Arguments routinely carry request data (file names, headers, free text). A line break
      * in one of them would let a caller end the entry early and forge a second one. Every
-     * argument is therefore rendered to text and neutralised here, so no caller has to remember
-     * it. A trailing Throwable argument stays the event's cause, as SLF4J treats it, so its
-     * stack trace is still printed; the cause is set through the fluent API because the stack
-     * trace is a structured field of the encoder, not part of the message line.
+     * argument is therefore rendered by {@link #renderArgumentForLog(Object)} and the message
+     * passed through {@link #replaceLineBreaks(String)}, so no caller has to remember it. A
+     * trailing Throwable argument stays the event's cause, as SLF4J treats it, so its stack
+     * trace is still printed; the cause is set through the fluent API because the stack trace
+     * is a structured field of the encoder, not part of the message line.
      */
     private void write(Level level, LogPrefix prefix, LogLayer layer, String message,
                        Throwable throwable, Object[] params) {
@@ -120,26 +121,26 @@ public class LoggingService {
         }
         Object[] safeArgs = new Object[argCount];
         for (int i = 0; i < argCount; i++) {
-            safeArgs[i] = neutralise(args[i]);
+            safeArgs[i] = renderArgumentForLog(args[i]);
         }
         try {
             setAppContext(prefix, layer);
-            log.atLevel(level).setCause(cause).log(neutralise(message), safeArgs);
+            log.atLevel(level).setCause(cause).log(replaceLineBreaks(message), safeArgs);
         } finally {
             clearAppContext();
         }
     }
 
     /**
-     * Renders one argument the way SLF4J would and neutralises the text. Null stays null so
-     * the placeholder still reads "null".
+     * Renders one argument to text the way SLF4J would and passes it through
+     * {@link #replaceLineBreaks(String)}. Null stays null so the placeholder still reads "null".
      */
-    private static String neutralise(Object value) {
+    private static String renderArgumentForLog(Object value) {
         if (value == null) {
             return null;
         }
         String text = value instanceof Object[] array ? Arrays.deepToString(array) : String.valueOf(value);
-        return neutralise(text);
+        return replaceLineBreaks(text);
     }
 
     /**
@@ -148,7 +149,7 @@ public class LoggingService {
      * separators first, then CR and LF. CR and LF are replaced by plain String.replace calls
      * last, the form static analysis recognises as removing line breaks from logged values.
      */
-    private static String neutralise(String value) {
+    private static String replaceLineBreaks(String value) {
         if (value == null) {
             return null;
         }
