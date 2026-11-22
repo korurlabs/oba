@@ -65,13 +65,39 @@ jobs:
       # Trivy finds them locally. Trivy still reads the whole tree, as it would
       # without the cache, and is not switched to its offline mode, which would
       # skip what is missing and report fewer vulnerabilities.
+      #
+      # This job only reads the Backend workflow's Maven cache and never saves
+      # it. After a pom change the first job to finish would store the entry,
+      # and what dependency:go-offline resolves lacks some of the plugins a full
+      # build needs; the Backend workflow would then download those on every
+      # run until the next pom change. setup-java therefore runs without its
+      # cache, and the restore below rebuilds the key setup-java v6.3.0 gives
+      # the Backend workflow: setup-java-<runner OS>-<Node arch>-maven-<hash of
+      # backend/pom.xml>, on the absolute path of the local repository (the
+      # cache service matches entries by the path text as well as the key, so
+      # `~/.m2/repository` would never find it). If a setup-java upgrade
+      # changes that format, the restore misses and Maven downloads everything,
+      # slower but with the same result.
       - name: Set up Java 25
         uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           distribution: temurin
           java-version: '25'
-          cache: maven
-          cache-dependency-path: backend/pom.xml
+
+      - name: Locate the local Maven repository
+        id: m2
+        run: |
+          echo "path=$HOME/.m2/repository" >> "$GITHUB_OUTPUT"
+          echo "arch=$(echo "$RUNNER_ARCH" | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
+      # The fallback takes the newest entry of an earlier pom, which still holds
+      # most of what the current one needs.
+      - name: Restore the Backend workflow's Maven repository
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ${{ steps.m2.outputs.path }}
+          key: setup-java-${{ runner.os }}-${{ steps.m2.outputs.arch }}-maven-${{ hashFiles('backend/pom.xml') }}
+          restore-keys: setup-java-${{ runner.os }}-${{ steps.m2.outputs.arch }}-maven-
 
       - name: Resolve the backend dependencies into the local Maven repository
         run: mvn -B -f backend/pom.xml dependency:go-offline
