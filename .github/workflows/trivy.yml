@@ -61,16 +61,18 @@ jobs:
       # asks Maven Central only for what is missing there. Maven Central
       # rate-limits the shared addresses of GitHub's runners, and one refusal
       # aborts the scan before any result is uploaded. Maven therefore resolves
-      # the dependencies first, from the same cache the Backend workflow uses, so
-      # Trivy finds them locally. Trivy still reads the whole tree, as it would
-      # without the cache, and is not switched to its offline mode, which would
-      # skip what is missing and report fewer vulnerabilities.
+      # the dependencies first, from the same cache the Backend workflow uses.
+      # It runs dependency:resolve, which resolves the project's dependencies
+      # with dependencyManagement applied, the same versions Trivy computes, so
+      # Trivy finds every pom locally. Trivy still reads the whole tree, as it
+      # would without the cache, and is not switched to its offline mode, which
+      # would skip what is missing and report fewer vulnerabilities.
       #
       # This job only reads the Backend workflow's Maven cache and never saves
       # it. After a pom change the first job to finish would store the entry,
-      # and what dependency:go-offline resolves lacks some of the plugins a full
-      # build needs; the Backend workflow would then download those on every
-      # run until the next pom change. setup-java therefore runs without its
+      # and what dependency:resolve resolves lacks the plugins a full build
+      # needs; the Backend workflow would then download those on every run
+      # until the next pom change. setup-java therefore runs without its
       # cache, and the restore below rebuilds the key setup-java v6.3.0 gives
       # the Backend workflow: setup-java-<runner OS>-<Node arch>-maven-<hash of
       # backend/pom.xml>, on the absolute path of the local repository (the
@@ -100,7 +102,7 @@ jobs:
           restore-keys: setup-java-${{ runner.os }}-${{ steps.m2.outputs.arch }}-maven-
 
       - name: Resolve the backend dependencies into the local Maven repository
-        run: mvn -B -f backend/pom.xml dependency:go-offline
+        run: mvn -B -f backend/pom.xml dependency:resolve
 
       # The vulnerability database is rebuilt every few hours; one cache entry a
       # day keeps the download off most runs, and Trivy still refreshes a copy
