@@ -5,6 +5,7 @@ import type {
   PipelineStage,
   RelationCreateRequest,
   RelationDetail,
+  RelationAttachment,
   RelationListApiResponse,
   RelationListItem,
   RelationOwnerCandidate,
@@ -26,6 +27,17 @@ export async function listRelations(params: RelationQueryRequest) {
     params,
     paramsSerializer: { indexes: null },
   });
+  return res.data;
+}
+
+/**
+ * The files of the relation and of its mails, newest first. A relation of
+ * another organization answers `OTK_NOT_001`.
+ */
+export async function listRelationAttachments(relationId: string) {
+  const res = await api.get<ApiResponse<RelationAttachment[]>>(
+    API_ROUTES.relations.attachments(relationId)
+  );
   return res.data;
 }
 

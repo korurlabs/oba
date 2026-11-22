@@ -182,7 +182,7 @@ public class ChatMessageQueryServiceImpl implements ChatMessageQueryService {
     public ChatMessagePageResponse listPinnedMessages(User user, UUID organizationId, UUID channelId, UUID before,
                                                       Integer limit) {
         ChatChannel channel = chatChannelQueryService.verifyChannelAccess(organizationId, user.getId(), channelId);
-        int pageSize = limit == null ? ChatConstant.DEFAULT_PAGE_SIZE : limit;
+        int pageSize = chatValidator.ensurePageSize(limit, ChatConstant.DEFAULT_PAGE_SIZE);
 
         List<ChatMessage> rows;
         if (before == null) {
@@ -207,7 +207,7 @@ public class ChatMessageQueryServiceImpl implements ChatMessageQueryService {
     @Override
     public ChatMessagePageResponse searchMessages(User user, UUID organizationId, ChatSearchRequest request) {
         List<UUID> channelIds = readableChannelIds(user, organizationId, request.getChannelId());
-        int pageSize = request.getLimit() == null ? ChatConstant.DEFAULT_SEARCH_PAGE_SIZE : request.getLimit();
+        int pageSize = chatValidator.ensurePageSize(request.getLimit(), ChatConstant.DEFAULT_SEARCH_PAGE_SIZE);
         ChatMessage cursor = request.getBefore() == null
                 ? null
                 : findCursor(organizationId, null, request.getBefore());
@@ -231,7 +231,7 @@ public class ChatMessageQueryServiceImpl implements ChatMessageQueryService {
      */
     private ChatMessagePageResponse readPage(User user, UUID organizationId, UUID channelId,
                                              ChatMessageQueryRequest request, PageSource source) {
-        int pageSize = request.getLimit() == null ? ChatConstant.DEFAULT_PAGE_SIZE : request.getLimit();
+        int pageSize = chatValidator.ensurePageSize(request.getLimit(), ChatConstant.DEFAULT_PAGE_SIZE);
 
         if (request.getBefore() != null) {
             ChatMessage cursor = findCursor(organizationId, channelId, request.getBefore());

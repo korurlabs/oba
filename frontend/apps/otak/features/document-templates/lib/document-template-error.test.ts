@@ -10,9 +10,10 @@ function apiError(code: string | undefined, errorValues: Record<string, unknown>
 
 describe("documentTemplateErrorText", () => {
   test.each([
-    ["OTK_NOT_007", "t:errors.notFound"],
-    ["OTK_STA_009", "t:errors.nameTaken"],
-    ["OTK_VAL_009", "t:errors.fileNotHtmlOrPdf"],
+    ["DOC_NOT_001", "t:errors.notFound"],
+    ["DOC_STA_001", "t:errors.nameTaken"],
+    ["DOC_VAL_001", "t:errors.fileNotHtmlOrPdf"],
+    ["LGE_NOT_001", "t:errors.legalEntityNotFound"],
     ["AZR_UPS_001", "t:errors.uploadFailed"],
     ["ORG_SEC_003", "t:errors.forbidden"],
     ["GEN_VAL_001", "t:errors.validation"],
@@ -35,16 +36,28 @@ describe("documentTemplateErrorText", () => {
 
 describe("documentTemplateFieldErrors", () => {
   test("a taken name is shown on the name field", () => {
-    expect(documentTemplateFieldErrors(apiError("OTK_STA_009"), t)).toEqual({
+    expect(documentTemplateFieldErrors(apiError("DOC_STA_001"), t)).toEqual({
       name: "t:errors.nameTaken",
     });
   });
 
+  test("a legal entity that no longer exists is shown on the legal entity field", () => {
+    expect(documentTemplateFieldErrors(apiError("LGE_NOT_001"), t)).toEqual({
+      legalEntityId: "t:errors.legalEntityNotFound",
+    });
+  });
+
+  test("the retired Otak template codes have no text of their own", () => {
+    expect(documentTemplateErrorText(apiError("OTK_STA_009"), t, "toast.saveError")).toBe(
+      "server message"
+    );
+  });
+
   test("a refused file part is shown on its file field", () => {
-    expect(documentTemplateFieldErrors(apiError("OTK_VAL_009", { pdf: "not a PDF" }), t)).toEqual({
+    expect(documentTemplateFieldErrors(apiError("DOC_VAL_001", { pdf: "not a PDF" }), t)).toEqual({
       pdfFile: "t:errors.fileNotHtmlOrPdf",
     });
-    expect(documentTemplateFieldErrors(apiError("OTK_VAL_009", { html: "not HTML" }), t)).toEqual({
+    expect(documentTemplateFieldErrors(apiError("DOC_VAL_001", { html: "not HTML" }), t)).toEqual({
       htmlFile: "t:errors.fileNotHtmlOrPdf",
     });
   });

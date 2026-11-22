@@ -4,13 +4,15 @@
   },
   "sidebar": {
     "navigation": "Navigatie",
-    "relations": "Relaties",
     "battlefield": "Battlefield",
-    "language": "Taal",
-    "icps": "ICP's",
-    "outreaches": "Outreaches",
-    "templates": "Sjablonen",
-    "events": "Evenementen"
+    "relations": "Relatie",
+    "outreaches": "Outreach",
+    "mail": "Mail",
+    "icps": "ICP",
+    "documents": "Document",
+    "templates": "Sjabloon",
+    "events": "Evenement",
+    "language": "Taal"
   },
   "errors": {
     "somethingWentWrong": "Er is iets misgegaan",
@@ -279,7 +281,22 @@
     "noContactMail": "Geen contactmail",
     "noCompanyMail": "Geen bedrijfsmail",
     "attachments": {
-      "title": "Bijlagen"
+      "title": "Bijlagen",
+      "documentsLink": "Documenten van deze relatie",
+      "loading": "Bijlagen laden...",
+      "loadError": "De bijlagen konden niet worden geladen",
+      "empty": "Nog geen bijlagen. Upload een bestand, of voeg een document toe aan een van de mails van deze relatie.",
+      "openDocument": "Document openen",
+      "delete": "{name} verwijderen",
+      "deleteTitle": "Bijlage verwijderen?",
+      "deleteConfirm": "\"{name}\" wordt van deze relatie verwijderd. Dit kan niet ongedaan worden gemaakt.",
+      "deleteAction": "Verwijderen",
+      "cancel": "Annuleren",
+      "source": {
+        "uploaded": "Geüpload",
+        "mail": "Mail: {title}",
+        "mailUntitled": "Mail"
+      }
     }
   },
   "contacts": {
@@ -508,6 +525,161 @@
       "SIZE_5001_PLUS": "5.001+"
     }
   },
+  "documents": {
+    "title": "Documenten",
+    "subtitle": "De documenten van je relaties, elk uitgegeven door een van je rechtspersonen. Bewerk de inhoud met de CLI; stuur een PDF-kopie mee met een mail.",
+    "new": "Nieuw document",
+    "newTitle": "Nieuw document",
+    "newDescription": "Kies de relatie, de rechtspersoon die het uitgeeft en eventueel een sjabloon om mee te beginnen. De inhoud bewerk je daarna met de CLI.",
+    "editTitle": "Document bewerken",
+    "editDescription": "Wijzig de titel, het type, de taal of de uitgevende rechtspersoon. De bestanden blijven zoals ze zijn.",
+    "filesTitle": "Bestanden vervangen",
+    "filesDescription": "Upload het HTML-bestand en de PDF die ervan is gemaakt, samen. PDF-kopieën die al met mails zijn verstuurd blijven zoals ze waren.",
+    "loadError": "De documenten konden niet worden geladen",
+    "reloadError": "De documenten konden niet worden vernieuwd; de lijst is mogelijk verouderd.",
+    "loading": "Documenten laden...",
+    "legalEntitiesLoadError": "De rechtspersonen konden niet worden geladen",
+    "loadingLegalEntities": "Rechtspersonen laden...",
+    "noLegalEntities": "De organisatie heeft nog geen rechtspersonen. Een beheerder voegt ze toe voordat er documenten kunnen worden gemaakt.",
+    "empty": "Nog geen documenten",
+    "emptyHint": "Maak een document voor een relatie, vanaf nul of vanuit een sjabloon.",
+    "emptyFiltered": "Geen documenten voor deze filters",
+    "emptyFilteredHint": "Wijzig of wis de filters om meer documenten te zien.",
+    "tableLabel": "Documenten",
+    "noRelation": "Onbekende relatie",
+    "deleteTitle": "Document verwijderen",
+    "deleteConfirm": "\"{title}\" verwijderen? PDF-kopieën die al met mails zijn verstuurd blijven bij die mails.",
+    "deleteAction": "Document verwijderen",
+    "edited": {
+      "today": "Vandaag",
+      "yesterday": "Gisteren",
+      "by": "{time} door {name}"
+    },
+    "columns": {
+      "title": "Titel",
+      "relation": "Relatie",
+      "legalEntity": "Rechtspersoon",
+      "type": "Type",
+      "language": "Taal",
+      "updatedAt": "Bewerkt",
+      "snapshotCount": "Verstuurde kopieën"
+    },
+    "filters": {
+      "searchLabel": "Zoeken",
+      "searchPlaceholder": "Zoeken op titel",
+      "relationLabel": "Relatie",
+      "relationAll": "Alle relaties",
+      "legalEntityLabel": "Rechtspersoon",
+      "legalEntityAll": "Alle rechtspersonen",
+      "legalEntityUnknown": "Gekozen rechtspersoon",
+      "typeLabel": "Type",
+      "typeAll": "Alle typen",
+      "languageLabel": "Taal",
+      "languageAll": "Alle talen",
+      "clear": "Filters wissen"
+    },
+    "pagination": {
+      "label": "Pagina's",
+      "previous": "Vorige",
+      "next": "Volgende",
+      "summary": "Pagina {page} van {pages} · {total, plural, one {# document} other {# documenten}}"
+    },
+    "form": {
+      "relation": "Relatie",
+      "relationPlaceholder": "Kies een relatie",
+      "relationSearchPlaceholder": "Relaties zoeken",
+      "legalEntity": "Rechtspersoon",
+      "legalEntityPlaceholder": "Kies een rechtspersoon",
+      "searchPlaceholder": "Zoeken",
+      "title": "Titel",
+      "titlePlaceholder": "Zoals Offerte penetratietest",
+      "type": "Type",
+      "language": "Taal",
+      "template": "Sjabloon",
+      "templateHint": "Optioneel. Het document begint met een kopie van de bestanden van het sjabloon en neemt het type en de taal over.",
+      "templatePlaceholder": "Beginnen zonder sjabloon",
+      "templateSearchPlaceholder": "Sjablonen zoeken",
+      "htmlFile": "HTML-bestand",
+      "pdfFile": "PDF-bestand",
+      "create": "Document aanmaken",
+      "save": "Wijzigingen opslaan",
+      "saving": "Opslaan...",
+      "upload": "Bestanden uploaden",
+      "uploading": "Uploaden...",
+      "cancel": "Annuleren",
+      "errors": {
+        "titleRequired": "Titel is verplicht",
+        "titleMax": "Titel mag maximaal 200 tekens zijn",
+        "relationRequired": "Kies een relatie",
+        "legalEntityRequired": "Kies een rechtspersoon",
+        "htmlFileRequired": "Kies het HTML-bestand; beide bestanden worden samen geüpload",
+        "htmlFileType": "Kies een .html-bestand",
+        "pdfFileRequired": "Kies het PDF-bestand; beide bestanden worden samen geüpload",
+        "pdfFileType": "Kies een .pdf-bestand",
+        "filesTooLarge": "De twee bestanden samen mogen maximaal 12 MB zijn"
+      }
+    },
+    "toast": {
+      "created": "Document aangemaakt",
+      "updated": "Document opgeslagen",
+      "filesUploaded": "Bestanden geüpload",
+      "deleted": "Document verwijderd",
+      "saveError": "Het document kon niet worden opgeslagen",
+      "uploadError": "De bestanden konden niet worden geüpload",
+      "deleteError": "Het document kon niet worden verwijderd"
+    },
+    "errors": {
+      "notFound": "Dit document bestaat niet meer.",
+      "templateNotFound": "Dit sjabloon bestaat niet meer.",
+      "fileNotHtmlOrPdf": "Het bestand is niet het HTML- of PDF-bestand dat het moet zijn.",
+      "templateOfOtherLegalEntity": "Dit sjabloon hoort bij een andere rechtspersoon.",
+      "legalEntityNotFound": "Deze rechtspersoon bestaat niet meer.",
+      "relationNotFound": "Deze relatie bestaat niet meer.",
+      "uploadFailed": "De bestanden konden niet worden opgeslagen. Probeer het later opnieuw.",
+      "noOtakAccess": "Je hebt geen toegang tot Otak.",
+      "forbidden": "Je hebt geen toestemming om dit te doen.",
+      "validation": "Controleer de gemarkeerde velden.",
+      "loadHint": "Controleer je verbinding en probeer het opnieuw."
+    },
+    "detail": {
+      "title": "Document",
+      "back": "Terug naar documenten",
+      "loading": "Document laden...",
+      "loadError": "Het document kon niet worden geladen",
+      "notFoundTitle": "Document niet gevonden",
+      "notFoundDescription": "Het is misschien verwijderd, of de link klopt niet.",
+      "noFiles": "Geen bestanden",
+      "edited": "Bewerkt {text}",
+      "edit": "Bewerken",
+      "replaceFiles": "Bestanden vervangen",
+      "delete": "Verwijderen",
+      "deleting": "Verwijderen...",
+      "preview": "Voorbeeld",
+      "previewNoFiles": "Dit document heeft nog geen bestanden. Upload ze, of download het met de CLI en upload het opnieuw.",
+      "details": "Details",
+      "relation": "Relatie",
+      "legalEntity": "Rechtspersoon",
+      "type": "Type",
+      "language": "Taal",
+      "template": "Sjabloon",
+      "noTemplate": "Geen",
+      "templateLoading": "Laden...",
+      "templateUnavailable": "Niet meer beschikbaar",
+      "lastEdited": "Laatst bewerkt",
+      "created": "Aangemaakt",
+      "content": "Inhoud",
+      "downloadPdf": "PDF openen",
+      "downloadHtml": "HTML openen",
+      "noFilesHint": "Nog geen bestanden om te openen.",
+      "commandHint": "Bewerk de inhoud lokaal met de CLI:",
+      "copyCommand": "Opdracht kopiëren",
+      "commandCopied": "Opdracht gekopieerd",
+      "commandCopyError": "De opdracht kon niet worden gekopieerd",
+      "snapshots": "Verstuurde kopieën ({count})",
+      "noSnapshots": "Er is nog geen PDF-kopie van dit document met een mail verstuurd.",
+      "mailWithoutOutreach": "Mail zonder outreach"
+    }
+  },
   "documentTemplates": {
     "title": "Sjablonen",
     "subtitle": "Goedgekeurde documenten die elke benadering kan meesturen, elk een HTML-bestand met de pdf die ervan is gemaakt.",
@@ -544,7 +716,8 @@
       "REPORT": "Rapport",
       "SERVICE_SHEET": "Dienstenblad",
       "PRESENTATION": "Presentatie",
-      "OTHER": "Overig"
+      "OTHER": "Overig",
+      "CONTRACT": "Contract"
     },
     "languages": {
       "NL": "Nederlands",
@@ -563,6 +736,7 @@
       "name": "Naam",
       "type": "Type",
       "language": "Taal",
+      "legalEntity": "Rechtspersoon",
       "ready": "Status",
       "updatedAt": "Bijgewerkt",
       "actions": "Acties"
@@ -574,6 +748,9 @@
       "typeAll": "Alle typen",
       "languageLabel": "Taal",
       "languageAll": "Alle talen",
+      "legalEntityLabel": "Rechtspersoon",
+      "legalEntityAll": "Alle rechtspersonen",
+      "legalEntityUnknown": "Gekozen rechtspersoon",
       "clear": "Filters wissen"
     },
     "pagination": {
@@ -596,6 +773,9 @@
       "save": "Wijzigingen opslaan",
       "saving": "Opslaan...",
       "cancel": "Annuleren",
+      "legalEntity": "Rechtspersoon",
+      "legalEntityAll": "Alle rechtspersonen",
+      "legalEntityHint": "Laat leeg als elke rechtspersoon het sjabloon mag gebruiken.",
       "errors": {
         "nameRequired": "Naam is verplicht",
         "nameMax": "Naam mag maximaal 100 tekens bevatten",
@@ -622,34 +802,10 @@
       "uploadFailed": "De bestanden konden niet worden opgeslagen. Probeer het later opnieuw.",
       "forbidden": "Je hebt geen toestemming om dit te doen.",
       "validation": "Controleer de gemarkeerde velden.",
-      "loadHint": "Controleer je verbinding en probeer het opnieuw."
+      "loadHint": "Controleer je verbinding en probeer het opnieuw.",
+      "legalEntityNotFound": "Deze rechtspersoon bestaat niet meer."
     },
-    "tabsLabel": "Onderdelen van sjablonen",
-    "tabs": {
-      "documents": "Documenten",
-      "mail": "Mail"
-    },
-    "attach": {
-      "button": "Toevoegen uit sjabloon",
-      "title": "Toevoegen uit sjabloon",
-      "description": "Kies een documentsjabloon; een kopie van de pdf wordt hier bijgevoegd. Latere wijzigingen aan het sjabloon laten de kopie zoals ze is.",
-      "pick": "Documentsjabloon",
-      "empty": "Nog geen documentsjablonen. Voeg ze toe op de pagina Sjablonen.",
-      "add": "Toevoegen",
-      "adding": "Toevoegen...",
-      "cancel": "Annuleren",
-      "toast": {
-        "added": "Bijlage toegevoegd",
-        "addError": "De bijlage kon niet worden toegevoegd"
-      },
-      "errors": {
-        "mailNotFound": "Deze mail bestaat niet meer.",
-        "relationNotFound": "Deze relatie bestaat niet meer.",
-        "notUsable": "Dit documentsjabloon kan hier niet worden gebruikt: de pdf ontbreekt nog.",
-        "mailSent": "Deze mail is verstuurd of wordt verstuurd; de bijlagen kunnen niet meer veranderen.",
-        "duplicate": "Deze pdf is hier al bijgevoegd."
-      }
-    }
+    "legalEntityAll": "Alle"
   },
   "mailTemplates": {
     "title": "Mailsjablonen",
@@ -830,10 +986,8 @@
       }
     },
     "attachments": {
-      "templatesLegend": "Bijvoegen uit sjablonen",
-      "templatesHint": "Optioneel. Elk gekozen documentsjabloon gaat mee als kopie van de pdf; samen met de bestanden hieronder maximaal 3 MB.",
-      "noTemplates": "Nog geen documentsjablonen met hun bestanden. Voeg ze toe op de pagina Sjablonen.",
-      "filesLegend": "Bestanden bijvoegen"
+      "filesLegend": "Bestanden bijvoegen",
+      "filesHint": "Optioneel. Samen maximaal 3 MB. De documenten van de relatie voeg je na het opslaan aan de mail toe."
     },
     "toast": {
       "created": "Outreach opgeslagen als concept",
@@ -864,8 +1018,6 @@
       "loadHint": "Controleer je verbinding en probeer het opnieuw.",
       "actionNotForType": "Deze actie past niet bij het kanaal van de benadering.",
       "contactWithoutPhone": "De contactpersoon heeft geen telefoonnummer. Voeg er een toe in de kaart Contactpersonen.",
-      "documentTemplateNotFound": "Een van de documentsjablonen bestaat niet meer.",
-      "documentTemplateNotUsable": "Een van de documentsjablonen kan niet worden bijgevoegd: de pdf ontbreekt nog.",
       "attachmentDuplicate": "Dit bestand is hier al bijgevoegd."
     },
     "sendDialog": {
@@ -935,6 +1087,50 @@
       "label": "Onderdelen van de benadering",
       "details": "Gegevens",
       "attachments": "Bijlagen"
+    },
+    "mailAttachments": {
+      "documentsTitle": "Documenten",
+      "documentsHint": "Een kopie van de pdf van het document gaat mee met de mail. Latere wijzigingen aan het document laten de kopie ongewijzigd.",
+      "documentsEmpty": "Nog geen documenten toegevoegd.",
+      "additionalTitle": "Extra bijlagen",
+      "additionalEmpty": "Nog geen extra bijlagen.",
+      "openDocument": "Document openen",
+      "typeLabel": "Type",
+      "typeAll": "Alle typen",
+      "documentLabel": "Document",
+      "documentPlaceholder": "Kies een document",
+      "documentSearchPlaceholder": "Zoeken op titel...",
+      "add": "Toevoegen",
+      "adding": "Toevoegen...",
+      "noDocuments": "Deze relatie heeft nog geen documenten met een pdf. Kies \"Nieuw vanuit sjabloon\" om er een te maken.",
+      "newFromTemplate": "Nieuw vanuit sjabloon",
+      "fromTemplate": {
+        "title": "Nieuw document vanuit een sjabloon",
+        "description": "Maakt een document van deze relatie vanuit een sjabloon en voegt een kopie van de pdf aan de mail toe.",
+        "templateHint": "Alleen sjablonen met hun bestanden staan in de lijst. Het document neemt het type en de taal van het sjabloon over.",
+        "templatePlaceholder": "Kies een sjabloon",
+        "noTemplates": "Nog geen sjabloon met bestanden. Upload er een met oba document template upload.",
+        "create": "Maken en bijvoegen",
+        "creating": "Bezig met maken...",
+        "notReady": "Het nieuwe document heeft nog geen pdf en is daarom niet bijgevoegd. Upload de bestanden op de documentpagina.",
+        "errors": {
+          "templateRequired": "Kies een sjabloon"
+        }
+      },
+      "toast": {
+        "added": "Document toegevoegd",
+        "addError": "Het document kon niet worden toegevoegd"
+      },
+      "errors": {
+        "documentNotFound": "Dit document bestaat niet meer.",
+        "mailNotFound": "Deze mail bestaat niet meer.",
+        "noPdf": "Dit document heeft nog geen pdf. Upload eerst de bestanden.",
+        "otherRelation": "Dit document hoort bij een andere relatie.",
+        "mailSent": "Deze mail is verstuurd of wordt verstuurd; de bijlagen kunnen niet meer veranderen.",
+        "duplicate": "Deze pdf is al aan de mail toegevoegd.",
+        "noOtakAccess": "Je hebt geen toegang tot Otak.",
+        "forbidden": "Je hebt geen toestemming om dit te doen."
+      }
     }
   },
   "mailSenders": {

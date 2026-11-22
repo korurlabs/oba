@@ -93,7 +93,7 @@ public class ChatMessageQueryRequest {
      * Page size.
      */
     @Schema(description = "Page size", nullable = true, example = "50")
-    @Min(value = 1, message = "Limit must be at least 1")
+    @Min(value = ChatConstant.MIN_PAGE_SIZE, message = "Limit must be at least 1")
     @Max(value = ChatConstant.MAX_PAGE_SIZE, message = "Limit must be at most 50")
     private Integer limit = ChatConstant.DEFAULT_PAGE_SIZE;
 }

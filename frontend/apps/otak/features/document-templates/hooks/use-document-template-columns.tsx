@@ -21,7 +21,8 @@ interface DocumentTemplateColumnsOptions {
 /**
  * The template table. The name takes the free width and opens the edit
  * dialog for an admin and the preview for a member; then the type, the
- * language, whether the template can be used, and the last change.
+ * language, the legal entity it is bound to ("All" for every legal entity),
+ * whether the template can be used, and the last change.
  */
 export function useDocumentTemplateColumns({
   onPreview,
@@ -73,6 +74,20 @@ export function useDocumentTemplateColumns({
             {t(`languages.${row.original.language}`)}
           </span>
         ),
+      },
+      {
+        id: "legalEntity",
+        accessorKey: "legalEntityShortName",
+        header: t("columns.legalEntity"),
+        size: 150,
+        cell: ({ row }) =>
+          row.original.legalEntityShortName ? (
+            <span className="block truncate text-sm">{row.original.legalEntityShortName}</span>
+          ) : (
+            <span className="text-muted-foreground block truncate text-sm">
+              {t("legalEntityAll")}
+            </span>
+          ),
       },
       {
         id: "ready",

@@ -27,17 +27,11 @@ Changing the attachments of a mail needs the ADMIN role; a relation's, the MEMBE
 
   oba otak attachment list --outreach <outreachId>
   oba otak attachment list --relation <relationId>`
-	attachmentAddHelp = `Adds attachments from exactly one of:
-  --file <path>         a local file; repeat it for more files, sent in one upload of at most
-                        12 MB together
-  --template <id>       the PDF of a document template ('oba otak template list'), copied by
-                        the API as <template name>.pdf
+	attachmentAddHelp = `Adds local files as attachments: --file <path>, repeated for more files, sent in one upload of
+at most 12 MB together. The same content twice on one mail or relation is refused (STG_VAL_005).
+A document's PDF goes onto a mail with 'oba document attach-to-mail'.
 
-The same content twice on one mail or relation is refused (STG_VAL_005), and a template
-without its PDF with OTK_VAL_012.
-
-  oba otak attachment add --outreach <outreachId> --file voorstel.pdf --file prijzen.xlsx
-  oba otak attachment add --relation <relationId> --template <documentTemplateId>`
+  oba otak attachment add --outreach <outreachId> --file voorstel.pdf --file prijzen.xlsx`
 	attachmentDeleteHelp = `Deletes one attachment after asking for confirmation; without a terminal to ask on, pass
 --yes. The id must be an attachment of the given outreach or relation.
 
@@ -84,19 +78,17 @@ func NewCmd() *cobra.Command {
 
 	var addTarget targetFlags
 	var addFiles []string
-	var addTemplate string
 	addCmd := &cobra.Command{
 		Use:   "add",
-		Short: "Add local files or a document template's PDF as attachments",
+		Short: "Add local files as attachments",
 		Long:  attachmentAddHelp,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			return runAttachmentAdd(cmd, &addTarget, addFiles, strings.TrimSpace(addTemplate))
+			return runAttachmentAdd(cmd, &addTarget, addFiles)
 		},
 	}
 	addTarget.register(addCmd)
-	addCmd.Flags().StringArrayVar(&addFiles, "file", nil, "a local file to attach; repeat it for more files")
-	addCmd.Flags().StringVar(&addTemplate, "template", "", "the document template whose PDF to attach")
+	addCmd.Flags().StringArrayVar(&addFiles, "file", nil, "a local file to attach; repeat it for more files (required)")
 
 	var deleteTarget targetFlags
 	var deleteID string
@@ -135,18 +127,14 @@ func runAttachmentList(cmd *cobra.Command, flags *targetFlags) error {
 	return storage.PrintList(cmd.OutOrStdout(), attachments)
 }
 
-func runAttachmentAdd(cmd *cobra.Command, flags *targetFlags, paths []string, templateID string) error {
-	if (len(paths) == 0) == (templateID == "") {
-		return fmt.Errorf("pass exactly one of --file and --template")
+func runAttachmentAdd(cmd *cobra.Command, flags *targetFlags, paths []string) error {
+	if len(paths) == 0 {
+		return fmt.Errorf("pass --file with a local file to attach")
 	}
 	// The files are read and checked before any request, so that a bad path fails fast.
-	var files []client.AttachmentFile
-	if len(paths) > 0 {
-		read, err := attachment.ReadFiles(paths)
-		if err != nil {
-			return err
-		}
-		files = read
+	files, err := attachment.ReadFiles(paths)
+	if err != nil {
+		return err
 	}
 	c, err := session.OrganizationClient()
 	if err != nil {
@@ -157,15 +145,6 @@ func runAttachmentAdd(cmd *cobra.Command, flags *targetFlags, paths []string, te
 		return err
 	}
 	out := cmd.OutOrStdout()
-	if templateID != "" {
-		added, err := attachment.AddFromTemplate(c, target, templateID)
-		if err != nil {
-			return err
-		}
-		_, _ = fmt.Fprintf(out, "Added attachment %s (%s) to %s from template %s\n",
-			added.ID, guardrail.OneLine(added.FileName), target.Label, templateID)
-		return nil
-	}
 	added, err := storage.Add(c, target.EntityType, target.EntityID, files)
 	if err != nil {
 		return err

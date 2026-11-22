@@ -54,6 +54,14 @@ class RequiredUserAccessMatrixIT extends AbstractTenantIT {
 
     private static final Pattern PATH_VARIABLE = Pattern.compile("\\{(\\w+)(?::[^}]*)?}");
     private static final Set<String> INTERCEPTOR_CODES = Set.of("ORG_SEC_001", "ORG_SEC_003", "ORG_SEC_005", "GEN_SEC_004", "APP_SEC_001");
+    /**
+     * Handlers outside the app packages whose service checks the app before it reads any record,
+     * because everything they list belongs to records of that app. Listing documents without a
+     * relation filter needs Otak access, since every document is owned by an Otak relation and
+     * relations have no per-user visibility. Keyed by controller simple name and method name.
+     */
+    private static final Map<String, App> APP_CHECKED_BY_THE_SERVICE = Map.of(
+            "DocumentController#listDocuments", App.OTAK);
     private static final Configuration NULL_WHEN_MISSING =
             Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL);
 
@@ -77,8 +85,17 @@ class RequiredUserAccessMatrixIT extends AbstractTenantIT {
             return template().contains("{organizationId}");
         }
 
-        /** The app that the handler's package belongs to, or null for a handler outside the app packages. */
+        /**
+         * The app that the handler's package belongs to, the app its service checks for a handler
+         * outside the app packages listed in {@link RequiredUserAccessMatrixIT#APP_CHECKED_BY_THE_SERVICE},
+         * or null for any other handler.
+         */
         App app() {
+            App checkedByTheService = APP_CHECKED_BY_THE_SERVICE.get(
+                    handler.getBeanType().getSimpleName() + "#" + handler.getMethod().getName());
+            if (checkedByTheService != null) {
+                return checkedByTheService;
+            }
             String prefix = "com.korur.oba.apps.";
             String packageName = handler.getBeanType().getPackageName();
             if (!packageName.startsWith(prefix)) {

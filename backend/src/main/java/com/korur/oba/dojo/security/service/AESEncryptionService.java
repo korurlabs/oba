@@ -63,12 +63,14 @@ public class AESEncryptionService {
             GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, spec);
 
-            byte[] encrypted = cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8));
+            byte[] plaintextBytes = plaintext.getBytes(StandardCharsets.UTF_8);
 
-            // Prepend IV to encrypted data: IV (12 bytes) + ciphertext + tag
-            byte[] result = new byte[iv.length + encrypted.length];
-            System.arraycopy(iv, 0, result, 0, iv.length);
-            System.arraycopy(encrypted, 0, result, iv.length, encrypted.length);
+            // Layout: IV (12 bytes) + ciphertext + tag. The cipher writes straight
+            // behind the IV; addExact rejects a plaintext whose output would not
+            // fit one array instead of wrapping to a negative size.
+            byte[] result = new byte[Math.addExact(GCM_IV_LENGTH, cipher.getOutputSize(plaintextBytes.length))];
+            System.arraycopy(iv, 0, result, 0, GCM_IV_LENGTH);
+            cipher.doFinal(plaintextBytes, 0, plaintextBytes.length, result, GCM_IV_LENGTH);
 
             return Base64.getEncoder().encodeToString(result);
         } catch (Exception e) {

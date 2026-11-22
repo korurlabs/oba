@@ -146,12 +146,12 @@ public class OutreachController {
      *         {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#NOT_RELATION_FOUND},
      *         {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#NOT_CONTACT_FOUND},
      *         {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#NOT_MAIL_TEMPLATE_FOUND}
-     *         or {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#NOT_DOCUMENT_TEMPLATE_FOUND}
+     *         or {@link com.korur.oba.shrine.document.exception.ExceptionDomainDocumentError#NOT_DOCUMENT_TEMPLATE_FOUND}
      * @throws com.korur.oba.dojo.exception.internal.business.ValidationException
      *         {@link com.korur.oba.dojo.exception.enums.ExceptionValidationError#VALIDATION} for a missing
      *         type, both or neither mail sources of a MAIL outreach, or any mail field of a WHATSAPP or
      *         CALL outreach, or
-     *         {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#VAL_DOCUMENT_NOT_USABLE} for
+     *         {@link com.korur.oba.shrine.document.exception.ExceptionDomainDocumentError#VAL_DOCUMENT_NOT_USABLE} for
      *         a document template without its PDF
      */
     @PostMapping
@@ -168,11 +168,11 @@ public class OutreachController {
             @ApiResponse(responseCode = "403", description = "Not an admin of the organization (ORG_SEC_003), not a "
                     + "member of it, or membership or organization disabled (ORG_SEC_001, ORG_SEC_005)"),
             @ApiResponse(responseCode = "404", description = "Relation, contact of the relation, mail template "
-                    + "or document template not found (OTK_NOT_001, OTK_NOT_002, OTK_NOT_010, OTK_NOT_007)"),
+                    + "or document template not found (OTK_NOT_001, OTK_NOT_002, OTK_NOT_010, DOC_NOT_001)"),
             @ApiResponse(responseCode = "422", description = "Invalid request body, among them a missing type, "
                     + "both or neither of mailTemplateId and mail for MAIL, or mailTemplateId, mail or "
                     + "documentTemplateIds for WHATSAPP or CALL (GEN_VAL_001); a document template without its PDF "
-                    + "(OTK_VAL_012)"),
+                    + "(DOC_VAL_002)"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<CustomResponse<OutreachDetailResponse>> createOutreach(

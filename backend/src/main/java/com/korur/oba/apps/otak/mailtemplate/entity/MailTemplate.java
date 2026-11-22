@@ -20,8 +20,8 @@ import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.otak.documenttemplate.enums.DocumentLanguage;
 import com.korur.oba.dojo.entity.BaseEntity;
+import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
 
 /**
  * Entity representing a mail template, a row of otak.mail_templates: a reusable mail of an
@@ -29,7 +29,7 @@ import com.korur.oba.dojo.entity.BaseEntity;
  *
  * A mail template is complete on creation: the name, language, subject and body are all
  * required, so there is no ready state, unlike a
- * {@link com.korur.oba.apps.otak.documenttemplate.entity.DocumentTemplate} that waits for its
+ * {@link com.korur.oba.shrine.document.entity.template.DocumentTemplate} that waits for its
  * files. It has no files of its own.
  *
  * Organization scoping. Every mail template belongs to one organization and is only read

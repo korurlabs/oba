@@ -21,7 +21,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.otak.documenttemplate.enums.DocumentLanguage;
 import com.korur.oba.apps.otak.exception.ExceptionDomainOtakError;
 import com.korur.oba.apps.otak.mailtemplate.dto.request.MailTemplateCreateRequest;
 import com.korur.oba.apps.otak.mailtemplate.dto.request.MailTemplateUpdateRequest;
@@ -33,6 +32,7 @@ import com.korur.oba.apps.otak.mailtemplate.validator.MailTemplateValidator;
 import com.korur.oba.dojo.exception.internal.business.ConflictException;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
 import com.korur.oba.shrine.identity.entity.User;
 
 @ExtendWith(MockitoExtension.class)

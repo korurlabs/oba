@@ -51,6 +51,8 @@ import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.shrine.access.enums.App;
 import com.korur.oba.shrine.access.exception.ExceptionDomainAccessError;
 import com.korur.oba.shrine.access.validator.AppAccessValidator;
+import com.korur.oba.shrine.document.enums.document.DocumentEntityType;
+import com.korur.oba.shrine.document.service.document.DocumentService;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.organization.entity.OrganizationMember;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberStatus;
@@ -85,6 +87,9 @@ class RelationServiceImplUnitTest {
     private AttachmentService attachmentService;
 
     @Mock
+    private DocumentService documentService;
+
+    @Mock
     private AppAccessValidator appAccessValidator;
 
     @Mock
@@ -101,7 +106,7 @@ class RelationServiceImplUnitTest {
                 appAccessValidator, loggingService);
         RelationMapper mapper = new RelationMapperImpl();
         service = new RelationServiceImpl(relationRepository, mapper, validator, relationOwnerHelper,
-                icpQueryService, eventQueryService, mailQueryService, attachmentService, loggingService);
+                icpQueryService, eventQueryService, mailQueryService, attachmentService, documentService, loggingService);
         user = User.builder().build();
         user.setId(UUID.randomUUID());
     }
@@ -720,7 +725,7 @@ class RelationServiceImplUnitTest {
     class Delete {
 
         @Test
-        void relationOfOrganization_isDeletedThenItsAttachmentsAndThoseOfItsMails() {
+        void relationOfOrganization_isDeletedThenItsDocumentsAndAttachmentsAndThoseOfItsMails() {
             // Arrange
             Relation relation = storedRelation(RelationType.LEAD, PipelineStage.LOST, null);
             UUID mailId = UUID.randomUUID();
@@ -730,10 +735,11 @@ class RelationServiceImplUnitTest {
             service.delete(organizationId, relation.getId());
 
             // Assert
-            InOrder order = inOrder(mailQueryService, relationRepository, attachmentService);
+            InOrder order = inOrder(mailQueryService, relationRepository, documentService, attachmentService);
             order.verify(mailQueryService).getIdsByRelation(organizationId, relation.getId());
             order.verify(relationRepository).delete(relation);
             order.verify(relationRepository).flush();
+            order.verify(documentService).deleteDocumentsByEntity(DocumentEntityType.RELATION, relation.getId());
             order.verify(attachmentService).deleteAttachmentsByEntity(StorageEntityType.RELATION, relation.getId());
             order.verify(attachmentService).deleteAttachmentsByEntity(StorageEntityType.MAIL, mailId);
         }
@@ -749,6 +755,7 @@ class RelationServiceImplUnitTest {
                     .isInstanceOf(NotFoundException.class);
             verify(relationRepository, never()).delete(any(Relation.class));
             verify(attachmentService, never()).deleteAttachmentsByEntity(any(), any());
+            verify(documentService, never()).deleteDocumentsByEntity(any(), any());
         }
     }
 }

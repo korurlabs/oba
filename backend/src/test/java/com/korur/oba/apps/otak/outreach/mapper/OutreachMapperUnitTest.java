@@ -11,13 +11,13 @@ import java.time.Instant;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.otak.documenttemplate.enums.DocumentLanguage;
 import com.korur.oba.apps.otak.mail.dto.request.MailRequest;
 import com.korur.oba.apps.otak.outreach.dto.request.OutreachCreateRequest;
 import com.korur.oba.apps.otak.outreach.dto.request.OutreachUpdateRequest;
 import com.korur.oba.apps.otak.outreach.entity.Outreach;
 import com.korur.oba.apps.otak.outreach.enums.OutreachStatus;
 import com.korur.oba.apps.otak.outreach.enums.OutreachType;
+import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
 
 class OutreachMapperUnitTest {
 

@@ -58,7 +58,7 @@ class OutreachMigrationIT extends AbstractTenantIT {
     private UUID mail(UUID organization, UUID relation) {
         UUID id = UUID.randomUUID();
         jdbcTemplate.update("INSERT INTO otak.mails (id, subject, body, language, organization_id, relation_id) "
-                + "VALUES (?, 'Subject', 'Body', 'NL'::otak_document_language_enum, ?, ?)",
+                + "VALUES (?, 'Subject', 'Body', 'NL'::shrine_document_language_enum, ?, ?)",
                 id, organization, relation);
         return id;
     }
@@ -75,15 +75,21 @@ class OutreachMigrationIT extends AbstractTenantIT {
         return count("SELECT count(*) FROM otak." + table + " WHERE organization_id = ?", organization);
     }
 
+    private long documentTemplatesOf(UUID organization) {
+        return count("SELECT count(*) FROM shrine.document_templates WHERE organization_id = ?", organization);
+    }
+
     private void insertDocumentTemplate(String name, String type, String language, String html) {
-        jdbcTemplate.update("INSERT INTO otak.document_templates (name, type, language, html_blob_url, organization_id) "
-                + "VALUES (?, ?::otak_document_type_enum, ?::otak_document_language_enum, ?, ?)",
-                name, type, language, html, organizationId);
+        UUID author = UUID.randomUUID();
+        jdbcTemplate.update("INSERT INTO shrine.document_templates (name, type, language, html_blob_url, organization_id, "
+                + "created_by_id, updated_by_id) "
+                + "VALUES (?, ?::shrine_document_type_enum, ?::shrine_document_language_enum, ?, ?, ?, ?)",
+                name, type, language, html, organizationId, author, author);
     }
 
     private void insertMailTemplate(String name, String language, String subject, String body) {
         jdbcTemplate.update("INSERT INTO otak.mail_templates (name, language, subject, body, organization_id) "
-                + "VALUES (?, ?::otak_document_language_enum, ?, ?, ?)",
+                + "VALUES (?, ?::shrine_document_language_enum, ?, ?, ?)",
                 name, language, subject, body, organizationId);
     }
 
@@ -97,7 +103,7 @@ class OutreachMigrationIT extends AbstractTenantIT {
     void insertDocumentTemplate_ndaWithoutFiles_isAcceptedAsNotReady() {
         insertDocumentTemplate("T " + uniqueSuffix(), "NDA", "EN", null);
 
-        assertEquals(1L, countOf("document_templates", organizationId));
+        assertEquals(1L, documentTemplatesOf(organizationId));
     }
 
     @Test
@@ -159,7 +165,7 @@ class OutreachMigrationIT extends AbstractTenantIT {
 
         assertThrows(DataIntegrityViolationException.class, () -> jdbcTemplate.update(
                 "INSERT INTO otak.mails (subject, body, language, organization_id, relation_id) "
-                        + "VALUES ('S', ?, 'NL'::otak_document_language_enum, ?, ?)",
+                        + "VALUES ('S', ?, 'NL'::shrine_document_language_enum, ?, ?)",
                 "x".repeat(10001), organizationId, relation));
     }
 
@@ -274,7 +280,7 @@ class OutreachMigrationIT extends AbstractTenantIT {
         UUID relation = relation(organizationId);
         UUID template = UUID.randomUUID();
         jdbcTemplate.update("INSERT INTO otak.mail_templates (id, name, language, subject, body, organization_id) "
-                + "VALUES (?, 'Intro', 'NL'::otak_document_language_enum, 'S', 'B', ?)", template, organizationId);
+                + "VALUES (?, 'Intro', 'NL'::shrine_document_language_enum, 'S', 'B', ?)", template, organizationId);
         UUID mail = mail(organizationId, relation);
         jdbcTemplate.update("UPDATE otak.mails SET mail_template_id = ? WHERE id = ?", template, mail);
 
@@ -290,15 +296,17 @@ class OutreachMigrationIT extends AbstractTenantIT {
         UUID relation = relation(doomedId);
         outreach(doomedId, relation, null, mail(doomedId, relation), null);
         jdbcTemplate.update("INSERT INTO otak.mail_templates (name, language, subject, body, organization_id) "
-                + "VALUES ('Doomed', 'NL'::otak_document_language_enum, 'S', 'B', ?)", doomedId);
-        jdbcTemplate.update("INSERT INTO otak.document_templates (name, type, language, organization_id) "
-                + "VALUES ('Doomed', 'NDA'::otak_document_type_enum, 'NL'::otak_document_language_enum, ?)", doomedId);
+                + "VALUES ('Doomed', 'NL'::shrine_document_language_enum, 'S', 'B', ?)", doomedId);
+        UUID author = UUID.randomUUID();
+        jdbcTemplate.update("INSERT INTO shrine.document_templates (name, type, language, organization_id, created_by_id, "
+                + "updated_by_id) VALUES ('Doomed', 'NDA'::shrine_document_type_enum, "
+                + "'NL'::shrine_document_language_enum, ?, ?, ?)", doomedId, author, author);
         insertMailTemplate("Kept " + uniqueSuffix(), "NL", "Subject", "Body");
 
         jdbcTemplate.update("DELETE FROM shrine.organizations WHERE id = ?", doomedId);
 
         assertEquals(0L, countOf("mail_templates", doomedId));
-        assertEquals(0L, countOf("document_templates", doomedId));
+        assertEquals(0L, documentTemplatesOf(doomedId));
         assertEquals(0L, countOf("mails", doomedId));
         assertEquals(0L, countOf("outreaches", doomedId));
         assertEquals(1L, countOf("mail_templates", organizationId));

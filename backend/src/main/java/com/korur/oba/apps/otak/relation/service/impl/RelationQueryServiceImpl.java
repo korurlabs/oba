@@ -16,6 +16,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,7 +27,9 @@ import java.util.stream.Collectors;
 import static com.korur.oba.apps.otak.relation.constant.service.RelationServiceLogConstant.*;
 
 import com.korur.oba.apps.otak.relation.constant.RelationConstant;
+import com.korur.oba.apps.otak.relation.dto.projection.RelationMailProjection;
 import com.korur.oba.apps.otak.relation.dto.projection.RelationMainContactProjection;
+import com.korur.oba.apps.otak.relation.dto.projection.RelationNameProjection;
 import com.korur.oba.apps.otak.relation.dto.request.RelationQueryRequest;
 import com.korur.oba.apps.otak.relation.dto.response.RelationDetailResponse;
 import com.korur.oba.apps.otak.relation.dto.response.RelationListResponse;
@@ -284,6 +287,34 @@ public class RelationQueryServiceImpl implements RelationQueryService {
     @Override
     public Relation getEntityById(UUID relationId) {
         return relationValidator.ensureRelationExists(relationId);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * One query for all ids; an empty input reads nothing.
+     */
+    @Override
+    public Map<UUID, String> getNames(UUID organizationId, Collection<UUID> relationIds) {
+        if (relationIds == null || relationIds.isEmpty()) {
+            return Map.of();
+        }
+        return relationRepository.findNames(organizationId, relationIds).stream()
+                .collect(Collectors.toMap(RelationNameProjection::getId, RelationNameProjection::getName));
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * A HashMap, because a mail without an outreach maps to null, which Collectors.toMap refuses.
+     */
+    @Override
+    public Map<UUID, String> getMailOutreachTitles(UUID organizationId, UUID relationId) {
+        Map<UUID, String> titles = new HashMap<>();
+        for (RelationMailProjection mail : relationRepository.findMails(organizationId, relationId)) {
+            titles.put(mail.getMailId(), mail.getOutreachTitle());
+        }
+        return titles;
     }
 
     /**

@@ -132,10 +132,10 @@ func TestOutreachCreateRequiredFlags(t *testing.T) {
 func TestOutreachCreateShowsAPIError(t *testing.T) {
 	api := clitest.NewSignedInAPI(t)
 	api.Respond("POST "+outreachesPath, http.StatusUnprocessableEntity,
-		`{"error":{"code":"OTK_VAL_012","message":"The document template can not be used here.","errorValues":{"templateId":"dt-1"}}}`)
+		`{"error":{"code":"DOC_VAL_002","message":"The document template can not be used here.","errorValues":{"templateId":"dt-1"}}}`)
 	_, _, err := runCLI(t, "otak", "outreach", "create", "--relation", clitest.RelationID, "--contact", contactID,
 		"--title", "T", "--type", "mail", "--template", templateID, "--attach", "dt-1")
-	if err == nil || !strings.Contains(err.Error(), "OTK_VAL_012: The document template can not be used here.") || !strings.Contains(err.Error(), "templateId: dt-1") {
+	if err == nil || !strings.Contains(err.Error(), "DOC_VAL_002: The document template can not be used here.") || !strings.Contains(err.Error(), "templateId: dt-1") {
 		t.Fatalf("err = %v", err)
 	}
 }

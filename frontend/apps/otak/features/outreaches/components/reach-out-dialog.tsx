@@ -48,7 +48,6 @@ import {
   type ReachOutStep,
 } from "../lib/reach-out";
 import { OUTREACH_LIMITS, OutreachType, OutreachTypeSchema } from "../schemas";
-import { AttachmentPicker } from "./attachment-picker";
 
 /** The id of the Contacts card heading on the relation page, which the empty state points to. */
 const CONTACTS_SECTION_ID = "contacts";
@@ -62,9 +61,9 @@ const SCRATCH = "scratch";
 /**
  * Prepares a reach-out to a lead: the channel, one contact, and a title. A
  * mail goes to a contact with a business address and takes a mail template
- * or a text written by hand, plus optional attachments: copies of document
- * templates and files of the user's own; a WhatsApp message or a call goes to a contact with a phone
- * number. Saving stores a DRAFT; sending a mail, or marking a WhatsApp
+ * or a text written by hand, plus optional files of the user's own; the
+ * relation's documents are added to the mail once it is saved. A WhatsApp
+ * message or a call goes to a contact with a phone number. Saving stores a DRAFT; sending a mail, or marking a WhatsApp
  * message or a call as done, is a separate action on the outreach.
  */
 export function ReachOutDialog({
@@ -270,13 +269,11 @@ function ReachOutSteps({
             survive a step back and forth; hidden on the other steps. */}
         {isMail && (
           <div className={cn("flex flex-col gap-6", step !== "attachments" && "hidden")}>
-            <AttachmentPicker
-              value={selection.documentTemplateIds}
-              onChange={(documentTemplateIds) => select({ documentTemplateIds })}
-              disabled={isPending}
-            />
             <div className="flex flex-col gap-2">
               <p className="text-sm font-medium">{tOutreaches("attachments.filesLegend")}</p>
+              <p className="text-muted-foreground text-sm">
+                {tOutreaches("attachments.filesHint")}
+              </p>
               <AttachmentUpload
                 entityType={StorageEntityType.MAIL}
                 onStagedFilesChange={setStagedFiles}
@@ -323,7 +320,7 @@ function ReachOutSteps({
                   <dt className="text-muted-foreground">{t("summary.attachments")}</dt>
                   <dd>
                     {t("summary.attachmentCount", {
-                      count: selection.documentTemplateIds.length + stagedFiles.length,
+                      count: stagedFiles.length,
                     })}
                   </dd>
                 </>

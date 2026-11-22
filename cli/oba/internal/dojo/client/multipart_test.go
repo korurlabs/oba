@@ -16,7 +16,7 @@ func TestPutMultipartSetsEachPartContentType(t *testing.T) {
 	var calls int
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		calls++
-		if r.Method != http.MethodPut || r.URL.Path != "/otak/document-templates/d1/files" {
+		if r.Method != http.MethodPut || r.URL.Path != "/document-templates/d1/files" {
 			t.Errorf("%s %s", r.Method, r.URL.Path)
 		}
 		if calls == 1 {
@@ -46,7 +46,7 @@ func TestPutMultipartSetsEachPartContentType(t *testing.T) {
 	defer srv.Close()
 
 	c := NewWithToken(srv.URL, "org", "tok")
-	doc, err := c.ReplaceTemplateFiles("d1", DocumentFiles{BaseName: `NDA "v2"`, HTML: []byte("<p>x</p>"), PDF: []byte("%PDF-1.7")})
+	doc, err := c.ReplaceDocumentTemplateFiles("d1", DocumentFiles{BaseName: `NDA "v2"`, HTML: []byte("<p>x</p>"), PDF: []byte("%PDF-1.7")})
 	if err != nil {
 		t.Fatal(err)
 	}

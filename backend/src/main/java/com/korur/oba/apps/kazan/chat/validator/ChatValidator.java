@@ -382,6 +382,33 @@ public class ChatValidator {
     }
 
     /**
+     * Returns the page size a read of messages, pins or threads asks for: the
+     * given limit, or the default when the request names none. Request
+     * validation already rejects a limit outside the range, and the check
+     * repeats here because the size and its probe row become the row count of
+     * a query: a caller that skips request validation must get the same
+     * rejection, never a negative or overflowing row count. Callers compute
+     * with the returned value only.
+     *
+     * @param limit       the limit of the request, or null for the default
+     * @param defaultSize the page size when the request names no limit
+     * @return the validated page size
+     * @throws ValidationException {@link ExceptionValidationError#VALIDATION} naming the largest allowed limit
+     */
+    public int ensurePageSize(Integer limit, int defaultSize) {
+        if (limit == null) {
+            return defaultSize;
+        }
+        if (limit < ChatConstant.MIN_PAGE_SIZE || limit > ChatConstant.MAX_PAGE_SIZE) {
+            loggingService.warn(LOG_PREFIX, LogLayer.VALIDATOR, ChatExceptionLogConstant.CHAT_PAGE_SIZE_OUT_OF_RANGE,
+                    limit, ChatConstant.MIN_PAGE_SIZE, ChatConstant.MAX_PAGE_SIZE);
+            throw new ValidationException(ExceptionValidationError.VALIDATION,
+                    Map.of(ChatConstant.FIELD_LIMIT, ChatConstant.MAX_PAGE_SIZE));
+        }
+        return limit;
+    }
+
+    /**
      * Ensures an emoji is exactly one grapheme of at most MAX_EMOJI_LENGTH
      * UTF-16 units. One grapheme keeps a reaction to one symbol, also for
      * emoji built from several code points such as a family or a flag.

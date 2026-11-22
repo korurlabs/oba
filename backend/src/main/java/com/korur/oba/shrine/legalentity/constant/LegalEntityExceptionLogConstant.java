@@ -20,4 +20,10 @@ public final class LegalEntityExceptionLogConstant {
      */
     public static final String LEGAL_ENTITY_SHORT_NAME_TAKEN =
             "Legal entity short name refused, already taken: organizationId={}, shortName={}";
+
+    /**
+     * Logged at warn level when a delete is refused because documents or templates name the
+     * legal entity. Placeholders: legal entity id, organization id.
+     */
+    public static final String LEGAL_ENTITY_IN_USE = "Legal entity in use by documents or templates: id={}, organizationId={}";
 }

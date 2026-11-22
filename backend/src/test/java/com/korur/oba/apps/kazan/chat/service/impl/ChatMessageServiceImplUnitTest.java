@@ -973,7 +973,7 @@ class ChatMessageServiceImplUnitTest {
             // Arrange
             ChatMessage message = givenStored(ChatMocks.message(author, organizationId, "caption"));
             AttachmentResponse file = new AttachmentResponse(UUID.randomUUID(), "https://files/x", "plan.pdf",
-                    "application/pdf", 10L, StorageEntityType.CHAT_MESSAGE, message.getId(), Instant.now(), null, null);
+                    "application/pdf", 10L, StorageEntityType.CHAT_MESSAGE, message.getId(), Instant.now(), null, null, null);
             when(attachmentQueryService.listAttachmentsByEntity(author, organizationId, StorageEntityType.CHAT_MESSAGE,
                     message.getId())).thenReturn(List.of(file));
 

@@ -5,6 +5,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -41,7 +43,9 @@ import com.korur.oba.apps.kazan.chat.service.ChatChannelQueryService;
 import com.korur.oba.apps.kazan.chat.validator.ChatValidator;
 import com.korur.oba.apps.kazan.dailyupdate.service.DailyUpdateQueryService;
 import com.korur.oba.apps.kazan.exception.ExceptionDomainKazanError;
+import com.korur.oba.dojo.exception.enums.ExceptionValidationError;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
+import com.korur.oba.dojo.exception.internal.business.ValidationException;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.shrine.access.validator.AppAccessValidator;
 import com.korur.oba.shrine.identity.entity.User;
@@ -144,6 +148,46 @@ class ChatThreadQueryServiceImplUnitTest {
 
             // Assert
             verify(chatThreadMapperHelper).toPageResponse(List.of(), false, user, organizationId);
+        }
+
+        @ParameterizedTest
+        @ValueSource(ints = {Integer.MIN_VALUE, -1, 0, ChatConstant.MAX_PAGE_SIZE + 1, Integer.MAX_VALUE})
+        void limitOutsideOneToFifty_isRefusedBeforeAnyRead(int limit) {
+            // Act and Assert
+            assertThatThrownBy(() -> service.listThreads(user, organizationId, channelId, ChatThreadStatus.ACTIVE,
+                    null, limit))
+                    .isInstanceOf(ValidationException.class)
+                    .extracting("errorCode").isEqualTo(ExceptionValidationError.VALIDATION.getCode());
+            verify(chatThreadRepository, never()).findLatestThreads(any(), anyString(), anyInt());
+        }
+
+        @Test
+        void largestLimit_readsItWithTheProbeRow() {
+            // Arrange
+            List<ChatThread> rows = threads(ChatConstant.MAX_PAGE_SIZE);
+            when(chatThreadRepository.findLatestThreads(channelId, "ACTIVE", ChatConstant.MAX_PAGE_SIZE + 1))
+                    .thenReturn(rows);
+
+            // Act
+            service.listThreads(user, organizationId, channelId, ChatThreadStatus.ACTIVE, null,
+                    ChatConstant.MAX_PAGE_SIZE);
+
+            // Assert
+            verify(chatThreadMapperHelper).toPageResponse(rows, false, user, organizationId);
+        }
+
+        @Test
+        void smallestLimit_readsOneThreadAndTheProbe() {
+            // Arrange
+            List<ChatThread> rows = threads(2);
+            when(chatThreadRepository.findLatestThreads(channelId, "ACTIVE", 2)).thenReturn(rows);
+
+            // Act
+            service.listThreads(user, organizationId, channelId, ChatThreadStatus.ACTIVE, null,
+                    ChatConstant.MIN_PAGE_SIZE);
+
+            // Assert
+            verify(chatThreadMapperHelper).toPageResponse(rows.subList(0, 1), true, user, organizationId);
         }
 
         @Test

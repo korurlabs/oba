@@ -201,6 +201,7 @@ describe("chatAttachmentResponseSchema", () => {
       createdAt: "2026-11-05T13:23:44.740239Z",
       width: 640,
       height: 480,
+      documentId: null,
     });
     expect(attachment.entityId).toBe(SEEDED_ROOT_ID);
   });

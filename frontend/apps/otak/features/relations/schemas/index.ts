@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { ApiResponse } from "@oba/shared/schema";
 import { instantSchema } from "@oba/shared/lib/date-schemas";
 import { OrganizationRoleSchema } from "@oba/shared/features/organizations/schemas";
+import { attachmentResponseSchema } from "@oba/shared/features/attachments/schemas";
 import { CountrySchema } from "@/lib/countries";
 
 // ── Enum Schemas ────────────────────────────────────────────────────
@@ -52,6 +53,11 @@ export const RelationSourceSchema = z.enum([
 ]);
 export type RelationSource = z.infer<typeof RelationSourceSchema>;
 export const RelationSource = RelationSourceSchema.enum;
+
+/** Where a file of a relation is attached: to the relation itself or to one of its mails. */
+export const RelationAttachmentSourceSchema = z.enum(["RELATION", "MAIL"]);
+export type RelationAttachmentSource = z.infer<typeof RelationAttachmentSourceSchema>;
+export const RelationAttachmentSource = RelationAttachmentSourceSchema.enum;
 
 // ── Constants ───────────────────────────────────────────────────────
 
@@ -297,6 +303,17 @@ export const relationPaginationSchema = z.object({
   empty: z.boolean(),
 });
 
+/**
+ * A file of the relation or of one of its mails. `mailId` and
+ * `outreachTitle` are null for a file of the relation itself; `outreachTitle`
+ * is also null for a mail no outreach names.
+ */
+export const relationAttachmentSchema = attachmentResponseSchema.extend({
+  source: RelationAttachmentSourceSchema,
+  mailId: z.guid().nullable(),
+  outreachTitle: z.string().nullable(),
+});
+
 // ── Inferred Types ──────────────────────────────────────────────────
 
 export type RelationCreateRequest = z.infer<typeof relationCreateRequestSchema>;
@@ -310,6 +327,7 @@ export type RelationOwnerCandidate = z.infer<typeof relationOwnerCandidateSchema
 export type RelationListItem = z.infer<typeof relationListItemSchema>;
 export type RelationDetail = z.infer<typeof relationDetailSchema>;
 export type RelationPagination = z.infer<typeof relationPaginationSchema>;
+export type RelationAttachment = z.infer<typeof relationAttachmentSchema>;
 
 /** The list envelope, with the API's own paging block. */
 export type RelationListApiResponse = Omit<ApiResponse<RelationListItem[]>, "pagination"> & {
