@@ -463,6 +463,51 @@ class KalkanPageServiceImplUnitTest {
         }
 
         @Test
+        void createPage_rootSlugHeldByDeletedRoot_throwsSlugTakenNamingTheDeletedRoot() {
+            UUID deletedRootId = UUID.randomUUID();
+            when(kalkanPageRepository.findDeletedRootIdBySlug(organizationId, "isms"))
+                    .thenReturn(Optional.of(deletedRootId));
+
+            ConflictException thrown = assertThrows(ConflictException.class, () -> service.createPage(user,
+                    organizationId, new com.korur.oba.apps.kalkan.page.dto.request.KalkanPageCreateRequest(null, "isms",
+                            null, false, List.of(text(KalkanLocale.EN, "T", "b")))));
+
+            assertEquals("KLK_STA_001", thrown.getErrorCode());
+            assertEquals(deletedRootId.toString(), thrown.getErrorValues().get("deletedPageId"));
+            verify(kalkanPageRepository, never()).saveAndFlush(any());
+        }
+
+        @Test
+        void createPage_childSlugHeldByDeletedRoot_isNotLookedUp() {
+            when(kalkanPageQueryService.getEntity(organizationId, root.getId())).thenReturn(root);
+            when(kalkanAccessQueryService.verifyLevel(organizationId, root, user, KalkanLevel.EDIT))
+                    .thenReturn(KalkanLevel.EDIT);
+            when(kalkanPageRepository.existsChildSlug(root.getId(), "a", null)).thenReturn(true);
+
+            assertThrows(ConflictException.class, () -> service.createPage(user, organizationId,
+                    new com.korur.oba.apps.kalkan.page.dto.request.KalkanPageCreateRequest(root.getId(), "a", null,
+                            false, List.of(text(KalkanLocale.EN, "T", "b")))));
+
+            verify(kalkanPageRepository, never()).findDeletedRootIdBySlug(any(), any());
+        }
+
+        @Test
+        void upsertByPath_rootSlugHeldByDeletedRootDryRun_throwsSlugTaken() {
+            when(kalkanPageRepository.findByOrganizationIdAndParentIsNullAndSlug(organizationId, "isms"))
+                    .thenReturn(Optional.empty());
+            when(kalkanPageRepository.findDeletedRootIdBySlug(organizationId, "isms"))
+                    .thenReturn(Optional.of(UUID.randomUUID()));
+            KalkanPageUpsertRequest request = new KalkanPageUpsertRequest("isms", null, null,
+                    List.of(text(KalkanLocale.EN, "T", "b")), false);
+
+            ConflictException thrown = assertThrows(ConflictException.class,
+                    () -> service.upsertByPath(user, organizationId, request, true));
+
+            assertEquals("KLK_STA_001", thrown.getErrorCode());
+            verify(kalkanPageMapper, never()).toUpsertResponse(any(), any(), any(), anyLong());
+        }
+
+        @Test
         void createPage_childSlugTaken_throwsSlugTaken() {
             when(kalkanPageQueryService.getEntity(organizationId, root.getId())).thenReturn(root);
             when(kalkanAccessQueryService.verifyLevel(organizationId, root, user, KalkanLevel.EDIT))
@@ -523,6 +568,23 @@ class KalkanPageServiceImplUnitTest {
                     organizationId, root.getId(), new KalkanPageUpdateRequest("onboarding", null, 0L, null)));
 
             assertEquals("KLK_VAL_007", thrown.getErrorCode());
+        }
+
+        @Test
+        void updatePage_rootRenamedToDeletedRootSlug_throwsSlugTakenNamingTheDeletedRoot() {
+            UUID deletedRootId = UUID.randomUUID();
+            when(kalkanPageQueryService.getEntity(organizationId, root.getId())).thenReturn(root);
+            when(kalkanAccessQueryService.verifyLevel(organizationId, root, user, KalkanLevel.EDIT))
+                    .thenReturn(KalkanLevel.EDIT);
+            when(kalkanPageRepository.findDeletedRootIdBySlug(organizationId, "handbook"))
+                    .thenReturn(Optional.of(deletedRootId));
+
+            ConflictException thrown = assertThrows(ConflictException.class, () -> service.updatePage(user,
+                    organizationId, root.getId(), new KalkanPageUpdateRequest("handbook", null, 0L, null)));
+
+            assertEquals("KLK_STA_001", thrown.getErrorCode());
+            assertEquals(deletedRootId.toString(), thrown.getErrorValues().get("deletedPageId"));
+            verify(kalkanPageRepository, never()).saveAndFlush(any());
         }
 
         @Test

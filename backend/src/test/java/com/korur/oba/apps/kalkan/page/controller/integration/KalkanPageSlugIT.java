@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.UUID;
 
 // 4. Internal
+import com.korur.oba.apps.kalkan.page.entity.KalkanPage;
 import com.korur.oba.apps.kalkan.page.repository.KalkanPageRepository;
 import com.korur.oba.apps.kalkan.support.AbstractKalkanIT;
 
@@ -106,11 +107,37 @@ class KalkanPageSlugIT extends AbstractKalkanIT {
         }
 
         @Test
-        void createRoot_slugOfDeletedRoot_succeeds() throws Exception {
+        void createRoot_slugOfDeletedRoot_returns409AndTheOldRootStaysRestorable() throws Exception {
             String rootId = createdId(admin, null, "isms");
             deletePage(admin, rootId).andExpect(status().isOk());
 
-            createPage(admin, null, "isms").andExpect(status().isCreated());
+            createPage(admin, null, "isms")
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.error.code").value("KLK_STA_001"))
+                    .andExpect(jsonPath("$.error.errorValues.deletedPageId").value(rootId));
+
+            restorePage(admin, rootId)
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.id").value(rootId));
+        }
+
+        @Test
+        void putByPath_newRootWithSlugOfDeletedRoot_returns409() throws Exception {
+            String rootId = createdId(admin, null, "isms");
+            deletePage(admin, rootId).andExpect(status().isOk());
+
+            putByPath(admin, "isms", "New", false, false)
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.error.code").value("KLK_STA_001"));
+        }
+
+        @Test
+        void createChild_slugOfDeletedSibling_succeeds() throws Exception {
+            String rootId = createdId(admin, null, "isms");
+            String childId = createdId(admin, rootId, "policies");
+            deletePage(admin, childId).andExpect(status().isOk());
+
+            createPage(admin, rootId, "policies").andExpect(status().isCreated());
         }
 
         @Test
@@ -152,6 +179,23 @@ class KalkanPageSlugIT extends AbstractKalkanIT {
             updatePage(admin, otherId, "{\"slug\":\"isms\",\"version\":0}")
                     .andExpect(status().isConflict())
                     .andExpect(jsonPath("$.error.code").value("KLK_STA_001"));
+        }
+
+        @Test
+        void updatePage_renameRootToDeletedRootSlug_returns409AndTheDeletedRootStaysRestorable() throws Exception {
+            String rootId = createdId(admin, null, "handbook");
+            String deletedId = createdId(admin, null, "isms");
+            deletePage(admin, deletedId).andExpect(status().isOk());
+
+            updatePage(admin, rootId, "{\"slug\":\"isms\",\"version\":0}")
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.error.code").value("KLK_STA_001"))
+                    .andExpect(jsonPath("$.error.errorValues.slug").value("isms"))
+                    .andExpect(jsonPath("$.error.errorValues.deletedPageId").value(deletedId));
+
+            restorePage(admin, deletedId)
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.id").value(deletedId));
         }
 
         @Test
@@ -208,7 +252,12 @@ class KalkanPageSlugIT extends AbstractKalkanIT {
         void restorePage_rootSlugTakenMeanwhile_returns409() throws Exception {
             String rootId = createdId(admin, null, "isms");
             deletePage(admin, rootId).andExpect(status().isOk());
-            createdId(admin, null, "isms");
+            // The API refuses a root the slug of a deleted root, so the live root is written directly,
+            // as rows from before that rule hold it.
+            String otherId = createdId(admin, null, "handbook");
+            KalkanPage other = kalkanPageRepository.findById(UUID.fromString(otherId)).orElseThrow();
+            other.setSlug("isms");
+            kalkanPageRepository.saveAndFlush(other);
 
             restorePage(admin, rootId)
                     .andExpect(status().isConflict())
