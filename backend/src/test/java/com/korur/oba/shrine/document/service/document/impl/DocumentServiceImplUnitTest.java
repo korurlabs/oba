@@ -54,8 +54,10 @@ import com.korur.oba.shrine.document.helper.common.DocumentFileStorage;
 import com.korur.oba.shrine.document.helper.common.StoredDocumentFiles;
 import com.korur.oba.shrine.document.mapper.document.DocumentMapperHelper;
 import com.korur.oba.shrine.document.repository.document.DocumentRepository;
+import com.korur.oba.shrine.document.repository.template.DocumentTemplateRepository;
 import com.korur.oba.shrine.document.service.template.DocumentTemplateQueryService;
 import com.korur.oba.shrine.document.validator.document.DocumentValidator;
+import com.korur.oba.shrine.document.validator.template.DocumentTemplateValidator;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.legalentity.exception.ExceptionDomainLegalEntityError;
 import com.korur.oba.shrine.legalentity.service.LegalEntityQueryService;
@@ -74,6 +76,9 @@ class DocumentServiceImplUnitTest {
 
     @Mock
     private DocumentRepository documentRepository;
+
+    @Mock
+    private DocumentTemplateRepository documentTemplateRepository;
 
     @Mock
     private DocumentMapperHelper documentMapperHelper;
@@ -110,9 +115,9 @@ class DocumentServiceImplUnitTest {
 
     @BeforeEach
     void setUp() {
-        // The real validator runs over the mocked repository, so the error codes are the production ones.
+        // The real validators run over the mocked repositories, so the error codes are the production ones.
         service = new DocumentServiceImpl(documentRepository, new DocumentValidator(documentRepository, loggingService),
-                documentMapperHelper, documentFileStorage, documentTemplateQueryService, legalEntityQueryService,
+                new DocumentTemplateValidator(documentTemplateRepository, loggingService), documentMapperHelper, documentFileStorage, documentTemplateQueryService, legalEntityQueryService,
                 resourceAccessQueryService, mailQueryService, attachmentService, loggingService);
         user = User.builder().build();
         user.setId(UUID.randomUUID());
@@ -199,6 +204,43 @@ class DocumentServiceImplUnitTest {
             assertThat(captor.getValue().getHtmlBlobUrl()).isNull();
             assertThat(captor.getValue().getPdfBlobUrl()).isNull();
             verifyNoInteractions(documentFileStorage);
+        }
+
+        @Test
+        void templateOfTheSameLegalEntity_copiesItsFiles() {
+            // Arrange
+            UUID templateId = UUID.randomUUID();
+            when(documentTemplateQueryService.getEntity(organizationId, templateId)).thenReturn(DocumentTemplate
+                    .builder().id(templateId).legalEntityId(legalEntityId)
+                    .htmlBlobUrl("https://blob/t.html").pdfBlobUrl("https://blob/t.pdf").build());
+            when(documentFileStorage.copy("https://blob/t.html", "https://blob/t.pdf"))
+                    .thenReturn(new StoredDocumentFiles("https://blob/copy.html", "https://blob/copy.pdf"));
+            savesWhatItIsGiven();
+
+            // Act
+            service.create(organizationId, user, createRequest(templateId));
+
+            // Assert
+            ArgumentCaptor<Document> captor = ArgumentCaptor.forClass(Document.class);
+            verify(documentRepository).saveAndFlush(captor.capture());
+            assertThat(captor.getValue().getPdfBlobUrl()).isEqualTo("https://blob/copy.pdf");
+        }
+
+        @Test
+        void templateOfAnotherLegalEntity_throwsValidationBeforeAnyBlobOrRow() {
+            // Arrange
+            UUID templateId = UUID.randomUUID();
+            when(documentTemplateQueryService.getEntity(organizationId, templateId)).thenReturn(DocumentTemplate
+                    .builder().id(templateId).legalEntityId(UUID.randomUUID())
+                    .htmlBlobUrl("https://blob/t.html").pdfBlobUrl("https://blob/t.pdf").build());
+
+            // Act and assert
+            assertThatThrownBy(() -> service.create(organizationId, user, createRequest(templateId)))
+                    .isInstanceOf(ValidationException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ExceptionDomainDocumentError.VAL_DOCUMENT_NOT_USABLE.getCode());
+            verifyNoInteractions(documentFileStorage);
+            verify(documentRepository, never()).saveAndFlush(any());
         }
 
         @Test

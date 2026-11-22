@@ -6,6 +6,7 @@ package com.korur.oba.shrine.document.mapper.document;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 // 3. Java SDK
 import java.util.List;
@@ -44,7 +45,7 @@ public interface DocumentMapper {
      * @return the list item
      */
     @Mapping(target = "id", source = "document.id")
-    @Mapping(target = "relationId", expression = "java(relationIdOf(document))")
+    @Mapping(target = "relationId", source = "document", qualifiedByName = "relationIdOf")
     @Mapping(target = "relationName", source = "relationName")
     @Mapping(target = "legalEntityShortName", source = "legalEntityShortName")
     @Mapping(target = "snapshotCount", source = "snapshotCount")
@@ -63,10 +64,10 @@ public interface DocumentMapper {
      * @return the detail
      */
     @Mapping(target = "id", source = "document.id")
-    @Mapping(target = "relationId", expression = "java(relationIdOf(document))")
+    @Mapping(target = "relationId", source = "document", qualifiedByName = "relationIdOf")
     @Mapping(target = "relationName", source = "relationName")
     @Mapping(target = "legalEntityShortName", source = "legalEntityShortName")
-    @Mapping(target = "snapshotCount", expression = "java(snapshots.size())")
+    @Mapping(target = "snapshotCount", source = "snapshots", qualifiedByName = "countSnapshots")
     @Mapping(target = "updatedBy", source = "updatedBy")
     @Mapping(target = "snapshots", source = "snapshots")
     @Mapping(target = "htmlUrl", source = "document.htmlBlobUrl", qualifiedByName = "rewriteBlobUrl")
@@ -81,7 +82,20 @@ public interface DocumentMapper {
      * @param document the document
      * @return the relation id, or null
      */
+    @Named("relationIdOf")
     default UUID relationIdOf(Document document) {
         return document.getEntityType() == DocumentEntityType.RELATION ? document.getEntityId() : null;
+    }
+
+    /**
+     * The number of PDF snapshots of a document, so the detail's count always matches the
+     * snapshots it lists.
+     *
+     * @param snapshots the snapshots of the document
+     * @return their number
+     */
+    @Named("countSnapshots")
+    default long countSnapshots(List<DocumentSnapshotEmbeddedResponse> snapshots) {
+        return snapshots.size();
     }
 }

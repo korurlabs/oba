@@ -156,7 +156,8 @@ public class DocumentController {
                     + "disabled (ORG_SEC_001, ORG_SEC_005)"),
             @ApiResponse(responseCode = "404", description = "Owner not found (OTK_NOT_001), or legal entity "
                     + "(LGE_NOT_001) or template (DOC_NOT_001) not found or of another organization"),
-            @ApiResponse(responseCode = "422", description = "Invalid request body (GEN_VAL_001)"),
+            @ApiResponse(responseCode = "422", description = "Invalid request body (GEN_VAL_001), or a template "
+                    + "bound to another legal entity than legalEntityId (DOC_VAL_002)"),
             @ApiResponse(responseCode = "500", description = "Internal server error, among them a failed copy in "
                     + "the file store (AZR_UPS_001, AZR_UPS_002)")
     })

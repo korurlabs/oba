@@ -39,4 +39,6 @@ public final class DocumentTemplateConstant {
     public static final String SEARCH_BLANK_MESSAGE = "Search can not be empty; leave it out to list every template";
     public static final String ENTITY_TYPE_NOT_ATTACHABLE_MESSAGE = "A template can only be attached to a MAIL or a RELATION";
     public static final String TEMPLATE_WITHOUT_PDF_MESSAGE = "The template has no PDF file yet";
+    public static final String TEMPLATE_OF_OTHER_LEGAL_ENTITY_MESSAGE =
+            "The template belongs to another legal entity than the document";
 }

@@ -28,6 +28,13 @@ public final class DocumentTemplateExceptionLogConstant {
     public static final String TEMPLATE_NOT_USABLE = "Document template refused for an attachment: id={}, reason={}";
 
     /**
+     * Log message for a template that can not seed a document because it is bound to another legal entity.
+     */
+    public static final String TEMPLATE_OF_OTHER_LEGAL_ENTITY =
+            "Document template refused for a document of another legal entity: id={}, templateLegalEntityId={}, "
+                    + "documentLegalEntityId={}";
+
+    /**
      * Log message for a copy onto an entity type that does not take document templates.
      */
     public static final String ENTITY_TYPE_NOT_ATTACHABLE =
