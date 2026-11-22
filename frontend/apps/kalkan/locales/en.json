@@ -110,5 +110,128 @@
       "notDeleted": "This page is not in the trash.",
       "validation": "Some fields are not valid. Check them and try again."
     }
+  },
+  "pageForm": {
+    "back": "Back",
+    "backToPage": "Back to the page",
+    "loading": "Loading the pages",
+    "treeLoadError": "The pages could not be loaded",
+    "retry": "Try again",
+    "newTitle": "New page",
+    "newSubtitle": "Write the page in Turkish, English or both. Files can be attached once it is saved.",
+    "editTitle": "Edit {title}",
+    "metaEdit": "Edit page",
+    "cancel": "Cancel",
+    "languages": "Languages",
+    "locales": {
+      "TR": "Türkçe",
+      "EN": "English"
+    },
+    "tabHasErrors": "This language has fields to fix",
+    "sections": {
+      "content": "Content",
+      "settings": "Settings"
+    },
+    "title": "Title",
+    "body": "Body",
+    "bodyPlaceholder": "Write the page in Markdown",
+    "parent": "Parent page",
+    "parentPlaceholder": "Choose where the page goes",
+    "parentSearch": "Search pages",
+    "slug": "Address",
+    "slugHint": "Part of the page's path. Letters, digits, dots, hyphens and underscores.",
+    "compliance": "Compliance page",
+    "complianceHint": "Counts as a compliance record, such as a policy or a control.",
+    "unsavedChanges": "Unsaved changes",
+    "discard": "Discard changes",
+    "create": "Create page",
+    "creating": "Creating...",
+    "save": "Save page",
+    "saving": "Saving...",
+    "noParent": {
+      "title": "No place to add a page",
+      "description": "You can add pages only under a section where you have edit access. Ask a section manager for access.",
+      "action": "Go to the overview"
+    },
+    "readOnly": {
+      "title": "You can read this page but not edit it",
+      "description": "Editing needs edit access to the section. Ask a section manager for it."
+    },
+    "conflict": {
+      "title": "Someone else changed this page",
+      "description": "The page was saved by someone else after you opened it, so your changes were not saved. Your text is still in the form: copy what you need, then reload to get the latest version. Reloading replaces your unsaved text.",
+      "reload": "Reload the latest version",
+      "reloading": "Reloading..."
+    },
+    "errors": {
+      "titleMax": "The title can be at most 200 characters.",
+      "bodyMax": "The body can be at most 500,000 characters.",
+      "slugRequired": "Enter an address.",
+      "slugInvalid": "Start with a letter or digit, and use only letters, digits, dots, hyphens and underscores (at most 100).",
+      "titleRequired": "Enter a title in at least one language.",
+      "titleKept": "This language is already saved and needs a title.",
+      "titleForBody": "Enter a title for this language, or clear its body.",
+      "parentRequired": "Choose a parent page."
+    },
+    "attachments": {
+      "title": "Files",
+      "description": "Files attached to this page are kept as a record and cannot be removed.",
+      "loadError": "The files could not be loaded",
+      "retry": "Try again",
+      "loading": "Loading the files",
+      "empty": "No files attached yet.",
+      "insertLink": "Insert link",
+      "insertLinkFor": "Insert a link to {name} into the {language} body",
+      "afterCreate": "Files can be attached once the page is saved.",
+      "uploadMissing": "The server did not return the uploaded file."
+    }
+  },
+  "permissions": {
+    "meta": "Access",
+    "title": "Access to {title}",
+    "subtitle": "Who can view, edit or manage this section and every page in it.",
+    "backToPage": "Back to the page",
+    "retry": "Try again",
+    "loading": "Loading the access list",
+    "loadError": "The access list could not be loaded",
+    "onChild": {
+      "title": "Access is set on the section",
+      "description": "A page has the access of its section. Change it on the section's root page.",
+      "action": "Open the section's access"
+    },
+    "noAccess": {
+      "title": "You cannot change access here",
+      "description": "Only people with manage access to the section can see and change who has access."
+    },
+    "levels": {
+      "VIEW": "View",
+      "EDIT": "Edit",
+      "MANAGE": "Manage"
+    },
+    "add": {
+      "title": "Add a member",
+      "member": "Member",
+      "memberPlaceholder": "Choose a member",
+      "memberSearch": "Search members",
+      "level": "Access",
+      "action": "Add",
+      "membersLoadError": "The members could not be loaded. Reload the page to try again.",
+      "guestHint": "A guest can only be given view access."
+    },
+    "list": {
+      "title": "Who has access",
+      "empty": "Nobody has been given access yet.",
+      "subject": "Member",
+      "level": "Access",
+      "actions": "Actions",
+      "group": "Group",
+      "guest": "Guest",
+      "remove": "Remove {name}"
+    },
+    "saveErrorTitle": "The access was not saved",
+    "unsavedChanges": "Unsaved changes",
+    "discard": "Discard changes",
+    "save": "Save access",
+    "saving": "Saving..."
   }
 }
