@@ -166,17 +166,22 @@ public class KalkanPageQueryServiceImpl implements KalkanPageQueryService {
         if (rootIds.isEmpty()) {
             return List.of();
         }
-        // Only a root's managers see its trash: undoing a delete brings back pages and their grants
-        // decide who reads them, which is the managers' call.
-        List<UUID> managedRootIds = kalkanAccessQueryService.resolveLevels(organizationId, rootIds, user)
-                .entrySet().stream()
-                .filter(entry -> entry.getValue().isAtLeast(KalkanLevel.MANAGE))
+        // The trash lists exactly what the caller may restore, by the level restorePage checks: a
+        // non-root page needs the lower level, so only roots reaching it are searched and a deleted
+        // root is then kept only for its managers.
+        Map<UUID, KalkanLevel> levels = kalkanAccessQueryService.resolveLevels(organizationId, rootIds, user);
+        List<UUID> searchedRootIds = levels.entrySet().stream()
+                .filter(entry -> entry.getValue().isAtLeast(KalkanLevel.minimumToDelete(false)))
                 .map(Map.Entry::getKey)
                 .toList();
-        if (managedRootIds.isEmpty()) {
+        if (searchedRootIds.isEmpty()) {
             return List.of();
         }
-        List<KalkanPageTrashProjection> rows = kalkanPageRepository.findTrash(organizationId, managedRootIds);
+        List<KalkanPageTrashProjection> rows = kalkanPageRepository.findTrash(organizationId, searchedRootIds)
+                .stream()
+                .filter(row -> levels.get(row.getAccessRootId())
+                        .isAtLeast(KalkanLevel.minimumToDelete(Boolean.TRUE.equals(row.getRoot()))))
+                .toList();
         if (rows.isEmpty()) {
             return List.of();
         }

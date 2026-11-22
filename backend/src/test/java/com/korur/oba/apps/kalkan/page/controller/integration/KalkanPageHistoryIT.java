@@ -208,19 +208,48 @@ class KalkanPageHistoryIT extends AbstractKalkanIT {
                     .andExpect(jsonPath("$.data.length()").value(0));
         }
 
-        @Test
-        void getTrash_memberWithEditOnly_seesNothingAndWithManageSeesIt() throws Exception {
-            String rootId = createdId(admin, null, "isms");
-            String childId = createdId(admin, rootId, "controls");
+        // A deleted root and a deleted page below another root, both granted to the member at the
+        // given level before the deletes, since a deleted root's permissions can no longer be edited.
+        private String[] deletedRootAndChild(String level) throws Exception {
+            String liveRootId = createdId(admin, null, "isms");
+            String childId = createdId(admin, liveRootId, "controls");
+            String deletedRootId = createdId(admin, null, "policies");
+            grant(liveRootId, member, level);
+            grant(deletedRootId, member, level);
             deletePage(admin, childId).andExpect(status().isOk());
-            grant(rootId, member, "EDIT");
+            deletePage(admin, deletedRootId).andExpect(status().isOk());
+            return new String[] {childId, deletedRootId};
+        }
+
+        @Test
+        void getTrash_memberWithEdit_seesDeletedPageBelowButNotDeletedRoot() throws Exception {
+            String[] deleted = deletedRootAndChild("EDIT");
+
+            send(get(PAGES + "/trash"), member, null)
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(1))
+                    .andExpect(jsonPath("$.data[0].id").value(deleted[0]))
+                    .andExpect(jsonPath("$.data[0].path").value("isms/controls"));
+        }
+
+        @Test
+        void getTrash_memberWithManage_seesDeletedRootAndPageBelow() throws Exception {
+            String[] deleted = deletedRootAndChild("MANAGE");
+
+            send(get(PAGES + "/trash"), member, null)
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(2))
+                    .andExpect(jsonPath("$.data[0].id").value(deleted[1]))
+                    .andExpect(jsonPath("$.data[1].id").value(deleted[0]));
+        }
+
+        @Test
+        void getTrash_memberWithView_seesNothing() throws Exception {
+            deletedRootAndChild("VIEW");
 
             send(get(PAGES + "/trash"), member, null)
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.length()").value(0));
-            grant(rootId, member, "MANAGE");
-            send(get(PAGES + "/trash"), member, null)
-                    .andExpect(jsonPath("$.data.length()").value(1));
         }
 
         @Test

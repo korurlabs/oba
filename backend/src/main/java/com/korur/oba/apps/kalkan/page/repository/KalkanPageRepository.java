@@ -328,7 +328,8 @@ public interface KalkanPageRepository extends SoftDeleteRepository<KalkanPage, U
      * is the top of its delete when it is a root, its parent is live, or its parent was deleted at
      * another instant, so each delete is listed once, by the page a restore takes. The path walks
      * the ancestors whatever their state, and the descendant count matches the pages restoreSubtree
-     * would bring back.
+     * would bring back. Each row carries its access root and whether it is a root, so the caller can
+     * apply the restore level.
      *
      * @param organizationId the organization
      * @param rootIds        the roots, live or deleted, all of that organization; must not be empty
@@ -336,7 +337,8 @@ public interface KalkanPageRepository extends SoftDeleteRepository<KalkanPage, U
      */
     @Query(value = """
             WITH RECURSIVE tops AS (
-                SELECT p.id, p.parent_id, p.updated_at, p.updated_by_id
+                SELECT p.id, p.parent_id, COALESCE(p.root_id, p.id) AS access_root_id, p.updated_at,
+                       p.updated_by_id
                 FROM kalkan.pages p
                 LEFT JOIN kalkan.pages parent ON parent.id = p.parent_id
                 WHERE p.organization_id = :organizationId AND p.deleted = TRUE
@@ -360,7 +362,7 @@ public interface KalkanPageRepository extends SoftDeleteRepository<KalkanPage, U
                 FROM ancestry a
                 JOIN kalkan.pages p ON p.id = a.parent_id
             )
-            SELECT t.id AS id,
+            SELECT t.id AS id, t.access_root_id AS accessRootId, t.parent_id IS NULL AS root,
                    (SELECT STRING_AGG(a.slug, '/' ORDER BY a.height DESC) FROM ancestry a
                     WHERE a.page_id = t.id) AS path,
                    t.updated_at AS deletedAt, t.updated_by_id AS deletedById,
