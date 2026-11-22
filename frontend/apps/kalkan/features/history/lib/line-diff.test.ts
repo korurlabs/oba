@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { compareLines, MAX_COMPARE_CELLS } from "./line-diff";
+import { compareLines, MAX_COMPARE_CELLS, stripBlobSignatures } from "./line-diff";
 
 describe("compareLines", () => {
   test("keeps equal texts as same rows", () => {
@@ -45,5 +45,29 @@ describe("compareLines", () => {
     expect(rows!.filter((row) => row.kind !== "same")).toEqual([
       { kind: "changed", left: "line 2500", right: "edited" },
     ]);
+  });
+});
+
+describe("stripBlobSignatures", () => {
+  const blob = "https://korur.blob.core.windows.net/wiki/pages/1/scope.pdf";
+  const signedAt = (start: string, expiry: string) =>
+    `${blob}?sv=2024-11-04&st=${start}&se=${expiry}&sr=b&sp=r&sig=abc%2Bdef%3D`;
+
+  test("keeps a line with a link equal when the two copies are signed separately", () => {
+    const older = `# Scope\nSee [scope.pdf](${signedAt("2026-11-23T10%3A00%3A00Z", "2026-11-23T11%3A00%3A00Z")}).`;
+    const newer = `# Scope\nSee [scope.pdf](${signedAt("2026-11-23T10%3A05%3A00Z", "2026-11-23T11%3A05%3A00Z")}).`;
+
+    expect(compareLines(older, newer)?.some((row) => row.kind !== "same")).toBe(true);
+    expect(
+      compareLines(stripBlobSignatures(older), stripBlobSignatures(newer))?.every(
+        (row) => row.kind === "same"
+      )
+    ).toBe(true);
+    expect(stripBlobSignatures(newer)).toBe(`# Scope\nSee [scope.pdf](${blob}).`);
+  });
+
+  test("leaves URLs without a signature untouched", () => {
+    const text = "[a](https://example.com/search?q=sig&page=2) and https://example.com/x?design=1";
+    expect(stripBlobSignatures(text)).toBe(text);
   });
 });
