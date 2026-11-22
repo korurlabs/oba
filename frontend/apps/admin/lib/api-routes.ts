@@ -28,6 +28,10 @@ export const API_ROUTES = {
     appAccess: (orgId: string) =>
       `/organizations/${orgId}/app-grants/app-access`,
   },
+  legalEntities: {
+    list: "/legal-entities",
+    detail: (legalEntityId: string) => `/legal-entities/${legalEntityId}`,
+  },
   invitations: {
     list: "/invitations",
     detail: (invitationId: string) => `/invitations/${invitationId}`,

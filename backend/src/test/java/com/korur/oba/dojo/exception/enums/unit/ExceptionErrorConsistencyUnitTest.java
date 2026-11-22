@@ -29,6 +29,7 @@ import com.korur.oba.dojo.exception.enums.ExceptionValidationError;
 import com.korur.oba.dojo.logging.exception.ExceptionDomainLoggingError;
 import com.korur.oba.shrine.identity.exception.ExceptionDomainIdentityError;
 import com.korur.oba.shrine.invitation.exception.ExceptionDomainInvitationError;
+import com.korur.oba.shrine.legalentity.exception.ExceptionDomainLegalEntityError;
 import com.korur.oba.shrine.onboarding.exception.ExceptionDomainOnboardingError;
 import com.korur.oba.shrine.organization.exception.ExceptionDomainOrganizationError;
 import com.korur.oba.shrine.storage.exception.ExceptionDomainStorageError;
@@ -71,6 +72,7 @@ class ExceptionErrorConsistencyUnitTest {
         addAll(all, ExceptionDomainLoggingError.values());
         addAll(all, ExceptionDomainIdentityError.values());
         addAll(all, ExceptionDomainInvitationError.values());
+        addAll(all, ExceptionDomainLegalEntityError.values());
         addAll(all, ExceptionDomainOnboardingError.values());
         addAll(all, ExceptionDomainOrganizationError.values());
         addAll(all, ExceptionDomainStorageError.values());
