@@ -25,6 +25,7 @@ public enum ExceptionDomainKalkanError implements ExceptionDomainError {
 
     // ── Not Found (KLK_NOT) ──────────────────────────────────────────────────
     NOT_PAGE_FOUND("KLK_NOT_001", "Page not found.", ExceptionCategory.NOT),
+    NOT_REVISION_FOUND("KLK_NOT_002", "Page revision not found.", ExceptionCategory.NOT),
 
     // ── State (KLK_STA) ──────────────────────────────────────────────────────
     STA_SLUG_TAKEN("KLK_STA_001", "A page with this slug already exists at this place.", ExceptionCategory.STA),

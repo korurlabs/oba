@@ -21,6 +21,11 @@ public final class KalkanPageServiceLogConstant {
     // --- Reads ---
     public static final String LISTING_TREE = "Listing the page tree of organization {} for user {}";
     public static final String READING_PAGE = "Reading page {} of organization {}";
+    public static final String LISTING_REVISIONS = "Listing the revisions of page {} of organization {}";
+    public static final String READING_REVISION = "Reading revision {} of page {} of organization {}";
+    public static final String REVISION_NOT_FOUND = "Revision {} not found for page {} in organization {}";
+    public static final String LISTING_TRASH = "Listing the deleted pages of organization {} for user {}";
+    public static final String LISTING_RECENT = "Listing the {} most recently changed pages of organization {} for user {}";
     public static final String PAGE_NOT_FOUND = "Page {} not found in organization {}";
     public static final String PAGE_NOT_FOUND_BY_ID = "Page {} not found";
     public static final String DELETED_PAGE_NOT_FOUND = "Page {} not found in organization {}, deleted pages included";

@@ -11,7 +11,12 @@ import java.util.UUID;
 // 4. Internal
 import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageDetailResponse;
 import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageListResponse;
+import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageRecentResponse;
+import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageRevisionDetailResponse;
+import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageRevisionListResponse;
+import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageTrashResponse;
 import com.korur.oba.apps.kalkan.page.entity.KalkanPage;
+import com.korur.oba.apps.kalkan.page.enums.KalkanLocale;
 import com.korur.oba.apps.kalkan.permission.enums.KalkanLevel;
 import com.korur.oba.shrine.identity.entity.User;
 
@@ -80,4 +85,53 @@ public interface KalkanPageQueryService {
      * @return the page with its live translations
      */
     KalkanPageDetailResponse toDetailResponse(KalkanPage page, KalkanLevel level);
+
+    /**
+     * Lists the history of a live page, every translation's revisions without their bodies; needs
+     * VIEW on its root.
+     *
+     * @param user           the caller
+     * @param organizationId the organization of the request
+     * @param pageId         the page
+     * @return the revisions, newest page version first
+     * @throws com.korur.oba.dojo.exception.internal.business.NotFoundException KLK_NOT_001 when the
+     *         page is missing or hidden from the caller
+     */
+    List<KalkanPageRevisionListResponse> getRevisions(User user, UUID organizationId, UUID pageId);
+
+    /**
+     * Reads one revision of a live page with its body; needs VIEW on its root.
+     *
+     * @param user           the caller
+     * @param organizationId the organization of the request
+     * @param pageId         the page
+     * @param revisionId     the revision
+     * @return the revision
+     * @throws com.korur.oba.dojo.exception.internal.business.NotFoundException KLK_NOT_001 when the
+     *         page is missing or hidden from the caller; KLK_NOT_002 when the page has no such
+     *         revision
+     */
+    KalkanPageRevisionDetailResponse getRevision(User user, UUID organizationId, UUID pageId, UUID revisionId);
+
+    /**
+     * Lists the deletes the caller could undo: the top page of every delete under a root on which
+     * the caller holds MANAGE, newest first.
+     *
+     * @param user           the caller
+     * @param organizationId the organization of the request
+     * @param locale         the locale of the titles; null for each page's first title
+     * @return one entry per delete
+     */
+    List<KalkanPageTrashResponse> getTrash(User user, UUID organizationId, KalkanLocale locale);
+
+    /**
+     * Lists the most recently changed live pages under the roots the caller can see.
+     *
+     * @param user           the caller
+     * @param organizationId the organization of the request
+     * @param limit          the most pages to return
+     * @param locale         the locale of the titles; null for each page's first title
+     * @return the pages, last change first
+     */
+    List<KalkanPageRecentResponse> getRecent(User user, UUID organizationId, int limit, KalkanLocale locale);
 }

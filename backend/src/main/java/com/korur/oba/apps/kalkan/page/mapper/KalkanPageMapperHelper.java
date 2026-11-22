@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,8 +18,10 @@ import java.util.UUID;
 
 // 4. Internal
 import com.korur.oba.apps.kalkan.page.constant.KalkanPageConstant;
+import com.korur.oba.apps.kalkan.page.dto.projection.KalkanPageTitleProjection;
 import com.korur.oba.apps.kalkan.page.entity.KalkanPage;
 import com.korur.oba.apps.kalkan.page.entity.KalkanPageTranslation;
+import com.korur.oba.apps.kalkan.page.enums.KalkanLocale;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.identity.entity.embedded.UserProfile;
 import com.korur.oba.shrine.identity.service.UserQueryService;
@@ -134,6 +137,39 @@ public class KalkanPageMapperHelper {
             names.put(user.getId(), displayNameOf(user));
         }
         return names;
+    }
+
+    /**
+     * Groups title rows by page, each page's titles in locale order.
+     *
+     * @param rows the title rows of one or more pages
+     * @return the titles per page that has at least one
+     */
+    public Map<UUID, Map<KalkanLocale, String>> titlesByPage(Collection<KalkanPageTitleProjection> rows) {
+        Map<UUID, Map<KalkanLocale, String>> titles = new HashMap<>();
+        for (KalkanPageTitleProjection row : rows) {
+            titles.computeIfAbsent(row.getPageId(), id -> new EnumMap<>(KalkanLocale.class))
+                    .put(row.getLocale(), row.getTitle());
+        }
+        return titles;
+    }
+
+    /**
+     * The one title a list shows for a page: the one in the requested locale, else the first in
+     * locale order, so a page written in one language only still shows a title.
+     *
+     * @param titles the page's titles in locale order; null when it has none
+     * @param locale the requested locale; null to take the first title
+     * @return the title; null when the page has no title
+     */
+    public String titleIn(Map<KalkanLocale, String> titles, KalkanLocale locale) {
+        if (titles == null || titles.isEmpty()) {
+            return null;
+        }
+        if (locale != null && titles.containsKey(locale)) {
+            return titles.get(locale);
+        }
+        return titles.values().iterator().next();
     }
 
     private static String displayNameOf(User user) {
