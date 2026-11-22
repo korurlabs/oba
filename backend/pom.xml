@@ -24,7 +24,7 @@
 
     <properties>
         <java.version>25</java.version>
-        <lombok.version>1.18.42</lombok.version>
+        <lombok.version>1.18.48</lombok.version>
         <mapstruct.version>1.6.3</mapstruct.version>
         <lombok.mapstruct.binding.version>0.2.0</lombok.mapstruct.binding.version>
         <flyway.version>11.20.3</flyway.version>
@@ -204,7 +204,7 @@
                 Azurite 3.35.0 does not support API version 2026-02-06 used by 12.33.x+. -->
             <groupId>com.azure</groupId>
             <artifactId>azure-storage-blob</artifactId>
-            <version>12.32.0</version>
+            <version>12.37.2</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.microsoft.graph/microsoft-graph -->
@@ -214,7 +214,7 @@
                 Date: Feb 07, 2026 -->
             <groupId>com.microsoft.graph</groupId>
             <artifactId>microsoft-graph</artifactId>
-            <version>6.61.0</version>
+            <version>6.72.0</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.azure/azure-identity -->
@@ -224,7 +224,7 @@
                 Date: Jan 17, 2026 -->
             <groupId>com.azure</groupId>
             <artifactId>azure-identity</artifactId>
-            <version>1.18.0</version>
+            <version>1.19.0</version>
         </dependency>
 
         <!-- Spring AI Starters for multi-model intelligence layer -->
@@ -356,7 +356,7 @@
                 Date: Jan 23, 2026 -->
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-            <version>1.21.0</version>
+            <version>1.23.0</version>
         </dependency>
 
         <!-- =======================
@@ -445,7 +445,7 @@
                     Date: Jan 27, 2026 -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.15.0</version>
+                <version>3.16.0</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
@@ -513,7 +513,7 @@
                     Date: Oct 09, 2025 -->
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.14</version>
+                <version>0.8.16</version>
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
