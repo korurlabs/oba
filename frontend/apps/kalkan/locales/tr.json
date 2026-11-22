@@ -3,8 +3,37 @@
     "description": "Organizasyonunuzun politikaları, prosedürleri ve dokümanları"
   },
   "sidebar": {
-    "label": "Sayfalar",
-    "language": "Dil"
+    "language": "Dil",
+    "overview": "Genel bakış",
+    "groups": {
+      "compliance": "Uyum",
+      "inventory": "Envanter",
+      "knowledge": "Bilgi",
+      "legal": "Hukuk"
+    },
+    "sections": {
+      "frameworks": "Çerçeve",
+      "controls": "Kontrol",
+      "policies": "Politika",
+      "risks": "Risk",
+      "evidence": "Kanıt",
+      "audits": "Tetkik",
+      "assets": "Varlık",
+      "suppliers": "Tedarikçi",
+      "access": "Erişim",
+      "architecture": "Mimari",
+      "protection": "Koruma",
+      "monitoring": "İzleme",
+      "infrastructure": "Altyapı",
+      "guides": "Rehber",
+      "laws": "Yasa",
+      "incentives": "Teşvik"
+    },
+    "newPage": "Yeni sayfa",
+    "recent": "Son değişiklikler",
+    "trash": "Çöp kutusu",
+    "expand": "{name} sayfalarını göster",
+    "collapse": "{name} sayfalarını gizle"
   },
   "errors": {
     "somethingWentWrong": "Bir şeyler yanlış gitti",
@@ -27,5 +56,59 @@
     "title": "Henüz organizasyon yok",
     "description": "Kalkan bir organizasyonun dokümanlarını tutar. Önce hesabınızda bir organizasyon oluşturun veya birine katılın.",
     "action": "Hesabınızı açın"
+  },
+  "placeholder": {
+    "title": "Yakında",
+    "description": "Bu sayfa hazırlanıyor, içeriği kısa süre içinde burada görünecek."
+  },
+  "sections": {
+    "loading": "Bölüm yükleniyor",
+    "loadError": "Bölüm yüklenemedi",
+    "notSetUp": {
+      "title": "Bu bölüm henüz kurulmadı",
+      "description": "Kurması için bir organizasyon yöneticisine başvurun.",
+      "adminDescription": "Sayfalarını eklemeye başlamak için bölümü kurun.",
+      "action": "Bölümü kur"
+    }
+  },
+  "pages": {
+    "view": {
+      "title": "Sayfa",
+      "loading": "Sayfa yükleniyor",
+      "loadError": "Sayfa yüklenemedi",
+      "retry": "Tekrar dene"
+    },
+    "toast": {
+      "created": "Sayfa oluşturuldu",
+      "createError": "Sayfa oluşturulamadı",
+      "updated": "Sayfa kaydedildi",
+      "updateError": "Sayfa kaydedilemedi",
+      "moved": "Sayfa taşındı",
+      "moveError": "Sayfa taşınamadı",
+      "deleted": "Sayfa çöp kutusuna taşındı",
+      "deleteError": "Sayfa silinemedi",
+      "restored": "Sayfa geri yüklendi",
+      "restoreError": "Sayfa geri yüklenemedi",
+      "permissionsSaved": "Erişim kaydedildi",
+      "permissionsError": "Erişim kaydedilemedi",
+      "sectionSetUp": "Bölüm kuruldu",
+      "sectionSetUpError": "Bölüm kurulamadı"
+    },
+    "errors": {
+      "levelTooLow": "Bu işlem için bu sayfadaki erişim düzeyiniz yetersiz.",
+      "attachmentKept": "Sayfa ekleri kayıt olarak saklanır ve silinemez.",
+      "notFound": "Bu sayfa yok ya da sayfaya erişiminiz yok.",
+      "slugTaken": "Bu konumdaki başka bir sayfa bu adresi zaten kullanıyor.",
+      "versionOutdated": "Bu sayfa bu arada başka biri tarafından değiştirildi. Sayfayı yeniden yükleyip değişikliğinizi tekrar uygulayın.",
+      "parentDeleted": "Üst sayfa çöp kutusunda. Önce onu geri yükleyin.",
+      "subjectNotActive": "Bu kişi organizasyonun etkin bir üyesi değil.",
+      "guestAboveView": "Bir misafire yalnızca görüntüleme erişimi verilebilir.",
+      "moveInvalid": "Sayfa kendi alt sayfalarına, 10 düzeyden daha derine ya da başka bir bölüme taşınamaz.",
+      "duplicateLocale": "Bir dil birden fazla kez verilmiş.",
+      "permissionOnChild": "Erişim bölümde ayarlanır, alt sayfalarında değil.",
+      "reservedSlug": "Bu adres ayrılmıştır ve bir bölümü adlandıramaz.",
+      "notDeleted": "Bu sayfa çöp kutusunda değil.",
+      "validation": "Bazı alanlar geçerli değil. Kontrol edip tekrar deneyin."
+    }
   }
 }
