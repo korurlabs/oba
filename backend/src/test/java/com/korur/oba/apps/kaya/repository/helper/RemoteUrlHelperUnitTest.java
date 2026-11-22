@@ -11,11 +11,13 @@ import org.junit.jupiter.params.provider.ValueSource;
 // 2. Third-party
 
 // 3. Java SDK
+import java.time.Duration;
 
 // 4. Internal
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 
 class RemoteUrlHelperUnitTest {
 
@@ -79,6 +81,28 @@ class RemoteUrlHelperUnitTest {
             String longName = "a".repeat(500);
 
             assertNull(RemoteUrlHelper.normalize("https://github.com/owner/" + longName));
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {
+                "https://github.com:443?tab=readme",
+                "https://github.com?tab=readme",
+                "ssh://git@github.com#top"
+        })
+        void queryOrFragmentWithoutPath_returnsNull(String remoteUrl) {
+            assertNull(RemoteUrlHelper.normalize(remoteUrl));
+        }
+
+        // A remote comes from a client, so a crafted value must not make matching take time that
+        // grows with the square of its length: a host of repeated "!#" followed by a space used to
+        // send the matcher through every split between host and fragment.
+        @ParameterizedTest
+        @ValueSource(strings = {"ssh://", "https://", "git://user@"})
+        void adversarialHostWithFragmentCharacters_returnsNullQuickly(String prefix) {
+            String remoteUrl = prefix + "!#".repeat(50_000) + " x";
+
+            assertTimeoutPreemptively(Duration.ofSeconds(1),
+                    () -> assertNull(RemoteUrlHelper.normalize(remoteUrl)));
         }
 
         @Test

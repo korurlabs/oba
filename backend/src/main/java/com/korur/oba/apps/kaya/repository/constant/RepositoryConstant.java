@@ -40,9 +40,13 @@ public final class RepositoryConstant {
 
     // --- Remote URL normalisation ---
     // A URL remote (https, http, ssh or git scheme), optionally with credentials and a port,
-    // which are dropped: group 1 is the host, group 2 the path.
+    // which are dropped: group 1 is the host, group 2 the path. A query or fragment is accepted only
+    // after a path. The host may itself contain ? and #, so a query allowed straight after the host
+    // would let the matcher try every split between the two, and a long crafted remote would then
+    // take quadratic time to reject. A remote without a path is rejected anyway, so no remote that
+    // was accepted before is lost.
     public static final String REMOTE_URL_FORM_PATTERN =
-            "^(?i)(?:https?|ssh|git)://(?:[^@/\\s]*@)?([^/:@\\s]+)(?::\\d+)?(/[^?#\\s]*)?(?:[?#]\\S*)?$";
+            "^(?i)(?:https?|ssh|git)://(?:[^@/\\s]*@)?([^/:@\\s]+)(?::\\d+)?(?:(/[^?#\\s]*)(?:[?#]\\S*)?)?$";
     // An scp-like SSH remote such as git@github.com:owner/name.git: group 1 is the host, group 2 the path.
     public static final String REMOTE_SCP_FORM_PATTERN = "^(?:[^@/\\s]+@)?([^:/@\\s]+):(?!//)(\\S+)$";
     public static final String SCHEME_SEPARATOR = "://";
