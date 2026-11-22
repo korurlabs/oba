@@ -71,7 +71,9 @@ public class AttachmentQueryServiceImpl implements AttachmentQueryService {
         resourceAccessQueryService.verifyResourceAccess(user, organizationId,
                 attachmentValidator.ensureEntityTypeAccessible(entityType), entityId, ResourceAccessAction.READ);
 
-        return attachmentRepository.findByEntityTypeAndEntityIdOrderByCreatedAtAscIdAsc(entityType, entityId)
+        return attachmentRepository
+                .findByEntityTypeAndEntityIdAndOrganizationIdOrderByCreatedAtAscIdAsc(entityType, entityId,
+                        organizationId)
                 .stream()
                 .map(attachmentMapper::toResponse)
                 .toList();
@@ -99,7 +101,8 @@ public class AttachmentQueryServiceImpl implements AttachmentQueryService {
             attachmentsByEntityId.put(entityId, new ArrayList<>());
         }
         List<Attachment> attachments = attachmentRepository
-                .findByEntityTypeAndEntityIdInOrderByCreatedAtAscIdAsc(entityType, distinctIds);
+                .findByEntityTypeAndEntityIdInAndOrganizationIdOrderByCreatedAtAscIdAsc(entityType, distinctIds,
+                        organizationId);
         for (Attachment attachment : attachments) {
             attachmentsByEntityId.get(attachment.getEntityId()).add(attachmentMapper.toResponse(attachment));
         }
@@ -109,15 +112,18 @@ public class AttachmentQueryServiceImpl implements AttachmentQueryService {
     /**
      * Downloads each attachment's blob by the last segment of its URL, which is
      * the blob name in the private container. Attachments of several parents may
-     * share one blob, so each row is read on its own.
+     * share one blob, so each row is read on its own. Only rows of the given
+     * organization are read.
      */
     @Override
-    public List<AttachmentContent> getEntityAttachmentContents(StorageEntityType entityType, UUID entityId) {
+    public List<AttachmentContent> getEntityAttachmentContents(UUID organizationId, StorageEntityType entityType,
+                                                               UUID entityId) {
         loggingService.observe(LOG_PREFIX, LogLayer.SERVICE,
                 AttachmentServiceLogConstant.ATTACHMENT_READING_CONTENTS, entityType, entityId);
 
         List<AttachmentContent> contents = attachmentRepository
-                .findByEntityTypeAndEntityIdInOrderByCreatedAtAscIdAsc(entityType, List.of(entityId))
+                .findByEntityTypeAndEntityIdAndOrganizationIdOrderByCreatedAtAscIdAsc(entityType, entityId,
+                        organizationId)
                 .stream()
                 .map(attachment -> new AttachmentContent(attachment.getFileName(), attachment.getContentType(),
                         azureBlobStorageQueryService.downloadPrivateBlob(blobName(attachment.getUrl()))))
@@ -130,7 +136,8 @@ public class AttachmentQueryServiceImpl implements AttachmentQueryService {
 
     /**
      * Reports whether an attachment with identical content already exists
-     * under the given parent entity, without persisting anything.
+     * under the given parent entity type in the request's organization,
+     * without persisting anything.
      *
      * The shape mirrors the upload path's validation prefix (empty file,
      * file-name match, hash) but stops short of the duplicate-rejecting
@@ -147,12 +154,14 @@ public class AttachmentQueryServiceImpl implements AttachmentQueryService {
      * read, so the hash match cannot serve as an existence oracle for the
      * attachments of a type nobody may reach.
      *
+     * @param organizationId the organization of the request, whose attachments are compared
      * @param request parent-entity coordinates and the original file name
      * @param file the candidate upload; only its bytes are read for hashing
      * @return a boolean-only response indicating whether a content match exists
      */
     @Override
-    public AttachmentExistsResponse checkAttachmentExists(AttachmentExistsCheckRequest request, MultipartFile file) {
+    public AttachmentExistsResponse checkAttachmentExists(UUID organizationId, AttachmentExistsCheckRequest request,
+                                                          MultipartFile file) {
         attachmentValidator.ensureEntityTypeAccessible(request.entityType());
         attachmentValidator.ensureFileNotEmpty(file);
         attachmentValidator.ensureFileNameMatches(file, request);
@@ -169,8 +178,8 @@ public class AttachmentQueryServiceImpl implements AttachmentQueryService {
         // before; a Kalkan page refuses only a file already on that page, and this
         // request names no page, so for both nothing "exists" here.
         boolean exists = request.entityType().isUniqueContentAcrossType()
-                && attachmentRepository.existsByEntityTypeAndFileHash(request.entityType(),
-                        attachmentHashHelper.computeHash(file));
+                && attachmentRepository.existsByEntityTypeAndFileHashAndOrganizationId(request.entityType(),
+                        attachmentHashHelper.computeHash(file), organizationId);
 
         loggingService.observe(LOG_PREFIX, LogLayer.SERVICE,
                 AttachmentServiceLogConstant.ATTACHMENT_EXISTS_RESULT,

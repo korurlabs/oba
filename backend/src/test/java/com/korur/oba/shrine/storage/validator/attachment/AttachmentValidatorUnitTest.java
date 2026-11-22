@@ -17,7 +17,6 @@ import java.util.Set;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.dojo.exception.internal.auth.ForbiddenException;
 import com.korur.oba.dojo.exception.internal.business.ValidationException;
 import com.korur.oba.shrine.access.enums.ResourceAccessType;
 import com.korur.oba.dojo.logging.service.LoggingService;
@@ -61,6 +60,8 @@ class AttachmentValidatorUnitTest {
     @InjectMocks
     private AttachmentValidator attachmentValidator;
 
+    private final UUID organizationId = UUID.randomUUID();
+
     @Nested
     class EnsureFileNotDuplicate {
 
@@ -78,7 +79,7 @@ class AttachmentValidatorUnitTest {
 
             // Act & Assert
             assertThrows(ValidationException.class,
-                    () -> attachmentValidator.ensureFileNotDuplicate(file, request, hash, seen));
+                    () -> attachmentValidator.ensureFileNotDuplicate(organizationId, file, request, hash, seen));
         }
 
         @Test
@@ -91,13 +92,13 @@ class AttachmentValidatorUnitTest {
             MultipartFile file = new MockMultipartFile(
                     "file", "file.pdf", "application/pdf", new byte[]{1, 2, 3});
             Set<String> seen = new HashSet<>();
-            when(attachmentRepository.existsByEntityTypeAndFileHash(
-                    StorageEntityType.TICKET, hash))
+            when(attachmentRepository.existsByEntityTypeAndFileHashAndOrganizationId(
+                    StorageEntityType.TICKET, hash, organizationId))
                     .thenReturn(true);
 
             // Act & Assert
             assertThrows(ValidationException.class,
-                    () -> attachmentValidator.ensureFileNotDuplicate(file, request, hash, seen));
+                    () -> attachmentValidator.ensureFileNotDuplicate(organizationId, file, request, hash, seen));
         }
 
         @Test
@@ -110,12 +111,12 @@ class AttachmentValidatorUnitTest {
             MultipartFile file = new MockMultipartFile(
                     "file", "file.pdf", "application/pdf", new byte[]{1, 2, 3});
             Set<String> seen = new HashSet<>();
-            when(attachmentRepository.existsByEntityTypeAndFileHash(
-                    StorageEntityType.TICKET, hash))
+            when(attachmentRepository.existsByEntityTypeAndFileHashAndOrganizationId(
+                    StorageEntityType.TICKET, hash, organizationId))
                     .thenReturn(false);
 
             // Act
-            assertDoesNotThrow(() -> attachmentValidator.ensureFileNotDuplicate(file, request, hash, seen));
+            assertDoesNotThrow(() -> attachmentValidator.ensureFileNotDuplicate(organizationId, file, request, hash, seen));
 
             // Assert
             assertTrue(seen.contains(hash));
@@ -132,10 +133,10 @@ class AttachmentValidatorUnitTest {
             Set<String> seen = new HashSet<>();
 
             // Act
-            assertDoesNotThrow(() -> attachmentValidator.ensureFileNotDuplicate(file, request, hash, seen));
+            assertDoesNotThrow(() -> attachmentValidator.ensureFileNotDuplicate(organizationId, file, request, hash, seen));
 
             // Assert
-            verify(attachmentRepository, never()).existsByEntityTypeAndFileHash(any(), anyString());
+            verify(attachmentRepository, never()).existsByEntityTypeAndFileHashAndOrganizationId(any(), anyString(), any());
             assertTrue(seen.contains(hash));
         }
 
@@ -150,10 +151,10 @@ class AttachmentValidatorUnitTest {
             Set<String> seen = new HashSet<>();
 
             // Act
-            assertDoesNotThrow(() -> attachmentValidator.ensureFileNotDuplicate(file, request, hash, seen));
+            assertDoesNotThrow(() -> attachmentValidator.ensureFileNotDuplicate(organizationId, file, request, hash, seen));
 
             // Assert
-            verify(attachmentRepository, never()).existsByEntityTypeAndFileHash(any(), anyString());
+            verify(attachmentRepository, never()).existsByEntityTypeAndFileHashAndOrganizationId(any(), anyString(), any());
             assertTrue(seen.contains(hash));
         }
 
@@ -170,7 +171,7 @@ class AttachmentValidatorUnitTest {
 
             // Act & Assert
             assertThrows(ValidationException.class,
-                    () -> attachmentValidator.ensureFileNotDuplicate(file, request, hash, seen));
+                    () -> attachmentValidator.ensureFileNotDuplicate(organizationId, file, request, hash, seen));
         }
 
         @Test
@@ -183,18 +184,18 @@ class AttachmentValidatorUnitTest {
             MultipartFile file = new MockMultipartFile(
                     "file", "diagram.png", "image/png", new byte[]{1, 2, 3});
             Set<String> seen = new HashSet<>();
-            when(attachmentRepository.findByEntityTypeAndEntityId(StorageEntityType.KALKAN_PAGE, pageId))
+            when(attachmentRepository.findByEntityTypeAndEntityIdAndOrganizationId(StorageEntityType.KALKAN_PAGE, pageId, organizationId))
                     .thenReturn(List.of(Attachment.builder().fileHash("other").build(),
                             Attachment.builder().fileHash(hash).build()));
 
             // Act
             ValidationException thrown = assertThrows(ValidationException.class,
-                    () -> attachmentValidator.ensureFileNotDuplicate(file, request, hash, seen));
+                    () -> attachmentValidator.ensureFileNotDuplicate(organizationId, file, request, hash, seen));
 
             // Assert
             assertEquals("STG_VAL_005", thrown.getErrorCode());
             assertFalse(seen.contains(hash));
-            verify(attachmentRepository, never()).existsByEntityTypeAndFileHash(any(), anyString());
+            verify(attachmentRepository, never()).existsByEntityTypeAndFileHashAndOrganizationId(any(), anyString(), any());
         }
 
         @Test
@@ -210,7 +211,7 @@ class AttachmentValidatorUnitTest {
 
             // Act & Assert
             assertThrows(ValidationException.class,
-                    () -> attachmentValidator.ensureFileNotDuplicate(file, request, hash, seen));
+                    () -> attachmentValidator.ensureFileNotDuplicate(organizationId, file, request, hash, seen));
         }
     }
 
@@ -278,13 +279,10 @@ class AttachmentValidatorUnitTest {
         }
 
         @Test
-        void typeWithoutAccessType_throwsForbiddenStgSec001() {
-            for (StorageEntityType type : List.of(StorageEntityType.ORGANIZATION, StorageEntityType.USER,
-                    StorageEntityType.INVOICE)) {
-                ForbiddenException thrown = assertThrows(ForbiddenException.class,
-                        () -> attachmentValidator.ensureEntityTypeAccessible(type), type.name());
-
-                assertEquals("STG_SEC_001", thrown.getErrorCode());
+        void everyType_hasAResourceAccessType() {
+            // A type without access rules would be refused; no current type may be one.
+            for (StorageEntityType type : StorageEntityType.values()) {
+                assertDoesNotThrow(() -> attachmentValidator.ensureEntityTypeAccessible(type), type.name());
             }
         }
     }
@@ -302,11 +300,11 @@ class AttachmentValidatorUnitTest {
         void sameContentTwiceOnOneMail_throwsDuplicate() {
             UUID mailId = UUID.randomUUID();
             AttachmentCreateRequest request = new AttachmentCreateRequest("a.pdf", StorageEntityType.MAIL, mailId);
-            when(attachmentRepository.findByEntityTypeAndEntityId(StorageEntityType.MAIL, mailId))
+            when(attachmentRepository.findByEntityTypeAndEntityIdAndOrganizationId(StorageEntityType.MAIL, mailId, organizationId))
                     .thenReturn(List.of(stored(StorageEntityType.MAIL, mailId, hash)));
 
             ValidationException thrown = assertThrows(ValidationException.class,
-                    () -> attachmentValidator.ensureStoredContentNotDuplicate(request, hash));
+                    () -> attachmentValidator.ensureStoredContentNotDuplicate(organizationId, request, hash));
 
             assertEquals("STG_VAL_005", thrown.getErrorCode());
         }
@@ -315,11 +313,11 @@ class AttachmentValidatorUnitTest {
         void sameContentOnTwoMails_isAllowed() {
             UUID mailId = UUID.randomUUID();
             AttachmentCreateRequest request = new AttachmentCreateRequest("a.pdf", StorageEntityType.MAIL, mailId);
-            when(attachmentRepository.findByEntityTypeAndEntityId(StorageEntityType.MAIL, mailId))
+            when(attachmentRepository.findByEntityTypeAndEntityIdAndOrganizationId(StorageEntityType.MAIL, mailId, organizationId))
                     .thenReturn(List.of());
 
-            assertDoesNotThrow(() -> attachmentValidator.ensureStoredContentNotDuplicate(request, hash));
-            verify(attachmentRepository, never()).existsByEntityTypeAndFileHash(any(), anyString());
+            assertDoesNotThrow(() -> attachmentValidator.ensureStoredContentNotDuplicate(organizationId, request, hash));
+            verify(attachmentRepository, never()).existsByEntityTypeAndFileHashAndOrganizationId(any(), anyString(), any());
         }
 
         @Test
@@ -327,41 +325,66 @@ class AttachmentValidatorUnitTest {
             UUID relationId = UUID.randomUUID();
             AttachmentCreateRequest request =
                     new AttachmentCreateRequest("a.pdf", StorageEntityType.RELATION, relationId);
-            when(attachmentRepository.findByEntityTypeAndEntityId(StorageEntityType.RELATION, relationId))
+            when(attachmentRepository.findByEntityTypeAndEntityIdAndOrganizationId(StorageEntityType.RELATION, relationId, organizationId))
                     .thenReturn(List.of(stored(StorageEntityType.RELATION, relationId, hash)));
 
             assertThrows(ValidationException.class,
-                    () -> attachmentValidator.ensureStoredContentNotDuplicate(request, hash));
+                    () -> attachmentValidator.ensureStoredContentNotDuplicate(organizationId, request, hash));
         }
 
         @Test
         void otherContentOnTheSameMail_isAllowed() {
             UUID mailId = UUID.randomUUID();
             AttachmentCreateRequest request = new AttachmentCreateRequest("a.pdf", StorageEntityType.MAIL, mailId);
-            when(attachmentRepository.findByEntityTypeAndEntityId(StorageEntityType.MAIL, mailId))
+            when(attachmentRepository.findByEntityTypeAndEntityIdAndOrganizationId(StorageEntityType.MAIL, mailId, organizationId))
                     .thenReturn(List.of(stored(StorageEntityType.MAIL, mailId, "d".repeat(64))));
 
-            assertDoesNotThrow(() -> attachmentValidator.ensureStoredContentNotDuplicate(request, hash));
+            assertDoesNotThrow(() -> attachmentValidator.ensureStoredContentNotDuplicate(organizationId, request, hash));
         }
 
         @Test
         void migratedRowWithoutHash_neverMatches() {
             UUID mailId = UUID.randomUUID();
             AttachmentCreateRequest request = new AttachmentCreateRequest("a.pdf", StorageEntityType.MAIL, mailId);
-            when(attachmentRepository.findByEntityTypeAndEntityId(StorageEntityType.MAIL, mailId))
+            when(attachmentRepository.findByEntityTypeAndEntityIdAndOrganizationId(StorageEntityType.MAIL, mailId, organizationId))
                     .thenReturn(List.of(stored(StorageEntityType.MAIL, mailId, null)));
 
-            assertDoesNotThrow(() -> attachmentValidator.ensureStoredContentNotDuplicate(request, hash));
+            assertDoesNotThrow(() -> attachmentValidator.ensureStoredContentNotDuplicate(organizationId, request, hash));
         }
 
         @Test
         void typeUniqueAcrossType_checksTheTypeWideHash() {
             AttachmentCreateRequest request =
                     new AttachmentCreateRequest("a.pdf", StorageEntityType.TICKET, UUID.randomUUID());
-            when(attachmentRepository.existsByEntityTypeAndFileHash(StorageEntityType.TICKET, hash)).thenReturn(true);
+            when(attachmentRepository.existsByEntityTypeAndFileHashAndOrganizationId(
+                    StorageEntityType.TICKET, hash, organizationId)).thenReturn(true);
 
             assertThrows(ValidationException.class,
-                    () -> attachmentValidator.ensureStoredContentNotDuplicate(request, hash));
+                    () -> attachmentValidator.ensureStoredContentNotDuplicate(organizationId, request, hash));
+        }
+        @Test
+        void typeUniqueAcrossType_contentOnlyInAnotherOrganization_isAllowed() {
+            AttachmentCreateRequest request =
+                    new AttachmentCreateRequest("a.pdf", StorageEntityType.TICKET, UUID.randomUUID());
+            when(attachmentRepository.existsByEntityTypeAndFileHashAndOrganizationId(StorageEntityType.TICKET, hash,
+                    organizationId)).thenReturn(false);
+
+            assertDoesNotThrow(() -> attachmentValidator.ensureStoredContentNotDuplicate(organizationId, request,
+                    hash));
+            verify(attachmentRepository).existsByEntityTypeAndFileHashAndOrganizationId(StorageEntityType.TICKET,
+                    hash, organizationId);
+        }
+
+        @Test
+        void typeUniquePerEntity_comparesOnlyTheParentsAttachmentsOfTheOrganization() {
+            UUID mailId = UUID.randomUUID();
+            AttachmentCreateRequest request = new AttachmentCreateRequest("a.pdf", StorageEntityType.MAIL, mailId);
+            when(attachmentRepository.findByEntityTypeAndEntityIdAndOrganizationId(StorageEntityType.MAIL, mailId,
+                    organizationId)).thenReturn(List.of());
+
+            assertDoesNotThrow(() -> attachmentValidator.ensureStoredContentNotDuplicate(organizationId, request,
+                    hash));
+            verify(attachmentRepository, never()).findByEntityTypeAndEntityId(any(), any());
         }
     }
 

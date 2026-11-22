@@ -29,21 +29,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * The attachment endpoints refuse every entity type that has no resource access type, so a signed-in user of one
- * organization cannot list, upload, probe or delete the attachments of an organization, a user or an invoice of
- * another organization. Ticket and chat attachments keep working for the users their rules allow, an entity of
- * another organization than the request header names is refused before any file or row changes, and a guest
- * reads but never writes.
+ * The attachment endpoints accept only the entity types that have access rules: the removed organization, user and
+ * invoice types are rejected as unknown values. Ticket and chat attachments keep working for the users their rules
+ * allow, every stored attachment carries the request's organization, an entity of another organization than the
+ * request header names is refused before any file or row changes, an attachment of another organization is not
+ * found, and a guest reads but never writes.
  */
 class AttachmentControllerAccessIT extends AbstractTenantIT {
 
     private static final String ORGANIZATION_HEADER = "X-Organization-ID";
-    private static final String ENTITY_TYPE_NOT_ATTACHABLE = "STG_SEC_001";
     private static final String ORGANIZATION_MISMATCH = "APP_SEC_002";
     private static final String HEADER_MISSING = "GEN_API_007";
     private static final String ROLE_TOO_LOW = "ORG_SEC_003";
     private static final String APP_ACCESS_DENIED = "APP_SEC_001";
-    private static final List<String> TYPES_WITHOUT_POLICY = List.of("ORGANIZATION", "USER", "INVOICE");
+    private static final String FILE_NOT_FOUND = "STG_NOT_001";
+    private static final List<String> REMOVED_TYPES = List.of("ORGANIZATION", "USER", "INVOICE");
 
     private Tenant tenantA;
     private Tenant tenantB;
@@ -60,15 +60,6 @@ class AttachmentControllerAccessIT extends AbstractTenantIT {
         tenantB = newTenant();
         personA = signIn(tenantA, "attach");
         personB = signIn(tenantB, "attachb");
-    }
-
-    /** An ID of the other organization for each entity type without a policy. */
-    private String otherOrganizationEntityId(String entityType) {
-        return switch (entityType) {
-            case "ORGANIZATION" -> tenantB.id();
-            case "USER" -> tenantB.member().getUser().getId().toString();
-            default -> UUID.randomUUID().toString();
-        };
     }
 
     private static MockMultipartFile file(String partName, String fileName, String content) {
@@ -109,13 +100,15 @@ class AttachmentControllerAccessIT extends AbstractTenantIT {
                 .andExpect(status().is2xxSuccessful()).andReturn(), "$.data.id");
     }
 
-    private UUID insertTicketAttachment(String ticketId) {
+    private UUID insertTicketAttachment(Tenant tenant, String ticketId) {
         return jdbcTemplate.queryForObject("""
-                INSERT INTO shrine.attachments (url, file_name, content_type, file_size, entity_type, entity_id)
+                INSERT INTO shrine.attachments (url, file_name, content_type, file_size, entity_type, entity_id,
+                                                organization_id)
                 VALUES (?, 'spec.pdf', 'application/pdf', 10,
-                        'TICKET'::shrine_storage_entity_type_enum, ?::uuid)
+                        'TICKET'::shrine_storage_entity_type_enum, ?::uuid, ?)
                 RETURNING id
-                """, UUID.class, "https://blob.invalid/" + uniqueSuffix() + ".pdf", ticketId);
+                """, UUID.class, "https://blob.invalid/" + uniqueSuffix() + ".pdf", ticketId,
+                tenant.organization().getId());
     }
 
     /** A guest of tenant A who is a viewer of the board of tenant A's ticket. */
@@ -129,64 +122,70 @@ class AttachmentControllerAccessIT extends AbstractTenantIT {
     }
 
     @Test
-    void listAttachments_typeWithoutPolicyOfOtherOrganization_returns403() throws Exception {
-        for (String entityType : TYPES_WITHOUT_POLICY) {
+    void listAttachments_removedEntityType_returns400() throws Exception {
+        for (String entityType : REMOVED_TYPES) {
             mockMvc.perform(get("/storage/attachments").param("entityType", entityType)
-                            .param("entityId", otherOrganizationEntityId(entityType)).with(personA.jwt()).header(ORGANIZATION_HEADER, tenantA.id()))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.error.code").value(ENTITY_TYPE_NOT_ATTACHABLE));
+                            .param("entityId", tenantB.id()).with(personA.jwt()).header(ORGANIZATION_HEADER, tenantA.id()))
+                    .andExpect(status().isBadRequest());
         }
     }
 
     @Test
-    void listAttachments_ownOrganization_returns403() throws Exception {
-        mockMvc.perform(get("/storage/attachments").param("entityType", "ORGANIZATION")
-                        .param("entityId", tenantA.id()).with(personA.jwt()).header(ORGANIZATION_HEADER, tenantA.id()))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.error.code").value(ENTITY_TYPE_NOT_ATTACHABLE));
-    }
-
-    @Test
-    void uploadAttachments_typeWithoutPolicyOfOtherOrganization_returns403AndStoresNothing() throws Exception {
-        for (String entityType : TYPES_WITHOUT_POLICY) {
-            String entityId = otherOrganizationEntityId(entityType);
+    void uploadAttachments_removedEntityType_returns400AndStoresNothing() throws Exception {
+        for (String entityType : REMOVED_TYPES) {
+            String entityId = UUID.randomUUID().toString();
             mockMvc.perform(multipart("/storage/attachments")
                             .file(json("metadata", uploadMetadata("doc.pdf", entityType, entityId)))
                             .file(file("files", "doc.pdf", "upload " + entityType))
                             .with(personA.jwt()).header(ORGANIZATION_HEADER, tenantA.id()))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.error.code").value(ENTITY_TYPE_NOT_ATTACHABLE));
+                    .andExpect(status().isBadRequest());
 
             assertEquals(0L, count("SELECT count(*) FROM shrine.attachments WHERE entity_id = ?::uuid", entityId));
         }
+        verify(azureBlobStorageService, never()).uploadFile(any(), any());
     }
 
     @Test
-    void checkAttachmentExists_typeWithoutPolicy_returns403() throws Exception {
-        for (String entityType : TYPES_WITHOUT_POLICY) {
+    void checkAttachmentExists_removedEntityType_returns400() throws Exception {
+        for (String entityType : REMOVED_TYPES) {
             mockMvc.perform(multipart("/storage/attachments/exists")
                             .file(json("metadata", existsMetadata("doc.pdf", entityType)))
                             .file(file("file", "doc.pdf", "probe " + entityType))
                             .with(personA.jwt()).header(ORGANIZATION_HEADER, tenantA.id()))
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.error.code").value(ENTITY_TYPE_NOT_ATTACHABLE));
+                    .andExpect(status().isBadRequest());
         }
     }
 
     @Test
-    void deleteAttachment_organizationAttachmentOfOtherOrganization_returns403AndKeepsRow() throws Exception {
-        UUID attachmentId = jdbcTemplate.queryForObject("""
-                INSERT INTO shrine.attachments (url, file_name, content_type, file_size, entity_type, entity_id)
-                VALUES (?, 'contract.pdf', 'application/pdf', 10,
-                        'ORGANIZATION'::shrine_storage_entity_type_enum, ?::uuid)
-                RETURNING id
-                """, UUID.class, "https://blob.invalid/" + uniqueSuffix() + ".pdf", tenantB.id());
+    void uploadAttachments_ticket_storesTheRequestOrganization() throws Exception {
+        String ticketId = createTicket();
 
-        mockMvc.perform(delete("/storage/attachments/" + attachmentId).with(personA.jwt()).header(ORGANIZATION_HEADER, tenantA.id()))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.error.code").value(ENTITY_TYPE_NOT_ATTACHABLE));
+        String attachmentId = read(mockMvc.perform(multipart("/storage/attachments")
+                        .file(json("metadata", uploadMetadata("spec.pdf", "TICKET", ticketId)))
+                        .file(file("files", "spec.pdf", "organization " + uniqueSuffix()))
+                        .with(personA.jwt()).header(ORGANIZATION_HEADER, tenantA.id()))
+                .andExpect(status().isCreated()).andReturn(), "$.data[0].id");
 
-        assertEquals(1L, count("SELECT count(*) FROM shrine.attachments WHERE id = ?", attachmentId));
+        assertEquals(tenantA.organization().getId(), jdbcTemplate.queryForObject(
+                "SELECT organization_id FROM shrine.attachments WHERE id = ?::uuid", UUID.class, attachmentId));
+    }
+
+    @Test
+    void checkAttachmentExists_sameTicketFileOnlyInAnotherOrganization_returnsFalse() throws Exception {
+        String ticketIdB = createTicket(tenantB, personB);
+        String content = "other organization file " + uniqueSuffix();
+        mockMvc.perform(multipart("/storage/attachments")
+                        .file(json("metadata", uploadMetadata("spec.pdf", "TICKET", ticketIdB)))
+                        .file(file("files", "spec.pdf", content))
+                        .with(personB.jwt()).header(ORGANIZATION_HEADER, tenantB.id()))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(multipart("/storage/attachments/exists")
+                        .file(json("metadata", existsMetadata("spec.pdf", "TICKET")))
+                        .file(file("file", "spec.pdf", content))
+                        .with(personA.jwt()).header(ORGANIZATION_HEADER, tenantA.id()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.exists").value(false));
     }
 
     @Test
@@ -222,7 +221,7 @@ class AttachmentControllerAccessIT extends AbstractTenantIT {
     @Test
     void everyEndpoint_missingOrganizationHeader_returns400() throws Exception {
         String ticketId = createTicket();
-        UUID attachmentId = insertTicketAttachment(ticketId);
+        UUID attachmentId = insertTicketAttachment(tenantA, ticketId);
 
         mockMvc.perform(get("/storage/attachments").param("entityType", "TICKET").param("entityId", ticketId)
                         .with(personA.jwt()))
@@ -286,14 +285,15 @@ class AttachmentControllerAccessIT extends AbstractTenantIT {
     }
 
     @Test
-    void deleteAttachment_ticketAttachmentOfAnotherOrganization_returns403KeepsRowAndBlob() throws Exception {
+    void deleteAttachment_ticketAttachmentOfAnotherOrganization_returns404KeepsRowAndBlob() throws Exception {
         String ticketIdB = createTicket(tenantB, personB);
-        UUID attachmentId = insertTicketAttachment(ticketIdB);
+        UUID attachmentId = insertTicketAttachment(tenantB, ticketIdB);
 
+        // Not found rather than forbidden, so the attachment's existence is not revealed.
         mockMvc.perform(delete("/storage/attachments/" + attachmentId)
                         .with(personA.jwt()).header(ORGANIZATION_HEADER, tenantA.id()))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.error.code").value(ORGANIZATION_MISMATCH));
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error.code").value(FILE_NOT_FOUND));
 
         assertEquals(1L, count("SELECT count(*) FROM shrine.attachments WHERE id = ?", attachmentId));
         verify(azureBlobStorageService, never()).deleteFile(any());
@@ -302,7 +302,7 @@ class AttachmentControllerAccessIT extends AbstractTenantIT {
     @Test
     void ticketAttachments_guestOfTheBoard_listsButCannotUploadOrDelete() throws Exception {
         String ticketId = createTicket();
-        UUID attachmentId = insertTicketAttachment(ticketId);
+        UUID attachmentId = insertTicketAttachment(tenantA, ticketId);
         Person guest = guestViewerOfBoardA();
 
         mockMvc.perform(get("/storage/attachments").param("entityType", "TICKET").param("entityId", ticketId)

@@ -3,9 +3,6 @@ import { z } from "zod";
 // ── Enum Schemas ───────────────────────────────────────────────────
 
 export const StorageEntityTypeSchema = z.enum([
-  "ORGANIZATION",
-  "USER",
-  "INVOICE",
   "TICKET",
   "CHAT_MESSAGE",
   "KALKAN_PAGE",

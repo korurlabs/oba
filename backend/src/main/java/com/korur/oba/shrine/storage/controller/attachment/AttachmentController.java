@@ -130,13 +130,15 @@ public class AttachmentController {
     @Operation(summary = "Check whether an attachment with identical content already exists")
     public ResponseEntity<CustomResponse<AttachmentExistsResponse>> checkAttachmentExists(
             @Parameter(hidden = true) @GetUser User user,
+            @RequestHeader(CommonConstant.HEADER_ORGANIZATION_ID) UUID organizationId,
             @Valid @RequestPart("metadata") AttachmentExistsCheckRequest metadata,
             @RequestPart("file") MultipartFile file) {
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
                 AttachmentControllerLogConstant.ATTACHMENT_EXISTS_CHECK_REQUEST,
                 metadata.entityType());
 
-        AttachmentExistsResponse response = attachmentQueryService.checkAttachmentExists(metadata, file);
+        AttachmentExistsResponse response = attachmentQueryService.checkAttachmentExists(organizationId, metadata,
+                file);
 
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
                 AttachmentControllerLogConstant.ATTACHMENT_EXISTS_CHECK_REQUEST_COMPLETED, response.exists());

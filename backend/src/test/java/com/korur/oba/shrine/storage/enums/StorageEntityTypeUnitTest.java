@@ -10,6 +10,7 @@ import java.util.Optional;
 import com.korur.oba.shrine.access.enums.ResourceAccessType;
 import com.korur.oba.shrine.storage.enums.common.StorageEntityType;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -43,9 +44,16 @@ class StorageEntityTypeUnitTest {
     }
 
     @Test
-    void findResourceAccessType_typesWithoutRules_returnEmpty() {
-        assertTrue(StorageEntityType.ORGANIZATION.findResourceAccessType().isEmpty());
-        assertTrue(StorageEntityType.USER.findResourceAccessType().isEmpty());
-        assertTrue(StorageEntityType.INVOICE.findResourceAccessType().isEmpty());
+    void values_areTheFiveAttachableTypes() {
+        assertArrayEquals(new StorageEntityType[] {StorageEntityType.TICKET, StorageEntityType.CHAT_MESSAGE,
+                        StorageEntityType.KALKAN_PAGE, StorageEntityType.MAIL, StorageEntityType.RELATION},
+                StorageEntityType.values());
+    }
+
+    @Test
+    void findResourceAccessType_everyType_isPresent() {
+        for (StorageEntityType type : StorageEntityType.values()) {
+            assertTrue(type.findResourceAccessType().isPresent(), type.name());
+        }
     }
 }
