@@ -117,7 +117,8 @@ public class KalkanPageController {
             @ApiResponse(responseCode = "403", description = "Below MEMBER; KLK_SEC_001: below EDIT on the root, or a "
                     + "new root below ADMIN"),
             @ApiResponse(responseCode = "404", description = "KLK_NOT_001: the root is hidden from the caller"),
-            @ApiResponse(responseCode = "409", description = "KLK_STA_004: changed in Kalkan since the last push; "
+            @ApiResponse(responseCode = "409", description = "KLK_STA_001: a new root's slug is held by a "
+                    + "deleted root; KLK_STA_004: changed in Kalkan since the last push; "
                     + "GEN_STA_001: changed concurrently"),
             @ApiResponse(responseCode = "422", description = "GEN_VAL_001: invalid path or translation; KLK_VAL_001: "
                     + "a parent path is missing; KLK_VAL_005: a locale twice; KLK_VAL_007: reserved root slug"),
@@ -298,7 +299,8 @@ public class KalkanPageController {
             @ApiResponse(responseCode = "403", description = "Below MEMBER; KLK_SEC_001: below EDIT on the parent's root, "
                     + "or a root below ADMIN"),
             @ApiResponse(responseCode = "404", description = "KLK_NOT_001: no such parent, or hidden from the caller"),
-            @ApiResponse(responseCode = "409", description = "KLK_STA_001: slug taken under the parent"),
+            @ApiResponse(responseCode = "409", description = "KLK_STA_001: slug taken under the parent; for a "
+                    + "root also a slug held by a deleted root, whose id is in deletedPageId"),
             @ApiResponse(responseCode = "422", description = "GEN_VAL_001: invalid field; KLK_VAL_004: deeper than 10 "
                     + "levels; KLK_VAL_005: a locale twice; KLK_VAL_007: reserved root slug"),
             @ApiResponse(responseCode = "500", description = "Internal server error")

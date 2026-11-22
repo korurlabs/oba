@@ -83,6 +83,24 @@ public interface KalkanPageRepository extends SoftDeleteRepository<KalkanPage, U
                            @Param("excludedId") UUID excludedId);
 
     /**
+     * Finds the most recently deleted root page of the organization with a slug. A deleted root
+     * keeps its slug for its restore, so a new root may not take it.
+     *
+     * @param organizationId the organization
+     * @param slug           the root slug
+     * @return the deleted root's id; empty when no deleted root has the slug
+     */
+    @Query(value = """
+            SELECT p.id FROM kalkan.pages p
+            WHERE p.organization_id = :organizationId AND p.parent_id IS NULL AND p.slug = :slug
+              AND p.deleted = TRUE
+            ORDER BY p.updated_at DESC
+            LIMIT 1
+            """, nativeQuery = true)
+    Optional<UUID> findDeletedRootIdBySlug(@Param("organizationId") UUID organizationId,
+                                           @Param("slug") String slug);
+
+    /**
      * Whether a live child of the parent other than the given page has the slug.
      *
      * @param parentId   the parent page
