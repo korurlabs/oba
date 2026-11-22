@@ -331,8 +331,9 @@ public class KalkanPageController {
             @ApiResponse(responseCode = "401", description = "No valid JWT"),
             @ApiResponse(responseCode = "403", description = "Below MEMBER; KLK_SEC_001: below EDIT on the root"),
             @ApiResponse(responseCode = "404", description = "KLK_NOT_001: no such page, or hidden from the caller"),
-            @ApiResponse(responseCode = "409", description = "KLK_STA_001: slug taken; KLK_STA_002: a newer version "
-                    + "exists; GEN_STA_001: changed concurrently"),
+            @ApiResponse(responseCode = "409", description = "KLK_STA_001: slug taken; for a root also a slug held "
+                    + "by a deleted root, whose id is in deletedPageId; KLK_STA_002: a newer version exists; "
+                    + "GEN_STA_001: changed concurrently"),
             @ApiResponse(responseCode = "422", description = "GEN_VAL_001: invalid field; KLK_VAL_005: a locale twice; "
                     + "KLK_VAL_007: reserved root slug"),
             @ApiResponse(responseCode = "500", description = "Internal server error")

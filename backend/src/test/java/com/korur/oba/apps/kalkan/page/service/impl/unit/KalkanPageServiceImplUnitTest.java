@@ -571,6 +571,23 @@ class KalkanPageServiceImplUnitTest {
         }
 
         @Test
+        void updatePage_rootRenamedToDeletedRootSlug_throwsSlugTakenNamingTheDeletedRoot() {
+            UUID deletedRootId = UUID.randomUUID();
+            when(kalkanPageQueryService.getEntity(organizationId, root.getId())).thenReturn(root);
+            when(kalkanAccessQueryService.verifyLevel(organizationId, root, user, KalkanLevel.EDIT))
+                    .thenReturn(KalkanLevel.EDIT);
+            when(kalkanPageRepository.findDeletedRootIdBySlug(organizationId, "handbook"))
+                    .thenReturn(Optional.of(deletedRootId));
+
+            ConflictException thrown = assertThrows(ConflictException.class, () -> service.updatePage(user,
+                    organizationId, root.getId(), new KalkanPageUpdateRequest("handbook", null, 0L, null)));
+
+            assertEquals("KLK_STA_001", thrown.getErrorCode());
+            assertEquals(deletedRootId.toString(), thrown.getErrorValues().get("deletedPageId"));
+            verify(kalkanPageRepository, never()).saveAndFlush(any());
+        }
+
+        @Test
         void updatePage_sameSlug_doesNotCheckUniqueness() {
             KalkanPage page = KalkanMocks.child(root, "a");
             when(kalkanPageQueryService.getEntity(organizationId, page.getId())).thenReturn(page);
