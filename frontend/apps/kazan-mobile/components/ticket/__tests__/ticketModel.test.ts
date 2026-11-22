@@ -155,6 +155,24 @@ describe("descriptionText", () => {
   it("is empty without a description", () => {
     expect(descriptionText(null, "[Image]")).toBe("");
   });
+
+  // The result is shown as text and never read as HTML again, so a leftover
+  // "<" is harmless; what matters is that each case reads as a browser shows it.
+  it.each([
+    ["a script tag split by another tag", "a<scr<script>ipt>alert(1)</script>b", "aipt>alert(1)b"],
+    ["a script tag nested in itself", "<<script>script>alert(1)<</script>/script>", "</script>"],
+    ["an empty and an abruptly closed comment", "a<!-- -->b<!-- <b>x</b> --!>c<!-->d", "abcd"],
+    ["an image with an event handler", "<img src=x onerror=alert(1)>!", "[Image]!"],
+    [
+      "uppercase and attribute-spaced tags",
+      '<IMG\n SRC = "x" ><B  class = "y" >bold</B ><BR/>',
+      "[Image]bold",
+    ],
+    ["a style element", "<style>p { color: red }</style>text", "text"],
+    ["encoded markup", "&lt;script&gt;alert(1)&lt;/script&gt;", "<script>alert(1)</script>"],
+  ])("leaves only text for %s", (_case: string, markdown: string, expected: string) => {
+    expect(descriptionText(markdown, "[Image]")).toBe(expected);
+  });
 });
 
 describe("comments", () => {
