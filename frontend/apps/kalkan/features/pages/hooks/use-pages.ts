@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useOrganizationId } from "@/hooks/use-organization-id";
 import {
   createPage,
@@ -18,6 +18,7 @@ import {
   updatePage,
 } from "../api";
 import { pageErrorText } from "../lib/page-error";
+import { contentLocaleOf } from "../lib/page-tree";
 import {
   RECENT_LIMITS,
   type PageCreateRequest,
@@ -75,24 +76,30 @@ export function usePageRevision(pageId: string | undefined, revisionId: string |
 }
 
 /**
- * The deleted pages the caller can restore. The server refuses a GUEST, so a
- * caller passes `enabled: false` for one instead of showing a refusal.
+ * The deleted pages the caller can restore, titled in the content locale of
+ * the interface. The server refuses a GUEST, so a caller passes
+ * `enabled: false` for one instead of showing a refusal.
  */
 export function useTrash({ enabled = true }: { enabled?: boolean } = {}) {
   const organizationId = useOrganizationId();
+  const locale = contentLocaleOf(useLocale());
   return useQuery({
-    queryKey: PAGE_KEYS.trash(organizationId ?? ""),
-    queryFn: listTrash,
+    queryKey: PAGE_KEYS.trash(organizationId ?? "", locale),
+    queryFn: () => listTrash(locale),
     enabled: enabled && !!organizationId,
   });
 }
 
-/** The most recently changed pages the caller can see; `limit` is 1 to 100. */
+/**
+ * The most recently changed pages the caller can see, titled in the content
+ * locale of the interface; `limit` is 1 to 100.
+ */
 export function useRecentPages(limit: number = RECENT_LIMITS.default) {
   const organizationId = useOrganizationId();
+  const locale = contentLocaleOf(useLocale());
   return useQuery({
-    queryKey: PAGE_KEYS.recent(organizationId ?? "", limit),
-    queryFn: () => listRecentPages(limit),
+    queryKey: PAGE_KEYS.recent(organizationId ?? "", limit, locale),
+    queryFn: () => listRecentPages(limit, locale),
     enabled: !!organizationId,
   });
 }

@@ -110,5 +110,92 @@
       "notDeleted": "Bu sayfa çöp kutusunda değil.",
       "validation": "Bazı alanlar geçerli değil. Kontrol edip tekrar deneyin."
     }
+  },
+  "overview": {
+    "title": "Genel bakış",
+    "subtitle": "Uyum vikinizin bölümleri ve son değişiklikler.",
+    "loading": "Bölümler yükleniyor",
+    "loadError": "Bölümler yüklenemedi",
+    "sectionsLabel": "Bölümler",
+    "pageCount": "{count, plural, =0 {Henüz sayfa yok} other {# sayfa}}",
+    "notSetUp": "Kurulmadı",
+    "recentTitle": "Son değişiklikler",
+    "recentLoading": "Son değişiklikler yükleniyor",
+    "recentLoadError": "Son değişiklikler yüklenemedi",
+    "recentEmpty": "Henüz hiçbir sayfa değiştirilmedi.",
+    "viewAll": "Tümünü gör"
+  },
+  "recent": {
+    "title": "Son değişiklikler",
+    "subtitle": "Görebildiğiniz her bölümde en son değiştirilen sayfalar.",
+    "loading": "Son değişiklikler yükleniyor",
+    "loadError": "Son değişiklikler yüklenemedi",
+    "empty": "Henüz değişiklik yok",
+    "emptyHint": "Biri bir sayfa oluşturduğunda veya düzenlediğinde sayfalar burada görünür.",
+    "tableLabel": "Son değiştirilen sayfalar",
+    "unknownUser": "Bilinmiyor",
+    "columns": {
+      "title": "Sayfa",
+      "section": "Bölüm",
+      "updatedAt": "Değişiklik",
+      "updatedBy": "Kişi"
+    }
+  },
+  "trash": {
+    "title": "Çöp kutusu",
+    "subtitle": "Geri yükleyebileceğiniz silinmiş sayfalar ve onlarla birlikte silinen sayfalar.",
+    "loading": "Çöp kutusu yükleniyor",
+    "loadError": "Çöp kutusu yüklenemedi",
+    "empty": "Çöp kutusu boş",
+    "emptyHint": "Yönettiğiniz silinmiş sayfalar geri yüklenene kadar burada görünür.",
+    "membersOnly": "Çöp kutusunu yalnızca üyeler açabilir",
+    "membersOnlyHint": "Misafirler sayfaları okur ama geri yükleyemez.",
+    "tableLabel": "Silinmiş sayfalar",
+    "unknownUser": "Bilinmiyor",
+    "columns": {
+      "title": "Sayfa",
+      "deletedAt": "Silinme",
+      "deletedBy": "Kişi",
+      "descendants": "Alt sayfalar",
+      "actions": "İşlemler"
+    },
+    "restore": "Geri yükle",
+    "restoreLabel": "{title} sayfasını geri yükle",
+    "parentFirst": "Üst sayfası da çöp kutusunda. Önce üst sayfayı geri yükleyin."
+  },
+  "history": {
+    "title": "Geçmiş",
+    "loading": "Geçmiş yükleniyor",
+    "loadError": "Geçmiş yüklenemedi",
+    "empty": "Henüz sürüm yok",
+    "emptyHint": "Sayfanın her kaydı buraya bir sürüm ekler.",
+    "tableLabel": "Sayfanın sürümleri",
+    "backToPage": "Sayfaya dön",
+    "unknownUser": "Bilinmiyor",
+    "columns": {
+      "version": "Sürüm",
+      "locale": "Dil",
+      "title": "Başlık",
+      "createdAt": "Kayıt",
+      "createdBy": "Kişi"
+    },
+    "locales": {
+      "TR": "Türkçe",
+      "EN": "İngilizce"
+    },
+    "revisionLoading": "Sürüm yükleniyor",
+    "revisionLoadError": "Sürüm yüklenemedi",
+    "revisionHeading": "Sürüm {version}, {locale}",
+    "revisionMeta": "{when} tarihinde {name} kaydetti",
+    "modeLabel": "Sürümün gösterimi",
+    "modeRevision": "Sürüm",
+    "modeCompare": "Güncel metinle karşılaştır",
+    "thisRevision": "Bu sürüm",
+    "current": "Güncel",
+    "noCurrent": "Sayfanın bu dilde güncel metni yok.",
+    "emptyBody": "Bu metin boş.",
+    "added": "Güncel metinde eklendi",
+    "removed": "Güncel metinde yok",
+    "compareTooLarge": "Bu metinler farkları işaretlemek için çok uzun; yan yana gösteriliyor."
   }
 }
