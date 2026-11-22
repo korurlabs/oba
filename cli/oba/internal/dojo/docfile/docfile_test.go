@@ -33,16 +33,16 @@ func TestType(t *testing.T) {
 
 func TestCheckDocumentFile(t *testing.T) {
 	for _, path := range []string{"nda.html", "x/y.HTML"} {
-		if err := CheckDocumentFile(path, "NDA"); err != nil {
+		if err := CheckDocumentFile(path, "a document"); err != nil {
 			t.Errorf("%s: %v", path, err)
 		}
 	}
 	bad := map[string]string{
 		"mail.md": "use 'oba otak mail-template push'",
-		"nda.pdf": "a NDA is an .html file, rendered to PDF on upload, not nda.pdf",
+		"nda.pdf": "a document is an .html file, rendered to PDF on upload, not nda.pdf",
 	}
 	for path, want := range bad {
-		if err := CheckDocumentFile(path, "NDA"); err == nil || !strings.Contains(err.Error(), want) {
+		if err := CheckDocumentFile(path, "a document"); err == nil || !strings.Contains(err.Error(), want) {
 			t.Errorf("%s: err = %v, want %q", path, err, want)
 		}
 	}

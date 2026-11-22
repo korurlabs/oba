@@ -1,7 +1,7 @@
-// Package pdf prepares an HTML document for Otak: it inlines the local images and renders the
+// Package pdf prepares an HTML document for upload: it inlines the local images and renders the
 // result to PDF with WeasyPrint, the engine the document library renders with, so that @page
-// margin boxes and page breaks come out the same as in the library's own PDFs. The document
-// template push uses it.
+// margin boxes and page breaks come out the same as in the library's own PDFs. The document and
+// document template create and upload commands use it.
 package pdf
 
 import (
