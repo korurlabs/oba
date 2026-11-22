@@ -29,7 +29,7 @@ comes from exactly one of:
                                a blank line, then the body as plain text. --lang (nl, tr, en or
                                us) sets its language; it is NL without it.
 --attach copies the PDF of a document template onto the new mail as an attachment; repeat it
-or give a comma list. 'oba otak template list' lists the ids. Add other files after create
+or give a comma list. 'oba document template list' lists the ids. Add other files after create
 with 'oba otak attachment add --outreach <outreachId> --file <path>'.
 
 A WHATSAPP or CALL happens outside Oba and takes none of these flags; record it as done with
