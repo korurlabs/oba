@@ -1,6 +1,6 @@
 # Oba CLI
 
-`oba` works with the Oba apps from a terminal. The command path picks the app (`oba otak ...`). This version signs a user in, chooses the organization, lists Otak relations (leads, customers and suppliers) with their ids (`oba otak relation list`), creates, updates and deletes them and their contact persons (`oba otak contact`) from one JSON object on stdin, manages ICPs (also worked out with Claude Code in `oba otak icp brainstorm`) and events (`oba otak event`), finds new leads for an ICP, each with up to two business contacts, with Claude Code, pushes and pulls document templates as files, prepares outreaches and manages the attachments of an outreach's mail or a relation (`oba otak template`, `outreach`, `attachment`). `oba kaya` delivers the organization's agent config to Claude Code as signed releases and records its sessions (see Kaya).
+`oba` works with the Oba apps from a terminal. The command path picks the app (`oba otak ...`). This version signs a user in, chooses the organization, lists Otak relations (leads, customers and suppliers) with their ids (`oba otak relation list`), creates, updates and deletes them and their contact persons (`oba otak contact`) from one JSON object on stdin, manages ICPs (also worked out with Claude Code in `oba otak icp brainstorm`) and events (`oba otak event`), finds new leads for an ICP, each with up to two business contacts, with Claude Code, prepares outreaches and manages the attachments of an outreach's mail or a relation (`oba otak outreach`, `attachment`). `oba legal-entity` keeps the companies in whose name the organization issues documents, and `oba document` creates a relation's documents and the organization's document templates from HTML files, renders their PDF locally, and attaches a document's PDF to a mail. `oba kaya` delivers the organization's agent config to Claude Code as signed releases and records its sessions (see Kaya).
 
 ## Install
 
@@ -86,6 +86,42 @@ oba legal-entity delete <id> [--yes]
 ```
 
 A legal entity is a company in whose name the organization issues documents. The commands act in the current organization; reading needs the MEMBER role, the writes need ADMIN. `create` needs `--short-name` (unique in the organization, case ignored), `--legal-name` and `--country`. `update` changes only the fields whose flags are given: the API replaces every field, so the CLI reads the entity first and sends its stored values for the others. `delete` asks first on a terminal, unless `--yes` is given.
+
+## Documents
+
+```sh
+oba document list --relation <relationId>
+oba document create --relation <relationId> --legal-entity <legalEntityId> --title "NDA Acme" --type nda --language nl \
+  --template <templateId>
+oba document create --relation <relationId> --legal-entity <legalEntityId> --title "Proposal Acme" --type proposal \
+  --language en --file proposal.html
+oba document download <documentId> --output work/nda-acme.html
+oba document upload <documentId> work/nda-acme.html          # renders the PDF, replaces HTML and PDF
+oba document attach-to-mail <documentId> --mail <mailId>     # stores a PDF copy on the mail
+
+oba document template list --type nda --language nl --legal-entity <legalEntityId>
+oba document template create --file legal/nda/nda_nl.html --type nda --language nl [--name "NDA"] [--legal-entity <id>]
+oba document template download <templateId> --output legal/nda/nda_nl.html --force
+oba document template upload <templateId> legal/nda/nda_nl.html
+```
+
+A document is an `.html` file with its rendered PDF that belongs to an Otak relation and is written in the name of one legal entity of the organization (`oba legal-entity`). A document template is reusable content of the organization from which documents start; one bound to a legal entity serves only that legal entity, one without serves every legal entity. The type is PROPOSAL, NDA, TERMS, CONTRACT, REPORT, SERVICE_SHEET, PRESENTATION or OTHER, the language NL, TR or EN. A mail is neither: MAIL as `--type` and a `.md` file are refused with a pointer to `oba otak mail-template` (below).
+
+`create` and `upload` are separate on purpose: a mistyped id never creates a duplicate. A document or template made from another keeps its own copy of the files, and a mail keeps the PDF copy it got when the document changes later.
+
+On create and upload the local images of the HTML (`<img src="../../images/logo-korur.png">`, relative to the file, absolute or `file:`) are inlined as base64 data URIs, so that the uploaded HTML renders the same anywhere; `https:`, `data:` and `//` sources stay as they are, and a local image that cannot be read stops the command. The inlined HTML is rendered to PDF with the `weasyprint` command, the engine the document library renders with, run as `weasyprint --base-url <source file> <html> <pdf>` in a temporary directory so that nothing is written next to the source. The HTML and the PDF go up together in one multipart `PUT .../files`, parts `html` (`text/html; charset=utf-8`) and `pdf` (`application/pdf`). Everything that can fail locally (the ids, the values, the extension, the rendering) fails before any call. WeasyPrint must be on your `PATH`: `brew install weasyprint` on macOS, `pip install weasyprint` elsewhere.
+
+`--language` is `nl`, `tr`, `en`, or `us` for English, case ignored. `--type` is matched without regard to case, with `-` read as `_` (`service-sheet`). Every id, as argument or flag, must be a UUID.
+
+- `document list` prints `TITLE  TYPE  LANGUAGE  RELATION  LEGAL ENTITY  READY  SENT  UPDATED  ID`, last changed first, every page of `GET /documents`. READY is `no` for a document without its files; SENT counts the mails it was attached to. `--relation`, `--legal-entity`, `--type`, `--language` and `--search` (part of the title) narrow it; every filter is optional.
+- `document create` needs `--relation`, `--legal-entity`, `--title`, `--type`, `--language` and exactly one of `--template` and `--file`. It sends `POST /documents` with `entityType` `RELATION`. With `--template` the API copies the template's HTML and PDF; a template without files gives a document without files, and one bound to another legal entity answers `DOC_VAL_002`. With `--file` the file is rendered first, then the create and `PUT /documents/{id}/files` follow; when the upload fails, the error names the new id and the `oba document upload` command that finishes it.
+- `document download` and `document template download` write the stored HTML to `--output` (`-o`), default `<title>.html` or `<name>.html` in the current directory, the name reduced to letters, digits, `-`, `_` and `.`. The HTML comes from the signed URL the API returns, without the session token. An existing file is not overwritten without `--force`; one without files yet fails with `has no files yet`.
+- `document upload` and `document template upload` render the file and send only `PUT .../files`.
+- `document attach-to-mail` sends `POST /documents/{id}/attachments` `{"entityType":"MAIL","entityId":<mailId>}`; the API stores the document's current PDF as the attachment `<title>.pdf` of that mail and prints its id. `--mail` is the mail id `oba otak outreach create` prints. The mail must belong to the document's relation (`DOC_VAL_004`) and not be sent (`OTK_STA_011`); a document without its PDF answers `DOC_VAL_003`, the same PDF already on the mail `STG_VAL_005`.
+- `document template list` prints `NAME  TYPE  LANGUAGE  LEGAL ENTITY  READY  UPDATED  ID`, every page; LEGAL ENTITY is `all` for a template every legal entity may use. `--type`, `--language`, `--legal-entity` (its own templates and those of every legal entity) and `--search` narrow it.
+- `document template create` needs `--file`, `--type` and `--language`; the name defaults to the file name without extension unless `--name` gives one, and is unique per language in the organization (`DOC_STA_001`). `--legal-entity` binds it to one legal entity. It sends `POST /document-templates`, then `PUT .../{id}/files`; when the files fail, the error names the new id and the `oba document template upload` command that finishes it. Name, type, language and legal entity of an existing template are edited in the Otak web app.
+
+Documents need the MEMBER role and access to Otak, since every document belongs to an Otak relation; attaching to a mail needs the ADMIN role. Templates are read by any member; their writes need ADMIN.
 
 ## Global flags and OBA_TOKEN
 
@@ -310,29 +346,6 @@ Terminal escape sequences, control characters and bidi controls are removed from
 
 Web search results can be wrong: check each candidate before you pick it.
 
-## Otak document templates
-
-```sh
-oba otak template list --type nda --lang nl
-oba otak template push legal/nda/nda_nl.html --type nda --lang nl --name "NDA"
-oba otak template push legal/nda/nda_nl.html --id <templateId>       # update; type, language and name stay unless given
-oba otak template pull <templateId> -o work/
-```
-
-A template is reusable content of the organization, an `.html` file of type PROPOSAL, NDA, TERMS, REPORT, SERVICE_SHEET, PRESENTATION or OTHER with its rendered PDF. A mail or a relation gets a copy of that PDF as an attachment (`oba otak attachment add --template`, `oba otak outreach create --attach`), which later template changes do not touch. A mail is no template: MAIL as `--type` and a `.md` file are refused with a pointer to `oba otak mail-template` (below).
-
-On push the local images of the HTML (`<img src="../../images/logo-korur.png">`, relative to the file, absolute or `file:`) are inlined as base64 data URIs, so that the uploaded HTML renders the same anywhere; `https:`, `data:` and `//` sources stay as they are, and a local image that cannot be read stops the push. The inlined HTML is rendered to PDF with the `weasyprint` command, the engine the document library renders with, run as `weasyprint --base-url <source file> <html> <pdf>` in a temporary directory so that nothing is written next to the source. The HTML and the PDF go up together in one multipart `PUT .../files`, parts `html` (`text/html; charset=utf-8`) and `pdf` (`application/pdf`). A pull downloads both from the signed URLs the API returns, without sending the session token there, as `<name>.html` and `<name>.pdf`.
-
-WeasyPrint must be on your `PATH`: `brew install weasyprint` on macOS, `pip install weasyprint` elsewhere. Without it, a push stops before any call.
-
-`--lang` is `nl`, `tr`, `en`, or `us` for English, case ignored. `--type` is matched without regard to case, with `-` read as `_` (`service-sheet`).
-
-- `template list` prints `NAME  TYPE  LANGUAGE  READY  UPDATED  ID`, every page. READY is `no` for a template whose files are not uploaded yet.
-- `template push` without `--id` needs `--type` and `--lang`; the name defaults to the file name without extension. It sends `POST /otak/document-templates`, then `PUT .../{id}/files`. With `--id` it reads the template, keeps its type, language and name unless given (a different `--type` changes the type), and sends `PUT .../{id}`, then the files. The file is read and rendered before the first write. When the files fail after a create, the error names the new id: push again with `--id`. A name already taken in that language answers `OTK_STA_009`.
-- `template pull` writes into `-o` (default the current directory) as `<name>.html` and `<name>.pdf`, the name reduced to letters, digits, `-`, `_` and `.`. An existing file is not overwritten without `--force`. A template without files yet fails with `has no files yet`.
-
-Writes need the ADMIN role; a member can list and pull.
-
 ## Otak mail templates
 
 ```sh
@@ -364,7 +377,7 @@ oba otak outreach list --relation <relationId> --status draft
 
 `outreach create` stores one DRAFT reach-out to one contact of a relation in `POST /otak/outreaches`; nothing is sent. `--relation`, `--contact`, `--title` and `--type` are required. `--type` is the channel: `mail`, `whatsapp` or `call`, case ignored. It prints `Created outreach <id> (<title>, <TYPE>, DRAFT)`, and for a MAIL also `Mail <mailId>: <subject>`.
 
-- A MAIL is sent from the lead page of the Otak web app, where you choose the mailbox. Its mail comes from exactly one of `--template`, a mail template the API copies into the outreach's own mail, and `--mail-file`, a `.md` mail file as above, whose language `--lang` sets (`NL` without it; the API requires a language). `--lang` without `--mail-file` is refused, since a mail template keeps its own language. `--attach` is repeated or a comma list of document template ids (`oba otak template list`), sent as `documentTemplateIds`: the API copies each template's PDF onto the new mail as an attachment, in the same transaction. A template without its PDF answers `OTK_VAL_012`, one of another organization `OTK_NOT_007`, a contact of another relation `OTK_NOT_002`. Other files are added after create with `oba otak attachment add --outreach`.
+- A MAIL is sent from the lead page of the Otak web app, where you choose the mailbox. Its mail comes from exactly one of `--template`, a mail template the API copies into the outreach's own mail, and `--mail-file`, a `.md` mail file as above, whose language `--lang` sets (`NL` without it; the API requires a language). `--lang` without `--mail-file` is refused, since a mail template keeps its own language. `--attach` is repeated or a comma list of document template ids (`oba document template list`), sent as `documentTemplateIds`: the API copies each template's PDF onto the new mail as an attachment, in the same transaction. A template without its PDF answers `DOC_VAL_002`, one of another organization `DOC_NOT_001`, a contact of another relation `OTK_NOT_002`. A document's PDF goes onto the mail after create with `oba document attach-to-mail`. Other files are added after create with `oba otak attachment add --outreach`.
 - A WHATSAPP or CALL happens outside Oba and takes none of `--template`, `--mail-file`, `--lang` and `--attach`; given ones are named and refused before any call.
 
 `outreach complete <outreachId>` records a DRAFT WHATSAPP or CALL as done with `POST /otak/outreaches/{id}/complete`: it becomes SENT, now, to the contact's phone, and the command prints `Recorded outreach <id> as done (<title>, <TYPE>, SENT to <phone>)`. The API refuses a MAIL with `OTK_VAL_014`, an outreach already done with `OTK_STA_011` and a contact without a phone with `OTK_VAL_015`.
@@ -376,14 +389,13 @@ oba otak outreach list --relation <relationId> --status draft
 ```sh
 oba otak attachment list --outreach <outreachId>
 oba otak attachment add --outreach <outreachId> --file voorstel.pdf --file prijzen.xlsx
-oba otak attachment add --relation <relationId> --template <documentTemplateId>
 oba otak attachment delete --relation <relationId> --id <attachmentId>
 ```
 
 Every subcommand takes exactly one of `--outreach`, the own mail of a MAIL outreach (read with `GET /otak/outreaches/{id}` for its `mail.id`; a WHATSAPP or CALL has no mail and is refused), and `--relation`. The calls go to `/storage/attachments` with `entityType` `MAIL` or `RELATION` and the `X-Organization-ID` of the current organization.
 
 - `list` prints `NAME  SIZE  TYPE  CREATED  ID` in upload order, or `No attachments.`.
-- `add` takes exactly one of `--file`, repeatable, and `--template`. `--file` reads and checks every file before any call (a leading `~` is the home directory, a blank path is skipped; a regular, non-empty file, at most 12 MB together, no line break in its name, no two with the same content) and uploads them in one multipart `POST /storage/attachments`: a `metadata` JSON part with `{fileName, entityType, entityId}` per file and one `files` part per file, its media type from the extension, else from the content. `--template` sends `POST /otak/document-templates/{id}/attachments` `{entityType, entityId}`; the API copies the template's PDF as `<template name>.pdf`. Content already on the mail or relation answers `STG_VAL_005`, a template without its PDF `OTK_VAL_012`.
+- `add` takes `--file`, repeatable. It reads and checks every file before any call (a leading `~` is the home directory, a blank path is skipped; a regular, non-empty file, at most 12 MB together, no line break in its name, no two with the same content) and uploads them in one multipart `POST /storage/attachments`: a `metadata` JSON part with `{fileName, entityType, entityId}` per file and one `files` part per file, its media type from the extension, else from the content. Content already on the mail or relation answers `STG_VAL_005`. A document's PDF goes onto a mail with `oba document attach-to-mail` (see Documents).
 - `delete --id` checks that the id is an attachment of the given outreach or relation, asks for confirmation (without a terminal pass `--yes`) and sends `DELETE /storage/attachments/{id}`.
 
 A mail's attachments change only while its outreach is not SENT (`OTK_STA_011`) and need the ADMIN role; a relation's need the MEMBER role.
@@ -519,12 +531,10 @@ The packages are grouped as in the Oba backend: `dojo` is the technical foundati
 |---|---|
 | `main.go` | entry point; the version comes in through `-ldflags "-X main.version=..."` |
 | `cmd/` | the root command; it adds the platform commands and one command group per app, and `oba admin` |
-| `cmd/shrine/` | the platform commands `login`, `logout`, `org` and `legal-entity` |
+| `cmd/shrine/` | the platform commands `login`, `logout`, `org`, `legal-entity` and `document` (with `document template`) |
 | `cmd/apps/<app>/` | `NewCmd()` builds `oba <app>` and adds the commands of each domain (`cmd/apps/otak/`, `cmd/apps/kaya/`) |
-| `cmd/apps/<app>/<domain>/` | the commands of one domain, one file per command; `NewCmd()` builds `oba <app> <domain>` (`cmd/apps/otak/relation/`, `contact/`, `icp/`, `event/`, `find/`, `template/`, `outreach/`, `attachment/`; `cmd/apps/admin/org/`, `member/`, `invite/`; `cmd/apps/kaya/delivery/` (sync, refresh, status, launch, watch), `hook/`, `statusline/`, `install/`, `seed/`, `propose/`, `lessons/`, `sender/`, `signingkey/`) |
-| `internal/apps/<app>/<domain>/` | the logic of one domain of an app (`internal/apps/otak/relation/`, `contact/`, `icp/`, `event/`, `find/`, `template/`, `outreach/`, `attachment/`; `internal/apps/admin/org/`, `member/`, `invite/`, and `role/`, the role check that `invite` and `member` share) |
-| `internal/apps/otak/pdf/` | inlining local images as data URIs and rendering HTML to PDF with `weasyprint` |
-| `internal/apps/otak/docfile/` | the file forms the template, mail-template and outreach domains share: the MAIL file, `--lang` and `--type`, the extension check, loading a file and writing a pull |
+| `cmd/apps/<app>/<domain>/` | the commands of one domain, one file per command; `NewCmd()` builds `oba <app> <domain>` (`cmd/apps/otak/relation/`, `contact/`, `icp/`, `event/`, `find/`, `mailtemplate/`, `outreach/`, `attachment/`; `cmd/apps/admin/org/`, `member/`, `invite/`; `cmd/apps/kaya/delivery/` (sync, refresh, status, launch, watch), `hook/`, `statusline/`, `install/`, `seed/`, `propose/`, `lessons/`, `sender/`, `signingkey/`) |
+| `internal/apps/<app>/<domain>/` | the logic of one domain of an app (`internal/apps/otak/relation/`, `contact/`, `icp/`, `event/`, `find/`, `mailtemplate/`, `outreach/`, `attachment/`; `internal/apps/admin/org/`, `member/`, `invite/`, and `role/`, the role check that `invite` and `member` share) |
 | `internal/apps/kaya/<domain>/` | the logic of Kaya's domains: `delivery/` (trusted keys, manifests, the blob cache, versions and the switch, sessions, the launcher and the watcher, the outcome texts), `hook/`, `statusline/`, `install/`, `seed/`, `propose/`, `lessons/`, `capture/` (one hook event into the local queue) and `sender/` (the queue to Kaya) |
 | `internal/apps/kaya/client/` | the Kaya API client: every call takes a context, user calls are signed through `internal/shrine/session`, the others with the machine token |
 | `internal/apps/kaya/machine/` | the machine token (`KAYA_RECORDER_TOKEN`, else Kagi), the API URL of the machine calls (`OBA_API_URL`, else production, never the stored session), the https-or-loopback check and a client with the token |
@@ -533,10 +543,14 @@ The packages are grouped as in the Oba backend: `dojo` is the technical foundati
 | `internal/shrine/auth/` | the device authorization grant and the token store |
 | `internal/shrine/organization/` | the organization table that `oba org list` and `oba admin org list` share, the lookup of a member by user id or e-mail that `oba admin member` and `oba kazan` share, and the `--author` list of `oba kazan updates` and `pr`, where `me` is the signed-in user |
 | `internal/shrine/legalentity/` | the legal entities of the organization behind `oba legal-entity`: the field input, the create check, the read-and-merge update, the table and the details |
+| `internal/shrine/document/` | the documents behind `oba document`: the filters and table, the create from a template or a file, download, upload and the PDF copy onto a mail |
+| `internal/shrine/documenttemplate/` | the document templates behind `oba document template`: the filters and table, the create from a file, download and upload |
 | `internal/shrine/session/` | the signed-in client for the current organization, the bearer (API URL, organization, refreshing token) of a client of its own such as Kaya's, the current user and its id, the organization name and the API URL |
 | `internal/connect/claude/` | running Claude Code headless and reading its stream-json output; returns the result as JSON |
 | `internal/dojo/config/` | API URL, issuer and client id resolution, `config.json` and the current organization |
 | `internal/dojo/client/` | the API client: the `CustomResponse` envelope, `APIError`, refresh and retry, paged lists, exit codes, multipart uploads with a Content-Type per part, and downloads from signed URLs without the token |
+| `internal/dojo/pdf/` | inlining local images as data URIs and rendering HTML to PDF with `weasyprint` |
+| `internal/dojo/docfile/` | the file forms the document, template, mail-template and outreach commands share: the MAIL file, the language and type values, the extension check, loading and rendering an HTML file, and writing a download or pull |
 | `internal/dojo/attachment/` | the attachments of any storage parent that Otak and Kazan share: reading and checking local files, list, table, find, upload and delete |
 | `internal/dojo/apidocs/` | reading the request schemas from `/v3/api-docs`, the key check and the field help |
 | `internal/dojo/guardrail/` | `Sanitize` and `CleanJSON`: remove terminal controls from text the CLI did not write; `OneLine` and `PersonName` for table cells |
@@ -552,8 +566,8 @@ Rules:
 
 - `cmd/apps/<app>/<domain>` is wiring only: flags, arguments and stdin, one call into `internal/apps/<app>/<domain>`, and printing. `cmd/apps/<app>` only adds the domain commands.
 - `internal/apps/<app>/<domain>` holds the logic and reaches the API only through `internal/dojo/client`.
-- Domains do not import each other. Shared needs go to a platform package (`internal/dojo/client`, `internal/dojo/apidocs`, `internal/dojo/terminal`, `internal/shrine/session`), not from one domain to another. Within Otak, `internal/apps/otak/pdf` and `internal/apps/otak/docfile` are such shared packages, not domains: they hold no command and import no domain. The command packages of one app do not import each other either.
-- Kaya differs in two ways. Its domains reach the API through `internal/apps/kaya/client`, not `internal/dojo/client`: the hooks bound every call with a context deadline, most calls send the machine token rather than a user's sign-in, and delivery reads ETags and raw blobs. And `delivery`, `capture`, `client`, `machine` and `redact` are Kaya's shared packages, as `pdf` and `docfile` are Otak's. Some Kaya domains still use another's exported rules, as they did in the former kaya CLI: the delivered paths of `seed` (in `delivery`, `propose` and `sender`), the settings paths of `install` (in `hook` and `statusline`), and the sender start (in `hook`).
+- Domains do not import each other. Shared needs go to a platform package (`internal/dojo/client`, `internal/dojo/apidocs`, `internal/dojo/terminal`, `internal/shrine/session`), not from one domain to another. `internal/dojo/pdf` and `internal/dojo/docfile` are such shared packages, not domains: they hold no command and import no domain. The command packages of one app do not import each other either.
+- Kaya differs in two ways. Its domains reach the API through `internal/apps/kaya/client`, not `internal/dojo/client`: the hooks bound every call with a context deadline, most calls send the machine token rather than a user's sign-in, and delivery reads ETags and raw blobs. And `delivery`, `capture`, `client`, `machine` and `redact` are Kaya's shared packages. Some Kaya domains still use another's exported rules, as they did in the former kaya CLI: the delivered paths of `seed` (in `delivery`, `propose` and `sender`), the settings paths of `install` (in `hook` and `statusline`), and the sender start (in `hook`).
 - `internal/connect/claude` knows no app: the caller passes the brief and the JSON Schema and decodes the `json.RawMessage` it gets back.
 - Everything Claude Code returns is built from web pages. `claude.Run` passes its result through `guardrail.CleanJSON`, and its progress lines and error messages through `guardrail.Sanitize`, so that no caller can print escape sequences or bidi controls from a page. `guardrail` imports nothing from `claude` or an app.
 - Tests sit next to the code they test, and a fixture next to the tests that read it; a fixture or helper that several packages share lives in `internal/dojo/clitest`. Test seams (`claudeInstalled`, `runClaude`, `stdinIsTerminal`, `stdoutIsTerminal`) are package-level variables in the package of the command that uses them. Tests never need WeasyPrint: `clitest.StubWeasyPrint` puts a stub `weasyprint` first on `PATH`, and `clitest.NoWeasyPrint` leaves it off.

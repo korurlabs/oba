@@ -11,8 +11,8 @@ import jakarta.validation.constraints.Size;
 // 3. Java SDK
 
 // 4. Internal
-import com.korur.oba.apps.otak.documenttemplate.enums.DocumentLanguage;
 import com.korur.oba.apps.otak.mailtemplate.constant.MailTemplateConstant;
+import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
 
 /**
  * Body of POST /otak/mail-templates: every field of a new mail template.

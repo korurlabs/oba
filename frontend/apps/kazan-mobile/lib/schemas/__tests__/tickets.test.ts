@@ -120,6 +120,7 @@ describe("ticketAttachmentListSchema", () => {
     createdAt: "2026-11-18T09:00:00Z",
     width: 640,
     height: 480,
+    documentId: null,
   };
 
   it("reads an image with its dimensions and a file without them", () => {

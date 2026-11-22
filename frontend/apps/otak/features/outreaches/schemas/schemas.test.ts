@@ -142,7 +142,6 @@ describe("request schemas", () => {
       contactId: "c-1",
       title: "Intro",
       type: "MAIL",
-      documentTemplateIds: [],
     };
     expect(
       outreachRequestSchema.safeParse({ ...base, mailTemplateId: "t-1", mail: null }).success
@@ -162,7 +161,6 @@ describe("request schemas", () => {
       contactId: "c-1",
       title: "Intro",
       type: "MAIL",
-      documentTemplateIds: [],
     };
     for (const language of [null, undefined]) {
       const mail = { subject: "S", body: "B", language };

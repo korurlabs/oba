@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useId, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useId, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { AlertTriangle, Plus, X } from "lucide-react";
 import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
@@ -24,18 +24,13 @@ import { MailTemplatePreviewDialog } from "./mail-template-preview-dialog";
 /** Every filter cleared; the list goes back to its first page. */
 const CLEARED_FILTERS = { search: null, language: null, page: 1 };
 
-export interface MailTemplatesViewProps {
-  /** The page's tabs, shown before the filters. */
-  tabs?: ReactNode;
-}
-
 /**
  * The organization's mail templates by name, with a search on name, a
  * language filter and paging in the URL. Every member opens a mail
  * template's preview; an admin also creates, edits and deletes them, as the
  * server refuses a member's writes.
  */
-export function MailTemplatesView({ tabs }: MailTemplatesViewProps) {
+export function MailTemplatesView() {
   const t = useTranslations("mailTemplates");
   const tTemplates = useTranslations("documentTemplates");
   const tErrors = useTranslations("errors");
@@ -97,7 +92,6 @@ export function MailTemplatesView({ tabs }: MailTemplatesViewProps) {
       <PageHeading title={t("title")} description={t("subtitle")} actions={newButton} />
 
       <div className="flex flex-wrap items-end gap-3">
-        {tabs}
         <FilterLabel label={t("filters.searchLabel")} className="w-full sm:w-64">
           <SenseySearchInput
             value={filters.search}

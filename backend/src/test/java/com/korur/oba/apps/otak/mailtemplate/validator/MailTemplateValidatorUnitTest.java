@@ -20,13 +20,13 @@ import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.otak.documenttemplate.enums.DocumentLanguage;
 import com.korur.oba.apps.otak.exception.ExceptionDomainOtakError;
 import com.korur.oba.apps.otak.mailtemplate.entity.MailTemplate;
 import com.korur.oba.apps.otak.mailtemplate.repository.MailTemplateRepository;
 import com.korur.oba.dojo.exception.internal.business.ConflictException;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
 
 @ExtendWith(MockitoExtension.class)
 class MailTemplateValidatorUnitTest {

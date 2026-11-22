@@ -232,6 +232,8 @@ public class LegalEntityController {
                     + "member of it, or membership or organization disabled (ORG_SEC_001, ORG_SEC_005)"),
             @ApiResponse(responseCode = "404", description = "Legal entity not found or of another organization "
                     + "(LGE_NOT_001)"),
+            @ApiResponse(responseCode = "409", description = "A document or document template names the legal "
+                    + "entity (LGE_STA_002)"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<CustomResponse<Void>> deleteLegalEntity(

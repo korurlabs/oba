@@ -7,8 +7,8 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/korurlabs/oba-cli/internal/apps/otak/docfile"
 	"github.com/korurlabs/oba-cli/internal/dojo/client"
+	"github.com/korurlabs/oba-cli/internal/dojo/docfile"
 )
 
 // ListQuery is the filter of a mail template list; an empty value does not filter.

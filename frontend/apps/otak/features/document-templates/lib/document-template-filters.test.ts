@@ -21,6 +21,14 @@ describe("toDocumentTemplateQuery", () => {
     ).toEqual({ search: "intro", type: "PROPOSAL", language: "TR", page: 2, amount: 25 });
   });
 
+  test("the legal entity is sent as legalEntityId", () => {
+    expect(toDocumentTemplateQuery(loadDocumentTemplateFilterParams("?legalEntity=le-1"))).toEqual({
+      legalEntityId: "le-1",
+      page: 1,
+      amount: 25,
+    });
+  });
+
   test("an unknown type or language is left out", () => {
     expect(
       toDocumentTemplateQuery(loadDocumentTemplateFilterParams("?type=LETTER&language=DE"))
@@ -36,7 +44,13 @@ describe("toDocumentTemplateQuery", () => {
 
   test("a page below 1 is raised to 1", () => {
     expect(
-      toDocumentTemplateQuery({ search: null, type: null, language: null, page: 0 }).page
+      toDocumentTemplateQuery({
+        search: null,
+        type: null,
+        language: null,
+        legalEntity: null,
+        page: 0,
+      }).page
     ).toBe(1);
   });
 });
@@ -51,7 +65,10 @@ describe("hasActiveDocumentTemplateFilter", () => {
     );
   });
 
-  test("a search, type or language is a filter", () => {
+  test("a search, type, language or legal entity is a filter", () => {
+    expect(
+      hasActiveDocumentTemplateFilter(loadDocumentTemplateFilterParams("?legalEntity=le-1"))
+    ).toBe(true);
     expect(hasActiveDocumentTemplateFilter(loadDocumentTemplateFilterParams("?search=a"))).toBe(
       true
     );

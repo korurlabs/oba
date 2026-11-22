@@ -24,7 +24,6 @@ import static com.korur.oba.apps.otak.outreach.constant.service.OutreachServiceL
 
 import com.korur.oba.apps.otak.contact.entity.Contact;
 import com.korur.oba.apps.otak.contact.validator.ContactValidator;
-import com.korur.oba.apps.otak.documenttemplate.service.DocumentTemplateService;
 import com.korur.oba.apps.otak.mail.entity.Mail;
 import com.korur.oba.apps.otak.mail.service.MailQueryService;
 import com.korur.oba.apps.otak.mail.service.MailService;
@@ -51,6 +50,7 @@ import com.korur.oba.dojo.exception.internal.infrastructure.BadGatewayException;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.shrine.document.service.template.DocumentTemplateService;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.storage.dto.response.attachment.AttachmentContent;
 import com.korur.oba.shrine.storage.enums.common.StorageEntityType;
@@ -224,14 +224,14 @@ public class OutreachServiceImpl implements OutreachService {
      *         {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#NOT_RELATION_FOUND},
      *         {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#NOT_CONTACT_FOUND},
      *         {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#NOT_MAIL_TEMPLATE_FOUND}
-     *         or {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#NOT_DOCUMENT_TEMPLATE_FOUND}
+     *         or {@link com.korur.oba.shrine.document.exception.ExceptionDomainDocumentError#NOT_DOCUMENT_TEMPLATE_FOUND}
      *         if the relation, the contact of the relation, the mail template or a document template
      *         is missing in the organization
      * @throws com.korur.oba.dojo.exception.internal.business.ValidationException
      *         {@link com.korur.oba.dojo.exception.enums.ExceptionValidationError#VALIDATION} if a MAIL
      *         outreach has both or neither mail sources, or a WHATSAPP or CALL outreach has any mail
      *         field, or
-     *         {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#VAL_DOCUMENT_NOT_USABLE}
+     *         {@link com.korur.oba.shrine.document.exception.ExceptionDomainDocumentError#VAL_DOCUMENT_NOT_USABLE}
      *         if a document template has no PDF
      * @see OutreachService#create
      */

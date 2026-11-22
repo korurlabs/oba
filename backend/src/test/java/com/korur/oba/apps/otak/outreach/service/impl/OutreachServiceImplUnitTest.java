@@ -38,8 +38,6 @@ import java.util.UUID;
 // 4. Internal
 import com.korur.oba.apps.otak.contact.entity.Contact;
 import com.korur.oba.apps.otak.contact.validator.ContactValidator;
-import com.korur.oba.apps.otak.documenttemplate.enums.DocumentLanguage;
-import com.korur.oba.apps.otak.documenttemplate.service.DocumentTemplateService;
 import com.korur.oba.apps.otak.exception.ExceptionDomainOtakError;
 import com.korur.oba.apps.otak.mail.dto.request.MailRequest;
 import com.korur.oba.apps.otak.mail.service.MailQueryService;
@@ -71,6 +69,9 @@ import com.korur.oba.dojo.exception.internal.business.ValidationException;
 import com.korur.oba.dojo.exception.internal.infrastructure.BadGatewayException;
 import com.korur.oba.dojo.exception.internal.infrastructure.IntegrationErrorException;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
+import com.korur.oba.shrine.document.exception.ExceptionDomainDocumentError;
+import com.korur.oba.shrine.document.service.template.DocumentTemplateService;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.storage.dto.response.attachment.AttachmentContent;
 import com.korur.oba.shrine.storage.enums.common.StorageEntityType;
@@ -275,7 +276,7 @@ class OutreachServiceImplUnitTest {
             UUID templateId = UUID.randomUUID();
             OutreachCreateRequest request = withMail(List.of(templateId));
             when(mailService.create(organizationId, relationId, request.mail())).thenReturn(mail());
-            ValidationException notUsable = new ValidationException(ExceptionDomainOtakError.VAL_DOCUMENT_NOT_USABLE,
+            ValidationException notUsable = new ValidationException(ExceptionDomainDocumentError.VAL_DOCUMENT_NOT_USABLE,
                     Map.of());
             doThrow(notUsable).when(documentTemplateService).copyToAttachment(user, organizationId, templateId,
                     StorageEntityType.MAIL, mailId);

@@ -9,7 +9,7 @@ import {
 } from "../schemas";
 
 /**
- * The template list's search, type, language and page in the URL, so a
+ * The template list's search, type, language, legal entity and page in the URL, so a
  * filtered list can be reloaded and shared. Server-safe: the list page
  * parses the same parsers to prefetch under the key the client builds.
  */
@@ -17,6 +17,7 @@ export const documentTemplateFilterParams = {
   search: parseAsString,
   type: parseAsStringEnum(DocumentTypeSchema.options),
   language: parseAsStringEnum(DocumentLanguageSchema.options),
+  legalEntity: parseAsString,
   page: parseAsInteger.withDefault(1),
 };
 
@@ -40,10 +41,11 @@ export function toDocumentTemplateQuery(
   if (search) query.search = search;
   if (filters.type) query.type = filters.type;
   if (filters.language) query.language = filters.language;
+  if (filters.legalEntity) query.legalEntityId = filters.legalEntity;
   return query;
 }
 
 /** True when the list is narrowed by anything other than its page. */
 export function hasActiveDocumentTemplateFilter(filters: DocumentTemplateFilterParams): boolean {
-  return !!filters.search?.trim() || !!filters.type || !!filters.language;
+  return !!filters.search?.trim() || !!filters.type || !!filters.language || !!filters.legalEntity;
 }

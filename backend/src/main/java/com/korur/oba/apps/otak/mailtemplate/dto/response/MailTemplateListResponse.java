@@ -10,7 +10,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.otak.documenttemplate.enums.DocumentLanguage;
+import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
 
 /**
  * One row of the mail template list, answered by GET /otak/mail-templates.

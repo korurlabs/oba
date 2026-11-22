@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   createDocumentTemplateFormSchema,
+  documentTemplateToFormValues,
   emptyDocumentTemplateFormValues,
   toDocumentTemplateFiles,
   toDocumentTemplateRequest,
@@ -71,12 +72,39 @@ describe("document template form schema", () => {
 });
 
 describe("toDocumentTemplateRequest", () => {
-  test("sends the type, name and language only", () => {
+  test("sends the type, name and language, and no legal entity when none is picked", () => {
     expect(toDocumentTemplateRequest(proposal({ type: "NDA", language: "EN" }))).toEqual({
       type: "NDA",
       name: "Offer",
       language: "EN",
+      legalEntityId: null,
     });
+  });
+
+  test("sends the picked legal entity", () => {
+    expect(toDocumentTemplateRequest(proposal({ legalEntityId: "le-1" })).legalEntityId).toBe(
+      "le-1"
+    );
+  });
+});
+
+describe("documentTemplateToFormValues", () => {
+  test("a template for every legal entity edits with an empty legal entity", () => {
+    const values = documentTemplateToFormValues({
+      id: "t-1",
+      name: "Offer",
+      type: "CONTRACT",
+      language: "TR",
+      legalEntityId: null,
+      legalEntityShortName: null,
+      ready: true,
+      updatedAt: "2026-11-01T10:00:00Z",
+      createdAt: "2026-11-01T09:00:00Z",
+      htmlUrl: null,
+      pdfUrl: null,
+    });
+    expect(values.legalEntityId).toBe("");
+    expect(values.type).toBe("CONTRACT");
   });
 });
 

@@ -1,7 +1,16 @@
 "use client";
 
 import { forwardRef, useMemo, type ReactNode } from "react";
-import { Building2, CalendarDays, Crosshair, FileText, Kanban, Mail } from "lucide-react";
+import {
+  Building2,
+  CalendarDays,
+  Crosshair,
+  FileText,
+  Kanban,
+  LayoutTemplate,
+  Mail,
+  Send,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import { AppSwitcher } from "@oba/shared/components/app-header/app-switcher";
 import { ProfileDropdown } from "@oba/shared/components/app-header/profile-dropdown";
@@ -56,10 +65,12 @@ export function OtakAppShell({
         label: t("navigation"),
         items: [
           { label: t("battlefield"), href: "/battlefield", icon: Kanban },
-          { label: t("templates"), href: "/templates", icon: FileText },
-          { label: t("outreaches"), href: "/outreaches", icon: Mail },
           { label: t("relations"), href: "/relations", icon: Building2 },
+          { label: t("outreaches"), href: "/outreaches", icon: Send },
+          { label: t("mail"), href: "/mail", icon: Mail },
           { label: t("icps"), href: "/icps", icon: Crosshair },
+          { label: t("documents"), href: "/documents", icon: FileText },
+          { label: t("templates"), href: "/templates", icon: LayoutTemplate },
           { label: t("events"), href: "/events", icon: CalendarDays },
         ],
       },

@@ -28,7 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.otak.documenttemplate.integration.AbstractOtakDocumentsIT;
+import com.korur.oba.apps.otak.support.AbstractOtakDocumentsIT;
 import com.korur.oba.connect.azure.service.AzureBlobStorageService;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 
@@ -42,6 +42,7 @@ import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 class OtakAttachmentAccessIT extends AbstractOtakDocumentsIT {
 
     private static final String ATTACHMENTS_PATH = "/storage/attachments";
+    private static final String DOCUMENTS_PATH = "/documents";
     private static final String ORGANIZATION_HEADER = "X-Organization-ID";
     private static final String ORGANIZATION_MISMATCH = "APP_SEC_002";
     private static final String FILE_NOT_FOUND = "STG_NOT_001";
@@ -122,14 +123,26 @@ class OtakAttachmentAccessIT extends AbstractOtakDocumentsIT {
                 .andExpect(status().isCreated()).andReturn());
     }
 
-    private String readyTemplate(String name, String pdfContent) throws Exception {
-        String templateId = createFileTemplate(tenant, admin, name);
+    private String readyDocument(Tenant owner, Person person, String relation, String title, String pdfContent)
+            throws Exception {
+        String legalEntityId = createLegalEntity(owner, person, "Korur " + uniqueSuffix().substring(0, 6));
+        String documentId = read(mockMvc.perform(in(owner, post(DOCUMENTS_PATH), person.jwt(),
+                "{\"entityType\":\"RELATION\",\"entityId\":\"" + relation + "\",\"legalEntityId\":\""
+                        + legalEntityId + "\",\"title\":\"" + title
+                        + "\",\"type\":\"PROPOSAL\",\"language\":\"EN\"}"))
+                .andExpect(status().isCreated()).andReturn(), "$.data.id");
         MockMultipartFile html = new MockMultipartFile("html", "a.html", "text/html", "<p>Hi</p>".getBytes());
         MockMultipartFile pdf = new MockMultipartFile("pdf", "a.pdf", "application/pdf",
                 ("%PDF-1.4 " + pdfContent).getBytes(StandardCharsets.UTF_8));
-        mockMvc.perform(in(tenant, multipart(HttpMethod.PUT, TEMPLATES_PATH + "/" + templateId + "/files")
-                .file(html).file(pdf), admin.jwt(), null)).andExpect(status().isOk());
-        return templateId;
+        mockMvc.perform(in(owner, multipart(HttpMethod.PUT, DOCUMENTS_PATH + "/" + documentId + "/files")
+                .file(html).file(pdf), person.jwt(), null)).andExpect(status().isOk());
+        return documentId;
+    }
+
+    private ResultActions attachDocument(Person person, String documentId, String entityType, String entityId)
+            throws Exception {
+        return mockMvc.perform(in(tenant, post(DOCUMENTS_PATH + "/" + documentId + "/attachments"), person.jwt(),
+                copyBody(entityType, entityId)));
     }
 
     private static String copyBody(String entityType, String entityId) {
@@ -362,55 +375,63 @@ class OtakAttachmentAccessIT extends AbstractOtakDocumentsIT {
         verify(azureBlobStorageService, never()).deleteFile(url);
     }
 
-    // ---- Template copy ----
+    // ---- Document snapshot ----
 
     @Test
-    void templateCopy_toMailAnswers201WithTemplateNamedPdfAndAppearsInTheList() throws Exception {
-        String name = "Voorstel " + uniqueSuffix();
-        String templateId = readyTemplate(name, "%PDF template " + uniqueSuffix());
+    void documentSnapshot_toMailAnswers201WithTitleNamedPdfOnANewBlobAndAppearsInTheList() throws Exception {
+        String title = "Voorstel " + uniqueSuffix();
+        String documentId = readyDocument(tenant, admin, relationId, title, "snapshot " + uniqueSuffix());
 
-        MvcResult result = mockMvc.perform(in(tenant, post(TEMPLATES_PATH + "/" + templateId + "/attachments"),
-                        admin.jwt(), copyBody("MAIL", mailId))).andExpect(status().isCreated()).andReturn();
+        MvcResult result = attachDocument(admin, documentId, "MAIL", mailId)
+                .andExpect(status().isCreated()).andReturn();
 
-        assertThat(read(result, "$.data.fileName")).isEqualTo(name + ".pdf");
+        assertThat(read(result, "$.data.fileName")).isEqualTo(title + ".pdf");
+        assertThat(read(result, "$.data.documentId")).isEqualTo(documentId);
+        assertThat(count("SELECT count(*) FROM shrine.attachments a, shrine.documents d "
+                + "WHERE a.id = ?::uuid AND d.id = ?::uuid AND a.document_id = d.id "
+                + "AND a.entity_type = 'MAIL'::shrine_storage_entity_type_enum AND a.entity_id = ?::uuid "
+                + "AND a.content_type = 'application/pdf' AND a.url <> d.pdf_blob_url",
+                read(result, "$.data.id"), documentId, mailId)).isEqualTo(1L);
         list(tenant, member, "MAIL", mailId).andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].fileName").value(name + ".pdf"));
+                .andExpect(jsonPath("$.data[0].fileName").value(title + ".pdf"));
     }
 
     @Test
-    void templateCopy_sameTemplateTwiceOnOneMailAnswers422Stg005() throws Exception {
-        String templateId = readyTemplate("Twice " + uniqueSuffix(), "%PDF twice " + uniqueSuffix());
-        mockMvc.perform(in(tenant, post(TEMPLATES_PATH + "/" + templateId + "/attachments"), admin.jwt(),
-                copyBody("MAIL", mailId))).andExpect(status().isCreated());
+    void documentSnapshot_sameDocumentTwiceOnOneMailAnswers422Stg005() throws Exception {
+        String documentId = readyDocument(tenant, admin, relationId, "Twice " + uniqueSuffix(),
+                "twice " + uniqueSuffix());
+        attachDocument(admin, documentId, "MAIL", mailId).andExpect(status().isCreated());
 
-        MvcResult result = mockMvc.perform(in(tenant, post(TEMPLATES_PATH + "/" + templateId + "/attachments"),
-                admin.jwt(), copyBody("MAIL", mailId))).andExpect(status().isUnprocessableEntity()).andReturn();
+        MvcResult result = attachDocument(admin, documentId, "MAIL", mailId)
+                .andExpect(status().isUnprocessableEntity()).andReturn();
 
         assertThat(result.getResponse().getContentAsString()).contains("STG_VAL_005");
         assertThat(attachmentsOf(mailId)).isEqualTo(1L);
     }
 
     @Test
-    void templateCopy_memberToMailAnswers403AndToRelationAnswers201() throws Exception {
-        String templateId = readyTemplate("Member " + uniqueSuffix(), "%PDF member " + uniqueSuffix());
+    void documentSnapshot_memberMayReadTheDocumentButNotWriteTheMail_answers403AndStoresNothing() throws Exception {
+        String documentId = readyDocument(tenant, admin, relationId, "Member " + uniqueSuffix(),
+                "member " + uniqueSuffix());
+        clearInvocations(azureBlobStorageService);
 
-        mockMvc.perform(in(tenant, post(TEMPLATES_PATH + "/" + templateId + "/attachments"), member.jwt(),
-                copyBody("MAIL", mailId))).andExpect(status().isForbidden());
-        mockMvc.perform(in(tenant, post(TEMPLATES_PATH + "/" + templateId + "/attachments"), member.jwt(),
-                copyBody("RELATION", relationId))).andExpect(status().isCreated());
+        MvcResult result = attachDocument(member, documentId, "MAIL", mailId)
+                .andExpect(status().isForbidden()).andReturn();
 
+        assertThat(result.getResponse().getContentAsString()).contains(ROLE_TOO_LOW);
         assertThat(attachmentsOf(mailId)).isZero();
-        assertThat(attachmentsOf(relationId)).isEqualTo(1L);
+        verify(azureBlobStorageService, never()).uploadFile(anyString(), any(byte[].class));
     }
 
     @Test
-    void templateCopy_toSentMailAnswers409AndStoresNothing() throws Exception {
-        String templateId = readyTemplate("Late " + uniqueSuffix(), "%PDF late " + uniqueSuffix());
+    void documentSnapshot_toSentMailAnswers409AndStoresNothing() throws Exception {
+        String documentId = readyDocument(tenant, admin, relationId, "Late " + uniqueSuffix(),
+                "late " + uniqueSuffix());
         markSent(outreachId);
         clearInvocations(azureBlobStorageService);
 
-        MvcResult result = mockMvc.perform(in(tenant, post(TEMPLATES_PATH + "/" + templateId + "/attachments"),
-                admin.jwt(), copyBody("MAIL", mailId))).andExpect(status().isConflict()).andReturn();
+        MvcResult result = attachDocument(admin, documentId, "MAIL", mailId)
+                .andExpect(status().isConflict()).andReturn();
 
         assertThat(result.getResponse().getContentAsString()).contains(MAIL_SENT);
         assertThat(attachmentsOf(mailId)).isZero();
@@ -418,8 +439,9 @@ class OtakAttachmentAccessIT extends AbstractOtakDocumentsIT {
     }
 
     @Test
-    void templateCopy_toMailOfAnotherOrganizationAnswers403OrganizationMismatch() throws Exception {
-        String templateId = readyTemplate("Cross " + uniqueSuffix(), "%PDF cross " + uniqueSuffix());
+    void documentSnapshot_toMailOfAnotherOrganizationAnswers403OrganizationMismatch() throws Exception {
+        String documentId = readyDocument(tenant, admin, relationId, "Cross " + uniqueSuffix(),
+                "cross " + uniqueSuffix());
         String otherRelationId = createRelation(otherTenant, otherAdmin, "Other " + uniqueSuffix());
         String otherContactId = createContact(otherTenant, otherAdmin, otherRelationId,
                 "x" + uniqueSuffix() + "@fabrikam.example");
@@ -427,49 +449,55 @@ class OtakAttachmentAccessIT extends AbstractOtakDocumentsIT {
                 "Other " + uniqueSuffix()), "$.data.mail.id");
         clearInvocations(azureBlobStorageService);
 
-        MvcResult toMail = mockMvc.perform(in(tenant, post(TEMPLATES_PATH + "/" + templateId + "/attachments"),
-                admin.jwt(), copyBody("MAIL", otherMailId))).andExpect(status().isForbidden()).andReturn();
-        MvcResult toRelation = mockMvc.perform(in(tenant, post(TEMPLATES_PATH + "/" + templateId + "/attachments"),
-                admin.jwt(), copyBody("RELATION", otherRelationId))).andExpect(status().isForbidden()).andReturn();
+        MvcResult result = attachDocument(admin, documentId, "MAIL", otherMailId)
+                .andExpect(status().isForbidden()).andReturn();
 
-        assertThat(toMail.getResponse().getContentAsString()).contains(ORGANIZATION_MISMATCH);
-        assertThat(toRelation.getResponse().getContentAsString()).contains(ORGANIZATION_MISMATCH);
+        assertThat(result.getResponse().getContentAsString()).contains(ORGANIZATION_MISMATCH);
         assertThat(attachmentsOf(otherMailId)).isZero();
-        assertThat(attachmentsOf(otherRelationId)).isZero();
         verify(azureBlobStorageService, never()).uploadFile(anyString(), any(byte[].class));
     }
 
     @Test
-    void templateCopy_templateOfAnotherOrganizationAnswers404OtkNot007() throws Exception {
-        String otherTemplateId = createFileTemplate(otherTenant, otherAdmin, "Foreign " + uniqueSuffix());
+    void documentSnapshot_documentOfAnotherOrganizationAnswers404DocNot002() throws Exception {
+        String otherRelationId = createRelation(otherTenant, otherAdmin, "Other " + uniqueSuffix());
+        String otherDocumentId = readyDocument(otherTenant, otherAdmin, otherRelationId, "Foreign " + uniqueSuffix(),
+                "foreign " + uniqueSuffix());
 
-        MvcResult result = mockMvc.perform(in(tenant, post(TEMPLATES_PATH + "/" + otherTemplateId + "/attachments"),
-                admin.jwt(), copyBody("RELATION", relationId))).andExpect(status().isNotFound()).andReturn();
+        MvcResult result = attachDocument(admin, otherDocumentId, "MAIL", mailId)
+                .andExpect(status().isNotFound()).andReturn();
 
-        assertThat(result.getResponse().getContentAsString()).contains("OTK_NOT_007");
+        assertThat(result.getResponse().getContentAsString()).contains("DOC_NOT_002");
+        assertThat(attachmentsOf(mailId)).isZero();
     }
 
     @Test
-    void templateCopy_otherEntityTypeAnswers422() throws Exception {
-        String templateId = readyTemplate("Ticket " + uniqueSuffix(), "%PDF ticket " + uniqueSuffix());
+    void documentSnapshot_otherEntityTypeAnswers422() throws Exception {
+        String documentId = readyDocument(tenant, admin, relationId, "Ticket " + uniqueSuffix(),
+                "ticket " + uniqueSuffix());
 
-        mockMvc.perform(in(tenant, post(TEMPLATES_PATH + "/" + templateId + "/attachments"), admin.jwt(),
-                copyBody("TICKET", UUID.randomUUID().toString()))).andExpect(status().isUnprocessableEntity());
+        attachDocument(admin, documentId, "TICKET", UUID.randomUUID().toString())
+                .andExpect(status().isUnprocessableEntity());
+        attachDocument(admin, documentId, "RELATION", relationId).andExpect(status().isUnprocessableEntity());
+
+        assertThat(attachmentsOf(relationId)).isZero();
     }
 
     @Test
-    void templateCopy_afterTheTemplateIsDeleted_theCopyStaysIntact() throws Exception {
-        String templateId = readyTemplate("Gone " + uniqueSuffix(), "%PDF gone " + uniqueSuffix());
-        mockMvc.perform(in(tenant, post(TEMPLATES_PATH + "/" + templateId + "/attachments"), admin.jwt(),
-                copyBody("RELATION", relationId))).andExpect(status().isCreated());
+    void documentSnapshot_afterTheDocumentIsDeleted_theSnapshotStaysWithoutDocumentId() throws Exception {
+        String documentId = readyDocument(tenant, admin, relationId, "Gone " + uniqueSuffix(),
+                "gone " + uniqueSuffix());
+        String attachmentId = read(attachDocument(admin, documentId, "MAIL", mailId)
+                .andExpect(status().isCreated()).andReturn(), "$.data.id");
+        String copyUrl = jdbcTemplate.queryForObject("SELECT url FROM shrine.attachments WHERE id = ?::uuid",
+                String.class, attachmentId);
         clearInvocations(azureBlobStorageService);
 
-        mockMvc.perform(in(tenant, delete(TEMPLATES_PATH + "/" + templateId), admin.jwt(), null))
+        mockMvc.perform(in(tenant, delete(DOCUMENTS_PATH + "/" + documentId), admin.jwt(), null))
                 .andExpect(status().isOk());
 
-        assertThat(attachmentsOf(relationId)).isEqualTo(1L);
-        String copyUrl = jdbcTemplate.queryForObject(
-                "SELECT url FROM shrine.attachments WHERE entity_id = ?::uuid", String.class, relationId);
+        assertThat(attachmentsOf(mailId)).isEqualTo(1L);
+        assertThat(count("SELECT count(*) FROM shrine.attachments WHERE id = ?::uuid AND document_id IS NULL",
+                attachmentId)).isEqualTo(1L);
         verify(azureBlobStorageService, never()).deleteFile(copyUrl);
     }
 }

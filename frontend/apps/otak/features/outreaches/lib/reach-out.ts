@@ -1,8 +1,5 @@
 import { ContactEmailType, type ContactListItem } from "@/features/contacts/schemas";
-import type {
-  DocumentLanguage,
-  DocumentTemplateListItem,
-} from "@/features/document-templates/schemas";
+import type { DocumentLanguage } from "@/features/document-templates/schemas";
 import type { MailTemplateDetail } from "@/features/mail-templates/schemas";
 import {
   DEFAULT_MAIL_LANGUAGE,
@@ -36,8 +33,8 @@ export interface ReachOutTemplate {
 
 /**
  * What the user has chosen so far. `source` is null until the mail step is
- * answered; "scratch" means a mail written by hand. The mail fields and the
- * document templates to attach count only for a MAIL.
+ * answered; "scratch" means a mail written by hand. The mail fields count
+ * only for a MAIL.
  */
 export interface ReachOutSelection {
   type: OutreachType;
@@ -46,7 +43,6 @@ export interface ReachOutSelection {
   subject: string;
   body: string;
   language: DocumentLanguage;
-  documentTemplateIds: string[];
   title: string;
 }
 
@@ -57,7 +53,6 @@ export const emptyReachOutSelection = (): ReachOutSelection => ({
   subject: "",
   body: "",
   language: DEFAULT_MAIL_LANGUAGE,
-  documentTemplateIds: [],
   title: "",
 });
 
@@ -85,13 +80,6 @@ export function reachableContacts(
   type: OutreachType
 ): ContactListItem[] {
   return type === OutreachType.MAIL ? mailableContacts(contacts) : callableContacts(contacts);
-}
-
-/** The document templates a mail can carry a copy of: those with their files. */
-export function attachableDocumentTemplates(
-  templates: readonly DocumentTemplateListItem[]
-): DocumentTemplateListItem[] {
-  return templates.filter((template) => template.ready);
 }
 
 /** Starts the mail from a mail template: its subject, body and language, and its name as the title if none is typed yet. */
@@ -202,8 +190,7 @@ export function isTemplateUnchanged(selection: ReachOutSelection): boolean {
 
 /**
  * The create request of a complete selection. A WHATSAPP or CALL goes
- * without mail and document templates, which the server refuses on those
- * channels.
+ * without a mail, which the server refuses on those channels.
  * For a MAIL, an untouched template goes by its id, so the server copies it
  * and the mail keeps its link to the template; an edited one, or a mail
  * written by hand, goes as the text typed.
@@ -219,18 +206,17 @@ export function toReachOutRequest(
     type: selection.type,
   };
   if (selection.type !== OutreachType.MAIL) {
-    return { ...base, mailTemplateId: null, mail: null, documentTemplateIds: [] };
+    return { ...base, mailTemplateId: null, mail: null };
   }
-  const mailBase = { ...base, documentTemplateIds: [...selection.documentTemplateIds] };
   if (
     isTemplateUnchanged(selection) &&
     selection.source !== null &&
     selection.source !== "scratch"
   ) {
-    return { ...mailBase, mailTemplateId: selection.source.id, mail: null };
+    return { ...base, mailTemplateId: selection.source.id, mail: null };
   }
   return {
-    ...mailBase,
+    ...base,
     mailTemplateId: null,
     mail: { subject: selection.subject, body: selection.body, language: selection.language },
   };
