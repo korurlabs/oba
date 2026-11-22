@@ -3,9 +3,10 @@ import { apiErrorText, validationFieldErrors } from "@/lib/api-error-text";
 
 /** Refusals of the document template endpoints that have a text of their own. */
 const ERROR_TEXT_KEYS: Partial<Record<string, string>> = {
-  OTK_NOT_007: "errors.notFound",
-  OTK_STA_009: "errors.nameTaken",
-  OTK_VAL_009: "errors.fileNotHtmlOrPdf",
+  DOC_NOT_001: "errors.notFound",
+  DOC_STA_001: "errors.nameTaken",
+  DOC_VAL_001: "errors.fileNotHtmlOrPdf",
+  LGE_NOT_001: "errors.legalEntityNotFound",
   AZR_UPS_001: "errors.uploadFailed",
   ORG_SEC_003: "errors.forbidden",
   GEN_VAL_001: "errors.validation",
@@ -13,10 +14,10 @@ const ERROR_TEXT_KEYS: Partial<Record<string, string>> = {
 
 /** Refusals of a template copied onto a mail or a relation as an attachment. */
 const ATTACHMENT_ERROR_TEXT_KEYS: Partial<Record<string, string>> = {
-  OTK_NOT_007: "errors.notFound",
+  DOC_NOT_001: "errors.notFound",
   OTK_NOT_011: "attach.errors.mailNotFound",
   OTK_NOT_001: "attach.errors.relationNotFound",
-  OTK_VAL_012: "attach.errors.notUsable",
+  DOC_VAL_002: "attach.errors.notUsable",
   OTK_STA_011: "attach.errors.mailSent",
   STG_VAL_005: "attach.errors.duplicate",
   APP_SEC_002: "errors.forbidden",
@@ -59,7 +60,8 @@ export function documentTemplateAttachmentErrorText(
 
 /**
  * The form fields a refused save or upload names, with the message for
- * each: the name for a name the organization already has in this language,
+ * each: the name for a name the organization already has in this language, the
+ * legal entity for one that no longer exists,
  * the file part the server did not take as HTML or PDF, else the
  * `errorValues` of a 422. `t` is the `documentTemplates` translator.
  */
@@ -67,10 +69,13 @@ export function documentTemplateFieldErrors(
   error: unknown,
   t: (key: string) => string
 ): Record<string, string> {
-  if (isApiError(error, "OTK_STA_009")) {
+  if (isApiError(error, "DOC_STA_001")) {
     return { name: t("errors.nameTaken") };
   }
-  if (isApiError(error, "OTK_VAL_009")) {
+  if (isApiError(error, "LGE_NOT_001")) {
+    return { legalEntityId: t("errors.legalEntityNotFound") };
+  }
+  if (isApiError(error, "DOC_VAL_001")) {
     const text = documentTemplateErrorText(error, t, "toast.saveError");
     return Object.fromEntries(
       Object.keys(error.errorValues).map((field) => [FIELD_ALIASES[field] ?? field, text])

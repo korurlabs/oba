@@ -22,10 +22,18 @@ export const API_ROUTES = {
     detail: (mailTemplateId: string) => `/otak/mail-templates/${mailTemplateId}`,
   },
   documentTemplates: {
-    list: "/otak/document-templates",
-    detail: (templateId: string) => `/otak/document-templates/${templateId}`,
-    files: (templateId: string) => `/otak/document-templates/${templateId}/files`,
-    attachments: (templateId: string) => `/otak/document-templates/${templateId}/attachments`,
+    list: "/document-templates",
+    detail: (templateId: string) => `/document-templates/${templateId}`,
+    files: (templateId: string) => `/document-templates/${templateId}/files`,
+    attachments: (templateId: string) => `/document-templates/${templateId}/attachments`,
+  },
+  documents: {
+    list: "/documents",
+    detail: (documentId: string) => `/documents/${documentId}`,
+    files: (documentId: string) => `/documents/${documentId}/files`,
+  },
+  legalEntities: {
+    list: "/legal-entities",
   },
   outreaches: {
     list: "/otak/outreaches",

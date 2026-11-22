@@ -1,7 +1,11 @@
 import { createLoader, parseAsStringLiteral } from "nuqs/server";
 import type { Values } from "nuqs";
 
-/** The Templates page's tabs, in the order they are shown. */
+/**
+ * The sections the Templates page once had as tabs. Mail templates moved to
+ * their own page; the value stays readable so a saved or linked
+ * `/templates?tab=mail` still reaches them.
+ */
 export const TEMPLATE_PAGE_TABS = ["documents", "mail"] as const;
 export type TemplatePageTab = (typeof TEMPLATE_PAGE_TABS)[number];
 
@@ -10,9 +14,8 @@ export function isTemplatePageTab(value: string): value is TemplatePageTab {
 }
 
 /**
- * The Templates page's tab in the URL, so a tab can be reloaded and shared
- * and the Outreaches page can link to the mail templates. Server-safe: the
- * page reads it to prefetch only the tab that shows.
+ * The former tab in the URL. Server-safe: the Templates page reads it and
+ * sends `tab=mail` on to the mail page.
  */
 export const templatePageTabParams = {
   tab: parseAsStringLiteral(TEMPLATE_PAGE_TABS).withDefault("documents"),

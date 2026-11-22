@@ -1,56 +1,54 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { auth } from "@oba/shared/libs/auth";
+import { redirect } from "@oba/shared/libs/i18n/navigation";
 import { makeQueryClient } from "@oba/shared/providers/query-client";
-import { TemplatesPageView } from "@/features/document-templates/components/templates-page-view";
+import { DocumentTemplatesView } from "@/features/document-templates/components/document-templates-view";
 import {
   loadDocumentTemplateFilterParams,
   toDocumentTemplateQuery,
 } from "@/features/document-templates/lib/document-template-filters";
 import { prefetchDocumentTemplates } from "@/features/document-templates/lib/prefetch";
 import { loadTemplatePageTabParams } from "@/features/document-templates/lib/template-tabs";
-import {
-  loadMailTemplateFilterParams,
-  toMailTemplateQuery,
-} from "@/features/mail-templates/lib/mail-template-filters";
-import { prefetchMailTemplates } from "@/features/mail-templates/lib/prefetch";
+import { prefetchLegalEntities } from "@/features/documents/lib/prefetch";
 
 /**
- * Template List Page
+ * Document Template List Page
  *
- * Thin async server component. It parses the URL with the parsers the views
- * use and server-prefetches the list of the open tab, document templates or
- * mail templates, under the key the client hook builds, so the table renders
- * with data in the first HTML payload. The other tab is not mounted, so it
- * is not prefetched. The dashboard layout gates auth.
+ * Thin async server component. It parses the URL with the parsers the view
+ * uses and server-prefetches the templates and the legal entities of the
+ * filter under the keys the client hooks build, so the table renders with
+ * data in the first HTML payload. Mail templates have their own page; a link
+ * to the former mail tab of this page is sent there. The dashboard layout
+ * gates auth.
  */
 export default async function TemplatesPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { tab } = await loadTemplatePageTabParams(searchParams);
+  if (tab === "mail") {
+    const { locale } = await params;
+    redirect({ href: "/mail", locale });
+  }
+  const filters = await loadDocumentTemplateFilterParams(searchParams);
   const session = await auth();
   const organizationId = session?.user?.defaultOrganizationId;
   const queryClient = makeQueryClient();
 
   // Mirrors the hooks' `enabled: !!organizationId` guard.
   if (organizationId) {
-    if (tab === "mail") {
-      const filters = await loadMailTemplateFilterParams(searchParams);
-      await prefetchMailTemplates(queryClient, organizationId, toMailTemplateQuery(filters));
-    } else {
-      const filters = await loadDocumentTemplateFilterParams(searchParams);
-      await prefetchDocumentTemplates(
-        queryClient,
-        organizationId,
-        toDocumentTemplateQuery(filters)
-      );
-    }
+    await Promise.all([
+      prefetchDocumentTemplates(queryClient, organizationId, toDocumentTemplateQuery(filters)),
+      prefetchLegalEntities(queryClient, organizationId),
+    ]);
   }
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <TemplatesPageView />
+      <DocumentTemplatesView />
     </HydrationBoundary>
   );
 }
