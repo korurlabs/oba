@@ -24,10 +24,10 @@ const { useOrgDetailTab } = await import("./use-org-detail-tab");
 
 type TabState = ReturnType<typeof useOrgDetailTab>;
 
-function readTab(canManage: boolean): TabState {
+function readTab(canManage: boolean, canReadLegalEntities = true): TabState {
   let state: TabState | undefined;
   function Probe() {
-    state = useOrgDetailTab({ canManage });
+    state = useOrgDetailTab({ canManage, canReadLegalEntities });
     return null;
   }
   renderToStaticMarkup(<Probe />);
@@ -61,6 +61,21 @@ describe("useOrgDetailTab", () => {
       requested = tab;
 
       expect(readTab(false).activeTab).toBe(tab);
+    }
+  );
+
+  test("a viewer who cannot read legal entities falls back to detail", () => {
+    requested = "legalEntities";
+
+    expect(readTab(false, false).activeTab).toBe("detail");
+  });
+
+  test.each(["detail", "members", "invitations"])(
+    "a viewer who cannot read legal entities keeps the open tab %s",
+    (tab) => {
+      requested = tab;
+
+      expect(readTab(false, false).activeTab).toBe(tab);
     }
   );
 

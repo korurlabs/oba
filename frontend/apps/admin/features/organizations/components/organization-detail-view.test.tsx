@@ -198,12 +198,28 @@ describe("OrganizationDetailView role gating", () => {
     expect(html).toContain("form canEdit=false");
     expect(html).toContain("members canEdit=false");
     expect(html).toContain(`invitations canEdit=false role=${role}`);
-    expect(html).toContain("tabs.legalEntities");
-    expect(html).toContain("legal-entities canEdit=false");
     expect(html).not.toContain("tabs.groups");
     expect(html).not.toContain("groups-tab");
     expect(html).not.toContain("tabs.access");
     expect(html).not.toContain("access-tab");
+  });
+
+  test("MEMBER reads the legal entities without write controls", () => {
+    me = meWithRole("MEMBER");
+
+    const html = render();
+
+    expect(html).toContain("tabs.legalEntities");
+    expect(html).toContain("legal-entities canEdit=false");
+  });
+
+  test("GUEST gets no legal entities tab, which the API refuses below MEMBER", () => {
+    me = meWithRole("GUEST");
+
+    const html = render();
+
+    expect(html).not.toContain("tabs.legalEntities");
+    expect(html).not.toContain("legal-entities");
   });
 
   test("a role of another organization does not grant editing here", () => {

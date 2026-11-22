@@ -30,10 +30,12 @@ import type {
  * Organization Detail View (client)
  *
  * Tabbed layout: Detail (form), Members (list), Invitations (list + create),
- * Legal entities (list), and for OWNER/ADMIN also Groups and Access (app
- * grants).
+ * for OWNER/ADMIN/MEMBER also Legal entities (list), and for OWNER/ADMIN also
+ * Groups and Access (app grants).
  * OWNER/ADMIN get edit controls; MEMBER/GUEST see read-only views and no
- * Groups or Access tab, because the API lets only OWNER/ADMIN read them.
+ * Groups or Access tab, because the API lets only OWNER/ADMIN read them. A
+ * GUEST also gets no Legal entities tab, because the API lets only a MEMBER
+ * or higher read them.
  *
  * Rendered by the thin async server page, which server-prefetches the
  * useGetOrganization(id) detail query into the React Query cache.
@@ -63,6 +65,7 @@ export function OrganizationDetailView({ id }: { id: string }) {
   const organizations = meResponse?.data?.organizations ?? [];
   const currentRole = organizations.find((o) => o.id === id)?.role;
   const canEdit = currentRole === "OWNER" || currentRole === "ADMIN";
+  const canReadLegalEntities = canEdit || currentRole === "MEMBER";
 
   const orgData = orgResponse?.data;
   const hasNoUser = isMeError && !meResponse;
@@ -97,6 +100,7 @@ export function OrganizationDetailView({ id }: { id: string }) {
             id={id}
             orgData={orgData}
             canEdit={canEdit}
+            canReadLegalEntities={canReadLegalEntities}
             currentUserRole={currentRole}
           />
         )}
@@ -123,15 +127,17 @@ function OrganizationDetailTabs({
   id,
   orgData,
   canEdit,
+  canReadLegalEntities,
   currentUserRole,
 }: {
   id: string;
   orgData: OrganizationDetail | undefined;
   canEdit: boolean;
+  canReadLegalEntities: boolean;
   currentUserRole: OrganizationRole | undefined;
 }) {
   const t = useTranslations("organization");
-  const { activeTab, setTab } = useOrgDetailTab({ canManage: canEdit });
+  const { activeTab, setTab } = useOrgDetailTab({ canManage: canEdit, canReadLegalEntities });
 
   return (
     <Tabs
@@ -144,7 +150,9 @@ function OrganizationDetailTabs({
         <TabsTrigger value="invitations">
           {t("tabs.invitations")}
         </TabsTrigger>
-        <TabsTrigger value="legalEntities">{t("tabs.legalEntities")}</TabsTrigger>
+        {canReadLegalEntities && (
+          <TabsTrigger value="legalEntities">{t("tabs.legalEntities")}</TabsTrigger>
+        )}
         {canEdit && (
           <>
             <TabsTrigger value="groups">{t("tabs.groups")}</TabsTrigger>
@@ -169,9 +177,11 @@ function OrganizationDetailTabs({
         <InvitationsTab organizationId={id} canEdit={canEdit} currentUserRole={currentUserRole} />
       </TabsContent>
 
-      <TabsContent value="legalEntities" className="mt-2">
-        <LegalEntitiesTab organizationId={id} canEdit={canEdit} />
-      </TabsContent>
+      {canReadLegalEntities && (
+        <TabsContent value="legalEntities" className="mt-2">
+          <LegalEntitiesTab organizationId={id} canEdit={canEdit} />
+        </TabsContent>
+      )}
 
       {canEdit && (
         <>
