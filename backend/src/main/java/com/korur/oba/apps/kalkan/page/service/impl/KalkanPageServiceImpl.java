@@ -197,7 +197,7 @@ public class KalkanPageServiceImpl implements KalkanPageService {
     @Transactional
     public void deletePage(User user, UUID organizationId, UUID pageId) {
         KalkanPage page = kalkanPageQueryService.getEntity(organizationId, pageId);
-        kalkanAccessQueryService.verifyLevel(organizationId, page, user, minimumForDelete(page.getParent() == null));
+        kalkanAccessQueryService.verifyLevel(organizationId, page, user, KalkanLevel.minimumToDelete(page.getParent() == null));
         // One instant for every row, so a restore brings back exactly what this delete took.
         Instant now = Instant.now(clock).truncatedTo(ChronoUnit.MICROS);
         // Translations first: their query walks the subtree while its pages are still live.
@@ -221,7 +221,7 @@ public class KalkanPageServiceImpl implements KalkanPageService {
         UUID accessRootId = root ? state.getId() : state.getRootId();
         // The level comes first, so a page the caller cannot see answers 404 whatever its state.
         KalkanLevel level = kalkanAccessQueryService.verifyLevel(organizationId, pageId, accessRootId, user,
-                minimumForDelete(root));
+                KalkanLevel.minimumToDelete(root));
         if (!Boolean.TRUE.equals(state.getDeleted())) {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, KalkanPageServiceLogConstant.PAGE_NOT_DELETED,
                     pageId, organizationId);
@@ -448,11 +448,6 @@ public class KalkanPageServiceImpl implements KalkanPageService {
 
     private static boolean sameText(KalkanPageTranslation stored, KalkanPageTranslationRequest request) {
         return stored != null && stored.getTitle().equals(request.title()) && stored.getBody().equals(request.body());
-    }
-
-    private static KalkanLevel minimumForDelete(boolean root) {
-        // Deleting or restoring a root takes the whole tree, which only its managers decide.
-        return root ? KalkanLevel.MANAGE : KalkanLevel.EDIT;
     }
 
     private int nextPosition(UUID organizationId, KalkanPage parent) {

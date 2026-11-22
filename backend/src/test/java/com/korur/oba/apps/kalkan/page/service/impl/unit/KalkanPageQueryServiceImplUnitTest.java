@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 // 3. Java SDK
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -24,6 +25,7 @@ import com.korur.oba.apps.kalkan.page.repository.KalkanPageRepository;
 import com.korur.oba.apps.kalkan.page.repository.KalkanPageRevisionRepository;
 import com.korur.oba.apps.kalkan.page.repository.KalkanPageTranslationRepository;
 import com.korur.oba.apps.kalkan.page.service.impl.KalkanPageQueryServiceImpl;
+import com.korur.oba.apps.kalkan.page.dto.projection.KalkanPageTrashProjection;
 import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageRecentResponse;
 import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageTrashResponse;
 import com.korur.oba.apps.kalkan.permission.enums.KalkanLevel;
@@ -39,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -137,29 +140,88 @@ class KalkanPageQueryServiceImplUnitTest {
     @Nested
     class GetTrash {
 
+        private KalkanPageTrashProjection trashRow(UUID accessRootId, boolean root) {
+            KalkanPageTrashProjection row = mock(KalkanPageTrashProjection.class);
+            when(row.getAccessRootId()).thenReturn(accessRootId);
+            when(row.getRoot()).thenReturn(root);
+            return row;
+        }
+
         @Test
-        void rootsBelowManage_areNotSearched() {
+        void rootsBelowEdit_areNotSearched() {
             // Arrange
             UUID organizationId = UUID.randomUUID();
             User user = KalkanMocks.user();
+            UUID viewRootId = UUID.randomUUID();
             UUID editRootId = UUID.randomUUID();
-            UUID manageRootId = UUID.randomUUID();
             when(kalkanPageRepository.findRootIdsIncludingDeleted(organizationId))
-                    .thenReturn(List.of(editRootId, manageRootId));
-            when(kalkanAccessQueryService.resolveLevels(organizationId, List.of(editRootId, manageRootId), user))
-                    .thenReturn(Map.of(editRootId, KalkanLevel.EDIT, manageRootId, KalkanLevel.MANAGE));
-            when(kalkanPageRepository.findTrash(organizationId, List.of(manageRootId))).thenReturn(List.of());
+                    .thenReturn(List.of(viewRootId, editRootId));
+            when(kalkanAccessQueryService.resolveLevels(organizationId, List.of(viewRootId, editRootId), user))
+                    .thenReturn(Map.of(viewRootId, KalkanLevel.VIEW, editRootId, KalkanLevel.EDIT));
+            when(kalkanPageRepository.findTrash(organizationId, List.of(editRootId))).thenReturn(List.of());
 
             // Act
             List<KalkanPageTrashResponse> trash = service.getTrash(user, organizationId, null);
 
             // Assert
             assertTrue(trash.isEmpty());
-            verify(kalkanPageRepository).findTrash(organizationId, List.of(manageRootId));
+            verify(kalkanPageRepository).findTrash(organizationId, List.of(editRootId));
         }
 
         @Test
-        void noManagedRoot_returnsEmptyWithoutQuery() {
+        void editOnRoot_listsPageBelowButNotTheDeletedRoot() {
+            // Arrange
+            UUID organizationId = UUID.randomUUID();
+            User user = KalkanMocks.user();
+            UUID rootId = UUID.randomUUID();
+            KalkanPageTrashProjection rootRow = trashRow(rootId, true);
+            KalkanPageTrashProjection childRow = trashRow(rootId, false);
+            KalkanPageTrashResponse childResponse = new KalkanPageTrashResponse(UUID.randomUUID(), null,
+                    "isms/controls", Instant.now(), null, 0);
+            when(kalkanPageRepository.findRootIdsIncludingDeleted(organizationId)).thenReturn(List.of(rootId));
+            when(kalkanAccessQueryService.resolveLevels(organizationId, List.of(rootId), user))
+                    .thenReturn(Map.of(rootId, KalkanLevel.EDIT));
+            when(kalkanPageRepository.findTrash(organizationId, List.of(rootId)))
+                    .thenReturn(List.of(rootRow, childRow));
+            when(kalkanPageMapper.toTrashResponse(childRow, null, null)).thenReturn(childResponse);
+
+            // Act
+            List<KalkanPageTrashResponse> trash = service.getTrash(user, organizationId, null);
+
+            // Assert
+            assertEquals(List.of(childResponse), trash);
+            verify(kalkanPageMapper, never()).toTrashResponse(rootRow, null, null);
+        }
+
+        @Test
+        void manageOnRoot_listsTheDeletedRootAndPagesBelow() {
+            // Arrange
+            UUID organizationId = UUID.randomUUID();
+            User user = KalkanMocks.user();
+            UUID rootId = UUID.randomUUID();
+            KalkanPageTrashProjection rootRow = trashRow(rootId, true);
+            KalkanPageTrashProjection childRow = trashRow(rootId, false);
+            KalkanPageTrashResponse rootResponse = new KalkanPageTrashResponse(rootId, null, "isms", Instant.now(),
+                    null, 1);
+            KalkanPageTrashResponse childResponse = new KalkanPageTrashResponse(UUID.randomUUID(), null,
+                    "policies/controls", Instant.now(), null, 0);
+            when(kalkanPageRepository.findRootIdsIncludingDeleted(organizationId)).thenReturn(List.of(rootId));
+            when(kalkanAccessQueryService.resolveLevels(organizationId, List.of(rootId), user))
+                    .thenReturn(Map.of(rootId, KalkanLevel.MANAGE));
+            when(kalkanPageRepository.findTrash(organizationId, List.of(rootId)))
+                    .thenReturn(List.of(rootRow, childRow));
+            when(kalkanPageMapper.toTrashResponse(rootRow, null, null)).thenReturn(rootResponse);
+            when(kalkanPageMapper.toTrashResponse(childRow, null, null)).thenReturn(childResponse);
+
+            // Act
+            List<KalkanPageTrashResponse> trash = service.getTrash(user, organizationId, null);
+
+            // Assert
+            assertEquals(List.of(rootResponse, childResponse), trash);
+        }
+
+        @Test
+        void viewOnly_returnsEmptyWithoutQuery() {
             // Arrange
             UUID organizationId = UUID.randomUUID();
             User user = KalkanMocks.user();
