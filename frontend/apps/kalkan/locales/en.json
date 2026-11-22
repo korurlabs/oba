@@ -110,5 +110,92 @@
       "notDeleted": "This page is not in the trash.",
       "validation": "Some fields are not valid. Check them and try again."
     }
+  },
+  "overview": {
+    "title": "Overview",
+    "subtitle": "The sections of your compliance wiki and what changed last.",
+    "loading": "Loading the sections",
+    "loadError": "The sections could not be loaded",
+    "sectionsLabel": "Sections",
+    "pageCount": "{count, plural, =0 {No pages yet} one {# page} other {# pages}}",
+    "notSetUp": "Not set up",
+    "recentTitle": "Recent changes",
+    "recentLoading": "Loading the recent changes",
+    "recentLoadError": "The recent changes could not be loaded",
+    "recentEmpty": "No page has been changed yet.",
+    "viewAll": "View all"
+  },
+  "recent": {
+    "title": "Recent changes",
+    "subtitle": "The pages changed most recently, in every section you can see.",
+    "loading": "Loading the recent changes",
+    "loadError": "The recent changes could not be loaded",
+    "empty": "No changes yet",
+    "emptyHint": "Pages show here once someone creates or edits one.",
+    "tableLabel": "Recently changed pages",
+    "unknownUser": "Unknown",
+    "columns": {
+      "title": "Page",
+      "section": "Section",
+      "updatedAt": "Changed",
+      "updatedBy": "By"
+    }
+  },
+  "trash": {
+    "title": "Trash",
+    "subtitle": "Deleted pages you can restore, with the pages deleted along with them.",
+    "loading": "Loading the trash",
+    "loadError": "The trash could not be loaded",
+    "empty": "The trash is empty",
+    "emptyHint": "Deleted pages you manage show here until they are restored.",
+    "membersOnly": "Only members can open the trash",
+    "membersOnlyHint": "Guests read pages but cannot restore them.",
+    "tableLabel": "Deleted pages",
+    "unknownUser": "Unknown",
+    "columns": {
+      "title": "Page",
+      "deletedAt": "Deleted",
+      "deletedBy": "By",
+      "descendants": "Pages below",
+      "actions": "Actions"
+    },
+    "restore": "Restore",
+    "restoreLabel": "Restore {title}",
+    "parentFirst": "Its parent page is in the trash too. Restore the parent page first."
+  },
+  "history": {
+    "title": "History",
+    "loading": "Loading the history",
+    "loadError": "The history could not be loaded",
+    "empty": "No revisions yet",
+    "emptyHint": "Every save of the page adds a revision here.",
+    "tableLabel": "Revisions of the page",
+    "backToPage": "Back to the page",
+    "unknownUser": "Unknown",
+    "columns": {
+      "version": "Version",
+      "locale": "Language",
+      "title": "Title",
+      "createdAt": "Saved",
+      "createdBy": "By"
+    },
+    "locales": {
+      "TR": "Turkish",
+      "EN": "English"
+    },
+    "revisionLoading": "Loading the revision",
+    "revisionLoadError": "The revision could not be loaded",
+    "revisionHeading": "Version {version}, {locale}",
+    "revisionMeta": "Saved {when} by {name}",
+    "modeLabel": "How to show the revision",
+    "modeRevision": "Revision",
+    "modeCompare": "Compare with current",
+    "thisRevision": "This revision",
+    "current": "Current",
+    "noCurrent": "The page has no current text in this language.",
+    "emptyBody": "This text is empty.",
+    "added": "Added in the current text",
+    "removed": "Not in the current text",
+    "compareTooLarge": "These texts are too long to mark their differences; they are shown side by side."
   }
 }

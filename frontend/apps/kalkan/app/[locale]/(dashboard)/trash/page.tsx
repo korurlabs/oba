@@ -3,8 +3,8 @@ import { getTranslations } from "next-intl/server";
 import { TrashView } from "@/features/trash/components/trash-view";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("sidebar");
-  return { title: t("trash") };
+  const t = await getTranslations("trash");
+  return { title: t("title") };
 }
 
 /** Trash: the deleted pages a member can restore. The dashboard layout gates auth. */
