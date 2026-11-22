@@ -20,8 +20,8 @@ import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.otak.documenttemplate.enums.DocumentLanguage;
 import com.korur.oba.dojo.entity.BaseEntity;
+import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
 
 /**
  * Entity representing the mail of one MAIL outreach, a row of otak.mails: its subject,

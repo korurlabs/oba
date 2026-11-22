@@ -33,6 +33,8 @@ type Attachment struct {
 	EntityType  string `json:"entityType"`
 	EntityID    string `json:"entityId"`
 	CreatedAt   string `json:"createdAt"`
+	// DocumentID names the document this attachment is a PDF copy of, nil for an uploaded file.
+	DocumentID *string `json:"documentId,omitempty"`
 }
 
 // AttachmentFile is one file to upload as an attachment: its name, its media type, which the API
@@ -46,12 +48,6 @@ type AttachmentFile struct {
 // attachmentMetadata is one entry of the metadata part (AttachmentCreateRequest).
 type attachmentMetadata struct {
 	FileName   string `json:"fileName"`
-	EntityType string `json:"entityType"`
-	EntityID   string `json:"entityId"`
-}
-
-// attachmentFromTemplate is the body of a template copy (DocumentTemplateAttachmentRequest).
-type attachmentFromTemplate struct {
 	EntityType string `json:"entityType"`
 	EntityID   string `json:"entityId"`
 }
@@ -88,17 +84,6 @@ func (c *Client) AddAttachments(entityType, entityID string, files []AttachmentF
 		return nil, err
 	}
 	return parseData[[]Attachment](body, "the added attachments")
-}
-
-// CopyTemplateToAttachment stores the PDF of document template templateID as a new attachment of
-// one parent. The API reads and stores the PDF itself; later changes to the template leave the
-// copy as it is.
-func (c *Client) CopyTemplateToAttachment(templateID, entityType, entityID string) (Attachment, error) {
-	body, err := c.Post(templatePath(templateID)+"/attachments", attachmentFromTemplate{EntityType: entityType, EntityID: entityID})
-	if err != nil {
-		return Attachment{}, err
-	}
-	return parseData[Attachment](body, "the added attachment")
 }
 
 // DeleteAttachment deletes one attachment. The API checks access on the parent it stored with the

@@ -26,6 +26,8 @@ import java.util.UUID;
 import com.korur.oba.dojo.exception.internal.business.ConflictException;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.shrine.document.service.document.DocumentQueryService;
+import com.korur.oba.shrine.document.service.template.DocumentTemplateQueryService;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.legalentity.dto.request.LegalEntityCreateRequest;
 import com.korur.oba.shrine.legalentity.dto.request.LegalEntityUpdateRequest;
@@ -46,6 +48,12 @@ class LegalEntityServiceImplUnitTest {
     private LegalEntityRepository legalEntityRepository;
 
     @Mock
+    private DocumentQueryService documentQueryService;
+
+    @Mock
+    private DocumentTemplateQueryService documentTemplateQueryService;
+
+    @Mock
     private LoggingService loggingService;
 
     private LegalEntityServiceImpl service;
@@ -56,7 +64,8 @@ class LegalEntityServiceImplUnitTest {
         // The real validator and mapper run over the mocked repository, so the error codes and
         // the mapped fields are the production ones.
         service = new LegalEntityServiceImpl(legalEntityRepository, new LegalEntityMapperImpl(),
-                new LegalEntityValidator(legalEntityRepository, loggingService), loggingService);
+                new LegalEntityValidator(legalEntityRepository, loggingService), documentQueryService,
+                documentTemplateQueryService, loggingService);
         user = User.builder().build();
         user.setId(UUID.randomUUID());
     }
@@ -209,6 +218,36 @@ class LegalEntityServiceImplUnitTest {
             // Act and assert
             assertThatThrownBy(() -> service.delete(organizationId, legalEntityId))
                     .isInstanceOf(NotFoundException.class);
+            verify(legalEntityRepository, never()).delete(any(LegalEntity.class));
+        }
+
+        @Test
+        void legalEntityNamedByADocument_throwsConflictInUseAndDeletesNothing() {
+            // Arrange
+            when(legalEntityRepository.findByIdAndOrganizationId(legalEntityId, organizationId))
+                    .thenReturn(Optional.of(stored()));
+            when(documentQueryService.existsByLegalEntity(organizationId, legalEntityId)).thenReturn(true);
+
+            // Act and assert
+            assertThatThrownBy(() -> service.delete(organizationId, legalEntityId))
+                    .isInstanceOf(ConflictException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ExceptionDomainLegalEntityError.STA_LEGAL_ENTITY_IN_USE.getCode());
+            verify(legalEntityRepository, never()).delete(any(LegalEntity.class));
+        }
+
+        @Test
+        void legalEntityNamedByATemplate_throwsConflictInUseAndDeletesNothing() {
+            // Arrange
+            when(legalEntityRepository.findByIdAndOrganizationId(legalEntityId, organizationId))
+                    .thenReturn(Optional.of(stored()));
+            when(documentTemplateQueryService.existsByLegalEntity(organizationId, legalEntityId)).thenReturn(true);
+
+            // Act and assert
+            assertThatThrownBy(() -> service.delete(organizationId, legalEntityId))
+                    .isInstanceOf(ConflictException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ExceptionDomainLegalEntityError.STA_LEGAL_ENTITY_IN_USE.getCode());
             verify(legalEntityRepository, never()).delete(any(LegalEntity.class));
         }
     }

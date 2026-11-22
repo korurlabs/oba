@@ -100,4 +100,13 @@ public class Attachment extends BaseEntity {
     /** Pixel height of an image attachment; set and cleared together with width. */
     @Column(name = "height")
     private Integer height;
+
+    /**
+     * Document this attachment is a PDF snapshot of, set once when a document is attached to a
+     * mail and null for every uploaded file. The snapshot has its own blob, so a later upload
+     * to the document never changes it; the foreign key sets the column to null when the
+     * document is deleted, and the snapshot stays as what the relation received.
+     */
+    @Column(name = "document_id", updatable = false)
+    private UUID documentId;
 }

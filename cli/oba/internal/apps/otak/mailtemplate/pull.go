@@ -1,8 +1,8 @@
 package mailtemplate
 
 import (
-	"github.com/korurlabs/oba-cli/internal/apps/otak/docfile"
 	"github.com/korurlabs/oba-cli/internal/dojo/client"
+	"github.com/korurlabs/oba-cli/internal/dojo/docfile"
 )
 
 // Pull writes a mail template into dir as <name>.md, in the form Push reads. It returns the path

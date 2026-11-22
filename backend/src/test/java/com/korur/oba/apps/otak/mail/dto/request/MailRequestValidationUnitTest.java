@@ -8,8 +8,8 @@ import static com.korur.oba.apps.otak.support.RequestValidationSupport.with;
 import static org.assertj.core.api.Assertions.assertThat;
 
 // 4. Internal
-import com.korur.oba.apps.otak.documenttemplate.enums.DocumentLanguage;
 import com.korur.oba.apps.otak.mail.constant.MailConstant;
+import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
 
 class MailRequestValidationUnitTest {
 

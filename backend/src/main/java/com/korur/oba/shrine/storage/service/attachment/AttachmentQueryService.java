@@ -95,4 +95,30 @@ public interface AttachmentQueryService {
      */
     AttachmentExistsResponse checkAttachmentExists(UUID organizationId, AttachmentExistsCheckRequest request,
                                                    MultipartFile file);
+
+    /**
+     * Lists the PDF snapshots made from one document, newest first. No access check runs
+     * here: the caller has checked READ on the document's owner, and every snapshot sits on a
+     * mail of that owner, which the same app and role reach.
+     *
+     * Called by {@link com.korur.oba.shrine.document.service.document.impl.DocumentQueryServiceImpl#get}.
+     *
+     * @param organizationId the organization of the request
+     * @param documentId     the document
+     * @return the snapshots, newest first; empty when the document has none
+     */
+    List<AttachmentResponse> listAttachmentsByDocument(UUID organizationId, UUID documentId);
+
+    /**
+     * Counts the PDF snapshots of each given document in one query. No access check runs
+     * here, as in {@link #listAttachmentsByDocument}; only a count leaves this method.
+     *
+     * Called by {@link com.korur.oba.shrine.document.service.document.impl.DocumentQueryServiceImpl}
+     * for a page of documents and for one document.
+     *
+     * @param organizationId the organization of the request
+     * @param documentIds    the documents
+     * @return the count per document; a document without snapshots is absent
+     */
+    Map<UUID, Long> countAttachmentsByDocuments(UUID organizationId, Collection<UUID> documentIds);
 }

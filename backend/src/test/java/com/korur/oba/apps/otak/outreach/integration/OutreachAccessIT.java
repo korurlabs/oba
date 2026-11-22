@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MvcResult;
 
 // 4. Internal
-import com.korur.oba.apps.otak.documenttemplate.integration.AbstractOtakDocumentsIT;
+import com.korur.oba.apps.otak.support.AbstractOtakDocumentsIT;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -183,7 +183,7 @@ class OutreachAccessIT extends AbstractOtakDocumentsIT {
         MvcResult result = mockMvc.perform(in(tenant, post(OUTREACHES_PATH), admin.jwt(), body))
                 .andExpect(status().isUnprocessableEntity()).andReturn();
 
-        assertThat(result.getResponse().getContentAsString()).contains("OTK_VAL_012");
+        assertThat(result.getResponse().getContentAsString()).contains("DOC_VAL_002");
         assertThat(outreachesOfTenant()).isEqualTo(1L);
         assertThat(count("SELECT count(*) FROM otak.mails WHERE organization_id = ?::uuid", tenant.id()))
                 .isEqualTo(1L);

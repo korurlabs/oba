@@ -22,10 +22,8 @@ export async function getOutreach(outreachId: string) {
 }
 
 /**
- * Stores a DRAFT on its channel; a MAIL outreach with its own mail, carrying
- * a copy of the PDF of each of `documentTemplateIds`. An unknown mail
- * template answers `OTK_NOT_010`, an unknown document template
- * `OTK_NOT_007`, one without its PDF `OTK_VAL_012`. ADMIN or OWNER only.
+ * Stores a DRAFT on its channel; a MAIL outreach with its own mail. An
+ * unknown mail template answers `OTK_NOT_010`. ADMIN or OWNER only.
  */
 export async function createOutreach(data: OutreachRequest) {
   const res = await api.post<ApiResponse<OutreachDetail>>(API_ROUTES.outreaches.list, data);

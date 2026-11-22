@@ -19,4 +19,5 @@ public final class RelationControllerResponseConstant {
     public static final String RESPONSE_RELATION_STAGE_CHANGED = "Relation stage changed successfully";
     public static final String RESPONSE_RELATION_TYPE_CHANGED = "Relation type changed successfully";
     public static final String RESPONSE_RELATION_DELETED = "Relation deleted successfully";
+    public static final String RESPONSE_RELATION_ATTACHMENTS_RETRIEVED = "Relation attachments retrieved successfully";
 }

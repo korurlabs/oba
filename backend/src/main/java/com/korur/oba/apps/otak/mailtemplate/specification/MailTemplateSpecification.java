@@ -9,10 +9,10 @@ import org.springframework.data.jpa.domain.Specification;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.otak.documenttemplate.enums.DocumentLanguage;
 import com.korur.oba.apps.otak.mailtemplate.constant.MailTemplateConstant;
 import com.korur.oba.apps.otak.mailtemplate.dto.request.MailTemplateQueryRequest;
 import com.korur.oba.apps.otak.mailtemplate.entity.MailTemplate;
+import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
 
 /**
  * JPA Specification builder for the {@link MailTemplate} list.

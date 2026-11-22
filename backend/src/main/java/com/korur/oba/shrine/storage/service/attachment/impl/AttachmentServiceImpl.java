@@ -176,6 +176,26 @@ public class AttachmentServiceImpl implements AttachmentService {
     @Transactional
     public AttachmentResponse storeAttachmentContent(User user, UUID organizationId, StorageEntityType entityType,
                                                      UUID entityId, AttachmentContent content) {
+        return storeContent(user, organizationId, entityType, entityId, content, null);
+    }
+
+    /**
+     * Stores a document's PDF snapshot through the same steps as
+     * {@link #storeAttachmentContent}, and records the document on the row before it is saved.
+     */
+    @Override
+    @Transactional
+    public AttachmentResponse storeDocumentSnapshot(User user, UUID organizationId, StorageEntityType entityType,
+                                                    UUID entityId, AttachmentContent content, UUID documentId) {
+        return storeContent(user, organizationId, entityType, entityId, content, documentId);
+    }
+
+    /**
+     * The shared steps of a server-side store: the WRITE check, the empty and duplicate checks,
+     * the blob upload and the row, with documentId set for a document snapshot and null otherwise.
+     */
+    private AttachmentResponse storeContent(User user, UUID organizationId, StorageEntityType entityType,
+                                            UUID entityId, AttachmentContent content, UUID documentId) {
         verifyWrite(user, organizationId, entityType, entityId);
 
         loggingService.observe(LOG_PREFIX, LogLayer.SERVICE,
@@ -187,8 +207,10 @@ public class AttachmentServiceImpl implements AttachmentService {
         String hash = attachmentHashHelper.computeHash(content.content());
         attachmentValidator.ensureStoredContentNotDuplicate(organizationId, request, hash);
 
-        Attachment saved = attachmentRepository.save(
-                buildAttachment(organizationId, request, content.contentType(), content.content(), hash));
+        Attachment attachment = buildAttachment(organizationId, request, content.contentType(), content.content(),
+                hash);
+        attachment.setDocumentId(documentId);
+        Attachment saved = attachmentRepository.save(attachment);
 
         loggingService.observe(LOG_PREFIX, LogLayer.SERVICE,
                 AttachmentServiceLogConstant.ATTACHMENT_STORED_CONTENT, content.fileName(), saved.getId());

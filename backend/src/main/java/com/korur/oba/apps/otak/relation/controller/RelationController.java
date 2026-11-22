@@ -38,9 +38,11 @@ import com.korur.oba.apps.otak.relation.dto.request.RelationQueryRequest;
 import com.korur.oba.apps.otak.relation.dto.request.RelationStageRequest;
 import com.korur.oba.apps.otak.relation.dto.request.RelationTypeRequest;
 import com.korur.oba.apps.otak.relation.dto.request.RelationUpdateRequest;
+import com.korur.oba.apps.otak.relation.dto.response.RelationAttachmentResponse;
 import com.korur.oba.apps.otak.relation.dto.response.RelationDetailResponse;
 import com.korur.oba.apps.otak.relation.dto.response.RelationListResponse;
 import com.korur.oba.apps.otak.relation.dto.response.RelationOwnerCandidateResponse;
+import com.korur.oba.apps.otak.relation.service.RelationAttachmentQueryService;
 import com.korur.oba.apps.otak.relation.service.RelationQueryService;
 import com.korur.oba.apps.otak.relation.service.RelationService;
 import com.korur.oba.dojo.constant.CommonConstant;
@@ -69,6 +71,7 @@ public class RelationController {
 
     private final RelationService relationService;
     private final RelationQueryService relationQueryService;
+    private final RelationAttachmentQueryService relationAttachmentQueryService;
     private final LoggingService loggingService;
 
     /**
@@ -197,6 +200,44 @@ public class RelationController {
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, RelationControllerLogConstant.RELATION_GET_COMPLETED);
 
         return ResponseUtil.ok(RelationControllerResponseConstant.RESPONSE_RELATION_RETRIEVED, response);
+    }
+
+    /**
+     * Lists the files of a relation and of its mails, newest first.
+     *
+     * Delegates to {@link RelationAttachmentQueryService#list}, which checks READ on the
+     * relation. A snapshot of a document carries its documentId, so the client can open the
+     * document it came from.
+     */
+    @GetMapping("/{relationId}/attachments")
+    @RequiredUserAccess(OrganizationMemberRole.MEMBER)
+    @Operation(summary = "List relation attachments",
+            description = "The relation's own files and the files of its mails, newest first. Each item is an "
+                    + "attachment plus documentId (set on a document snapshot), source (RELATION or MAIL), mailId "
+                    + "and outreachTitle (both null for RELATION).")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successful operation"),
+            @ApiResponse(responseCode = "400", description = "Missing or malformed X-Organization-ID header"),
+            @ApiResponse(responseCode = "403", description = "No Otak access (APP_SEC_001), GUEST role "
+                    + "(ORG_SEC_003), or membership or organization disabled (ORG_SEC_001, ORG_SEC_005)"),
+            @ApiResponse(responseCode = "404", description = "Relation not found or of another organization "
+                    + "(OTK_NOT_001)"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<CustomResponse<List<RelationAttachmentResponse>>> listRelationAttachments(
+            @Parameter(hidden = true) @GetUser User user,
+            @RequestHeader(CommonConstant.HEADER_ORGANIZATION_ID) UUID organizationId,
+            @PathVariable UUID relationId) {
+        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
+                RelationControllerLogConstant.RELATION_ATTACHMENTS_REQUEST);
+
+        List<RelationAttachmentResponse> response = relationAttachmentQueryService.list(user, organizationId,
+                relationId);
+
+        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
+                RelationControllerLogConstant.RELATION_ATTACHMENTS_COMPLETED);
+
+        return ResponseUtil.ok(RelationControllerResponseConstant.RESPONSE_RELATION_ATTACHMENTS_RETRIEVED, response);
     }
 
     /**

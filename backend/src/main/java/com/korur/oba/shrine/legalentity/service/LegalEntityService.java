@@ -55,6 +55,8 @@ public interface LegalEntityService {
      * @param legalEntityId  the legal entity identifier
      * @throws com.korur.oba.dojo.exception.internal.business.NotFoundException LGE_NOT_001 when the organization
      *         has no legal entity with the id
+     * @throws com.korur.oba.dojo.exception.internal.business.ConflictException LGE_STA_002 when a document or
+     *         document template of the organization names it
      */
     void delete(UUID organizationId, UUID legalEntityId);
 }

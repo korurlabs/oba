@@ -34,4 +34,7 @@ public final class RelationControllerLogConstant {
 
     public static final String RELATION_DELETE_REQUEST = "Received request to delete relation";
     public static final String RELATION_DELETE_COMPLETED = "Delete relation request completed";
+
+    public static final String RELATION_ATTACHMENTS_REQUEST = "Received request to list relation attachments";
+    public static final String RELATION_ATTACHMENTS_COMPLETED = "List relation attachments request completed";
 }

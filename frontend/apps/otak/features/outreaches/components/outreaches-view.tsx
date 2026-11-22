@@ -9,7 +9,6 @@ import { NativeSelect } from "@oba/ui/sky/field";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { DataTable, TablePagination } from "@/components/data-table";
 import { ActionEmptyState, FilterLabel, PageHeading } from "@/components/page-states";
-import type { TemplatePageTab } from "@/features/document-templates/lib/template-tabs";
 import { useIsOrganizationAdmin } from "@/hooks/use-is-organization-admin";
 import { useOutreachColumns } from "../hooks/use-outreach-columns";
 import { useOutreachFilterParams } from "../hooks/use-outreach-filter-params";
@@ -49,7 +48,7 @@ export function OutreachesView({ tabs }: OutreachesViewProps) {
 
   const templatesLink = (
     <Button asChild variant="outline">
-      <Link href={{ pathname: "/templates", query: { tab: "mail" satisfies TemplatePageTab } }}>
+      <Link href="/mail">
         <FileText aria-hidden="true" />
         {t("mailTemplates")}
       </Link>

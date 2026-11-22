@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   createRelationFormSchema,
   emptyRelationFormValues,
+  relationAttachmentSchema,
   relationDetailSchema,
   relationListItemSchema,
   relationToFormValues,
@@ -181,5 +182,50 @@ describe("relation request and response schemas", () => {
     expect(withMails.mainBusinessContactEmail).toBe("info@acme.com");
     const { mainBusinessContactEmail: _companyMail, ...withoutCompanyMail } = item;
     expect(relationListItemSchema.safeParse(withoutCompanyMail).success).toBe(false);
+  });
+});
+
+describe("relationAttachmentSchema", () => {
+  const uploaded = {
+    id: "a0000000-0000-0000-0000-000000000001",
+    url: "https://blob.example/nda.pdf",
+    fileName: "nda.pdf",
+    contentType: "application/pdf",
+    fileSize: 1024,
+    entityType: "RELATION",
+    entityId: "b0000000-0000-0000-0000-000000000001",
+    createdAt: "2026-11-21T08:00:00Z",
+    width: null,
+    height: null,
+    documentId: null,
+    source: "RELATION",
+    mailId: null,
+    outreachTitle: null,
+  };
+
+  test("a file of the relation has no mail", () => {
+    const parsed = relationAttachmentSchema.parse(uploaded);
+    expect(parsed.source).toBe("RELATION");
+    expect(parsed.documentId).toBeNull();
+  });
+
+  test("a snapshot on a mail carries its document, mail and outreach title", () => {
+    const parsed = relationAttachmentSchema.parse({
+      ...uploaded,
+      entityType: "MAIL",
+      entityId: "c0000000-0000-0000-0000-000000000001",
+      documentId: "d0000000-0000-0000-0000-000000000001",
+      source: "MAIL",
+      mailId: "c0000000-0000-0000-0000-000000000001",
+      outreachTitle: "Q4 security offers",
+    });
+    expect(parsed.documentId).toBe("d0000000-0000-0000-0000-000000000001");
+    expect(parsed.outreachTitle).toBe("Q4 security offers");
+  });
+
+  test("an unknown source is refused", () => {
+    expect(relationAttachmentSchema.safeParse({ ...uploaded, source: "TICKET" }).success).toBe(
+      false
+    );
   });
 });

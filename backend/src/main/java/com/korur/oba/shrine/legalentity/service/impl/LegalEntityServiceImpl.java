@@ -16,6 +16,8 @@ import static com.korur.oba.shrine.legalentity.constant.service.LegalEntityServi
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.shrine.document.service.document.DocumentQueryService;
+import com.korur.oba.shrine.document.service.template.DocumentTemplateQueryService;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.legalentity.dto.request.LegalEntityCreateRequest;
 import com.korur.oba.shrine.legalentity.dto.request.LegalEntityFields;
@@ -41,6 +43,8 @@ public class LegalEntityServiceImpl implements LegalEntityService {
     private final LegalEntityRepository legalEntityRepository;
     private final LegalEntityMapper legalEntityMapper;
     private final LegalEntityValidator legalEntityValidator;
+    private final DocumentQueryService documentQueryService;
+    private final DocumentTemplateQueryService documentTemplateQueryService;
     private final LoggingService loggingService;
 
     @Override
@@ -84,6 +88,10 @@ public class LegalEntityServiceImpl implements LegalEntityService {
     @Transactional
     public void delete(UUID organizationId, UUID legalEntityId) {
         LegalEntity legalEntity = legalEntityValidator.ensureLegalEntityExists(organizationId, legalEntityId);
+        // Checked before the delete, so the client gets a named conflict instead of a foreign key error.
+        boolean inUse = documentQueryService.existsByLegalEntity(organizationId, legalEntityId)
+                || documentTemplateQueryService.existsByLegalEntity(organizationId, legalEntityId);
+        legalEntityValidator.ensureNotInUse(organizationId, legalEntityId, inUse);
 
         legalEntityRepository.delete(legalEntity);
         // Flushed so a row that later tables still reference fails inside this call, not at commit.
