@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 // 4. Internal
 import com.korur.oba.connect.azure.service.AzureBlobStorageQueryService;
@@ -28,6 +29,7 @@ import com.korur.oba.shrine.access.enums.ResourceAccessType;
 import com.korur.oba.shrine.access.service.ResourceAccessQueryService;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.storage.constant.service.attachment.AttachmentServiceLogConstant;
+import com.korur.oba.shrine.storage.dto.projection.attachment.AttachmentDocumentCountProjection;
 import com.korur.oba.shrine.storage.dto.request.attachment.AttachmentExistsCheckRequest;
 import com.korur.oba.shrine.storage.dto.response.attachment.AttachmentContent;
 import com.korur.oba.shrine.storage.dto.response.attachment.AttachmentExistsResponse;
@@ -186,6 +188,25 @@ public class AttachmentQueryServiceImpl implements AttachmentQueryService {
                 request.entityType(), exists);
 
         return attachmentMapper.toExistsResponse(exists);
+    }
+
+    @Override
+    public List<AttachmentResponse> listAttachmentsByDocument(UUID organizationId, UUID documentId) {
+        return attachmentRepository.findByDocumentIdAndOrganizationIdOrderByCreatedAtDescIdDesc(documentId,
+                        organizationId)
+                .stream()
+                .map(attachmentMapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    public Map<UUID, Long> countAttachmentsByDocuments(UUID organizationId, Collection<UUID> documentIds) {
+        if (documentIds == null || documentIds.isEmpty()) {
+            return Map.of();
+        }
+        return attachmentRepository.countByDocumentIds(organizationId, documentIds).stream()
+                .collect(Collectors.toMap(AttachmentDocumentCountProjection::getDocumentId,
+                        AttachmentDocumentCountProjection::getSnapshotCount));
     }
 
     /** The blob name in the container: the part of the unsigned URL after its last slash. */

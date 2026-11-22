@@ -23,6 +23,7 @@ public enum ExceptionDomainDocumentError implements ExceptionDomainError {
     // ── Not Found (DOC_NOT) ─────────────────────────────────────────────────
     // Also the answer for a template of another organization, so an id reveals nothing to another tenant.
     NOT_DOCUMENT_TEMPLATE_FOUND("DOC_NOT_001", "Document template not found.", ExceptionCategory.NOT),
+    NOT_DOCUMENT_FOUND("DOC_NOT_002", "Document not found.", ExceptionCategory.NOT),
 
     // ── State (DOC_STA) ─────────────────────────────────────────────────────
     STA_DOCUMENT_TEMPLATE_NAME_TAKEN("DOC_STA_001",
@@ -30,7 +31,10 @@ public enum ExceptionDomainDocumentError implements ExceptionDomainError {
 
     // ── Validation (DOC_VAL) ────────────────────────────────────────────────
     VAL_FILE_NOT_HTML_OR_PDF("DOC_VAL_001", "The file is not the HTML or PDF file it should be.", ExceptionCategory.VAL),
-    VAL_DOCUMENT_NOT_USABLE("DOC_VAL_002", "The document template can not be used here.", ExceptionCategory.VAL);
+    VAL_DOCUMENT_NOT_USABLE("DOC_VAL_002", "The document template can not be used here.", ExceptionCategory.VAL),
+    VAL_DOCUMENT_WITHOUT_PDF("DOC_VAL_003", "The document has no PDF yet.", ExceptionCategory.VAL),
+    VAL_DOCUMENT_OTHER_RELATION("DOC_VAL_004", "The mail belongs to another relation than the document.",
+            ExceptionCategory.VAL);
 
     private final String code;
     private final String message;

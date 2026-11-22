@@ -2,6 +2,8 @@ package com.korur.oba.shrine.storage.repository.attachment;
 
 // 1. Framework-level
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 // 3. Java SDK
 import java.util.Collection;
@@ -10,6 +12,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
+import com.korur.oba.shrine.storage.dto.projection.attachment.AttachmentDocumentCountProjection;
 import com.korur.oba.shrine.storage.entity.attachment.Attachment;
 import com.korur.oba.shrine.storage.enums.common.StorageEntityType;
 
@@ -122,4 +125,28 @@ public interface AttachmentRepository extends JpaRepository<Attachment, UUID> {
      * @return true if an attachment row still references the blob
      */
     boolean existsByUrl(String url);
+
+    /**
+     * Lists the PDF snapshots of one document within an organization, newest first, with the
+     * id as tie-breaker so the order is stable. Served by attachments_document_id_idx.
+     *
+     * @param documentId     the document
+     * @param organizationId the organization of the request
+     * @return the snapshots, newest first
+     */
+    List<Attachment> findByDocumentIdAndOrganizationIdOrderByCreatedAtDescIdDesc(UUID documentId,
+                                                                                UUID organizationId);
+
+    /**
+     * Counts the PDF snapshots of each given document within an organization, in one grouped
+     * query, so a page of documents costs one read. A document without snapshots has no row.
+     *
+     * @param organizationId the organization of the request
+     * @param documentIds    the documents, not empty
+     * @return one row per document with at least one snapshot
+     */
+    @Query("SELECT a.documentId AS documentId, COUNT(a) AS snapshotCount FROM Attachment a "
+            + "WHERE a.organizationId = :organizationId AND a.documentId IN :documentIds GROUP BY a.documentId")
+    List<AttachmentDocumentCountProjection> countByDocumentIds(@Param("organizationId") UUID organizationId,
+                                                               @Param("documentIds") Collection<UUID> documentIds);
 }

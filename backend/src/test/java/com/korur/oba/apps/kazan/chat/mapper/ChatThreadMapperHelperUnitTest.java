@@ -293,7 +293,7 @@ class ChatThreadMapperHelperUnitTest {
 
         private AttachmentResponse attachment(String fileName) {
             return new AttachmentResponse(UUID.randomUUID(), "https://files/x", fileName, "application/pdf", 10L,
-                    StorageEntityType.CHAT_MESSAGE, UUID.randomUUID(), Instant.now(), null, null);
+                    StorageEntityType.CHAT_MESSAGE, UUID.randomUUID(), Instant.now(), null, null, null);
         }
     }
 

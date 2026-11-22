@@ -12,6 +12,9 @@ import com.korur.oba.shrine.storage.enums.common.StorageEntityType;
  * width and height are the image's pixel size, both set for a PNG, JPEG, GIF
  * or WebP upload whose header could be read and both null otherwise, so a
  * client lays out an image without them in a fallback box until it loads.
+ *
+ * documentId names the document an attachment is a PDF snapshot of; it is null for an
+ * uploaded file and becomes null when that document is deleted.
  */
 public record AttachmentResponse(
         UUID id,
@@ -23,5 +26,6 @@ public record AttachmentResponse(
         UUID entityId,
         Instant createdAt,
         Integer width,
-        Integer height) {
+        Integer height,
+        UUID documentId) {
 }

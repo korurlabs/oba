@@ -91,4 +91,14 @@ public interface DocumentTemplateRepository
      */
     boolean existsByOrganizationIdAndNameIgnoreCaseAndLanguageAndIdNot(UUID organizationId, String name,
                                                                        DocumentLanguage language, UUID id);
+
+    /**
+     * Tells whether a template of the organization names the legal entity, so its delete can be
+     * refused with a clear code before the foreign key would refuse it.
+     *
+     * @param organizationId the organization
+     * @param legalEntityId  the legal entity
+     * @return true when at least one template names it
+     */
+    boolean existsByOrganizationIdAndLegalEntityId(UUID organizationId, UUID legalEntityId);
 }

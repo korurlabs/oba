@@ -64,6 +64,25 @@ public interface AttachmentService {
                                               UUID entityId, AttachmentContent content);
 
     /**
+     * Stores the PDF snapshot of a document as an attachment of a parent, with the checks of
+     * {@link #storeAttachmentContent}, and records the document on the row. The bytes are
+     * stored under a blob of their own, so the snapshot stays as it is when the document's
+     * files are replaced or the document is deleted.
+     *
+     * Called by {@link com.korur.oba.shrine.document.service.document.impl.DocumentServiceImpl#attachTo}.
+     *
+     * @param user the authenticated user
+     * @param organizationId the organization of the request, which the parent must belong to
+     * @param entityType polymorphic parent entity type
+     * @param entityId polymorphic parent entity ID
+     * @param content the file name, media type and bytes of the document's current PDF
+     * @param documentId the document the snapshot is made from
+     * @return the persisted attachment, with documentId set
+     */
+    AttachmentResponse storeDocumentSnapshot(User user, UUID organizationId, StorageEntityType entityType,
+                                             UUID entityId, AttachmentContent content, UUID documentId);
+
+    /**
      * Deletes one attachment and its blob, after the stored parent has been
      * checked for a DELETE by the user in the request's organization. An
      * attachment of another organization is not found. An
