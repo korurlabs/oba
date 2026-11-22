@@ -114,8 +114,9 @@ public interface KalkanPageQueryService {
     KalkanPageRevisionDetailResponse getRevision(User user, UUID organizationId, UUID pageId, UUID revisionId);
 
     /**
-     * Lists the deletes the caller could undo: the top page of every delete under a root on which
-     * the caller holds MANAGE, newest first.
+     * Lists the deletes the caller may undo, newest first: the top page of every delete, a deleted
+     * root when the caller holds MANAGE on it and any other page when the caller holds EDIT or more
+     * on its root, the same levels a restore checks.
      *
      * @param user           the caller
      * @param organizationId the organization of the request

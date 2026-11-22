@@ -18,6 +18,12 @@ public interface KalkanPageTrashProjection {
 
     UUID getId();
 
+    /** The root whose grants decide who may restore this page: the page itself when it is a root. */
+    UUID getAccessRootId();
+
+    /** Whether the page is a root page, which only the root's managers restore. */
+    Boolean getRoot();
+
     String getPath();
 
     Instant getDeletedAt();
