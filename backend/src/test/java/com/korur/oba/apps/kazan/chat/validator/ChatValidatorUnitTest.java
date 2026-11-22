@@ -5,6 +5,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -44,6 +46,7 @@ import com.korur.oba.apps.kazan.dailyupdate.entity.DailyUpdate;
 import com.korur.oba.apps.kazan.dailyupdate.service.DailyUpdateQueryService;
 import com.korur.oba.apps.kazan.exception.ExceptionDomainKazanError;
 import com.korur.oba.apps.kazan.ticket.entity.Ticket;
+import com.korur.oba.dojo.exception.enums.ExceptionValidationError;
 import com.korur.oba.dojo.exception.internal.auth.ForbiddenException;
 import com.korur.oba.dojo.exception.internal.business.ConflictException;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
@@ -293,6 +296,59 @@ class ChatValidatorUnitTest {
             request.setAfter(UUID.randomUUID());
 
             assertThatCode(() -> validator.ensureSingleCursor(request)).doesNotThrowAnyException();
+        }
+    }
+
+    @Nested
+    class PageSize {
+
+        @Test
+        void noLimit_takesTheDefault() {
+            // Act
+            int pageSize = validator.ensurePageSize(null, ChatConstant.DEFAULT_SEARCH_PAGE_SIZE);
+
+            // Assert
+            assertThat(pageSize).isEqualTo(ChatConstant.DEFAULT_SEARCH_PAGE_SIZE);
+        }
+
+        @ParameterizedTest
+        @ValueSource(ints = {ChatConstant.MIN_PAGE_SIZE, ChatConstant.MAX_PAGE_SIZE})
+        void limitAtABound_isReturned(int limit) {
+            // Act
+            int pageSize = validator.ensurePageSize(limit, ChatConstant.DEFAULT_PAGE_SIZE);
+
+            // Assert
+            assertThat(pageSize).isEqualTo(limit);
+        }
+
+        @ParameterizedTest
+        @ValueSource(ints = {Integer.MIN_VALUE, -1, 0, ChatConstant.MAX_PAGE_SIZE + 1, Integer.MAX_VALUE})
+        void limitOutsideTheRange_isRefusedNamingTheLargestLimit(int limit) {
+            // Act
+            Throwable thrown = catchThrowable(() -> validator.ensurePageSize(limit, ChatConstant.DEFAULT_PAGE_SIZE));
+
+            // Assert
+            assertThat(thrown).isInstanceOf(ValidationException.class)
+                    .extracting("errorCode").isEqualTo(ExceptionValidationError.VALIDATION.getCode());
+            assertThat(thrown).extracting("errorValues")
+                    .isEqualTo(Map.of(ChatConstant.FIELD_LIMIT, ChatConstant.MAX_PAGE_SIZE));
+        }
+
+        @Test
+        void refusal_isLoggedAtWarnNeverAtError() {
+            // Arrange
+            LoggingService loggingService = mock(LoggingService.class);
+            ChatValidator observed = new ChatValidator(chatMessageRepository, chatThreadRepository,
+                    dailyUpdateQueryService, null, appAccessValidator, loggingService);
+
+            // Act
+            catchThrowable(() -> observed.ensurePageSize(0, ChatConstant.DEFAULT_PAGE_SIZE));
+
+            // Assert
+            verify(loggingService).warn(any(), eq(LogLayer.VALIDATOR),
+                    eq(ChatExceptionLogConstant.CHAT_PAGE_SIZE_OUT_OF_RANGE), eq(0),
+                    eq(ChatConstant.MIN_PAGE_SIZE), eq(ChatConstant.MAX_PAGE_SIZE));
+            verify(loggingService, never()).error(any(), any(), any(), any(Object[].class));
         }
     }
 

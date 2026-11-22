@@ -30,6 +30,11 @@ public final class ChatExceptionLogConstant {
     public static final String CHAT_MESSAGE_LIMIT_EXCEEDED = "Chat message exceeds a limit: field={}, limit={}, actual={}";
 
     /**
+     * Log message for when a page of messages, pins or threads asks for a size outside the allowed range.
+     */
+    public static final String CHAT_PAGE_SIZE_OUT_OF_RANGE = "Chat page size out of range: limit={}, min={}, max={}";
+
+    /**
      * Log message for when a message mentions a user who is not an active member.
      */
     public static final String CHAT_MENTION_NOT_MEMBER = "Chat message mentions a non-member: userId={}, organizationId={}";

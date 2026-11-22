@@ -83,7 +83,7 @@ public class PackQueryServiceImpl implements PackQueryService {
     @Override
     public List<Pack> getChain(UUID organizationId, UUID packId) {
         Pack pack = getEntityById(organizationId, packId);
-        long limit = packRepository.countByOrganizationId(organizationId);
+        int limit = packCount(organizationId);
         List<Pack> chain = new ArrayList<>();
         chain.add(pack);
         while (pack.getParentPackId() != null) {
@@ -107,7 +107,7 @@ public class PackQueryServiceImpl implements PackQueryService {
 
     @Override
     public List<UUID> getDescendantIds(UUID organizationId, UUID packId) {
-        long limit = packRepository.countByOrganizationId(organizationId);
+        int limit = packCount(organizationId);
         List<UUID> descendants = new ArrayList<>();
         Set<UUID> seen = new HashSet<>(Set.of(packId));
         List<UUID> level = List.of(packId);
@@ -127,5 +127,17 @@ public class PackQueryServiceImpl implements PackQueryService {
     @Override
     public Optional<Pack> findByName(UUID organizationId, String name) {
         return packRepository.findByOrganizationIdAndName(organizationId, name);
+    }
+
+    /**
+     * The number of packs of the organization, the most steps a parent chain
+     * or a descendant walk can take. It bounds collections, which hold at most
+     * Integer.MAX_VALUE elements, so it is read as an int; a count beyond that
+     * cannot occur and fails loudly instead of letting a walk run unbounded.
+     *
+     * @throws ArithmeticException when the count does not fit an int
+     */
+    private int packCount(UUID organizationId) {
+        return Math.toIntExact(packRepository.countByOrganizationId(organizationId));
     }
 }
