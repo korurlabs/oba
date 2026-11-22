@@ -1,6 +1,12 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { getPage, listPages } from "../api";
+import { isApiError } from "@oba/shared/api/axios";
+import { getPage, listPages, listTrash } from "../api";
 import { PAGE_KEYS } from "../hooks/query-keys";
+import type { KalkanLocale } from "../schemas";
+import { contentLocaleOf } from "./page-tree";
+
+/** The refusal of a page the server does not show: deleted, never there or out of reach. */
+const PAGE_NOT_FOUND = "KLK_NOT_001";
 
 /**
  * Server-side prefetch of the page tree, under the key and with the api
@@ -22,17 +28,50 @@ export async function prefetchPageTree(
 
 /**
  * Server-side prefetch of one page, under the key and with the api function
- * `usePage` uses. Best-effort: on failure, a 404 included, the error is
- * logged and the client hook fetches on mount and shows its own state.
+ * `usePage` uses, for the screens of one page. Resolves to false for a page
+ * the server does not show, so the route answers HTTP 404, unless the page is
+ * in the caller's trash: the page view then offers its restore. Any other
+ * failure is best-effort: the error is logged, the result is true and the
+ * client hook fetches on mount and shows its own state. `uiLocale` is the
+ * locale of the route.
  */
 export async function prefetchPage(
   queryClient: QueryClient,
   organizationId: string,
-  pageId: string
-): Promise<void> {
+  pageId: string,
+  uiLocale: string
+): Promise<boolean> {
   try {
     queryClient.setQueryData(PAGE_KEYS.detail(organizationId, pageId), await getPage(pageId));
+    return true;
   } catch (error) {
-    console.error("[page-detail] page prefetch failed, the client will refetch:", error);
+    if (!isApiError(error, PAGE_NOT_FOUND)) {
+      console.error("[page-detail] page prefetch failed, the client will refetch:", error);
+      return true;
+    }
+  }
+  return isInTrash(queryClient, organizationId, pageId, contentLocaleOf(uiLocale));
+}
+
+/**
+ * Whether the caller's trash holds the page, which it does only for the top
+ * page of a deleted subtree the caller may restore. The trash is cached under
+ * the key `useTrash` reads, so the page view's restore needs no request of its
+ * own. A trash that cannot be read (a GUEST is refused it) counts as not
+ * holding the page; the error is logged.
+ */
+async function isInTrash(
+  queryClient: QueryClient,
+  organizationId: string,
+  pageId: string,
+  locale: KalkanLocale
+): Promise<boolean> {
+  try {
+    const trash = await listTrash(locale);
+    queryClient.setQueryData(PAGE_KEYS.trash(organizationId, locale), trash);
+    return (trash.data ?? []).some((item) => item.id === pageId);
+  } catch (error) {
+    console.error("[page-detail] trash lookup for a missing page failed:", error);
+    return false;
   }
 }

@@ -69,6 +69,14 @@
       "description": "Ask an organization admin to set it up.",
       "adminDescription": "Set it up to start adding its pages.",
       "action": "Set up section"
+    },
+    "inTrash": {
+      "title": "This section is in the trash",
+      "description": "Its page was deleted {date} by {name}, with every page below it. Restore it to bring the section back.",
+      "descriptionUnknown": "Its page was deleted {date}, with every page below it. Restore it to bring the section back.",
+      "restore": "Restore section",
+      "openTrash": "Open the trash",
+      "loadError": "The trash could not be loaded"
     }
   },
   "pages": {

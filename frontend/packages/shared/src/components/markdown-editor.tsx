@@ -324,6 +324,34 @@ function CodeBlockNodeView({ node, updateAttributes, editor, getPos }: ReactNode
   );
 }
 
+/** The editor's document as Markdown, as `onChange` reports it. */
+function editorMarkdown(editor: Pick<Editor, 'storage'>): string {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (editor.storage as any).markdown.getMarkdown() as string;
+}
+
+/**
+ * Brings a value the form set from outside (a reset, an inserted link) into
+ * the editor. `syncedValue` is the last value editor and form agreed on: the
+ * editor's own `onChange` echoed back is skipped, so typing never resets the
+ * cursor. Keying on the value instead of a one-shot flag matters because the
+ * editor also reports updates that leave the value unchanged (`setEditable`
+ * emits one), and those must not swallow the next outside change. The
+ * content is set without an update event, so a sync never reports a change
+ * back to the form.
+ */
+export function syncExternalValue(
+  editor: Pick<Editor, 'storage' | 'commands'>,
+  value: string,
+  syncedValue: { current: string | null }
+): void {
+  if (value === syncedValue.current) return;
+  if (editorMarkdown(editor) !== value) {
+    editor.commands.setContent(value || '', { emitUpdate: false });
+  }
+  syncedValue.current = value;
+}
+
 interface UploadResult {
   url: string;
   isImage: boolean;
@@ -1001,7 +1029,8 @@ function MarkdownEditorInner({
   const [linkPopoverOpen, setLinkPopoverOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounterRef = useRef(0);
-  const isInternalUpdate = useRef(false);
+  // The value the editor was created with, then the last one editor and form agreed on.
+  const syncedValue = useRef<string | null>(value);
   const linkTriggerRef = useRef<HTMLButtonElement>(null);
 
   const handleOpenLinkPopover = useCallback(() => {
@@ -1115,31 +1144,22 @@ function MarkdownEditorInner({
     editable: !disabled && !readOnly,
     immediatelyRender: false,
     onUpdate: ({ editor: updatedEditor }) => {
-      isInternalUpdate.current = true;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const markdown = (updatedEditor.storage as any).markdown.getMarkdown() as string;
+      const markdown = editorMarkdown(updatedEditor);
+      syncedValue.current = markdown;
       onChange(markdown);
     },
   });
 
-  // Sync external value changes (e.g. form reset) into the editor
+  // Sync external value changes (e.g. form reset, inserted link) into the editor
   useEffect(() => {
     if (!editor) return;
-    if (isInternalUpdate.current) {
-      isInternalUpdate.current = false;
-      return;
-    }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const currentMarkdown = (editor.storage as any).markdown.getMarkdown() as string;
-    if (currentMarkdown !== value) {
-      editor.commands.setContent(value || '');
-    }
+    syncExternalValue(editor, value, syncedValue);
   }, [editor, value]);
 
-  // Sync disabled/editable state
+  // Sync disabled/editable state. No update event: the content is unchanged.
   useEffect(() => {
     if (!editor) return;
-    editor.setEditable(!disabled && !readOnly);
+    editor.setEditable(!disabled && !readOnly, false);
   }, [editor, disabled, readOnly]);
 
   // Mirror the onImageDelete prop into the Image extension's storage so

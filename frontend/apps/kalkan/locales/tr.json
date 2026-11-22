@@ -69,6 +69,14 @@
       "description": "Kurması için bir organizasyon yöneticisine başvurun.",
       "adminDescription": "Sayfalarını eklemeye başlamak için bölümü kurun.",
       "action": "Bölümü kur"
+    },
+    "inTrash": {
+      "title": "Bu bölüm çöp kutusunda",
+      "description": "Bölümün sayfası, altındaki tüm sayfalarla birlikte {date} tarihinde {name} tarafından silindi. Bölümü geri getirmek için geri yükleyin.",
+      "descriptionUnknown": "Bölümün sayfası, altındaki tüm sayfalarla birlikte {date} tarihinde silindi. Bölümü geri getirmek için geri yükleyin.",
+      "restore": "Bölümü geri yükle",
+      "openTrash": "Çöp kutusunu aç",
+      "loadError": "Çöp kutusu yüklenemedi"
     }
   },
   "pages": {
