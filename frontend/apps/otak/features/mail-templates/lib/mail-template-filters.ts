@@ -9,7 +9,7 @@ import {
 
 /**
  * The mail template list's search, language and page in the URL, so a
- * filtered list can be reloaded and shared. Server-safe: the templates page
+ * filtered list can be reloaded and shared. Server-safe: the mail page
  * parses the same parsers to prefetch under the key the client builds.
  */
 export const mailTemplateFilterParams = {

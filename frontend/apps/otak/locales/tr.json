@@ -4,13 +4,15 @@
   },
   "sidebar": {
     "navigation": "Gezinme",
-    "relations": "İlişkiler",
     "battlefield": "Battlefield",
-    "language": "Dil",
-    "icps": "ICP'ler",
-    "outreaches": "Erişimler",
-    "templates": "Şablonlar",
-    "events": "Etkinlikler"
+    "relations": "İlişki",
+    "outreaches": "Erişim",
+    "mail": "Posta",
+    "icps": "ICP",
+    "documents": "Belge",
+    "templates": "Şablon",
+    "events": "Etkinlik",
+    "language": "Dil"
   },
   "errors": {
     "somethingWentWrong": "Bir şeyler yanlış gitti",
@@ -508,6 +510,161 @@
       "SIZE_5001_PLUS": "5.001+"
     }
   },
+  "documents": {
+    "title": "Belgeler",
+    "subtitle": "İlişkilerinizin belgeleri, her biri tüzel kişilerinizden biri tarafından düzenlenir. İçeriği CLI ile düzenleyin; PDF kopyasını bir postayla gönderin.",
+    "new": "Yeni belge",
+    "newTitle": "Yeni belge",
+    "newDescription": "İlişkiyi, belgeyi düzenleyen tüzel kişiyi ve isteğe bağlı olarak başlangıç şablonunu seçin. İçeriği daha sonra CLI ile düzenlersiniz.",
+    "editTitle": "Belgeyi düzenle",
+    "editDescription": "Başlığı, türü, dili veya düzenleyen tüzel kişiyi değiştirin. Dosyalar olduğu gibi kalır.",
+    "filesTitle": "Dosyaları değiştir",
+    "filesDescription": "HTML dosyasını ve ondan üretilen PDF'i birlikte yükleyin. Postalarla gönderilmiş PDF kopyaları olduğu gibi kalır.",
+    "loadError": "Belgeler yüklenemedi",
+    "reloadError": "Belgeler yenilenemedi; liste güncel olmayabilir.",
+    "loading": "Belgeler yükleniyor...",
+    "legalEntitiesLoadError": "Tüzel kişiler yüklenemedi",
+    "loadingLegalEntities": "Tüzel kişiler yükleniyor...",
+    "noLegalEntities": "Organizasyonun henüz tüzel kişisi yok. Belge oluşturulabilmesi için bir yönetici bunları ekler.",
+    "empty": "Henüz belge yok",
+    "emptyHint": "Bir ilişki için sıfırdan veya bir şablondan belge oluşturun.",
+    "emptyFiltered": "Bu filtrelere uyan belge yok",
+    "emptyFilteredHint": "Daha fazla belge görmek için filtreleri değiştirin veya temizleyin.",
+    "tableLabel": "Belgeler",
+    "noRelation": "Bilinmeyen ilişki",
+    "deleteTitle": "Belgeyi sil",
+    "deleteConfirm": "\"{title}\" silinsin mi? Postalarla gönderilmiş PDF kopyaları o postalarda kalır.",
+    "deleteAction": "Belgeyi sil",
+    "edited": {
+      "today": "Bugün",
+      "yesterday": "Dün",
+      "by": "{time}, {name} tarafından"
+    },
+    "columns": {
+      "title": "Başlık",
+      "relation": "İlişki",
+      "legalEntity": "Tüzel kişi",
+      "type": "Tür",
+      "language": "Dil",
+      "updatedAt": "Düzenlendi",
+      "snapshotCount": "Gönderilen kopyalar"
+    },
+    "filters": {
+      "searchLabel": "Ara",
+      "searchPlaceholder": "Başlığa göre ara",
+      "relationLabel": "İlişki",
+      "relationAll": "Tüm ilişkiler",
+      "legalEntityLabel": "Tüzel kişi",
+      "legalEntityAll": "Tüm tüzel kişiler",
+      "legalEntityUnknown": "Seçili tüzel kişi",
+      "typeLabel": "Tür",
+      "typeAll": "Tüm türler",
+      "languageLabel": "Dil",
+      "languageAll": "Tüm diller",
+      "clear": "Filtreleri temizle"
+    },
+    "pagination": {
+      "label": "Sayfalar",
+      "previous": "Önceki",
+      "next": "Sonraki",
+      "summary": "Sayfa {page} / {pages} · {total, plural, one {# belge} other {# belge}}"
+    },
+    "form": {
+      "relation": "İlişki",
+      "relationPlaceholder": "Bir ilişki seçin",
+      "relationSearchPlaceholder": "İlişkilerde ara",
+      "legalEntity": "Tüzel kişi",
+      "legalEntityPlaceholder": "Bir tüzel kişi seçin",
+      "searchPlaceholder": "Ara",
+      "title": "Başlık",
+      "titlePlaceholder": "Örneğin Sızma testi teklifi",
+      "type": "Tür",
+      "language": "Dil",
+      "template": "Şablon",
+      "templateHint": "İsteğe bağlı. Belge, şablonun dosyalarının bir kopyasıyla başlar ve türünü ve dilini alır.",
+      "templatePlaceholder": "Şablonsuz başla",
+      "templateSearchPlaceholder": "Şablonlarda ara",
+      "htmlFile": "HTML dosyası",
+      "pdfFile": "PDF dosyası",
+      "create": "Belge oluştur",
+      "save": "Değişiklikleri kaydet",
+      "saving": "Kaydediliyor...",
+      "upload": "Dosyaları yükle",
+      "uploading": "Yükleniyor...",
+      "cancel": "İptal",
+      "errors": {
+        "titleRequired": "Başlık zorunludur",
+        "titleMax": "Başlık en fazla 200 karakter olabilir",
+        "relationRequired": "Bir ilişki seçin",
+        "legalEntityRequired": "Bir tüzel kişi seçin",
+        "htmlFileRequired": "HTML dosyasını seçin; iki dosya birlikte yüklenir",
+        "htmlFileType": "Bir .html dosyası seçin",
+        "pdfFileRequired": "PDF dosyasını seçin; iki dosya birlikte yüklenir",
+        "pdfFileType": "Bir .pdf dosyası seçin",
+        "filesTooLarge": "İki dosya birlikte en fazla 12 MB olabilir"
+      }
+    },
+    "toast": {
+      "created": "Belge oluşturuldu",
+      "updated": "Belge kaydedildi",
+      "filesUploaded": "Dosyalar yüklendi",
+      "deleted": "Belge silindi",
+      "saveError": "Belge kaydedilemedi",
+      "uploadError": "Dosyalar yüklenemedi",
+      "deleteError": "Belge silinemedi"
+    },
+    "errors": {
+      "notFound": "Bu belge artık mevcut değil.",
+      "templateNotFound": "Bu şablon artık mevcut değil.",
+      "fileNotHtmlOrPdf": "Dosya, olması gereken HTML veya PDF dosyası değil.",
+      "templateOfOtherLegalEntity": "Bu şablon başka bir tüzel kişiye ait.",
+      "legalEntityNotFound": "Bu tüzel kişi artık mevcut değil.",
+      "relationNotFound": "Bu ilişki artık mevcut değil.",
+      "uploadFailed": "Dosyalar saklanamadı. Daha sonra tekrar deneyin.",
+      "noOtakAccess": "Otak erişiminiz yok.",
+      "forbidden": "Bunu yapma yetkiniz yok.",
+      "validation": "İşaretli alanları kontrol edin.",
+      "loadHint": "Bağlantınızı kontrol edip tekrar deneyin."
+    },
+    "detail": {
+      "title": "Belge",
+      "back": "Belgelere dön",
+      "loading": "Belge yükleniyor...",
+      "loadError": "Belge yüklenemedi",
+      "notFoundTitle": "Belge bulunamadı",
+      "notFoundDescription": "Silinmiş olabilir veya bağlantı yanlış.",
+      "noFiles": "Dosya yok",
+      "edited": "Düzenlendi: {text}",
+      "edit": "Düzenle",
+      "replaceFiles": "Dosyaları değiştir",
+      "delete": "Sil",
+      "deleting": "Siliniyor...",
+      "preview": "Önizleme",
+      "previewNoFiles": "Bu belgenin henüz dosyası yok. Dosyaları yükleyin veya CLI ile indirip tekrar yükleyin.",
+      "details": "Ayrıntılar",
+      "relation": "İlişki",
+      "legalEntity": "Tüzel kişi",
+      "type": "Tür",
+      "language": "Dil",
+      "template": "Şablon",
+      "noTemplate": "Yok",
+      "templateLoading": "Yükleniyor...",
+      "templateUnavailable": "Artık mevcut değil",
+      "lastEdited": "Son düzenleme",
+      "created": "Oluşturuldu",
+      "content": "İçerik",
+      "downloadPdf": "PDF'i aç",
+      "downloadHtml": "HTML'i aç",
+      "noFilesHint": "Henüz açılacak dosya yok.",
+      "commandHint": "İçeriği CLI ile yerelde düzenleyin:",
+      "copyCommand": "Komutu kopyala",
+      "commandCopied": "Komut kopyalandı",
+      "commandCopyError": "Komut kopyalanamadı",
+      "snapshots": "Gönderilen kopyalar ({count})",
+      "noSnapshots": "Bu belgenin PDF kopyası henüz bir postayla gönderilmedi.",
+      "mailWithoutOutreach": "Erişimsiz posta"
+    }
+  },
   "documentTemplates": {
     "title": "Şablonlar",
     "subtitle": "Her erişimin ekleyebileceği onaylı belgeler; her biri bir HTML dosyası ve ondan üretilen PDF.",
@@ -544,7 +701,8 @@
       "REPORT": "Rapor",
       "SERVICE_SHEET": "Hizmet sayfası",
       "PRESENTATION": "Sunum",
-      "OTHER": "Diğer"
+      "OTHER": "Diğer",
+      "CONTRACT": "Sözleşme"
     },
     "languages": {
       "NL": "Felemenkçe",
@@ -563,6 +721,7 @@
       "name": "Ad",
       "type": "Tür",
       "language": "Dil",
+      "legalEntity": "Tüzel kişi",
       "ready": "Durum",
       "updatedAt": "Güncellendi",
       "actions": "İşlemler"
@@ -574,6 +733,9 @@
       "typeAll": "Tüm türler",
       "languageLabel": "Dil",
       "languageAll": "Tüm diller",
+      "legalEntityLabel": "Tüzel kişi",
+      "legalEntityAll": "Tüm tüzel kişiler",
+      "legalEntityUnknown": "Seçili tüzel kişi",
       "clear": "Filtreleri temizle"
     },
     "pagination": {
@@ -596,6 +758,9 @@
       "save": "Değişiklikleri kaydet",
       "saving": "Kaydediliyor...",
       "cancel": "İptal",
+      "legalEntity": "Tüzel kişi",
+      "legalEntityAll": "Tüm tüzel kişiler",
+      "legalEntityHint": "Her tüzel kişi şablonu kullanabilecekse boş bırakın.",
       "errors": {
         "nameRequired": "Ad zorunludur",
         "nameMax": "Ad en fazla 100 karakter olabilir",
@@ -622,12 +787,8 @@
       "uploadFailed": "Dosyalar saklanamadı. Daha sonra tekrar deneyin.",
       "forbidden": "Bunu yapma yetkiniz yok.",
       "validation": "İşaretli alanları kontrol edin.",
-      "loadHint": "Bağlantınızı kontrol edip tekrar deneyin."
-    },
-    "tabsLabel": "Şablon bölümleri",
-    "tabs": {
-      "documents": "Belgeler",
-      "mail": "E-posta"
+      "loadHint": "Bağlantınızı kontrol edip tekrar deneyin.",
+      "legalEntityNotFound": "Bu tüzel kişi artık mevcut değil."
     },
     "attach": {
       "button": "Şablondan ekle",
@@ -649,7 +810,8 @@
         "mailSent": "Bu e-posta gönderildi veya gönderiliyor; ekleri artık değiştirilemez.",
         "duplicate": "Bu PDF burada zaten ekli."
       }
-    }
+    },
+    "legalEntityAll": "Tümü"
   },
   "mailTemplates": {
     "title": "E-posta şablonları",

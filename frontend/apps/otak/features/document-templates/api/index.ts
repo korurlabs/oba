@@ -31,7 +31,7 @@ export async function getDocumentTemplate(templateId: string) {
 
 /**
  * Creates a template without files. A name the organization already has in
- * this language, case ignored, is refused with `OTK_STA_009`. ADMIN or
+ * this language, case ignored, is refused with `DOC_STA_001`. ADMIN or
  * OWNER only.
  */
 export async function createDocumentTemplate(data: DocumentTemplateRequest) {
@@ -64,7 +64,7 @@ export function documentFilesFormData(files: DocumentTemplateFiles): FormData {
 
 /**
  * Replaces both files of a template in one multipart request with the parts
- * `html` and `pdf`. A part that is not HTML or PDF answers `OTK_VAL_009` with
+ * `html` and `pdf`. A part that is not HTML or PDF answers `DOC_VAL_001` with
  * the part in `errorValues`. ADMIN or OWNER only.
  */
 export async function replaceDocumentTemplateFiles(
@@ -82,7 +82,7 @@ export async function replaceDocumentTemplateFiles(
 /**
  * Stores a copy of the template's PDF as a new attachment of a mail or a
  * relation, named after the template. A template without its PDF answers
- * `OTK_VAL_012`, a PDF already on the target `STG_VAL_005`, a sent mail
+ * `DOC_VAL_002`, a PDF already on the target `STG_VAL_005`, a sent mail
  * `OTK_STA_011`. A mail needs ADMIN or OWNER, a relation any member.
  */
 export async function copyDocumentTemplateToAttachment(

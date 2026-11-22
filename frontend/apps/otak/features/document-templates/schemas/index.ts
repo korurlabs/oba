@@ -7,8 +7,8 @@ import { relationPaginationSchema } from "@/features/relations/schemas";
 // ── Enum Schemas ────────────────────────────────────────────────────
 
 /**
- * The kind of document template: each is an HTML file with the PDF rendered
- * from it. Reusable mails are mail templates.
+ * The kind of a document or document template: each is an HTML file with the
+ * PDF rendered from it. Reusable mails are mail templates.
  */
 export const DocumentTypeSchema = z.enum([
   "PROPOSAL",
@@ -18,6 +18,7 @@ export const DocumentTypeSchema = z.enum([
   "SERVICE_SHEET",
   "PRESENTATION",
   "OTHER",
+  "CONTRACT",
 ]);
 export type DocumentType = z.infer<typeof DocumentTypeSchema>;
 export const DocumentType = DocumentTypeSchema.enum;
@@ -46,18 +47,28 @@ export const PDF_MEDIA_TYPE = "application/pdf";
 
 // ── Request Schemas ─────────────────────────────────────────────────
 
-/** Create and update alike; an update replaces every field, the type included, and keeps the files. */
+/**
+ * Create and update alike; an update replaces every field, the type included,
+ * and keeps the files. A null legal entity makes the template usable by every
+ * legal entity of the organization, and an update with null clears it.
+ */
 export const documentTemplateRequestSchema = z.object({
   type: DocumentTypeSchema,
   name: z.string(),
   language: DocumentLanguageSchema,
+  legalEntityId: z.string().nullable(),
 });
 
-/** The list's query string; the server searches the name and orders by name, then language. */
+/**
+ * The list's query string; the server searches the name and orders by name,
+ * then language. `legalEntityId` keeps the templates of that legal entity and
+ * those usable by every legal entity.
+ */
 export const documentTemplateQueryRequestSchema = z.object({
   search: z.string().optional(),
   type: DocumentTypeSchema.optional(),
   language: DocumentLanguageSchema.optional(),
+  legalEntityId: z.string().optional(),
   page: z.number().int().min(1),
   amount: z.number().int().min(1).max(50),
 });
@@ -113,6 +124,8 @@ export const createDocumentTemplateFormSchema = (t: (key: string) => string) =>
         .min(1, t("errors.nameRequired"))
         .max(DOCUMENT_TEMPLATE_LIMITS.nameMax, t("errors.nameMax")),
       language: DocumentLanguageSchema,
+      /** Empty for a template every legal entity of the organization may use. */
+      legalEntityId: z.string(),
       htmlFile: z.custom<File>((value) => value instanceof File).nullable(),
       pdfFile: z.custom<File>((value) => value instanceof File).nullable(),
     })
@@ -154,6 +167,12 @@ export const documentTemplateListItemSchema = z.object({
   name: z.string(),
   type: DocumentTypeSchema,
   language: DocumentLanguageSchema,
+  /**
+   * The legal entity the template is bound to and its short name; null (or
+   * absent) for a template every legal entity of the organization may use.
+   */
+  legalEntityId: z.string().nullish(),
+  legalEntityShortName: z.string().nullish(),
   /** True once both files are stored. */
   ready: z.boolean(),
   updatedAt: instantSchema,
@@ -201,6 +220,7 @@ export function emptyDocumentTemplateFormValues(): DocumentTemplateFormValues {
     type: DocumentType.PROPOSAL,
     name: "",
     language: DocumentLanguage.NL,
+    legalEntityId: "",
     htmlFile: null,
     pdfFile: null,
   };
@@ -214,6 +234,7 @@ export function documentTemplateToFormValues(
     type: template.type,
     name: template.name,
     language: template.language,
+    legalEntityId: template.legalEntityId ?? "",
     htmlFile: null,
     pdfFile: null,
   };
@@ -223,7 +244,12 @@ export function documentTemplateToFormValues(
 export function toDocumentTemplateRequest(
   values: DocumentTemplateFormValues
 ): DocumentTemplateRequest {
-  return { type: values.type, name: values.name, language: values.language };
+  return {
+    type: values.type,
+    name: values.name,
+    language: values.language,
+    legalEntityId: values.legalEntityId === "" ? null : values.legalEntityId,
+  };
 }
 
 /** The files to upload after a save: both when both are picked, else none. */

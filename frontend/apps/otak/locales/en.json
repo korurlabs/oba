@@ -4,13 +4,15 @@
   },
   "sidebar": {
     "navigation": "Navigation",
-    "relations": "Relations",
     "battlefield": "Battlefield",
-    "language": "Language",
-    "icps": "ICPs",
-    "outreaches": "Outreaches",
-    "templates": "Templates",
-    "events": "Events"
+    "relations": "Relation",
+    "outreaches": "Outreach",
+    "mail": "Mail",
+    "icps": "ICP",
+    "documents": "Document",
+    "templates": "Template",
+    "events": "Event",
+    "language": "Language"
   },
   "errors": {
     "somethingWentWrong": "Something went wrong",
@@ -508,6 +510,161 @@
       "SIZE_5001_PLUS": "5,001+"
     }
   },
+  "documents": {
+    "title": "Documents",
+    "subtitle": "The documents of your relations, each issued by one of your legal entities. Edit the content with the CLI; send a PDF copy with a mail.",
+    "new": "New document",
+    "newTitle": "New document",
+    "newDescription": "Pick the relation, the legal entity that issues it and optionally a template to start from. You edit the content afterwards with the CLI.",
+    "editTitle": "Edit document",
+    "editDescription": "Change the title, type, language or issuing legal entity. The files stay as they are.",
+    "filesTitle": "Replace files",
+    "filesDescription": "Upload the HTML file and the PDF made from it, together. PDF copies already sent with mails keep what they were.",
+    "loadError": "The documents could not be loaded",
+    "reloadError": "The documents could not be refreshed; the list may be out of date.",
+    "loading": "Loading documents...",
+    "legalEntitiesLoadError": "The legal entities could not be loaded",
+    "loadingLegalEntities": "Loading legal entities...",
+    "noLegalEntities": "The organization has no legal entities yet. An admin adds them before documents can be created.",
+    "empty": "No documents yet",
+    "emptyHint": "Create a document for a relation, from scratch or from a template.",
+    "emptyFiltered": "No documents match these filters",
+    "emptyFilteredHint": "Change or clear the filters to see more documents.",
+    "tableLabel": "Documents",
+    "noRelation": "Unknown relation",
+    "deleteTitle": "Delete document",
+    "deleteConfirm": "Delete \"{title}\"? PDF copies already sent with mails stay with those mails.",
+    "deleteAction": "Delete document",
+    "edited": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "by": "{time} by {name}"
+    },
+    "columns": {
+      "title": "Title",
+      "relation": "Relation",
+      "legalEntity": "Legal entity",
+      "type": "Type",
+      "language": "Language",
+      "updatedAt": "Edited",
+      "snapshotCount": "Sent copies"
+    },
+    "filters": {
+      "searchLabel": "Search",
+      "searchPlaceholder": "Search by title",
+      "relationLabel": "Relation",
+      "relationAll": "All relations",
+      "legalEntityLabel": "Legal entity",
+      "legalEntityAll": "All legal entities",
+      "legalEntityUnknown": "Selected legal entity",
+      "typeLabel": "Type",
+      "typeAll": "All types",
+      "languageLabel": "Language",
+      "languageAll": "All languages",
+      "clear": "Clear filters"
+    },
+    "pagination": {
+      "label": "Pages",
+      "previous": "Previous",
+      "next": "Next",
+      "summary": "Page {page} of {pages} · {total, plural, one {# document} other {# documents}}"
+    },
+    "form": {
+      "relation": "Relation",
+      "relationPlaceholder": "Choose a relation",
+      "relationSearchPlaceholder": "Search relations",
+      "legalEntity": "Legal entity",
+      "legalEntityPlaceholder": "Choose a legal entity",
+      "searchPlaceholder": "Search",
+      "title": "Title",
+      "titlePlaceholder": "Such as Proposal penetration test",
+      "type": "Type",
+      "language": "Language",
+      "template": "Template",
+      "templateHint": "Optional. The document starts with a copy of the template's files and takes its type and language.",
+      "templatePlaceholder": "Start without a template",
+      "templateSearchPlaceholder": "Search templates",
+      "htmlFile": "HTML file",
+      "pdfFile": "PDF file",
+      "create": "Create document",
+      "save": "Save changes",
+      "saving": "Saving...",
+      "upload": "Upload files",
+      "uploading": "Uploading...",
+      "cancel": "Cancel",
+      "errors": {
+        "titleRequired": "Title is required",
+        "titleMax": "Title must be at most 200 characters",
+        "relationRequired": "Choose a relation",
+        "legalEntityRequired": "Choose a legal entity",
+        "htmlFileRequired": "Choose the HTML file; both files are uploaded together",
+        "htmlFileType": "Choose an .html file",
+        "pdfFileRequired": "Choose the PDF file; both files are uploaded together",
+        "pdfFileType": "Choose a .pdf file",
+        "filesTooLarge": "The two files together must be at most 12 MB"
+      }
+    },
+    "toast": {
+      "created": "Document created",
+      "updated": "Document saved",
+      "filesUploaded": "Files uploaded",
+      "deleted": "Document deleted",
+      "saveError": "The document could not be saved",
+      "uploadError": "The files could not be uploaded",
+      "deleteError": "The document could not be deleted"
+    },
+    "errors": {
+      "notFound": "This document no longer exists.",
+      "templateNotFound": "This template no longer exists.",
+      "fileNotHtmlOrPdf": "The file is not the HTML or PDF file it should be.",
+      "templateOfOtherLegalEntity": "This template belongs to another legal entity.",
+      "legalEntityNotFound": "This legal entity no longer exists.",
+      "relationNotFound": "This relation no longer exists.",
+      "uploadFailed": "The files could not be stored. Try again later.",
+      "noOtakAccess": "You do not have access to Otak.",
+      "forbidden": "You do not have permission to do this.",
+      "validation": "Check the highlighted fields.",
+      "loadHint": "Check your connection and try again."
+    },
+    "detail": {
+      "title": "Document",
+      "back": "Back to documents",
+      "loading": "Loading document...",
+      "loadError": "The document could not be loaded",
+      "notFoundTitle": "Document not found",
+      "notFoundDescription": "It may have been deleted, or the link is wrong.",
+      "noFiles": "No files",
+      "edited": "Edited {text}",
+      "edit": "Edit",
+      "replaceFiles": "Replace files",
+      "delete": "Delete",
+      "deleting": "Deleting...",
+      "preview": "Preview",
+      "previewNoFiles": "This document has no files yet. Upload them, or download it with the CLI and upload it again.",
+      "details": "Details",
+      "relation": "Relation",
+      "legalEntity": "Legal entity",
+      "type": "Type",
+      "language": "Language",
+      "template": "Template",
+      "noTemplate": "None",
+      "templateLoading": "Loading...",
+      "templateUnavailable": "No longer available",
+      "lastEdited": "Last edited",
+      "created": "Created",
+      "content": "Content",
+      "downloadPdf": "Open PDF",
+      "downloadHtml": "Open HTML",
+      "noFilesHint": "No files to open yet.",
+      "commandHint": "Edit the content locally with the CLI:",
+      "copyCommand": "Copy command",
+      "commandCopied": "Command copied",
+      "commandCopyError": "The command could not be copied",
+      "snapshots": "Sent copies ({count})",
+      "noSnapshots": "No PDF copy of this document has been sent with a mail yet.",
+      "mailWithoutOutreach": "Mail without outreach"
+    }
+  },
   "documentTemplates": {
     "title": "Templates",
     "subtitle": "Approved documents every reach-out can carry, each an HTML file with the PDF made from it.",
@@ -544,7 +701,8 @@
       "REPORT": "Report",
       "SERVICE_SHEET": "Service sheet",
       "PRESENTATION": "Presentation",
-      "OTHER": "Other"
+      "OTHER": "Other",
+      "CONTRACT": "Contract"
     },
     "languages": {
       "NL": "Dutch",
@@ -563,6 +721,7 @@
       "name": "Name",
       "type": "Type",
       "language": "Language",
+      "legalEntity": "Legal entity",
       "ready": "Status",
       "updatedAt": "Updated",
       "actions": "Actions"
@@ -574,6 +733,9 @@
       "typeAll": "All types",
       "languageLabel": "Language",
       "languageAll": "All languages",
+      "legalEntityLabel": "Legal entity",
+      "legalEntityAll": "All legal entities",
+      "legalEntityUnknown": "Selected legal entity",
       "clear": "Clear filters"
     },
     "pagination": {
@@ -596,6 +758,9 @@
       "save": "Save changes",
       "saving": "Saving...",
       "cancel": "Cancel",
+      "legalEntity": "Legal entity",
+      "legalEntityAll": "All legal entities",
+      "legalEntityHint": "Leave empty when every legal entity may use the template.",
       "errors": {
         "nameRequired": "Name is required",
         "nameMax": "Name must be at most 100 characters",
@@ -622,12 +787,8 @@
       "uploadFailed": "The files could not be stored. Try again later.",
       "forbidden": "You do not have permission to do this.",
       "validation": "Check the highlighted fields.",
-      "loadHint": "Check your connection and try again."
-    },
-    "tabsLabel": "Template sections",
-    "tabs": {
-      "documents": "Documents",
-      "mail": "Mail"
+      "loadHint": "Check your connection and try again.",
+      "legalEntityNotFound": "This legal entity no longer exists."
     },
     "attach": {
       "button": "Add from template",
@@ -649,7 +810,8 @@
         "mailSent": "This mail was sent or is being sent; its attachments can no longer change.",
         "duplicate": "This PDF is already attached here."
       }
-    }
+    },
+    "legalEntityAll": "All"
   },
   "mailTemplates": {
     "title": "Mail templates",

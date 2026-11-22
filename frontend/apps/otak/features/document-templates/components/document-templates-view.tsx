@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useId, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useId, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { AlertTriangle, Plus, X } from "lucide-react";
 import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
@@ -10,6 +10,7 @@ import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { DataTable, TablePagination } from "@/components/data-table";
 import { ActionEmptyState, FilterLabel, PageHeading } from "@/components/page-states";
+import { useLegalEntities } from "@/features/documents/hooks/use-legal-entities";
 import { useIsOrganizationAdmin } from "@/hooks/use-is-organization-admin";
 import { useDocumentTemplateColumns } from "../hooks/use-document-template-columns";
 import { useDocumentTemplateFilterParams } from "../hooks/use-document-template-filter-params";
@@ -28,25 +29,24 @@ import { DocumentTemplateFormDialog } from "./document-template-form-dialog";
 import { DocumentTemplatePreviewDialog } from "./document-template-preview-dialog";
 
 /** Every filter cleared; the list goes back to its first page. */
-const CLEARED_FILTERS = { search: null, type: null, language: null, page: 1 };
-
-export interface DocumentTemplatesViewProps {
-  /** The page's tabs, shown before the filters. */
-  tabs?: ReactNode;
-}
+const CLEARED_FILTERS = { search: null, type: null, language: null, legalEntity: null, page: 1 };
 
 /**
  * The organization's document templates by name, with a search on name,
- * type and language filters and paging in the URL. Every member opens a
+ * type, language and legal entity filters and paging in the URL. The legal
+ * entity filter keeps that legal entity's own templates and those every
+ * legal entity may use. Every member opens a
  * template's preview; an admin also creates, edits and deletes them, as the
  * server refuses a member's writes.
  */
-export function DocumentTemplatesView({ tabs }: DocumentTemplatesViewProps) {
+export function DocumentTemplatesView() {
   const t = useTranslations("documentTemplates");
   const tErrors = useTranslations("errors");
   const isAdmin = useIsOrganizationAdmin();
   const typeId = useId();
   const languageId = useId();
+  const legalEntityId = useId();
+  const legalEntities = useLegalEntities();
   const [filters, setFilters] = useDocumentTemplateFilterParams();
   const query = useMemo(() => toDocumentTemplateQuery(filters), [filters]);
   const templates = useDocumentTemplates(query);
@@ -107,7 +107,6 @@ export function DocumentTemplatesView({ tabs }: DocumentTemplatesViewProps) {
       <PageHeading title={t("title")} description={t("subtitle")} actions={newButton} />
 
       <div className="flex flex-wrap items-end gap-3">
-        {tabs}
         <FilterLabel label={t("filters.searchLabel")} className="w-full sm:w-64">
           <SenseySearchInput
             value={filters.search}
@@ -152,6 +151,32 @@ export function DocumentTemplatesView({ tabs }: DocumentTemplatesViewProps) {
             {languageOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
+              </option>
+            ))}
+          </NativeSelect>
+        </FilterLabel>
+        <FilterLabel
+          label={t("filters.legalEntityLabel")}
+          htmlFor={legalEntityId}
+          className="w-full sm:w-48"
+        >
+          <NativeSelect
+            id={legalEntityId}
+            value={filters.legalEntity ?? ""}
+            onChange={(event) =>
+              void setFilters({ legalEntity: event.target.value || null, page: 1 })
+            }
+            className="w-full"
+          >
+            <option value="">{t("filters.legalEntityAll")}</option>
+            {/* A legal entity from a shared URL stays selectable until the list has loaded. */}
+            {filters.legalEntity &&
+              !legalEntities.data?.data?.some((entity) => entity.id === filters.legalEntity) && (
+                <option value={filters.legalEntity}>{t("filters.legalEntityUnknown")}</option>
+              )}
+            {(legalEntities.data?.data ?? []).map((entity) => (
+              <option key={entity.id} value={entity.id}>
+                {entity.shortName}
               </option>
             ))}
           </NativeSelect>
