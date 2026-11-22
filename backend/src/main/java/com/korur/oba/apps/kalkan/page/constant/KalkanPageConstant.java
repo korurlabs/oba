@@ -21,6 +21,7 @@ public final class KalkanPageConstant {
 
     // --- Error value keys ---
     public static final String FIELD_PAGE_ID = "pageId";
+    public static final String FIELD_REVISION_ID = "revisionId";
     public static final String FIELD_PARENT_ID = "parentId";
     public static final String FIELD_SLUG = "slug";
     public static final String FIELD_PATH = "path";
@@ -63,6 +64,15 @@ public final class KalkanPageConstant {
      * The most levels a tree may have, a root counting as level one.
      */
     public static final int MAX_DEPTH = 10;
+
+    // --- Recent pages ---
+    /**
+     * The fewest and the most recently changed pages one request may ask for, so the list stays a
+     * quick read and its query a bounded one.
+     */
+    public static final int RECENT_MIN_LIMIT = 1;
+    public static final int RECENT_MAX_LIMIT = 100;
+    public static final String RECENT_DEFAULT_LIMIT = "20";
 
     // --- Display ---
     public static final String NAME_SEPARATOR = " ";
