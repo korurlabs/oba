@@ -32,7 +32,8 @@ import com.korur.oba.dojo.entity.SoftDeleteBaseEntity;
  * updatedById keep who created the page and who changed, deleted or restored it last.
  *
  * The slug is unique among the live children of one parent, a null parent counting as one value,
- * so the path of slugs names one live page and a deleted page frees its slug.
+ * so the path of slugs names one live page and a deleted page below a root frees its slug. A
+ * deleted root keeps its slug against new roots, so its section can always be restored whole.
  */
 @Entity
 @Table(name = "pages", schema = "kalkan")
