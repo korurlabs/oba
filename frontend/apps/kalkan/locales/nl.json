@@ -3,8 +3,37 @@
     "description": "Beleid, procedures en documenten van je organisatie"
   },
   "sidebar": {
-    "label": "Pagina's",
-    "language": "Taal"
+    "language": "Taal",
+    "overview": "Overzicht",
+    "groups": {
+      "compliance": "Naleving",
+      "inventory": "Inventaris",
+      "knowledge": "Kennis",
+      "legal": "Juridisch"
+    },
+    "sections": {
+      "frameworks": "Raamwerk",
+      "controls": "Beheersmaatregel",
+      "policies": "Beleid",
+      "risks": "Risico",
+      "evidence": "Bewijs",
+      "audits": "Audit",
+      "assets": "Bedrijfsmiddel",
+      "suppliers": "Leverancier",
+      "access": "Toegang",
+      "architecture": "Architectuur",
+      "protection": "Bescherming",
+      "monitoring": "Monitoring",
+      "infrastructure": "Infrastructuur",
+      "guides": "Handleiding",
+      "laws": "Wet",
+      "incentives": "Subsidie"
+    },
+    "newPage": "Nieuwe pagina",
+    "recent": "Recente wijzigingen",
+    "trash": "Prullenbak",
+    "expand": "Pagina's van {name} tonen",
+    "collapse": "Pagina's van {name} verbergen"
   },
   "errors": {
     "somethingWentWrong": "Er is iets misgegaan",
@@ -27,5 +56,59 @@
     "title": "Nog geen organisatie",
     "description": "Kalkan bewaart de documenten van een organisatie. Maak er eerst een aan of word lid van een in je account.",
     "action": "Open je account"
+  },
+  "placeholder": {
+    "title": "Binnenkort",
+    "description": "Deze pagina wordt gebouwd en toont hier binnenkort haar inhoud."
+  },
+  "sections": {
+    "loading": "Sectie laden",
+    "loadError": "De sectie kon niet worden geladen",
+    "notSetUp": {
+      "title": "Deze sectie is nog niet ingericht",
+      "description": "Vraag een beheerder van de organisatie om haar in te richten.",
+      "adminDescription": "Richt haar in om pagina's toe te voegen.",
+      "action": "Sectie inrichten"
+    }
+  },
+  "pages": {
+    "view": {
+      "title": "Pagina",
+      "loading": "Pagina laden",
+      "loadError": "De pagina kon niet worden geladen",
+      "retry": "Opnieuw proberen"
+    },
+    "toast": {
+      "created": "Pagina aangemaakt",
+      "createError": "De pagina kon niet worden aangemaakt",
+      "updated": "Pagina opgeslagen",
+      "updateError": "De pagina kon niet worden opgeslagen",
+      "moved": "Pagina verplaatst",
+      "moveError": "De pagina kon niet worden verplaatst",
+      "deleted": "Pagina naar de prullenbak verplaatst",
+      "deleteError": "De pagina kon niet worden verwijderd",
+      "restored": "Pagina hersteld",
+      "restoreError": "De pagina kon niet worden hersteld",
+      "permissionsSaved": "Toegang opgeslagen",
+      "permissionsError": "De toegang kon niet worden opgeslagen",
+      "sectionSetUp": "Sectie ingericht",
+      "sectionSetUpError": "De sectie kon niet worden ingericht"
+    },
+    "errors": {
+      "levelTooLow": "Uw toegang tot deze pagina is te laag voor deze actie.",
+      "attachmentKept": "Bijlagen van een pagina worden als vastlegging bewaard en kunnen niet worden verwijderd.",
+      "notFound": "Deze pagina bestaat niet, of u hebt er geen toegang toe.",
+      "slugTaken": "Een andere pagina op deze plek gebruikt dit adres al.",
+      "versionOutdated": "Iemand heeft deze pagina intussen gewijzigd. Laad haar opnieuw en pas uw wijziging nogmaals toe.",
+      "parentDeleted": "De bovenliggende pagina staat in de prullenbak. Herstel die eerst.",
+      "subjectNotActive": "Deze persoon is geen actief lid van de organisatie.",
+      "guestAboveView": "Een gast kan alleen leestoegang krijgen.",
+      "moveInvalid": "De pagina kan niet naar haar eigen pagina's, dieper dan 10 niveaus of naar een andere sectie worden verplaatst.",
+      "duplicateLocale": "Een taal is meer dan eens opgegeven.",
+      "permissionOnChild": "Toegang wordt op de sectie ingesteld, niet op haar pagina's.",
+      "reservedSlug": "Dit adres is gereserveerd en kan geen sectie benoemen.",
+      "notDeleted": "Deze pagina staat niet in de prullenbak.",
+      "validation": "Sommige velden zijn ongeldig. Controleer ze en probeer het opnieuw."
+    }
   }
 }

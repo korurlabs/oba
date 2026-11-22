@@ -3,8 +3,37 @@
     "description": "Policies, procedures and documents of your organization"
   },
   "sidebar": {
-    "label": "Pages",
-    "language": "Language"
+    "language": "Language",
+    "overview": "Overview",
+    "groups": {
+      "compliance": "Compliance",
+      "inventory": "Inventory",
+      "knowledge": "Knowledge",
+      "legal": "Legal"
+    },
+    "sections": {
+      "frameworks": "Framework",
+      "controls": "Control",
+      "policies": "Policy",
+      "risks": "Risk",
+      "evidence": "Evidence",
+      "audits": "Audit",
+      "assets": "Asset",
+      "suppliers": "Supplier",
+      "access": "Access",
+      "architecture": "Architecture",
+      "protection": "Protection",
+      "monitoring": "Monitoring",
+      "infrastructure": "Infrastructure",
+      "guides": "Guide",
+      "laws": "Law",
+      "incentives": "Incentive"
+    },
+    "newPage": "New page",
+    "recent": "Recent",
+    "trash": "Trash",
+    "expand": "Show the pages of {name}",
+    "collapse": "Hide the pages of {name}"
   },
   "errors": {
     "somethingWentWrong": "Something went wrong",
@@ -27,5 +56,59 @@
     "title": "No organization yet",
     "description": "Kalkan keeps the documents of an organization. Create or join one in your account first.",
     "action": "Open your account"
+  },
+  "placeholder": {
+    "title": "Coming soon",
+    "description": "This page is being built and will show its content here shortly."
+  },
+  "sections": {
+    "loading": "Loading the section",
+    "loadError": "The section could not be loaded",
+    "notSetUp": {
+      "title": "This section is not set up yet",
+      "description": "Ask an organization admin to set it up.",
+      "adminDescription": "Set it up to start adding its pages.",
+      "action": "Set up section"
+    }
+  },
+  "pages": {
+    "view": {
+      "title": "Page",
+      "loading": "Loading the page",
+      "loadError": "The page could not be loaded",
+      "retry": "Try again"
+    },
+    "toast": {
+      "created": "Page created",
+      "createError": "The page could not be created",
+      "updated": "Page saved",
+      "updateError": "The page could not be saved",
+      "moved": "Page moved",
+      "moveError": "The page could not be moved",
+      "deleted": "Page moved to the trash",
+      "deleteError": "The page could not be deleted",
+      "restored": "Page restored",
+      "restoreError": "The page could not be restored",
+      "permissionsSaved": "Access saved",
+      "permissionsError": "The access could not be saved",
+      "sectionSetUp": "Section set up",
+      "sectionSetUpError": "The section could not be set up"
+    },
+    "errors": {
+      "levelTooLow": "Your access to this page is too low for this action.",
+      "attachmentKept": "Attachments of a page are kept as a record and cannot be deleted.",
+      "notFound": "This page does not exist, or you do not have access to it.",
+      "slugTaken": "Another page at this place already uses this address.",
+      "versionOutdated": "Someone changed this page meanwhile. Reload it and apply your change again.",
+      "parentDeleted": "The parent page is in the trash. Restore it first.",
+      "subjectNotActive": "This person is not an active member of the organization.",
+      "guestAboveView": "A guest can only be given view access.",
+      "moveInvalid": "The page cannot move into its own pages, deeper than 10 levels, or to another section.",
+      "duplicateLocale": "A language is given more than once.",
+      "permissionOnChild": "Access is set on the section, not on its pages.",
+      "reservedSlug": "This address is reserved and cannot name a section.",
+      "notDeleted": "This page is not in the trash.",
+      "validation": "Some fields are not valid. Check them and try again."
+    }
   }
 }
