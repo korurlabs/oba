@@ -110,5 +110,128 @@
       "notDeleted": "Deze pagina staat niet in de prullenbak.",
       "validation": "Sommige velden zijn ongeldig. Controleer ze en probeer het opnieuw."
     }
+  },
+  "pageForm": {
+    "back": "Terug",
+    "backToPage": "Terug naar de pagina",
+    "loading": "De pagina's worden geladen",
+    "treeLoadError": "De pagina's konden niet worden geladen",
+    "retry": "Opnieuw proberen",
+    "newTitle": "Nieuwe pagina",
+    "newSubtitle": "Schrijf de pagina in het Turks, het Engels of beide. Bestanden kunnen worden toegevoegd zodra de pagina is opgeslagen.",
+    "editTitle": "{title} bewerken",
+    "metaEdit": "Pagina bewerken",
+    "cancel": "Annuleren",
+    "languages": "Talen",
+    "locales": {
+      "TR": "Türkçe",
+      "EN": "English"
+    },
+    "tabHasErrors": "Deze taal heeft velden die aangepast moeten worden",
+    "sections": {
+      "content": "Inhoud",
+      "settings": "Instellingen"
+    },
+    "title": "Titel",
+    "body": "Tekst",
+    "bodyPlaceholder": "Schrijf de pagina in Markdown",
+    "parent": "Bovenliggende pagina",
+    "parentPlaceholder": "Kies waar de pagina komt",
+    "parentSearch": "Pagina's zoeken",
+    "slug": "Adres",
+    "slugHint": "Deel van het pad van de pagina. Letters, cijfers, punten, streepjes en underscores.",
+    "compliance": "Compliancepagina",
+    "complianceHint": "Telt als compliance-record, zoals een beleid of een beheersmaatregel.",
+    "unsavedChanges": "Niet-opgeslagen wijzigingen",
+    "discard": "Wijzigingen verwerpen",
+    "create": "Pagina maken",
+    "creating": "Bezig met maken...",
+    "save": "Pagina opslaan",
+    "saving": "Bezig met opslaan...",
+    "noParent": {
+      "title": "Geen plek om een pagina toe te voegen",
+      "description": "Je kunt alleen pagina's toevoegen onder een sectie waar je bewerkrechten hebt. Vraag een sectiebeheerder om toegang.",
+      "action": "Naar het overzicht"
+    },
+    "readOnly": {
+      "title": "Je kunt deze pagina lezen maar niet bewerken",
+      "description": "Bewerken vraagt bewerkrechten op de sectie. Vraag een sectiebeheerder erom."
+    },
+    "conflict": {
+      "title": "Iemand anders heeft deze pagina gewijzigd",
+      "description": "De pagina is door iemand anders opgeslagen nadat je hem opende, dus je wijzigingen zijn niet opgeslagen. Je tekst staat nog in het formulier: kopieer wat je nodig hebt en laad dan de nieuwste versie. Opnieuw laden vervangt je niet-opgeslagen tekst.",
+      "reload": "Nieuwste versie laden",
+      "reloading": "Bezig met laden..."
+    },
+    "errors": {
+      "titleMax": "De titel mag hoogstens 200 tekens hebben.",
+      "bodyMax": "De tekst mag hoogstens 500.000 tekens hebben.",
+      "slugRequired": "Vul een adres in.",
+      "slugInvalid": "Begin met een letter of cijfer en gebruik alleen letters, cijfers, punten, streepjes en underscores (hoogstens 100).",
+      "titleRequired": "Vul in minstens één taal een titel in.",
+      "titleKept": "Deze taal is al opgeslagen en heeft een titel nodig.",
+      "titleForBody": "Vul een titel in voor deze taal, of maak de tekst leeg.",
+      "parentRequired": "Kies een bovenliggende pagina."
+    },
+    "attachments": {
+      "title": "Bestanden",
+      "description": "Bestanden bij deze pagina worden als record bewaard en kunnen niet worden verwijderd.",
+      "loadError": "De bestanden konden niet worden geladen",
+      "retry": "Opnieuw proberen",
+      "loading": "De bestanden worden geladen",
+      "empty": "Nog geen bestanden toegevoegd.",
+      "insertLink": "Link invoegen",
+      "insertLinkFor": "Een link naar {name} invoegen in de tekst in het {language}",
+      "afterCreate": "Bestanden kunnen worden toegevoegd zodra de pagina is opgeslagen.",
+      "uploadMissing": "De server gaf het geüploade bestand niet terug."
+    }
+  },
+  "permissions": {
+    "meta": "Toegang",
+    "title": "Toegang tot {title}",
+    "subtitle": "Wie deze sectie en elke pagina erin kan bekijken, bewerken of beheren.",
+    "backToPage": "Terug naar de pagina",
+    "retry": "Opnieuw proberen",
+    "loading": "De toegangslijst wordt geladen",
+    "loadError": "De toegangslijst kon niet worden geladen",
+    "onChild": {
+      "title": "Toegang wordt op de sectie ingesteld",
+      "description": "Een pagina heeft de toegang van haar sectie. Wijzig die op de hoofdpagina van de sectie.",
+      "action": "Toegang van de sectie openen"
+    },
+    "noAccess": {
+      "title": "Je kunt de toegang hier niet wijzigen",
+      "description": "Alleen wie beheerrechten op de sectie heeft, kan zien en wijzigen wie toegang heeft."
+    },
+    "levels": {
+      "VIEW": "Bekijken",
+      "EDIT": "Bewerken",
+      "MANAGE": "Beheren"
+    },
+    "add": {
+      "title": "Lid toevoegen",
+      "member": "Lid",
+      "memberPlaceholder": "Kies een lid",
+      "memberSearch": "Leden zoeken",
+      "level": "Toegang",
+      "action": "Toevoegen",
+      "membersLoadError": "De leden konden niet worden geladen. Laad de pagina opnieuw om het nog eens te proberen.",
+      "guestHint": "Een gast kan alleen leestoegang krijgen."
+    },
+    "list": {
+      "title": "Wie heeft toegang",
+      "empty": "Nog niemand heeft toegang gekregen.",
+      "subject": "Lid",
+      "level": "Toegang",
+      "actions": "Acties",
+      "group": "Groep",
+      "guest": "Gast",
+      "remove": "{name} verwijderen"
+    },
+    "saveErrorTitle": "De toegang is niet opgeslagen",
+    "unsavedChanges": "Niet-opgeslagen wijzigingen",
+    "discard": "Wijzigingen verwerpen",
+    "save": "Toegang opslaan",
+    "saving": "Bezig met opslaan..."
   }
 }
