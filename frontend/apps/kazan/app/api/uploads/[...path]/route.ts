@@ -1,7 +1,8 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
-import { readFile, stat } from 'fs/promises';
 import path from 'path';
+
+import { readUpload } from './read-upload';
 
 // MIME type mapping
 const MIME_TYPES: Record<string, string> = {
@@ -28,33 +29,24 @@ export async function GET(
 ): Promise<NextResponse> {
   try {
     const { path: pathSegments } = await params;
-    // Decode URL-encoded characters and join path
-    const filePath = pathSegments
-      .map((segment) => decodeURIComponent(segment))
-      .join('/');
+    const result = await readUpload(
+      path.join(process.cwd(), 'public', 'uploads'),
+      pathSegments
+    );
 
-    // Security: prevent directory traversal
-    if (filePath.includes('..')) {
+    if (result.kind === 'invalid') {
       return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
     }
-
-    const fullPath = path.join(process.cwd(), 'public', 'uploads', filePath);
-
-    // Check if file exists
-    try {
-      await stat(fullPath);
-    } catch {
-      console.error('File not found:', fullPath);
+    if (result.kind === 'not-found') {
       return NextResponse.json({ error: 'File not found' }, { status: 404 });
     }
 
-    const fileBuffer = await readFile(fullPath);
-    const ext = path.extname(fullPath).toLowerCase();
+    const { data: fileBuffer, fileName: filename } = result;
+    const ext = path.extname(filename).toLowerCase();
     const contentType = MIME_TYPES[ext] || 'application/octet-stream';
 
     // For downloadable files (non-images), suggest download
     const isImage = contentType.startsWith('image/');
-    const filename = path.basename(fullPath);
 
     const headers: HeadersInit = {
       'Content-Type': contentType,
