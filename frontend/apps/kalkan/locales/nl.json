@@ -110,5 +110,84 @@
       "notDeleted": "Deze pagina staat niet in de prullenbak.",
       "validation": "Sommige velden zijn ongeldig. Controleer ze en probeer het opnieuw."
     }
+  },
+  "sectionTree": {
+    "label": "Pagina's van {section}",
+    "newPage": "Nieuwe pagina",
+    "sectionPage": "Sectiepagina",
+    "empty": {
+      "title": "Nog geen pagina's",
+      "editorDescription": "Voeg de eerste pagina van deze sectie toe.",
+      "readerDescription": "Pagina's die aan deze sectie worden toegevoegd, verschijnen hier."
+    },
+    "expand": "{title} uitklappen",
+    "collapse": "{title} inklappen",
+    "compliance": "Compliance",
+    "actions": "Acties voor {title}",
+    "dragHandle": "Sleep {title} om de pagina te verplaatsen",
+    "dropHint": "Zet een pagina op een andere pagina neer om haar direct daarvoor te plaatsen.",
+    "moving": "De pagina wordt verplaatst",
+    "moveUp": "Omhoog",
+    "moveDown": "Omlaag",
+    "indent": "Onder de pagina erboven plaatsen",
+    "outdent": "Eén niveau omhoog plaatsen",
+    "newChild": "Nieuwe subpagina",
+    "edit": "Bewerken",
+    "delete": "Verwijderen",
+    "deleted": {
+      "title": "Verwijderde pagina's",
+      "description": "Pagina's van deze sectie in de prullenbak. Herstellen brengt ook de pagina's terug die met de verwijdering meegingen.",
+      "loadError": "De verwijderde pagina's konden niet worden geladen",
+      "untitled": "Pagina zonder titel",
+      "meta": "Verwijderd op {date} door {name}",
+      "metaUnknown": "Verwijderd op {date}",
+      "descendants": "{count, plural, =0 {geen pagina's eronder} one {# pagina eronder} other {# pagina's eronder}}",
+      "restore": "Herstellen",
+      "restoreLabel": "{title} herstellen",
+      "parentFirst": "Herstel eerst de bovenliggende pagina: {path} staat onder een pagina die nog in de prullenbak ligt."
+    }
+  },
+  "pageView": {
+    "breadcrumb": "Kruimelpad",
+    "compliance": "Compliance",
+    "language": "Taal van de inhoud",
+    "locales": {
+      "TR": "Türkçe",
+      "EN": "English"
+    },
+    "fallback": "Deze pagina heeft nog geen versie in het {wanted}, daarom wordt de versie in het {shown} getoond.",
+    "emptyBody": "Deze pagina heeft nog geen inhoud.",
+    "body": "Inhoud van de pagina",
+    "updated": "Bijgewerkt op {date} door {name}",
+    "updatedUnknown": "Bijgewerkt op {date}",
+    "edit": "Bewerken",
+    "newChild": "Nieuwe subpagina",
+    "delete": "Verwijderen",
+    "back": "Terug naar het overzicht",
+    "notFound": {
+      "title": "Pagina niet gevonden",
+      "description": "Deze pagina bestaat niet, of je hebt er geen toegang toe."
+    },
+    "noAccess": {
+      "title": "Geen toegang tot deze pagina",
+      "description": "Je toegang dekt deze pagina niet. Vraag de beheerder van de sectie om toegang."
+    },
+    "deleted": {
+      "title": "Deze pagina ligt in de prullenbak",
+      "description": "Verwijderd op {date}. Herstel haar om haar weer te lezen en te bewerken.",
+      "restore": "Pagina herstellen",
+      "parentFirst": "Herstel eerst de bovenliggende pagina: deze pagina staat onder een pagina die nog in de prullenbak ligt."
+    },
+    "attachments": {
+      "title": "Bijlagen",
+      "empty": "Er zijn geen bestanden aan deze pagina toegevoegd."
+    },
+    "deleteDialog": {
+      "title": "Deze pagina verwijderen?",
+      "description": "{title} gaat naar de prullenbak{count, plural, =0 {} one { samen met de # pagina eronder} other { samen met de # pagina's eronder}}. Ze kan vanuit de prullenbak worden hersteld.",
+      "confirm": "Verwijderen",
+      "deleting": "Verwijderen",
+      "cancel": "Annuleren"
+    }
   }
 }
