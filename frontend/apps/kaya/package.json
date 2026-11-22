@@ -43,7 +43,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.2.0",
+    "@eslint/eslintrc": "^3.3.7",
     "@tailwindcss/postcss": "catalog:",
     "@types/bun": "catalog:",
     "@types/node": "catalog:",
