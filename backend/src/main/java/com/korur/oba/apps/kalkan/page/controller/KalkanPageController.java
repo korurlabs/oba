@@ -21,6 +21,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 
 // 3. Java SDK
@@ -28,6 +30,7 @@ import java.util.List;
 import java.util.UUID;
 
 // 4. Internal
+import com.korur.oba.apps.kalkan.page.constant.KalkanPageConstant;
 import com.korur.oba.apps.kalkan.page.constant.controller.KalkanPageControllerLogConstant;
 import com.korur.oba.apps.kalkan.page.constant.controller.KalkanPageControllerResponseConstant;
 import com.korur.oba.apps.kalkan.page.dto.request.KalkanPageCreateRequest;
@@ -36,7 +39,12 @@ import com.korur.oba.apps.kalkan.page.dto.request.KalkanPageUpdateRequest;
 import com.korur.oba.apps.kalkan.page.dto.request.KalkanPageUpsertRequest;
 import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageDetailResponse;
 import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageListResponse;
+import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageRecentResponse;
+import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageRevisionDetailResponse;
+import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageRevisionListResponse;
+import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageTrashResponse;
 import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageUpsertResponse;
+import com.korur.oba.apps.kalkan.page.enums.KalkanLocale;
 import com.korur.oba.apps.kalkan.page.service.KalkanPageQueryService;
 import com.korur.oba.apps.kalkan.page.service.KalkanPageService;
 import com.korur.oba.dojo.constant.CommonConstant;
@@ -52,8 +60,8 @@ import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 
 /**
  * The page tree of the organization named by the X-Organization-ID header. The gate admits every
- * GUEST to the two reads and every MEMBER to the writes; the services then require the caller's
- * level on the page's root, and a page the caller cannot see answers 404.
+ * GUEST to the reads and every MEMBER to the writes and the trash; the services then require the
+ * caller's level on the page's root, and a page the caller cannot see answers 404.
  */
 @RestController
 @RequiredArgsConstructor
@@ -128,6 +136,125 @@ public class KalkanPageController {
                 KalkanPageControllerLogConstant.PAGE_UPSERT_COMPLETED, request.path(), organizationId,
                 response.outcome());
         return ResponseUtil.ok(KalkanPageControllerResponseConstant.RESPONSE_PAGE_UPSERTED, response);
+    }
+
+    /**
+     * Lists the deletes the caller could undo.
+     */
+    @GetMapping("/trash")
+    @RequiredUserAccess(OrganizationMemberRole.MEMBER)
+    @Operation(summary = "List deleted pages",
+            description = "The top page of every delete under a root the caller holds MANAGE on, newest first; "
+                    + "a restore of it brings back the pages the same delete took")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successful operation"),
+            @ApiResponse(responseCode = "400", description = "X-Organization-ID missing or not a UUID, or an unknown locale"),
+            @ApiResponse(responseCode = "401", description = "No valid JWT"),
+            @ApiResponse(responseCode = "403", description = "Below MEMBER, or not a member of the organization"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<CustomResponse<List<KalkanPageTrashResponse>>> getTrash(
+            @Parameter(hidden = true) @GetUser User user,
+            @RequestHeader(CommonConstant.HEADER_ORGANIZATION_ID) UUID organizationId,
+            @Parameter(description = "Locale of the titles; without it each page shows its first title")
+            @RequestParam(required = false) KalkanLocale locale) {
+        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
+                KalkanPageControllerLogConstant.PAGE_TRASH_REQUEST, user.getId(), organizationId);
+        List<KalkanPageTrashResponse> response = kalkanPageQueryService.getTrash(user, organizationId, locale);
+        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
+                KalkanPageControllerLogConstant.PAGE_TRASH_COMPLETED, response.size(), organizationId);
+        return ResponseUtil.ok(KalkanPageControllerResponseConstant.RESPONSE_DELETED_PAGES_RETRIEVED, response);
+    }
+
+    /**
+     * Lists the most recently changed pages the caller can see.
+     */
+    @GetMapping("/recent")
+    @RequiredUserAccess(OrganizationMemberRole.GUEST)
+    @Operation(summary = "List recently changed pages",
+            description = "Live pages under a root the caller holds a level on, last change first")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successful operation"),
+            @ApiResponse(responseCode = "400", description = "X-Organization-ID missing or not a UUID, or an unknown locale"),
+            @ApiResponse(responseCode = "401", description = "No valid JWT"),
+            @ApiResponse(responseCode = "403", description = "Not a member of the organization"),
+            @ApiResponse(responseCode = "422", description = "Limit outside 1 to 100"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<CustomResponse<List<KalkanPageRecentResponse>>> getRecent(
+            @Parameter(hidden = true) @GetUser User user,
+            @RequestHeader(CommonConstant.HEADER_ORGANIZATION_ID) UUID organizationId,
+            @Parameter(description = "Most pages to return, 1 to 100, default 20")
+            @RequestParam(defaultValue = KalkanPageConstant.RECENT_DEFAULT_LIMIT)
+            @Min(KalkanPageConstant.RECENT_MIN_LIMIT) @Max(KalkanPageConstant.RECENT_MAX_LIMIT) int limit,
+            @Parameter(description = "Locale of the titles; without it each page shows its first title")
+            @RequestParam(required = false) KalkanLocale locale) {
+        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
+                KalkanPageControllerLogConstant.PAGE_RECENT_REQUEST, user.getId(), limit, organizationId);
+        List<KalkanPageRecentResponse> response = kalkanPageQueryService.getRecent(user, organizationId, limit,
+                locale);
+        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
+                KalkanPageControllerLogConstant.PAGE_RECENT_COMPLETED, response.size(), organizationId);
+        return ResponseUtil.ok(KalkanPageControllerResponseConstant.RESPONSE_RECENT_PAGES_RETRIEVED, response);
+    }
+
+    /**
+     * Lists the history of a page.
+     */
+    @GetMapping("/{pageId}/revisions")
+    @RequiredUserAccess(OrganizationMemberRole.GUEST)
+    @Operation(summary = "List a page's revisions",
+            description = "Every revision of every translation, without bodies, newest page version first; needs "
+                    + "VIEW on its root")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successful operation"),
+            @ApiResponse(responseCode = "400", description = "X-Organization-ID missing or not a UUID"),
+            @ApiResponse(responseCode = "401", description = "No valid JWT"),
+            @ApiResponse(responseCode = "403", description = "Not a member of the organization"),
+            @ApiResponse(responseCode = "404", description = "KLK_NOT_001: no such live page, or hidden from the caller"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<CustomResponse<List<KalkanPageRevisionListResponse>>> getRevisions(
+            @Parameter(hidden = true) @GetUser User user,
+            @RequestHeader(CommonConstant.HEADER_ORGANIZATION_ID) UUID organizationId,
+            @PathVariable UUID pageId) {
+        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
+                KalkanPageControllerLogConstant.PAGE_REVISIONS_REQUEST, user.getId(), pageId, organizationId);
+        List<KalkanPageRevisionListResponse> response = kalkanPageQueryService.getRevisions(user, organizationId,
+                pageId);
+        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
+                KalkanPageControllerLogConstant.PAGE_REVISIONS_COMPLETED, response.size(), pageId, organizationId);
+        return ResponseUtil.ok(KalkanPageControllerResponseConstant.RESPONSE_PAGE_REVISIONS_RETRIEVED, response);
+    }
+
+    /**
+     * Reads one revision of a page with its body.
+     */
+    @GetMapping("/{pageId}/revisions/{revisionId}")
+    @RequiredUserAccess(OrganizationMemberRole.GUEST)
+    @Operation(summary = "Read a page revision", description = "One revision with its body; needs VIEW on its root")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successful operation"),
+            @ApiResponse(responseCode = "400", description = "X-Organization-ID missing or not a UUID"),
+            @ApiResponse(responseCode = "401", description = "No valid JWT"),
+            @ApiResponse(responseCode = "403", description = "Not a member of the organization"),
+            @ApiResponse(responseCode = "404", description = "KLK_NOT_001: no such live page, or hidden from the "
+                    + "caller; KLK_NOT_002: the page has no such revision"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<CustomResponse<KalkanPageRevisionDetailResponse>> getRevision(
+            @Parameter(hidden = true) @GetUser User user,
+            @RequestHeader(CommonConstant.HEADER_ORGANIZATION_ID) UUID organizationId,
+            @PathVariable UUID pageId,
+            @PathVariable UUID revisionId) {
+        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
+                KalkanPageControllerLogConstant.PAGE_REVISION_REQUEST, user.getId(), revisionId, pageId,
+                organizationId);
+        KalkanPageRevisionDetailResponse response = kalkanPageQueryService.getRevision(user, organizationId, pageId,
+                revisionId);
+        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
+                KalkanPageControllerLogConstant.PAGE_REVISION_COMPLETED, revisionId, pageId, organizationId);
+        return ResponseUtil.ok(KalkanPageControllerResponseConstant.RESPONSE_PAGE_REVISION_RETRIEVED, response);
     }
 
     /**
