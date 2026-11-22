@@ -5,6 +5,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -31,6 +33,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 // 4. Internal
+import com.korur.oba.apps.kazan.chat.constant.ChatConstant;
 import com.korur.oba.apps.kazan.chat.dto.request.ChatMessageQueryRequest;
 import com.korur.oba.apps.kazan.chat.dto.request.ChatSearchRequest;
 import com.korur.oba.apps.kazan.chat.dto.response.ChatMessagePageResponse;
@@ -54,6 +57,7 @@ import com.korur.oba.apps.kazan.exception.ExceptionDomainKazanError;
 import com.korur.oba.apps.kazan.pullrequest.enums.PullRequestShareStatus;
 import com.korur.oba.apps.kazan.ticket.mapper.TicketEmbeddedMapperImpl;
 import com.korur.oba.apps.kazan.ticket.service.TicketQueryService;
+import com.korur.oba.dojo.exception.enums.ExceptionValidationError;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
 import com.korur.oba.dojo.exception.internal.business.ValidationException;
 import com.korur.oba.dojo.logging.service.LoggingService;
@@ -770,6 +774,133 @@ class ChatMessageQueryServiceImplUnitTest {
             // Assert
             assertThat(response.items()).isEmpty();
             verify(chatMessageRepository, never()).searchMessages(any(), any(), any(), any(), any(), any(), anyInt());
+        }
+    }
+
+    @Nested
+    class PageSize {
+
+        @ParameterizedTest
+        @ValueSource(ints = {Integer.MIN_VALUE, -1, 0, ChatConstant.MAX_PAGE_SIZE + 1, Integer.MAX_VALUE})
+        void channelPage_limitOutsideOneToFifty_isRefusedBeforeAnyRead(int limit) {
+            // Arrange
+            ChatMessageQueryRequest request = page(limit);
+
+            // Act and Assert
+            assertThatThrownBy(() -> service.listChannelMessages(reader, organizationId, request))
+                    .isInstanceOf(ValidationException.class)
+                    .extracting("errorCode").isEqualTo(ExceptionValidationError.VALIDATION.getCode());
+            verify(chatMessageRepository, never()).findLatestChannelMessages(any(), any(), any(), any(), anyBoolean(),
+                    any(), anyInt());
+        }
+
+        @Test
+        void channelPage_largestLimit_readsItWithTheProbeRow() {
+            // Arrange
+            when(chatMessageRepository.findLatestChannelMessages(eq(channelId), isNull(), isNull(), isNull(),
+                    eq(true), eq(ALL_STATUSES), eq(ChatConstant.MAX_PAGE_SIZE + 1))).thenReturn(List.of());
+
+            // Act
+            ChatMessagePageResponse response = service.listChannelMessages(reader, organizationId,
+                    page(ChatConstant.MAX_PAGE_SIZE));
+
+            // Assert
+            assertThat(response.items()).isEmpty();
+            assertThat(response.hasOlder()).isFalse();
+        }
+
+        @Test
+        void aroundPage_smallestLimit_probesNoOlderAndOneNewerRow() {
+            // Arrange
+            ChatMessage cursor = givenCursor(message("cursor", "2026-10-20T07:00:00Z"));
+            when(chatMessageRepository.findChannelMessagesAround(channelId, null, null, null, true, ALL_STATUSES,
+                    cursor.getCreatedAt(), cursor.getId(), 1, 2)).thenReturn(List.of(
+                    message("older", "2026-10-20T06:00:00Z"), cursor));
+            ChatMessageQueryRequest request = page(ChatConstant.MIN_PAGE_SIZE);
+            request.setAround(cursor.getId());
+
+            // Act
+            ChatMessagePageResponse response = service.listChannelMessages(reader, organizationId, request);
+
+            // Assert
+            assertThat(contents(response)).containsExactly("cursor");
+            assertThat(response.hasOlder()).isTrue();
+            assertThat(response.hasNewer()).isFalse();
+        }
+
+        @ParameterizedTest
+        @ValueSource(ints = {0, ChatConstant.MAX_PAGE_SIZE + 1, Integer.MAX_VALUE})
+        void threadPage_limitOutsideOneToFifty_isRefusedBeforeAnyRead(int limit) {
+            // Arrange
+            ChatThread thread = ChatMocks.thread(organizationId, UUID.randomUUID(), author.getId());
+            thread.setChannelId(channelId);
+            when(chatThreadRepository.findByIdAndOrganizationId(thread.getId(), organizationId))
+                    .thenReturn(Optional.of(thread));
+
+            // Act and Assert
+            assertThatThrownBy(() -> service.listThreadMessages(reader, organizationId, thread.getId(), page(limit)))
+                    .isInstanceOf(ValidationException.class)
+                    .extracting("errorCode").isEqualTo(ExceptionValidationError.VALIDATION.getCode());
+            verify(chatMessageRepository, never()).findLatestThreadMessages(any(), anyInt());
+        }
+
+        @ParameterizedTest
+        @ValueSource(ints = {0, ChatConstant.MAX_PAGE_SIZE + 1, Integer.MAX_VALUE})
+        void pins_limitOutsideOneToFifty_isRefusedBeforeAnyRead(int limit) {
+            // Act and Assert
+            assertThatThrownBy(() -> service.listPinnedMessages(reader, organizationId, channelId, null, limit))
+                    .isInstanceOf(ValidationException.class)
+                    .extracting("errorCode").isEqualTo(ExceptionValidationError.VALIDATION.getCode());
+            verify(chatMessageRepository, never()).findPinnedMessages(any(), anyInt());
+        }
+
+        @Test
+        void pins_largestLimit_readsItWithTheProbeRow() {
+            // Arrange
+            when(chatMessageRepository.findPinnedMessages(channelId, ChatConstant.MAX_PAGE_SIZE + 1))
+                    .thenReturn(List.of());
+
+            // Act
+            ChatMessagePageResponse response = service.listPinnedMessages(reader, organizationId, channelId, null,
+                    ChatConstant.MAX_PAGE_SIZE);
+
+            // Assert
+            assertThat(response.items()).isEmpty();
+        }
+
+        @ParameterizedTest
+        @ValueSource(ints = {0, ChatConstant.MAX_PAGE_SIZE + 1, Integer.MAX_VALUE})
+        void search_limitOutsideOneToFifty_isRefusedBeforeAnyRead(int limit) {
+            // Arrange
+            ChatSearchRequest request = new ChatSearchRequest();
+            request.setQ("release");
+            request.setLimit(limit);
+
+            // Act and Assert
+            assertThatThrownBy(() -> service.searchMessages(reader, organizationId, request))
+                    .isInstanceOf(ValidationException.class)
+                    .extracting("errorCode").isEqualTo(ExceptionValidationError.VALIDATION.getCode());
+            verify(chatMessageRepository, never()).searchMessages(any(), any(), any(), any(), any(), any(), anyInt());
+        }
+
+        @Test
+        void search_smallestLimit_readsOneRowAndTheProbe() {
+            // Arrange
+            ChatSearchRequest request = new ChatSearchRequest();
+            request.setQ("release");
+            request.setLimit(ChatConstant.MIN_PAGE_SIZE);
+            when(chatChannelRepository.findReadableChannelIds(organizationId, reader.getId()))
+                    .thenReturn(List.of(channelId));
+            when(chatMessageRepository.searchMessages(organizationId, List.of(channelId), "release", null, null, null,
+                    2)).thenReturn(List.of(message("release b", "2026-10-20T07:30:00Z"),
+                    message("release a", "2026-10-20T07:00:00Z")));
+
+            // Act
+            ChatMessagePageResponse response = service.searchMessages(reader, organizationId, request);
+
+            // Assert
+            assertThat(contents(response)).containsExactly("release b");
+            assertThat(response.hasOlder()).isTrue();
         }
     }
 }

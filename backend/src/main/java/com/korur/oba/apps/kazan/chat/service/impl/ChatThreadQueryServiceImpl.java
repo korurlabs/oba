@@ -53,7 +53,7 @@ public class ChatThreadQueryServiceImpl implements ChatThreadQueryService {
     public ChatThreadPageResponse listThreads(User user, UUID organizationId, UUID channelId,
                                               ChatThreadStatus status, UUID before, Integer limit) {
         ChatChannel channel = chatChannelQueryService.verifyChannelAccess(organizationId, user.getId(), channelId);
-        int pageSize = limit == null ? ChatConstant.DEFAULT_PAGE_SIZE : limit;
+        int pageSize = chatValidator.ensurePageSize(limit, ChatConstant.DEFAULT_PAGE_SIZE);
 
         List<ChatThread> rows;
         if (before == null) {

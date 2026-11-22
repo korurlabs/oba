@@ -385,7 +385,7 @@ public class ChatController {
             @Parameter(description = "Last pinned message of the previous page")
             @RequestParam(required = false) UUID before,
             @Parameter(description = "Page size, 1 to 50, default 50")
-            @RequestParam(required = false) @Min(1) @Max(ChatConstant.MAX_PAGE_SIZE) Integer limit) {
+            @RequestParam(required = false) @Min(ChatConstant.MIN_PAGE_SIZE) @Max(ChatConstant.MAX_PAGE_SIZE) Integer limit) {
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, ChatControllerLogConstant.CHAT_PINS_LIST_REQUEST);
 
         ChatMessagePageResponse response =
