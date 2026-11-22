@@ -18,6 +18,7 @@ import {
   deleteRelation,
   getRelation,
   getRelationBattlefield,
+  listRelationAttachments,
   listRelationOwnerCandidates,
   listRelations,
   updateRelation,
@@ -55,6 +56,21 @@ export function useRelation(relationId: string) {
     queryKey: RELATION_KEYS.detail(organizationId ?? "", relationId),
     queryFn: () => getRelation(relationId),
     enabled: !!organizationId && relationId !== "",
+  });
+}
+
+/**
+ * The files of the relation and of its mails; waits for the organization.
+ * Uploads, deletes and snapshots change this list from other views and from
+ * the CLI, so every mount reads it again.
+ */
+export function useRelationAttachments(relationId: string) {
+  const organizationId = useOrganizationId();
+  return useQuery({
+    queryKey: RELATION_KEYS.attachments(organizationId ?? "", relationId),
+    queryFn: () => listRelationAttachments(relationId),
+    enabled: !!organizationId && relationId !== "",
+    refetchOnMount: "always",
   });
 }
 

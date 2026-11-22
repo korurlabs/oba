@@ -20,4 +20,6 @@ public final class RelationServiceLogConstant {
     public static final String LISTING_OWNER_CANDIDATES = "Listing relation owner candidates: organizationId={}";
     public static final String LISTING_PIPELINE = "Listing relations with a stage: organizationId={}";
     public static final String READING_RELATION = "Reading relation: id={}, organizationId={}";
+    public static final String LISTING_RELATION_ATTACHMENTS =
+            "Listing relation attachments: relationId={}, organizationId={}, mails={}";
 }

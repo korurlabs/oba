@@ -26,7 +26,10 @@ public enum ExceptionDomainLegalEntityError implements ExceptionDomainError {
 
     // ── State (LGE_STA) ─────────────────────────────────────────────────────
     STA_LEGAL_ENTITY_SHORT_NAME_TAKEN("LGE_STA_001",
-            "Another legal entity of this organization already has this short name.", ExceptionCategory.STA);
+            "Another legal entity of this organization already has this short name.", ExceptionCategory.STA),
+    // Documents and templates keep the company that issued them, so a used legal entity can not go.
+    STA_LEGAL_ENTITY_IN_USE("LGE_STA_002",
+            "The legal entity is in use by documents or document templates.", ExceptionCategory.STA);
 
     private final String code;
     private final String message;

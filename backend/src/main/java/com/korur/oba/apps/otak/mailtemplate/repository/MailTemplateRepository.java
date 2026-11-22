@@ -12,8 +12,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.otak.documenttemplate.enums.DocumentLanguage;
 import com.korur.oba.apps.otak.mailtemplate.entity.MailTemplate;
+import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
 
 /**
  * Spring Data repository of {@link MailTemplate}, the otak.mail_templates table.

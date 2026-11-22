@@ -26,7 +26,8 @@ import com.korur.oba.shrine.legalentity.repository.LegalEntityRepository;
  * Business rules of legal entities that a request annotation can not check, because they
  * need the database:
  * - the lookup of one legal entity within the caller's organization ({@link #ensureLegalEntityExists});
- * - the short name rule: unique per organization, case ignored ({@link #ensureShortNameUnique}).
+ * - the short name rule: unique per organization, case ignored ({@link #ensureShortNameUnique});
+ * - the delete of a legal entity in use ({@link #ensureNotInUse}).
  *
  * Each method throws a business exception that the global exception handler turns into the
  * error response; failures are logged at warn level, because they are client errors, not
@@ -88,6 +89,27 @@ public class LegalEntityValidator {
                     LegalEntityExceptionLogConstant.LEGAL_ENTITY_SHORT_NAME_TAKEN, organizationId, shortName);
             throw new ConflictException(ExceptionDomainLegalEntityError.STA_LEGAL_ENTITY_SHORT_NAME_TAKEN,
                     Map.of(LegalEntityConstant.FIELD_SHORT_NAME, shortName));
+        }
+    }
+
+    /**
+     * Refuses the delete of a legal entity that documents or templates name. The caller reads
+     * the usage through the document query services, because this validator also serves
+     * {@link com.korur.oba.shrine.legalentity.service.impl.LegalEntityQueryServiceImpl}, which
+     * the document domain depends on.
+     *
+     * @param organizationId the organization the caller acts in
+     * @param legalEntityId  the legal entity to delete
+     * @param inUse          true when a document or template of the organization names it
+     * @throws ConflictException {@link ExceptionDomainLegalEntityError#STA_LEGAL_ENTITY_IN_USE} (LGE_STA_002)
+     *         when it is in use
+     */
+    public void ensureNotInUse(UUID organizationId, UUID legalEntityId, boolean inUse) {
+        if (inUse) {
+            loggingService.warn(LOG_PREFIX, LogLayer.VALIDATOR, LegalEntityExceptionLogConstant.LEGAL_ENTITY_IN_USE,
+                    legalEntityId, organizationId);
+            throw new ConflictException(ExceptionDomainLegalEntityError.STA_LEGAL_ENTITY_IN_USE,
+                    Map.of(LegalEntityConstant.FIELD_LEGAL_ENTITY_ID, legalEntityId));
         }
     }
 }

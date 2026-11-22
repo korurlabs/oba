@@ -15,6 +15,7 @@ import {
 } from "@oba/ui/sky/dialog";
 import { Button } from "@oba/ui/sky/button";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { useLegalEntities } from "@/features/documents/hooks/use-legal-entities";
 import {
   useCreateDocumentTemplate,
   useDocumentTemplate,
@@ -186,8 +187,9 @@ function applyDocumentTemplateFieldErrors(
 }
 
 /**
- * The content fields of a template: type, language and name, then the HTML
- * and PDF file. `filesHint` replaces the hint above the file pickers of new content.
+ * The content fields of a template: type, language, name and the legal
+ * entity it is bound to (none for every legal entity), then the HTML and PDF
+ * file. `filesHint` replaces the hint above the file pickers of new content.
  */
 export function DocumentTemplateFormFields({
   isPending,
@@ -200,6 +202,7 @@ export function DocumentTemplateFormFields({
 }) {
   const t = useTranslations("documentTemplates");
   const { control } = useFormContext<DocumentTemplateFormValues>();
+  const legalEntities = useLegalEntities();
 
   const typeOptions = useMemo(
     () => DocumentTypeSchema.options.map((value) => ({ value, label: t(`types.${value}`) })),
@@ -209,6 +212,14 @@ export function DocumentTemplateFormFields({
     () =>
       DocumentLanguageSchema.options.map((value) => ({ value, label: t(`languages.${value}`) })),
     [t]
+  );
+  const legalEntityOptions = useMemo(
+    () =>
+      (legalEntities.data?.data ?? []).map((entity) => ({
+        value: entity.id,
+        label: entity.shortName,
+      })),
+    [legalEntities.data?.data]
   );
 
   return (
@@ -237,6 +248,23 @@ export function DocumentTemplateFormFields({
           control={control}
           required
           maxLength={DOCUMENT_TEMPLATE_LIMITS.nameMax}
+          disabled={isPending}
+        />
+      </div>
+      <div className="md:col-span-2">
+        <SelectField
+          name="legalEntityId"
+          label={t("form.legalEntity")}
+          description={
+            legalEntities.isError
+              ? documentTemplateErrorText(legalEntities.error, t, "errors.loadHint")
+              : t("form.legalEntityHint")
+          }
+          placeholder={t("form.legalEntityAll")}
+          control={control}
+          options={legalEntityOptions}
+          isLoading={legalEntities.isLoading}
+          clearable
           disabled={isPending}
         />
       </div>

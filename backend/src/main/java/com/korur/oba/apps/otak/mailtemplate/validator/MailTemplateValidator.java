@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.otak.documenttemplate.enums.DocumentLanguage;
 import com.korur.oba.apps.otak.exception.ExceptionDomainOtakError;
 import com.korur.oba.apps.otak.mailtemplate.constant.MailTemplateConstant;
 import com.korur.oba.apps.otak.mailtemplate.constant.MailTemplateExceptionLogConstant;
@@ -22,6 +21,7 @@ import com.korur.oba.dojo.exception.internal.business.NotFoundException;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
 
 /**
  * Business rules of mail templates that a request annotation can not check, because they

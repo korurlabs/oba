@@ -11,8 +11,8 @@ import jakarta.validation.constraints.Size;
 // 3. Java SDK
 
 // 4. Internal
-import com.korur.oba.apps.otak.documenttemplate.enums.DocumentLanguage;
 import com.korur.oba.apps.otak.mail.constant.MailConstant;
+import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
 
 /**
  * Subject, body and language of an outreach's mail, written by hand. They are stored in

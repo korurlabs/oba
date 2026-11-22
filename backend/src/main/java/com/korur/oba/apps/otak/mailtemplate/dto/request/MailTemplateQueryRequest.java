@@ -12,10 +12,10 @@ import lombok.Setter;
 // 3. Java SDK
 
 // 4. Internal
-import com.korur.oba.apps.otak.documenttemplate.enums.DocumentLanguage;
 import com.korur.oba.apps.otak.mailtemplate.constant.MailTemplateConstant;
 import com.korur.oba.dojo.annotation.NullOrNotBlank;
 import com.korur.oba.dojo.dto.QueryRequest;
+import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
 
 /**
  * Query parameters of GET /otak/mail-templates: the one-based page and page size inherited

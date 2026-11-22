@@ -13,7 +13,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 // 4. Internal
-import com.korur.oba.apps.otak.documenttemplate.integration.AbstractOtakDocumentsIT;
+import com.korur.oba.apps.otak.support.AbstractOtakDocumentsIT;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 
 /**

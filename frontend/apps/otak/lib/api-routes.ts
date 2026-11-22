@@ -7,6 +7,7 @@ export const API_ROUTES = {
     detail: (relationId: string) => `/otak/relations/${relationId}`,
     stage: (relationId: string) => `/otak/relations/${relationId}/stage`,
     type: (relationId: string) => `/otak/relations/${relationId}/type`,
+    attachments: (relationId: string) => `/otak/relations/${relationId}/attachments`,
   },
   contacts: {
     list: (relationId: string) => `/otak/relations/${relationId}/contacts`,
@@ -22,10 +23,18 @@ export const API_ROUTES = {
     detail: (mailTemplateId: string) => `/otak/mail-templates/${mailTemplateId}`,
   },
   documentTemplates: {
-    list: "/otak/document-templates",
-    detail: (templateId: string) => `/otak/document-templates/${templateId}`,
-    files: (templateId: string) => `/otak/document-templates/${templateId}/files`,
-    attachments: (templateId: string) => `/otak/document-templates/${templateId}/attachments`,
+    list: "/document-templates",
+    detail: (templateId: string) => `/document-templates/${templateId}`,
+    files: (templateId: string) => `/document-templates/${templateId}/files`,
+  },
+  documents: {
+    list: "/documents",
+    detail: (documentId: string) => `/documents/${documentId}`,
+    files: (documentId: string) => `/documents/${documentId}/files`,
+    attachments: (documentId: string) => `/documents/${documentId}/attachments`,
+  },
+  legalEntities: {
+    list: "/legal-entities",
   },
   outreaches: {
     list: "/otak/outreaches",
