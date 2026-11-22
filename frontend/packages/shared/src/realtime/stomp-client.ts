@@ -233,8 +233,56 @@ export function backoffDelayMs(attempt: number, random: () => number = Math.rand
 /** WebSocket scheme for each API scheme: a TLS API gets a TLS socket. */
 const SOCKET_SCHEMES: Readonly<Record<string, string>> = { https: "wss", http: "ws" };
 
+/** A URL scheme: a letter, then letters, digits, `+`, `.` or `-`. */
+const URL_SCHEME_PATTERN: RegExp = /^[a-z][a-z0-9+.-]*$/i;
+
 /** An absolute URL split into scheme, authority (non-empty) and the rest. */
-const ABSOLUTE_URL_PATTERN: RegExp = /^([a-z][a-z0-9+.-]*):\/\/([^/?#]+)(.*)$/i;
+interface AbsoluteUrlParts {
+  scheme: string;
+  authority: string;
+  path: string;
+}
+
+/**
+ * `value` without its trailing slashes. A backwards scan rather than a
+ * `/\/+$/` replace: the base URL comes from configuration the apps pass in,
+ * and that pattern retries from every slash, so a long run of slashes not at
+ * the end costs quadratic time.
+ */
+function stripTrailingSlashes(value: string): string {
+  let end: number = value.length;
+  while (end > 0 && value.charCodeAt(end - 1) === 0x2f) {
+    end -= 1;
+  }
+  return value.slice(0, end);
+}
+
+/**
+ * Splits `scheme://authority/rest`, or null when `url` has no valid scheme
+ * before its first `://` or an empty authority. The authority runs to the first
+ * `/`, `?` or `#`. Parsed with index lookups instead of one pattern with
+ * adjacent overlapping quantifiers, so the time stays linear in the length of
+ * the input.
+ */
+function splitAbsoluteUrl(url: string): AbsoluteUrlParts | null {
+  const separator: number = url.indexOf("://");
+  if (separator < 0) {
+    return null;
+  }
+  const scheme: string = url.slice(0, separator);
+  if (!URL_SCHEME_PATTERN.test(scheme)) {
+    return null;
+  }
+  const rest: string = url.slice(separator + 3);
+  let authorityEnd: number = 0;
+  while (authorityEnd < rest.length && !"/?#".includes(rest.charAt(authorityEnd))) {
+    authorityEnd += 1;
+  }
+  if (authorityEnd === 0) {
+    return null;
+  }
+  return { scheme, authority: rest.slice(0, authorityEnd), path: rest.slice(authorityEnd) };
+}
 
 /**
  * The WebSocket URL for an API base URL: the same join Axios makes for
@@ -251,16 +299,13 @@ export function realtimeBrokerUrl(apiBaseUrl: string | undefined): string | null
     console.error(`${LOG_PREFIX} the API base URL is not set`);
     return null;
   }
-  const base: string = apiBaseUrl.trim().replace(/\/+$/, "");
-  const match: RegExpMatchArray | null = /\s/.test(base) ? null : base.match(ABSOLUTE_URL_PATTERN);
-  if (!match) {
+  const base: string = stripTrailingSlashes(apiBaseUrl.trim());
+  const parts: AbsoluteUrlParts | null = /\s/.test(base) ? null : splitAbsoluteUrl(base);
+  if (!parts) {
     console.error(`${LOG_PREFIX} the API base URL is not an absolute URL: ${apiBaseUrl}`);
     return null;
   }
-  // The pattern's three groups always take part in a match.
-  const scheme: string = match[1] ?? "";
-  const authority: string = match[2] ?? "";
-  const path: string = match[3] ?? "";
+  const { scheme, authority, path }: AbsoluteUrlParts = parts;
   const socketScheme: string | undefined = SOCKET_SCHEMES[scheme.toLowerCase()];
   if (!socketScheme) {
     console.error(`${LOG_PREFIX} the API base URL has an unsupported protocol: ${scheme}:`);
