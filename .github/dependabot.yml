@@ -1,0 +1,99 @@
+# Version updates: Dependabot opens pull requests for newer versions of every
+# dependency, not only for those with a known vulnerability (security updates
+# are switched on in the repository settings and need no entry here).
+#
+# Minor and patch bumps are grouped into one pull request per ecosystem so the
+# weekly run stays reviewable; a major bump gets its own pull request because it
+# may break. The cooldown holds a release back for a week, so a hijacked package
+# version is usually yanked before it reaches a pull request.
+version: 2
+
+updates:
+  - package-ecosystem: maven
+    directory: /backend
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Istanbul
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      backend-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: bun
+    directory: /frontend
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Istanbul
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      frontend-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: gomod
+    directories:
+      - /cli/oba
+      - /cli/kalkan
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Istanbul
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      cli-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: docker
+    directories:
+      - /backend
+      - /frontend
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Istanbul
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      docker-minor-patch:
+        update-types: [minor, patch]
+
+  # GitHub Actions are dependencies of the pipelines, like libraries in pom.xml.
+  #
+  # 1. A workflow step such as this one in .github/workflows/backend.yml does
+  #    not run our code; it downloads and runs code from another repository:
+  #      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+  # 2. That repository (github.com/actions/checkout) holds a small program, a
+  #    TypeScript app started from its action.yml, that clones our code onto
+  #    the build machine. setup-java, setup-go and the docker actions work the
+  #    same way.
+  # 3. Its releases are git tags (v7.0.1, v7.0.2, ...). We pin the commit SHA
+  #    the tag points to, so a tag that is moved later cannot change what runs
+  #    with our secrets; the version stays readable in the comment.
+  # 4. When a new version is released, Dependabot opens a pull request that
+  #    changes the SHA and the comment together, so the pin never goes stale
+  #    and every bump is reviewed and tested before it runs.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Istanbul
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      actions-minor-patch:
+        update-types: [minor, patch]
