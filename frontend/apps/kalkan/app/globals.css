@@ -1,6 +1,8 @@
 @import "tailwindcss";
 /* Kalkan's look (tokens, typography, the menu panel) is the shared sky design, as Kaya's and Otak's. */
 @import "@oba/ui/sky/styles.css";
+/* The Markdown editor's content styles, for page bodies and the page form. */
+@import "@oba/shared/styles/markdown-editor.css";
 
 /*
  * Tailwind scans only this app and the sky module. The account menu, the app

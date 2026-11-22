@@ -288,32 +288,35 @@ function CodeBlockNodeView({ node, updateAttributes, editor, getPos }: ReactNode
 
   return (
     <NodeViewWrapper as="pre" className="code-block-wrapper" spellCheck={false}>
-      <div contentEditable={false} className="code-block-controls">
-        <button
-          type="button"
-          className={cn(
-            'code-block-format-button',
-            formatFeedback === 'success' && 'code-block-format-success',
-            formatFeedback === 'error' && 'code-block-format-error',
-          )}
-          onMouseDown={handleFormat}
-          disabled={!canFormat}
-          title={t('formatCode')}
-        >
-          <WandSparkles className="h-3 w-3" />
-        </button>
-        <select
-          className="code-block-language-select"
-          value={currentLanguage}
-          onChange={(e) => updateAttributes({ language: e.target.value })}
-        >
-          {CODE_BLOCK_LANGUAGES.map((lang) => (
-            <option key={lang.value} value={lang.value}>
-              {lang.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      {/* Formatting or relabelling a block edits it, so an editor that cannot be edited shows the code only. */}
+      {editor.isEditable && (
+        <div contentEditable={false} className="code-block-controls">
+          <button
+            type="button"
+            className={cn(
+              'code-block-format-button',
+              formatFeedback === 'success' && 'code-block-format-success',
+              formatFeedback === 'error' && 'code-block-format-error',
+            )}
+            onMouseDown={handleFormat}
+            disabled={!canFormat}
+            title={t('formatCode')}
+          >
+            <WandSparkles className="h-3 w-3" />
+          </button>
+          <select
+            className="code-block-language-select"
+            value={currentLanguage}
+            onChange={(e) => updateAttributes({ language: e.target.value })}
+          >
+            {CODE_BLOCK_LANGUAGES.map((lang) => (
+              <option key={lang.value} value={lang.value}>
+                {lang.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       <div className="code-block-content">
         <NodeViewContent<'code'> as="code" className={node.attrs.language ? `language-${node.attrs.language}` : ''} />
       </div>
@@ -366,6 +369,12 @@ interface MarkdownEditorBaseProps {
    */
   onImageDelete?: (src: string) => void;
   disabled?: boolean;
+  /**
+   * Shows the content for reading only: no frame, no toolbar, no code block
+   * controls, no uploads and full-strength text, where `disabled` keeps the
+   * editor's look and dims it.
+   */
+  readOnly?: boolean;
   /**
    * Optional. The app's own `Button` and `Input`, so the toolbar, link
    * popover and image delete button match the rest of that app. Defaults
@@ -981,6 +990,7 @@ function MarkdownEditorInner({
   onImageDrop,
   onImageDelete,
   disabled = false,
+  readOnly = false,
   error = false,
   components,
 }: MarkdownEditorInnerProps) {
@@ -1102,7 +1112,7 @@ function MarkdownEditorInner({
       createSlashLinkExtension(handleOpenLinkPopover),
     ],
     content: value || '',
-    editable: !disabled,
+    editable: !disabled && !readOnly,
     immediatelyRender: false,
     onUpdate: ({ editor: updatedEditor }) => {
       isInternalUpdate.current = true;
@@ -1129,8 +1139,8 @@ function MarkdownEditorInner({
   // Sync disabled/editable state
   useEffect(() => {
     if (!editor) return;
-    editor.setEditable(!disabled);
-  }, [editor, disabled]);
+    editor.setEditable(!disabled && !readOnly);
+  }, [editor, disabled, readOnly]);
 
   // Mirror the onImageDelete prop into the Image extension's storage so
   // the ImageNodeView trash button can reach the current callback. The
@@ -1332,7 +1342,7 @@ function MarkdownEditorInner({
   // (text, HTML) still run.
   const handlePaste = useCallback(
     async (e: React.ClipboardEvent) => {
-      if (disabled) return;
+      if (disabled || readOnly) return;
       if (!onImageDrop && !onFileUpload) return;
 
       const items = e.clipboardData?.items;
@@ -1353,7 +1363,7 @@ function MarkdownEditorInner({
       }
       // No image item found -- fall through to default paste handling.
     },
-    [disabled, onImageDrop, onFileUpload, handleImageFile],
+    [disabled, readOnly, onImageDrop, onFileUpload, handleImageFile],
   );
 
   const handleDrop = useCallback(
@@ -1363,7 +1373,7 @@ function MarkdownEditorInner({
       setIsDragging(false);
       dragCounterRef.current = 0;
 
-      if (disabled) return;
+      if (disabled || readOnly) return;
       // We can handle the drop if either the deferred-image hook or the
       // legacy /api/upload hook is wired. Bail when both are missing so
       // we don't silently swallow user input.
@@ -1374,8 +1384,19 @@ function MarkdownEditorInner({
         await uploadFile(file);
       }
     },
-    [onImageDrop, onFileUpload, disabled, uploadFile],
+    [onImageDrop, onFileUpload, disabled, readOnly, uploadFile],
   );
+
+  if (readOnly) {
+    return (
+      <MarkdownEditorComponentsProvider components={components}>
+        <EditorContent
+          editor={editor}
+          className={cn('wysiwyg-editor min-h-0 overflow-auto border-0', className)}
+        />
+      </MarkdownEditorComponentsProvider>
+    );
+  }
 
   return (
     <MarkdownEditorComponentsProvider components={components}>

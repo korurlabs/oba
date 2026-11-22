@@ -62,7 +62,7 @@ afterAll(() => {
 
 const { TrashView } = await import("./trash-view");
 const { useTrashColumns } = await import("../hooks/use-trash-columns");
-const { DataTable } = await import("@/features/recent/components/data-table");
+const { DataTable } = await import("@/components/data-table");
 
 const deleted = {
   id: "page-1",

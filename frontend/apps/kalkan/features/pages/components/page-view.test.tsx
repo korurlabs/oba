@@ -257,6 +257,20 @@ describe("page content", () => {
     expect(html).not.toContain(">Delete<");
   });
 
+  test("links every reader to the page history", () => {
+    pageState = { data: detail({ level: "VIEW" }) };
+    expect(render()).toContain('href="/pages/child/history"');
+  });
+
+  test("links the access screen on a section's root for a manager only", () => {
+    pageState = { data: detail({ id: "root", parentId: null, rootId: null, level: "MANAGE" }) };
+    expect(render()).toContain('href="/pages/root/permissions"');
+    pageState = { data: detail({ id: "root", parentId: null, rootId: null, level: "EDIT" }) };
+    expect(render()).not.toContain("/permissions");
+    pageState = { data: detail({ level: "MANAGE" }) };
+    expect(render()).not.toContain("/permissions");
+  });
+
   test("lets only a manager delete a section's root page", () => {
     pageState = { data: detail({ id: "root", parentId: null, rootId: null, level: "EDIT" }) };
     const html = render();

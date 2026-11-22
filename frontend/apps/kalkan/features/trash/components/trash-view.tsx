@@ -8,7 +8,7 @@ import { PageHeading } from "@/components/page-states";
 import { useRestorePage, useTrash } from "@/features/pages/hooks/use-pages";
 import { pageErrorText } from "@/features/pages/lib/page-error";
 import type { PageTrashItem } from "@/features/pages/schemas";
-import { DataTable } from "@/features/recent/components/data-table";
+import { DataTable } from "@/components/data-table";
 import { useIsOrganizationMember } from "@/hooks/use-is-organization-admin";
 import { useTrashColumns } from "../hooks/use-trash-columns";
 import { needsParentRestoredFirst } from "../lib/restore-refusal";

@@ -7,7 +7,7 @@ import { useRecentPages } from "@/features/pages/hooks/use-pages";
 import { pageErrorText } from "@/features/pages/lib/page-error";
 import type { PageRecentItem } from "@/features/pages/schemas";
 import { useRecentColumns } from "../hooks/use-recent-columns";
-import { DataTable } from "./data-table";
+import { DataTable } from "@/components/data-table";
 
 /** How many changed pages the Recent page lists. */
 export const RECENT_PAGE_LIMIT = 50;

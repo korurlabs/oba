@@ -3,6 +3,9 @@
  * endpoints (`/storage/attachments`) live in `@oba/shared`.
  */
 export const API_ROUTES = {
+  organizationMembers: {
+    list: (organizationId: string) => `/organizations/${organizationId}/members`,
+  },
   pages: {
     list: "/kalkan/pages",
     detail: (pageId: string) => `/kalkan/pages/${pageId}`,

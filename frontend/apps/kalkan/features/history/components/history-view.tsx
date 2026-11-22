@@ -14,7 +14,7 @@ import { usePage, usePageRevision, usePageRevisions } from "@/features/pages/hoo
 import { pageErrorText } from "@/features/pages/lib/page-error";
 import { contentLocaleOf } from "@/features/pages/lib/page-tree";
 import type { PageDetail, PageRevisionListItem } from "@/features/pages/schemas";
-import { DataTable } from "@/features/recent/components/data-table";
+import { DataTable } from "@/components/data-table";
 import { pageHref } from "@/lib/routes";
 import { useRevisionColumns } from "../hooks/use-revision-columns";
 import { MarkdownSource, RevisionCompare } from "./revision-compare";
