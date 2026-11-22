@@ -144,8 +144,9 @@ public class KalkanPageController {
     @GetMapping("/trash")
     @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "List deleted pages",
-            description = "The top page of every delete under a root the caller holds MANAGE on, newest first; "
-                    + "a restore of it brings back the pages the same delete took")
+            description = "The top page of every delete the caller may restore, newest first: a deleted root "
+                    + "needs MANAGE on it, any other page EDIT on its root; a restore of it brings back the pages "
+                    + "the same delete took")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successful operation"),
             @ApiResponse(responseCode = "400", description = "X-Organization-ID missing or not a UUID, or an unknown locale"),
