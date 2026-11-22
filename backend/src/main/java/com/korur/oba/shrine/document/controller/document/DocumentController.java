@@ -364,9 +364,9 @@ public class DocumentController {
             @ApiResponse(responseCode = "201", description = "Resource created successfully"),
             @ApiResponse(responseCode = "400", description = "Missing or malformed X-Organization-ID header"),
             @ApiResponse(responseCode = "403", description = "No read access to the owner or write access to the "
-                    + "mail (APP_SEC_001, ORG_SEC_003)"),
-            @ApiResponse(responseCode = "404", description = "Document (DOC_NOT_002) or mail (OTK_NOT_011) not "
-                    + "found or of another organization"),
+                    + "mail (APP_SEC_001, ORG_SEC_003), or a mail of another organization (APP_SEC_002)"),
+            @ApiResponse(responseCode = "404", description = "Document not found or of another organization "
+                    + "(DOC_NOT_002), or mail not found (OTK_NOT_011)"),
             @ApiResponse(responseCode = "409", description = "The mail's outreach is sent (OTK_STA_011)"),
             @ApiResponse(responseCode = "422", description = "Not a mail (GEN_VAL_001), no PDF (DOC_VAL_003), a "
                     + "mail of another relation (DOC_VAL_004), or the mail already holds this PDF (STG_VAL_005)"),
