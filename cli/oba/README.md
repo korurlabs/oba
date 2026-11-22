@@ -75,6 +75,18 @@ oba org use <name|id>  # match the id exactly, else the name without regard to c
 
 The current organization is the one chosen with `oba org use`, stored as `org-id` in `~/.config/oba/config.json` (mode 0600), else the default organization of the sign-in. App commands act in it.
 
+## Legal entities
+
+```sh
+oba legal-entity list
+oba legal-entity get <id>
+oba legal-entity create --short-name "Korur B.V." --legal-name "Korur B.V." --country NLD --city Amsterdam
+oba legal-entity update <id> --city Rotterdam --street ""   # "" clears an optional field
+oba legal-entity delete <id> [--yes]
+```
+
+A legal entity is a company in whose name the organization issues documents. The commands act in the current organization; reading needs the MEMBER role, the writes need ADMIN. `create` needs `--short-name` (unique in the organization, case ignored), `--legal-name` and `--country`. `update` changes only the fields whose flags are given: the API replaces every field, so the CLI reads the entity first and sends its stored values for the others. `delete` asks first on a terminal, unless `--yes` is given.
+
 ## Global flags and OBA_TOKEN
 
 Every command takes these flags:
@@ -507,7 +519,7 @@ The packages are grouped as in the Oba backend: `dojo` is the technical foundati
 |---|---|
 | `main.go` | entry point; the version comes in through `-ldflags "-X main.version=..."` |
 | `cmd/` | the root command; it adds the platform commands and one command group per app, and `oba admin` |
-| `cmd/shrine/` | the platform commands `login`, `logout` and `org` |
+| `cmd/shrine/` | the platform commands `login`, `logout`, `org` and `legal-entity` |
 | `cmd/apps/<app>/` | `NewCmd()` builds `oba <app>` and adds the commands of each domain (`cmd/apps/otak/`, `cmd/apps/kaya/`) |
 | `cmd/apps/<app>/<domain>/` | the commands of one domain, one file per command; `NewCmd()` builds `oba <app> <domain>` (`cmd/apps/otak/relation/`, `contact/`, `icp/`, `event/`, `find/`, `template/`, `outreach/`, `attachment/`; `cmd/apps/admin/org/`, `member/`, `invite/`; `cmd/apps/kaya/delivery/` (sync, refresh, status, launch, watch), `hook/`, `statusline/`, `install/`, `seed/`, `propose/`, `lessons/`, `sender/`, `signingkey/`) |
 | `internal/apps/<app>/<domain>/` | the logic of one domain of an app (`internal/apps/otak/relation/`, `contact/`, `icp/`, `event/`, `find/`, `template/`, `outreach/`, `attachment/`; `internal/apps/admin/org/`, `member/`, `invite/`, and `role/`, the role check that `invite` and `member` share) |
@@ -520,6 +532,7 @@ The packages are grouped as in the Oba backend: `dojo` is the technical foundati
 | `internal/apps/kaya/kayatest/` | test helpers of the Kaya tests: a fake delivery and lessons API with a signing key, a scratch delivered checkout, the command runner; imported by tests only |
 | `internal/shrine/auth/` | the device authorization grant and the token store |
 | `internal/shrine/organization/` | the organization table that `oba org list` and `oba admin org list` share, the lookup of a member by user id or e-mail that `oba admin member` and `oba kazan` share, and the `--author` list of `oba kazan updates` and `pr`, where `me` is the signed-in user |
+| `internal/shrine/legalentity/` | the legal entities of the organization behind `oba legal-entity`: the field input, the create check, the read-and-merge update, the table and the details |
 | `internal/shrine/session/` | the signed-in client for the current organization, the bearer (API URL, organization, refreshing token) of a client of its own such as Kaya's, the current user and its id, the organization name and the API URL |
 | `internal/connect/claude/` | running Claude Code headless and reading its stream-json output; returns the result as JSON |
 | `internal/dojo/config/` | API URL, issuer and client id resolution, `config.json` and the current organization |

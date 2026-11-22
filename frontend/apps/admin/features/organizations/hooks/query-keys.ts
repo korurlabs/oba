@@ -1,6 +1,7 @@
 /**
  * Query-key factories for the organization queries: organization detail,
- * organization members, organization invitations, groups and app access.
+ * organization members, organization invitations, groups, app access and
+ * legal entities.
  *
  * This module is intentionally NOT marked "use client". Server components
  * (page.tsx prefetch) import these helpers to set cache entries under the
@@ -51,4 +52,17 @@ export const APP_ACCESS_KEYS = {
   organization: (orgId: string) => [...APP_ACCESS_KEYS.all, orgId] as const,
   grants: (orgId: string) => [...APP_ACCESS_KEYS.organization(orgId), "grants"] as const,
   members: (orgId: string) => [...APP_ACCESS_KEYS.organization(orgId), "members"] as const,
+};
+
+/**
+ * Legal entity keys start with the organization id, so that
+ * `organization(orgId)` matches the list and every detail of that
+ * organization.
+ */
+export const LEGAL_ENTITY_KEYS = {
+  all: ["legalEntities"] as const,
+  organization: (orgId: string) => [...LEGAL_ENTITY_KEYS.all, orgId] as const,
+  list: (orgId: string) => [...LEGAL_ENTITY_KEYS.organization(orgId), "list"] as const,
+  detail: (orgId: string, legalEntityId: string) =>
+    [...LEGAL_ENTITY_KEYS.organization(orgId), "detail", legalEntityId] as const,
 };
