@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
-import { compareLines, type CompareRow } from "../lib/line-diff";
+import { compareLines, stripBlobSignatures, type CompareRow } from "../lib/line-diff";
 
 /** The Markdown source of a text, read-only, kept as written. */
 export function MarkdownSource({ body }: { body: string }) {
@@ -57,7 +57,11 @@ export function RevisionCompare({
   currentBody: string;
 }) {
   const t = useTranslations("history");
-  const rows = useMemo(() => compareLines(revisionBody, currentBody), [revisionBody, currentBody]);
+  // Both bodies are signed on read in separate requests, so their attachment links differ only in the signature.
+  const rows = useMemo(
+    () => compareLines(stripBlobSignatures(revisionBody), stripBlobSignatures(currentBody)),
+    [revisionBody, currentBody]
+  );
 
   const headings = (
     <div className="text-muted-foreground grid grid-cols-2 border-b text-xs font-semibold">

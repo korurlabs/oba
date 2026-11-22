@@ -16,6 +16,22 @@ export type CompareRow =
  */
 export const MAX_COMPARE_CELLS = 4_000_000;
 
+// A URL with a query string, ending where Markdown or HTML ends a link target.
+const URL_WITH_QUERY = /(https?:\/\/[^\s?#()<>"'\]]+)\?([^\s#()<>"'\]]*)/g;
+
+/**
+ * Removes the query string from every URL that carries a `sig=` parameter,
+ * that is a signed (SAS) blob link. Attachment links are signed each time a
+ * body is read, with times taken from the moment of the request, so two reads
+ * of the same unchanged link differ only in their query strings. Comparing the
+ * texts without them keeps such lines equal.
+ */
+export function stripBlobSignatures(text: string): string {
+  return text.replace(URL_WITH_QUERY, (match, base: string, query: string) =>
+    query.split("&").some((param) => param.startsWith("sig=")) ? base : match
+  );
+}
+
 function splitLines(text: string): string[] {
   return text === "" ? [] : text.replace(/\r\n/g, "\n").split("\n");
 }
