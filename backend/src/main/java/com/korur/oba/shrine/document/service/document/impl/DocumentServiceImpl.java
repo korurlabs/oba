@@ -37,6 +37,7 @@ import com.korur.oba.shrine.document.repository.document.DocumentRepository;
 import com.korur.oba.shrine.document.service.document.DocumentService;
 import com.korur.oba.shrine.document.service.template.DocumentTemplateQueryService;
 import com.korur.oba.shrine.document.validator.document.DocumentValidator;
+import com.korur.oba.shrine.document.validator.template.DocumentTemplateValidator;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.legalentity.service.LegalEntityQueryService;
 import com.korur.oba.shrine.storage.dto.response.attachment.AttachmentContent;
@@ -64,6 +65,7 @@ public class DocumentServiceImpl implements DocumentService {
 
     private final DocumentRepository documentRepository;
     private final DocumentValidator documentValidator;
+    private final DocumentTemplateValidator documentTemplateValidator;
     private final DocumentMapperHelper documentMapperHelper;
     private final DocumentFileStorage documentFileStorage;
     private final DocumentTemplateQueryService documentTemplateQueryService;
@@ -76,9 +78,9 @@ public class DocumentServiceImpl implements DocumentService {
     /**
      * {@inheritDoc}
      *
-     * Steps: WRITE on the owner, the legal entity, the template (all before any blob), copy the
-     * template's files when it has both, save and flush the row, and remove the copies again
-     * if that write fails.
+     * Steps: WRITE on the owner, the legal entity, the template and whether it serves that legal
+     * entity (all before any blob), copy the template's files when it has both, save and flush
+     * the row, and remove the copies again if that write fails.
      */
     @Override
     @Transactional
@@ -88,6 +90,9 @@ public class DocumentServiceImpl implements DocumentService {
         DocumentTemplate template = request.templateId() == null
                 ? null
                 : documentTemplateQueryService.getEntity(organizationId, request.templateId());
+        if (template != null) {
+            documentTemplateValidator.ensureUsableByLegalEntity(template, request.legalEntityId());
+        }
 
         // A template without files gives a document without files; it receives them by upload.
         StoredDocumentFiles copied = template != null && template.isReady()

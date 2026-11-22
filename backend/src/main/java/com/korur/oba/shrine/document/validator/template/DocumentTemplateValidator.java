@@ -32,7 +32,9 @@ import com.korur.oba.shrine.storage.enums.common.StorageEntityType;
  * - the lookup of one template within the caller's organization ({@link #ensureTemplateExists});
  * - the name rule: unique per organization and language, case ignored ({@link #ensureNameFree});
  * - a copy onto an attachment needs the template's PDF ({@link #ensureTemplateReady}) and a
- *   mail or a relation as the parent ({@link #ensureAttachableEntityType}).
+ *   mail or a relation as the parent ({@link #ensureAttachableEntityType});
+ * - a template bound to a legal entity seeds only documents of that legal entity
+ *   ({@link #ensureUsableByLegalEntity}).
  *
  * The database enforces the name rule too, with a unique index on shrine.document_templates.
  * The check here runs first so the client gets a specific error code and the fields that
@@ -46,7 +48,9 @@ import com.korur.oba.shrine.storage.enums.common.StorageEntityType;
  * - {@link com.korur.oba.shrine.document.service.template.impl.DocumentTemplateServiceImpl}
  *   on create, update, file replacement, delete and the copy onto an attachment;
  * - {@link com.korur.oba.shrine.document.service.template.impl.DocumentTemplateQueryServiceImpl}
- *   for the detail and for {@link com.korur.oba.shrine.document.service.template.DocumentTemplateQueryService#getEntity}.
+ *   for the detail and for {@link com.korur.oba.shrine.document.service.template.DocumentTemplateQueryService#getEntity};
+ * - {@link com.korur.oba.shrine.document.service.document.impl.DocumentServiceImpl} when a
+ *   document is created from a template.
  *
  * @see DocumentTemplateRepository
  * @see DocumentTemplate
@@ -184,6 +188,34 @@ public class DocumentTemplateValidator {
             throw new ValidationException(ExceptionValidationError.VALIDATION,
                     Map.of(DocumentTemplateConstant.FIELD_ENTITY_TYPE,
                             DocumentTemplateConstant.ENTITY_TYPE_NOT_ATTACHABLE_MESSAGE));
+        }
+    }
+
+    /**
+     * Ensures a template may seed a document of the given legal entity. A template without a
+     * legal entity serves every legal entity of the organization; one bound to a legal entity
+     * serves only that one, so a contract worded for one company never starts a document
+     * issued by another. The template list applies the same rule when it filters by legal entity.
+     *
+     * Called by
+     * {@link com.korur.oba.shrine.document.service.document.impl.DocumentServiceImpl#create}
+     * before any file of the template is copied.
+     *
+     * @param template      the template of the organization
+     * @param legalEntityId the legal entity that issues the new document
+     * @throws ValidationException {@link com.korur.oba.shrine.document.exception.ExceptionDomainDocumentError#VAL_DOCUMENT_NOT_USABLE} (DOC_VAL_002)
+     *         when the template is bound to another legal entity
+     */
+    public void ensureUsableByLegalEntity(DocumentTemplate template, UUID legalEntityId) {
+        UUID templateLegalEntityId = template.getLegalEntityId();
+        if (templateLegalEntityId != null && !templateLegalEntityId.equals(legalEntityId)) {
+            loggingService.warn(LOG_PREFIX, LogLayer.VALIDATOR,
+                    DocumentTemplateExceptionLogConstant.TEMPLATE_OF_OTHER_LEGAL_ENTITY,
+                    template.getId(), templateLegalEntityId, legalEntityId);
+            // The reason goes under templateId, because the template is what the caller has to change.
+            throw new ValidationException(ExceptionDomainDocumentError.VAL_DOCUMENT_NOT_USABLE,
+                    Map.of(DocumentTemplateConstant.FIELD_TEMPLATE_ID,
+                            DocumentTemplateConstant.TEMPLATE_OF_OTHER_LEGAL_ENTITY_MESSAGE));
         }
     }
 }
