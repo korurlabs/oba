@@ -92,6 +92,7 @@ public class KalkanPageServiceImpl implements KalkanPageService {
         if (request.parentId() == null) {
             kalkanAccessQueryService.requireRootCreate(organizationId, user);
             requireNotReservedRootSlug(organizationId, request.slug());
+            requireRootSlugNotInTrash(organizationId, request.slug());
             // The creator is granted MANAGE below; an OWNER holds it anyway.
             level = KalkanLevel.MANAGE;
         } else {
@@ -124,6 +125,7 @@ public class KalkanPageServiceImpl implements KalkanPageService {
         if (slugChanged) {
             if (page.getParent() == null) {
                 requireNotReservedRootSlug(organizationId, request.slug());
+                requireRootSlugNotInTrash(organizationId, request.slug());
             }
             requireSlugFree(organizationId, page.getParent(), request.slug(), page.getId());
         }
@@ -278,6 +280,7 @@ public class KalkanPageServiceImpl implements KalkanPageService {
             }
             kalkanAccessQueryService.requireRootCreate(organizationId, user);
             requireNotReservedRootSlug(organizationId, slugs[0]);
+            requireRootSlugNotInTrash(organizationId, slugs[0]);
             return createByPath(user, organizationId, null, request, dryRun);
         }
         // The root's level is checked before any deeper page is looked up, so a hidden tree reveals nothing.
@@ -499,6 +502,22 @@ public class KalkanPageServiceImpl implements KalkanPageService {
                 : kalkanPageRepository.existsChildSlug(parent.getId(), slug, excludedId);
         if (taken) {
             throw slugTaken(organizationId, parent == null ? null : parent.getId(), slug);
+        }
+    }
+
+    /**
+     * A deleted root keeps its slug: a second root with it, created or renamed, would leave the
+     * section split in two and make the old root's restore fail, so the deleted root has to be
+     * restored instead.
+     */
+    private void requireRootSlugNotInTrash(UUID organizationId, String slug) {
+        Optional<UUID> deletedRootId = kalkanPageRepository.findDeletedRootIdBySlug(organizationId, slug);
+        if (deletedRootId.isPresent()) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, KalkanPageServiceLogConstant.ROOT_SLUG_IN_TRASH,
+                    slug, organizationId, deletedRootId.get());
+            throw new ConflictException(ExceptionDomainKalkanError.STA_SLUG_TAKEN,
+                    Map.of(KalkanPageConstant.FIELD_SLUG, slug,
+                            KalkanPageConstant.FIELD_DELETED_PAGE_ID, deletedRootId.get().toString()));
         }
     }
 

@@ -22,6 +22,7 @@ public final class KalkanPageConstant {
     // --- Error value keys ---
     public static final String FIELD_PAGE_ID = "pageId";
     public static final String FIELD_REVISION_ID = "revisionId";
+    public static final String FIELD_DELETED_PAGE_ID = "deletedPageId";
     public static final String FIELD_PARENT_ID = "parentId";
     public static final String FIELD_SLUG = "slug";
     public static final String FIELD_PATH = "path";
