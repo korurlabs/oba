@@ -642,8 +642,8 @@ public class OutreachServiceImpl implements OutreachService {
      * file name and content type, and checks that they fit in one Graph request.
      *
      * The bytes come from {@link AttachmentQueryService#getEntityAttachmentContents}, which
-     * reads the private blob of each attachment row with the mail as parent; it checks no
-     * access, which the send endpoint and the claim already settled. Graph takes a file
+     * reads the private blob of each attachment row with the mail as parent in the outreach's
+     * organization; it checks no access, which the send endpoint and the claim already settled. Graph takes a file
      * attachment inline, as bytes inside the send request, so the total size is known only
      * after every blob is read, and {@link OutreachValidator#ensureAttachmentsFit} runs last.
      *
@@ -663,8 +663,8 @@ public class OutreachServiceImpl implements OutreachService {
     private List<AttachmentEmail> mailAttachments(Outreach outreach, Mail mail) {
         List<AttachmentEmail> attachments = new ArrayList<>();
         long totalBytes = 0;
-        for (AttachmentContent content : attachmentQueryService.getEntityAttachmentContents(StorageEntityType.MAIL,
-                mail.getId())) {
+        for (AttachmentContent content : attachmentQueryService.getEntityAttachmentContents(
+                outreach.getOrganizationId(), StorageEntityType.MAIL, mail.getId())) {
             totalBytes += content.content().length;
             attachments.add(new AttachmentEmail(content.fileName(), content.content(), content.contentType()));
         }

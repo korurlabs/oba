@@ -31,7 +31,8 @@ public interface AttachmentService {
     /**
      * Uploads a batch of attachments, after each distinct parent in the batch
      * has been checked for a WRITE by the user in the request's organization.
-     * An entity type without a resource access type is refused.
+     * Every stored attachment takes organizationId as its organization. An
+     * entity type without a resource access type is refused.
      *
      * @param user the authenticated user
      * @param organizationId the organization of the request, which every parent must belong to
@@ -46,7 +47,8 @@ public interface AttachmentService {
      * Stores one attachment from bytes the server already holds, such as a copy
      * of a document template's PDF, after the parent has been checked for a
      * WRITE by the user in the request's organization. The empty-content and
-     * duplicate rules of an upload apply. An entity type without a resource
+     * duplicate rules of an upload apply. The stored attachment takes
+     * organizationId as its organization. An entity type without a resource
      * access type is refused.
      *
      * Beside {@link #uploadAttachments}, which takes multipart files from a client.
@@ -64,6 +66,7 @@ public interface AttachmentService {
     /**
      * Deletes one attachment and its blob, after the stored parent has been
      * checked for a DELETE by the user in the request's organization. An
+     * attachment of another organization is not found. An
      * entity type without a resource access type is refused. The blob stays
      * when another attachment row still holds its URL.
      *
@@ -76,7 +79,9 @@ public interface AttachmentService {
     /**
      * Cascade-deletes every attachment under the given polymorphic parent.
      *
-     * Called by parent-domain services (for example InvoiceServiceImpl) when
+     * Called by parent-domain services (for example
+     * {@link com.korur.oba.apps.otak.relation.service.impl.RelationServiceImpl} and
+     * {@link com.korur.oba.apps.otak.mail.service.impl.MailServiceImpl}) when
      * the parent entity is being deleted, so the attachment table and the
      * underlying Azure blobs are cleaned up in lockstep. Without this the
      * /storage/attachments/exists endpoint would keep reporting true for

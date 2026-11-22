@@ -489,7 +489,7 @@ class OutreachServiceImplUnitTest {
             // Arrange
             readyToSend();
             claimSucceeds();
-            when(attachmentQueryService.getEntityAttachmentContents(StorageEntityType.MAIL, mailId)).thenReturn(List.of(
+            when(attachmentQueryService.getEntityAttachmentContents(organizationId, StorageEntityType.MAIL, mailId)).thenReturn(List.of(
                     new AttachmentContent("Zeta.pdf", "application/pdf", new byte[] {1, 2}),
                     new AttachmentContent("Alpha.png", "image/png", new byte[] {3})));
             when(mailQueryService.getEntity(organizationId, mailId)).thenReturn(mail());
@@ -648,7 +648,7 @@ class OutreachServiceImplUnitTest {
             when(mailQueryService.getEntity(organizationId, mailId)).thenReturn(mail());
             IntegrationErrorException storageDown = new IntegrationErrorException(
                     ExceptionDomainAzureError.UPS_AZURE_BLOB_DOWNLOAD);
-            when(attachmentQueryService.getEntityAttachmentContents(StorageEntityType.MAIL, mailId))
+            when(attachmentQueryService.getEntityAttachmentContents(organizationId, StorageEntityType.MAIL, mailId))
                     .thenThrow(storageDown);
 
             // Act and assert
@@ -663,7 +663,7 @@ class OutreachServiceImplUnitTest {
             readyToSend();
             claimSucceeds();
             when(mailQueryService.getEntity(organizationId, mailId)).thenReturn(mail());
-            when(attachmentQueryService.getEntityAttachmentContents(StorageEntityType.MAIL, mailId)).thenReturn(List.of(
+            when(attachmentQueryService.getEntityAttachmentContents(organizationId, StorageEntityType.MAIL, mailId)).thenReturn(List.of(
                     new AttachmentContent("Big.pdf", "application/pdf", new byte[3 * 1024 * 1024 + 1])));
 
             // Act and assert

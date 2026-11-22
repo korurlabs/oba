@@ -27,10 +27,14 @@ import com.korur.oba.shrine.storage.enums.common.StorageEntityType;
  * Generic file attachment linked to any domain entity via the polymorphic
  * (entityType, entityId) coordinate.
  *
- * The polymorphic shape lets a single table back attachments for invoices,
- * tickets, projects, and any future entity without a dedicated join table
- * per parent — the trade-off is that referential integrity is enforced by
- * application code rather than a foreign key.
+ * The polymorphic shape lets a single table back attachments for tickets,
+ * chat messages, Kalkan pages, mails, relations and any future entity without
+ * a dedicated join table per parent. The trade-off is that the parent's
+ * existence is enforced by application code rather than a foreign key.
+ *
+ * Every attachment also carries the organization of its parent, so that a
+ * read can be limited to the request's organization without joining the
+ * parent's table, and a file can never be served across organizations.
  */
 @Table(name = "attachments", schema = "shrine")
 @Entity
@@ -60,6 +64,14 @@ public class Attachment extends BaseEntity {
 
     @Column(name = "entity_id", nullable = false)
     private UUID entityId;
+
+    /**
+     * Organization that owns the attachment, set once on create from the
+     * request's organization after the parent has been checked to belong to
+     * it, and never from a body.
+     */
+    @Column(name = "organization_id", nullable = false, updatable = false)
+    private UUID organizationId;
 
     /**
      * SHA-256 content fingerprint, encoded as a 64-character lowercase hex

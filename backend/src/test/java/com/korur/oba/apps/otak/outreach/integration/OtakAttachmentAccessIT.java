@@ -323,11 +323,12 @@ class OtakAttachmentAccessIT extends AbstractOtakDocumentsIT {
         String url = jdbcTemplate.queryForObject("SELECT url FROM shrine.attachments WHERE id = ?::uuid",
                 String.class, relationAttachmentId);
         UUID mailAttachmentId = jdbcTemplate.queryForObject("""
-                INSERT INTO shrine.attachments (url, file_name, content_type, file_size, entity_type, entity_id)
+                INSERT INTO shrine.attachments (url, file_name, content_type, file_size, entity_type, entity_id,
+                                                organization_id)
                 VALUES (?, 'offer.pdf', 'application/pdf', 10,
-                        'MAIL'::shrine_storage_entity_type_enum, ?::uuid)
+                        'MAIL'::shrine_storage_entity_type_enum, ?::uuid, ?)
                 RETURNING id
-                """, UUID.class, url, mailId);
+                """, UUID.class, url, mailId, tenant.organization().getId());
         clearInvocations(azureBlobStorageService);
 
         remove(tenant, member, relationAttachmentId).andExpect(status().isOk());
@@ -343,10 +344,11 @@ class OtakAttachmentAccessIT extends AbstractOtakDocumentsIT {
         String url = jdbcTemplate.queryForObject("SELECT url FROM shrine.attachments WHERE id = ?::uuid",
                 String.class, relationAttachmentId);
         jdbcTemplate.update("""
-                INSERT INTO shrine.attachments (url, file_name, content_type, file_size, entity_type, entity_id)
+                INSERT INTO shrine.attachments (url, file_name, content_type, file_size, entity_type, entity_id,
+                                                organization_id)
                 VALUES (?, 'offer.pdf', 'application/pdf', 10,
-                        'MAIL'::shrine_storage_entity_type_enum, ?::uuid)
-                """, url, mailId);
+                        'MAIL'::shrine_storage_entity_type_enum, ?::uuid, ?)
+                """, url, mailId, tenant.organization().getId());
         clearInvocations(azureBlobStorageService);
 
         mockMvc.perform(in(tenant, delete(OUTREACHES_PATH + "/" + outreachId), admin.jwt(), null))

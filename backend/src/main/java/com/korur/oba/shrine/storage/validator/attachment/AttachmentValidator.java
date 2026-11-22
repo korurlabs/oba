@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 // 4. Internal
 import com.korur.oba.dojo.exception.internal.auth.ForbiddenException;
@@ -117,13 +118,14 @@ public class AttachmentValidator {
      *
      * Entity types whose content is unique across the type (see
      * {@link StorageEntityType#isUniqueContentAcrossType()}) are checked
-     * against every stored attachment of the type. Entity types whose content
+     * against every stored attachment of the type in the organization. Entity types whose content
      * is unique per entity (see {@link StorageEntityType#isUniqueContentPerEntity()})
      * are checked against the parent's own attachments: a Kalkan page, a mail
      * or a relation keeps its own copy of a file, but only one. Chat messages
      * have no database check; files within one upload must still differ.
      * Attachments stored without a hash never match.
      *
+     * @param organizationId the organization of the request, whose attachments are compared
      * @param file the file being validated; only used for logging context
      * @param request the parent-entity coordinates and original file name
      * @param hash the SHA-256 hex digest of the file content
@@ -131,13 +133,13 @@ public class AttachmentValidator {
      *        the current batch; this method reads it and, on success,
      *        adds the hash to it
      * @throws ValidationException if the hash collides with another file
-     *         in the same batch, with an attachment of the same entity type
-     *         for a type whose content is unique across the type, or with
+     *         in the same batch, with an attachment of the same entity type in
+     *         the organization for a type whose content is unique across the type, or with
      *         an attachment of the same parent for a type whose content is
      *         unique per entity
      */
-    public void ensureFileNotDuplicate(MultipartFile file, AttachmentCreateRequest request, String hash,
-                                       Set<String> seenHashesInBatch) {
+    public void ensureFileNotDuplicate(UUID organizationId, MultipartFile file, AttachmentCreateRequest request,
+                                       String hash, Set<String> seenHashesInBatch) {
         // In-batch check first: caller seeds an empty set and reuses it for the whole
         // request, so a hit here means two files in the same multipart upload share
         // identical content. The DB check below cannot detect this — neither row has
@@ -150,7 +152,7 @@ public class AttachmentValidator {
         // DB check second: catches duplicates against attachments that were committed
         // by previous requests under the same parent entity type, or under the same
         // parent for a type whose content is unique per entity.
-        ensureStoredContentNotDuplicate(request, hash);
+        ensureStoredContentNotDuplicate(organizationId, request, hash);
 
         // Only record the hash after both checks pass; recording earlier would let an
         // exception interleave half-state into a caller that catches and retries.
@@ -158,23 +160,25 @@ public class AttachmentValidator {
     }
 
     /**
-     * Rejects content that the database already holds under the parent's entity
-     * type or under the parent itself, by the rules of
+     * Rejects content that the database already holds in the organization under
+     * the parent's entity type or under the parent itself, by the rules of
      * {@link #ensureFileNotDuplicate}. Used for a single attachment made on the
      * server from bytes in memory, where no other file of the same request exists.
      *
+     * @param organizationId the organization of the request, whose attachments are compared
      * @param request the parent-entity coordinates and the file name
      * @param hash the SHA-256 hex digest of the content
      * @throws ValidationException with {@link ExceptionDomainStorageError#VAL_FILE_ALREADY_EXISTS}
      *         if the content is already stored where the entity type forbids a second copy
      */
-    public void ensureStoredContentNotDuplicate(AttachmentCreateRequest request, String hash) {
+    public void ensureStoredContentNotDuplicate(UUID organizationId, AttachmentCreateRequest request, String hash) {
         if (request.entityType().isUniqueContentAcrossType()
-                && attachmentRepository.existsByEntityTypeAndFileHash(request.entityType(), hash)) {
+                && attachmentRepository.existsByEntityTypeAndFileHashAndOrganizationId(request.entityType(), hash,
+                        organizationId)) {
             throw duplicate(request, hash);
         }
         if (request.entityType().isUniqueContentPerEntity()
-                && attachedToEntity(request, hash)) {
+                && attachedToEntity(organizationId, request, hash)) {
             throw duplicate(request, hash);
         }
     }
@@ -196,8 +200,9 @@ public class AttachmentValidator {
     }
 
     /** Compares against the parent's own attachments, which for a page, a mail or a relation are few. */
-    private boolean attachedToEntity(AttachmentCreateRequest request, String hash) {
-        return attachmentRepository.findByEntityTypeAndEntityId(request.entityType(), request.entityId())
+    private boolean attachedToEntity(UUID organizationId, AttachmentCreateRequest request, String hash) {
+        return attachmentRepository.findByEntityTypeAndEntityIdAndOrganizationId(request.entityType(),
+                        request.entityId(), organizationId)
                 .stream()
                 .anyMatch(attachment -> hash.equals(attachment.getFileHash()));
     }
