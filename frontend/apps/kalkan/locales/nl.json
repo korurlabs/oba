@@ -110,5 +110,92 @@
       "notDeleted": "Deze pagina staat niet in de prullenbak.",
       "validation": "Sommige velden zijn ongeldig. Controleer ze en probeer het opnieuw."
     }
+  },
+  "overview": {
+    "title": "Overzicht",
+    "subtitle": "De secties van je compliancewiki en wat het laatst is gewijzigd.",
+    "loading": "De secties worden geladen",
+    "loadError": "De secties konden niet worden geladen",
+    "sectionsLabel": "Secties",
+    "pageCount": "{count, plural, =0 {Nog geen pagina's} one {# pagina} other {# pagina's}}",
+    "notSetUp": "Niet ingericht",
+    "recentTitle": "Recente wijzigingen",
+    "recentLoading": "De recente wijzigingen worden geladen",
+    "recentLoadError": "De recente wijzigingen konden niet worden geladen",
+    "recentEmpty": "Er is nog geen pagina gewijzigd.",
+    "viewAll": "Alles bekijken"
+  },
+  "recent": {
+    "title": "Recente wijzigingen",
+    "subtitle": "De laatst gewijzigde pagina's, in elke sectie die je kunt zien.",
+    "loading": "De recente wijzigingen worden geladen",
+    "loadError": "De recente wijzigingen konden niet worden geladen",
+    "empty": "Nog geen wijzigingen",
+    "emptyHint": "Pagina's verschijnen hier zodra iemand er een maakt of bewerkt.",
+    "tableLabel": "Recent gewijzigde pagina's",
+    "unknownUser": "Onbekend",
+    "columns": {
+      "title": "Pagina",
+      "section": "Sectie",
+      "updatedAt": "Gewijzigd",
+      "updatedBy": "Door"
+    }
+  },
+  "trash": {
+    "title": "Prullenbak",
+    "subtitle": "Verwijderde pagina's die je kunt terugzetten, met de pagina's die mee zijn verwijderd.",
+    "loading": "De prullenbak wordt geladen",
+    "loadError": "De prullenbak kon niet worden geladen",
+    "empty": "De prullenbak is leeg",
+    "emptyHint": "Verwijderde pagina's die je beheert staan hier tot ze worden teruggezet.",
+    "membersOnly": "Alleen leden kunnen de prullenbak openen",
+    "membersOnlyHint": "Gasten lezen pagina's maar kunnen ze niet terugzetten.",
+    "tableLabel": "Verwijderde pagina's",
+    "unknownUser": "Onbekend",
+    "columns": {
+      "title": "Pagina",
+      "deletedAt": "Verwijderd",
+      "deletedBy": "Door",
+      "descendants": "Onderliggende pagina's",
+      "actions": "Acties"
+    },
+    "restore": "Terugzetten",
+    "restoreLabel": "{title} terugzetten",
+    "parentFirst": "De bovenliggende pagina staat ook in de prullenbak. Zet eerst de bovenliggende pagina terug."
+  },
+  "history": {
+    "title": "Geschiedenis",
+    "loading": "De geschiedenis wordt geladen",
+    "loadError": "De geschiedenis kon niet worden geladen",
+    "empty": "Nog geen versies",
+    "emptyHint": "Elke keer dat de pagina wordt opgeslagen, komt hier een versie bij.",
+    "tableLabel": "Versies van de pagina",
+    "backToPage": "Terug naar de pagina",
+    "unknownUser": "Onbekend",
+    "columns": {
+      "version": "Versie",
+      "locale": "Taal",
+      "title": "Titel",
+      "createdAt": "Opgeslagen",
+      "createdBy": "Door"
+    },
+    "locales": {
+      "TR": "Turks",
+      "EN": "Engels"
+    },
+    "revisionLoading": "De versie wordt geladen",
+    "revisionLoadError": "De versie kon niet worden geladen",
+    "revisionHeading": "Versie {version}, {locale}",
+    "revisionMeta": "Opgeslagen op {when} door {name}",
+    "modeLabel": "Hoe de versie wordt getoond",
+    "modeRevision": "Versie",
+    "modeCompare": "Vergelijken met huidige",
+    "thisRevision": "Deze versie",
+    "current": "Huidig",
+    "noCurrent": "De pagina heeft geen huidige tekst in deze taal.",
+    "emptyBody": "Deze tekst is leeg.",
+    "added": "Toegevoegd in de huidige tekst",
+    "removed": "Niet in de huidige tekst",
+    "compareTooLarge": "Deze teksten zijn te lang om de verschillen te markeren; ze staan naast elkaar."
   }
 }
