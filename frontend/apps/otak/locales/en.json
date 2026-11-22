@@ -986,10 +986,8 @@
       }
     },
     "attachments": {
-      "templatesLegend": "Attach from templates",
-      "templatesHint": "Optional. Each picked document template goes as a copy of its PDF; with the files below, together at most 3 MB.",
-      "noTemplates": "No document templates with their files yet. Add them on the Templates page.",
-      "filesLegend": "Attach files"
+      "filesLegend": "Attach files",
+      "filesHint": "Optional. Together at most 3 MB. The relation's documents are added to the mail after saving."
     },
     "toast": {
       "created": "Outreach saved as a draft",
@@ -1020,8 +1018,6 @@
       "loadHint": "Check your connection and try again.",
       "actionNotForType": "This action does not fit the outreach's channel.",
       "contactWithoutPhone": "The contact has no phone number. Add one in the Contacts card.",
-      "documentTemplateNotFound": "One of the document templates no longer exists.",
-      "documentTemplateNotUsable": "One of the document templates cannot be attached: it still needs its PDF.",
       "attachmentDuplicate": "This file is already attached here."
     },
     "sendDialog": {
@@ -1106,7 +1102,21 @@
       "documentSearchPlaceholder": "Search by title...",
       "add": "Add",
       "adding": "Adding...",
-      "noDocuments": "This relation has no documents with a PDF yet. Create one on the Documents page.",
+      "noDocuments": "This relation has no documents with a PDF yet. Choose \"New from template\" to make one.",
+      "newFromTemplate": "New from template",
+      "fromTemplate": {
+        "title": "New document from a template",
+        "description": "Creates a document of this relation from a template and attaches a copy of its PDF to the mail.",
+        "templateHint": "Only templates with their files are listed. The document takes the template's type and language.",
+        "templatePlaceholder": "Choose a template",
+        "noTemplates": "No template with its files yet. Upload one with oba document template upload.",
+        "create": "Create and attach",
+        "creating": "Creating...",
+        "notReady": "The new document has no PDF yet, so it was not attached. Upload its files on the document page.",
+        "errors": {
+          "templateRequired": "Choose a template"
+        }
+      },
       "toast": {
         "added": "Document attached",
         "addError": "The document could not be attached"
