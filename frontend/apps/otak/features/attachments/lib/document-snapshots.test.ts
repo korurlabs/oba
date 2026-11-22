@@ -102,7 +102,6 @@ describe("isDocumentSnapshot", () => {
   test("only a file with a document id is a snapshot", () => {
     expect(isDocumentSnapshot({ documentId: "doc-1" })).toBe(true);
     expect(isDocumentSnapshot({ documentId: null })).toBe(false);
-    expect(isDocumentSnapshot({})).toBe(false);
   });
 });
 

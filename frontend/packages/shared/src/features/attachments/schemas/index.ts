@@ -38,11 +38,10 @@ export const attachmentResponseSchema = z.object({
   createdAt: z.string(),
   /**
    * The document a snapshot was copied from; null for an uploaded file and
-   * for a snapshot whose document was deleted since. Optional, as are the
-   * other late fields, so a stored or hand-built attachment without it still
-   * reads as an uploaded file.
+   * for a snapshot whose document was deleted since. The backend always
+   * sends it, so a response without it is rejected.
    */
-  documentId: z.guid().nullable().optional(),
+  documentId: z.guid().nullable(),
 });
 
 // ── Inferred Types ──────────────────────────────────────────────────

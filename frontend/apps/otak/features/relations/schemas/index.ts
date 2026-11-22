@@ -309,7 +309,6 @@ export const relationPaginationSchema = z.object({
  * is also null for a mail no outreach names.
  */
 export const relationAttachmentSchema = attachmentResponseSchema.extend({
-  documentId: z.guid().nullable(),
   source: RelationAttachmentSourceSchema,
   mailId: z.guid().nullable(),
   outreachTitle: z.string().nullable(),
