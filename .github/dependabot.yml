@@ -1,0 +1,86 @@
+# Version updates: Dependabot opens pull requests for newer versions of every
+# dependency, not only for those with a known vulnerability (security updates
+# are switched on in the repository settings and need no entry here).
+#
+# Minor and patch bumps are grouped into one pull request per ecosystem so the
+# weekly run stays reviewable; a major bump gets its own pull request because it
+# may break. The cooldown holds a release back for a week, so a hijacked package
+# version is usually yanked before it reaches a pull request.
+version: 2
+
+updates:
+  - package-ecosystem: maven
+    directory: /backend
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Istanbul
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      backend-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: bun
+    directory: /frontend
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Istanbul
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      frontend-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: gomod
+    directories:
+      - /cli/oba
+      - /cli/kalkan
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Istanbul
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      cli-minor-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: docker
+    directories:
+      - /backend
+      - /frontend
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Istanbul
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      docker-minor-patch:
+        update-types: [minor, patch]
+
+  # Actions are pinned to a commit SHA with the version in a comment; Dependabot
+  # updates both together.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Istanbul
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      actions-minor-patch:
+        update-types: [minor, patch]
