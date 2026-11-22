@@ -17,6 +17,7 @@ import type {
   AppGrantCreateRequest,
   MemberAppAccess,
 } from "@oba/shared/features/organizations/schemas";
+import type { LegalEntityDetail, LegalEntityListItem, LegalEntityRequest } from "../schemas";
 
 export async function getOrganization(organizationId: string) {
   const res = await api.get<ApiResponse<OrganizationDetail>>(
@@ -206,4 +207,62 @@ export async function revokeInvitation(
   await api.delete(API_ROUTES.invitations.detail(invitationId), {
     headers: { "X-Organization-ID": organizationId },
   });
+}
+
+// -- Legal Entities -----------------------------------------------------------
+
+/**
+ * The legal entity endpoints name no organization in their path, so each call
+ * sets the header itself: the viewed organization need not be the default one.
+ */
+function organizationHeader(organizationId: string) {
+  return { headers: { "X-Organization-ID": organizationId } };
+}
+
+export async function listLegalEntities(organizationId: string) {
+  const res = await api.get<ApiResponse<LegalEntityListItem[]>>(
+    API_ROUTES.legalEntities.list,
+    organizationHeader(organizationId),
+  );
+  return res.data;
+}
+
+export async function getLegalEntity(organizationId: string, legalEntityId: string) {
+  const res = await api.get<ApiResponse<LegalEntityDetail>>(
+    API_ROUTES.legalEntities.detail(legalEntityId),
+    organizationHeader(organizationId),
+  );
+  return res.data;
+}
+
+export async function createLegalEntity(organizationId: string, data: LegalEntityRequest) {
+  const res = await api.post<ApiResponse<LegalEntityDetail>>(
+    API_ROUTES.legalEntities.list,
+    data,
+    organizationHeader(organizationId),
+  );
+  return res.data;
+}
+
+export async function updateLegalEntity(
+  organizationId: string,
+  legalEntityId: string,
+  data: LegalEntityRequest,
+) {
+  const res = await api.put<ApiResponse<LegalEntityDetail>>(
+    API_ROUTES.legalEntities.detail(legalEntityId),
+    data,
+    organizationHeader(organizationId),
+  );
+  return res.data;
+}
+
+export async function deleteLegalEntity(
+  organizationId: string,
+  legalEntityId: string,
+): Promise<void> {
+  await api.delete(
+    API_ROUTES.legalEntities.detail(legalEntityId),
+    organizationHeader(organizationId),
+  );
 }

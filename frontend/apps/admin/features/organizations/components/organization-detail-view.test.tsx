@@ -52,6 +52,9 @@ const actualGroups = {
 const actualAccess = {
   ...(await import("@/features/organizations/components/organization-access-tab")),
 };
+const actualLegalEntities = {
+  ...(await import("@/features/organizations/components/organization-legal-entities-tab")),
+};
 
 mock.module("next-intl", () => ({
   ...actualIntl,
@@ -111,6 +114,12 @@ mock.module("@/features/organizations/components/organization-access-tab", () =>
   ...actualAccess,
   AccessTab: () => <p>access-tab</p>,
 }));
+mock.module("@/features/organizations/components/organization-legal-entities-tab", () => ({
+  ...actualLegalEntities,
+  LegalEntitiesTab: ({ canEdit }: { canEdit: boolean }) => (
+    <p>{`legal-entities canEdit=${canEdit}`}</p>
+  ),
+}));
 
 afterAll(() => {
   mock.module("next-intl", () => actualIntl);
@@ -128,6 +137,10 @@ afterAll(() => {
   mock.module("@/features/organizations/components/organization-load-error", () => actualLoadError);
   mock.module("@/features/organizations/components/organization-groups-tab", () => actualGroups);
   mock.module("@/features/organizations/components/organization-access-tab", () => actualAccess);
+  mock.module(
+    "@/features/organizations/components/organization-legal-entities-tab",
+    () => actualLegalEntities
+  );
 });
 
 const { OrganizationDetailView } = await import("./organization-detail-view");
@@ -169,6 +182,8 @@ describe("OrganizationDetailView role gating", () => {
     expect(html).toContain("form canEdit=true");
     expect(html).toContain("members canEdit=true");
     expect(html).toContain(`invitations canEdit=true role=${role}`);
+    expect(html).toContain("tabs.legalEntities");
+    expect(html).toContain("legal-entities canEdit=true");
     expect(html).toContain("tabs.groups");
     expect(html).toContain("groups-tab");
     expect(html).toContain("tabs.access");
@@ -183,6 +198,8 @@ describe("OrganizationDetailView role gating", () => {
     expect(html).toContain("form canEdit=false");
     expect(html).toContain("members canEdit=false");
     expect(html).toContain(`invitations canEdit=false role=${role}`);
+    expect(html).toContain("tabs.legalEntities");
+    expect(html).toContain("legal-entities canEdit=false");
     expect(html).not.toContain("tabs.groups");
     expect(html).not.toContain("groups-tab");
     expect(html).not.toContain("tabs.access");

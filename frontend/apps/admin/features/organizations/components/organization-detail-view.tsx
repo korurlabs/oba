@@ -16,6 +16,7 @@ import {
 import { OrganizationDetailForm } from "@/features/organizations/components/organization-detail-form";
 import { MembersTab } from "@/features/organizations/components/organization-members-tab";
 import { InvitationsTab } from "@/features/organizations/components/organization-invitations-tab";
+import { LegalEntitiesTab } from "@/features/organizations/components/organization-legal-entities-tab";
 import { GroupsTab } from "@/features/organizations/components/organization-groups-tab";
 import { AccessTab } from "@/features/organizations/components/organization-access-tab";
 import { OrganizationLoadError } from "@/features/organizations/components/organization-load-error";
@@ -29,7 +30,8 @@ import type {
  * Organization Detail View (client)
  *
  * Tabbed layout: Detail (form), Members (list), Invitations (list + create),
- * and for OWNER/ADMIN also Groups and Access (app grants).
+ * Legal entities (list), and for OWNER/ADMIN also Groups and Access (app
+ * grants).
  * OWNER/ADMIN get edit controls; MEMBER/GUEST see read-only views and no
  * Groups or Access tab, because the API lets only OWNER/ADMIN read them.
  *
@@ -142,6 +144,7 @@ function OrganizationDetailTabs({
         <TabsTrigger value="invitations">
           {t("tabs.invitations")}
         </TabsTrigger>
+        <TabsTrigger value="legalEntities">{t("tabs.legalEntities")}</TabsTrigger>
         {canEdit && (
           <>
             <TabsTrigger value="groups">{t("tabs.groups")}</TabsTrigger>
@@ -164,6 +167,10 @@ function OrganizationDetailTabs({
 
       <TabsContent value="invitations" className="mt-2">
         <InvitationsTab organizationId={id} canEdit={canEdit} currentUserRole={currentUserRole} />
+      </TabsContent>
+
+      <TabsContent value="legalEntities" className="mt-2">
+        <LegalEntitiesTab organizationId={id} canEdit={canEdit} />
       </TabsContent>
 
       {canEdit && (
