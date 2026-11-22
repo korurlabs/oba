@@ -13,10 +13,17 @@ import java.util.Map;
 import java.util.UUID;
 
 // 4. Internal
+import com.korur.oba.apps.kalkan.page.dto.projection.KalkanPageRecentProjection;
+import com.korur.oba.apps.kalkan.page.dto.projection.KalkanPageRevisionListProjection;
+import com.korur.oba.apps.kalkan.page.dto.projection.KalkanPageTrashProjection;
 import com.korur.oba.apps.kalkan.page.dto.projection.KalkanPageTreeProjection;
 import com.korur.oba.apps.kalkan.page.dto.request.KalkanPageTranslationRequest;
 import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageDetailResponse;
 import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageListResponse;
+import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageRecentResponse;
+import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageRevisionDetailResponse;
+import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageRevisionListResponse;
+import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageTrashResponse;
 import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageUpsertResponse;
 import com.korur.oba.apps.kalkan.page.dto.response.embedded.KalkanPageTranslationEmbeddedResponse;
 import com.korur.oba.apps.kalkan.page.entity.KalkanPage;
@@ -34,7 +41,8 @@ import com.korur.oba.connect.azure.service.BlobUrlRewriterMapper;
  *
  * A translation body is stored with unsigned blob URLs, so an unchanged push leaves it unchanged; the
  * blob container is private, so {@link BlobUrlRewriterMapper} signs those URLs on the way out only.
- * Entities and revisions take the body as written.
+ * Entities and revisions take the body as written; a revision read back is signed like a
+ * translation.
  */
 @Mapper(componentModel = "spring", uses = { BlobUrlRewriterMapper.class })
 public interface KalkanPageMapper {
@@ -115,4 +123,37 @@ public interface KalkanPageMapper {
     @Mapping(target = "outcome", source = "outcome")
     @Mapping(target = "version", source = "version")
     KalkanPageUpsertResponse toUpsertResponse(UUID id, String path, KalkanUpsertOutcome outcome, long version);
+
+    @Mapping(target = "id", source = "row.id")
+    @Mapping(target = "locale", source = "row.locale")
+    @Mapping(target = "title", source = "row.title")
+    @Mapping(target = "version", source = "row.pageVersion")
+    @Mapping(target = "createdAt", source = "row.createdAt")
+    @Mapping(target = "createdByName", source = "createdByName")
+    KalkanPageRevisionListResponse toRevisionListResponse(KalkanPageRevisionListProjection row, String createdByName);
+
+    @Mapping(target = "id", source = "revision.id")
+    @Mapping(target = "locale", source = "revision.locale")
+    @Mapping(target = "title", source = "revision.title")
+    @Mapping(target = "version", source = "revision.pageVersion")
+    @Mapping(target = "createdAt", source = "revision.createdAt")
+    @Mapping(target = "createdByName", source = "createdByName")
+    @Mapping(target = "body", source = "revision.body", qualifiedByName = "rewriteMarkdownBlobUrls")
+    KalkanPageRevisionDetailResponse toRevisionDetailResponse(KalkanPageRevision revision, String createdByName);
+
+    @Mapping(target = "id", source = "row.id")
+    @Mapping(target = "title", source = "title")
+    @Mapping(target = "path", source = "row.path")
+    @Mapping(target = "deletedAt", source = "row.deletedAt")
+    @Mapping(target = "deletedByName", source = "deletedByName")
+    @Mapping(target = "descendantCount", source = "row.descendantCount")
+    KalkanPageTrashResponse toTrashResponse(KalkanPageTrashProjection row, String title, String deletedByName);
+
+    @Mapping(target = "id", source = "row.id")
+    @Mapping(target = "title", source = "title")
+    @Mapping(target = "path", source = "row.path")
+    @Mapping(target = "rootSlug", source = "row.rootSlug")
+    @Mapping(target = "updatedAt", source = "row.updatedAt")
+    @Mapping(target = "updatedByName", source = "updatedByName")
+    KalkanPageRecentResponse toRecentResponse(KalkanPageRecentProjection row, String title, String updatedByName);
 }

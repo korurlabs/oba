@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 // 3. Java SDK
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -19,17 +18,25 @@ import java.util.UUID;
 import com.korur.oba.apps.kalkan.core.exception.enums.ExceptionDomainKalkanError;
 import com.korur.oba.apps.kalkan.page.constant.KalkanPageConstant;
 import com.korur.oba.apps.kalkan.page.constant.service.KalkanPageServiceLogConstant;
-import com.korur.oba.apps.kalkan.page.dto.projection.KalkanPageTitleProjection;
+import com.korur.oba.apps.kalkan.page.dto.projection.KalkanPageRecentProjection;
+import com.korur.oba.apps.kalkan.page.dto.projection.KalkanPageRevisionListProjection;
+import com.korur.oba.apps.kalkan.page.dto.projection.KalkanPageTrashProjection;
 import com.korur.oba.apps.kalkan.page.dto.projection.KalkanPageTreeProjection;
 import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageDetailResponse;
 import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageListResponse;
+import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageRecentResponse;
+import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageRevisionDetailResponse;
+import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageRevisionListResponse;
+import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageTrashResponse;
 import com.korur.oba.apps.kalkan.page.dto.response.embedded.KalkanPageTranslationEmbeddedResponse;
 import com.korur.oba.apps.kalkan.page.entity.KalkanPage;
+import com.korur.oba.apps.kalkan.page.entity.KalkanPageRevision;
 import com.korur.oba.apps.kalkan.page.entity.KalkanPageTranslation;
 import com.korur.oba.apps.kalkan.page.enums.KalkanLocale;
 import com.korur.oba.apps.kalkan.page.mapper.KalkanPageMapper;
 import com.korur.oba.apps.kalkan.page.mapper.KalkanPageMapperHelper;
 import com.korur.oba.apps.kalkan.page.repository.KalkanPageRepository;
+import com.korur.oba.apps.kalkan.page.repository.KalkanPageRevisionRepository;
 import com.korur.oba.apps.kalkan.page.repository.KalkanPageTranslationRepository;
 import com.korur.oba.apps.kalkan.page.service.KalkanPageQueryService;
 import com.korur.oba.apps.kalkan.permission.enums.KalkanLevel;
@@ -52,6 +59,7 @@ public class KalkanPageQueryServiceImpl implements KalkanPageQueryService {
 
     private final KalkanPageRepository kalkanPageRepository;
     private final KalkanPageTranslationRepository kalkanPageTranslationRepository;
+    private final KalkanPageRevisionRepository kalkanPageRevisionRepository;
     private final KalkanAccessQueryService kalkanAccessQueryService;
     private final KalkanPageMapper kalkanPageMapper;
     private final KalkanPageMapperHelper kalkanPageMapperHelper;
@@ -94,12 +102,8 @@ public class KalkanPageQueryServiceImpl implements KalkanPageQueryService {
             return List.of();
         }
         List<KalkanPageTreeProjection> rows = kalkanPageRepository.findTree(organizationId, levels.keySet());
-        Map<UUID, Map<KalkanLocale, String>> titles = new HashMap<>();
-        for (KalkanPageTitleProjection title : kalkanPageTranslationRepository
-                .findTitles(rows.stream().map(KalkanPageTreeProjection::getId).toList())) {
-            titles.computeIfAbsent(title.getPageId(), id -> new EnumMap<>(KalkanLocale.class))
-                    .put(title.getLocale(), title.getTitle());
-        }
+        Map<UUID, Map<KalkanLocale, String>> titles = kalkanPageMapperHelper.titlesByPage(
+                kalkanPageTranslationRepository.findTitles(rows.stream().map(KalkanPageTreeProjection::getId).toList()));
         List<KalkanPageListResponse> responses = new ArrayList<>(rows.size());
         for (KalkanPageTreeProjection row : rows) {
             // Only a root carries the level: every page below inherits it.
@@ -117,6 +121,110 @@ public class KalkanPageQueryServiceImpl implements KalkanPageQueryService {
         KalkanPage page = getEntity(organizationId, pageId);
         KalkanLevel level = kalkanAccessQueryService.verifyLevel(organizationId, page, user, KalkanLevel.VIEW);
         return toDetailResponse(page, level);
+    }
+
+    @Override
+    public List<KalkanPageRevisionListResponse> getRevisions(User user, UUID organizationId, UUID pageId) {
+        loggingService.debug(LOG_PREFIX, LogLayer.SERVICE, KalkanPageServiceLogConstant.LISTING_REVISIONS,
+                pageId, organizationId);
+        KalkanPage page = getEntity(organizationId, pageId);
+        kalkanAccessQueryService.verifyLevel(organizationId, page, user, KalkanLevel.VIEW);
+        List<KalkanPageRevisionListProjection> rows = kalkanPageRevisionRepository.findListByPageId(page.getId());
+        Map<UUID, String> names = kalkanPageMapperHelper.displayNames(
+                rows.stream().map(KalkanPageRevisionListProjection::getCreatedById).toList());
+        return rows.stream()
+                .map(row -> kalkanPageMapper.toRevisionListResponse(row, names.get(row.getCreatedById())))
+                .toList();
+    }
+
+    @Override
+    public KalkanPageRevisionDetailResponse getRevision(User user, UUID organizationId, UUID pageId,
+                                                        UUID revisionId) {
+        loggingService.debug(LOG_PREFIX, LogLayer.SERVICE, KalkanPageServiceLogConstant.READING_REVISION,
+                revisionId, pageId, organizationId);
+        KalkanPage page = getEntity(organizationId, pageId);
+        // The level comes first, so a revision of a hidden page answers the page's 404.
+        kalkanAccessQueryService.verifyLevel(organizationId, page, user, KalkanLevel.VIEW);
+        KalkanPageRevision revision = kalkanPageRevisionRepository.findByIdAndPageId(revisionId, page.getId())
+                .orElseThrow(() -> {
+                    loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, KalkanPageServiceLogConstant.REVISION_NOT_FOUND,
+                            revisionId, pageId, organizationId);
+                    return new NotFoundException(ExceptionDomainKalkanError.NOT_REVISION_FOUND,
+                            Map.of(KalkanPageConstant.FIELD_PAGE_ID, pageId.toString(),
+                                    KalkanPageConstant.FIELD_REVISION_ID, revisionId.toString()));
+                });
+        String name = kalkanPageMapperHelper.displayNames(List.of(revision.getCreatedById()))
+                .get(revision.getCreatedById());
+        return kalkanPageMapper.toRevisionDetailResponse(revision, name);
+    }
+
+    @Override
+    public List<KalkanPageTrashResponse> getTrash(User user, UUID organizationId, KalkanLocale locale) {
+        loggingService.debug(LOG_PREFIX, LogLayer.SERVICE, KalkanPageServiceLogConstant.LISTING_TRASH,
+                organizationId, user.getId());
+        List<UUID> rootIds = kalkanPageRepository.findRootIdsIncludingDeleted(organizationId);
+        if (rootIds.isEmpty()) {
+            return List.of();
+        }
+        // Only a root's managers see its trash: undoing a delete brings back pages and their grants
+        // decide who reads them, which is the managers' call.
+        List<UUID> managedRootIds = kalkanAccessQueryService.resolveLevels(organizationId, rootIds, user)
+                .entrySet().stream()
+                .filter(entry -> entry.getValue().isAtLeast(KalkanLevel.MANAGE))
+                .map(Map.Entry::getKey)
+                .toList();
+        if (managedRootIds.isEmpty()) {
+            return List.of();
+        }
+        List<KalkanPageTrashProjection> rows = kalkanPageRepository.findTrash(organizationId, managedRootIds);
+        if (rows.isEmpty()) {
+            return List.of();
+        }
+        Map<UUID, Map<KalkanLocale, String>> titles = kalkanPageMapperHelper.titlesByPage(
+                kalkanPageTranslationRepository.findDeletedTitles(
+                        rows.stream().map(KalkanPageTrashProjection::getId).toList()));
+        Map<UUID, String> names = kalkanPageMapperHelper.displayNames(
+                rows.stream().map(KalkanPageTrashProjection::getDeletedById).toList());
+        List<KalkanPageTrashResponse> responses = new ArrayList<>(rows.size());
+        for (KalkanPageTrashProjection row : rows) {
+            responses.add(kalkanPageMapper.toTrashResponse(row,
+                    kalkanPageMapperHelper.titleIn(titles.get(row.getId()), locale),
+                    names.get(row.getDeletedById())));
+        }
+        return responses;
+    }
+
+    @Override
+    public List<KalkanPageRecentResponse> getRecent(User user, UUID organizationId, int limit, KalkanLocale locale) {
+        loggingService.debug(LOG_PREFIX, LogLayer.SERVICE, KalkanPageServiceLogConstant.LISTING_RECENT,
+                limit, organizationId, user.getId());
+        List<UUID> rootIds = kalkanPageRepository.findByOrganizationIdAndParentIsNull(organizationId).stream()
+                .map(KalkanPage::getId)
+                .toList();
+        if (rootIds.isEmpty()) {
+            return List.of();
+        }
+        Map<UUID, KalkanLevel> levels = kalkanAccessQueryService.resolveLevels(organizationId, rootIds, user);
+        if (levels.isEmpty()) {
+            return List.of();
+        }
+        List<KalkanPageRecentProjection> rows = kalkanPageRepository.findRecent(organizationId, levels.keySet(),
+                limit);
+        if (rows.isEmpty()) {
+            return List.of();
+        }
+        Map<UUID, Map<KalkanLocale, String>> titles = kalkanPageMapperHelper.titlesByPage(
+                kalkanPageTranslationRepository.findTitles(
+                        rows.stream().map(KalkanPageRecentProjection::getId).toList()));
+        Map<UUID, String> names = kalkanPageMapperHelper.displayNames(
+                rows.stream().map(KalkanPageRecentProjection::getUpdatedById).toList());
+        List<KalkanPageRecentResponse> responses = new ArrayList<>(rows.size());
+        for (KalkanPageRecentProjection row : rows) {
+            responses.add(kalkanPageMapper.toRecentResponse(row,
+                    kalkanPageMapperHelper.titleIn(titles.get(row.getId()), locale),
+                    names.get(row.getUpdatedById())));
+        }
+        return responses;
     }
 
     @Override

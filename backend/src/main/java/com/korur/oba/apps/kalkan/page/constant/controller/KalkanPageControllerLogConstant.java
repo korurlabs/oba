@@ -32,6 +32,14 @@ public final class KalkanPageControllerLogConstant {
     public static final String PAGE_DELETE_COMPLETED = "Deleted page {} in organization {}";
     public static final String PAGE_RESTORE_REQUEST = "Received request from user {} to restore page {} in organization {}";
     public static final String PAGE_RESTORE_COMPLETED = "Restored page {} in organization {}";
+    public static final String PAGE_REVISIONS_REQUEST = "Received request from user {} to list the revisions of page {} in organization {}";
+    public static final String PAGE_REVISIONS_COMPLETED = "Listed {} revisions of page {} in organization {}";
+    public static final String PAGE_REVISION_REQUEST = "Received request from user {} to read revision {} of page {} in organization {}";
+    public static final String PAGE_REVISION_COMPLETED = "Read revision {} of page {} in organization {}";
+    public static final String PAGE_TRASH_REQUEST = "Received request from user {} to list the deleted pages of organization {}";
+    public static final String PAGE_TRASH_COMPLETED = "Listed {} deleted pages of organization {}";
+    public static final String PAGE_RECENT_REQUEST = "Received request from user {} to list the {} most recently changed pages of organization {}";
+    public static final String PAGE_RECENT_COMPLETED = "Listed {} recently changed pages of organization {}";
     public static final String PAGE_UPSERT_REQUEST = "Received request from user {} to upsert path {} in organization {}, dry run {}";
     public static final String PAGE_UPSERT_COMPLETED = "Upserted path {} in organization {}: {}";
 }

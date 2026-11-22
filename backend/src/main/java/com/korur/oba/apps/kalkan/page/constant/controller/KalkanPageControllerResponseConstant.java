@@ -25,5 +25,9 @@ public final class KalkanPageControllerResponseConstant {
     public static final String RESPONSE_PAGE_MOVED = "Page moved successfully";
     public static final String RESPONSE_PAGE_DELETED = "Page deleted successfully";
     public static final String RESPONSE_PAGE_RESTORED = "Page restored successfully";
+    public static final String RESPONSE_PAGE_REVISIONS_RETRIEVED = "Page revisions retrieved successfully";
+    public static final String RESPONSE_PAGE_REVISION_RETRIEVED = "Page revision retrieved successfully";
+    public static final String RESPONSE_DELETED_PAGES_RETRIEVED = "Deleted pages retrieved successfully";
+    public static final String RESPONSE_RECENT_PAGES_RETRIEVED = "Recently changed pages retrieved successfully";
     public static final String RESPONSE_PAGE_UPSERTED = "Page upserted successfully";
 }
