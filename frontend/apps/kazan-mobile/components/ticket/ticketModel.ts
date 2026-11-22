@@ -1,3 +1,4 @@
+import { htmlPlainText, parseHtmlBody } from "@/components/ticket/descriptionHtml";
 import type { ApiError } from "@/lib/api";
 import type { Comment, SubTicket, TicketDetail } from "@/lib/schemas/tickets";
 
@@ -132,19 +133,18 @@ export function orderSubTickets(subTickets: readonly SubTicket[] | null | undefi
 /**
  * The description as plain text. Kazan web writes Markdown and may embed
  * images as `<img>` tags or `![alt](url)`; the phone shows each image as the
- * placeholder and drops other HTML tags, so no markup reaches the reader.
+ * placeholder and keeps only the text of other HTML, read by an HTML parser
+ * so no markup reaches the reader however the tags are written.
  */
 export function descriptionText(
   markdown: string | null | undefined,
   imagePlaceholder: string
 ): string {
   if (!markdown) return "";
-  return markdown
-    .replace(/<img\b[^>]*>/gi, imagePlaceholder)
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, imagePlaceholder)
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/?[a-z][^>]*>/gi, "")
-    .replace(/&nbsp;/g, " ")
+  return htmlPlainText(parseHtmlBody(markdown), imagePlaceholder, (text) =>
+    text.replace(/!\[[^\]]*\]\([^)]*\)/g, imagePlaceholder)
+  )
+    .replace(/\u00a0/g, " ")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }

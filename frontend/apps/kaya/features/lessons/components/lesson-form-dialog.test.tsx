@@ -62,10 +62,9 @@ const LESSON: LessonDetailResponse = {
 };
 
 const trigger = <button type="button">Open</button>;
-const options = (html: string) =>
-  (html.match(/<option[^>]*>[^<]*<\/option>/g) ?? []).map((option: string) =>
-    option.replace(/<[^>]*>/g, "")
-  );
+/** The labels of the rendered `<option>` elements, in order. */
+const options = (html: string): string[] =>
+  Array.from(html.matchAll(/<option[^>]*>([^<]*)<\/option>/g), (match) => match[1] ?? "");
 
 describe("LessonFormDialog", () => {
   test("without a lesson it creates: empty fields, Create, organization-wide chosen", () => {
