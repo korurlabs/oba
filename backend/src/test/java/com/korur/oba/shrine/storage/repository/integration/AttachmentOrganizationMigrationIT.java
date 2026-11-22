@@ -101,7 +101,7 @@ class AttachmentOrganizationMigrationIT extends ObaIntegrationTest {
         UUID ticketId = UUID.randomUUID();
         jdbc.update("""
                 INSERT INTO kazan.tickets (id, title, key, type, mission_rank, board_id, created_by_id)
-                VALUES (?, 'ticket', ?, 'TASK'::kazan_ticket_type_enum, 'M'::kazan_mission_rank_enum, ?, ?)
+                VALUES (?, 'ticket', ?, 'FEATURE'::kazan_ticket_type_enum, 'M'::kazan_mission_rank_enum, ?, ?)
                 """, ticketId, "KEY-" + ticketId, boardId, user);
         return ticketId;
     }
