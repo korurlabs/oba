@@ -986,10 +986,8 @@
       }
     },
     "attachments": {
-      "templatesLegend": "Bijvoegen uit sjablonen",
-      "templatesHint": "Optioneel. Elk gekozen documentsjabloon gaat mee als kopie van de pdf; samen met de bestanden hieronder maximaal 3 MB.",
-      "noTemplates": "Nog geen documentsjablonen met hun bestanden. Voeg ze toe op de pagina Sjablonen.",
-      "filesLegend": "Bestanden bijvoegen"
+      "filesLegend": "Bestanden bijvoegen",
+      "filesHint": "Optioneel. Samen maximaal 3 MB. De documenten van de relatie voeg je na het opslaan aan de mail toe."
     },
     "toast": {
       "created": "Outreach opgeslagen als concept",
@@ -1020,8 +1018,6 @@
       "loadHint": "Controleer je verbinding en probeer het opnieuw.",
       "actionNotForType": "Deze actie past niet bij het kanaal van de benadering.",
       "contactWithoutPhone": "De contactpersoon heeft geen telefoonnummer. Voeg er een toe in de kaart Contactpersonen.",
-      "documentTemplateNotFound": "Een van de documentsjablonen bestaat niet meer.",
-      "documentTemplateNotUsable": "Een van de documentsjablonen kan niet worden bijgevoegd: de pdf ontbreekt nog.",
       "attachmentDuplicate": "Dit bestand is hier al bijgevoegd."
     },
     "sendDialog": {
@@ -1106,7 +1102,21 @@
       "documentSearchPlaceholder": "Zoeken op titel...",
       "add": "Toevoegen",
       "adding": "Toevoegen...",
-      "noDocuments": "Deze relatie heeft nog geen documenten met een pdf. Maak er een aan op de pagina Documenten.",
+      "noDocuments": "Deze relatie heeft nog geen documenten met een pdf. Kies \"Nieuw vanuit sjabloon\" om er een te maken.",
+      "newFromTemplate": "Nieuw vanuit sjabloon",
+      "fromTemplate": {
+        "title": "Nieuw document vanuit een sjabloon",
+        "description": "Maakt een document van deze relatie vanuit een sjabloon en voegt een kopie van de pdf aan de mail toe.",
+        "templateHint": "Alleen sjablonen met hun bestanden staan in de lijst. Het document neemt het type en de taal van het sjabloon over.",
+        "templatePlaceholder": "Kies een sjabloon",
+        "noTemplates": "Nog geen sjabloon met bestanden. Upload er een met oba document template upload.",
+        "create": "Maken en bijvoegen",
+        "creating": "Bezig met maken...",
+        "notReady": "Het nieuwe document heeft nog geen pdf en is daarom niet bijgevoegd. Upload de bestanden op de documentpagina.",
+        "errors": {
+          "templateRequired": "Kies een sjabloon"
+        }
+      },
       "toast": {
         "added": "Document toegevoegd",
         "addError": "Het document kon niet worden toegevoegd"

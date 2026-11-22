@@ -2,7 +2,7 @@
 
 import { useId, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { FilePlus } from "lucide-react";
+import { FilePlus, Plus } from "lucide-react";
 import { SelectFieldStandalone, type SelectOption } from "@oba/shared/features/form";
 import { Button } from "@oba/ui/sky/button";
 import { NativeSelect } from "@oba/ui/sky/field";
@@ -11,6 +11,8 @@ import { DocumentTypeSchema, type DocumentType } from "@/features/document-templ
 import { documentErrorText } from "@/features/documents/lib/document-error";
 import { useAttachDocumentSnapshot } from "../hooks/use-document-snapshots";
 import { useSnapshotDocumentOptions } from "../hooks/use-snapshot-document-options";
+import { NEW_FROM_TEMPLATE, withNewFromTemplate } from "../lib/document-snapshots";
+import { DocumentFromTemplateDialog } from "./document-from-template-dialog";
 
 export interface DocumentSnapshotPickerProps {
   mailId: string;
@@ -21,7 +23,8 @@ export interface DocumentSnapshotPickerProps {
 /**
  * Picks one of the relation's documents with a PDF and attaches a copy of
  * that PDF to the mail. The copy stays as it is when the document changes
- * later, so the mail sends what the user saw when adding it.
+ * later, so the mail sends what the user saw when adding it. The last entry
+ * of the select makes a new document from a template and attaches it at once.
  */
 export function DocumentSnapshotPicker({ mailId, relationId }: DocumentSnapshotPickerProps) {
   const t = useTranslations("outreaches.mailAttachments");
@@ -32,16 +35,24 @@ export function DocumentSnapshotPicker({ mailId, relationId }: DocumentSnapshotP
   const [documentId, setDocumentId] = useState("");
   // The picked document stays an option when a later search no longer finds it, so the select keeps its label.
   const [picked, setPicked] = useState<SelectOption | null>(null);
+  const [fromTemplateOpen, setFromTemplateOpen] = useState(false);
   const documents = useSnapshotDocumentOptions(relationId, type);
   const options = useMemo(
     () =>
-      picked && !documents.options.some((option) => option.value === picked.value)
-        ? [picked, ...documents.options]
-        : documents.options,
-    [documents.options, picked]
+      withNewFromTemplate(
+        picked && !documents.options.some((option) => option.value === picked.value)
+          ? [picked, ...documents.options]
+          : documents.options,
+        t("newFromTemplate")
+      ),
+    [documents.options, picked, t]
   );
 
   const pick = (id: string) => {
+    if (id === NEW_FROM_TEMPLATE) {
+      setFromTemplateOpen(true);
+      return;
+    }
     setDocumentId(id);
     setPicked(options.find((option) => option.value === id) ?? null);
   };
@@ -87,6 +98,16 @@ export function DocumentSnapshotPicker({ mailId, relationId }: DocumentSnapshotP
             options={options}
             onSearchChange={documents.onSearchChange}
             isLoading={documents.isLoading}
+            renderOption={(option) =>
+              option.value === NEW_FROM_TEMPLATE ? (
+                <span className="text-primary flex items-center gap-2">
+                  <Plus className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  {option.label}
+                </span>
+              ) : (
+                <span className="truncate">{option.label}</span>
+              )
+            }
             placeholder={t("documentPlaceholder")}
             searchPlaceholder={t("documentSearchPlaceholder")}
             disabled={attach.isPending}
@@ -117,6 +138,12 @@ export function DocumentSnapshotPicker({ mailId, relationId }: DocumentSnapshotP
             {t("noDocuments")}
           </p>
         )}
+      <DocumentFromTemplateDialog
+        open={fromTemplateOpen}
+        onOpenChange={setFromTemplateOpen}
+        mailId={mailId}
+        relationId={relationId}
+      />
     </div>
   );
 }

@@ -102,6 +102,7 @@ function attachment(overrides: Record<string, unknown> = {}): Record<string, unk
     createdAt: "2026-11-18T09:00:00Z",
     width: 640,
     height: 480,
+    documentId: null,
     ...overrides,
   };
 }

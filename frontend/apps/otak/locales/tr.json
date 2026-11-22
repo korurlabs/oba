@@ -986,10 +986,8 @@
       }
     },
     "attachments": {
-      "templatesLegend": "Şablonlardan ekle",
-      "templatesHint": "İsteğe bağlı. Seçilen her belge şablonu PDF'inin bir kopyası olarak gider; aşağıdaki dosyalarla birlikte toplamda en fazla 3 MB.",
-      "noTemplates": "Henüz dosyaları olan belge şablonu yok. Şablonlar sayfasından ekle.",
-      "filesLegend": "Dosya ekle"
+      "filesLegend": "Dosya ekle",
+      "filesHint": "İsteğe bağlı. Toplam en fazla 3 MB. İlişkinin belgeleri kaydettikten sonra postaya eklenir."
     },
     "toast": {
       "created": "Erişim taslak olarak kaydedildi",
@@ -1020,8 +1018,6 @@
       "loadHint": "Bağlantını kontrol et ve tekrar dene.",
       "actionNotForType": "Bu işlem erişimin kanalına uymuyor.",
       "contactWithoutPhone": "Kişinin telefon numarası yok. Kişiler kartında bir numara ekle.",
-      "documentTemplateNotFound": "Belge şablonlarından biri artık yok.",
-      "documentTemplateNotUsable": "Belge şablonlarından biri eklenemiyor: PDF'i hâlâ eksik.",
       "attachmentDuplicate": "Bu dosya burada zaten ekli."
     },
     "sendDialog": {
@@ -1106,7 +1102,21 @@
       "documentSearchPlaceholder": "Başlığa göre ara...",
       "add": "Ekle",
       "adding": "Ekleniyor...",
-      "noDocuments": "Bu ilişkinin henüz PDF'i olan belgesi yok. Belgeler sayfasında bir tane oluşturun.",
+      "noDocuments": "Bu ilişkinin henüz PDF'i olan bir belgesi yok. Bir tane oluşturmak için \"Şablondan yeni\" seçin.",
+      "newFromTemplate": "Şablondan yeni",
+      "fromTemplate": {
+        "title": "Şablondan yeni belge",
+        "description": "Bu ilişki için bir şablondan belge oluşturur ve PDF'inin bir kopyasını postaya ekler.",
+        "templateHint": "Yalnızca dosyaları olan şablonlar listelenir. Belge, şablonun türünü ve dilini alır.",
+        "templatePlaceholder": "Bir şablon seçin",
+        "noTemplates": "Henüz dosyaları olan bir şablon yok. oba document template upload ile bir tane yükleyin.",
+        "create": "Oluştur ve ekle",
+        "creating": "Oluşturuluyor...",
+        "notReady": "Yeni belgenin henüz PDF'i yok, bu yüzden eklenmedi. Dosyalarını belge sayfasında yükleyin.",
+        "errors": {
+          "templateRequired": "Bir şablon seçin"
+        }
+      },
       "toast": {
         "added": "Belge eklendi",
         "addError": "Belge eklenemedi"

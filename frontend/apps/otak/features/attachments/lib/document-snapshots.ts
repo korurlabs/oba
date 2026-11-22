@@ -1,5 +1,6 @@
 import type { AttachmentResponse } from "@oba/shared/features/attachments/schemas";
-import type { DocumentType } from "@/features/document-templates/schemas";
+import type { SelectOption } from "@oba/shared/features/form";
+import type { DocumentTemplateListItem, DocumentType } from "@/features/document-templates/schemas";
 import {
   DOCUMENT_LIMITS,
   PICKER_SIZE,
@@ -59,4 +60,29 @@ export function attachableDocuments(documents: readonly DocumentListItem[]): Doc
 /** True for a file copied from a document, which the mail lists under its documents. */
 export function isDocumentSnapshot(attachment: Pick<AttachmentResponse, "documentId">): boolean {
   return attachment.documentId !== null && attachment.documentId !== undefined;
+}
+
+/**
+ * The value of the last entry of the mail's document select, which opens the
+ * dialog that makes a new document from a template instead of picking one.
+ * No document id can take this form, as ids are UUIDs.
+ */
+export const NEW_FROM_TEMPLATE = "new-from-template";
+
+/** The document options with the "New from template" entry at the bottom. */
+export function withNewFromTemplate(
+  options: readonly SelectOption[],
+  label: string
+): SelectOption[] {
+  return [...options, { value: NEW_FROM_TEMPLATE, label }];
+}
+
+/**
+ * The templates a document for a mail can start from: only one with both
+ * files gives the new document the PDF its snapshot copies.
+ */
+export function attachableTemplates(
+  templates: readonly DocumentTemplateListItem[]
+): DocumentTemplateListItem[] {
+  return templates.filter((template) => template.ready);
 }

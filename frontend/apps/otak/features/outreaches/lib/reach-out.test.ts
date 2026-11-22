@@ -1,9 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { ContactEmailType, ContactListItem } from "@/features/contacts/schemas";
-import type { DocumentTemplateListItem, DocumentType } from "@/features/document-templates/schemas";
 import {
   applyTemplate,
-  attachableDocumentTemplates,
   callableContacts,
   emptyReachOutSelection,
   isStepComplete,
@@ -41,23 +39,6 @@ function contact(
   };
 }
 
-function documentTemplate(
-  id: string,
-  type: DocumentType,
-  ready: boolean
-): DocumentTemplateListItem {
-  return {
-    id,
-    name: `Template ${id}`,
-    type,
-    language: "NL",
-    legalEntityId: null,
-    legalEntityShortName: null,
-    ready,
-    updatedAt: "2026-11-01T10:00:00Z",
-  };
-}
-
 const template = {
   id: "template-1",
   name: "First contact",
@@ -67,10 +48,10 @@ const template = {
 } as const;
 
 const withEmail = contact("a", "a@example.com", "COMPANY");
-const complete: ReachOutSelection = {
-  ...applyTemplate({ ...emptyReachOutSelection(), contactId: "a" }, template),
-  documentTemplateIds: ["d-1"],
-};
+const complete: ReachOutSelection = applyTemplate(
+  { ...emptyReachOutSelection(), contactId: "a" },
+  template
+);
 
 describe("mailableContacts", () => {
   test("keeps contacts with a business or untyped address, in order", () => {
@@ -102,17 +83,6 @@ describe("callableContacts", () => {
     expect(reachableContacts(contacts, "MAIL").map((c) => c.id)).toEqual(["a"]);
     expect(reachableContacts(contacts, "WHATSAPP").map((c) => c.id)).toEqual(["p"]);
     expect(reachableContacts(contacts, "CALL").map((c) => c.id)).toEqual(["p"]);
-  });
-});
-
-describe("attachableDocumentTemplates", () => {
-  test("keeps ready document templates", () => {
-    const templates = [
-      documentTemplate("p", "PROPOSAL", true),
-      documentTemplate("n", "NDA", false),
-      documentTemplate("o", "OTHER", true),
-    ];
-    expect(attachableDocumentTemplates(templates).map((d) => d.id)).toEqual(["p", "o"]);
   });
 });
 
@@ -189,7 +159,6 @@ describe("toReachOutRequest", () => {
       type: "MAIL",
       mailTemplateId: "template-1",
       mail: null,
-      documentTemplateIds: ["d-1"],
     });
   });
 
@@ -217,7 +186,6 @@ describe("toReachOutRequest", () => {
       type: "MAIL",
       mailTemplateId: null,
       mail: { subject: "Hi", body: "Body", language: "TR" },
-      documentTemplateIds: ["d-1"],
     });
   });
 });
@@ -264,7 +232,6 @@ describe("WhatsApp and call reach-outs", () => {
       type: "CALL",
       mailTemplateId: null,
       mail: null,
-      documentTemplateIds: [],
     });
   });
 });

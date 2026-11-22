@@ -69,6 +69,7 @@ function attachment(id: string): ChatAttachmentResponse {
     entityType: "TICKET",
     entityId: "7d3f7f58-2f0b-4a8e-9c3e-1d2b3c4d5e6f",
     createdAt: "2026-11-18T09:00:00Z",
+    documentId: null,
   };
 }
 

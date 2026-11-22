@@ -53,9 +53,9 @@ export const outreachMailRequestSchema = z.object({
 
 /**
  * Create. A MAIL outreach gives exactly one of `mailTemplateId` (the server
- * copies the mail template into the outreach's own mail) and `mail`, and
- * may give `documentTemplateIds`, whose PDFs the server attaches to the new
- * mail; a WHATSAPP or CALL outreach gives neither and no template ids.
+ * copies the mail template into the outreach's own mail) and `mail`; a
+ * WHATSAPP or CALL outreach gives neither. Documents go with the mail once
+ * it exists, as snapshots added in the mail dialog.
  */
 export const outreachRequestSchema = z.object({
   relationId: z.string(),
@@ -64,7 +64,6 @@ export const outreachRequestSchema = z.object({
   type: OutreachTypeSchema,
   mailTemplateId: z.string().nullable(),
   mail: outreachMailRequestSchema.nullable(),
-  documentTemplateIds: z.array(z.string()),
 });
 
 /**
