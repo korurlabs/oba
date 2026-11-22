@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/korurlabs/oba-cli/internal/apps/otak/docfile"
 	"github.com/korurlabs/oba-cli/internal/dojo/client"
+	"github.com/korurlabs/oba-cli/internal/dojo/docfile"
 )
 
 // defaultMailLanguage is the language of a mail file given without --lang, since the API requires

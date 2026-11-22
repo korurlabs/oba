@@ -1,6 +1,6 @@
-// Package docfile holds the file forms that the Otak template, mail-template and outreach
-// commands share: the .md mail file, the .html template file, the --lang and --type
-// values and the files a pull writes.
+// Package docfile holds the file forms that the document commands and the Otak mail-template
+// and outreach commands share: the .md mail file, the .html document file with its rendered
+// PDF, the language and type values, and the files a download or pull writes.
 package docfile
 
 import (
@@ -9,14 +9,15 @@ import (
 	"strings"
 )
 
-// The file extensions of a mail (.md) and of a document template (.html, with its rendered .pdf).
+// The file extensions of a mail (.md) and of a document or document template (.html, with its
+// rendered .pdf).
 const (
 	ExtMail = ".md"
 	ExtHTML = ".html"
 	ExtPDF  = ".pdf"
 )
 
-// languages maps every --lang value to the API's DocumentLanguage. us is English: the library
+// languages maps every language flag value to the API's DocumentLanguage. us is English: the library
 // names its US company versions us.
 var languages = map[string]string{
 	"nl": "NL",
@@ -25,7 +26,7 @@ var languages = map[string]string{
 	"us": "EN",
 }
 
-// Language maps a --lang value (nl, tr, en or us, case ignored) to the API's language.
+// Language maps a language flag value (nl, tr, en or us, case ignored) to the API's language.
 func Language(value string) (string, error) {
 	lang, ok := languages[strings.ToLower(strings.TrimSpace(value))]
 	if !ok {
@@ -44,7 +45,7 @@ const mailType = "MAIL"
 func Type(value string) (string, error) {
 	t := strings.ToUpper(strings.ReplaceAll(strings.TrimSpace(value), "-", "_"))
 	if t == "" {
-		return "", fmt.Errorf("--type is empty; use PROPOSAL, NDA, TERMS, REPORT, SERVICE_SHEET, PRESENTATION or OTHER")
+		return "", fmt.Errorf("--type is empty; use PROPOSAL, NDA, TERMS, CONTRACT, REPORT, SERVICE_SHEET, PRESENTATION or OTHER")
 	}
 	if t == mailType {
 		return "", fmt.Errorf("MAIL is no document type; a mail is a mail template: use 'oba otak mail-template'")
@@ -52,18 +53,19 @@ func Type(value string) (string, error) {
 	return t, nil
 }
 
-// CheckDocumentFile refuses a template file that is not .html, the only form a document template
-// of any type takes. A .md file gets a pointer to the mail-template command.
-func CheckDocumentFile(path, docType string) error {
+// CheckDocumentFile refuses a file that is not .html, the only form a document or document
+// template of any type takes. what names the target ("an NDA", "a document"). A .md file gets a
+// pointer to the mail-template command.
+func CheckDocumentFile(path, what string) error {
 	ext := strings.ToLower(filepath.Ext(path))
 	if ext == ExtHTML {
 		return nil
 	}
 	if ext == ExtMail {
-		return fmt.Errorf("a %s is an %s file, rendered to PDF on upload, not %s; a %s mail is a mail template: "+
-			"use 'oba otak mail-template push'", docType, ExtHTML, filepath.Base(path), ExtMail)
+		return fmt.Errorf("%s is an %s file, rendered to PDF on upload, not %s; a %s mail is a mail template: "+
+			"use 'oba otak mail-template push'", what, ExtHTML, filepath.Base(path), ExtMail)
 	}
-	return fmt.Errorf("a %s is an %s file, rendered to PDF on upload, not %s", docType, ExtHTML, filepath.Base(path))
+	return fmt.Errorf("%s is an %s file, rendered to PDF on upload, not %s", what, ExtHTML, filepath.Base(path))
 }
 
 // CheckMailFile refuses a mail file that is not .md.

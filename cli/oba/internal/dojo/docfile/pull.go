@@ -16,7 +16,7 @@ type File struct {
 	Data []byte
 }
 
-// WriteFiles writes the files of one template into dir as <name><ext>, name made
+// WriteFiles writes the files of one mail template into dir as <name><ext>, name made
 // safe for a file name (fallback when nothing of it is left), and returns the paths written.
 // Nothing is written when one of the files exists and overwrite is false, so that a pull never
 // replaces a library source file by accident.
@@ -51,7 +51,7 @@ func WriteFiles(dir, name, fallback string, files []File, overwrite bool) ([]str
 	return paths, nil
 }
 
-// SafeName turns a template name, which the API stores as any text, into a file
+// SafeName turns a document or template name, which the API stores as any text, into a file
 // name: letters, digits, '-', '_' and '.' are kept, every other run of characters becomes one
 // '-', and leading dots and dashes are dropped, so that the name can neither leave the target
 // directory nor hide the file.
