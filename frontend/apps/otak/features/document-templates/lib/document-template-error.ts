@@ -12,18 +12,6 @@ const ERROR_TEXT_KEYS: Partial<Record<string, string>> = {
   GEN_VAL_001: "errors.validation",
 };
 
-/** Refusals of a template copied onto a mail or a relation as an attachment. */
-const ATTACHMENT_ERROR_TEXT_KEYS: Partial<Record<string, string>> = {
-  DOC_NOT_001: "errors.notFound",
-  OTK_NOT_011: "attach.errors.mailNotFound",
-  OTK_NOT_001: "attach.errors.relationNotFound",
-  DOC_VAL_002: "attach.errors.notUsable",
-  OTK_STA_011: "attach.errors.mailSent",
-  STG_VAL_005: "attach.errors.duplicate",
-  APP_SEC_002: "errors.forbidden",
-  ORG_SEC_003: "errors.forbidden",
-};
-
 /**
  * The server's names of the request properties and file parts, mapped to
  * the form fields that show them: the multipart parts are `html` and `pdf`.
@@ -44,18 +32,6 @@ export function documentTemplateErrorText(
   fallbackKey: string
 ): string {
   return apiErrorText(error, t, fallbackKey, ERROR_TEXT_KEYS);
-}
-
-/**
- * The text of a template that could not be attached to a mail or a
- * relation. `t` is the `documentTemplates` translator.
- */
-export function documentTemplateAttachmentErrorText(
-  error: unknown,
-  t: (key: string) => string,
-  fallbackKey: string
-): string {
-  return apiErrorText(error, t, fallbackKey, ATTACHMENT_ERROR_TEXT_KEYS);
 }
 
 /**

@@ -16,6 +16,12 @@ export const RELATION_KEYS = {
   /** The battlefield: every lead and customer of the organization, every stage. */
   battlefield: (organizationId: string) =>
     [...RELATION_KEYS.all(organizationId), "battlefield"] as const,
+  /** Every relation's attachment list, to refresh after a file of a mail changes. */
+  attachmentLists: (organizationId: string) =>
+    [...RELATION_KEYS.all(organizationId), "attachments"] as const,
+  /** The files of one relation and of its mails, newest first. */
+  attachments: (organizationId: string, relationId: string) =>
+    [...RELATION_KEYS.attachmentLists(organizationId), relationId] as const,
   /** The members the owner select offers, with their Otak access. */
   ownerCandidates: (organizationId: string) =>
     [...RELATION_KEYS.all(organizationId), "ownerCandidates"] as const,

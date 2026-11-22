@@ -281,7 +281,22 @@
     "noContactMail": "Kişi e-postası yok",
     "noCompanyMail": "Şirket e-postası yok",
     "attachments": {
-      "title": "Ekler"
+      "title": "Ekler",
+      "documentsLink": "Bu ilişkinin belgeleri",
+      "loading": "Ekler yükleniyor...",
+      "loadError": "Ekler yüklenemedi",
+      "empty": "Henüz ek yok. Bir dosya yükleyin ya da bu ilişkinin bir e-postasına belge ekleyin.",
+      "openDocument": "Belgeyi aç",
+      "delete": "{name} dosyasını kaldır",
+      "deleteTitle": "Ek kaldırılsın mı?",
+      "deleteConfirm": "\"{name}\" bu ilişkiden kaldırılır. Bu işlem geri alınamaz.",
+      "deleteAction": "Kaldır",
+      "cancel": "İptal",
+      "source": {
+        "uploaded": "Yüklendi",
+        "mail": "E-posta: {title}",
+        "mailUntitled": "E-posta"
+      }
     }
   },
   "contacts": {
@@ -790,27 +805,6 @@
       "loadHint": "Bağlantınızı kontrol edip tekrar deneyin.",
       "legalEntityNotFound": "Bu tüzel kişi artık mevcut değil."
     },
-    "attach": {
-      "button": "Şablondan ekle",
-      "title": "Şablondan ekle",
-      "description": "Bir belge şablonu seç; PDF'inin bir kopyası buraya eklenir. Şablondaki sonraki değişiklikler kopyayı etkilemez.",
-      "pick": "Belge şablonu",
-      "empty": "Henüz belge şablonu yok. Şablonlar sayfasından ekle.",
-      "add": "Ekle",
-      "adding": "Ekleniyor...",
-      "cancel": "İptal",
-      "toast": {
-        "added": "Ek eklendi",
-        "addError": "Ek eklenemedi"
-      },
-      "errors": {
-        "mailNotFound": "Bu e-posta artık yok.",
-        "relationNotFound": "Bu ilişki artık yok.",
-        "notUsable": "Bu belge şablonu burada kullanılamaz: PDF'i hâlâ eksik.",
-        "mailSent": "Bu e-posta gönderildi veya gönderiliyor; ekleri artık değiştirilemez.",
-        "duplicate": "Bu PDF burada zaten ekli."
-      }
-    },
     "legalEntityAll": "Tümü"
   },
   "mailTemplates": {
@@ -1097,6 +1091,36 @@
       "label": "Erişim bölümleri",
       "details": "Ayrıntılar",
       "attachments": "Ekler"
+    },
+    "mailAttachments": {
+      "documentsTitle": "Belgeler",
+      "documentsHint": "Belgenin PDF'inin bir kopyası e-postayla gider. Belgede sonradan yapılan değişiklikler kopyayı değiştirmez.",
+      "documentsEmpty": "Henüz belge eklenmedi.",
+      "additionalTitle": "Ek dosyalar",
+      "additionalEmpty": "Henüz ek dosya yok.",
+      "openDocument": "Belgeyi aç",
+      "typeLabel": "Tür",
+      "typeAll": "Tüm türler",
+      "documentLabel": "Belge",
+      "documentPlaceholder": "Bir belge seçin",
+      "documentSearchPlaceholder": "Başlığa göre ara...",
+      "add": "Ekle",
+      "adding": "Ekleniyor...",
+      "noDocuments": "Bu ilişkinin henüz PDF'i olan belgesi yok. Belgeler sayfasında bir tane oluşturun.",
+      "toast": {
+        "added": "Belge eklendi",
+        "addError": "Belge eklenemedi"
+      },
+      "errors": {
+        "documentNotFound": "Bu belge artık yok.",
+        "mailNotFound": "Bu e-posta artık yok.",
+        "noPdf": "Bu belgenin henüz PDF'i yok. Önce dosyalarını yükleyin.",
+        "otherRelation": "Bu belge başka bir ilişkiye ait.",
+        "mailSent": "Bu e-posta gönderildi ya da gönderiliyor; ekleri artık değiştirilemez.",
+        "duplicate": "Bu PDF e-postaya zaten ekli.",
+        "noOtakAccess": "Otak erişiminiz yok.",
+        "forbidden": "Bunu yapma yetkiniz yok."
+      }
     }
   },
   "mailSenders": {

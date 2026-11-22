@@ -7,6 +7,7 @@ export const API_ROUTES = {
     detail: (relationId: string) => `/otak/relations/${relationId}`,
     stage: (relationId: string) => `/otak/relations/${relationId}/stage`,
     type: (relationId: string) => `/otak/relations/${relationId}/type`,
+    attachments: (relationId: string) => `/otak/relations/${relationId}/attachments`,
   },
   contacts: {
     list: (relationId: string) => `/otak/relations/${relationId}/contacts`,
@@ -25,12 +26,12 @@ export const API_ROUTES = {
     list: "/document-templates",
     detail: (templateId: string) => `/document-templates/${templateId}`,
     files: (templateId: string) => `/document-templates/${templateId}/files`,
-    attachments: (templateId: string) => `/document-templates/${templateId}/attachments`,
   },
   documents: {
     list: "/documents",
     detail: (documentId: string) => `/documents/${documentId}`,
     files: (documentId: string) => `/documents/${documentId}/files`,
+    attachments: (documentId: string) => `/documents/${documentId}/attachments`,
   },
   legalEntities: {
     list: "/legal-entities",

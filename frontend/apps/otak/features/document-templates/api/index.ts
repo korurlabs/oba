@@ -1,11 +1,9 @@
 import { api } from "@/lib/api/client";
 import { API_ROUTES } from "@/lib/api-routes";
 import type { ApiResponse } from "@oba/shared/schema";
-import type { AttachmentResponse } from "@oba/shared/features/attachments/schemas";
 import {
   HTML_MEDIA_TYPE,
   PDF_MEDIA_TYPE,
-  type DocumentTemplateAttachmentRequest,
   type DocumentTemplateDetail,
   type DocumentTemplateFiles,
   type DocumentTemplateListApiResponse,
@@ -75,23 +73,6 @@ export async function replaceDocumentTemplateFiles(
     API_ROUTES.documentTemplates.files(templateId),
     documentFilesFormData(files),
     { headers: { "Content-Type": "multipart/form-data" } }
-  );
-  return res.data;
-}
-
-/**
- * Stores a copy of the template's PDF as a new attachment of a mail or a
- * relation, named after the template. A template without its PDF answers
- * `DOC_VAL_002`, a PDF already on the target `STG_VAL_005`, a sent mail
- * `OTK_STA_011`. A mail needs ADMIN or OWNER, a relation any member.
- */
-export async function copyDocumentTemplateToAttachment(
-  templateId: string,
-  data: DocumentTemplateAttachmentRequest
-) {
-  const res = await api.post<ApiResponse<AttachmentResponse>>(
-    API_ROUTES.documentTemplates.attachments(templateId),
-    data
   );
   return res.data;
 }

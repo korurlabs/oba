@@ -281,7 +281,22 @@
     "noContactMail": "No contact mail",
     "noCompanyMail": "No company mail",
     "attachments": {
-      "title": "Attachments"
+      "title": "Attachments",
+      "documentsLink": "Documents of this relation",
+      "loading": "Loading attachments...",
+      "loadError": "The attachments could not be loaded",
+      "empty": "No attachments yet. Upload a file, or attach a document to one of this relation's mails.",
+      "openDocument": "Open document",
+      "delete": "Remove {name}",
+      "deleteTitle": "Remove attachment?",
+      "deleteConfirm": "\"{name}\" is removed from this relation. This cannot be undone.",
+      "deleteAction": "Remove",
+      "cancel": "Cancel",
+      "source": {
+        "uploaded": "Uploaded",
+        "mail": "Mail: {title}",
+        "mailUntitled": "Mail"
+      }
     }
   },
   "contacts": {
@@ -790,27 +805,6 @@
       "loadHint": "Check your connection and try again.",
       "legalEntityNotFound": "This legal entity no longer exists."
     },
-    "attach": {
-      "button": "Add from template",
-      "title": "Add from template",
-      "description": "Pick a document template; a copy of its PDF is attached here. Later changes to the template leave the copy as it is.",
-      "pick": "Document template",
-      "empty": "No document templates yet. Add them on the Templates page.",
-      "add": "Add",
-      "adding": "Adding...",
-      "cancel": "Cancel",
-      "toast": {
-        "added": "Attachment added",
-        "addError": "The attachment could not be added"
-      },
-      "errors": {
-        "mailNotFound": "This mail no longer exists.",
-        "relationNotFound": "This relation no longer exists.",
-        "notUsable": "This document template cannot be used here: it still needs its PDF.",
-        "mailSent": "This mail was sent or is being sent; its attachments can no longer change.",
-        "duplicate": "This PDF is already attached here."
-      }
-    },
     "legalEntityAll": "All"
   },
   "mailTemplates": {
@@ -1097,6 +1091,36 @@
       "label": "Outreach sections",
       "details": "Details",
       "attachments": "Attachments"
+    },
+    "mailAttachments": {
+      "documentsTitle": "Documents",
+      "documentsHint": "A copy of the document's PDF goes with the mail. Later changes to the document leave the copy as it is.",
+      "documentsEmpty": "No documents attached yet.",
+      "additionalTitle": "Additional attachments",
+      "additionalEmpty": "No additional attachments yet.",
+      "openDocument": "Open document",
+      "typeLabel": "Type",
+      "typeAll": "All types",
+      "documentLabel": "Document",
+      "documentPlaceholder": "Choose a document",
+      "documentSearchPlaceholder": "Search by title...",
+      "add": "Add",
+      "adding": "Adding...",
+      "noDocuments": "This relation has no documents with a PDF yet. Create one on the Documents page.",
+      "toast": {
+        "added": "Document attached",
+        "addError": "The document could not be attached"
+      },
+      "errors": {
+        "documentNotFound": "This document no longer exists.",
+        "mailNotFound": "This mail no longer exists.",
+        "noPdf": "This document has no PDF yet. Upload its files first.",
+        "otherRelation": "This document belongs to another relation.",
+        "mailSent": "This mail was sent or is being sent; its attachments can no longer change.",
+        "duplicate": "This PDF is already attached to the mail.",
+        "noOtakAccess": "You do not have access to Otak.",
+        "forbidden": "You do not have permission to do this."
+      }
     }
   },
   "mailSenders": {

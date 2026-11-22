@@ -36,6 +36,13 @@ export const attachmentResponseSchema = z.object({
   entityType: StorageEntityTypeSchema,
   entityId: z.guid(),
   createdAt: z.string(),
+  /**
+   * The document a snapshot was copied from; null for an uploaded file and
+   * for a snapshot whose document was deleted since. Optional, as are the
+   * other late fields, so a stored or hand-built attachment without it still
+   * reads as an uploaded file.
+   */
+  documentId: z.guid().nullable().optional(),
 });
 
 // ── Inferred Types ──────────────────────────────────────────────────

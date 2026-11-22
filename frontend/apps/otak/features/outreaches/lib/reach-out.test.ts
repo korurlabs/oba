@@ -51,6 +51,8 @@ function documentTemplate(
     name: `Template ${id}`,
     type,
     language: "NL",
+    legalEntityId: null,
+    legalEntityShortName: null,
     ready,
     updatedAt: "2026-11-01T10:00:00Z",
   };
