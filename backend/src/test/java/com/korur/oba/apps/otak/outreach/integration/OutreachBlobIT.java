@@ -29,8 +29,8 @@ import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 
 /**
  * Proves, against the real blob store, the paths that need stored files: the PDF of a ready
- * file template copied as an attachment of a relation or of a new MAIL outreach's mail, the
- * send of those attachments, and their removal with the outreach. The blob store is Azurite
+ * file template copied onto a new MAIL outreach's mail, the refusal to snapshot a document
+ * without files, the send of those attachments, and their removal with the outreach. The blob store is Azurite
  * of the local stack; the Graph client is replaced, so no mail leaves.
  */
 class OutreachBlobIT extends AbstractOtakDocumentsIT {
@@ -98,33 +98,21 @@ class OutreachBlobIT extends AbstractOtakDocumentsIT {
     }
 
     @Test
-    void member_copyOfAReadyTemplateToTheRelation_storesItsPdfAsARelationAttachment() throws Exception {
-        String templateName = "Template " + uniqueSuffix();
-        String templateId = createReadyTemplate(templateName);
-        Person member = signInAs(tenant, OrganizationMemberRole.MEMBER, "otakmember");
+    void admin_snapshotOfADocumentWithoutFiles_answers422DocVal003AndStoresNothing() throws Exception {
+        String legalEntityId = createLegalEntity(tenant, admin, "Korur " + uniqueSuffix().substring(0, 6));
+        String documentId = read(mockMvc.perform(in(tenant, post("/documents"), admin.jwt(),
+                        "{\"entityType\":\"RELATION\",\"entityId\":\"" + relationId + "\",\"legalEntityId\":\""
+                                + legalEntityId + "\",\"title\":\"Empty\",\"type\":\"PROPOSAL\",\"language\":\"EN\"}"))
+                .andExpect(status().isCreated()).andReturn(), "$.data.id");
+        String mailId = read(createOutreachResult(tenant, admin, relationId, contactId, "Empty " + uniqueSuffix()),
+                "$.data.mail.id");
 
-        MvcResult result = mockMvc.perform(in(tenant, post(TEMPLATES_PATH + "/" + templateId + "/attachments"),
-                        member.jwt(), "{\"entityType\":\"RELATION\",\"entityId\":\"" + relationId + "\"}"))
-                .andExpect(status().isCreated()).andReturn();
-
-        assertThat(read(result, "$.data.fileName")).isEqualTo(templateName + ".pdf");
-        assertThat(count("SELECT count(*) FROM shrine.attachments a, shrine.document_templates t "
-                + "WHERE a.id = ?::uuid AND t.id = ?::uuid "
-                + "AND a.entity_type = 'RELATION'::shrine_storage_entity_type_enum AND a.entity_id = ?::uuid "
-                + "AND a.content_type = 'application/pdf' AND a.url <> t.pdf_blob_url",
-                read(result, "$.data.id"), templateId, relationId)).isEqualTo(1L);
-    }
-
-    @Test
-    void admin_copyOfATemplateWithoutFiles_answers422DOC_VAL_002AndStoresNothing() throws Exception {
-        String templateId = createFileTemplate(tenant, admin, "Empty " + uniqueSuffix());
-
-        MvcResult result = mockMvc.perform(in(tenant, post(TEMPLATES_PATH + "/" + templateId + "/attachments"),
-                        admin.jwt(), "{\"entityType\":\"RELATION\",\"entityId\":\"" + relationId + "\"}"))
+        MvcResult result = mockMvc.perform(in(tenant, post("/documents/" + documentId + "/attachments"),
+                        admin.jwt(), "{\"entityType\":\"MAIL\",\"entityId\":\"" + mailId + "\"}"))
                 .andExpect(status().isUnprocessableEntity()).andReturn();
 
-        assertThat(result.getResponse().getContentAsString()).contains("DOC_VAL_002");
-        assertThat(count("SELECT count(*) FROM shrine.attachments WHERE entity_id = ?::uuid", relationId)).isZero();
+        assertThat(result.getResponse().getContentAsString()).contains("DOC_VAL_003");
+        assertThat(mailAttachments(mailId)).isZero();
     }
 
     @Test
