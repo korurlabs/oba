@@ -393,7 +393,7 @@
                 Date: Feb 28, 2026 -->
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
-            <version>8.0</version>
+            <version>9.0</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.fasterxml.uuid/java-uuid-generator -->
