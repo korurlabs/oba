@@ -160,11 +160,12 @@ class KalkanPageAttachmentAccessIT extends AbstractKalkanIT {
     void deleteEndpoint_owner_isRefusedWithKlkSec002AndKeepsRowAndBlob() throws Exception {
         String rootId = createdId(admin, null, "isms");
         UUID attachmentId = jdbcTemplate.queryForObject("""
-                INSERT INTO shrine.attachments (url, file_name, content_type, file_size, entity_type, entity_id)
+                INSERT INTO shrine.attachments (url, file_name, content_type, file_size, entity_type, entity_id,
+                                                organization_id)
                 VALUES (?, 'evidence.pdf', 'application/pdf', 10,
-                        'KALKAN_PAGE'::shrine_storage_entity_type_enum, ?::uuid)
+                        'KALKAN_PAGE'::shrine_storage_entity_type_enum, ?::uuid, ?)
                 RETURNING id
-                """, UUID.class, "https://blob.invalid/" + uniqueSuffix() + ".pdf", rootId);
+                """, UUID.class, "https://blob.invalid/" + uniqueSuffix() + ".pdf", rootId, organization.getId());
 
         send(delete("/storage/attachments/{id}", attachmentId), owner, null)
                 .andExpect(status().isForbidden())

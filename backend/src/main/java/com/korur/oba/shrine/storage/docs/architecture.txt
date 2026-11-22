@@ -33,19 +33,22 @@ shrine/storage/
 ENTITIES
 --------
 Attachment (shrine.attachments):
-  - url (TEXT) — full URL in cloud storage
-  - file_name (VARCHAR 255) — original file name
-  - content_type (VARCHAR 100) — MIME type
-  - file_size (BIGINT) — size in bytes
-  - entity_type (ENUM: StorageEntityType) — type of owning entity
-  - entity_id (UUID) — ID of owning entity
+  - url (TEXT): full URL in cloud storage
+  - file_name (VARCHAR 255): original file name
+  - content_type (VARCHAR 100): MIME type
+  - file_size (BIGINT): size in bytes
+  - entity_type (ENUM: StorageEntityType): type of owning entity
+  - entity_id (UUID): ID of owning entity
+  - organization_id (UUID): organization of the owning entity, set once on create
+    from the request's checked organization; every read for a request filters on it
 
 ENTITY TYPES
 -----------
-- ORGANIZATION — files attached to an organization
-- USER — files attached to a user profile
-- INVOICE — files attached to an invoice
-- TICKET — files attached to a ticket
+- TICKET: files attached to a ticket
+- CHAT_MESSAGE: files sent with a chat message
+- KALKAN_PAGE: evidence attached to a Kalkan page
+- MAIL: files attached to an Otak mail
+- RELATION: files attached to an Otak relation
 
 ENDPOINTS
 ---------

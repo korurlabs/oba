@@ -41,6 +41,7 @@ import com.korur.oba.shrine.storage.validator.attachment.AttachmentValidator;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -149,6 +150,7 @@ class AttachmentServiceImplUnitTest {
             assertEquals(64, saved.getFirst().getFileHash().length());
             assertEquals("doc.pdf", saved.getFirst().getFileName());
             assertEquals(entityId, saved.getFirst().getEntityId());
+            assertEquals(organizationId, saved.getFirst().getOrganizationId());
         }
 
         @Test
@@ -164,7 +166,7 @@ class AttachmentServiceImplUnitTest {
                     .thenAnswer(invocation -> fakeHashFor(invocation.getArgument(0)));
             doThrow(new ValidationException(ExceptionDomainStorageError.VAL_FILE_ALREADY_EXISTS))
                     .when(attachmentValidator)
-                    .ensureFileNotDuplicate(any(MultipartFile.class), any(AttachmentCreateRequest.class),
+                    .ensureFileNotDuplicate(eq(organizationId), any(MultipartFile.class), any(AttachmentCreateRequest.class),
                             anyString(), any());
 
             // Act & Assert
@@ -195,7 +197,7 @@ class AttachmentServiceImplUnitTest {
             doNothing()
                     .doThrow(new ValidationException(ExceptionDomainStorageError.VAL_FILE_ALREADY_EXISTS))
                     .when(attachmentValidator)
-                    .ensureFileNotDuplicate(any(MultipartFile.class), any(AttachmentCreateRequest.class),
+                    .ensureFileNotDuplicate(eq(organizationId), any(MultipartFile.class), any(AttachmentCreateRequest.class),
                             anyString(), any());
 
             // Act & Assert
@@ -232,7 +234,10 @@ class AttachmentServiceImplUnitTest {
 
             // Assert
             verify(azureBlobStorageService, times(2)).uploadFile(anyString(), any(byte[].class));
-            verify(attachmentRepository, times(1)).saveAll(anyList());
+            ArgumentCaptor<List<Attachment>> captor = ArgumentCaptor.captor();
+            verify(attachmentRepository, times(1)).saveAll(captor.capture());
+            assertTrue(captor.getValue().stream()
+                    .allMatch(attachment -> organizationId.equals(attachment.getOrganizationId())));
         }
     }
 
@@ -254,11 +259,11 @@ class AttachmentServiceImplUnitTest {
         void noAttachments_isNoOp() {
             // Arrange — empty result from the repository means the parent has no attachments.
             UUID entityId = UUID.randomUUID();
-            when(attachmentRepository.findByEntityTypeAndEntityId(StorageEntityType.INVOICE, entityId))
+            when(attachmentRepository.findByEntityTypeAndEntityId(StorageEntityType.TICKET, entityId))
                     .thenReturn(List.of());
 
             // Act
-            attachmentServiceImpl.deleteAttachmentsByEntity(StorageEntityType.INVOICE, entityId);
+            attachmentServiceImpl.deleteAttachmentsByEntity(StorageEntityType.TICKET, entityId);
 
             // Assert — no DB write, no Azure round-trip.
             verify(attachmentRepository, never()).deleteAllInBatch(anyList());
@@ -273,11 +278,11 @@ class AttachmentServiceImplUnitTest {
             Attachment second = stubAttachment("https://blob/second.pdf");
             List<Attachment> attachments = List.of(first, second);
 
-            when(attachmentRepository.findByEntityTypeAndEntityId(StorageEntityType.INVOICE, entityId))
+            when(attachmentRepository.findByEntityTypeAndEntityId(StorageEntityType.TICKET, entityId))
                     .thenReturn(attachments);
 
             // Act
-            attachmentServiceImpl.deleteAttachmentsByEntity(StorageEntityType.INVOICE, entityId);
+            attachmentServiceImpl.deleteAttachmentsByEntity(StorageEntityType.TICKET, entityId);
 
             // Assert — exactly one batch delete for the rows, plus one blob delete per row.
             verify(attachmentRepository, times(1)).deleteAllInBatch(attachments);
@@ -296,11 +301,11 @@ class AttachmentServiceImplUnitTest {
             UUID entityId = UUID.randomUUID();
             Attachment attachment = stubAttachment("https://blob/doc.pdf");
 
-            when(attachmentRepository.findByEntityTypeAndEntityId(StorageEntityType.INVOICE, entityId))
+            when(attachmentRepository.findByEntityTypeAndEntityId(StorageEntityType.TICKET, entityId))
                     .thenReturn(List.of(attachment));
 
             // Act
-            attachmentServiceImpl.deleteAttachmentsByEntity(StorageEntityType.INVOICE, entityId);
+            attachmentServiceImpl.deleteAttachmentsByEntity(StorageEntityType.TICKET, entityId);
 
             // Assert
             InOrder inOrder = inOrder(attachmentRepository, azureBlobStorageService);
@@ -349,13 +354,13 @@ class AttachmentServiceImplUnitTest {
             Attachment first = stubAttachment("https://blob/first.pdf");
             Attachment second = stubAttachment("https://blob/second.pdf");
 
-            when(attachmentRepository.findByEntityTypeAndEntityId(StorageEntityType.INVOICE, entityId))
+            when(attachmentRepository.findByEntityTypeAndEntityId(StorageEntityType.TICKET, entityId))
                     .thenReturn(List.of(first, second));
             doThrow(new RuntimeException("simulated Azure transient failure"))
                     .when(azureBlobStorageService).deleteFile("https://blob/first.pdf");
 
             // Act — must not throw despite the blob failure.
-            attachmentServiceImpl.deleteAttachmentsByEntity(StorageEntityType.INVOICE, entityId);
+            attachmentServiceImpl.deleteAttachmentsByEntity(StorageEntityType.TICKET, entityId);
 
             // Assert — DB rows were deleted in one batch; the second blob delete still ran.
             verify(attachmentRepository, times(1)).deleteAllInBatch(anyList());
@@ -389,7 +394,7 @@ class AttachmentServiceImplUnitTest {
             assertThrows(ForbiddenException.class, () ->
                     attachmentServiceImpl.uploadAttachments(user, organizationId, List.of(request), List.of(file)));
             verifyNoInteractions(attachmentHashHelper, azureBlobStorageService, attachmentRepository);
-            verify(attachmentValidator, never()).ensureFileNotDuplicate(any(), any(), anyString(), any());
+            verify(attachmentValidator, never()).ensureFileNotDuplicate(any(), any(), any(), anyString(), any());
         }
 
         @Test
@@ -448,13 +453,13 @@ class AttachmentServiceImplUnitTest {
         }
 
         @Test
-        void entityTypeWithoutAccessType_throwsForbiddenBeforeHashingAndAzure() {
-            // Arrange
-            UUID invoiceId = UUID.randomUUID();
-            when(attachmentValidator.ensureEntityTypeAccessible(StorageEntityType.INVOICE))
+        void entityTypeRefusedByTheValidator_throwsForbiddenBeforeHashingAndAzure() {
+            // Arrange: every current type has access rules, so the refusal is the validator's answer
+            UUID ticketId = UUID.randomUUID();
+            when(attachmentValidator.ensureEntityTypeAccessible(StorageEntityType.TICKET))
                     .thenThrow(new ForbiddenException(ExceptionDomainStorageError.SEC_ENTITY_TYPE_NOT_ATTACHABLE));
             AttachmentCreateRequest request = new AttachmentCreateRequest(
-                    "doc.pdf", StorageEntityType.INVOICE, invoiceId);
+                    "doc.pdf", StorageEntityType.TICKET, ticketId);
             MultipartFile file = new MockMultipartFile(
                     "file", "doc.pdf", "application/pdf", "hello".getBytes());
 
@@ -465,15 +470,15 @@ class AttachmentServiceImplUnitTest {
         }
 
         @Test
-        void batchMixesTicketAndTypeWithoutAccessType_throwsForbiddenBeforeAnyUpload() {
+        void batchMixesTicketAndARefusedType_throwsForbiddenBeforeAnyUpload() {
             // Arrange
             UUID ticketId = UUID.randomUUID();
             ticketAccessible();
-            when(attachmentValidator.ensureEntityTypeAccessible(StorageEntityType.USER))
+            when(attachmentValidator.ensureEntityTypeAccessible(StorageEntityType.CHAT_MESSAGE))
                     .thenThrow(new ForbiddenException(ExceptionDomainStorageError.SEC_ENTITY_TYPE_NOT_ATTACHABLE));
             List<AttachmentCreateRequest> requests = List.of(
                     new AttachmentCreateRequest("a.pdf", StorageEntityType.TICKET, ticketId),
-                    new AttachmentCreateRequest("b.pdf", StorageEntityType.USER, UUID.randomUUID()));
+                    new AttachmentCreateRequest("b.pdf", StorageEntityType.CHAT_MESSAGE, UUID.randomUUID()));
             List<MultipartFile> files = List.of(
                     new MockMultipartFile("file", "a.pdf", "application/pdf", "a".getBytes()),
                     new MockMultipartFile("file", "b.pdf", "application/pdf", "b".getBytes()));
@@ -507,7 +512,8 @@ class AttachmentServiceImplUnitTest {
             Attachment attachment = storedAttachment(StorageEntityType.TICKET, ticketId);
             when(attachmentValidator.ensureEntityTypeAccessible(StorageEntityType.TICKET))
                     .thenReturn(ResourceAccessType.TICKET);
-            when(attachmentRepository.findById(attachment.getId())).thenReturn(Optional.of(attachment));
+            when(attachmentRepository.findByIdAndOrganizationId(attachment.getId(), organizationId))
+                    .thenReturn(Optional.of(attachment));
 
             // Act
             attachmentServiceImpl.deleteAttachment(user, organizationId, attachment.getId());
@@ -529,7 +535,8 @@ class AttachmentServiceImplUnitTest {
             Attachment attachment = storedAttachment(StorageEntityType.MAIL, mailId);
             when(attachmentValidator.ensureEntityTypeAccessible(StorageEntityType.MAIL))
                     .thenReturn(ResourceAccessType.MAIL);
-            when(attachmentRepository.findById(attachment.getId())).thenReturn(Optional.of(attachment));
+            when(attachmentRepository.findByIdAndOrganizationId(attachment.getId(), organizationId))
+                    .thenReturn(Optional.of(attachment));
             when(attachmentRepository.existsByUrl("https://blob/doc.pdf")).thenReturn(true);
 
             // Act
@@ -550,7 +557,8 @@ class AttachmentServiceImplUnitTest {
             doThrow(new ForbiddenException(ExceptionDomainKazanError.SEC_INSUFFICIENT_BOARD_PERMISSIONS))
                     .when(resourceAccessQueryService).verifyResourceAccess(user, organizationId,
                             ResourceAccessType.TICKET, ticketId, ResourceAccessAction.DELETE);
-            when(attachmentRepository.findById(attachment.getId())).thenReturn(Optional.of(attachment));
+            when(attachmentRepository.findByIdAndOrganizationId(attachment.getId(), organizationId))
+                    .thenReturn(Optional.of(attachment));
 
             // Act & Assert
             assertThrows(ForbiddenException.class, () ->
@@ -563,7 +571,7 @@ class AttachmentServiceImplUnitTest {
         void attachmentMissing_throwsNotFoundBeforeAnyAccessCheck() {
             // Arrange
             UUID attachmentId = UUID.randomUUID();
-            when(attachmentRepository.findById(attachmentId)).thenReturn(Optional.empty());
+            when(attachmentRepository.findByIdAndOrganizationId(attachmentId, organizationId)).thenReturn(Optional.empty());
 
             // Act & Assert
             assertThrows(NotFoundException.class, () ->
@@ -573,11 +581,12 @@ class AttachmentServiceImplUnitTest {
         }
 
         @Test
-        void storedTypeWithoutAccessType_throwsForbiddenAndKeepsBlobAndRow() {
+        void storedTypeRefusedByTheValidator_throwsForbiddenAndKeepsBlobAndRow() {
             // Arrange
-            Attachment attachment = storedAttachment(StorageEntityType.ORGANIZATION, UUID.randomUUID());
-            when(attachmentRepository.findById(attachment.getId())).thenReturn(Optional.of(attachment));
-            when(attachmentValidator.ensureEntityTypeAccessible(StorageEntityType.ORGANIZATION))
+            Attachment attachment = storedAttachment(StorageEntityType.KALKAN_PAGE, UUID.randomUUID());
+            when(attachmentRepository.findByIdAndOrganizationId(attachment.getId(), organizationId))
+                    .thenReturn(Optional.of(attachment));
+            when(attachmentValidator.ensureEntityTypeAccessible(StorageEntityType.KALKAN_PAGE))
                     .thenThrow(new ForbiddenException(ExceptionDomainStorageError.SEC_ENTITY_TYPE_NOT_ATTACHABLE));
 
             // Act & Assert
@@ -585,6 +594,22 @@ class AttachmentServiceImplUnitTest {
                     attachmentServiceImpl.deleteAttachment(user, organizationId, attachment.getId()));
             verifyNoInteractions(azureBlobStorageService);
             verify(attachmentRepository, never()).delete(any(Attachment.class));
+        }
+
+        @Test
+        void attachmentOfAnotherOrganization_isNotFoundAndKeepsBlobAndRow() {
+            // Arrange: the row exists, but only under another organization
+            UUID attachmentId = UUID.randomUUID();
+            when(attachmentRepository.findByIdAndOrganizationId(attachmentId, organizationId))
+                    .thenReturn(Optional.empty());
+
+            // Act & Assert
+            NotFoundException thrown = assertThrows(NotFoundException.class, () ->
+                    attachmentServiceImpl.deleteAttachment(user, organizationId, attachmentId));
+            assertEquals("STG_NOT_001", thrown.getErrorCode());
+            verify(attachmentRepository, never()).findById(any());
+            verify(attachmentRepository, never()).delete(any(Attachment.class));
+            verifyNoInteractions(resourceAccessQueryService, azureBlobStorageService);
         }
     }
 
@@ -630,7 +655,7 @@ class AttachmentServiceImplUnitTest {
             order.verify(resourceAccessQueryService).verifyResourceAccess(user, organizationId,
                     ResourceAccessType.MAIL, mailId, ResourceAccessAction.WRITE);
             order.verify(attachmentValidator).ensureContentNotEmpty(content);
-            order.verify(attachmentValidator).ensureStoredContentNotDuplicate(
+            order.verify(attachmentValidator).ensureStoredContentNotDuplicate(organizationId,
                     new AttachmentCreateRequest("offer.pdf", StorageEntityType.MAIL, mailId), hash);
             ArgumentCaptor<Attachment> saved = ArgumentCaptor.forClass(Attachment.class);
             order.verify(attachmentRepository).save(saved.capture());
@@ -641,6 +666,7 @@ class AttachmentServiceImplUnitTest {
             assertEquals((long) content.content().length, attachment.getFileSize());
             assertEquals(StorageEntityType.MAIL, attachment.getEntityType());
             assertEquals(mailId, attachment.getEntityId());
+            assertEquals(organizationId, attachment.getOrganizationId());
             assertEquals(hash, attachment.getFileHash());
             ArgumentCaptor<String> blobName = ArgumentCaptor.forClass(String.class);
             verify(azureBlobStorageService).uploadFile(blobName.capture(), eq(content.content()));
@@ -653,7 +679,7 @@ class AttachmentServiceImplUnitTest {
                     .thenReturn(ResourceAccessType.MAIL);
             when(attachmentHashHelper.computeHash(content.content())).thenReturn("b".repeat(64));
             doThrow(new ValidationException(ExceptionDomainStorageError.VAL_FILE_ALREADY_EXISTS))
-                    .when(attachmentValidator).ensureStoredContentNotDuplicate(any(), anyString());
+                    .when(attachmentValidator).ensureStoredContentNotDuplicate(any(), any(), anyString());
 
             assertThrows(ValidationException.class, () -> attachmentServiceImpl.storeAttachmentContent(user,
                     organizationId, StorageEntityType.MAIL, mailId, content));
