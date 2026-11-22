@@ -410,7 +410,7 @@ class ChatMessageMapperHelperUnitTest {
 
         private AttachmentResponse quotedFile(UUID messageId, String fileName, String contentType) {
             return new AttachmentResponse(UUID.randomUUID(), "https://files/" + fileName, fileName, contentType, 10L,
-                    StorageEntityType.CHAT_MESSAGE, messageId, Instant.now(), null, null);
+                    StorageEntityType.CHAT_MESSAGE, messageId, Instant.now(), null, null, null);
         }
     }
 
@@ -704,7 +704,7 @@ class ChatMessageMapperHelperUnitTest {
 
         private AttachmentResponse attachment() {
             return new AttachmentResponse(UUID.randomUUID(), "https://files/x", "plan.pdf", "application/pdf", 10L,
-                    StorageEntityType.CHAT_MESSAGE, UUID.randomUUID(), Instant.now(), null, null);
+                    StorageEntityType.CHAT_MESSAGE, UUID.randomUUID(), Instant.now(), null, null, null);
         }
     }
 

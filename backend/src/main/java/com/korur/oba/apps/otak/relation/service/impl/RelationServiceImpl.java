@@ -32,6 +32,8 @@ import com.korur.oba.apps.otak.relation.validator.RelationValidator;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.shrine.document.enums.document.DocumentEntityType;
+import com.korur.oba.shrine.document.service.document.DocumentService;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.storage.enums.common.StorageEntityType;
 import com.korur.oba.shrine.storage.service.attachment.AttachmentService;
@@ -57,6 +59,7 @@ public class RelationServiceImpl implements RelationService {
     private final EventQueryService eventQueryService;
     private final MailQueryService mailQueryService;
     private final AttachmentService attachmentService;
+    private final DocumentService documentService;
     private final LoggingService loggingService;
 
     @Override
@@ -148,11 +151,12 @@ public class RelationServiceImpl implements RelationService {
     }
 
     /**
-     * Deletes the relation and then the attachments of the relation and of each of its mails.
+     * Deletes the relation and then its documents and the attachments of the relation and of
+     * each of its mails.
      *
      * The database removes the relation's contacts, outreaches and mails with the row, but an
      * attachment row names its parent only by type and id, without a foreign key, so it is
-     * removed here. The mail ids are read before the delete, because afterwards the mails are
+     * removed here, and so is a document, which names its owner the same way. The mail ids are read before the delete, because afterwards the mails are
      * gone. The relation row is flushed first so that a foreign key failure stops the delete
      * before any attachment row is touched. The attachment rows go in this transaction; storage
      * then deletes, best effort, each blob that no remaining row holds.
@@ -169,6 +173,7 @@ public class RelationServiceImpl implements RelationService {
         relationRepository.delete(relation);
         relationRepository.flush();
 
+        documentService.deleteDocumentsByEntity(DocumentEntityType.RELATION, relationId);
         attachmentService.deleteAttachmentsByEntity(StorageEntityType.RELATION, relationId);
         for (UUID mailId : mailIds) {
             attachmentService.deleteAttachmentsByEntity(StorageEntityType.MAIL, mailId);

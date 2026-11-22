@@ -16,7 +16,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
+import com.korur.oba.apps.otak.relation.dto.projection.RelationMailProjection;
 import com.korur.oba.apps.otak.relation.dto.projection.RelationMainContactProjection;
+import com.korur.oba.apps.otak.relation.dto.projection.RelationNameProjection;
 import com.korur.oba.apps.otak.relation.entity.Relation;
 
 /**
@@ -88,4 +90,39 @@ public interface RelationRepository extends JpaRepository<Relation, UUID>, JpaSp
             """, nativeQuery = true)
     List<RelationMainContactProjection> findMainContacts(@Param("organizationId") UUID organizationId,
                                                          @Param("relationIds") Collection<UUID> relationIds);
+
+    /**
+     * Reads the id and name of the given relations of the organization in one query, for the
+     * relation column of a page of documents. A relation of another organization is left out.
+     *
+     * @param organizationId the organization
+     * @param relationIds    the relations, not empty
+     * @return one row per relation found
+     */
+    @Query("SELECT r.id AS id, r.name AS name FROM Relation r "
+            + "WHERE r.organizationId = :organizationId AND r.id IN :relationIds")
+    List<RelationNameProjection> findNames(@Param("organizationId") UUID organizationId,
+                                           @Param("relationIds") Collection<UUID> relationIds);
+
+    /**
+     * Reads every mail of a relation with the title of the outreach that sends it, in one
+     * native query over otak.mails and otak.outreaches, as {@link #findMainContacts} reads
+     * otak.contacts: the relation's files and snapshots list needs only these two columns.
+     *
+     * @param organizationId the organization
+     * @param relationId     the relation
+     * @return one row per mail of the relation, in no particular order
+     */
+    @Query(value = """
+            SELECT m.id AS mailId,
+                   o.title AS outreachTitle
+            FROM otak.mails m
+            LEFT JOIN otak.outreaches o
+                   ON o.mail_id = m.id
+                  AND o.organization_id = m.organization_id
+            WHERE m.organization_id = :organizationId
+              AND m.relation_id = :relationId
+            """, nativeQuery = true)
+    List<RelationMailProjection> findMails(@Param("organizationId") UUID organizationId,
+                                           @Param("relationId") UUID relationId);
 }

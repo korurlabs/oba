@@ -131,6 +131,37 @@ public class DocumentFileStorage {
     }
 
     /**
+     * Copies a stored HTML and PDF blob to two new blobs, so a document made from a template
+     * owns files of its own and a later change to the template never reaches it. Both blobs
+     * are read before the first upload, and an uploaded HTML copy is deleted again when the PDF
+     * upload fails, so a failed call leaves no blob behind.
+     *
+     * Called by
+     * {@link com.korur.oba.shrine.document.service.document.impl.DocumentServiceImpl#create}.
+     *
+     * @param htmlUrl the unsigned URL of the HTML blob to copy
+     * @param pdfUrl  the unsigned URL of the PDF blob to copy
+     * @return the unsigned URLs of the new blobs
+     * @throws IntegrationErrorException {@link ExceptionDomainAzureError#UPS_AZURE_BLOB_DOWNLOAD} (AZR_UPS_002)
+     *         when a blob can not be read, or {@link ExceptionDomainAzureError#UPS_AZURE_BLOB_UPLOAD}
+     *         (AZR_UPS_001) when a copy can not be uploaded
+     */
+    public StoredDocumentFiles copy(String htmlUrl, String pdfUrl) {
+        byte[] htmlContent = azureBlobStorageQueryService.downloadPrivateBlob(blobName(htmlUrl));
+        byte[] pdfContent = azureBlobStorageQueryService.downloadPrivateBlob(blobName(pdfUrl));
+
+        String newHtmlUrl = upload(DocumentFileConstant.HTML_EXTENSION, htmlContent);
+        try {
+            String newPdfUrl = upload(DocumentFileConstant.PDF_EXTENSION, pdfContent);
+            return new StoredDocumentFiles(newHtmlUrl, newPdfUrl);
+        } catch (RuntimeException e) {
+            // The upload already logged the failure; only the HTML copy it leaves behind is cleaned up here.
+            deleteQuietly(newHtmlUrl);
+            throw e;
+        }
+    }
+
+    /**
      * Reads the bytes of a stored PDF blob. No content check runs, because the file passed
      * {@link #store} when it was uploaded. The blob is only read; the caller stores the bytes
      * under a new name, so the copy and the template never share a blob.

@@ -435,7 +435,7 @@ class DocumentTemplateServiceImplUnitTest {
 
         private AttachmentResponse response() {
             return new AttachmentResponse(UUID.randomUUID(), "url", "x", "application/pdf", 3L,
-                    StorageEntityType.MAIL, mailId, null, null, null);
+                    StorageEntityType.MAIL, mailId, null, null, null, null);
         }
 
         @Test

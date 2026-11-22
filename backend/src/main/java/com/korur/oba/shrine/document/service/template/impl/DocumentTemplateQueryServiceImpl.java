@@ -139,6 +139,14 @@ public class DocumentTemplateQueryServiceImpl implements DocumentTemplateQuerySe
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean existsByLegalEntity(UUID organizationId, UUID legalEntityId) {
+        return documentTemplateRepository.existsByOrganizationIdAndLegalEntityId(organizationId, legalEntityId);
+    }
+
+    /**
      * Maps each legal entity id of the organization to its short name, for the rows of one
      * page. The organization holds a handful of legal entities, so one unpaged read serves
      * the whole page; it is skipped when no row names a legal entity.

@@ -6,7 +6,9 @@ import org.springframework.data.domain.Page;
 // 2. Third-party
 
 // 3. Java SDK
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 // 4. Internal
@@ -81,4 +83,31 @@ public interface RelationQueryService {
      *         when no relation has the id
      */
     Relation getEntityById(UUID relationId);
+
+    /**
+     * Reads the names of the given relations of the organization in one query, for the
+     * relation column of a page of documents. A relation of another organization or a deleted
+     * one is absent from the result.
+     *
+     * Called by {@link com.korur.oba.shrine.document.mapper.document.DocumentMapperHelper#relationNames}.
+     *
+     * @param organizationId the organization
+     * @param relationIds    the relations
+     * @return the name per relation found; empty for no ids
+     */
+    Map<UUID, String> getNames(UUID organizationId, Collection<UUID> relationIds);
+
+    /**
+     * Reads the mails of a relation with the title of the outreach that sends each one, in one
+     * query. No access check runs here; the caller has checked READ on the relation.
+     *
+     * Called by {@link com.korur.oba.apps.otak.relation.service.impl.RelationAttachmentQueryServiceImpl}
+     * and {@link com.korur.oba.shrine.document.mapper.document.DocumentMapperHelper#outreachTitles}.
+     *
+     * @param organizationId the organization
+     * @param relationId     the relation
+     * @return the outreach title per mail id, null for a mail no outreach names; empty when the relation
+     *         has no mails
+     */
+    Map<UUID, String> getMailOutreachTitles(UUID organizationId, UUID relationId);
 }

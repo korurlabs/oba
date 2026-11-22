@@ -35,6 +35,7 @@ import com.korur.oba.apps.otak.relation.dto.response.RelationOwnerCandidateRespo
 import com.korur.oba.apps.otak.relation.enums.RelationType;
 import com.korur.oba.apps.otak.relation.dto.request.RelationQueryRequest;
 import com.korur.oba.apps.otak.relation.dto.response.RelationListResponse;
+import com.korur.oba.apps.otak.relation.service.RelationAttachmentQueryService;
 import com.korur.oba.apps.otak.relation.service.RelationQueryService;
 import com.korur.oba.apps.otak.relation.service.RelationService;
 import com.korur.oba.dojo.dto.CustomResponse;
@@ -54,13 +55,17 @@ class RelationControllerUnitTest {
     @Mock
     private RelationQueryService relationQueryService;
 
+    @Mock
+    private RelationAttachmentQueryService relationAttachmentQueryService;
+
     private RelationController controller;
 
     private User user;
 
     @BeforeEach
     void setUp() {
-        controller = new RelationController(relationService, relationQueryService, new LoggingService());
+        controller = new RelationController(relationService, relationQueryService, relationAttachmentQueryService,
+                new LoggingService());
         user = User.builder().build();
         user.setId(UUID.randomUUID());
     }
@@ -73,6 +78,7 @@ class RelationControllerUnitTest {
                 "listRelationOwnerCandidates", OrganizationMemberRole.MEMBER,
                 "createRelation", OrganizationMemberRole.MEMBER,
                 "getRelation", OrganizationMemberRole.MEMBER,
+                "listRelationAttachments", OrganizationMemberRole.MEMBER,
                 "updateRelation", OrganizationMemberRole.MEMBER,
                 "changeRelationStage", OrganizationMemberRole.MEMBER,
                 "changeRelationType", OrganizationMemberRole.MEMBER,
