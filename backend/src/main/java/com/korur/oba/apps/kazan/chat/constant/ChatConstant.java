@@ -285,6 +285,11 @@ public final class ChatConstant {
     // ── Paging and search ────────────────────────────────────────────────────
 
     /**
+     * Smallest page of messages, pins or threads.
+     */
+    public static final int MIN_PAGE_SIZE = 1;
+
+    /**
      * Largest page of messages, pins or threads.
      */
     public static final int MAX_PAGE_SIZE = 50;
