@@ -5,7 +5,7 @@ import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import Image from '@tiptap/extension-image';
 import { Markdown } from 'tiptap-markdown';
-import { serializeImageMarkdown } from './markdown-editor';
+import { serializeImageMarkdown, syncExternalValue } from './markdown-editor';
 
 // The editor's Markdown settings with the image serializer under test. The
 // documents are built as JSON, so no DOM is needed to parse them.
@@ -125,5 +125,105 @@ describe('serializeImageMarkdown', () => {
     expect(toMarkdown([paragraph('Intro'), image('a'), paragraph('outro')])).toBe(
       `Intro\n\n${tag('a')}\n\noutro`,
     );
+  });
+});
+
+// A stand-in editor: its Markdown and the setContent calls are all the sync reads and makes.
+function fakeEditor(initial: string) {
+  const calls: { content: string; emitUpdate: boolean | undefined }[] = [];
+  let markdown = initial;
+  const editor = {
+    storage: { markdown: { getMarkdown: () => markdown } },
+    commands: {
+      setContent: (content: string, options?: { emitUpdate?: boolean }) => {
+        calls.push({ content, emitUpdate: options?.emitUpdate });
+        markdown = content;
+        return true;
+      },
+    },
+  };
+  return {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    editor: editor as any,
+    calls,
+    type: (next: string) => {
+      markdown = next;
+    },
+  };
+}
+
+describe('syncExternalValue', () => {
+  test('a link appended by the form shows in the editor after an update that changed nothing', () => {
+    const { editor, calls } = fakeEditor('Body');
+    const synced = { current: 'Body' as string | null };
+    // The editor reports its unchanged Markdown, as it does when it is made
+    // editable; the form value stays the same, so no sync runs for it.
+    synced.current = 'Body';
+
+    syncExternalValue(editor, 'Body\n\n[file.pdf](https://files/file.pdf)', synced);
+
+    expect(calls).toEqual([
+      { content: 'Body\n\n[file.pdf](https://files/file.pdf)', emitUpdate: false },
+    ]);
+  });
+
+  test('the editor\'s own change echoed back by the form leaves the content alone', () => {
+    const { editor, calls, type } = fakeEditor('');
+    const synced = { current: '' as string | null };
+    type('Typed');
+    synced.current = 'Typed';
+
+    syncExternalValue(editor, 'Typed', synced);
+
+    expect(calls).toEqual([]);
+  });
+
+  test('a reset followed by a value typed earlier still reaches the editor', () => {
+    const { editor, calls, type } = fakeEditor('');
+    const synced = { current: '' as string | null };
+    type('Draft');
+    synced.current = 'Draft';
+
+    syncExternalValue(editor, '', synced);
+    syncExternalValue(editor, 'Draft', synced);
+
+    expect(calls).toEqual([
+      { content: '', emitUpdate: false },
+      { content: 'Draft', emitUpdate: false },
+    ]);
+  });
+
+  test('a value the editor already shows is not set again', () => {
+    const { editor, calls } = fakeEditor('Same');
+    const synced = { current: null as string | null };
+
+    syncExternalValue(editor, 'Same', synced);
+
+    expect(calls).toEqual([]);
+    expect(synced.current).toBe('Same');
+  });
+});
+
+describe('editable switch', () => {
+  test('switching editable without an update event reports nothing to onChange', () => {
+    let updates = 0;
+    const editor = new Editor({
+      extensions: [StarterKit, Markdown],
+      content: { type: 'doc', content: [paragraph('Body')] },
+      onUpdate: () => {
+        updates += 1;
+      },
+    });
+    try {
+      editor.setEditable(false, false);
+      editor.setEditable(true, false);
+      expect(updates).toBe(0);
+      // Without the second argument Tiptap reports an update, which once made the editor
+      // skip the next value the form set.
+      editor.setEditable(false);
+      expect(updates).toBe(1);
+    } finally {
+      editor.destroy();
+    }
   });
 });

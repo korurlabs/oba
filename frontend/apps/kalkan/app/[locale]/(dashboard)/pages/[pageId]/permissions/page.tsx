@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { auth } from "@oba/shared/libs/auth";
 import { makeQueryClient } from "@oba/shared/providers/query-client";
@@ -21,15 +22,15 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function PagePermissionsPage({
   params,
 }: {
-  params: Promise<{ pageId: string }>;
+  params: Promise<{ locale: string; pageId: string }>;
 }) {
-  const { pageId } = await params;
+  const { locale, pageId } = await params;
   const session = await auth();
   const organizationId = session?.user?.defaultOrganizationId;
   const queryClient = makeQueryClient();
 
-  if (organizationId) {
-    await prefetchPage(queryClient, organizationId, pageId);
+  if (organizationId && !(await prefetchPage(queryClient, organizationId, pageId, locale))) {
+    notFound();
   }
 
   return (

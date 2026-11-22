@@ -69,6 +69,14 @@
       "description": "Vraag een beheerder van de organisatie om haar in te richten.",
       "adminDescription": "Richt haar in om pagina's toe te voegen.",
       "action": "Sectie inrichten"
+    },
+    "inTrash": {
+      "title": "Deze sectie ligt in de prullenbak",
+      "description": "Haar pagina is op {date} door {name} verwijderd, met alle pagina's eronder. Herstel haar om de sectie terug te brengen.",
+      "descriptionUnknown": "Haar pagina is op {date} verwijderd, met alle pagina's eronder. Herstel haar om de sectie terug te brengen.",
+      "restore": "Sectie herstellen",
+      "openTrash": "Prullenbak openen",
+      "loadError": "De prullenbak kon niet worden geladen"
     }
   },
   "pages": {
