@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.UUID;
 
 // 4. Internal
+import com.korur.oba.apps.kalkan.page.entity.KalkanPage;
 import com.korur.oba.apps.kalkan.page.repository.KalkanPageRepository;
 import com.korur.oba.apps.kalkan.support.AbstractKalkanIT;
 
@@ -181,6 +182,23 @@ class KalkanPageSlugIT extends AbstractKalkanIT {
         }
 
         @Test
+        void updatePage_renameRootToDeletedRootSlug_returns409AndTheDeletedRootStaysRestorable() throws Exception {
+            String rootId = createdId(admin, null, "handbook");
+            String deletedId = createdId(admin, null, "isms");
+            deletePage(admin, deletedId).andExpect(status().isOk());
+
+            updatePage(admin, rootId, "{\"slug\":\"isms\",\"version\":0}")
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.error.code").value("KLK_STA_001"))
+                    .andExpect(jsonPath("$.error.errorValues.slug").value("isms"))
+                    .andExpect(jsonPath("$.error.errorValues.deletedPageId").value(deletedId));
+
+            restorePage(admin, deletedId)
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.id").value(deletedId));
+        }
+
+        @Test
         void updatePage_renameChildToSiblingSlug_returns409() throws Exception {
             String rootId = createdId(admin, null, "isms");
             createdId(admin, rootId, "policies");
@@ -234,8 +252,12 @@ class KalkanPageSlugIT extends AbstractKalkanIT {
         void restorePage_rootSlugTakenMeanwhile_returns409() throws Exception {
             String rootId = createdId(admin, null, "isms");
             deletePage(admin, rootId).andExpect(status().isOk());
+            // The API refuses a root the slug of a deleted root, so the live root is written directly,
+            // as rows from before that rule hold it.
             String otherId = createdId(admin, null, "handbook");
-            updatePage(admin, otherId, "{\"slug\":\"isms\",\"version\":0}").andExpect(status().isOk());
+            KalkanPage other = kalkanPageRepository.findById(UUID.fromString(otherId)).orElseThrow();
+            other.setSlug("isms");
+            kalkanPageRepository.saveAndFlush(other);
 
             restorePage(admin, rootId)
                     .andExpect(status().isConflict())

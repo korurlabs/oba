@@ -125,6 +125,7 @@ public class KalkanPageServiceImpl implements KalkanPageService {
         if (slugChanged) {
             if (page.getParent() == null) {
                 requireNotReservedRootSlug(organizationId, request.slug());
+                requireRootSlugNotInTrash(organizationId, request.slug());
             }
             requireSlugFree(organizationId, page.getParent(), request.slug(), page.getId());
         }
@@ -505,8 +506,9 @@ public class KalkanPageServiceImpl implements KalkanPageService {
     }
 
     /**
-     * A deleted root keeps its slug: a second root with it would leave the section split in two
-     * and make the old root's restore fail, so the deleted root has to be restored instead.
+     * A deleted root keeps its slug: a second root with it, created or renamed, would leave the
+     * section split in two and make the old root's restore fail, so the deleted root has to be
+     * restored instead.
      */
     private void requireRootSlugNotInTrash(UUID organizationId, String slug) {
         Optional<UUID> deletedRootId = kalkanPageRepository.findDeletedRootIdBySlug(organizationId, slug);
