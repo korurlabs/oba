@@ -36,14 +36,15 @@ import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
  * Proves, through the real security chain and the blob store, that the files of a mail and of a relation go
  * through /storage/attachments under their own rules: a mail is written by an ADMIN and locked once its outreach
  * is SENT, a relation is written by a MEMBER and refused to a GUEST, another organization's mail or relation is
- * refused before anything is stored, the same file twice on one parent is refused, and a blob that two rows
- * share survives the delete of one of them.
+ * refused before anything is stored, another organization's attachment is not found on delete, the same file
+ * twice on one parent is refused, and a blob that two rows share survives the delete of one of them.
  */
 class OtakAttachmentAccessIT extends AbstractOtakDocumentsIT {
 
     private static final String ATTACHMENTS_PATH = "/storage/attachments";
     private static final String ORGANIZATION_HEADER = "X-Organization-ID";
     private static final String ORGANIZATION_MISMATCH = "APP_SEC_002";
+    private static final String FILE_NOT_FOUND = "STG_NOT_001";
     private static final String ROLE_TOO_LOW = "ORG_SEC_003";
     private static final String MAIL_SENT = "OTK_STA_011";
 
@@ -226,7 +227,7 @@ class OtakAttachmentAccessIT extends AbstractOtakDocumentsIT {
     }
 
     @Test
-    void mail_ofAnotherOrganizationAnswers403OrganizationMismatchAndStoresNothing() throws Exception {
+    void mail_ofAnotherOrganization_listAndUploadAnswer403_deleteAnswers404_andNothingChanges() throws Exception {
         String otherRelationId = createRelation(otherTenant, otherAdmin, "Other " + uniqueSuffix());
         String otherContactId = createContact(otherTenant, otherAdmin, otherRelationId,
                 "x" + uniqueSuffix() + "@fabrikam.example");
@@ -239,11 +240,13 @@ class OtakAttachmentAccessIT extends AbstractOtakDocumentsIT {
         MvcResult listed = list(tenant, admin, "MAIL", otherMailId).andExpect(status().isForbidden()).andReturn();
         MvcResult uploaded = upload(tenant, admin, "MAIL", otherMailId, "%PDF cross " + uniqueSuffix())
                 .andExpect(status().isForbidden()).andReturn();
-        MvcResult deleted = remove(tenant, admin, otherAttachmentId).andExpect(status().isForbidden()).andReturn();
+        // The attachment is looked up within the request organization, so another organization's one is not
+        // found and its existence is not revealed.
+        MvcResult deleted = remove(tenant, admin, otherAttachmentId).andExpect(status().isNotFound()).andReturn();
 
         assertThat(listed.getResponse().getContentAsString()).contains(ORGANIZATION_MISMATCH);
         assertThat(uploaded.getResponse().getContentAsString()).contains(ORGANIZATION_MISMATCH);
-        assertThat(deleted.getResponse().getContentAsString()).contains(ORGANIZATION_MISMATCH);
+        assertThat(deleted.getResponse().getContentAsString()).contains(FILE_NOT_FOUND);
         assertThat(attachmentsOf(otherMailId)).isEqualTo(1L);
         verify(azureBlobStorageService, never()).uploadFile(anyString(), any(byte[].class));
         verify(azureBlobStorageService, never()).deleteFile(anyString());
@@ -323,11 +326,12 @@ class OtakAttachmentAccessIT extends AbstractOtakDocumentsIT {
         String url = jdbcTemplate.queryForObject("SELECT url FROM shrine.attachments WHERE id = ?::uuid",
                 String.class, relationAttachmentId);
         UUID mailAttachmentId = jdbcTemplate.queryForObject("""
-                INSERT INTO shrine.attachments (url, file_name, content_type, file_size, entity_type, entity_id)
+                INSERT INTO shrine.attachments (url, file_name, content_type, file_size, entity_type, entity_id,
+                                                organization_id)
                 VALUES (?, 'offer.pdf', 'application/pdf', 10,
-                        'MAIL'::shrine_storage_entity_type_enum, ?::uuid)
+                        'MAIL'::shrine_storage_entity_type_enum, ?::uuid, ?)
                 RETURNING id
-                """, UUID.class, url, mailId);
+                """, UUID.class, url, mailId, tenant.organization().getId());
         clearInvocations(azureBlobStorageService);
 
         remove(tenant, member, relationAttachmentId).andExpect(status().isOk());
@@ -343,10 +347,11 @@ class OtakAttachmentAccessIT extends AbstractOtakDocumentsIT {
         String url = jdbcTemplate.queryForObject("SELECT url FROM shrine.attachments WHERE id = ?::uuid",
                 String.class, relationAttachmentId);
         jdbcTemplate.update("""
-                INSERT INTO shrine.attachments (url, file_name, content_type, file_size, entity_type, entity_id)
+                INSERT INTO shrine.attachments (url, file_name, content_type, file_size, entity_type, entity_id,
+                                                organization_id)
                 VALUES (?, 'offer.pdf', 'application/pdf', 10,
-                        'MAIL'::shrine_storage_entity_type_enum, ?::uuid)
-                """, url, mailId);
+                        'MAIL'::shrine_storage_entity_type_enum, ?::uuid, ?)
+                """, url, mailId, tenant.organization().getId());
         clearInvocations(azureBlobStorageService);
 
         mockMvc.perform(in(tenant, delete(OUTREACHES_PATH + "/" + outreachId), admin.jwt(), null))

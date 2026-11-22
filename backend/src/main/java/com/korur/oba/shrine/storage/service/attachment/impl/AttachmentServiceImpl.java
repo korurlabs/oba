@@ -95,7 +95,8 @@ public class AttachmentServiceImpl implements AttachmentService {
      *
      * The access check runs before Pass 1, once per distinct parent in the
      * batch, so a refused parent costs neither a hash, a duplicate query nor
-     * an Azure upload.
+     * an Azure upload. Each row takes its organization from organizationId,
+     * which the check has proved every parent belongs to.
      *
      * @param user the authenticated user
      * @param organizationId the organization of the request, which every parent must belong to
@@ -134,7 +135,7 @@ public class AttachmentServiceImpl implements AttachmentService {
             attachmentValidator.ensureFileNameMatches(file, request);
 
             String hash = attachmentHashHelper.computeHash(file);
-            attachmentValidator.ensureFileNotDuplicate(file, request, hash, seenHashes);
+            attachmentValidator.ensureFileNotDuplicate(organizationId, file, request, hash, seenHashes);
             hashes.add(hash);
         }
 
@@ -142,7 +143,7 @@ public class AttachmentServiceImpl implements AttachmentService {
         // and persist in a single saveAll so the database side is one round-trip.
         List<Attachment> attachments = new ArrayList<>(files.size());
         for (int i = 0; i < files.size(); i++) {
-            attachments.add(buildAttachment(files.get(i), requests.get(i), hashes.get(i)));
+            attachments.add(buildAttachment(organizationId, files.get(i), requests.get(i), hashes.get(i)));
         }
 
         List<Attachment> saved = attachmentRepository.saveAll(attachments);
@@ -161,7 +162,8 @@ public class AttachmentServiceImpl implements AttachmentService {
      *
      * The order matches uploadAttachments: the WRITE check first, then the empty
      * and duplicate checks, and only then the blob upload, so a refused request
-     * writes nothing to Azure.
+     * writes nothing to Azure. The row takes its organization from
+     * organizationId, which the check has proved the parent belongs to.
      *
      * @param user the authenticated user
      * @param organizationId the organization of the request, which the parent must belong to
@@ -183,10 +185,10 @@ public class AttachmentServiceImpl implements AttachmentService {
         attachmentValidator.ensureContentNotEmpty(content);
         AttachmentCreateRequest request = new AttachmentCreateRequest(content.fileName(), entityType, entityId);
         String hash = attachmentHashHelper.computeHash(content.content());
-        attachmentValidator.ensureStoredContentNotDuplicate(request, hash);
+        attachmentValidator.ensureStoredContentNotDuplicate(organizationId, request, hash);
 
         Attachment saved = attachmentRepository.save(
-                buildAttachment(request, content.contentType(), content.content(), hash));
+                buildAttachment(organizationId, request, content.contentType(), content.content(), hash));
 
         loggingService.observe(LOG_PREFIX, LogLayer.SERVICE,
                 AttachmentServiceLogConstant.ATTACHMENT_STORED_CONTENT, content.fileName(), saved.getId());
@@ -207,7 +209,8 @@ public class AttachmentServiceImpl implements AttachmentService {
         loggingService.observe(LOG_PREFIX, LogLayer.SERVICE,
                 AttachmentServiceLogConstant.ATTACHMENT_DELETING, attachmentId);
 
-        Attachment attachment = attachmentRepository.findById(attachmentId)
+        // An attachment of another organization is not found, so its existence is not revealed.
+        Attachment attachment = attachmentRepository.findByIdAndOrganizationId(attachmentId, organizationId)
                 .orElseThrow(() -> new NotFoundException(ExceptionDomainStorageError.NOT_FILE_FOUND,
                         Map.of(StorageConstant.FIELD_ATTACHMENT_ID, attachmentId.toString())));
 
@@ -244,7 +247,7 @@ public class AttachmentServiceImpl implements AttachmentService {
      * The DB-first ordering deviates from the per-attachment deleteAttachment(UUID)
      * path -- that path is interactive and prefers to fail loudly on a blob error;
      * this cascade is invoked as a side effect of a higher-level delete (for example
-     * invoice delete) where surfacing a 5xx for a transient Azure hiccup would
+     * a relation delete) where surfacing a 5xx for a transient Azure hiccup would
      * leave the user unable to delete a draft.
      */
     @Override
@@ -316,7 +319,8 @@ public class AttachmentServiceImpl implements AttachmentService {
         return attachmentRepository.existsByUrl(attachment.getUrl());
     }
 
-    private Attachment buildAttachment(MultipartFile file, AttachmentCreateRequest request, String hash) {
+    private Attachment buildAttachment(UUID organizationId, MultipartFile file, AttachmentCreateRequest request,
+                                       String hash) {
         byte[] content;
         try {
             content = file.getBytes();
@@ -326,15 +330,15 @@ public class AttachmentServiceImpl implements AttachmentService {
                     e, request.fileName(), request.entityType(), request.entityId());
             throw new IntegrationErrorException(ExceptionDomainAzureError.UPS_AZURE_BLOB_UPLOAD);
         }
-        return buildAttachment(request, file.getContentType(), content, hash);
+        return buildAttachment(organizationId, request, file.getContentType(), content, hash);
     }
 
     /**
      * Uploads the content as a new blob and builds the attachment row for it,
-     * with its size, hash and, for an image, its dimensions.
+     * with its organization, size, hash and, for an image, its dimensions.
      */
-    private Attachment buildAttachment(AttachmentCreateRequest request, String contentType, byte[] content,
-                                       String hash) {
+    private Attachment buildAttachment(UUID organizationId, AttachmentCreateRequest request, String contentType,
+                                       byte[] content, String hash) {
         try {
             // The blob name is a fresh UUID per upload (with the original extension preserved so
             // Azure returns the correct Content-Type on download). Using the original filename --
@@ -352,6 +356,7 @@ public class AttachmentServiceImpl implements AttachmentService {
                     .fileSize((long) content.length)
                     .entityType(request.entityType())
                     .entityId(request.entityId())
+                    .organizationId(organizationId)
                     .fileHash(hash)
                     .build();
             applyImageDimensions(attachment, content);

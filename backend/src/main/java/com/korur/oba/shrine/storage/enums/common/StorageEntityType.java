@@ -11,8 +11,7 @@ import java.util.Optional;
 import com.korur.oba.shrine.access.enums.ResourceAccessType;
 
 /**
- * Entity types that can have attached storage files (attachments or photos).
- * Shared across attachment and photo sub-domains.
+ * Entity types that can have attached storage files.
  *
  * uniqueContentAcrossType says whether an upload is refused when the same
  * content is already attached to any entity of the type. Chat messages and
@@ -27,14 +26,12 @@ import com.korur.oba.shrine.access.enums.ResourceAccessType;
  * the same content.
  *
  * resourceAccessType names the {@link ResourceAccessType} whose access rules
- * guard the attachments of the type. A type without one has no rule that could
- * tie its files to an organization, so its attachments are refused.
+ * guard the attachments of the type. Every current type has one; a type added
+ * without one would have no rule that could tie its files to an organization,
+ * so its attachments are refused.
  */
 @AllArgsConstructor
 public enum StorageEntityType {
-    ORGANIZATION("ORGANIZATION", true, false, null),
-    USER("USER", true, false, null),
-    INVOICE("INVOICE", true, false, null),
     TICKET("TICKET", true, false, ResourceAccessType.TICKET),
     CHAT_MESSAGE("CHAT_MESSAGE", false, false, ResourceAccessType.CHAT_MESSAGE),
     KALKAN_PAGE("KALKAN_PAGE", false, true, ResourceAccessType.KALKAN_PAGE),

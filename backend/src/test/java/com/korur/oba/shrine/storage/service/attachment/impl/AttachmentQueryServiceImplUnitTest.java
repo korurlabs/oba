@@ -114,13 +114,13 @@ class AttachmentQueryServiceImplUnitTest {
                     "file", "doc.pdf", "application/pdf", "content".getBytes());
 
             when(attachmentHashHelper.computeHash(file)).thenReturn(FAKE_HASH);
-            when(attachmentRepository.existsByEntityTypeAndFileHash(
-                    eq(StorageEntityType.TICKET), anyString()))
+            when(attachmentRepository.existsByEntityTypeAndFileHashAndOrganizationId(
+                    eq(StorageEntityType.TICKET), anyString(), eq(organizationId)))
                     .thenReturn(true);
             when(attachmentMapper.toExistsResponse(true)).thenReturn(new AttachmentExistsResponse(true));
 
             // Act
-            AttachmentExistsResponse response = attachmentQueryServiceImpl.checkAttachmentExists(request, file);
+            AttachmentExistsResponse response = attachmentQueryServiceImpl.checkAttachmentExists(organizationId, request, file);
 
             // Assert
             assertTrue(response.exists());
@@ -137,13 +137,13 @@ class AttachmentQueryServiceImplUnitTest {
                     "file", "doc.pdf", "application/pdf", "content".getBytes());
 
             when(attachmentHashHelper.computeHash(file)).thenReturn(FAKE_HASH);
-            when(attachmentRepository.existsByEntityTypeAndFileHash(
-                    eq(StorageEntityType.TICKET), anyString()))
+            when(attachmentRepository.existsByEntityTypeAndFileHashAndOrganizationId(
+                    eq(StorageEntityType.TICKET), anyString(), eq(organizationId)))
                     .thenReturn(false);
             when(attachmentMapper.toExistsResponse(false)).thenReturn(new AttachmentExistsResponse(false));
 
             // Act
-            AttachmentExistsResponse response = attachmentQueryServiceImpl.checkAttachmentExists(request, file);
+            AttachmentExistsResponse response = attachmentQueryServiceImpl.checkAttachmentExists(organizationId, request, file);
 
             // Assert
             assertFalse(response.exists());
@@ -160,7 +160,7 @@ class AttachmentQueryServiceImplUnitTest {
             when(attachmentMapper.toExistsResponse(false)).thenReturn(new AttachmentExistsResponse(false));
 
             // Act
-            AttachmentExistsResponse response = attachmentQueryServiceImpl.checkAttachmentExists(request, file);
+            AttachmentExistsResponse response = attachmentQueryServiceImpl.checkAttachmentExists(organizationId, request, file);
 
             // Assert
             assertFalse(response.exists());
@@ -180,7 +180,7 @@ class AttachmentQueryServiceImplUnitTest {
             when(attachmentMapper.toExistsResponse(false)).thenReturn(new AttachmentExistsResponse(false));
 
             // Act
-            AttachmentExistsResponse response = attachmentQueryServiceImpl.checkAttachmentExists(request, file);
+            AttachmentExistsResponse response = attachmentQueryServiceImpl.checkAttachmentExists(organizationId, request, file);
 
             // Assert
             assertFalse(response.exists());
@@ -188,18 +188,18 @@ class AttachmentQueryServiceImplUnitTest {
         }
 
         @Test
-        void entityTypeWithoutAccessType_throwsForbiddenBeforeReadingFile() {
-            // Arrange
+        void entityTypeRefusedByTheValidator_throwsForbiddenBeforeReadingFile() {
+            // Arrange: every current type has access rules, so the refusal is the validator's answer
             AttachmentExistsCheckRequest request = new AttachmentExistsCheckRequest(
-                    "doc.pdf", StorageEntityType.INVOICE);
+                    "doc.pdf", StorageEntityType.TICKET);
             MultipartFile file = new MockMultipartFile(
                     "file", "doc.pdf", "application/pdf", "content".getBytes());
-            when(attachmentValidator.ensureEntityTypeAccessible(StorageEntityType.INVOICE))
+            when(attachmentValidator.ensureEntityTypeAccessible(StorageEntityType.TICKET))
                     .thenThrow(new ForbiddenException(ExceptionDomainStorageError.SEC_ENTITY_TYPE_NOT_ATTACHABLE));
 
             // Act & Assert
             assertThrows(ForbiddenException.class,
-                    () -> attachmentQueryServiceImpl.checkAttachmentExists(request, file));
+                    () -> attachmentQueryServiceImpl.checkAttachmentExists(organizationId, request, file));
             verify(attachmentValidator, never()).ensureFileNotEmpty(any());
             verifyNoInteractions(attachmentHashHelper, attachmentRepository, attachmentMapper,
                     resourceAccessQueryService);
@@ -218,8 +218,8 @@ class AttachmentQueryServiceImplUnitTest {
 
             // Act & Assert
             assertThrows(ValidationException.class,
-                    () -> attachmentQueryServiceImpl.checkAttachmentExists(request, file));
-            verify(attachmentRepository, never()).existsByEntityTypeAndFileHash(any(), anyString());
+                    () -> attachmentQueryServiceImpl.checkAttachmentExists(organizationId, request, file));
+            verify(attachmentRepository, never()).existsByEntityTypeAndFileHashAndOrganizationId(any(), anyString(), any());
         }
 
         @Test
@@ -236,8 +236,8 @@ class AttachmentQueryServiceImplUnitTest {
 
             // Act & Assert
             assertThrows(ValidationException.class,
-                    () -> attachmentQueryServiceImpl.checkAttachmentExists(request, file));
-            verify(attachmentRepository, never()).existsByEntityTypeAndFileHash(any(), anyString());
+                    () -> attachmentQueryServiceImpl.checkAttachmentExists(organizationId, request, file));
+            verify(attachmentRepository, never()).existsByEntityTypeAndFileHashAndOrganizationId(any(), anyString(), any());
         }
 
         @Test
@@ -249,17 +249,35 @@ class AttachmentQueryServiceImplUnitTest {
                     "file", "doc.pdf", "application/pdf", "content".getBytes());
 
             when(attachmentHashHelper.computeHash(file)).thenReturn(FAKE_HASH);
-            when(attachmentRepository.existsByEntityTypeAndFileHash(
-                    eq(StorageEntityType.TICKET), anyString()))
+            when(attachmentRepository.existsByEntityTypeAndFileHashAndOrganizationId(
+                    eq(StorageEntityType.TICKET), anyString(), eq(organizationId)))
                     .thenReturn(false);
             when(attachmentMapper.toExistsResponse(false)).thenReturn(new AttachmentExistsResponse(false));
 
             // Act
-            attachmentQueryServiceImpl.checkAttachmentExists(request, file);
+            attachmentQueryServiceImpl.checkAttachmentExists(organizationId, request, file);
 
             // Assert
             verify(attachmentValidator, times(1)).ensureFileNotEmpty(file);
             verify(attachmentValidator, times(1)).ensureFileNameMatches(eq(file), any(AttachmentMetadata.class));
+        }
+
+        @Test
+        void asksOnlyWithinTheRequestOrganization() {
+            // Arrange
+            AttachmentExistsCheckRequest request = new AttachmentExistsCheckRequest(
+                    "doc.pdf", StorageEntityType.TICKET);
+            MultipartFile file = new MockMultipartFile(
+                    "file", "doc.pdf", "application/pdf", "content".getBytes());
+            when(attachmentHashHelper.computeHash(file)).thenReturn(FAKE_HASH);
+            when(attachmentMapper.toExistsResponse(false)).thenReturn(new AttachmentExistsResponse(false));
+
+            // Act
+            attachmentQueryServiceImpl.checkAttachmentExists(organizationId, request, file);
+
+            // Assert
+            verify(attachmentRepository).existsByEntityTypeAndFileHashAndOrganizationId(StorageEntityType.TICKET,
+                    FAKE_HASH, organizationId);
         }
     }
 
@@ -285,7 +303,8 @@ class AttachmentQueryServiceImplUnitTest {
             ticketAccessible();
             Attachment attachment = Attachment.builder().build();
             AttachmentResponse response = mock(AttachmentResponse.class);
-            when(attachmentRepository.findByEntityTypeAndEntityIdOrderByCreatedAtAscIdAsc(StorageEntityType.TICKET, ticketId))
+            when(attachmentRepository.findByEntityTypeAndEntityIdAndOrganizationIdOrderByCreatedAtAscIdAsc(StorageEntityType.TICKET,
+                    ticketId, organizationId))
                     .thenReturn(List.of(attachment));
             when(attachmentMapper.toResponse(attachment)).thenReturn(response);
 
@@ -298,7 +317,8 @@ class AttachmentQueryServiceImplUnitTest {
             InOrder order = inOrder(resourceAccessQueryService, attachmentRepository);
             order.verify(resourceAccessQueryService).verifyResourceAccess(user, organizationId, ResourceAccessType.TICKET, ticketId,
                     ResourceAccessAction.READ);
-            order.verify(attachmentRepository).findByEntityTypeAndEntityIdOrderByCreatedAtAscIdAsc(StorageEntityType.TICKET, ticketId);
+            order.verify(attachmentRepository).findByEntityTypeAndEntityIdAndOrganizationIdOrderByCreatedAtAscIdAsc(StorageEntityType.TICKET,
+                    ticketId, organizationId);
         }
 
         @Test
@@ -318,15 +338,15 @@ class AttachmentQueryServiceImplUnitTest {
         }
 
         @Test
-        void entityTypeWithoutAccessType_throwsForbiddenAndSkipsRepository() {
+        void entityTypeRefusedByTheValidator_throwsForbiddenAndSkipsRepository() {
             // Arrange
             User user = user();
-            when(attachmentValidator.ensureEntityTypeAccessible(StorageEntityType.ORGANIZATION))
+            when(attachmentValidator.ensureEntityTypeAccessible(StorageEntityType.KALKAN_PAGE))
                     .thenThrow(new ForbiddenException(ExceptionDomainStorageError.SEC_ENTITY_TYPE_NOT_ATTACHABLE));
 
             // Act & Assert
             assertThrows(ForbiddenException.class, () -> attachmentQueryServiceImpl.listAttachmentsByEntity(
-                    user, organizationId, StorageEntityType.ORGANIZATION, organizationId));
+                    user, organizationId, StorageEntityType.KALKAN_PAGE, UUID.randomUUID()));
             verifyNoInteractions(attachmentRepository, attachmentMapper);
         }
     }
@@ -360,8 +380,8 @@ class AttachmentQueryServiceImplUnitTest {
             AttachmentResponse firstResponseA = mock(AttachmentResponse.class);
             AttachmentResponse firstResponseB = mock(AttachmentResponse.class);
             Set<UUID> requested = Set.of(first, second, withoutFiles);
-            when(attachmentRepository.findByEntityTypeAndEntityIdInOrderByCreatedAtAscIdAsc(
-                    eq(StorageEntityType.TICKET), any()))
+            when(attachmentRepository.findByEntityTypeAndEntityIdInAndOrganizationIdOrderByCreatedAtAscIdAsc(
+                    eq(StorageEntityType.TICKET), any(), eq(organizationId)))
                     .thenReturn(List.of(secondFile, firstFileA, firstFileB));
             when(attachmentMapper.toResponse(secondFile)).thenReturn(secondResponse);
             when(attachmentMapper.toResponse(firstFileA)).thenReturn(firstResponseA);
@@ -383,8 +403,8 @@ class AttachmentQueryServiceImplUnitTest {
                     ResourceAccessAction.READ);
             order.verify(resourceAccessQueryService).verifyResourceAccess(user, organizationId, ResourceAccessType.TICKET, withoutFiles,
                     ResourceAccessAction.READ);
-            order.verify(attachmentRepository).findByEntityTypeAndEntityIdInOrderByCreatedAtAscIdAsc(
-                    eq(StorageEntityType.TICKET), eq(requested));
+            order.verify(attachmentRepository).findByEntityTypeAndEntityIdInAndOrganizationIdOrderByCreatedAtAscIdAsc(
+                    eq(StorageEntityType.TICKET), eq(requested), eq(organizationId));
             verify(resourceAccessQueryService, times(1)).verifyResourceAccess(user, organizationId, ResourceAccessType.TICKET, first,
                     ResourceAccessAction.READ);
         }
@@ -407,15 +427,15 @@ class AttachmentQueryServiceImplUnitTest {
         }
 
         @Test
-        void entityTypeWithoutAccessType_throwsForbiddenAndSkipsRepository() {
+        void entityTypeRefusedByTheValidator_throwsForbiddenAndSkipsRepository() {
             // Arrange
             User user = user();
-            when(attachmentValidator.ensureEntityTypeAccessible(StorageEntityType.USER))
+            when(attachmentValidator.ensureEntityTypeAccessible(StorageEntityType.CHAT_MESSAGE))
                     .thenThrow(new ForbiddenException(ExceptionDomainStorageError.SEC_ENTITY_TYPE_NOT_ATTACHABLE));
 
             // Act & Assert
             assertThrows(ForbiddenException.class, () -> attachmentQueryServiceImpl.listAttachmentsByEntities(
-                    user, organizationId, StorageEntityType.USER, List.of(UUID.randomUUID())));
+                    user, organizationId, StorageEntityType.CHAT_MESSAGE, List.of(UUID.randomUUID())));
             verifyNoInteractions(attachmentRepository, attachmentMapper);
         }
 
@@ -451,13 +471,13 @@ class AttachmentQueryServiceImplUnitTest {
                     "application/pdf");
             Attachment second = row("https://host/account/container/second-blob.docx", "scope.docx",
                     "application/vnd.openxmlformats");
-            when(attachmentRepository.findByEntityTypeAndEntityIdInOrderByCreatedAtAscIdAsc(StorageEntityType.MAIL,
-                    List.of(mailId))).thenReturn(List.of(first, second));
+            when(attachmentRepository.findByEntityTypeAndEntityIdAndOrganizationIdOrderByCreatedAtAscIdAsc(
+                    StorageEntityType.MAIL, mailId, organizationId)).thenReturn(List.of(first, second));
             when(azureBlobStorageQueryService.downloadPrivateBlob("first-blob.pdf")).thenReturn(new byte[]{1});
             when(azureBlobStorageQueryService.downloadPrivateBlob("second-blob.docx")).thenReturn(new byte[]{2, 2});
 
             List<AttachmentContent> result = attachmentQueryServiceImpl
-                    .getEntityAttachmentContents(StorageEntityType.MAIL, mailId);
+                    .getEntityAttachmentContents(organizationId, StorageEntityType.MAIL, mailId);
 
             assertEquals(2, result.size());
             assertEquals("voorstel.pdf", result.get(0).fileName());
@@ -474,10 +494,10 @@ class AttachmentQueryServiceImplUnitTest {
         @Test
         void noRows_returnsEmptyAndDownloadsNothing() {
             UUID mailId = UUID.randomUUID();
-            when(attachmentRepository.findByEntityTypeAndEntityIdInOrderByCreatedAtAscIdAsc(StorageEntityType.MAIL,
-                    List.of(mailId))).thenReturn(List.of());
+            when(attachmentRepository.findByEntityTypeAndEntityIdAndOrganizationIdOrderByCreatedAtAscIdAsc(
+                    StorageEntityType.MAIL, mailId, organizationId)).thenReturn(List.of());
 
-            assertTrue(attachmentQueryServiceImpl.getEntityAttachmentContents(StorageEntityType.MAIL, mailId)
+            assertTrue(attachmentQueryServiceImpl.getEntityAttachmentContents(organizationId, StorageEntityType.MAIL, mailId)
                     .isEmpty());
 
             verifyNoInteractions(azureBlobStorageQueryService);
