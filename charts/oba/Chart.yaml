@@ -1,7 +1,8 @@
 apiVersion: v2
 name: oba
 description: >-
-  Oba, an open-source work platform: one Spring Boot API and the Kazan,
+  Oba, the open-source agentic operations platform for mission-critical
+  companies: one Spring Boot API and the Kazan,
   Kaya, Kalkan, Otak, Admin and Account web apps. The chart runs each
   component as its own Deployment and Service, with an optional Ingress.
 type: application
