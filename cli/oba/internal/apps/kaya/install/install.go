@@ -336,28 +336,6 @@ func (p *Plan) hooks(opts Options) error {
 	return nil
 }
 
-// withoutKayaGroup returns the hook groups of event without the group whose single hook is
-// `oba kaya hook <command>`, or `kaya hook <command>` of the former kaya CLI, so that a run
-// replaces Kaya's own registration and keeps every other.
-func withoutKayaGroup(hooks *jsonedit.Object, event, command string) ([]json.RawMessage, error) {
-	var groups []json.RawMessage
-	if raw, ok := hooks.Get(event); ok {
-		if err := json.Unmarshal(raw, &groups); err != nil {
-			return nil, fmt.Errorf("hooks.%s is not a list: %w", event, err)
-		}
-	}
-	ours := regexp.MustCompile(`(^|/)(oba'? kaya|kaya'?) hook ` + regexp.QuoteMeta(command) + `$`)
-	kept := make([]json.RawMessage, 0, len(groups)+1)
-	for _, raw := range groups {
-		var group hookGroup
-		if json.Unmarshal(raw, &group) == nil && len(group.Hooks) == 1 && ours.MatchString(group.Hooks[0].Command) {
-			continue
-		}
-		kept = append(kept, raw)
-	}
-	return kept, nil
-}
-
 // sameJSON compares two documents by value, so that a file indented differently from the
 // CLI's output is not rewritten for nothing.
 func sameJSON(a, b []byte) bool {
