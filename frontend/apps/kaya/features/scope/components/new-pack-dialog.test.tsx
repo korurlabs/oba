@@ -66,7 +66,9 @@ describe("NewPackDialog parent choice", () => {
     const html = render("p-village");
     expect(html).toContain("<h2>New pack</h2>");
     expect(html).toContain("Parent");
-    const labels = options(html).map((option: string) => option.replace(/<[^>]*>/g, ""));
+    const labels = options(html).map(
+      (option: string) => /^<option[^>]*>([^<]*)<\/option>$/.exec(option)?.[1] ?? ""
+    );
     expect(labels).toEqual(["None", "kagi", "org", "village"]);
   });
 

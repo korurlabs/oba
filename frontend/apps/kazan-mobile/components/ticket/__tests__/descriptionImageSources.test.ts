@@ -158,6 +158,32 @@ const CASES: readonly (readonly [string, string, readonly string[]])[] = [
     `<img src='${A}'>\n\n<IMG SRC=${B} ALT=x>\n\nText <img alt="y" src="${C}" /> end`,
     [A, B, C],
   ],
+  [
+    "a comment ended by --!> hides only what comes before its end",
+    `<!-- ${tag(B)} --!>\n${tag(A)}\n-->`,
+    [A],
+  ],
+  ["empty comments hide nothing after them", `<!-- --> ${tag(A)}\n\n<!---->${tag(B)}`, [A, B]],
+  [
+    "a script tag split by another tag still opens a script that hides the image",
+    `<scr<script>ipt>${tag(B)}</script> ![a](${A})`,
+    [A],
+  ],
+  [
+    "the text of a script or style element is not markup",
+    `<script>\ndocument.write('${tag(B)}')\n</script>\n\n<style>${tag(C)}</style>\n\n${tag(A)}`,
+    [A],
+  ],
+  [
+    "an event handler attribute does not stop an image from counting",
+    `<img src=${A} onerror=alert(1)>\n\nText <img src="${B}" onerror="alert('x')"> end`,
+    [A, B],
+  ],
+  [
+    "uppercase names and spaced or broken attributes count",
+    `<IMG\n  SRC = "${A}"   ALT='x'  >\n\nText <Img alt=y\tsrc=${B} /> end`,
+    [A, B],
+  ],
   ["a quote continued lazily keeps its images", `> quoted\n![a](${A})\n\n${tag(B)}`, [A, B]],
   [
     "a web-saved description with a pending image",
