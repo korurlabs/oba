@@ -6,7 +6,14 @@ import { parseAsStringLiteral, useQueryState } from "nuqs";
 /** Search-param key of the organization detail tabs. */
 const ORG_DETAIL_TAB_PARAM = "tab";
 
-const ORG_DETAIL_TABS = ["detail", "members", "invitations", "groups", "access"] as const;
+const ORG_DETAIL_TABS = [
+  "detail",
+  "members",
+  "invitations",
+  "legalEntities",
+  "groups",
+  "access",
+] as const;
 
 export type OrgDetailTab = (typeof ORG_DETAIL_TABS)[number];
 

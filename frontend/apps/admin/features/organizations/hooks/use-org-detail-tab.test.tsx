@@ -40,7 +40,7 @@ beforeEach(() => {
 });
 
 describe("useOrgDetailTab", () => {
-  test.each(["detail", "members", "invitations", "groups", "access"])(
+  test.each(["detail", "members", "invitations", "legalEntities", "groups", "access"])(
     "a manager keeps the requested tab %s",
     (tab) => {
       requested = tab;
@@ -55,11 +55,14 @@ describe("useOrgDetailTab", () => {
     expect(readTab(false).activeTab).toBe("detail");
   });
 
-  test.each(["detail", "members", "invitations"])("a non-manager keeps the open tab %s", (tab) => {
-    requested = tab;
+  test.each(["detail", "members", "invitations", "legalEntities"])(
+    "a non-manager keeps the open tab %s",
+    (tab) => {
+      requested = tab;
 
-    expect(readTab(false).activeTab).toBe(tab);
-  });
+      expect(readTab(false).activeTab).toBe(tab);
+    }
+  );
 
   test("setTab passes the tab on to the URL state", () => {
     readTab(true).setTab("access");
