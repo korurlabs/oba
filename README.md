@@ -1,6 +1,6 @@
 # Oba
 
-Oba is an application platform: one API and one web workspace that host several apps sharing the same sign-in, organizations and members.
+Oba is the agentic operations platform for mission-critical companies. It is one API and one web workspace that host several apps sharing the same sign-in, organizations and members.
 
 | App | What it does |
 |---|---|
