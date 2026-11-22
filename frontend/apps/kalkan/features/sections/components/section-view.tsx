@@ -12,7 +12,7 @@ import { useSectionRoot, useSetUpSection } from "@/features/pages/hooks/use-sect
 import { pageErrorText } from "@/features/pages/lib/page-error";
 import { isLevelAtLeast, KalkanLevel } from "@/features/pages/schemas";
 import { useIsOrganizationAdmin, useIsOrganizationMember } from "@/hooks/use-is-organization-admin";
-import { NEW_PAGE_HREF, pageHref } from "@/lib/routes";
+import { newPageHref, pageHref } from "@/lib/routes";
 import type { SectionSlug } from "@/lib/sections";
 import { DeletedPagesCard } from "./deleted-pages-card";
 import { SectionTree } from "./section-tree";
@@ -119,7 +119,7 @@ function NewPageButton({ parentId }: { parentId: string }) {
   const t = useTranslations("sectionTree");
   return (
     <Button asChild>
-      <Link href={{ pathname: NEW_PAGE_HREF, query: { parent: parentId } }}>
+      <Link href={newPageHref(parentId)}>
         <FilePlus aria-hidden="true" />
         {t("newPage")}
       </Link>

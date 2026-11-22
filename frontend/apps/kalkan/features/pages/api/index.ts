@@ -136,17 +136,13 @@ export async function replacePagePermissions(pageId: string, grants: PagePermiss
 
 // ── Organization members ────────────────────────────────────────────
 
-/** The organization's member list; a shared endpoint, not a Kalkan one. */
-const organizationMembersRoute = (organizationId: string) =>
-  `/organizations/${organizationId}/members`;
-
 /**
  * Every member of the organization, active and disabled: the people the
  * access screen can grant a level to. A GUEST may read the list.
  */
 export async function listOrganizationMembers(organizationId: string) {
   const res = await api.get<ApiResponse<OrganizationMember[]>>(
-    organizationMembersRoute(organizationId)
+    API_ROUTES.organizationMembers.list(organizationId)
   );
   return res.data;
 }

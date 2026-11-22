@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader } from "@oba/ui/sky/card";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@oba/ui/sky/table";
 import { ActionEmptyState, PageHeading } from "@/components/page-states";
-import { pageHref } from "@/lib/routes";
+import { pageHref, pagePermissionsHref } from "@/lib/routes";
 import { useOrganizationMembers } from "../hooks/use-organization-members";
 import { usePagePermissions, useReplacePagePermissions } from "../hooks/use-page-permissions";
 import { usePage } from "../hooks/use-pages";
@@ -86,7 +86,7 @@ export function PagePermissionsView({ pageId }: { pageId: string }) {
           action={
             detail.rootId ? (
               <Button asChild variant="outline">
-                <Link href={`${pageHref(detail.rootId)}/permissions`}>{t("onChild.action")}</Link>
+                <Link href={pagePermissionsHref(detail.rootId)}>{t("onChild.action")}</Link>
               </Button>
             ) : null
           }

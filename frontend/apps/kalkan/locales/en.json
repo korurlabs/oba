@@ -249,6 +249,8 @@
     "updatedUnknown": "Updated {date}",
     "edit": "Edit",
     "newChild": "New subpage",
+    "history": "History",
+    "permissions": "Access",
     "delete": "Delete",
     "back": "Back to the overview",
     "notFound": {

@@ -10,8 +10,28 @@ export function pageHref(pageId: string): string {
   return `/pages/${pageId}`;
 }
 
+/** The route that edits a page. */
+export function pageEditHref(pageId: string): string {
+  return `${pageHref(pageId)}/edit`;
+}
+
+/** The access screen of a section; levels are held on root pages only. */
+export function pagePermissionsHref(rootPageId: string): string {
+  return `${pageHref(rootPageId)}/permissions`;
+}
+
+/** The revisions of a page. */
+export function pageHistoryHref(pageId: string): string {
+  return `${pageHref(pageId)}/history`;
+}
+
 /** The route that creates a page. */
 export const NEW_PAGE_HREF = "/pages/new";
+
+/** The route that creates a page under the given parent. */
+export function newPageHref(parentId: string): string {
+  return `${NEW_PAGE_HREF}?${new URLSearchParams({ parent: parentId }).toString()}`;
+}
 
 /** The recently changed pages. */
 export const RECENT_HREF = "/recent";

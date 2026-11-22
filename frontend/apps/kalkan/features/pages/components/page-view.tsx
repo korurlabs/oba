@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { ArrowLeft, FilePlus, Pencil, RotateCcw, Trash2 } from "lucide-react";
+import { ArrowLeft, FilePlus, History, Pencil, RotateCcw, ShieldCheck, Trash2 } from "lucide-react";
 import { isApiError } from "@oba/shared/api/axios";
 import { useDateFormat } from "@oba/shared/i18n/use-date-format";
 import { Link, useRouter } from "@oba/shared/libs/i18n/navigation";
@@ -15,7 +15,14 @@ import { ToggleGroup, ToggleGroupItem } from "@oba/ui/sky/toggle-group";
 import { ActionEmptyState } from "@/components/page-states";
 import { descendantCountOf } from "@/features/sections/lib/tree-moves";
 import { useIsOrganizationMember } from "@/hooks/use-is-organization-admin";
-import { NEW_PAGE_HREF, pageHref, sectionHref } from "@/lib/routes";
+import {
+  newPageHref,
+  pageEditHref,
+  pageHistoryHref,
+  pageHref,
+  pagePermissionsHref,
+  sectionHref,
+} from "@/lib/routes";
 import { isSectionSlug } from "@/lib/sections";
 import { useDeletePage, usePage, usePageTree, useRestorePage, useTrash } from "../hooks/use-pages";
 import { pageErrorText } from "../lib/page-error";
@@ -162,6 +169,10 @@ function PageContent({ page }: { page: PageDetail }) {
 
   // The server refuses a GUEST every write; deleting a section's root takes MANAGE.
   const canEdit = isMember && isLevelAtLeast(page.level, KalkanLevel.EDIT);
+  // Access is set on a section's root, by whoever MANAGEs it.
+  const canManageAccess =
+    isMember && page.parentId === null && isLevelAtLeast(page.level, KalkanLevel.MANAGE);
+  const canSeeHistory = isLevelAtLeast(page.level, KalkanLevel.VIEW);
   const canDelete =
     isMember &&
     isLevelAtLeast(page.level, page.parentId === null ? KalkanLevel.MANAGE : KalkanLevel.EDIT);
@@ -229,16 +240,32 @@ function PageContent({ page }: { page: PageDetail }) {
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
+          {canSeeHistory && (
+            <Button asChild variant="outline">
+              <Link href={pageHistoryHref(page.id)}>
+                <History aria-hidden="true" />
+                {t("history")}
+              </Link>
+            </Button>
+          )}
+          {canManageAccess && (
+            <Button asChild variant="outline">
+              <Link href={pagePermissionsHref(page.id)}>
+                <ShieldCheck aria-hidden="true" />
+                {t("permissions")}
+              </Link>
+            </Button>
+          )}
           {canEdit && (
             <>
               <Button asChild variant="outline">
-                <Link href={{ pathname: NEW_PAGE_HREF, query: { parent: page.id } }}>
+                <Link href={newPageHref(page.id)}>
                   <FilePlus aria-hidden="true" />
                   {t("newChild")}
                 </Link>
               </Button>
               <Button asChild>
-                <Link href={`${pageHref(page.id)}/edit`}>
+                <Link href={pageEditHref(page.id)}>
                   <Pencil aria-hidden="true" />
                   {t("edit")}
                 </Link>

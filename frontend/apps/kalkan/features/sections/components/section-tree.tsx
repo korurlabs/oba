@@ -32,7 +32,7 @@ import { DeletePageDialog } from "@/features/pages/components/delete-page-dialog
 import { useDeletePage } from "@/features/pages/hooks/use-pages";
 import { pageTitle } from "@/features/pages/lib/page-tree";
 import type { PageListItem } from "@/features/pages/schemas";
-import { NEW_PAGE_HREF, pageHref } from "@/lib/routes";
+import { newPageHref, pageEditHref, pageHref } from "@/lib/routes";
 import { useMoveSectionPage } from "../hooks/use-move-section-page";
 import {
   buildNodes,
@@ -276,13 +276,13 @@ function PageRowMenu({
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
-            <Link href={`${pageHref(page.id)}/edit`}>
+            <Link href={pageEditHref(page.id)}>
               <Pencil aria-hidden="true" />
               {t("edit")}
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href={{ pathname: NEW_PAGE_HREF, query: { parent: page.id } }}>
+            <Link href={newPageHref(page.id)}>
               <FilePlus aria-hidden="true" />
               {t("newChild")}
             </Link>
