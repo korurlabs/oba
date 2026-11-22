@@ -23,7 +23,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.otak.documenttemplate.enums.DocumentLanguage;
 import com.korur.oba.apps.otak.exception.ExceptionDomainOtakError;
 import com.korur.oba.apps.otak.mail.dto.request.MailRequest;
 import com.korur.oba.apps.otak.mail.entity.Mail;
@@ -35,6 +34,7 @@ import com.korur.oba.apps.otak.mailtemplate.service.MailTemplateQueryService;
 import com.korur.oba.dojo.exception.enums.ExceptionNotFoundError;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
 import com.korur.oba.shrine.storage.enums.common.StorageEntityType;
 import com.korur.oba.shrine.storage.service.attachment.AttachmentService;
 

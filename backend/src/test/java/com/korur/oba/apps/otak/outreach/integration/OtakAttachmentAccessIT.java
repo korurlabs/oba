@@ -28,7 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.otak.documenttemplate.integration.AbstractOtakDocumentsIT;
+import com.korur.oba.apps.otak.support.AbstractOtakDocumentsIT;
 import com.korur.oba.connect.azure.service.AzureBlobStorageService;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 
@@ -443,7 +443,7 @@ class OtakAttachmentAccessIT extends AbstractOtakDocumentsIT {
         MvcResult result = mockMvc.perform(in(tenant, post(TEMPLATES_PATH + "/" + otherTemplateId + "/attachments"),
                 admin.jwt(), copyBody("RELATION", relationId))).andExpect(status().isNotFound()).andReturn();
 
-        assertThat(result.getResponse().getContentAsString()).contains("OTK_NOT_007");
+        assertThat(result.getResponse().getContentAsString()).contains("DOC_NOT_001");
     }
 
     @Test
