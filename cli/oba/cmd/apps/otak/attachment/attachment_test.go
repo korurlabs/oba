@@ -2,7 +2,6 @@ package attachment
 
 import (
 	"bytes"
-	"encoding/json"
 	"net/http"
 	"net/url"
 	"strings"
@@ -16,11 +15,9 @@ import (
 const (
 	outreachID      = "99999999-9999-4999-8999-999999999999"
 	mailID          = "77777777-7777-4777-8777-777777777777"
-	templateID      = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"
 	attachmentID    = "55555555-5555-4555-8555-555555555555"
 	outreachPath    = "/otak/outreaches/" + outreachID
 	attachmentsPath = "/storage/attachments"
-	copyPath        = "/otak/document-templates/" + templateID + "/attachments"
 )
 
 func outreachJSON(outreachType, mail string) string {
@@ -96,10 +93,11 @@ func TestAttachmentListOfRelation(t *testing.T) {
 
 func TestAttachmentNeedsExactlyOneTarget(t *testing.T) {
 	api := newAttachmentAPI(t, false)
+	file := writeFile(t, t.TempDir(), "a.pdf", "%PDF-1.7")
 	for _, args := range [][]string{
 		{"otak", "attachment", "list"},
 		{"otak", "attachment", "list", "--outreach", outreachID, "--relation", clitest.RelationID},
-		{"otak", "attachment", "add", "--template", templateID},
+		{"otak", "attachment", "add", "--file", file},
 		{"otak", "attachment", "delete", "--id", attachmentID, "--yes"},
 	} {
 		_, _, err := runCLI(t, "", args...)
@@ -164,45 +162,6 @@ func TestAttachmentAddFilesToOutreach(t *testing.T) {
 	}
 }
 
-func TestAttachmentAddTemplateToRelation(t *testing.T) {
-	api := newAttachmentAPI(t, false)
-	api.Respond("POST "+copyPath, http.StatusCreated,
-		`{"data":`+attachmentJSON(attachmentID, "Service sheet.pdf", "application/pdf", "RELATION", clitest.RelationID)+`}`)
-
-	out, _, err := runCLI(t, "", "otak", "attachment", "add", "--relation", clitest.RelationID, "--template", templateID)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if out != "Added attachment "+attachmentID+" (Service sheet.pdf) to relation "+clitest.RelationID+" from template "+templateID+"\n" {
-		t.Errorf("out = %q", out)
-	}
-	req := api.Request("POST " + copyPath)
-	if req.Body != `{"entityType":"RELATION","entityId":"`+clitest.RelationID+`"}` || req.Org != clitest.OrgIDAcme {
-		t.Errorf("body %s org %q", req.Body, req.Org)
-	}
-}
-
-func TestAttachmentAddTemplateToOutreachShowsAPIError(t *testing.T) {
-	api := newAttachmentAPI(t, false)
-	serveMailOutreach(api)
-	api.Handle("POST "+copyPath, func(w http.ResponseWriter, r *http.Request) {
-		var got map[string]string
-		if err := json.NewDecoder(r.Body).Decode(&got); err != nil {
-			t.Errorf("body: %v", err)
-		}
-		if got["entityType"] != "MAIL" || got["entityId"] != mailID {
-			t.Errorf("body = %v", got)
-		}
-		w.WriteHeader(http.StatusConflict)
-		clitest.WriteJSON(w, `{"error":{"code":"OTK_STA_011","message":"The outreach can no longer be changed."}}`)
-	})
-
-	_, _, err := runCLI(t, "", "otak", "attachment", "add", "--outreach", outreachID, "--template", templateID)
-	if err == nil || err.Error() != "OTK_STA_011: The outreach can no longer be changed." {
-		t.Fatalf("err = %v", err)
-	}
-}
-
 func TestAttachmentAddRefusesBadInputBeforeAnyCall(t *testing.T) {
 	api := newAttachmentAPI(t, false)
 	dir := t.TempDir()
@@ -214,8 +173,7 @@ func TestAttachmentAddRefusesBadInputBeforeAnyCall(t *testing.T) {
 		args []string
 		want string
 	}{
-		{"neither", nil, "pass exactly one of --file and --template"},
-		{"both", []string{"--file", a, "--template", templateID}, "pass exactly one of --file and --template"},
+		{"no file", nil, "pass --file with a local file to attach"},
 		{"missing", []string{"--file", dir + "/nope.pdf"}, "failed to read " + dir + "/nope.pdf"},
 		{"directory", []string{"--file", dir}, dir + " is not a regular file"},
 		{"empty", []string{"--file", empty}, "is empty"},

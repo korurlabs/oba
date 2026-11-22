@@ -3,8 +3,8 @@ package mailtemplate
 import (
 	"errors"
 
-	"github.com/korurlabs/oba-cli/internal/apps/otak/docfile"
 	"github.com/korurlabs/oba-cli/internal/dojo/client"
+	"github.com/korurlabs/oba-cli/internal/dojo/docfile"
 )
 
 // PushInput is one push: the .md file and the flags. Without ID a new mail template is created
