@@ -2,6 +2,7 @@ import { api } from "@/lib/api/client";
 import { API_ROUTES } from "@/lib/api-routes";
 import type { ApiResponse } from "@oba/shared/schema";
 import type {
+  KalkanLocale,
   PageCreateRequest,
   PageDetail,
   PageListItem,
@@ -91,17 +92,23 @@ export async function getPageRevision(pageId: string, revisionId: string) {
 
 /**
  * The top page of each deleted subtree the caller can MANAGE, newest first.
- * The server admits a MEMBER or above.
+ * The server admits a MEMBER or above. Titles come in `locale` where the page
+ * has one, else in its first translation.
  */
-export async function listTrash() {
-  const res = await api.get<ApiResponse<PageTrashItem[]>>(API_ROUTES.pages.trash);
+export async function listTrash(locale: KalkanLocale) {
+  const res = await api.get<ApiResponse<PageTrashItem[]>>(API_ROUTES.pages.trash, {
+    params: { locale },
+  });
   return res.data;
 }
 
-/** The live pages the caller can see, most recently changed first; `limit` is 1 to 100. */
-export async function listRecentPages(limit: number) {
+/**
+ * The live pages the caller can see, most recently changed first; `limit` is
+ * 1 to 100. Titles come in `locale` where the page has one.
+ */
+export async function listRecentPages(limit: number, locale: KalkanLocale) {
   const res = await api.get<ApiResponse<PageRecentItem[]>>(API_ROUTES.pages.recent, {
-    params: { limit },
+    params: { limit, locale },
   });
   return res.data;
 }

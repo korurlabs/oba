@@ -14,9 +14,10 @@ export const PAGE_KEYS = {
     [...PAGE_KEYS.all(organizationId), "revisions", pageId] as const,
   revision: (organizationId: string, pageId: string, revisionId: string) =>
     [...PAGE_KEYS.revisions(organizationId, pageId), revisionId] as const,
-  trash: (organizationId: string) => [...PAGE_KEYS.all(organizationId), "trash"] as const,
-  recent: (organizationId: string, limit: number) =>
-    [...PAGE_KEYS.all(organizationId), "recent", limit] as const,
+  trash: (organizationId: string, locale: string) =>
+    [...PAGE_KEYS.all(organizationId), "trash", locale] as const,
+  recent: (organizationId: string, limit: number, locale: string) =>
+    [...PAGE_KEYS.all(organizationId), "recent", limit, locale] as const,
   permissions: (organizationId: string, pageId: string) =>
     [...PAGE_KEYS.all(organizationId), "permissions", pageId] as const,
 };
