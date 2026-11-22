@@ -197,5 +197,84 @@
     "added": "Added in the current text",
     "removed": "Not in the current text",
     "compareTooLarge": "These texts are too long to mark their differences; they are shown side by side."
+  },
+  "sectionTree": {
+    "label": "Pages of {section}",
+    "newPage": "New page",
+    "sectionPage": "Section page",
+    "empty": {
+      "title": "No pages yet",
+      "editorDescription": "Add the first page of this section.",
+      "readerDescription": "Pages added to this section appear here."
+    },
+    "expand": "Expand {title}",
+    "collapse": "Collapse {title}",
+    "compliance": "Compliance",
+    "actions": "Actions for {title}",
+    "dragHandle": "Drag {title} to move it",
+    "dropHint": "Drop a page on another page to place it just before that one.",
+    "moving": "Moving the page",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "indent": "Move into the page above",
+    "outdent": "Move out one level",
+    "newChild": "New subpage",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleted": {
+      "title": "Deleted pages",
+      "description": "Pages of this section in the trash. A restore brings back the pages its delete took.",
+      "loadError": "The deleted pages could not be loaded",
+      "untitled": "Untitled page",
+      "meta": "Deleted {date} by {name}",
+      "metaUnknown": "Deleted {date}",
+      "descendants": "{count, plural, =0 {no pages below} one {# page below} other {# pages below}}",
+      "restore": "Restore",
+      "restoreLabel": "Restore {title}",
+      "parentFirst": "Restore the parent first: {path} lies under a page that is still in the trash."
+    }
+  },
+  "pageView": {
+    "breadcrumb": "Breadcrumb",
+    "compliance": "Compliance",
+    "language": "Content language",
+    "locales": {
+      "TR": "Türkçe",
+      "EN": "English"
+    },
+    "fallback": "This page has no {wanted} version yet, so the {shown} version is shown.",
+    "emptyBody": "This page has no content yet.",
+    "body": "Page content",
+    "updated": "Updated {date} by {name}",
+    "updatedUnknown": "Updated {date}",
+    "edit": "Edit",
+    "newChild": "New subpage",
+    "delete": "Delete",
+    "back": "Back to the overview",
+    "notFound": {
+      "title": "Page not found",
+      "description": "This page does not exist, or you do not have access to it."
+    },
+    "noAccess": {
+      "title": "No access to this page",
+      "description": "Your access does not cover this page. Ask the manager of its section for access."
+    },
+    "deleted": {
+      "title": "This page is in the trash",
+      "description": "It was deleted {date}. Restore it to read and edit it again.",
+      "restore": "Restore page",
+      "parentFirst": "Restore the parent page first: this page lies under a page that is still in the trash."
+    },
+    "attachments": {
+      "title": "Attachments",
+      "empty": "No files are attached to this page."
+    },
+    "deleteDialog": {
+      "title": "Delete this page?",
+      "description": "{title} moves to the trash with {count, plural, =0 {no pages below it} one {the # page below it} other {the # pages below it}}. It can be restored from the trash.",
+      "confirm": "Delete",
+      "deleting": "Deleting",
+      "cancel": "Cancel"
+    }
   }
 }
