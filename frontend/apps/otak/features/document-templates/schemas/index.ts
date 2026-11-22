@@ -1,6 +1,5 @@
 import { z } from "zod";
 import type { ApiResponse } from "@oba/shared/schema";
-import { StorageEntityType } from "@oba/shared/features/attachments/schemas";
 import { instantSchema } from "@oba/shared/lib/date-schemas";
 import { relationPaginationSchema } from "@/features/relations/schemas";
 
@@ -71,24 +70,6 @@ export const documentTemplateQueryRequestSchema = z.object({
   legalEntityId: z.string().optional(),
   page: z.number().int().min(1),
   amount: z.number().int().min(1).max(50),
-});
-
-/**
- * The parents a template's PDF can be attached to: a mail or a relation. The
- * server refuses any other entity type.
- */
-export const DocumentTemplateAttachmentEntityTypeSchema = z.enum([
-  StorageEntityType.MAIL,
-  StorageEntityType.RELATION,
-]);
-export type DocumentTemplateAttachmentEntityType = z.infer<
-  typeof DocumentTemplateAttachmentEntityTypeSchema
->;
-
-/** Attaches a copy of the template's PDF to the mail or relation `entityId`. */
-export const documentTemplateAttachmentRequestSchema = z.object({
-  entityType: DocumentTemplateAttachmentEntityTypeSchema,
-  entityId: z.string(),
 });
 
 // ── Form Schema ─────────────────────────────────────────────────────
@@ -168,11 +149,11 @@ export const documentTemplateListItemSchema = z.object({
   type: DocumentTypeSchema,
   language: DocumentLanguageSchema,
   /**
-   * The legal entity the template is bound to and its short name; null (or
-   * absent) for a template every legal entity of the organization may use.
+   * The legal entity the template is bound to and its short name; null for a
+   * template every legal entity of the organization may use.
    */
-  legalEntityId: z.string().nullish(),
-  legalEntityShortName: z.string().nullish(),
+  legalEntityId: z.string().nullable(),
+  legalEntityShortName: z.string().nullable(),
   /** True once both files are stored. */
   ready: z.boolean(),
   updatedAt: instantSchema,
@@ -189,9 +170,6 @@ export const documentTemplateDetailSchema = documentTemplateListItemSchema.exten
 
 export type DocumentTemplateRequest = z.infer<typeof documentTemplateRequestSchema>;
 export type DocumentTemplateQueryRequest = z.infer<typeof documentTemplateQueryRequestSchema>;
-export type DocumentTemplateAttachmentRequest = z.infer<
-  typeof documentTemplateAttachmentRequestSchema
->;
 export type DocumentTemplateFormValues = z.infer<
   ReturnType<typeof createDocumentTemplateFormSchema>
 >;

@@ -281,7 +281,22 @@
     "noContactMail": "Geen contactmail",
     "noCompanyMail": "Geen bedrijfsmail",
     "attachments": {
-      "title": "Bijlagen"
+      "title": "Bijlagen",
+      "documentsLink": "Documenten van deze relatie",
+      "loading": "Bijlagen laden...",
+      "loadError": "De bijlagen konden niet worden geladen",
+      "empty": "Nog geen bijlagen. Upload een bestand, of voeg een document toe aan een van de mails van deze relatie.",
+      "openDocument": "Document openen",
+      "delete": "{name} verwijderen",
+      "deleteTitle": "Bijlage verwijderen?",
+      "deleteConfirm": "\"{name}\" wordt van deze relatie verwijderd. Dit kan niet ongedaan worden gemaakt.",
+      "deleteAction": "Verwijderen",
+      "cancel": "Annuleren",
+      "source": {
+        "uploaded": "Geüpload",
+        "mail": "Mail: {title}",
+        "mailUntitled": "Mail"
+      }
     }
   },
   "contacts": {
@@ -790,27 +805,6 @@
       "loadHint": "Controleer je verbinding en probeer het opnieuw.",
       "legalEntityNotFound": "Deze rechtspersoon bestaat niet meer."
     },
-    "attach": {
-      "button": "Toevoegen uit sjabloon",
-      "title": "Toevoegen uit sjabloon",
-      "description": "Kies een documentsjabloon; een kopie van de pdf wordt hier bijgevoegd. Latere wijzigingen aan het sjabloon laten de kopie zoals ze is.",
-      "pick": "Documentsjabloon",
-      "empty": "Nog geen documentsjablonen. Voeg ze toe op de pagina Sjablonen.",
-      "add": "Toevoegen",
-      "adding": "Toevoegen...",
-      "cancel": "Annuleren",
-      "toast": {
-        "added": "Bijlage toegevoegd",
-        "addError": "De bijlage kon niet worden toegevoegd"
-      },
-      "errors": {
-        "mailNotFound": "Deze mail bestaat niet meer.",
-        "relationNotFound": "Deze relatie bestaat niet meer.",
-        "notUsable": "Dit documentsjabloon kan hier niet worden gebruikt: de pdf ontbreekt nog.",
-        "mailSent": "Deze mail is verstuurd of wordt verstuurd; de bijlagen kunnen niet meer veranderen.",
-        "duplicate": "Deze pdf is hier al bijgevoegd."
-      }
-    },
     "legalEntityAll": "Alle"
   },
   "mailTemplates": {
@@ -1097,6 +1091,36 @@
       "label": "Onderdelen van de benadering",
       "details": "Gegevens",
       "attachments": "Bijlagen"
+    },
+    "mailAttachments": {
+      "documentsTitle": "Documenten",
+      "documentsHint": "Een kopie van de pdf van het document gaat mee met de mail. Latere wijzigingen aan het document laten de kopie ongewijzigd.",
+      "documentsEmpty": "Nog geen documenten toegevoegd.",
+      "additionalTitle": "Extra bijlagen",
+      "additionalEmpty": "Nog geen extra bijlagen.",
+      "openDocument": "Document openen",
+      "typeLabel": "Type",
+      "typeAll": "Alle typen",
+      "documentLabel": "Document",
+      "documentPlaceholder": "Kies een document",
+      "documentSearchPlaceholder": "Zoeken op titel...",
+      "add": "Toevoegen",
+      "adding": "Toevoegen...",
+      "noDocuments": "Deze relatie heeft nog geen documenten met een pdf. Maak er een aan op de pagina Documenten.",
+      "toast": {
+        "added": "Document toegevoegd",
+        "addError": "Het document kon niet worden toegevoegd"
+      },
+      "errors": {
+        "documentNotFound": "Dit document bestaat niet meer.",
+        "mailNotFound": "Deze mail bestaat niet meer.",
+        "noPdf": "Dit document heeft nog geen pdf. Upload eerst de bestanden.",
+        "otherRelation": "Dit document hoort bij een andere relatie.",
+        "mailSent": "Deze mail is verstuurd of wordt verstuurd; de bijlagen kunnen niet meer veranderen.",
+        "duplicate": "Deze pdf is al aan de mail toegevoegd.",
+        "noOtakAccess": "Je hebt geen toegang tot Otak.",
+        "forbidden": "Je hebt geen toestemming om dit te doen."
+      }
     }
   },
   "mailSenders": {

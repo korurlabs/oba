@@ -18,7 +18,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@oba/ui/sky/dialog";
-import { StorageEntityType } from "@oba/shared/features/attachments/schemas";
 import { Button } from "@oba/ui/sky/button";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@oba/ui/sky/tabs";
@@ -157,8 +156,8 @@ function OutreachEditForm({
       </TabsContent>
       <TabsContent value="attachments">
         <EntityAttachments
-          entityType={StorageEntityType.MAIL}
-          entityId={outreach.mail.id}
+          mailId={outreach.mail.id}
+          relationId={outreach.relationId}
           readOnly={!canWriteMailAttachments(outreach, isAdmin)}
         />
       </TabsContent>

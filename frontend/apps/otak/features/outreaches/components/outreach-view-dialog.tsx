@@ -9,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@oba/ui/sky/dialog";
-import { StorageEntityType } from "@oba/shared/features/attachments/schemas";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@oba/ui/sky/tabs";
 import { EntityAttachments } from "@/features/attachments/components/entity-attachments";
@@ -78,8 +77,8 @@ function MailAttachments({ outreach, mailId }: { outreach: OutreachDetail; mailI
   const isAdmin = useIsOrganizationAdmin();
   return (
     <EntityAttachments
-      entityType={StorageEntityType.MAIL}
-      entityId={mailId}
+      mailId={mailId}
+      relationId={outreach.relationId}
       readOnly={!canWriteMailAttachments(outreach, isAdmin)}
     />
   );

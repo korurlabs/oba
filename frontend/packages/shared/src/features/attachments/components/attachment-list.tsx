@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   AlertCircle,
   ExternalLink,
@@ -22,7 +22,7 @@ import {
 } from "@oba/ui/components/alert-dialog";
 import { Skeleton } from "@oba/ui/components/skeleton";
 import { useTranslations } from "next-intl";
-import type { StorageEntityType } from "../schemas";
+import type { AttachmentResponse, StorageEntityType } from "../schemas";
 import {
   useAttachments,
   useDeleteAttachment,
@@ -59,6 +59,21 @@ interface AttachmentListProps {
    * reject.
    */
   readOnly?: boolean;
+  /**
+   * Keeps only the attachments it returns true for. A caller that shows one
+   * entity's attachments in sections, such as a mail's document snapshots
+   * and its uploaded files, renders one list per section.
+   */
+  include?: (attachment: AttachmentResponse) => boolean;
+  /** Extra actions of one row, shown before the open and delete buttons. */
+  renderActions?: (attachment: AttachmentResponse) => ReactNode;
+  /** The text of an empty list; defaults to the generic "no attachments" text. */
+  emptyText?: string;
+  /**
+   * Runs after a delete succeeded, for a caller that also shows the file in
+   * a list under another query key.
+   */
+  onDeleteSuccess?: () => void;
 }
 
 function AttachmentListSkeleton() {
@@ -82,6 +97,10 @@ export function AttachmentList({
   entityId,
   excludeIds,
   readOnly = false,
+  include,
+  renderActions,
+  emptyText,
+  onDeleteSuccess,
 }: AttachmentListProps) {
   const t = useTranslations("attachments");
   const { data, isLoading, isError, isFetching, refetch } = useAttachments(
@@ -141,16 +160,17 @@ export function AttachmentList({
 
   const excluded =
     excludeIds && excludeIds.length > 0 ? new Set(excludeIds) : null;
-  const attachments = excluded
-    ? data?.data?.filter((attachment) => !excluded.has(attachment.id))
-    : data?.data;
+  const attachments = data?.data?.filter(
+    (attachment) =>
+      !excluded?.has(attachment.id) && (include ? include(attachment) : true),
+  );
 
   if (!attachments || attachments.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-6 text-center">
         <FileText className="h-8 w-8 text-muted-foreground" />
         <p className="mt-2 text-sm text-muted-foreground">
-          {t("list.empty")}
+          {emptyText ?? t("list.empty")}
         </p>
       </div>
     );
@@ -191,6 +211,7 @@ export function AttachmentList({
             </div>
 
             <div className="flex shrink-0 items-center gap-1">
+              {renderActions?.(attachment)}
               <Button
                 type="button"
                 variant="ghost"
@@ -243,6 +264,7 @@ export function AttachmentList({
                               entityId,
                             },
                             {
+                              onSuccess: () => onDeleteSuccess?.(),
                               onSettled: () => setDeletingId(null),
                             },
                           );

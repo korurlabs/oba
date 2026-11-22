@@ -3,10 +3,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { ATTACHMENT_KEYS } from "@oba/shared/features/attachments/hooks";
 import { useOrganizationId } from "@/hooks/use-organization-id";
 import {
-  copyDocumentTemplateToAttachment,
   createDocumentTemplate,
   deleteDocumentTemplate,
   getDocumentTemplate,
@@ -14,12 +12,8 @@ import {
   replaceDocumentTemplateFiles,
   updateDocumentTemplate,
 } from "../api";
-import {
-  documentTemplateAttachmentErrorText,
-  documentTemplateErrorText,
-} from "../lib/document-template-error";
+import { documentTemplateErrorText } from "../lib/document-template-error";
 import type {
-  DocumentTemplateAttachmentRequest,
   DocumentTemplateFiles,
   DocumentTemplateQueryRequest,
   DocumentTemplateRequest,
@@ -145,34 +139,6 @@ export function useDeleteDocumentTemplate() {
     },
     onError: (error: unknown) => {
       toast.error(documentTemplateErrorText(error, t, "toast.deleteError"));
-    },
-  });
-}
-
-/**
- * Copies a template's PDF onto a mail or a relation as a new attachment and
- * refreshes that parent's attachment list.
- */
-export function useCopyDocumentTemplateToAttachment() {
-  const queryClient = useQueryClient();
-  const t = useTranslations("documentTemplates");
-
-  return useMutation({
-    mutationFn: ({
-      templateId,
-      data,
-    }: {
-      templateId: string;
-      data: DocumentTemplateAttachmentRequest;
-    }) => copyDocumentTemplateToAttachment(templateId, data),
-    onSuccess: (_result, { data }) => {
-      toast.success(t("attach.toast.added"));
-      void queryClient.invalidateQueries({
-        queryKey: ATTACHMENT_KEYS.list(data.entityType, data.entityId),
-      });
-    },
-    onError: (error: unknown) => {
-      toast.error(documentTemplateAttachmentErrorText(error, t, "attach.toast.addError"));
     },
   });
 }
