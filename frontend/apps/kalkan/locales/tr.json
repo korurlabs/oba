@@ -110,5 +110,84 @@
       "notDeleted": "Bu sayfa çöp kutusunda değil.",
       "validation": "Bazı alanlar geçerli değil. Kontrol edip tekrar deneyin."
     }
+  },
+  "sectionTree": {
+    "label": "{section} sayfaları",
+    "newPage": "Yeni sayfa",
+    "sectionPage": "Bölüm sayfası",
+    "empty": {
+      "title": "Henüz sayfa yok",
+      "editorDescription": "Bu bölümün ilk sayfasını ekleyin.",
+      "readerDescription": "Bu bölüme eklenen sayfalar burada görünür."
+    },
+    "expand": "{title} sayfasını aç",
+    "collapse": "{title} sayfasını kapat",
+    "compliance": "Uyum",
+    "actions": "{title} için işlemler",
+    "dragHandle": "{title} sayfasını taşımak için sürükleyin",
+    "dropHint": "Bir sayfayı başka bir sayfanın üzerine bırakarak onun hemen önüne yerleştirin.",
+    "moving": "Sayfa taşınıyor",
+    "moveUp": "Yukarı taşı",
+    "moveDown": "Aşağı taşı",
+    "indent": "Üstteki sayfanın içine taşı",
+    "outdent": "Bir seviye dışarı taşı",
+    "newChild": "Yeni alt sayfa",
+    "edit": "Düzenle",
+    "delete": "Sil",
+    "deleted": {
+      "title": "Silinen sayfalar",
+      "description": "Bu bölümün çöp kutusundaki sayfaları. Geri yükleme, silmenin götürdüğü sayfaları da geri getirir.",
+      "loadError": "Silinen sayfalar yüklenemedi",
+      "untitled": "Başlıksız sayfa",
+      "meta": "{date} tarihinde {name} sildi",
+      "metaUnknown": "{date} tarihinde silindi",
+      "descendants": "{count, plural, =0 {altında sayfa yok} other {altında # sayfa}}",
+      "restore": "Geri yükle",
+      "restoreLabel": "{title} sayfasını geri yükle",
+      "parentFirst": "Önce üst sayfayı geri yükleyin: {path} hâlâ çöp kutusundaki bir sayfanın altında."
+    }
+  },
+  "pageView": {
+    "breadcrumb": "Gezinti yolu",
+    "compliance": "Uyum",
+    "language": "İçerik dili",
+    "locales": {
+      "TR": "Türkçe",
+      "EN": "English"
+    },
+    "fallback": "Bu sayfanın henüz {wanted} sürümü yok, bu yüzden {shown} sürümü gösteriliyor.",
+    "emptyBody": "Bu sayfanın henüz içeriği yok.",
+    "body": "Sayfa içeriği",
+    "updated": "{date} tarihinde {name} güncelledi",
+    "updatedUnknown": "{date} tarihinde güncellendi",
+    "edit": "Düzenle",
+    "newChild": "Yeni alt sayfa",
+    "delete": "Sil",
+    "back": "Genel bakışa dön",
+    "notFound": {
+      "title": "Sayfa bulunamadı",
+      "description": "Bu sayfa yok ya da sayfaya erişiminiz yok."
+    },
+    "noAccess": {
+      "title": "Bu sayfaya erişiminiz yok",
+      "description": "Erişiminiz bu sayfayı kapsamıyor. Bölümün yöneticisinden erişim isteyin."
+    },
+    "deleted": {
+      "title": "Bu sayfa çöp kutusunda",
+      "description": "{date} tarihinde silindi. Yeniden okumak ve düzenlemek için geri yükleyin.",
+      "restore": "Sayfayı geri yükle",
+      "parentFirst": "Önce üst sayfayı geri yükleyin: bu sayfa hâlâ çöp kutusundaki bir sayfanın altında."
+    },
+    "attachments": {
+      "title": "Ekler",
+      "empty": "Bu sayfaya eklenmiş dosya yok."
+    },
+    "deleteDialog": {
+      "title": "Bu sayfa silinsin mi?",
+      "description": "{title} {count, plural, =0 {çöp kutusuna taşınır} other {altındaki # sayfayla birlikte çöp kutusuna taşınır}}. Çöp kutusundan geri yüklenebilir.",
+      "confirm": "Sil",
+      "deleting": "Siliniyor",
+      "cancel": "Vazgeç"
+    }
   }
 }
