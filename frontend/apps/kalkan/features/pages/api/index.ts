@@ -1,6 +1,7 @@
 import { api } from "@/lib/api/client";
 import { API_ROUTES } from "@/lib/api-routes";
 import type { ApiResponse } from "@oba/shared/schema";
+import type { OrganizationMember } from "@oba/shared/features/organizations/schemas";
 import type {
   KalkanLocale,
   PageCreateRequest,
@@ -129,6 +130,23 @@ export async function replacePagePermissions(pageId: string, grants: PagePermiss
   const res = await api.put<ApiResponse<PagePermission[]>>(
     API_ROUTES.pages.permissions(pageId),
     grants
+  );
+  return res.data;
+}
+
+// ── Organization members ────────────────────────────────────────────
+
+/** The organization's member list; a shared endpoint, not a Kalkan one. */
+const organizationMembersRoute = (organizationId: string) =>
+  `/organizations/${organizationId}/members`;
+
+/**
+ * Every member of the organization, active and disabled: the people the
+ * access screen can grant a level to. A GUEST may read the list.
+ */
+export async function listOrganizationMembers(organizationId: string) {
+  const res = await api.get<ApiResponse<OrganizationMember[]>>(
+    organizationMembersRoute(organizationId)
   );
   return res.data;
 }
