@@ -22,6 +22,7 @@ import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.shrine.access.enums.ResourceAccessAction;
+import com.korur.oba.shrine.access.enums.ResourceAccessType;
 import com.korur.oba.shrine.access.service.ResourceAccessQueryService;
 import com.korur.oba.shrine.document.constant.common.DocumentFileConstant;
 import com.korur.oba.shrine.document.dto.request.document.DocumentCreateRequest;
@@ -217,6 +218,10 @@ public class DocumentServiceImpl implements DocumentService {
         verifyOwner(user, organizationId, document.getEntityType(), document.getEntityId(),
                 ResourceAccessAction.READ);
         documentValidator.ensureHasPdf(document);
+        // The mail is the owner of the new attachment, so another organization's mail answers 403 through
+        // the access check, as an upload to it does, before the lookup within the organization could say 404.
+        resourceAccessQueryService.verifyResourceAccess(user, organizationId, ResourceAccessType.MAIL, entityId,
+                ResourceAccessAction.READ);
         Mail mail = mailQueryService.getEntity(organizationId, entityId);
         documentValidator.ensureSameRelation(document, entityId, mail.getRelationId());
 

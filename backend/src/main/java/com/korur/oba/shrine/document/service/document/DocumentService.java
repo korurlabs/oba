@@ -110,6 +110,8 @@ public interface DocumentService {
      * @throws com.korur.oba.dojo.exception.internal.business.ValidationException GEN_VAL_001 for another
      *         entity type, DOC_VAL_003 without a PDF, DOC_VAL_004 for a mail of another relation, STG_VAL_005
      *         when the mail already holds the same PDF
+     * @throws com.korur.oba.dojo.exception.internal.auth.ForbiddenException APP_SEC_002 for a mail of another
+     *         organization, or no read access to the document's owner or the mail
      * @throws com.korur.oba.dojo.exception.internal.business.NotFoundException DOC_NOT_002 or OTK_NOT_011
      * @throws com.korur.oba.dojo.exception.internal.business.ConflictException OTK_STA_011 when the mail's
      *         outreach is sent

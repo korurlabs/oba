@@ -19,6 +19,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -27,12 +28,10 @@ import static org.mockito.Mockito.when;
 // 3. Java SDK
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.otak.exception.ExceptionDomainOtakError;
 import com.korur.oba.apps.otak.mail.entity.Mail;
 import com.korur.oba.apps.otak.mail.service.MailQueryService;
 import com.korur.oba.dojo.exception.internal.auth.ForbiddenException;
@@ -423,6 +422,8 @@ class DocumentServiceImplUnitTest {
             assertThat(captor.getValue().content()).isSameAs(bytes);
             verify(resourceAccessQueryService).verifyResourceAccess(user, organizationId, ResourceAccessType.RELATION,
                     relationId, ResourceAccessAction.READ);
+            verify(resourceAccessQueryService).verifyResourceAccess(user, organizationId, ResourceAccessType.MAIL,
+                    mailId, ResourceAccessAction.READ);
         }
 
         @Test
@@ -464,16 +465,18 @@ class DocumentServiceImplUnitTest {
         }
 
         @Test
-        void mailOfAnotherOrganization_throwsNotFound() {
+        void mailOfAnotherOrganization_isRefusedByTheAccessCheckBeforeTheMailLookup() {
             // Arrange
             stored("https://blob/a.html", "https://blob/a.pdf");
-            when(mailQueryService.getEntity(organizationId, mailId))
-                    .thenThrow(new NotFoundException(ExceptionDomainOtakError.NOT_MAIL_FOUND, Map.of()));
+            // Lenient, because the same method first checks the document's owner with other arguments.
+            lenient().doThrow(new ForbiddenException()).when(resourceAccessQueryService).verifyResourceAccess(user,
+                    organizationId, ResourceAccessType.MAIL, mailId, ResourceAccessAction.READ);
 
             // Act and assert
             assertThatThrownBy(() -> service.attachTo(user, organizationId, documentId, StorageEntityType.MAIL, mailId))
-                    .isInstanceOf(NotFoundException.class);
-            verifyNoInteractions(attachmentService);
+                    .isInstanceOf(ForbiddenException.class);
+            verifyNoInteractions(mailQueryService, attachmentService);
+            verify(documentFileStorage, never()).readPdf(any());
         }
     }
 
