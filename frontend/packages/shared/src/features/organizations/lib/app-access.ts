@@ -28,14 +28,14 @@ export function organizationsWithApp(
 
 /**
  * True when the app has something to show the user. Account is open to every
- * user. Admin needs an organization the user manages. Every other app needs an
+ * user. Ulak needs an organization the user manages. Every other app needs an
  * ACTIVE organization that grants it. False while the user is unknown (not
  * loaded, or the load failed); a caller that must not hide an app in that state
  * checks for a loaded user first.
  */
 export function canOpenApp(me: UserMe | null | undefined, appId: ObaAppId): boolean {
   if (appId === "account") return true;
-  if (appId === "admin") return canManageOrganizations(me);
+  if (appId === "ulak") return canManageOrganizations(me);
   const app = GRANTED_APP_OF[appId];
   return app !== undefined && organizationsWithApp(me, app).length > 0;
 }

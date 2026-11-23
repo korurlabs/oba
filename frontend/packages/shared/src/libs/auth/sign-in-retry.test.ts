@@ -12,7 +12,7 @@ import {
 } from "./sign-in-retry";
 
 const LOCAL_AUTH_URLS = ["http://localhost:3002", "http://localhost:3016", "http://localhost"];
-const SECURE_AUTH_URLS = ["https://kazan.korur.com", "https://admin.korur.com", "https://kazan-dev.korur.com"];
+const SECURE_AUTH_URLS = ["https://kazan.korur.com", "https://ulak.korur.com", "https://kazan-dev.korur.com"];
 
 describe("signInRetryCookieName", () => {
   test("names the mark after the app's port on a plain-http AUTH_URL", () => {

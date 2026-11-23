@@ -87,8 +87,8 @@
       "name": "Otak",
       "description": "İlişkiler, potansiyel müşteriler ve müşteriler"
     },
-    "admin": {
-      "name": "Yönetim",
+    "ulak": {
+      "name": "Ulak",
       "description": "Organizasyonlar, üyeler ve davetler"
     },
     "account": {

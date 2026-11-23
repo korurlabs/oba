@@ -111,9 +111,9 @@ describe("canOpenApp", () => {
     expect(canOpenApp(undefined, "kaya")).toBe(false);
   });
 
-  test("opens admin only for a user who manages an ACTIVE organization", () => {
-    expect(canOpenApp(me([organization("Korur", [], "ACTIVE", "ADMIN")]), "admin")).toBe(true);
-    expect(canOpenApp(me([organization("Korur", ["KAZAN"])]), "admin")).toBe(false);
-    expect(canOpenApp(null, "admin")).toBe(false);
+  test("opens ulak only for a user who manages an ACTIVE organization", () => {
+    expect(canOpenApp(me([organization("Korur", [], "ACTIVE", "ADMIN")]), "ulak")).toBe(true);
+    expect(canOpenApp(me([organization("Korur", ["KAZAN"])]), "ulak")).toBe(false);
+    expect(canOpenApp(null, "ulak")).toBe(false);
   });
 });

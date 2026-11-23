@@ -46,7 +46,7 @@ export interface ProfileDropdownProps {
   onNavigate?: () => void;
   /**
    * Where Profile and Settings lead. The defaults are the app's own pages; an
-   * app without them (Admin) passes the absolute URLs of the app that has them.
+   * app without them (Ulak) passes the absolute URLs of the app that has them.
    */
   hrefs?: { profile: string; settings: string };
 }
