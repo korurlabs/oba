@@ -5,7 +5,7 @@ import { ENV } from "@/lib/env";
 
 /**
  * The in-app browser for the web pages the app does not draw: the Account and
- * Admin web apps (onboarding, invitations, organizations), the Keycloak
+ * Ulak web apps (onboarding, invitations, organizations), the Keycloak
  * account console, the Kazan web board settings and the other Korur apps.
  *
  * `openBrowserAsync` shows SFSafariViewController on iOS and a Chrome Custom
@@ -17,11 +17,11 @@ import { ENV } from "@/lib/env";
  */
 
 /** An Oba web app that holds pages the app opens. */
-export type PlatformApp = "account" | "admin";
+export type PlatformApp = "account" | "ulak";
 
 /**
  * Oba web pages the app opens, at the same places the Kazan web app links
- * to. Account holds what every user manages for themselves; Admin holds the
+ * to. Account holds what every user manages for themselves; Ulak holds the
  * organizations, which only their owners and admins change. The paths carry
  * no locale prefix.
  */
@@ -33,14 +33,14 @@ export const PLATFORM_PAGES = {
   /** The user's own account: profile, settings, invitations and organizations. */
   profile: { app: "account", path: "/" },
   /** The organization list, where organizations and their members are managed. */
-  organizations: { app: "admin", path: "/" },
+  organizations: { app: "ulak", path: "/" },
 } as const satisfies Record<string, { app: PlatformApp; path: string }>;
 
 export type PlatformPage = keyof typeof PLATFORM_PAGES;
 
 const PLATFORM_APP_URLS: Record<PlatformApp, string> = {
   account: ENV.accountUrl,
-  admin: ENV.adminUrl,
+  ulak: ENV.ulakUrl,
 };
 
 /** Keycloak account console pages of realm `sensey`. */
