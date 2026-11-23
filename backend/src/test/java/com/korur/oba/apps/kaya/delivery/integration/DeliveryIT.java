@@ -13,10 +13,13 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.UUID;
 
 // 4. Internal
 import com.korur.oba.apps.kaya.repository.entity.Repository;
+import com.korur.oba.apps.kaya.repository.enums.RepositoryStatus;
+import com.korur.oba.apps.kaya.repository.mock_data.RepositoryMocks;
 import com.korur.oba.apps.kaya.support.AbstractVersionIT;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -79,6 +82,89 @@ class DeliveryIT extends AbstractVersionIT {
 
     private static String sha256(byte[] bytes) throws Exception {
         return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes));
+    }
+
+    @Nested
+    class Repositories {
+
+        private static final String REMOTES = "$.data.repositories[*].remoteUrl";
+
+        private Repository connect(String remoteUrl, String name, RepositoryStatus status) {
+            Repository connected = RepositoryMocks.repository(tenant.organization().getId(), remoteUrl, status);
+            connected.setId(null);
+            connected.setName(name);
+            return repositoryRepository.saveAndFlush(connected);
+        }
+
+        private ResultActions repositories(String machineToken) throws Exception {
+            return mockMvc.perform(withToken(get("/kaya/delivery/repositories"), machineToken));
+        }
+
+        @Test
+        void everyActiveRepositoryOfTheOrganization_isListedSortedByRemote() throws Exception {
+            String suffix = uniqueSuffix();
+            // The names sort the other way round, so the order can only come from the remote.
+            Repository last = connect("github.com/z" + suffix + "/r", "a-last", RepositoryStatus.ACTIVE);
+            Repository first = connect("github.com/a" + suffix + "/r", "z-first", RepositoryStatus.ACTIVE);
+
+            MvcResult result = repositories(token)
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.organizationId").value(tenant.id()))
+                    .andReturn();
+
+            assertEquals(List.of(first.getRemoteUrl(), repository.getRemoteUrl(), last.getRemoteUrl()), list(result, REMOTES));
+        }
+
+        @Test
+        void archivedRepository_isLeftOut() throws Exception {
+            connect("github.com/b" + uniqueSuffix() + "/r", "archived", RepositoryStatus.ARCHIVED);
+
+            MvcResult result = repositories(token).andExpect(status().isOk()).andReturn();
+
+            assertEquals(List.of(repository.getRemoteUrl()), list(result, REMOTES));
+        }
+
+        @Test
+        void repositoryOfAnotherOrganization_isNotListed() throws Exception {
+            Tenant other = newTenant();
+            Repository foreign = saveRepository(other.organization());
+            String otherToken = machineToken(other);
+
+            MvcResult own = repositories(token).andExpect(status().isOk()).andReturn();
+            MvcResult theirs = repositories(otherToken)
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.organizationId").value(other.id()))
+                    .andReturn();
+
+            assertEquals(List.of(repository.getRemoteUrl()), list(own, REMOTES));
+            assertEquals(List.of(foreign.getRemoteUrl()), list(theirs, REMOTES));
+        }
+
+        @Test
+        void organizationWithoutRepositories_answersAnEmptyList() throws Exception {
+            Tenant empty = newTenant();
+
+            repositories(machineToken(empty))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.organizationId").value(empty.id()))
+                    .andExpect(jsonPath("$.data.repositories").isArray())
+                    .andExpect(jsonPath("$.data.repositories").isEmpty());
+        }
+
+        @Test
+        void withoutTokenOrWithARevokedToken_answers401() throws Exception {
+            mockMvc.perform(get("/kaya/delivery/repositories"))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.error.code").value("KAY_SEC_003"));
+            jdbcTemplate.update("""
+                    UPDATE kaya.machine_tokens SET revoked_at = now()
+                    WHERE machine_id IN (SELECT id FROM kaya.machines WHERE organization_id = ?)
+                    """, tenant.organization().getId());
+
+            repositories(token)
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.error.code").value("KAY_SEC_003"));
+        }
     }
 
     @Nested

@@ -7,6 +7,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 // 3. Java SDK
+import java.util.List;
 import java.util.UUID;
 
 // 4. Internal
@@ -16,8 +17,11 @@ import com.korur.oba.apps.kaya.delivery.dto.derived.DeliveryCurrent;
 import com.korur.oba.apps.kaya.delivery.dto.response.DeliveryCurrentResponse;
 import com.korur.oba.apps.kaya.delivery.dto.response.DeliveryProposalResponse;
 import com.korur.oba.apps.kaya.delivery.dto.response.DeliveryReleaseResponse;
+import com.korur.oba.apps.kaya.delivery.dto.response.DeliveryRepositoriesResponse;
+import com.korur.oba.apps.kaya.delivery.dto.response.embedded.DeliveryRepositoryResponse;
 import com.korur.oba.apps.kaya.release.dto.embedded.ReleaseEntry;
 import com.korur.oba.apps.kaya.release.entity.Release;
+import com.korur.oba.apps.kaya.repository.dto.response.RepositoryResponse;
 import com.korur.oba.apps.kaya.version.dto.embedded.DeliveredFile;
 import com.korur.oba.apps.kaya.version.dto.request.ProposalFileRequest;
 import com.korur.oba.apps.kaya.version.dto.response.VersionResponse;
@@ -36,6 +40,10 @@ public interface DeliveryMapper {
     DeliveryCurrentResponse toCurrentResponse(UUID repositoryId, Release release);
 
     DeliveryCurrent toCurrent(DeliveryCurrentResponse response, String etag);
+
+    DeliveryRepositoryResponse toRepositoryResponse(RepositoryResponse repository);
+
+    DeliveryRepositoriesResponse toRepositoriesResponse(UUID organizationId, List<DeliveryRepositoryResponse> repositories);
 
     @Mapping(target = "releaseId", source = "release.id")
     @Mapping(target = "repositoryId", source = "release.repositoryId")

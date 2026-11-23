@@ -11,7 +11,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * The Ed25519 key that signs releases, and the public key of the key it replaced. Kagi supplies
- * CONFIG_SIGNING_KEY and CONFIG_SIGNING_KEY_ID from the Kagi app /kaya/api, through kagi-init in
+ * CONFIG_SIGNING_KEY and CONFIG_SIGNING_KEY_ID from the Kagi app /oba/api, through kagi-init in
  * production and 'kagi run' locally; the private key never leaves Kagi and the backend process. During a key rotation the old public key stays
  * listed until validTo, so a CLI holding a release signed with it still verifies that release.
  *
