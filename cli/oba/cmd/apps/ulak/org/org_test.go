@@ -21,7 +21,7 @@ func TestOrgCreateSendsBodyWithoutOrganization(t *testing.T) {
 	api := newOrgAPI(t, "")
 	api.Respond("POST /organizations", http.StatusCreated, orgCreatedJSON)
 	in := `{"name": "Korur B.V.",  "country": "NLD", "website": null}`
-	out, _, err := runCLI(t, in, "admin", "org", "create")
+	out, _, err := runCLI(t, in, "ulak", "org", "create")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,7 +41,7 @@ func TestOrgCreateSendsBodyWithoutOrganization(t *testing.T) {
 func TestOrgCreateWithCurrentOrganizationSendsNoHeader(t *testing.T) {
 	api := newOrgAPI(t, clitest.OrgIDAcme)
 	api.Respond("POST /organizations", http.StatusCreated, orgCreatedJSON)
-	if _, _, err := runCLI(t, `{"name":"Korur B.V."}`, "admin", "org", "create"); err != nil {
+	if _, _, err := runCLI(t, `{"name":"Korur B.V."}`, "ulak", "org", "create"); err != nil {
 		t.Fatal(err)
 	}
 	if got := api.Request("POST /organizations").Org; got != "" {
@@ -53,7 +53,7 @@ func TestOrgCreateSanitizesMessage(t *testing.T) {
 	api := newOrgAPI(t, "")
 	api.Respond("POST /organizations", http.StatusCreated,
 		`{"data":{"id":"`+newOrgID+`","name":"Evil\u001b[31m\nCorp"}}`)
-	out, _, err := runCLI(t, `{"name":"x"}`, "admin", "org", "create")
+	out, _, err := runCLI(t, `{"name":"x"}`, "ulak", "org", "create")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,13 +69,13 @@ func TestOrgCreateRefusals(t *testing.T) {
 	}{
 		{"unknown key", `{"name":"x","contry":"NLD"}`, `unknown field "contry". Did you mean "country"?`, false},
 		{"not an object", `[1]`, "not an array", false},
-		{"no stdin", ``, "no JSON on stdin; pass one JSON object, as 'oba admin org create --help' shows", true},
+		{"no stdin", ``, "no JSON on stdin; pass one JSON object, as 'oba ulak org create --help' shows", true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			api := newOrgAPI(t, "")
 			clitest.FakeTerminal(t, &stdinIsTerminal, tt.terminal)
-			_, _, err := runCLI(t, tt.stdin, "admin", "org", "create")
+			_, _, err := runCLI(t, tt.stdin, "ulak", "org", "create")
 			if err == nil || !strings.Contains(err.Error(), tt.want) {
 				t.Fatalf("err = %v, want %q", err, tt.want)
 			}
@@ -92,7 +92,7 @@ func TestOrgCreateValidationError(t *testing.T) {
 	api := newOrgAPI(t, "")
 	api.Respond("POST /organizations", http.StatusUnprocessableEntity,
 		`{"error":{"code":"GEN_VAL_001","message":"Validation failed","errorValues":{"country":"Country code must be at most 3 characters"}}}`)
-	_, _, err := runCLI(t, `{"name":"Korur B.V.","country":"NLDX"}`, "admin", "org", "create")
+	_, _, err := runCLI(t, `{"name":"Korur B.V.","country":"NLDX"}`, "ulak", "org", "create")
 	want := "GEN_VAL_001: Validation failed\n  country: Country code must be at most 3 characters"
 	if err == nil || err.Error() != want || client.ExitCode(err) != 1 {
 		t.Fatalf("err = %v, exit = %d", err, client.ExitCode(err))
@@ -101,7 +101,7 @@ func TestOrgCreateValidationError(t *testing.T) {
 
 func TestOrgCreateHelpListsLiveFields(t *testing.T) {
 	newOrgAPI(t, "")
-	out, _, err := runCLI(t, "", "admin", "org", "create", "--help")
+	out, _, err := runCLI(t, "", "ulak", "org", "create", "--help")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -119,7 +119,7 @@ func TestOrgListMatchesOrgList(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	out, _, err := runCLI(t, "", "admin", "org", "list")
+	out, _, err := runCLI(t, "", "ulak", "org", "list")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -134,7 +134,7 @@ func TestOrgListMatchesOrgList(t *testing.T) {
 func TestOrgListEmpty(t *testing.T) {
 	api := newOrgAPI(t, "")
 	api.Respond("GET /users/me", http.StatusOK, `{"data":{"id":"u1","email":"a@b.c","organizations":[]}}`)
-	out, _, err := runCLI(t, "", "admin", "org", "list")
+	out, _, err := runCLI(t, "", "ulak", "org", "list")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -157,7 +157,7 @@ func TestOrgUpdateMergesGivenKeysOverCurrent(t *testing.T) {
 	api := newOrgAPI(t, clitest.OrgIDAcme)
 	api.Respond("GET "+orgPath, http.StatusOK, orgReadJSON)
 	api.Respond("PUT "+orgPath, http.StatusOK, `{"data":{"id":"`+clitest.OrgIDAcme+`","name":"Acme Security"}}`)
-	out, _, err := runCLI(t, `{"name": "Acme Security", "website": null}`, "admin", "org", "update")
+	out, _, err := runCLI(t, `{"name": "Acme Security", "website": null}`, "ulak", "org", "update")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -180,7 +180,7 @@ func TestOrgUpdateMergesGivenKeysOverCurrent(t *testing.T) {
 func TestOrgUpdateNothingChangedSendsNoPut(t *testing.T) {
 	api := newOrgAPI(t, clitest.OrgIDAcme)
 	api.Respond("GET "+orgPath, http.StatusOK, orgReadJSON)
-	out, _, err := runCLI(t, `{ "industry" : "Security", "country": "NLD" }`, "admin", "org", "update")
+	out, _, err := runCLI(t, `{ "industry" : "Security", "country": "NLD" }`, "ulak", "org", "update")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -199,13 +199,13 @@ func TestOrgUpdateRefusals(t *testing.T) {
 	}{
 		{"empty object", `{}`, "Nothing to update.", false},
 		{"unknown key", `{"webiste":null}`, `unknown field "webiste". Did you mean "website"?`, false},
-		{"no stdin", ``, "no JSON on stdin; pass one JSON object, as 'oba admin org update --help' shows", true},
+		{"no stdin", ``, "no JSON on stdin; pass one JSON object, as 'oba ulak org update --help' shows", true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			api := newOrgAPI(t, clitest.OrgIDAcme)
 			clitest.FakeTerminal(t, &stdinIsTerminal, tt.terminal)
-			_, _, err := runCLI(t, tt.stdin, "admin", "org", "update")
+			_, _, err := runCLI(t, tt.stdin, "ulak", "org", "update")
 			if err == nil || !strings.Contains(err.Error(), tt.want) {
 				t.Fatalf("err = %v, want %q", err, tt.want)
 			}
@@ -218,7 +218,7 @@ func TestOrgUpdateRefusals(t *testing.T) {
 
 func TestOrgUpdateNoOrganization(t *testing.T) {
 	api := newOrgAPI(t, "")
-	_, _, err := runCLI(t, `{"industry":"Security"}`, "admin", "org", "update")
+	_, _, err := runCLI(t, `{"industry":"Security"}`, "ulak", "org", "update")
 	if err == nil || !strings.Contains(err.Error(), "No organization selected") {
 		t.Fatalf("err = %v", err)
 	}
@@ -230,7 +230,7 @@ func TestOrgUpdateNoOrganization(t *testing.T) {
 func TestOrgUpdateForbiddenOnRead(t *testing.T) {
 	api := newOrgAPI(t, clitest.OrgIDAcme)
 	api.Respond("GET "+orgPath, http.StatusForbidden, `{"error":{"code":"ORG_SEC_003","message":"Insufficient organization role"}}`)
-	_, _, err := runCLI(t, `{"industry":"Security"}`, "admin", "org", "update")
+	_, _, err := runCLI(t, `{"industry":"Security"}`, "ulak", "org", "update")
 	if err == nil || !strings.Contains(err.Error(), "ORG_SEC_003") || client.ExitCode(err) != 3 {
 		t.Fatalf("err = %v, exit = %d", err, client.ExitCode(err))
 	}
@@ -244,7 +244,7 @@ func TestOrgUpdateValidationError(t *testing.T) {
 	api.Respond("GET "+orgPath, http.StatusOK, orgReadJSON)
 	api.Respond("PUT "+orgPath, http.StatusUnprocessableEntity,
 		`{"error":{"code":"GEN_VAL_001","message":"Validation failed","errorValues":{"name":"Organization name is required"}}}`)
-	_, _, err := runCLI(t, `{"name":null}`, "admin", "org", "update")
+	_, _, err := runCLI(t, `{"name":null}`, "ulak", "org", "update")
 	want := "GEN_VAL_001: Validation failed\n  name: Organization name is required"
 	if err == nil || err.Error() != want || client.ExitCode(err) != 1 {
 		t.Fatalf("err = %v, exit = %d", err, client.ExitCode(err))
@@ -256,7 +256,7 @@ func TestOrgUpdateValidationError(t *testing.T) {
 
 func TestOrgUpdateHelpListsUpdateFields(t *testing.T) {
 	newOrgAPI(t, clitest.OrgIDAcme)
-	out, _, err := runCLI(t, "", "admin", "org", "update", "--help")
+	out, _, err := runCLI(t, "", "ulak", "org", "update", "--help")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -271,12 +271,12 @@ func TestOrgUpdateHelpListsUpdateFields(t *testing.T) {
 }
 
 func TestOrgHelpNamesWhatIsLeftOut(t *testing.T) {
-	out, _, err := runCLI(t, "", "admin", "org", "--help")
+	out, _, err := runCLI(t, "", "ulak", "org", "--help")
 	if err != nil {
 		t.Fatal(err)
 	}
 	flat := strings.Join(strings.Fields(out), " ")
-	for _, want := range []string{"Deleting, disabling and enabling an organization are left out of this CLI on purpose", "Oba admin web app", "update"} {
+	for _, want := range []string{"Deleting, disabling and enabling an organization are left out of this CLI on purpose", "Ulak web app", "update"} {
 		if !strings.Contains(flat, want) {
 			t.Errorf("help lacks %q:\n%s", want, out)
 		}

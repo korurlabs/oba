@@ -87,7 +87,7 @@ func TestJSONWritePrintsTheResponseData(t *testing.T) {
 // The organizations, not the /users/me user they are read from, are the result, with every
 // field the API sends, also one the CLI has no model for.
 func TestJSONOrgListPrintsTheOrganizations(t *testing.T) {
-	for _, args := range [][]string{{"org", "list"}, {"admin", "org", "list"}} {
+	for _, args := range [][]string{{"org", "list"}, {"ulak", "org", "list"}} {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
 			api := signedIn(t)
 			api.Respond("GET /users/me", http.StatusOK, strings.Replace(clitest.UserMeJSON,

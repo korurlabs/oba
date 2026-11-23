@@ -26,7 +26,7 @@ func FindMember(members []client.Member, orgName, value string) (client.Member, 
 	}
 	return client.Member{}, &client.APIError{
 		Status: http.StatusNotFound,
-		Message: fmt.Sprintf("no member of %s matches %q; run 'oba admin member list'",
+		Message: fmt.Sprintf("no member of %s matches %q; run 'oba ulak member list'",
 			guardrail.OneLine(orgName), guardrail.OneLine(value)),
 	}
 }

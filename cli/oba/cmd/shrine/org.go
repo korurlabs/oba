@@ -38,7 +38,7 @@ func newOrgCmd() *cobra.Command {
 }
 
 // RunOrgList prints the signed-in user's organizations, * marking the current one; with --json
-// it prints them as the API sent them. oba admin org list runs it too, so that both show one
+// it prints them as the API sent them. oba ulak org list runs it too, so that both show one
 // truth.
 func RunOrgList(cmd *cobra.Command, _ []string) error {
 	creds, user, err := session.CurrentUser()

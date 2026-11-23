@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/korurlabs/oba-cli/internal/apps/admin/invite"
+	"github.com/korurlabs/oba-cli/internal/apps/ulak/invite"
 	"github.com/korurlabs/oba-cli/internal/dojo/client"
 	"github.com/korurlabs/oba-cli/internal/dojo/clitest"
 )
@@ -36,7 +36,7 @@ func TestInviteCreateSendsEmailAndRole(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			api := newInviteAPI(t)
 			api.Respond("POST /invitations", http.StatusCreated, `{"data":`+invitationJSON+`}`)
-			out, _, err := runCLI(t, "", append([]string{"admin", "invite", "create", " ayse@example.com "}, tt.args...)...)
+			out, _, err := runCLI(t, "", append([]string{"ulak", "invite", "create", " ayse@example.com "}, tt.args...)...)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -60,7 +60,7 @@ func TestInviteCreateWithoutExpiry(t *testing.T) {
 	api := newInviteAPI(t)
 	api.Respond("POST /invitations", http.StatusCreated,
 		`{"data":{"id":"i1","email":"ayse@example.com","role":"MEMBER","status":"PENDING","expiresAt":null}}`)
-	out, _, err := runCLI(t, "", "admin", "invite", "create", "ayse@example.com")
+	out, _, err := runCLI(t, "", "ulak", "invite", "create", "ayse@example.com")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -73,7 +73,7 @@ func TestInviteCreateRefusesRoleBeforeAnyCall(t *testing.T) {
 	for _, given := range []string{"OWNER", "owner", "boss"} {
 		t.Run(given, func(t *testing.T) {
 			api := newInviteAPI(t)
-			_, _, err := runCLI(t, "", "admin", "invite", "create", "ayse@example.com", "--role", given)
+			_, _, err := runCLI(t, "", "ulak", "invite", "create", "ayse@example.com", "--role", given)
 			want := `unknown role "` + given + `"; allowed: ADMIN, MEMBER, GUEST`
 			if err == nil || err.Error() != want {
 				t.Fatalf("err = %v, want %s", err, want)
@@ -101,7 +101,7 @@ func TestInviteCreateAPIErrors(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			api := newInviteAPI(t)
 			api.Respond("POST /invitations", tt.status, tt.body)
-			out, _, err := runCLI(t, "", "admin", "invite", "create", "ayse@example.com")
+			out, _, err := runCLI(t, "", "ulak", "invite", "create", "ayse@example.com")
 			if err == nil || err.Error() != tt.wantErr || client.ExitCode(err) != tt.wantExit {
 				t.Fatalf("err = %v, exit = %d", err, client.ExitCode(err))
 			}
@@ -115,7 +115,7 @@ func TestInviteCreateAPIErrors(t *testing.T) {
 func TestInviteList(t *testing.T) {
 	api := newInviteAPI(t)
 	api.Respond("GET /invitations", http.StatusOK, invitationsJSON)
-	out, _, err := runCLI(t, "", "admin", "invite", "list")
+	out, _, err := runCLI(t, "", "ulak", "invite", "list")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -133,7 +133,7 @@ func TestInviteList(t *testing.T) {
 func TestInviteListEmpty(t *testing.T) {
 	api := newInviteAPI(t)
 	api.Respond("GET /invitations", http.StatusOK, `{"data":[]}`)
-	out, _, err := runCLI(t, "", "admin", "invite", "list")
+	out, _, err := runCLI(t, "", "ulak", "invite", "list")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -166,7 +166,7 @@ func TestInviteRevoke(t *testing.T) {
 			clitest.FakeTerminal(t, &stdinIsTerminal, tt.terminal)
 			api.Respond("GET /invitations", http.StatusOK, invitationsJSON)
 			api.Respond("DELETE "+invitationPath, http.StatusOK, `{"message":"ok"}`)
-			out, _, err := runCLILines(t, tt.stdin, append([]string{"admin", "invite", "revoke", invitationID}, tt.args...)...)
+			out, _, err := runCLILines(t, tt.stdin, append([]string{"ulak", "invite", "revoke", invitationID}, tt.args...)...)
 			if !errors.Is(err, tt.wantErr) {
 				t.Fatalf("err = %v, want %v", err, tt.wantErr)
 			}
@@ -185,7 +185,7 @@ func TestInviteRevokeUnknownIDIsAPINotFound(t *testing.T) {
 	clitest.FakeTerminal(t, &stdinIsTerminal, true)
 	api.Respond("GET /invitations", http.StatusOK, invitationsJSON)
 	api.Respond("DELETE /invitations/nope", http.StatusNotFound, `{"error":{"code":"INV_NOT_001","message":"Invitation not found"}}`)
-	out, _, err := runCLI(t, "", "admin", "invite", "revoke", "nope")
+	out, _, err := runCLI(t, "", "ulak", "invite", "revoke", "nope")
 	if err == nil || err.Error() != "INV_NOT_001: Invitation not found" || client.ExitCode(err) != 2 {
 		t.Fatalf("err = %v, exit = %d", err, client.ExitCode(err))
 	}
@@ -198,7 +198,7 @@ func TestInviteRevokeNotPending(t *testing.T) {
 	api := newInviteAPI(t)
 	api.Respond("DELETE "+invitationPath, http.StatusUnprocessableEntity,
 		`{"error":{"code":"INV_VAL_010","message":"Invitation is not pending"}}`)
-	_, _, err := runCLI(t, "", "admin", "invite", "revoke", invitationID, "--yes")
+	_, _, err := runCLI(t, "", "ulak", "invite", "revoke", invitationID, "--yes")
 	if err == nil || err.Error() != "INV_VAL_010: Invitation is not pending" || client.ExitCode(err) != 1 {
 		t.Fatalf("err = %v, exit = %d", err, client.ExitCode(err))
 	}

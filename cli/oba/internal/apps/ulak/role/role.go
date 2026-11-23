@@ -1,4 +1,4 @@
-// Package role checks the organization role a user gives to an admin command before anything is
+// Package role checks the organization role a user gives to an Ulak command before anything is
 // sent, so that invite create and member role refuse the same values with the same message.
 package role
 

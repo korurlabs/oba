@@ -1,4 +1,4 @@
-// Package member builds the oba admin member commands: list the members of the current
+// Package member builds the oba ulak member commands: list the members of the current
 // organization, change a member's role and remove a member.
 package member
 
@@ -9,8 +9,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/korurlabs/oba-cli/cmd/jsonresult"
-	"github.com/korurlabs/oba-cli/internal/apps/admin/member"
-	"github.com/korurlabs/oba-cli/internal/apps/admin/role"
+	"github.com/korurlabs/oba-cli/internal/apps/ulak/member"
+	"github.com/korurlabs/oba-cli/internal/apps/ulak/role"
 	"github.com/korurlabs/oba-cli/internal/dojo/client"
 	"github.com/korurlabs/oba-cli/internal/dojo/guardrail"
 	"github.com/korurlabs/oba-cli/internal/dojo/terminal"
@@ -21,22 +21,22 @@ const (
 	memberListHelp = `Lists the members of the current organization, the people who accepted an invitation, in one
 table: NAME, EMAIL, ROLE, STATUS, USER ID. Owners come first, then ADMIN, MEMBER and GUEST, each
 by e-mail. Any member may list them. People invited but not yet accepted are in
-'oba admin invite list'.`
+'oba ulak invite list'.`
 	memberRoleHelp = `Gives a member of the current organization another role: ADMIN, MEMBER or GUEST, case ignored.
-The member is named by user id or by e-mail, as 'oba admin member list' shows them. OWNER is
+The member is named by user id or by e-mail, as 'oba ulak member list' shows them. OWNER is
 never assigned. Only an admin or owner may change a role; nobody changes their own, and an
 admin never changes an owner's.
 
-  oba admin member role ana@example.com ADMIN`
+  oba ulak member role ana@example.com ADMIN`
 	memberRemoveHelp = `Removes a member from the current organization after asking for confirmation. The member is
-named by user id or by e-mail, as 'oba admin member list' shows them. Without a terminal to ask
+named by user id or by e-mail, as 'oba ulak member list' shows them. Without a terminal to ask
 on, pass --yes. Only an admin or owner may remove a member, and an admin never removes an owner.`
 )
 
 // stdinIsTerminal is a variable so that tests can stand in for a terminal.
 var stdinIsTerminal = terminal.StdinIsTerminal
 
-// NewCmd builds the oba admin member command with list, role and remove.
+// NewCmd builds the oba ulak member command with list, role and remove.
 func NewCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "member",
