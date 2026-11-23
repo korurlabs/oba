@@ -90,7 +90,7 @@ func CheckOrigin(manifest Manifest, organization, remoteURL string, highest int)
 		return fmt.Errorf("release %d is signed for %s, not for this checkout's %s", manifest.Number, manifest.RemoteURL, remoteURL)
 	}
 	if manifest.Number < highest {
-		return fmt.Errorf("release %d is older than release %d, which this checkout already verified", manifest.Number, highest)
+		return fmt.Errorf("release %d is older than release %d, which this machine already verified for this repository", manifest.Number, highest)
 	}
 	return nil
 }

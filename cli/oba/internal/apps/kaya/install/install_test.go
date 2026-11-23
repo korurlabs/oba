@@ -1,10 +1,13 @@
 package install
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -14,6 +17,9 @@ import (
 func testOptions(t *testing.T) Options {
 	t.Helper()
 	home := t.TempDir()
+	// git reads and writes a global config of this test only.
+	t.Setenv("GIT_CONFIG_GLOBAL", filepath.Join(home, ".gitconfig"))
+	t.Setenv("GIT_CONFIG_NOSYSTEM", "1")
 	if err := os.MkdirAll(filepath.Join(home, ".config", "Code", "User"), 0o750); err != nil {
 		t.Fatal(err)
 	}
@@ -347,5 +353,193 @@ func TestInstall_dropsTheHooksKeyWhenOnlyKayaUsedIt(t *testing.T) {
 	apply(t, opts)
 	if data := readFile(t, claude); data != "{}\n" {
 		t.Fatalf("settings = %q", data)
+	}
+}
+
+// globalGit is every value of key in the test's global git config.
+func globalGit(t *testing.T, key string) []string {
+	t.Helper()
+	out, err := exec.Command("git", "config", "--global", "--get-all", key).Output()
+	var exitErr *exec.ExitError
+	if errors.As(err, &exitErr) && exitErr.ExitCode() == 1 {
+		return nil
+	}
+	if err != nil {
+		t.Fatalf("git config --get-all %s: %v", key, err)
+	}
+	return strings.Split(strings.TrimSuffix(string(out), "\n"), "\n")
+}
+
+func applyGitHooks(t *testing.T, opts Options) GitPlan {
+	t.Helper()
+	plan, err := BuildGitHooks(opts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := ApplyGitHooks(opts, plan.Settings); err != nil {
+		t.Fatal(err)
+	}
+	return plan
+}
+
+func TestGitHooks_areWrittenOnceWithTheAbsoluteObaPath(t *testing.T) {
+	opts := testOptions(t)
+	plan := applyGitHooks(t, opts)
+	if len(plan.Settings) != 4 || len(plan.Unchanged) != 0 {
+		t.Fatalf("plan = %+v", plan)
+	}
+	for _, event := range []string{"pre-commit", "post-checkout"} {
+		if got := globalGit(t, "hook.kaya-"+event+".event"); len(got) != 1 || got[0] != event {
+			t.Fatalf("hook.kaya-%s.event = %q", event, got)
+		}
+		command := globalGit(t, "hook.kaya-"+event+".command")
+		if len(command) != 1 || !strings.HasSuffix(command[0], "; exec /usr/local/bin/oba kaya git-hook "+event) ||
+			!strings.HasPrefix(command[0], "[ -x /usr/local/bin/oba ] || ") {
+			t.Fatalf("hook.kaya-%s.command = %q", event, command)
+		}
+	}
+
+	before := readFile(t, os.Getenv("GIT_CONFIG_GLOBAL"))
+	again := applyGitHooks(t, opts)
+	if len(again.Settings) != 0 || len(again.Unchanged) != 4 {
+		t.Fatalf("a second install plans %+v", again)
+	}
+	if after := readFile(t, os.Getenv("GIT_CONFIG_GLOBAL")); after != before {
+		t.Fatalf("a second install changed the global git config:\n%s", after)
+	}
+}
+
+func TestGitHooks_followAMovedObaAndKeepOneValuePerKey(t *testing.T) {
+	opts := testOptions(t)
+	applyGitHooks(t, opts)
+	if out, err := exec.Command("git", "config", "--global", "--add", "hook.kaya-pre-commit.command", "stale").CombinedOutput(); err != nil {
+		t.Fatalf("%v: %s", err, out)
+	}
+	opts.ObaPath = "/opt/homebrew/bin/oba"
+	plan := applyGitHooks(t, opts)
+	if len(plan.Settings) != 2 {
+		t.Fatalf("plan = %+v", plan)
+	}
+	for _, event := range []string{"pre-commit", "post-checkout"} {
+		if got := globalGit(t, "hook.kaya-"+event+".command"); len(got) != 1 || got[0] != GitHookCommand("/opt/homebrew/bin/oba", event) {
+			t.Fatalf("hook.kaya-%s.command = %q", event, got)
+		}
+	}
+}
+
+func TestGitHooks_refuseARelativeObaPath(t *testing.T) {
+	opts := testOptions(t)
+	opts.ObaPath = "oba"
+	if _, err := BuildGitHooks(opts); err == nil || !strings.Contains(err.Error(), "not absolute") {
+		t.Fatalf("err = %v", err)
+	}
+}
+
+// gitRefusingToWrite puts a git first on PATH that refuses to write key, as git does while another
+// program holds the lock of the global git config, and passes every other call to the real git.
+func gitRefusingToWrite(t *testing.T, key string) {
+	t.Helper()
+	realGit, err := exec.LookPath("git")
+	if err != nil {
+		t.Fatal(err)
+	}
+	dir := t.TempDir()
+	fake := filepath.Join(dir, "git")
+	write(t, fake, "#!/bin/sh\ncase \" $* \" in\n*\" --replace-all "+key+" \"*)\n"+
+		"\techo 'error: could not lock config file' >&2\n\texit 255\n\t;;\nesac\nexec "+shellQuote(realGit)+" \"$@\"\n")
+	if err := os.Chmod(fake, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", dir+string(os.PathListSeparator)+os.Getenv("PATH"))
+}
+
+func TestGitHooks_aWriteThatFailsLeavesGitWorking(t *testing.T) {
+	realGit, err := exec.LookPath("git")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, failing := range GitHookSettings("/usr/local/bin/oba") {
+		t.Run(failing.Key, func(t *testing.T) {
+			opts := testOptions(t)
+			t.Setenv("HOME", opts.Home)
+			t.Setenv("XDG_CONFIG_HOME", filepath.Join(opts.Home, ".config"))
+			gitRefusingToWrite(t, failing.Key)
+
+			err := ApplyGitHooks(opts, GitHookSettings(opts.ObaPath))
+			if err == nil || !strings.Contains(err.Error(), "could not lock config file") {
+				t.Fatalf("err = %v", err)
+			}
+			for _, event := range GitHookEvents {
+				name := "hook." + GitHookName(event)
+				if len(globalGit(t, name+".event")) != 0 && len(globalGit(t, name+".command")) == 0 {
+					t.Fatalf("the global git config sets %s.event without %s.command", name, name)
+				}
+			}
+			repo := t.TempDir()
+			for _, args := range [][]string{{"init", "--quiet", repo}, {"-C", repo, "status", "--short"}} {
+				if out, err := exec.Command(realGit, args...).CombinedOutput(); err != nil {
+					t.Fatalf("git %s: %v\n%s", strings.Join(args, " "), err, out)
+				}
+			}
+		})
+	}
+}
+
+// runHookCommand runs command as git runs a hook from the git config: with sh, the hook's
+// arguments appended.
+func runHookCommand(t *testing.T, command string, args ...string) (string, error) {
+	t.Helper()
+	var stderr bytes.Buffer
+	cmd := exec.Command("sh", append([]string{"-c", command + ` "$@"`, command}, args...)...)
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	return stderr.String(), err
+}
+
+func TestGitHookCommand_passesGitsArgumentsAndLetsGitGoOnWithoutOba(t *testing.T) {
+	dir := filepath.Join(t.TempDir(), "a b's bin")
+	oba := filepath.Join(dir, "oba")
+	record := filepath.Join(t.TempDir(), "args")
+	write(t, oba, "#!/bin/sh\nprintf '%s|' \"$@\" > '"+record+"'\nexit 1\n")
+	if err := os.Chmod(oba, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	command := GitHookCommand(oba, "post-checkout")
+
+	if _, err := runHookCommand(t, command, "abc", "def", "1"); err == nil {
+		t.Fatal("the exit status of oba was not passed on")
+	}
+	if got := readFile(t, record); got != "kaya|git-hook|post-checkout|abc|def|1|" {
+		t.Fatalf("oba got %q", got)
+	}
+
+	if err := os.Remove(oba); err != nil {
+		t.Fatal(err)
+	}
+	stderr, err := runHookCommand(t, command, "abc", "def", "1")
+	if err != nil {
+		t.Fatalf("a missing oba failed the hook: %v", err)
+	}
+	if stderr != "oba kaya: "+oba+" is missing, so the Kaya git hook post-checkout did not run; run oba kaya install\n" {
+		t.Fatalf("stderr = %q", stderr)
+	}
+}
+
+func TestGitVersionAdvice(t *testing.T) {
+	for version, want := range map[string]string{
+		"git version 2.54.0 (Apple Git-157)\n": "",
+		"git version 2.60.1":                   "",
+		"git version 3.0.0":                    "",
+		"git version 2.53.2":                   "this is git 2.53, so update git",
+		"git version 1.99.0":                   "this is git 1.99, so update git",
+		"not git":                              `could not be read from "not git"`,
+	} {
+		got := gitVersionAdvice(version)
+		if want == "" && got != "" || want != "" && !strings.Contains(got, want) {
+			t.Errorf("gitVersionAdvice(%q) = %q, want %q", version, got, want)
+		}
+		if want != "" && !strings.Contains(got, "need git 2.54 or newer") {
+			t.Errorf("gitVersionAdvice(%q) = %q names no minimum", version, got)
+		}
 	}
 }

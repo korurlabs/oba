@@ -1,9 +1,10 @@
 // Package install sets a machine up for Kaya's config delivery: the VS Code extension starts
-// Claude Code through oba-kaya-launch, the terminal's claude runs through oba kaya launch, and a
-// managed settings drop-in of Claude Code registers Kaya's hooks and status line. The drop-in is
-// rendered as the user and installed by root with a system binary. Kaya's hooks that an earlier
-// install registered in the user settings are removed once the drop-in is proved in force. Every
-// changed file is backed up first, and a second run changes nothing.
+// Claude Code through oba-kaya-launch, the terminal's claude runs through oba kaya launch, a
+// managed settings drop-in of Claude Code registers Kaya's hooks and status line, and the user's
+// global git config runs Kaya's git hooks. The drop-in is rendered as the user and installed by
+// root with a system binary. Kaya's hooks that an earlier install registered in the user settings
+// are removed once the drop-in is proved in force. Every changed file is backed up first, and a
+// second run changes nothing.
 package install
 
 import (
@@ -13,8 +14,10 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -509,4 +512,171 @@ func shellQuote(s string) string {
 		return s
 	}
 	return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'"
+}
+
+// GitHookEvents are the git hooks Kaya registers in the user's global git config, each run as
+// oba kaya git-hook <event>.
+var GitHookEvents = []string{"pre-commit", "post-checkout"}
+
+// minGitMajor and minGitMinor name the first git that runs hooks from the git config beside the
+// hook of a repository's hooks folder or core.hooksPath.
+const (
+	minGitMajor = 2
+	minGitMinor = 54
+)
+
+var gitVersionPattern = regexp.MustCompile(`^git version (\d+)\.(\d+)`)
+
+// GitSetting is one value of the user's global git config.
+type GitSetting struct {
+	Key   string
+	Value string
+}
+
+// GitPlan is what install would set in the user's global git config.
+type GitPlan struct {
+	// Settings are the values the global git config lacks, set with --replace-all.
+	Settings []GitSetting
+	// Unchanged names what is already in place.
+	Unchanged []string
+	// Manual lists what the user must do by hand, with the reason.
+	Manual []string
+}
+
+// GitHookName is the name of Kaya's git hook for event: the global git config holds it as
+// hook.<name>.event and hook.<name>.command.
+func GitHookName(event string) string {
+	return "kaya-" + event
+}
+
+// GitHookCommand is the command of Kaya's git hook for event. git runs it with sh and appends the
+// hook's arguments, so it ends with the oba call. When obaPath is gone, after oba was removed or
+// moved, it says so on stderr and lets git go on.
+func GitHookCommand(obaPath, event string) string {
+	oba := shellQuote(obaPath)
+	return "[ -x " + oba + " ] || { printf 'oba kaya: %s is missing, so the Kaya git hook " + event +
+		" did not run; run oba kaya install\\n' " + oba + " >&2; exit 0; }; exec " + oba + " kaya git-hook " + event
+}
+
+// GitHookSettings are the values of Kaya's git hooks that run the oba at obaPath, each hook's
+// command before its event, in the order they are written. git aborts every command in every
+// repository while a hook has an event but no command, and ignores a command without an event, so
+// a write that fails or is interrupted after the first value must leave the command in place.
+func GitHookSettings(obaPath string) []GitSetting {
+	var settings []GitSetting
+	for _, event := range GitHookEvents {
+		prefix := "hook." + GitHookName(event) + "."
+		settings = append(settings,
+			GitSetting{Key: prefix + "command", Value: GitHookCommand(obaPath, event)},
+			GitSetting{Key: prefix + "event", Value: event})
+	}
+	return settings
+}
+
+// BuildGitHooks reads the user's global git config and computes the values of Kaya's git hooks
+// it lacks, writing nothing.
+func BuildGitHooks(opts Options) (GitPlan, error) {
+	if !filepath.IsAbs(opts.ObaPath) {
+		return GitPlan{}, fmt.Errorf("the oba path %q is not absolute", opts.ObaPath)
+	}
+	var plan GitPlan
+	git, err := exec.LookPath("git")
+	if err != nil {
+		plan.Manual = append(plan.Manual, fmt.Sprintf("git was not found (%v); once git %d.%d or newer is installed, "+
+			"run oba kaya install again so that git runs Kaya's pre-commit and post-checkout hooks", err, minGitMajor, minGitMinor))
+		return plan, nil
+	}
+	version, err := runGit(opts, git, "--version")
+	if err != nil {
+		return GitPlan{}, err
+	}
+	if advice := gitVersionAdvice(version); advice != "" {
+		plan.Manual = append(plan.Manual, advice)
+	}
+	for _, setting := range GitHookSettings(opts.ObaPath) {
+		values, err := globalGitValues(opts, git, setting.Key)
+		if err != nil {
+			return GitPlan{}, err
+		}
+		if len(values) == 1 && values[0] == setting.Value {
+			plan.Unchanged = append(plan.Unchanged, "the global git config sets "+setting.Key)
+			continue
+		}
+		plan.Settings = append(plan.Settings, setting)
+	}
+	return plan, nil
+}
+
+// gitVersionAdvice names a git too old for hooks from the git config, from the output of
+// git --version; empty when the git is new enough.
+func gitVersionAdvice(version string) string {
+	need := fmt.Sprintf("Kaya's pre-commit and post-checkout hooks need git %d.%d or newer, which runs hooks from the global git config", minGitMajor, minGitMinor)
+	match := gitVersionPattern.FindStringSubmatch(strings.TrimSpace(version))
+	if match == nil {
+		return fmt.Sprintf("%s; the version of this git could not be read from %q", need, strings.TrimSpace(version))
+	}
+	major, errMajor := strconv.Atoi(match[1])
+	minor, errMinor := strconv.Atoi(match[2])
+	if err := errors.Join(errMajor, errMinor); err != nil {
+		return fmt.Sprintf("%s; the version of this git could not be read: %v", need, err)
+	}
+	if major > minGitMajor || (major == minGitMajor && minor >= minGitMinor) {
+		return ""
+	}
+	return fmt.Sprintf("%s; this is git %d.%d, so update git", need, major, minor)
+}
+
+// ApplyGitHooks sets the values in the user's global git config in their order, each replacing
+// every value the key held, and stops at the first write that fails.
+func ApplyGitHooks(opts Options, settings []GitSetting) error {
+	if len(settings) == 0 {
+		return nil
+	}
+	git, err := exec.LookPath("git")
+	if err != nil {
+		return fmt.Errorf("find git: %w", err)
+	}
+	for _, setting := range settings {
+		if _, err := runGit(opts, git, "config", "--global", "--replace-all", setting.Key, setting.Value); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// globalGitValues are the values of key in the user's global git config; none when it is unset.
+func globalGitValues(opts Options, git, key string) ([]string, error) {
+	out, err := runGit(opts, git, "config", "--global", "--null", "--get-all", key)
+	var exitErr *exec.ExitError
+	if errors.As(err, &exitErr) && exitErr.ExitCode() == 1 {
+		// git config exits 1 for a key that is not set.
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return strings.Split(strings.TrimSuffix(out, "\x00"), "\x00"), nil
+}
+
+// runGit runs git with the home of opts, so that --global names the user's global git config of
+// that home, unless GIT_CONFIG_GLOBAL names another file.
+func runGit(opts Options, git string, args ...string) (string, error) {
+	cmd := exec.Command(git, args...) // #nosec G204 -- git found on PATH, with fixed subcommands and Kaya's own keys and values
+	env := make([]string, 0, len(os.Environ())+2)
+	for _, entry := range os.Environ() {
+		if !strings.HasPrefix(entry, "HOME=") && !strings.HasPrefix(entry, "XDG_CONFIG_HOME=") {
+			env = append(env, entry)
+		}
+	}
+	env = append(env, "HOME="+opts.Home)
+	if opts.ConfigHome != "" {
+		env = append(env, "XDG_CONFIG_HOME="+opts.ConfigHome)
+	}
+	cmd.Env = env
+	var stdout, stderr strings.Builder
+	cmd.Stdout, cmd.Stderr = &stdout, &stderr
+	if err := cmd.Run(); err != nil {
+		return "", fmt.Errorf("git %s: %w: %s", strings.Join(args[:min(len(args), 4)], " "), err, strings.TrimSpace(stderr.String()))
+	}
+	return stdout.String(), nil
 }

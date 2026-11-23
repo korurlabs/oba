@@ -74,6 +74,9 @@ type Outcome struct {
 	Restored     []Problem
 	Problems     []Problem
 	Warnings     []string
+	// refused is why no release could be placed at all, such as a delivered path git tracks;
+	// Sync returns it as its error after saving the state.
+	refused error
 }
 
 // Sync brings the checkout to the newest verified release the policy allows, restores delivered
@@ -107,6 +110,13 @@ func (d *Deliverer) Sync(ctx context.Context, policy Policy) (Outcome, error) {
 		active, activeErr = nil, nil
 	}
 	state.RequestRemote, state.RemoteURL = request, normalized
+	// The machine's floor reaches a checkout that does not remember its own, such as a new
+	// worktree or one whose .kaya/ was removed.
+	if floors, err := LoadFloors(); err != nil {
+		out.Warnings = append(out.Warnings, err.Error())
+	} else {
+		state.Highest = max(state.Highest, floors.Floor(organization, normalized))
+	}
 
 	if d.Source == nil {
 		out.Offline = d.SourceError
@@ -136,12 +146,21 @@ func (d *Deliverer) Sync(ctx context.Context, policy Policy) (Outcome, error) {
 	}
 	if active != nil {
 		d.verifyPlaced(ctx, &out, active)
+		d.raiseFloor(ctx, &out, active.Manifest)
 	}
 	d.finish(&out, state, active, activeErr)
 	if err := c.prune(state); err != nil {
 		out.Warnings = append(out.Warnings, err.Error())
 	}
-	return out, c.SaveState(state)
+	return out, errors.Join(out.refused, c.SaveState(state))
+}
+
+// raiseFloor raises the machine's floor of the repository to a release verified in this sync.
+// A floor that cannot be written leaves delivery as it is and is reported.
+func (d *Deliverer) raiseFloor(ctx context.Context, out *Outcome, manifest Manifest) {
+	if err := RaiseFloor(ctx, manifest.Organization, manifest.RemoteURL, manifest.Number); err != nil {
+		out.Warnings = append(out.Warnings, err.Error())
+	}
 }
 
 // organization is the organization a release must be signed for: the repository list's, which is
@@ -202,8 +221,11 @@ func (d *Deliverer) contact(ctx context.Context, state *State, out *Outcome, org
 				out.Offline = fmt.Errorf("release %d was not taken: %w", current.Number, err)
 				// A release that was not taken drops the ETag, so the next contact asks again in full.
 				state.ETag = ""
-			} else if state.Organization == "" {
-				state.Organization = release.Manifest.Organization
+			} else {
+				if state.Organization == "" {
+					state.Organization = release.Manifest.Organization
+				}
+				d.raiseFloor(ctx, out, release.Manifest)
 			}
 		}
 	} else {
@@ -341,6 +363,12 @@ func (d *Deliverer) switchTo(ctx context.Context, policy Policy, state *State, o
 		prev = &cleanup.Manifest
 	}
 	if err := d.Checkout.activate(next.Manifest, prev, next.Signed, d.Cache); err != nil {
+		var tracked *TrackedError
+		if errors.As(err, &tracked) {
+			// The refusal came before any file changed, so the active release is still placed.
+			out.refused = fmt.Errorf("release %d was not placed: %w", next.Manifest.Number, err)
+			return
+		}
 		out.Warnings = append(out.Warnings, fmt.Sprintf("switch to release %d: %v", next.Manifest.Number, err))
 		if active != nil {
 			if err := d.Checkout.activate(active.Manifest, &next.Manifest, active.Signed, d.Cache); err != nil {
@@ -373,7 +401,12 @@ func (d *Deliverer) verifyPlaced(ctx context.Context, out *Outcome, active *Rele
 		return
 	}
 	if err := d.Checkout.restore(problems, *active, d.Cache); err != nil {
-		out.Warnings = append(out.Warnings, err.Error())
+		var tracked *TrackedError
+		if errors.As(err, &tracked) {
+			out.refused = err
+		} else {
+			out.Warnings = append(out.Warnings, err.Error())
+		}
 	}
 	out.Problems = d.Checkout.Inspect(active.Manifest, d.Cache)
 	if len(out.Problems) == 0 && !out.Switched {

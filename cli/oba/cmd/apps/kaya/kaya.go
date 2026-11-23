@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/korurlabs/oba-cli/cmd/apps/kaya/delivery"
+	"github.com/korurlabs/oba-cli/cmd/apps/kaya/githook"
 	"github.com/korurlabs/oba-cli/cmd/apps/kaya/hook"
 	"github.com/korurlabs/oba-cli/cmd/apps/kaya/install"
 	"github.com/korurlabs/oba-cli/cmd/apps/kaya/lessons"
@@ -35,6 +36,7 @@ func NewCmd() *cobra.Command {
 	cmd.AddCommand(delivery.NewCmds()...)
 	cmd.AddCommand(
 		hook.NewCmd(),
+		githook.NewCmd(),
 		statusline.NewCmd(),
 		install.NewCmd(),
 		seed.NewCmd(),
