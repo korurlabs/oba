@@ -92,7 +92,9 @@ A file no rule and no leftOut entry matches fails the seed, all of them named. A
 goes to the pack of its skill, and a mounted folder's AGENTS.md to the mounted pack.
 content/<pack>/<path> beside the layout file replaces or adds that path in that pack. A
 repository is read with or without .agents/.managed.json, and --pack, --pack-parent,
---repo-pack and --after-cutover do not apply. A pack is sent only when the run reads every
+--repo-pack and --after-cutover do not apply. A checkout Kaya delivers to is refused: its
+delivered files are links into its .kaya/ folder, Kaya's own output, so seed from a checkout
+Kaya does not deliver to, or leave the repository out. A pack is sent only when the run reads every
 source it takes files from, and a repository the run does not read keeps its stored pack list,
 so a later run can add packs and repositories while Kaya leaves equal packs as they are. The
 release comparison lists the content files and the files left out as changed on purpose.

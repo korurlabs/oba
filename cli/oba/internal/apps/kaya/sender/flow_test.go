@@ -628,6 +628,44 @@ func TestAnAliasedRemoteThatResolvesToNoListedRemoteStaysQueued(t *testing.T) {
 	assertKeptUnsent(t, state, dir, bodies, "work-gh", "private-tool")
 }
 
+func TestAnAliasThatSSHCannotResolveIsLoggedAsSuchNotAsUnlisted(t *testing.T) {
+	state := flowEnv(t)
+	// Two sessions over the same alias: the resolver asks ssh about a host once per run, so the
+	// second session meets the cached failure.
+	const second = "11111111-aaaa-4bbb-8ccc-0000000000f2"
+	sessions := map[string]string{flowSession: "git@broken-gh:example/app.git", second: "git@broken-gh:example/tool.git"}
+	for id, remote := range sessions {
+		dir := queueSession(t, state, id, 1, true)
+		writeFile(t, filepath.Join(dir, capture.SessionFile),
+			`{"sessionId":"`+id+`","machineName":"flow-host","remoteUrl":"`+remote+`","gitAuthorEmail":"dev@example.com"}`)
+	}
+	asked := 0
+	bodies := runOnce(t, &seed.RemoteResolver{Lookup: func(host string) (string, error) {
+		asked++
+		return "", errors.New("ssh -G " + host + " exited 255: ssh: broken")
+	}})
+	if len(bodies) != 0 {
+		t.Fatalf("Kaya received %d batches, want none", len(bodies))
+	}
+	if asked != 1 {
+		t.Errorf("ssh was asked %d times, want once for the shared host", asked)
+	}
+	log := logText(t, state)
+	for id := range sessions {
+		if !strings.Contains(log, id+": not sent, "+unresolvedAlias) {
+			t.Errorf("no unresolved-alias line for %s, log:\n%s", id, log)
+		}
+	}
+	if strings.Contains(log, unlisted) {
+		t.Errorf("the log calls a session whose alias ssh could not resolve unlisted:\n%s", log)
+	}
+	for _, text := range []string{"broken-gh", "example/", "exited 255"} {
+		if strings.Contains(log, text) {
+			t.Errorf("the log names %q of a remote off the list:\n%s", text, log)
+		}
+	}
+}
+
 func TestASessionWithoutARecordedRemoteInAForkSendsTheListedUpstream(t *testing.T) {
 	state := flowEnv(t)
 	forkCheckout(t, state, "origin", "https://github.com/someone/app.git", "upstream", flowRemote)

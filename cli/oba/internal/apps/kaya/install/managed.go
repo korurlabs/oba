@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -223,6 +224,41 @@ type InForceProof struct {
 	ProvedAt     time.Time `json:"provedAt"`
 }
 
+// DropInSha256 is the sha256 of a drop-in's content in lower-case hex, as the in-force proof
+// names it.
+func DropInSha256(content []byte) string {
+	sum := sha256.Sum256(content)
+	return hex.EncodeToString(sum[:])
+}
+
+// SaveInForce writes the in-force proof to path by rename, readable by its owner only, creating
+// its folder. provedAt is stored in UTC.
+func SaveInForce(path string, proof InForceProof) error {
+	if !sha256Hex.MatchString(proof.DropInSha256) {
+		return fmt.Errorf("dropInSha256 %q is not a lower-case hex sha256", proof.DropInSha256)
+	}
+	if proof.ProvedAt.IsZero() {
+		return errors.New("provedAt is missing")
+	}
+	proof.ProvedAt = proof.ProvedAt.UTC()
+	data, err := json.MarshalIndent(proof, "", "  ")
+	if err != nil {
+		return fmt.Errorf("encode the in-force proof: %w", err)
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+		return fmt.Errorf("create %s: %w", filepath.Dir(path), err)
+	}
+	return writeAtomic(path, append(data, '\n'), 0o600)
+}
+
+// RemoveInForce deletes the in-force proof at path; a missing proof is not an error.
+func RemoveInForce(path string) error {
+	if err := os.Remove(path); err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return fmt.Errorf("remove %s: %w", path, err)
+	}
+	return nil
+}
+
 // LoadInForce reads the in-force proof at path. A missing file is no proof, and not an error.
 func LoadInForce(path string) (InForceProof, bool, error) {
 	data, err := readOptional(path)
@@ -269,8 +305,7 @@ func checkDropIn(opts Options) dropInState {
 	case !ok:
 		return dropInState{installed: true, reason: "no in-force proof at " + opts.InForcePath + " yet"}
 	}
-	sum := sha256.Sum256(installed)
-	if proof.DropInSha256 != hex.EncodeToString(sum[:]) {
+	if proof.DropInSha256 != DropInSha256(installed) {
 		return dropInState{installed: true, reason: "the in-force proof names another drop-in than the one installed"}
 	}
 	return dropInState{installed: true, inForce: true}
