@@ -95,7 +95,7 @@ func TestConcurrentHooksKeepSeqGaplessAndUnique(t *testing.T) {
 			for i := range perWorker {
 				in := map[string]any{"cwd": repo, "hook_event_name": "UserPromptSubmit", "session_id": "conc-1",
 					"prompt": fmt.Sprintf("worker %d prompt %d", w, i)}
-				if _, err := Record(in, time.Unix(1_800_000_000, 0), os.Stderr); err != nil {
+				if _, err := Record(in, "", time.Unix(1_800_000_000, 0), os.Stderr); err != nil {
 					errs <- err
 				}
 			}

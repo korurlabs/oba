@@ -114,8 +114,11 @@ func replayCase(t *testing.T, name, transcripts string) {
 	// Record queues for any checkout; the hook decides by the remotes whether it is called, so the
 	// corpus, which pins the Python recorder that recorded every checkout, replays Record directly.
 	gitRun(t, repo, "commit", "-q", "--allow-empty", "-m", "init")
+	// The hook passes the remote that recognised the checkout; the corpus's checkout has origin only.
+	remote := ""
 	if c.Remote != nil {
 		gitRun(t, repo, "remote", "add", "origin", *c.Remote)
+		remote = *c.Remote
 	}
 	if c.Email != nil {
 		gitRun(t, repo, "config", "user.email", *c.Email)
@@ -159,7 +162,7 @@ func replayCase(t *testing.T, name, transcripts string) {
 			t.Setenv(key, expand(value, subst).(string))
 		}
 		var warnings bytes.Buffer
-		err := recordStep(step, subst, parseISO(t, step.At), &warnings)
+		err := recordStep(step, remote, subst, parseISO(t, step.At), &warnings)
 		for key := range step.Env {
 			t.Setenv(key, "")
 		}
@@ -220,7 +223,7 @@ func applyQueueEdits(t *testing.T, queue string, edits []queueEdit) {
 	}
 }
 
-func recordStep(step corpusStep, subst map[string]string, now time.Time, warnings *bytes.Buffer) error {
+func recordStep(step corpusStep, remote string, subst map[string]string, now time.Time, warnings *bytes.Buffer) error {
 	var in map[string]any
 	if step.RawStdin != nil {
 		decoded, err := Decode([]byte(*step.RawStdin))
@@ -237,7 +240,7 @@ func recordStep(step corpusStep, subst map[string]string, now time.Time, warning
 			return err
 		}
 	}
-	_, err := Record(in, now, warnings)
+	_, err := Record(in, remote, now, warnings)
 	return err
 }
 

@@ -20,14 +20,20 @@ func recordHook(raw []byte, stderr io.Writer) error {
 	if err != nil {
 		return hookFailed(stderr, fmt.Errorf("nothing recorded: %w", err))
 	}
-	recognised, err := recordedCheckout(in)
+	checkout, err := recordedCheckout(in)
 	if err != nil {
 		return hookFailed(stderr, fmt.Errorf("nothing recorded: %w", err))
 	}
-	if !recognised {
+	if checkout == nil {
 		return nil
 	}
-	queued, err := capture.Record(in, time.Now(), stderr)
+	// The session is reported with the remote that put the checkout on the list, not origin's,
+	// which in a fork is the developer's own repository that Kaya does not serve.
+	remote, _, err := checkout.Remotes()
+	if err != nil {
+		return hookFailed(stderr, fmt.Errorf("nothing recorded: %w", err))
+	}
+	queued, err := capture.Record(in, remote, time.Now(), stderr)
 	if err != nil {
 		return hookFailed(stderr, fmt.Errorf("nothing recorded: %w", err))
 	}
@@ -37,19 +43,22 @@ func recordHook(raw []byte, stderr io.Writer) error {
 	return nil
 }
 
-// recordedCheckout reports whether the event's directory is in a checkout one of whose remotes is
-// on the cached repository list. The list is only read here, never fetched, so the hook needs no
-// network. A directory outside git is left to Record, which names it.
-func recordedCheckout(in map[string]any) (bool, error) {
+// recordedCheckout is the checkout of the event's directory when one of its remotes is on the
+// cached repository list, nil when none is. The list is only read here, never fetched, so the
+// hook needs no network. A directory outside git is left to Record, which names it.
+func recordedCheckout(in map[string]any) (*delivery.Checkout, error) {
 	dir, err := capture.EventDir(in)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 	checkout, err := delivery.FindCheckout(dir)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
-	return checkout.Kind != delivery.NotKaya, nil
+	if checkout.Kind == delivery.NotKaya {
+		return nil, nil
+	}
+	return checkout, nil
 }
 
 // startSender starts the process that sends the queue to Kaya, unless one runs or was started

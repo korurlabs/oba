@@ -56,7 +56,7 @@ func BenchmarkRecordFixtures(b *testing.B) {
 		b.Setenv("XDG_STATE_HOME", filepath.Join(filepath.Dir(repo), "xdg-run", time.Now().Format("150405.000000000")))
 		for _, in := range inputs {
 			start := time.Now()
-			if _, err := Record(in, now, nil); err != nil {
+			if _, err := Record(in, "", now, nil); err != nil {
 				b.Fatal(err)
 			}
 			durations = append(durations, time.Since(start))
