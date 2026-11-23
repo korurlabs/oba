@@ -124,14 +124,26 @@ type gitRemote struct {
 	name, url string
 }
 
+// remotesTimeout bounds the git call that reads a checkout's remotes. Every hook, git hook and
+// sender run recognises a checkout first, and a git that hangs, on a stale lock or an unreachable
+// file system, must hold none of them, nor the sender's lock.
+var remotesTimeout = 5 * time.Second
+
 // gitRemotes lists the urls of the remotes in the checkout's own git config, origin first and
 // the other remotes in name order, each remote's urls as configured. Global, system and
 // command-line config are never read, and the variables that point git at another repository
 // are dropped, so only the checkout's own remotes count.
 func gitRemotes(root string) ([]gitRemote, error) {
-	cmd := exec.Command("git", "-C", root, "config", "--local", "-z", "--get-regexp", `^remote\..+\.url$`) // #nosec G204 -- fixed git subcommand on the checkout
+	ctx, cancel := context.WithTimeout(context.Background(), remotesTimeout)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, "git", "-C", root, "config", "--local", "-z", "--get-regexp", `^remote\..+\.url$`) // #nosec G204 -- fixed git subcommand on the checkout
 	cmd.Env = withoutGitVars(os.Environ())
+	// A process git started that keeps the output open must not outlast the bound either.
+	cmd.WaitDelay = 100 * time.Millisecond
 	out, err := cmd.Output()
+	if err != nil && ctx.Err() != nil {
+		return nil, fmt.Errorf("read the remotes of %s: git did not answer within %s", root, remotesTimeout)
+	}
 	var exitErr *exec.ExitError
 	if errors.As(err, &exitErr) && exitErr.ExitCode() == 1 {
 		// git config exits 1 when no key matches: the checkout has no remote.

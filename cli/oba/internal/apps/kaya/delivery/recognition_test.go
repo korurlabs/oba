@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 )
 
 // isolateConfig keeps the user's own configuration out of a test: git reads no global or system
@@ -293,5 +294,36 @@ func TestGitRemotes_originFirstThenByNameEachRemotesURLsInOrder(t *testing.T) {
 	none, err := gitRemotes(gitCheckout(t))
 	if err != nil || len(none) != 0 {
 		t.Fatalf("a checkout without remotes = %v, %v", none, err)
+	}
+}
+
+func TestFindCheckout_aGitThatHangsIsBoundedAndNamed(t *testing.T) {
+	isolateConfig(t)
+	listRemotes(t, testOrg, "github.com/example/app")
+	root := t.TempDir()
+	if err := os.Mkdir(filepath.Join(root, ".git"), 0o750); err != nil {
+		t.Fatal(err)
+	}
+	bin := t.TempDir()
+	if err := os.WriteFile(filepath.Join(bin, "git"), []byte("#!/bin/sh\nexec /bin/sleep 30\n"), 0o700); err != nil { // #nosec G306 -- the fake git must be executable
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", bin)
+	before := remotesTimeout
+	remotesTimeout = 200 * time.Millisecond
+	t.Cleanup(func() { remotesTimeout = before })
+
+	start := time.Now()
+	checkout, err := FindCheckout(root)
+	elapsed := time.Since(start)
+
+	if err == nil || !strings.Contains(err.Error(), "git did not answer within 200ms") {
+		t.Fatalf("err = %v, want the hung git named", err)
+	}
+	if checkout == nil || checkout.Kind != NotKaya || checkout.Root != root {
+		t.Fatalf("checkout = %+v, want %s as NotKaya beside the error", checkout, root)
+	}
+	if elapsed > 5*time.Second {
+		t.Fatalf("FindCheckout took %s with a git that never answers", elapsed)
 	}
 }

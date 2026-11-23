@@ -1,7 +1,7 @@
 // Package hook is oba kaya hook: the Claude Code hooks of config delivery (session-start,
-// session-end, pre-tool-use, post-tool-use, user-prompt-submit), which oba kaya install registers
-// in the user settings, and of the recorder (record), which a delivered release registers in the
-// project settings.
+// session-end, pre-tool-use, post-tool-use, user-prompt-submit) and of the recorder (record).
+// Kaya's managed settings drop-in registers all of them with the absolute path of oba; oba kaya
+// install --managed renders it.
 package hook
 
 import (
