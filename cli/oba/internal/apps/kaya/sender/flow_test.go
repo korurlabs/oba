@@ -444,6 +444,47 @@ func (s *ingestStore) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	_, _ = fmt.Fprintf(w, `{"success":true,"data":{"acknowledgedSeq":%d}}`, highest)
 }
 
+func TestRecordedRemoteIsSentAsRecordedWhenSSHConfigMapsItsHost(t *testing.T) {
+	state := flowEnv(t)
+	dir := queueSession(t, state, flowSession, 1, false)
+	const recorded = "git@github.com:example/app.git"
+	writeFile(t, filepath.Join(dir, capture.SessionFile),
+		`{"sessionId":"`+flowSession+`","machineName":"flow-host","remoteUrl":"`+recorded+`","repositoryName":"app","gitAuthorEmail":"dev@example.com"}`)
+	poster := &scriptedPoster{answers: []error{nil}}
+	cfg := flowConfig(&fakeClock{now: time.Unix(1_800_000_000, 0)}, poster)
+	cfg.Once = true
+	// Stands in for ssh config that sends github.com over port 443:
+	// `Host github.com` with `Hostname ssh.github.com`.
+	var asked []string
+	cfg.Resolver = &seed.RemoteResolver{Lookup: func(host string) (string, error) {
+		asked = append(asked, host)
+		if host == "github.com" {
+			return "ssh.github.com", nil
+		}
+		return host, nil
+	}}
+	if err := Run(context.Background(), cfg); err != nil {
+		t.Fatal(err)
+	}
+	if len(poster.bodies) != 1 {
+		t.Fatalf("Kaya received %d batches, want 1", len(poster.bodies))
+	}
+	var sent struct {
+		Repository struct {
+			RemoteURL string `json:"remoteUrl"`
+		} `json:"repository"`
+	}
+	if err := json.Unmarshal(poster.bodies[0], &sent); err != nil {
+		t.Fatal(err)
+	}
+	if sent.Repository.RemoteURL != recorded {
+		t.Errorf("sent remote = %q, want the recorded %q", sent.Repository.RemoteURL, recorded)
+	}
+	if len(asked) != 0 {
+		t.Errorf("ssh config was consulted for %q; a recorded remote is sent without resolving it", asked)
+	}
+}
+
 func TestLostAcknowledgementResendsAndKayaCountsEachSeqOnce(t *testing.T) {
 	state := flowEnv(t)
 	dir := queueSession(t, state, flowSession, 3, false)

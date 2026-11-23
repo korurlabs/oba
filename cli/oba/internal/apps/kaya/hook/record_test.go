@@ -101,6 +101,10 @@ func TestRecordHook_failuresAreOneStderrLineAndExitZero(t *testing.T) {
 		"a directory outside git":  kayatest.HookEvent(t, map[string]any{"cwd": outside, "hook_event_name": "Stop", "session_id": "rec-2"}),
 		"a directory that is gone": kayatest.HookEvent(t, map[string]any{"cwd": filepath.Join(outside, "gone"), "hook_event_name": "Stop", "session_id": "rec-2"}),
 	}
+	// Outside git the line names the directory, not the repository list.
+	exact := map[string]string{
+		"a directory outside git": "oba kaya hook: nothing recorded: " + outside + " is not inside a git repository\n",
+	}
 	for name, stdin := range cases {
 		t.Run(name, func(t *testing.T) {
 			stdout, stderr, err := runRecord(t, stdin)
@@ -109,6 +113,9 @@ func TestRecordHook_failuresAreOneStderrLineAndExitZero(t *testing.T) {
 			}
 			if !oneLine(stderr) || !strings.HasPrefix(stderr, "oba kaya hook: nothing recorded") {
 				t.Errorf("stderr = %q, want exactly one line starting with %q", stderr, "oba kaya hook: nothing recorded")
+			}
+			if want, ok := exact[name]; ok && stderr != want {
+				t.Errorf("stderr = %q, want %q", stderr, want)
 			}
 		})
 	}
