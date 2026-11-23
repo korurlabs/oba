@@ -69,7 +69,7 @@ func TestPropose_bodyMatchesTheBackendContractForEveryKindOfFile(t *testing.T) {
 	}
 
 	body := kaya.Proposals[0]
-	if body["remoteUrl"] != "git@github.com:sensey/demo.git" || body["releaseNumber"] != float64(1) || len(body) != 4 {
+	if body["remoteUrl"] != "git@github.com:example/demo.git" || body["releaseNumber"] != float64(1) || len(body) != 4 {
 		t.Fatalf("body = %v", body)
 	}
 	byPath := map[string]map[string]any{}

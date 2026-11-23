@@ -111,10 +111,9 @@ func replayCase(t *testing.T, name, transcripts string) {
 	isolate(t, base, claude)
 
 	gitRun(t, repo, "init", "-q", "-b", c.Branch)
-	// The checkout joins Kaya through a committed kaya.yaml, which the recorder did not ask for.
-	writeFile(t, filepath.Join(repo, "kaya.yaml"), "# joined Kaya\n")
-	gitRun(t, repo, "add", "kaya.yaml")
-	gitRun(t, repo, "commit", "-q", "-m", "init")
+	// Record queues for any checkout; the hook decides by the remotes whether it is called, so the
+	// corpus, which pins the Python recorder that recorded every checkout, replays Record directly.
+	gitRun(t, repo, "commit", "-q", "--allow-empty", "-m", "init")
 	if c.Remote != nil {
 		gitRun(t, repo, "remote", "add", "origin", *c.Remote)
 	}
@@ -486,28 +485,4 @@ func lines(text string) []string {
 		}
 	}
 	return out
-}
-
-func TestRecordSkipsCheckoutWithoutKayaYAML(t *testing.T) {
-	if _, err := exec.LookPath("git"); err != nil {
-		t.Skip("git is not installed")
-	}
-	base, err := filepath.EvalSymlinks(t.TempDir())
-	if err != nil {
-		t.Fatal(err)
-	}
-	isolate(t, base, filepath.Join(base, "claude"))
-	repo := filepath.Join(base, "repo")
-	if err := os.MkdirAll(repo, 0o700); err != nil {
-		t.Fatal(err)
-	}
-	gitRun(t, repo, "init", "-q")
-	in := map[string]any{"session_id": "s1", "cwd": repo, "hook_event_name": "SessionStart"}
-	queued, err := Record(in, time.Now(), &bytes.Buffer{})
-	if err != nil || queued {
-		t.Fatalf("Record = %v, %v; want nothing queued and no error", queued, err)
-	}
-	if _, err := os.Stat(filepath.Join(base, "xdg", "kaya")); !os.IsNotExist(err) {
-		t.Fatalf("the state directory was created: %v", err)
-	}
 }

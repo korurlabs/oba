@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"time"
@@ -14,11 +15,16 @@ import (
 	"github.com/korurlabs/oba-cli/internal/dojo/jsonout"
 )
 
+// manualTimeout bounds the API calls of a sync typed by hand, which waits longer for Kaya than a
+// session start does.
+const manualTimeout = 60 * time.Second
+
 func newSyncCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "sync",
 		Short: "Bring the checkout to its newest signed release",
-		Long: "Fetches and verifies the newest release of the checkout's repository, downloads only the files " +
+		Long: "Refreshes the cached list of the organization's repositories, by which a checkout is recognised " +
+			"from its git remotes, then fetches and verifies the newest release of the checkout's repository, downloads only the files " +
 			"the cache lacks, and switches to it unless another session of the checkout runs; then it restores " +
 			"delivered files changed by hand. Exits 1 when the checkout has no verified release.",
 		Args: cobra.NoArgs,
@@ -42,24 +48,35 @@ func newRefreshCmd() *cobra.Command {
 }
 
 func runSync(ctx context.Context, w io.Writer, policy delivery.Policy) error {
+	m, err := delivery.ConnectMachine(ctx)
+	if err != nil {
+		return err
+	}
+	// The list is refreshed before the checkout is recognised, so a repository added to Kaya is
+	// synced by its first oba kaya sync.
+	refreshCtx, cancelRefresh := context.WithTimeout(ctx, manualTimeout)
+	_, refreshErr := m.RefreshRepositoryList(refreshCtx)
+	cancelRefresh()
 	checkout, err := delivery.CurrentCheckout()
 	if err != nil {
-		return err
+		return errors.Join(err, refreshErr)
 	}
 	if checkout.Kind != delivery.Delivered {
-		return delivery.NotDelivered(checkout)
+		return errors.Join(delivery.NotDelivered(checkout), refreshErr)
 	}
-	d, err := delivery.Open(ctx, checkout, true)
+	d, err := delivery.OpenWith(checkout, m)
 	if err != nil {
 		return err
 	}
-	// A manual sync waits longer for Kaya than a session start does.
-	d.OnlineTimeout = 60 * time.Second
+	d.OnlineTimeout = manualTimeout
 	lockCtx, cancel := delivery.LockContext(ctx)
 	defer cancel()
 	out, err := d.Sync(lockCtx, policy)
 	if err != nil {
-		return err
+		return errors.Join(err, refreshErr)
+	}
+	if refreshErr != nil {
+		out.Warnings = append(out.Warnings, refreshErr.Error())
 	}
 	state, err := checkout.LoadState()
 	if err != nil {

@@ -58,7 +58,7 @@ Each scenario starts from the state after the last step. `responses` is the list
 
 ## What the corpus does not pin
 
-- The scope check (a committed `kaya.yaml`) is new in the Go port; the Python recorder records every git checkout. Every case here is in a checkout without `kaya.yaml`, so a Go test must supply the scope marker or the scope hook to compare.
+- The scope check is new in the Go port; the Python recorder records every git checkout. `oba kaya hook record` records only a checkout one of whose remotes is on the organization's repository list, and makes that check before it calls `Record`, so the corpus replays `Record` directly and pins no scope.
 - The summary key `project` is in `summary.json` (the Python recorder wrote it) but is no longer sent by the Go port; `batch.json` still holds it. The spec compares the summary keys except `project`.
 - The 403 log line is Python's (`Kaya answered 403 KAY_SEC_007; retrying in 2 s`); the spec asks the Go line to carry the `gitAuthorEmail` as well.
 - The run export under `.kaya/runs`, the skills catalogue, the permission overview and `--backfill` are removed by the spec and are not covered.
