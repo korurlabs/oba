@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/capture"
+	"github.com/korurlabs/oba-cli/internal/apps/kaya/delivery"
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/seed"
 )
 
@@ -112,7 +113,7 @@ func replayScenario(t *testing.T, dir string, c corpusCase, sc scenario) {
 	subst := map[string]string{"{{REPO}}": repo, "{{STATE}}": state, "{{TRANSCRIPTS}}": transcripts,
 		"{{OUTSIDE}}": filepath.Join(base, "outside"), "{{HOME}}": filepath.Join(base, "home")}
 	for key, value := range map[string]string{
-		"HOME": filepath.Join(base, "home"), "XDG_STATE_HOME": filepath.Join(base, "xdg"),
+		"HOME": filepath.Join(base, "home"), "XDG_STATE_HOME": filepath.Join(base, "xdg"), "XDG_CONFIG_HOME": filepath.Join(base, "config"),
 		"GIT_CONFIG_GLOBAL": os.DevNull, "GIT_CONFIG_NOSYSTEM": "1", "GIT_CEILING_DIRECTORIES": base,
 		"KAYA_SENDER": "off", "KAYA_RECORDER_TOKEN": "",
 	} {
@@ -159,12 +160,28 @@ func replayScenario(t *testing.T, dir string, c corpusCase, sc scenario) {
 	readCorpus(t, filepath.Join(expected, "sender", sc.Name+".json"), &want)
 	// A case whose session is never sent has no batch.json.
 	var batchBody any
+	var sentRemote string
 	if _, err := os.Stat(filepath.Join(expected, "batch.json")); err == nil {
 		readCorpus(t, filepath.Join(expected, "batch.json"), &batchBody)
 		batchBody = expand(batchBody, subst)
 		delete(batchBody.(map[string]any)["summary"].(map[string]any), "project")
+		sentRemote, _ = batchBody.(map[string]any)["repository"].(map[string]any)["remoteUrl"].(string)
+	}
+	// The Python sender sent every session. This sender sends one only under a remote on the cached
+	// repository list, so the case's list holds the repository the Python sender sent, beside
+	// another one. A recorded ssh host alias is then sent resolved, as the list holds it and as the
+	// Python sender sent it. A case without a remote, or with one no list can hold, such as a local
+	// path, keeps its session queued and unsent.
+	listed := seed.NormalizeRemote(sentRemote)
+	remotes := []string{"github.com/example/other"}
+	if listed != "" {
+		remotes = append(remotes, listed)
+	}
+	if err := delivery.SaveRepositoryList(delivery.RepositoryList{OrganizationID: "org-example", Remotes: remotes}); err != nil {
+		t.Fatal(err)
 	}
 
+	// The resolver maps the case's aliases as the ssh config of the recorded case did.
 	resolver := &seed.RemoteResolver{Lookup: func(host string) (string, error) {
 		if host == "broken-host" {
 			return "", errors.New("ssh -G broken-host exited 255: ssh: broken")
@@ -179,6 +196,9 @@ func replayScenario(t *testing.T, dir string, c corpusCase, sc scenario) {
 			t.Fatalf("run %d has no expected result", i)
 		}
 		w := want.Runs[i]
+		if listed == "" {
+			w = keptUnsent(w, c.SessionID, usage != nil)
+		}
 		token := tokenA
 		if r.Token == "B" {
 			token = tokenB
@@ -383,6 +403,12 @@ func compareLog(t *testing.T, run int, wantAny any, got []string) {
 	t.Helper()
 	var want []string
 	for _, line := range wantAny.([]any) {
+		// The Python sender warned when ssh could not resolve the recorded remote's host. This
+		// sender never logs that warning, since it names the remote; a remote the list holds as
+		// recorded is sent without asking ssh.
+		if strings.HasPrefix(line.(string), "ssh -G ") {
+			continue
+		}
 		want = append(want, line.(string))
 	}
 	if len(want) != len(got) {
@@ -398,15 +424,24 @@ func compareLog(t *testing.T, run int, wantAny any, got []string) {
 		case strings.Contains(w, "unreadable, reported as UNVERIFIED:"):
 			w, _, _ = strings.Cut(w, "UNVERIFIED:")
 			g, _, _ = strings.Cut(g, "UNVERIFIED:")
-		case strings.HasPrefix(w, "ssh -G broken-host exited 255"):
-			if strings.Contains(g, "ssh -G broken-host exited 255") {
-				g = w
-			}
 		}
 		if w != g {
 			t.Errorf("run %d: log line %d\n got %q\nwant %q", run, i, got[i], want[i])
 		}
 	}
+}
+
+// keptUnsent is the expected run of a session whose repository the list does not hold: Kaya
+// receives nothing, the queue keeps the session without a cursor, usage stays, and the log names
+// the session in one line.
+func keptUnsent(w expectedRun, sessionID string, usage bool) expectedRun {
+	files := []string{}
+	for _, name := range w.Files {
+		if name != cursorFile {
+			files = append(files, name)
+		}
+	}
+	return expectedRun{Token: w.Token, Log: []string{sessionID + ": not sent, " + unlisted}, Files: files, UsageFileLeft: usage}
 }
 
 func readOptional(t *testing.T, path string) any {

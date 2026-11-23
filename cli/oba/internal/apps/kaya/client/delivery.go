@@ -92,6 +92,31 @@ func (c *Client) Blob(ctx context.Context, sha256 string) ([]byte, error) {
 	return raw, nil
 }
 
+// DeliveryRepositories is the answer of GET /kaya/delivery/repositories: the remotes of the
+// active repositories of the machine token's organization, as the server stores them
+// (host/owner/name in lower case).
+type DeliveryRepositories struct {
+	OrganizationID string               `json:"organizationId"`
+	Repositories   []DeliveryRepository `json:"repositories"`
+}
+
+// DeliveryRepository is one repository of the list.
+type DeliveryRepository struct {
+	RemoteURL string `json:"remoteUrl"`
+}
+
+// DeliveryRepositories lists the repositories Kaya delivers to in the machine token's
+// organization. The call names no checkout, so asking it sends nothing about the machine's own.
+func (c *Client) DeliveryRepositories(ctx context.Context) (DeliveryRepositories, error) {
+	const path = "/kaya/delivery/repositories"
+	resp, raw, err := c.raw(ctx, path, nil, maxResponseBytes)
+	if err != nil {
+		return DeliveryRepositories{}, err
+	}
+	var list DeliveryRepositories
+	return list, decodeData(resp, raw, path, &list)
+}
+
 // raw sends a GET and returns the status, headers and at most limit bytes of the body, for the
 // answers that are not always the JSON envelope (a 304, raw blob bytes).
 func (c *Client) raw(ctx context.Context, path string, header http.Header, limit int64) (*http.Response, []byte, error) {

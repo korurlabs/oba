@@ -55,6 +55,40 @@ func Details(out Outcome) []string {
 	return lines
 }
 
+// Recognition says how the checkout was recognised: its kind and the remote on the repository
+// list that names it. A NotKaya checkout's own remotes are never named, as they are not Kaya's.
+func Recognition(checkout *Checkout) string {
+	switch checkout.Kind {
+	case Delivered:
+		return fmt.Sprintf("%s: recognised by remote %s (%s).", checkout.Kind, checkout.RemoteName, checkout.Remote)
+	case NotCutOver:
+		return fmt.Sprintf("%s: recognised by remote %s (%s), but .agents/.managed.json syncs its agent config from elsewhere; Kaya leaves it alone.",
+			checkout.Kind, checkout.RemoteName, checkout.Remote)
+	case NotKaya:
+		return fmt.Sprintf("%s: no remote of %s is on the organization's repository list; Kaya delivers nothing here and records nothing of it.",
+			checkout.Kind, checkout.Root)
+	}
+	return fmt.Sprintf("%s: %s is in no git checkout.", checkout.Kind, checkout.Root)
+}
+
+// UnresolvedWarnings name the ssh hosts that could not be resolved while the checkout's remotes
+// were matched; such a remote may name a listed repository that was not recognised.
+func UnresolvedWarnings(checkout *Checkout) []string {
+	warnings := make([]string, 0, len(checkout.Unresolved))
+	for _, host := range checkout.Unresolved {
+		warnings = append(warnings, "ssh could not resolve the host "+host+"; a remote over it may not be recognised")
+	}
+	return warnings
+}
+
+// NewRecognitionView is the --json result of oba kaya status for a checkout Kaya does not deliver.
+func NewRecognitionView(checkout *Checkout) OutcomeView {
+	return OutcomeView{
+		Checkout: checkout.Root, Kind: checkout.Kind.String(), Repository: checkout.Remote, Remote: checkout.Remote,
+		RemoteName: checkout.RemoteName, LiveSessions: []Session{}, Problems: []string{}, Warnings: UnresolvedWarnings(checkout),
+	}
+}
+
 // PrintOutcome prints the summary and the details, each line after prefix.
 func PrintOutcome(w io.Writer, prefix string, checkout *Checkout, out Outcome, state State) {
 	_, _ = fmt.Fprintln(w, prefix+Summary(checkout, out, state))
@@ -73,9 +107,14 @@ func SessionName(s Session) string {
 
 // OutcomeView is the --json result of oba kaya sync, refresh and status.
 type OutcomeView struct {
-	Checkout       string    `json:"checkout"`
-	Repository     string    `json:"repository"`
-	State          string    `json:"state"`
+	Checkout   string `json:"checkout"`
+	Kind       string `json:"kind"`
+	Repository string `json:"repository"`
+	// Remote is the listed remote that names the repository, and RemoteName the git remote it
+	// came from.
+	Remote         string    `json:"remote,omitempty"`
+	RemoteName     string    `json:"remoteName,omitempty"`
+	State          string    `json:"state,omitempty"`
 	Active         int       `json:"active,omitempty"`
 	CreatedAt      string    `json:"createdAt,omitempty"`
 	ManifestSHA256 string    `json:"manifestSha256,omitempty"`
@@ -92,7 +131,8 @@ type OutcomeView struct {
 // NewOutcomeView is the --json result of an outcome; its lists are empty, never null.
 func NewOutcomeView(checkout *Checkout, out Outcome, state State) OutcomeView {
 	view := OutcomeView{
-		Checkout: checkout.Root, Repository: checkout.Name(state), State: out.State, Active: out.Active,
+		Checkout: checkout.Root, Kind: checkout.Kind.String(), Repository: checkout.Name(state), Remote: checkout.Remote,
+		RemoteName: checkout.RemoteName, State: out.State, Active: out.Active,
 		CreatedAt: out.ActiveCreatedAt, ManifestSHA256: out.ManifestSHA256, Latest: out.Latest, Staged: out.Staged,
 		CheckedAt: state.CheckedAt, Switched: out.Switched, LiveSessions: out.LiveSessions,
 		Problems: []string{}, Warnings: out.Warnings,
