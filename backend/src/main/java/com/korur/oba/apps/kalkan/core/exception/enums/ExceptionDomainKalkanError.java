@@ -41,7 +41,8 @@ public enum ExceptionDomainKalkanError implements ExceptionDomainError {
     VAL_DUPLICATE_LOCALE("KLK_VAL_005", "A locale is given more than once.", ExceptionCategory.VAL),
     VAL_PERMISSION_ON_CHILD("KLK_VAL_006", "Permissions are set on root pages only.", ExceptionCategory.VAL),
     VAL_RESERVED_ROOT_SLUG("KLK_VAL_007", "This slug is reserved and cannot name a root page.", ExceptionCategory.VAL),
-    VAL_PAGE_NOT_DELETED("KLK_VAL_008", "Page is not deleted and cannot be restored.", ExceptionCategory.VAL);
+    VAL_PAGE_NOT_DELETED("KLK_VAL_008", "Page is not deleted and cannot be restored.", ExceptionCategory.VAL),
+    VAL_ROOT_SLUG_FIXED("KLK_VAL_009", "The slug of a root page is the route of its section and cannot be changed.", ExceptionCategory.VAL);
 
     private final String code;
     private final String message;
