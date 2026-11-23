@@ -196,7 +196,13 @@ func sessionStart(ctx context.Context, in hookInput, w io.Writer) error {
 		lockCtx, cancel := delivery.LockContext(ctx)
 		defer cancel()
 		out, err := d.Sync(lockCtx, delivery.KeepAlwaysOn)
-		if err != nil {
+		// A delivered path git tracks, as on a branch from before Kaya delivered that path, refuses
+		// only the release that would replace it: the active release stays placed, so the session
+		// is reported and registered on it, and the refusal with its fix is a warning.
+		var tracked *delivery.TrackedError
+		if errors.As(err, &tracked) {
+			out.Warnings = append(out.Warnings, err.Error())
+		} else if err != nil {
 			return err
 		}
 		state, err := checkout.LoadState()

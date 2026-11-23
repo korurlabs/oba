@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -19,6 +20,10 @@ const (
 	ExcludeBegin = "# >>> oba kaya >>>"
 	ExcludeEnd   = "# <<< oba kaya <<<"
 )
+
+// excludeLock is the lock file next to info/exclude that every checkout of the repository takes
+// before it reads and replaces the file.
+const excludeLock = ".kaya-exclude.lock"
 
 // excludeNote is the comment line at the top of the block, for a reader of the file.
 const excludeNote = "# Paths oba kaya delivers into this repository's checkouts; remove the block to undo."
@@ -80,6 +85,19 @@ func (c *Checkout) WriteExcludes(manifest Manifest) error {
 		return err
 	}
 	path := filepath.Join(commonDir, "info", "exclude")
+	if err := os.MkdirAll(filepath.Dir(path), 0o750); err != nil {
+		return fmt.Errorf("create %s: %w", filepath.Dir(path), err)
+	}
+	// The main checkout and every linked worktree write this one file, each holding only the lock
+	// of its own checkout. Without a lock they share, one worktree's rename would drop the entries
+	// another had just added, and git would show those paths again.
+	ctx, cancel := context.WithTimeout(context.Background(), lockTimeout)
+	defer cancel()
+	unlock, err := lockFile(ctx, filepath.Join(filepath.Dir(path), excludeLock))
+	if err != nil {
+		return err
+	}
+	defer unlock()
 	content, mode, err := readExclude(path)
 	if err != nil {
 		return err
@@ -90,9 +108,6 @@ func (c *Checkout) WriteExcludes(manifest Manifest) error {
 	}
 	if bytes.Equal(merged, content) {
 		return nil
-	}
-	if err := os.MkdirAll(filepath.Dir(path), 0o750); err != nil {
-		return fmt.Errorf("create %s: %w", filepath.Dir(path), err)
 	}
 	return writeFileAtomic(path, merged, mode)
 }

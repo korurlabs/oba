@@ -1,6 +1,7 @@
 package hook
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -104,5 +105,51 @@ func TestSessionStart_launchedOfflineSaysKayaIsUnreachable(t *testing.T) {
 	out, err = run(t, kayatest.HookEvent(t, map[string]any{"cwd": root, "session_id": "sess-2", "source": "startup"}), "hook", "session-start")
 	if err != nil || strings.Contains(out, "unreachable") {
 		t.Fatalf("launched online session start: %s, %v", out, err)
+	}
+}
+
+func TestSessionStart_aTrackedPathInANewerReleaseRegistersTheSessionOnTheActiveOne(t *testing.T) {
+	kaya, root := kayatest.SetupDelivery(t)
+	files := map[string]string{"AGENTS.md": "rules v1\n", ".agents/skills/demo/SKILL.md": "skill v1\n"}
+	kaya.Publish(t, 1, files, "AGENTS.md")
+	if out, err := run(t, "", "sync"); err != nil {
+		t.Fatalf("sync: %s, %v", out, err)
+	}
+	// A branch from before Kaya delivered the team conventions still tracks them.
+	team := filepath.Join(root, "docs", "private", "conventions", "team.md")
+	if err := os.MkdirAll(filepath.Dir(team), 0o750); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(team, []byte("ours\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	kayatest.Git(t, root, "add", "--", "docs/private/conventions/team.md")
+	kayatest.Git(t, root, "-c", "user.name=Test", "-c", "user.email=test@example.com", "commit", "-q", "-m", "team")
+	files["docs/private/conventions/team.md"] = "team\n"
+	kaya.Publish(t, 2, files, "AGENTS.md")
+
+	out, err := run(t, kayatest.HookEvent(t, map[string]any{"cwd": root, "session_id": "sess-1", "source": "startup"}), "hook", "session-start")
+
+	if err != nil {
+		t.Fatalf("session start: %s, %v", out, err)
+	}
+	for _, want := range []string{"config release 1 (", "Warning: release 2 was not placed", "git rm --cached -- docs/private/conventions/team.md"} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("session start lacks %q: %s", want, out)
+		}
+	}
+	if data, err := os.ReadFile(team); err != nil || string(data) != "ours\n" {
+		t.Fatalf("team.md = %q, %v", data, err)
+	}
+	data, err := os.ReadFile(filepath.Join(root, ".kaya", "sessions", "sess-1.json"))
+	if err != nil {
+		t.Fatalf("the session was not registered: %v", err)
+	}
+	var session delivery.Session
+	if err := json.Unmarshal(data, &session); err != nil {
+		t.Fatal(err)
+	}
+	if session.Release != 1 || session.State == delivery.StateUnverified || session.DeliveredBy != delivery.DeliveredByHook {
+		t.Fatalf("registered session = %+v", session)
 	}
 }

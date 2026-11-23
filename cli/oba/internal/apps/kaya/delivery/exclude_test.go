@@ -3,11 +3,13 @@ package delivery
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"slices"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -190,6 +192,43 @@ func TestSync_aLinkedWorktreeReadsTheBlockOfTheSharedGitDirectory(t *testing.T) 
 	}
 	assertGitSeesNothing(t, dir)
 	assertGitSeesNothing(t, f.root)
+}
+
+func TestWriteExcludes_twoWorktreesWritingAtOnceKeepEveryEntry(t *testing.T) {
+	f := newFixture(t)
+	f.commit(map[string]string{"README.md": "demo\n"})
+	checkouts := []*Checkout{mustFind(t, f.root), mustFind(t, f.worktree())}
+	var want []string
+	for round := range 40 {
+		manifests := make([]Manifest, len(checkouts))
+		for i := range checkouts {
+			path := fmt.Sprintf("docs/round-%d/checkout-%d.md", round, i)
+			manifests[i] = Manifest{Files: []ManifestFile{{Path: path, Mode: "FILE"}}}
+			want = append(want, "/"+path)
+		}
+		start := make(chan struct{})
+		errs := make([]error, len(checkouts))
+		var wg sync.WaitGroup
+		for i, checkout := range checkouts {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				<-start
+				errs[i] = checkout.WriteExcludes(manifests[i])
+			}()
+		}
+		close(start)
+		wg.Wait()
+		if err := errors.Join(errs...); err != nil {
+			t.Fatal(err)
+		}
+		got := f.excludeBlock()
+		for _, entry := range want {
+			if !slices.Contains(got, entry) {
+				t.Fatalf("after round %d the block lacks %s:\n%s", round, entry, strings.Join(got, "\n"))
+			}
+		}
+	}
 }
 
 func TestSync_restoresDeliveryAfterGitCleanFromTheBlobCache(t *testing.T) {
