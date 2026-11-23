@@ -18,6 +18,7 @@ public final class DeliveryControllerResponseConstant {
     private DeliveryControllerResponseConstant() {
     }
 
+    public static final String RESPONSE_REPOSITORIES_RETRIEVED = "Repository list retrieved";
     public static final String RESPONSE_CURRENT_RETRIEVED = "Current release retrieved";
     public static final String RESPONSE_RELEASE_RETRIEVED = "Signed release retrieved";
     public static final String RESPONSE_PROPOSAL_CREATED = "Proposal created and submitted for review";

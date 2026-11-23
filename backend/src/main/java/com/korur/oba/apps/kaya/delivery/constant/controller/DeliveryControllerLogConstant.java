@@ -19,6 +19,8 @@ public final class DeliveryControllerLogConstant {
     private DeliveryControllerLogConstant() {
     }
 
+    public static final String REPOSITORIES_REQUEST = "Request for the repository list from machine {}";
+    public static final String REPOSITORIES_COMPLETED = "Served {} repositories to machine {}";
     public static final String CURRENT_REQUEST = "Request for the current release from machine {}";
     public static final String CURRENT_NOT_MODIFIED = "Current release unchanged for machine {}, ETag {}";
     public static final String CURRENT_COMPLETED = "Served current release {} to machine {}, ETag {}";

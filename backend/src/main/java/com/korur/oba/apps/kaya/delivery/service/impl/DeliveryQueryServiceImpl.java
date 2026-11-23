@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 
 // 3. Java SDK
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -29,6 +31,8 @@ import com.korur.oba.apps.kaya.delivery.dto.derived.DeliveryBlob;
 import com.korur.oba.apps.kaya.delivery.dto.derived.DeliveryCurrent;
 import com.korur.oba.apps.kaya.delivery.dto.response.DeliveryCurrentResponse;
 import com.korur.oba.apps.kaya.delivery.dto.response.DeliveryReleaseResponse;
+import com.korur.oba.apps.kaya.delivery.dto.response.DeliveryRepositoriesResponse;
+import com.korur.oba.apps.kaya.delivery.dto.response.embedded.DeliveryRepositoryResponse;
 import com.korur.oba.apps.kaya.delivery.helper.DeliveryEtagHelper;
 import com.korur.oba.apps.kaya.delivery.mapper.DeliveryMapper;
 import com.korur.oba.apps.kaya.delivery.service.DeliveryQueryService;
@@ -56,6 +60,19 @@ public class DeliveryQueryServiceImpl implements DeliveryQueryService {
     private final BlobQueryService blobQueryService;
     private final DeliveryMapper deliveryMapper;
     private final LoggingService loggingService;
+
+    @Override
+    public DeliveryRepositoriesResponse getRepositories(MachinePrincipal principal) {
+        UUID organizationId = principal.organizationId();
+        List<DeliveryRepositoryResponse> repositories = repositoryQueryService.getRepositories(organizationId).stream()
+                .filter(repository -> repository.status() == RepositoryStatus.ACTIVE)
+                .sorted(Comparator.comparing(RepositoryResponse::remoteUrl))
+                .map(deliveryMapper::toRepositoryResponse)
+                .toList();
+        loggingService.debug(LOG_PREFIX, LogLayer.SERVICE, DeliveryServiceLogConstant.REPOSITORIES_RESOLVED,
+                repositories.size(), organizationId);
+        return deliveryMapper.toRepositoriesResponse(organizationId, repositories);
+    }
 
     @Override
     public DeliveryCurrent getCurrent(MachinePrincipal principal, String remoteUrl) {

@@ -45,6 +45,7 @@ import com.korur.oba.apps.kaya.delivery.dto.request.DeliveryReleaseQueryRequest;
 import com.korur.oba.apps.kaya.delivery.dto.response.DeliveryCurrentResponse;
 import com.korur.oba.apps.kaya.delivery.dto.response.DeliveryProposalResponse;
 import com.korur.oba.apps.kaya.delivery.dto.response.DeliveryReleaseResponse;
+import com.korur.oba.apps.kaya.delivery.dto.response.DeliveryRepositoriesResponse;
 import com.korur.oba.apps.kaya.delivery.service.DeliveryProposalService;
 import com.korur.oba.apps.kaya.delivery.service.DeliveryQueryService;
 import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
@@ -52,7 +53,8 @@ import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
 /**
  * Delivery to the CLI, on the machine token chain: the bearer machine token names the
  * organization, so the request carries no JWT and no X-Organization-ID, and every read is limited
- * to that organization. Only signed releases and the content they name are served. The one write
+ * to that organization. Besides the list of the organization's repositories, only signed releases
+ * and the content they name are served. The one write
  * is a proposal, which only enters review and changes no delivered file until a reviewer approves
  * it.
  */
@@ -67,6 +69,33 @@ public class DeliveryController {
     private final DeliveryQueryService deliveryQueryService;
     private final DeliveryProposalService deliveryProposalService;
     private final LoggingService loggingService;
+
+    /**
+     * Lets the CLI recognise a checkout of the organization by comparing the checkout's remotes with
+     * this list on the laptop, instead of sending the remote of every checkout to Kaya.
+     */
+    @GetMapping("/repositories")
+    @Operation(summary = "List the repositories a checkout is recognised by",
+            description = "Bearer machine token. The normalised remote URL of every ACTIVE repository of the token's "
+                    + "organization, sorted; an ARCHIVED repository is left out")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "The organization and its active repositories; an empty "
+                    + "list when it has none"),
+            @ApiResponse(responseCode = "401", description = "KAY_SEC_003: token missing, unknown, revoked or expired, "
+                    + "or machine retired"),
+            @ApiResponse(responseCode = "403", description = "GEN_SEC_002 or KAY_SEC_002: the user no longer acts in "
+                    + "the organization; APP_SEC_001: the user has no Kaya access"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<CustomResponse<DeliveryRepositoriesResponse>> getRepositories(
+            @Parameter(hidden = true) @AuthenticationPrincipal MachinePrincipal principal) {
+        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, DeliveryControllerLogConstant.REPOSITORIES_REQUEST,
+                principal.machineId());
+        DeliveryRepositoriesResponse response = deliveryQueryService.getRepositories(principal);
+        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, DeliveryControllerLogConstant.REPOSITORIES_COMPLETED,
+                response.repositories().size(), principal.machineId());
+        return ResponseUtil.ok(DeliveryControllerResponseConstant.RESPONSE_REPOSITORIES_RETRIEVED, response);
+    }
 
     /**
      * Answers 304 when the CLI's If-None-Match already names the current release,
