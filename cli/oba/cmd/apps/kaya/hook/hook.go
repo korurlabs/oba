@@ -20,7 +20,8 @@ func NewCmd() *cobra.Command {
 			"session; pre-tool-use refuses tools without a verified release and edits of delivered paths, and " +
 			"runs the checkout's hook dispatcher when the project settings do not; post-tool-use and " +
 			"user-prompt-submit add the plan feedback oba kaya watch fetched for the session; record queues the event for Kaya in a " +
-			"checkout with a committed kaya.yaml (registered by the project settings). Only session-start calls Kaya (without oba kaya launch to sync, and " +
+			"checkout one of whose remotes is on the organization's repository list, as oba kaya sync last fetched it " +
+			"(registered by the project settings). Only session-start calls Kaya (without oba kaya launch to sync, and " +
 			"for at most 2 seconds each for plan feedback and for lessons). An error of the hook itself never blocks Claude Code.",
 		Args:      cobra.ExactArgs(1),
 		ValidArgs: hook.Names,

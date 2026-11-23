@@ -39,7 +39,7 @@ func TestPropose_sendsTheEditedFilesAndPrintsTheReviewURL(t *testing.T) {
 	}
 	body := kaya.Proposals[0]
 	files, _ := body["files"].([]any)
-	if body["remoteUrl"] != "git@github.com:sensey/demo.git" || body["releaseNumber"] != float64(1) || body["reason"] != "Tighten the core rules" || len(files) != 1 {
+	if body["remoteUrl"] != "git@github.com:example/demo.git" || body["releaseNumber"] != float64(1) || body["reason"] != "Tighten the core rules" || len(files) != 1 {
 		t.Fatalf("body = %v", body)
 	}
 	if f, _ := files[0].(map[string]any); f["path"] != "AGENTS.md" || f["content"] != "rules v2\n" || f["mode"] != "FILE" {

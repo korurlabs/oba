@@ -46,24 +46,47 @@ func Launch(ctx context.Context, command []string, stderr io.Writer) error {
 		return fmt.Errorf("find %s: %w", command[0], err)
 	}
 	env := withoutSessionVars(os.Environ())
-	checkout, err := CurrentCheckout()
+	checkout, m, err := launchCheckout(ctx, stderr)
 	if err != nil {
 		_, _ = fmt.Fprintln(stderr, "oba kaya:", err)
 	} else if checkout.Kind == Delivered {
-		env = append(env, prepareSession(ctx, checkout, stderr)...)
+		env = append(env, prepareSession(ctx, checkout, m, stderr)...)
 	}
 	// #nosec G204 -- the user's own command, as typed or as the editor passed it
 	return syscall.Exec(path, command, env)
 }
 
+// launchCheckout is the checkout of the working directory, recognised after the repository list
+// was refreshed (within onlineTimeout), so a repository added to Kaya is delivered from this
+// launch on. Outside git it reaches nothing. A failed refresh leaves the cached list, and an API
+// the token may not be sent to leaves the session on the cached release; both are named on stderr.
+func launchCheckout(ctx context.Context, stderr io.Writer) (*Checkout, Machine, error) {
+	checkout, err := CurrentCheckout()
+	if err != nil || checkout.Kind == NotRepository {
+		return checkout, Machine{}, err
+	}
+	m, err := ConnectMachine(ctx)
+	if err != nil {
+		_, _ = fmt.Fprintln(stderr, "oba kaya:", err)
+		return checkout, Machine{Err: err}, nil
+	}
+	refreshCtx, cancel := context.WithTimeout(ctx, onlineTimeout)
+	defer cancel()
+	if _, err := m.RefreshRepositoryList(refreshCtx); err != nil {
+		_, _ = fmt.Fprintln(stderr, "oba kaya:", err)
+	}
+	checkout, err = FindCheckout(checkout.Root)
+	return checkout, m, err
+}
+
 // prepareSession syncs the checkout, registers this process as a live session and starts the
 // watcher. It returns the variables Claude Code and its hooks read.
-func prepareSession(ctx context.Context, checkout *Checkout, stderr io.Writer) []string {
+func prepareSession(ctx context.Context, checkout *Checkout, m Machine, stderr io.Writer) []string {
 	vars := []string{EnvLaunched + "=1", EnvCheckout + "=" + checkout.Root}
 	state := StateUnverified
 	release := 0
 	var offline error
-	d, err := Open(ctx, checkout, true)
+	d, err := OpenWith(checkout, m)
 	if err != nil {
 		_, _ = fmt.Fprintln(stderr, "oba kaya:", err)
 		return append(vars, EnvReleaseState+"="+state)

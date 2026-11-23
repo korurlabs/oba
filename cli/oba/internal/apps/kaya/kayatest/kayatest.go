@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"slices"
 	"sort"
@@ -44,6 +45,8 @@ type FakeKaya struct {
 	// proposals holds the bodies POST /delivery/proposals received; propose answers them.
 	Proposals []map[string]any
 	Propose   func(body map[string]any) (int, map[string]any)
+	// Listed are the remotes GET /kaya/delivery/repositories lists for the organization.
+	Listed []string
 }
 
 // PathsSince returns the paths requested after the first n requests.
@@ -74,6 +77,12 @@ func (k *FakeKaya) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		status, payload := k.Propose(body)
 		w.WriteHeader(status)
 		_ = json.NewEncoder(w).Encode(payload)
+	case r.URL.Path == "/kaya/delivery/repositories":
+		repositories := []map[string]string{}
+		for _, remote := range k.Listed {
+			repositories = append(repositories, map[string]string{"remoteUrl": remote})
+		}
+		data(map[string]any{"organizationId": Organization, "repositories": repositories})
 	case r.URL.Path == "/kaya/delivery/current":
 		w.Header().Set("ETag", fmt.Sprintf("%q", k.Current["manifestSha256"]))
 		data(k.Current)
@@ -121,7 +130,7 @@ func (k *FakeKaya) Publish(t *testing.T, number int, files map[string]string, al
 		entries = append(entries, entry{Path: path, SHA256: HexSum(content), Mode: "FILE", AlwaysOn: on})
 	}
 	manifest, err := json.Marshal(map[string]any{
-		"organization": "org-1", "remoteUrl": "github.com/sensey/demo", "number": number,
+		"organization": Organization, "remoteUrl": Remote, "number": number,
 		"createdAt": "2026-10-24T10:00:00.000Z", "files": entries,
 	})
 	if err != nil {
@@ -135,16 +144,24 @@ func (k *FakeKaya) Publish(t *testing.T, number int, files map[string]string, al
 	k.Current = map[string]any{"repositoryId": "repo-1", "releaseId": id, "number": number, "manifestSha256": HexSum(manifest)}
 }
 
+const (
+	// Organization is the organization of the fake's machine token and of its releases.
+	Organization = "org-1"
+	// Remote is the scratch checkout's repository, as the list and the manifests name it.
+	Remote = "github.com/example/demo"
+)
+
 // SetupDelivery starts a FakeKaya, points the machine calls at it with the machine token kyt_test
-// and its signing key trusted, isolates HOME and the XDG directories, and changes into a scratch
-// checkout delivered by Kaya, whose root it returns.
+// and its signing key trusted, isolates HOME, the XDG directories and git's global config, and
+// changes into a scratch checkout delivered by Kaya, whose root it returns. The checkout's origin
+// is on the cached repository list and on the list the fake answers.
 func SetupDelivery(t *testing.T) (*FakeKaya, string) {
 	t.Helper()
 	pub, priv, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatal(err)
 	}
-	kaya := &FakeKaya{priv: priv, releases: map[string]map[string]any{}, blobs: map[string][]byte{}}
+	kaya := &FakeKaya{priv: priv, releases: map[string]map[string]any{}, blobs: map[string][]byte{}, Listed: []string{Remote}}
 	server := httptest.NewServer(kaya)
 	t.Cleanup(server.Close)
 	home := t.TempDir()
@@ -153,16 +170,14 @@ func SetupDelivery(t *testing.T) (*FakeKaya, string) {
 		"XDG_CONFIG_HOME": filepath.Join(home, "config"), config.EnvAPIURL: server.URL, config.EnvToken: "", machine.EnvToken: "kyt_test",
 		delivery.EnvDevTrustedKeys: "dev=" + base64.StdEncoding.EncodeToString(pub), "CLAUDE_CONFIG_DIR": filepath.Join(home, "claude"),
 		delivery.EnvLaunched: "", delivery.EnvCheckout: "", delivery.EnvRelease: "", delivery.EnvReleaseState: "", delivery.EnvOffline: "", "CLAUDE_PROJECT_DIR": "",
+		"GIT_CONFIG_GLOBAL": os.DevNull, "GIT_CONFIG_NOSYSTEM": "1",
 	} {
 		t.Setenv(key, value)
 	}
 	root := filepath.Join(t.TempDir(), "demo")
-	if err := os.MkdirAll(filepath.Join(root, ".git"), 0o750); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(root, "kaya.yaml"), []byte("remoteUrl: git@github.com:sensey/demo.git\norganization: org-1\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
+	Git(t, "", "init", "-q", root)
+	Git(t, root, "remote", "add", "origin", "git@github.com:example/demo.git")
+	ListRepositories(t, Organization, Remote)
 	wd, err := os.Getwd()
 	if err != nil {
 		t.Fatal(err)
@@ -172,6 +187,25 @@ func SetupDelivery(t *testing.T) (*FakeKaya, string) {
 	}
 	t.Cleanup(func() { _ = os.Chdir(wd) })
 	return kaya, root
+}
+
+// Git runs git in dir (the working directory when dir is empty) and fails the test on an error.
+func Git(t *testing.T, dir string, args ...string) {
+	t.Helper()
+	if dir != "" {
+		args = append([]string{"-C", dir}, args...)
+	}
+	if out, err := exec.Command("git", args...).CombinedOutput(); err != nil {
+		t.Fatalf("git %s: %v\n%s", strings.Join(args, " "), err, out)
+	}
+}
+
+// ListRepositories makes the cached repository list hold exactly remotes, for organization.
+func ListRepositories(t *testing.T, organization string, remotes ...string) {
+	t.Helper()
+	if err := delivery.SaveRepositoryList(delivery.RepositoryList{OrganizationID: organization, Remotes: remotes}); err != nil {
+		t.Fatal(err)
+	}
 }
 
 // Run runs `oba kaya <args>` on a fresh command tree of cmds and returns stdout and stderr

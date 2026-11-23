@@ -144,11 +144,11 @@ func (d *Deliverer) Sync(ctx context.Context, policy Policy) (Outcome, error) {
 	return out, c.SaveState(state)
 }
 
-// organization is the organization a release must be signed for: kaya.yaml's pin, else the one
-// the first verified release pinned.
+// organization is the organization a release must be signed for: the repository list's, which is
+// the machine token's, else the one the first verified release pinned.
 func (d *Deliverer) organization(state State) string {
-	if d.Checkout.Config.Organization != "" {
-		return d.Checkout.Config.Organization
+	if d.Checkout.Organization != "" {
+		return d.Checkout.Organization
 	}
 	return state.Organization
 }

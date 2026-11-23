@@ -13,7 +13,7 @@ import (
 
 const (
 	// watchInterval is how often the watcher asks Kaya for a newer release, so that it is built
-	// before the next session starts.
+	// before the next session starts, and for the repository list.
 	watchInterval = 60 * time.Second
 	// feedbackInterval is how often the watcher fetches reviewer feedback on the sessions' plans
 	// into their inboxes and posts what the hooks delivered, so that feedback reaches a running
@@ -70,6 +70,9 @@ func Watch(ctx context.Context, checkout *Checkout, log io.Writer) error {
 			if err != nil {
 				logf("%v", err)
 			}
+			if err := d.refreshRepositories(ctx); err != nil {
+				logf("%v", err)
+			}
 		}
 		if src := FeedbackSourceOf(d); src != nil {
 			feedbackCtx, cancel := context.WithTimeout(ctx, feedbackInterval)
@@ -116,4 +119,17 @@ func holdWatchLock(checkout *Checkout) (func(), bool, error) {
 		return nil, false, fmt.Errorf("lock %s: %w", path, err)
 	}
 	return func() { _ = file.Close() }, true, nil
+}
+
+// refreshRepositories refreshes the cached repository list through the deliverer's source, when
+// that source can list repositories, so a long session's machine learns of a new repository.
+func (d *Deliverer) refreshRepositories(ctx context.Context) error {
+	src, ok := d.Source.(RepositorySource)
+	if !ok {
+		return nil
+	}
+	ctx, cancel := context.WithTimeout(ctx, d.OnlineTimeout)
+	defer cancel()
+	_, err := RefreshRepositoryList(ctx, src)
+	return err
 }

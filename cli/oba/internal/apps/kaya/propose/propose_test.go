@@ -16,11 +16,12 @@ import (
 
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/client"
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/delivery"
+	"github.com/korurlabs/oba-cli/internal/apps/kaya/kayatest"
 )
 
 const (
 	testOrg    = "0d6f3c1e-7d1f-4a8e-9b2a-3c4d5e6f7a8b"
-	testRemote = "github.com/sensey/demo"
+	testRemote = "github.com/example/demo"
 	testKeyID  = "kaya-test"
 )
 
@@ -53,14 +54,16 @@ type file struct {
 // checkout syncs a checkout to a signed release of files and returns the proposal source.
 func checkout(t *testing.T, files []file) Source {
 	t.Helper()
+	home := t.TempDir()
+	for key, value := range map[string]string{
+		"HOME": home, "XDG_CONFIG_HOME": filepath.Join(home, "config"), "GIT_CONFIG_GLOBAL": os.DevNull, "GIT_CONFIG_NOSYSTEM": "1",
+	} {
+		t.Setenv(key, value)
+	}
 	root := t.TempDir()
-	if err := os.Mkdir(filepath.Join(root, ".git"), 0o750); err != nil {
-		t.Fatal(err)
-	}
-	config := "remoteUrl: https://github.com/sensey/demo.git\norganization: " + testOrg + "\n"
-	if err := os.WriteFile(filepath.Join(root, delivery.ConfigFile), []byte(config), 0o600); err != nil {
-		t.Fatal(err)
-	}
+	kayatest.Git(t, root, "init", "-q")
+	kayatest.Git(t, root, "remote", "add", "origin", "https://github.com/example/demo.git")
+	kayatest.ListRepositories(t, testOrg, testRemote)
 	pub, priv, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatal(err)

@@ -24,7 +24,7 @@ import (
 const (
 	testOrg    = "0d6f3c1e-7d1f-4a8e-9b2a-3c4d5e6f7a8b"
 	testRepoID = "repo-1"
-	testRemote = "github.com/sensey/demo"
+	testRemote = "github.com/example/demo"
 	testKeyID  = "kaya-test"
 )
 
@@ -106,14 +106,9 @@ type fixture struct {
 
 func newFixture(t *testing.T) *fixture {
 	t.Helper()
-	root := t.TempDir()
-	if err := os.Mkdir(filepath.Join(root, ".git"), 0o750); err != nil {
-		t.Fatal(err)
-	}
-	config := "remoteUrl: https://github.com/Sensey/demo.git\norganization: " + testOrg + "\n"
-	if err := os.WriteFile(filepath.Join(root, ConfigFile), []byte(config), 0o600); err != nil {
-		t.Fatal(err)
-	}
+	isolateConfig(t)
+	root := gitCheckout(t, "origin", "https://github.com/Example/demo.git")
+	listRemotes(t, testOrg, testRemote)
 	pub, priv, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
 		t.Fatal(err)
@@ -767,19 +762,17 @@ func TestWriteReport_writesTheRecorderRecord(t *testing.T) {
 }
 
 func TestCheckout_notCutOverIsLeftAlone(t *testing.T) {
-	root := t.TempDir()
-	for _, dir := range []string{".git", ".agents"} {
-		if err := os.Mkdir(filepath.Join(root, dir), 0o750); err != nil {
-			t.Fatal(err)
-		}
+	isolateConfig(t)
+	root := gitCheckout(t, "origin", "git@github.com:example/app.git")
+	listRemotes(t, testOrg, "github.com/example/app")
+	if err := os.Mkdir(filepath.Join(root, ".agents"), 0o750); err != nil {
+		t.Fatal(err)
 	}
-	for _, file := range []string{ConfigFile, ".agents/.managed.json"} {
-		if err := os.WriteFile(filepath.Join(root, file), []byte("{}\n"), 0o600); err != nil {
-			t.Fatal(err)
-		}
+	if err := os.WriteFile(filepath.Join(root, ".agents", ".managed.json"), []byte("{}\n"), 0o600); err != nil {
+		t.Fatal(err)
 	}
 	checkout, err := FindCheckout(filepath.Join(root, ".agents"))
-	if err != nil || checkout.Kind != NotCutOver || checkout.Root != root {
+	if err != nil || checkout.Kind != NotCutOver || checkout.Root != root || checkout.Remote != "github.com/example/app" {
 		t.Fatalf("checkout = %+v, %v", checkout, err)
 	}
 }
