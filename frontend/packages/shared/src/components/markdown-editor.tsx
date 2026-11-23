@@ -123,6 +123,49 @@ export function serializeImageMarkdown(
   state.closeBlock(node);
 }
 
+// ── Links ────────────────────────────────────────────────────────
+
+/**
+ * StarterKit without its own code block and link. The editor adds both itself,
+ * and a second link mark would read `class`, `rel` and `target` from content
+ * again, past {@link safeLinkExtension}.
+ */
+export const markdownStarterKit = StarterKit.configure({
+  heading: { levels: [1, 2, 3, 4, 5, 6] },
+  codeBlock: false,
+  link: false,
+});
+
+/** Link attributes that only the editor sets, never the content. */
+const EDITOR_OWNED_LINK_ATTRIBUTES = ['class', 'rel', 'target'] as const;
+
+/**
+ * The editor's link mark. Stored content is Markdown with raw HTML, and the
+ * backend keeps it as written, so a page author can store any `<a>` tag. The
+ * mark therefore reads only `href` and `title` from content: an author's
+ * `class` could lay the link over the whole screen as a fake sign-in prompt,
+ * and an author's `rel` or `target` could give the opened page access to this
+ * window. Every link renders the fixed attributes below instead, whatever its
+ * mark holds.
+ */
+export const safeLinkExtension = Link.extend({
+  addAttributes() {
+    const attributes = { ...this.parent?.() };
+    for (const name of EDITOR_OWNED_LINK_ATTRIBUTES) {
+      attributes[name] = { ...attributes[name], parseHTML: () => null, rendered: false };
+    }
+    return attributes;
+  },
+}).configure({
+  openOnClick: false,
+  autolink: true,
+  HTMLAttributes: {
+    class: 'text-primary underline cursor-pointer',
+    rel: 'noopener noreferrer',
+    target: '_blank',
+  },
+});
+
 // ── Lowlight setup ───────────────────────────────────────────────
 const lowlight = createLowlight(common);
 
@@ -1039,10 +1082,7 @@ function MarkdownEditorInner({
 
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({
-        heading: { levels: [1, 2, 3, 4, 5, 6] },
-        codeBlock: false,
-      }),
+      markdownStarterKit,
       CodeBlockLowlight.extend({
         addNodeView() {
           return ReactNodeViewRenderer(CodeBlockNodeView);
@@ -1051,13 +1091,7 @@ function MarkdownEditorInner({
         lowlight,
         defaultLanguage: 'json',
       }),
-      Link.configure({
-        openOnClick: false,
-        autolink: true,
-        HTMLAttributes: {
-          class: 'text-primary underline cursor-pointer',
-        },
-      }),
+      safeLinkExtension,
       TaskList,
       TaskItem.configure({
         nested: true,
