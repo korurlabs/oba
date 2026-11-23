@@ -123,10 +123,7 @@ public class KalkanPageServiceImpl implements KalkanPageService {
 
         boolean slugChanged = request.slug() != null && !request.slug().equals(page.getSlug());
         if (slugChanged) {
-            if (page.getParent() == null) {
-                requireNotReservedRootSlug(organizationId, request.slug());
-                requireRootSlugNotInTrash(organizationId, request.slug());
-            }
+            requireSlugChangeBelowRoot(organizationId, page, request.slug());
             requireSlugFree(organizationId, page.getParent(), request.slug(), page.getId());
         }
         boolean complianceChanged = request.compliance() != null && request.compliance() != page.isCompliance();
@@ -496,6 +493,21 @@ public class KalkanPageServiceImpl implements KalkanPageService {
         }
     }
 
+    /**
+     * A root's slug is the fixed route segment of its section: the web app routes the section by it
+     * and pushes name it as the first segment of their paths, so a root keeps the slug it was
+     * created with, whoever asks for the change.
+     */
+    private void requireSlugChangeBelowRoot(UUID organizationId, KalkanPage page, String slug) {
+        if (page.getParent() == null) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, KalkanPageServiceLogConstant.ROOT_SLUG_FIXED,
+                    page.getId(), organizationId, page.getSlug(), slug);
+            throw new ValidationException(ExceptionDomainKalkanError.VAL_ROOT_SLUG_FIXED,
+                    Map.of(KalkanPageConstant.FIELD_PAGE_ID, page.getId().toString(),
+                            KalkanPageConstant.FIELD_SLUG, page.getSlug()));
+        }
+    }
+
     private void requireSlugFree(UUID organizationId, KalkanPage parent, String slug, UUID excludedId) {
         boolean taken = parent == null
                 ? kalkanPageRepository.existsRootSlug(organizationId, slug, excludedId)
@@ -506,9 +518,8 @@ public class KalkanPageServiceImpl implements KalkanPageService {
     }
 
     /**
-     * A deleted root keeps its slug: a second root with it, created or renamed, would leave the
-     * section split in two and make the old root's restore fail, so the deleted root has to be
-     * restored instead.
+     * A deleted root keeps its slug: a second root with it would leave the section split in two and
+     * make the old root's restore fail, so the deleted root has to be restored instead.
      */
     private void requireRootSlugNotInTrash(UUID organizationId, String slug) {
         Optional<UUID> deletedRootId = kalkanPageRepository.findDeletedRootIdBySlug(organizationId, slug);

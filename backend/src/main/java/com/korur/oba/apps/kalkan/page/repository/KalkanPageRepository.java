@@ -185,9 +185,9 @@ public interface KalkanPageRepository extends SoftDeleteRepository<KalkanPage, U
 
     /**
      * The depth the deepest page a restore of this deleted page would bring back: the page's live
-     * ancestors plus the height of the subtree restoreSubtree matches, the page itself counting as
-     * one. A move after the delete counts only the live subtree, so the restored pages may end
-     * up deeper than a move would have allowed.
+     * ancestors plus the height of the subtree {@link #restoreSubtree(UUID, UUID, Instant)} matches,
+     * the page itself counting as one. A move after the delete counts only the live subtree, so the
+     * restored pages may end up deeper than a move would have allowed.
      *
      * @param pageId the deleted page
      * @return the resulting depth; 0 when the page is not deleted
@@ -345,9 +345,9 @@ public interface KalkanPageRepository extends SoftDeleteRepository<KalkanPage, U
      * Lists the top page of every delete under the given roots, newest delete first. A deleted page
      * is the top of its delete when it is a root, its parent is live, or its parent was deleted at
      * another instant, so each delete is listed once, by the page a restore takes. The path walks
-     * the ancestors whatever their state, and the descendant count matches the pages restoreSubtree
-     * would bring back. Each row carries its access root and whether it is a root, so the caller can
-     * apply the restore level.
+     * the ancestors whatever their state, and the descendant count matches the pages
+     * {@link #restoreSubtree(UUID, UUID, Instant)} would bring back. Each row carries its access
+     * root and whether it is a root, so the caller can apply the restore level.
      *
      * @param organizationId the organization
      * @param rootIds        the roots, live or deleted, all of that organization; must not be empty

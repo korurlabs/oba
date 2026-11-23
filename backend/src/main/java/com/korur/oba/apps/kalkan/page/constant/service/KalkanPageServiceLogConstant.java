@@ -43,6 +43,7 @@ public final class KalkanPageServiceLogConstant {
     public static final String SLUG_TAKEN = "Refused slug {} under parent {} in organization {}: taken";
     public static final String ROOT_SLUG_IN_TRASH = "Refused root slug {} in organization {}: held by deleted root {}";
     public static final String RESERVED_ROOT_SLUG = "Refused reserved root slug {} in organization {}";
+    public static final String ROOT_SLUG_FIXED = "Refused a slug change of root page {} in organization {} from {} to {}";
     public static final String DUPLICATE_LOCALE = "Refused a write in organization {}: locale {} given twice";
     public static final String MOVE_INVALID = "Refused a move of page {} under parent {} in organization {}: {}";
     public static final String DEPTH_EXCEEDED = "Refused page {} under parent {} in organization {}: deeper than {} levels";

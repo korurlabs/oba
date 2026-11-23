@@ -264,6 +264,14 @@ class KalkanPageHistoryIT extends AbstractKalkanIT {
         }
 
         @Test
+        void getTrash_unknownLocale_returns422() throws Exception {
+            send(get(PAGES + "/trash").param("locale", "DE"), admin, null)
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.error.code").value("GEN_VAL_001"))
+                    .andExpect(jsonPath("$.error.errorValues.locale").exists());
+        }
+
+        @Test
         void getTrash_guest_returns403FromGate() throws Exception {
             send(get(PAGES + "/trash"), guest, null)
                     .andExpect(status().isForbidden())
@@ -322,9 +330,59 @@ class KalkanPageHistoryIT extends AbstractKalkanIT {
         @Test
         void getRecent_limitOutOfRange_returns422() throws Exception {
             send(get(PAGES + "/recent").param("limit", "0"), admin, null)
-                    .andExpect(status().isUnprocessableEntity());
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.error.code").value("GEN_VAL_001"))
+                    .andExpect(jsonPath("$.error.errorValues.limit").exists());
             send(get(PAGES + "/recent").param("limit", "101"), admin, null)
-                    .andExpect(status().isUnprocessableEntity());
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.error.errorValues.limit").exists());
+        }
+
+        @Test
+        void getRecent_limitAtTheBounds_succeeds() throws Exception {
+            String rootId = createdId(admin, null, "policies");
+            createdId(admin, rootId, "access");
+
+            send(get(PAGES + "/recent").param("limit", "1"), admin, null)
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(1));
+            send(get(PAGES + "/recent").param("limit", "100"), admin, null)
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(2));
+        }
+
+        @Test
+        void getRecent_withoutLimit_listsTwenty() throws Exception {
+            String rootId = createdId(admin, null, "policies");
+            for (int i = 0; i < 20; i++) {
+                createdId(admin, rootId, "page-" + i);
+            }
+
+            send(get(PAGES + "/recent"), admin, null)
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(20));
+        }
+
+        @Test
+        void getRecent_limitNotANumberOrUnknownLocale_returns422() throws Exception {
+            send(get(PAGES + "/recent").param("limit", "many"), admin, null)
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.error.errorValues.limit").exists());
+            send(get(PAGES + "/recent").param("locale", "DE"), admin, null)
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.error.errorValues.locale").exists());
+        }
+
+        @Test
+        void getRecent_locale_picksThatTitle() throws Exception {
+            String rootId = createdBilingualRoot("isms");
+
+            send(get(PAGES + "/recent").param("locale", "EN"), admin, null)
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data[0].id").value(rootId))
+                    .andExpect(jsonPath("$.data[0].title").value("Title isms"));
+            send(get(PAGES + "/recent").param("locale", "TR"), admin, null)
+                    .andExpect(jsonPath("$.data[0].title").value("Baslik isms"));
         }
     }
 }

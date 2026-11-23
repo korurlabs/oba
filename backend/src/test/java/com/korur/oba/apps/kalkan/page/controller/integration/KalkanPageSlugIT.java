@@ -172,30 +172,63 @@ class KalkanPageSlugIT extends AbstractKalkanIT {
     class Update {
 
         @Test
-        void updatePage_renameRootToLiveRootSlug_returns409() throws Exception {
-            createdId(admin, null, "isms");
-            String otherId = createdId(admin, null, "handbook");
+        void updatePage_renameRoot_returns422AndKeepsTheSlug() throws Exception {
+            String rootId = createdId(admin, null, "handbook");
 
-            updatePage(admin, otherId, "{\"slug\":\"isms\",\"version\":0}")
-                    .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.error.code").value("KLK_STA_001"));
+            updatePage(admin, rootId, "{\"slug\":\"policies\",\"version\":0}")
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.error.code").value("KLK_VAL_009"))
+                    .andExpect(jsonPath("$.error.errorValues.pageId").value(rootId))
+                    .andExpect(jsonPath("$.error.errorValues.slug").value("handbook"));
+
+            getPage(admin, rootId)
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.slug").value("handbook"))
+                    .andExpect(jsonPath("$.data.version").value(0));
         }
 
         @Test
-        void updatePage_renameRootToDeletedRootSlug_returns409AndTheDeletedRootStaysRestorable() throws Exception {
+        void updatePage_renameRootByTheOwner_returns422() throws Exception {
+            String rootId = createdId(admin, null, "handbook");
+
+            updatePage(owner, rootId, "{\"slug\":\"policies\",\"version\":0}")
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.error.code").value("KLK_VAL_009"));
+        }
+
+        @Test
+        void updatePage_renameRootToDeletedRootSlug_returns422AndTheDeletedRootStaysRestorable() throws Exception {
             String rootId = createdId(admin, null, "handbook");
             String deletedId = createdId(admin, null, "isms");
             deletePage(admin, deletedId).andExpect(status().isOk());
 
             updatePage(admin, rootId, "{\"slug\":\"isms\",\"version\":0}")
-                    .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.error.code").value("KLK_STA_001"))
-                    .andExpect(jsonPath("$.error.errorValues.slug").value("isms"))
-                    .andExpect(jsonPath("$.error.errorValues.deletedPageId").value(deletedId));
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.error.code").value("KLK_VAL_009"));
 
             restorePage(admin, deletedId)
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.id").value(deletedId));
+        }
+
+        @Test
+        void updatePage_rootWithoutSlug_succeeds() throws Exception {
+            String rootId = createdId(admin, null, "isms");
+
+            updatePage(admin, rootId, "{\"compliance\":true,\"version\":0}")
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.slug").value("isms"))
+                    .andExpect(jsonPath("$.data.compliance").value(true));
+        }
+
+        @Test
+        void updatePage_renameChild_succeeds() throws Exception {
+            String rootId = createdId(admin, null, "isms");
+            String childId = createdId(admin, rootId, "controls");
+
+            updatePage(admin, childId, "{\"slug\":\"annex-a\",\"version\":0}")
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.slug").value("annex-a"));
         }
 
         @Test

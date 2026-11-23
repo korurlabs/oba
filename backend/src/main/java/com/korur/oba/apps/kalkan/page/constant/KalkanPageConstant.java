@@ -73,7 +73,7 @@ public final class KalkanPageConstant {
      */
     public static final int RECENT_MIN_LIMIT = 1;
     public static final int RECENT_MAX_LIMIT = 100;
-    public static final String RECENT_DEFAULT_LIMIT = "20";
+    public static final int RECENT_DEFAULT_LIMIT = 20;
 
     // --- Display ---
     public static final String NAME_SEPARATOR = " ";

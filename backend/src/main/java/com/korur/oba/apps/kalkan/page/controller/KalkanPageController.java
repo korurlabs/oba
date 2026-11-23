@@ -1,9 +1,11 @@
 package com.korur.oba.apps.kalkan.page.controller;
 
 // 1. Framework-level
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,8 +23,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 
 // 3. Java SDK
@@ -30,11 +30,12 @@ import java.util.List;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.kalkan.page.constant.KalkanPageConstant;
 import com.korur.oba.apps.kalkan.page.constant.controller.KalkanPageControllerLogConstant;
 import com.korur.oba.apps.kalkan.page.constant.controller.KalkanPageControllerResponseConstant;
 import com.korur.oba.apps.kalkan.page.dto.request.KalkanPageCreateRequest;
 import com.korur.oba.apps.kalkan.page.dto.request.KalkanPageMoveRequest;
+import com.korur.oba.apps.kalkan.page.dto.request.KalkanPageRecentRequest;
+import com.korur.oba.apps.kalkan.page.dto.request.KalkanPageTrashRequest;
 import com.korur.oba.apps.kalkan.page.dto.request.KalkanPageUpdateRequest;
 import com.korur.oba.apps.kalkan.page.dto.request.KalkanPageUpsertRequest;
 import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageDetailResponse;
@@ -44,7 +45,6 @@ import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageRevisionDetailRespo
 import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageRevisionListResponse;
 import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageTrashResponse;
 import com.korur.oba.apps.kalkan.page.dto.response.KalkanPageUpsertResponse;
-import com.korur.oba.apps.kalkan.page.enums.KalkanLocale;
 import com.korur.oba.apps.kalkan.page.service.KalkanPageQueryService;
 import com.korur.oba.apps.kalkan.page.service.KalkanPageService;
 import com.korur.oba.dojo.constant.CommonConstant;
@@ -150,19 +150,20 @@ public class KalkanPageController {
                     + "the same delete took")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successful operation"),
-            @ApiResponse(responseCode = "400", description = "X-Organization-ID missing or not a UUID, or an unknown locale"),
+            @ApiResponse(responseCode = "400", description = "X-Organization-ID missing or not a UUID"),
             @ApiResponse(responseCode = "401", description = "No valid JWT"),
             @ApiResponse(responseCode = "403", description = "Below MEMBER, or not a member of the organization"),
+            @ApiResponse(responseCode = "422", description = "GEN_VAL_001: an unknown locale"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<CustomResponse<List<KalkanPageTrashResponse>>> getTrash(
             @Parameter(hidden = true) @GetUser User user,
             @RequestHeader(CommonConstant.HEADER_ORGANIZATION_ID) UUID organizationId,
-            @Parameter(description = "Locale of the titles; without it each page shows its first title")
-            @RequestParam(required = false) KalkanLocale locale) {
+            @Valid @ModelAttribute @ParameterObject KalkanPageTrashRequest query) {
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
                 KalkanPageControllerLogConstant.PAGE_TRASH_REQUEST, user.getId(), organizationId);
-        List<KalkanPageTrashResponse> response = kalkanPageQueryService.getTrash(user, organizationId, locale);
+        List<KalkanPageTrashResponse> response = kalkanPageQueryService.getTrash(user, organizationId,
+                query.getLocale());
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
                 KalkanPageControllerLogConstant.PAGE_TRASH_COMPLETED, response.size(), organizationId);
         return ResponseUtil.ok(KalkanPageControllerResponseConstant.RESPONSE_DELETED_PAGES_RETRIEVED, response);
@@ -177,24 +178,21 @@ public class KalkanPageController {
             description = "Live pages under a root the caller holds a level on, last change first")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successful operation"),
-            @ApiResponse(responseCode = "400", description = "X-Organization-ID missing or not a UUID, or an unknown locale"),
+            @ApiResponse(responseCode = "400", description = "X-Organization-ID missing or not a UUID"),
             @ApiResponse(responseCode = "401", description = "No valid JWT"),
             @ApiResponse(responseCode = "403", description = "Not a member of the organization"),
-            @ApiResponse(responseCode = "422", description = "Limit outside 1 to 100"),
+            @ApiResponse(responseCode = "422", description = "GEN_VAL_001: limit not a number or outside 1 to 100, "
+                    + "or an unknown locale"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<CustomResponse<List<KalkanPageRecentResponse>>> getRecent(
             @Parameter(hidden = true) @GetUser User user,
             @RequestHeader(CommonConstant.HEADER_ORGANIZATION_ID) UUID organizationId,
-            @Parameter(description = "Most pages to return, 1 to 100, default 20")
-            @RequestParam(defaultValue = KalkanPageConstant.RECENT_DEFAULT_LIMIT)
-            @Min(KalkanPageConstant.RECENT_MIN_LIMIT) @Max(KalkanPageConstant.RECENT_MAX_LIMIT) int limit,
-            @Parameter(description = "Locale of the titles; without it each page shows its first title")
-            @RequestParam(required = false) KalkanLocale locale) {
+            @Valid @ModelAttribute @ParameterObject KalkanPageRecentRequest query) {
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
-                KalkanPageControllerLogConstant.PAGE_RECENT_REQUEST, user.getId(), limit, organizationId);
-        List<KalkanPageRecentResponse> response = kalkanPageQueryService.getRecent(user, organizationId, limit,
-                locale);
+                KalkanPageControllerLogConstant.PAGE_RECENT_REQUEST, user.getId(), query.getLimit(), organizationId);
+        List<KalkanPageRecentResponse> response = kalkanPageQueryService.getRecent(user, organizationId,
+                query.getLimit(), query.getLocale());
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
                 KalkanPageControllerLogConstant.PAGE_RECENT_COMPLETED, response.size(), organizationId);
         return ResponseUtil.ok(KalkanPageControllerResponseConstant.RESPONSE_RECENT_PAGES_RETRIEVED, response);
@@ -324,18 +322,18 @@ public class KalkanPageController {
     @PutMapping("/{pageId}")
     @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "Update a page",
-            description = "Writes the given fields and locales against the version the editor loaded; needs EDIT")
+            description = "Writes the given fields and locales against the version the editor loaded; needs EDIT. "
+                    + "A root page keeps its slug: sending it unchanged or leaving it out is fine")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Page updated"),
             @ApiResponse(responseCode = "400", description = "X-Organization-ID missing or not a UUID, or a malformed body"),
             @ApiResponse(responseCode = "401", description = "No valid JWT"),
             @ApiResponse(responseCode = "403", description = "Below MEMBER; KLK_SEC_001: below EDIT on the root"),
             @ApiResponse(responseCode = "404", description = "KLK_NOT_001: no such page, or hidden from the caller"),
-            @ApiResponse(responseCode = "409", description = "KLK_STA_001: slug taken; for a root also a slug held "
-                    + "by a deleted root, whose id is in deletedPageId; KLK_STA_002: a newer version exists; "
-                    + "GEN_STA_001: changed concurrently"),
+            @ApiResponse(responseCode = "409", description = "KLK_STA_001: slug taken by a sibling; KLK_STA_002: a "
+                    + "newer version exists; GEN_STA_001: changed concurrently"),
             @ApiResponse(responseCode = "422", description = "GEN_VAL_001: invalid field; KLK_VAL_005: a locale twice; "
-                    + "KLK_VAL_007: reserved root slug"),
+                    + "KLK_VAL_009: a new slug for a root page"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<CustomResponse<KalkanPageDetailResponse>> updatePage(

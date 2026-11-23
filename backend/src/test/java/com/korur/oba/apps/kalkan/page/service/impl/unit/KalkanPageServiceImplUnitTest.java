@@ -48,6 +48,7 @@ import com.korur.oba.shrine.identity.service.UserQueryService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -558,33 +559,72 @@ class KalkanPageServiceImplUnitTest {
             verify(kalkanPageRepository, never()).saveAndFlush(any());
         }
 
-        @Test
-        void updatePage_rootRenamedToReservedSlug_isRefused() {
+        private void rootIsEditable() {
             when(kalkanPageQueryService.getEntity(organizationId, root.getId())).thenReturn(root);
             when(kalkanAccessQueryService.verifyLevel(organizationId, root, user, KalkanLevel.EDIT))
-                    .thenReturn(KalkanLevel.EDIT);
-
-            ValidationException thrown = assertThrows(ValidationException.class, () -> service.updatePage(user,
-                    organizationId, root.getId(), new KalkanPageUpdateRequest("onboarding", null, 0L, null)));
-
-            assertEquals("KLK_VAL_007", thrown.getErrorCode());
+                    .thenReturn(KalkanLevel.MANAGE);
         }
 
         @Test
-        void updatePage_rootRenamedToDeletedRootSlug_throwsSlugTakenNamingTheDeletedRoot() {
-            UUID deletedRootId = UUID.randomUUID();
-            when(kalkanPageQueryService.getEntity(organizationId, root.getId())).thenReturn(root);
-            when(kalkanAccessQueryService.verifyLevel(organizationId, root, user, KalkanLevel.EDIT))
-                    .thenReturn(KalkanLevel.EDIT);
-            when(kalkanPageRepository.findDeletedRootIdBySlug(organizationId, "handbook"))
-                    .thenReturn(Optional.of(deletedRootId));
+        void updatePage_rootSlugChanged_isRefusedAsFixed() {
+            rootIsEditable();
 
-            ConflictException thrown = assertThrows(ConflictException.class, () -> service.updatePage(user,
+            ValidationException thrown = assertThrows(ValidationException.class, () -> service.updatePage(user,
                     organizationId, root.getId(), new KalkanPageUpdateRequest("handbook", null, 0L, null)));
 
-            assertEquals("KLK_STA_001", thrown.getErrorCode());
-            assertEquals(deletedRootId.toString(), thrown.getErrorValues().get("deletedPageId"));
+            assertEquals("KLK_VAL_009", thrown.getErrorCode());
+            assertEquals(root.getId().toString(), thrown.getErrorValues().get("pageId"));
+            assertEquals("isms", thrown.getErrorValues().get("slug"));
+            assertEquals("isms", root.getSlug());
+            verify(kalkanPageRepository, never()).existsRootSlug(any(), any(), any());
             verify(kalkanPageRepository, never()).saveAndFlush(any());
+        }
+
+        @Test
+        void updatePage_rootSlugChangedToReservedSlug_isRefusedAsFixedBeforeAnyLookup() {
+            rootIsEditable();
+
+            ValidationException reserved = assertThrows(ValidationException.class, () -> service.updatePage(user,
+                    organizationId, root.getId(), new KalkanPageUpdateRequest("onboarding", null, 0L, null)));
+
+            assertEquals("KLK_VAL_009", reserved.getErrorCode());
+            verify(kalkanPageRepository, never()).findDeletedRootIdBySlug(any(), any());
+        }
+
+        @Test
+        void updatePage_rootSameSlug_writesTheOtherFields() {
+            rootIsEditable();
+
+            service.updatePage(user, organizationId, root.getId(), new KalkanPageUpdateRequest("isms", true, 0L, null));
+
+            assertEquals("isms", root.getSlug());
+            assertTrue(root.isCompliance());
+            verify(kalkanPageRepository).saveAndFlush(root);
+            verify(kalkanPageRepository, never()).existsRootSlug(any(), any(), any());
+        }
+
+        @Test
+        void updatePage_rootWithoutSlug_writesTheOtherFields() {
+            rootIsEditable();
+
+            service.updatePage(user, organizationId, root.getId(), new KalkanPageUpdateRequest(null, true, 0L, null));
+
+            assertEquals("isms", root.getSlug());
+            verify(kalkanPageRepository).saveAndFlush(root);
+        }
+
+        @Test
+        void updatePage_childSlugChanged_isWritten() {
+            KalkanPage page = KalkanMocks.child(root, "a");
+            when(kalkanPageQueryService.getEntity(organizationId, page.getId())).thenReturn(page);
+            when(kalkanAccessQueryService.verifyLevel(organizationId, page, user, KalkanLevel.EDIT))
+                    .thenReturn(KalkanLevel.EDIT);
+            when(kalkanPageRepository.existsChildSlug(root.getId(), "b", page.getId())).thenReturn(false);
+
+            service.updatePage(user, organizationId, page.getId(), new KalkanPageUpdateRequest("b", null, 0L, null));
+
+            assertEquals("b", page.getSlug());
+            verify(kalkanPageRepository).saveAndFlush(page);
         }
 
         @Test
