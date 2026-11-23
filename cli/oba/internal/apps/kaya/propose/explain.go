@@ -93,7 +93,7 @@ func Explain(err error, release int) error {
 		refusal.Hint = "Run `oba kaya sync` online and propose again."
 	case apiErr.Code == codeNotFound && values["remoteUrl"] != nil:
 		refusal.Summary = "Kaya knows no repository" + valueSuffix(values, "remoteUrl", " %s") + " in this organization."
-		refusal.Hint = "Check the origin remote, or remoteUrl in kaya.yaml, and the organization of your machine token."
+		refusal.Hint = "Run `oba kaya sync`, which refreshes the repository list, then check which remote `oba kaya status` names, and the organization of your machine token."
 	case apiErr.Code == codeNotFound:
 		refusal.Summary = "Kaya did not find what the proposal names: " + apiErr.Message
 		refusal.Lines = valueLines(values)
@@ -130,7 +130,7 @@ func Explain(err error, release int) error {
 	case apiErr.Code == codeBadRequest:
 		refusal.Summary = "Kaya did not accept the request: " + apiErr.Message
 		refusal.Lines = valueLines(values)
-		refusal.Hint = "Check the origin remote, or remoteUrl in kaya.yaml."
+		refusal.Hint = "Check which remote `oba kaya status` names for the checkout."
 	default:
 		return err
 	}

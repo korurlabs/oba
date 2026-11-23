@@ -452,8 +452,8 @@ func TestExplain_everyCodeNamesTheNextStep(t *testing.T) {
 		{"unchanged", &client.APIError{Status: 409, Code: "KAY_CFG_016"}, []string{"nothing to propose"}, "KAY_CFG_016"},
 		{"unknown release", &client.APIError{Status: 404, Code: "KAY_NF_001", ErrorValues: map[string]any{"repositoryId": "repo-1", "release": 4}},
 			[]string{"knows no release 4", "oba kaya sync"}, "KAY_NF_001"},
-		{"unknown repository", &client.APIError{Status: 404, Code: "KAY_NF_001", ErrorValues: map[string]any{"remoteUrl": "github.com/sensey/demo"}},
-			[]string{"knows no repository github.com/sensey/demo", "remoteUrl in kaya.yaml"}, "KAY_NF_001"},
+		{"unknown repository", &client.APIError{Status: 404, Code: "KAY_NF_001", ErrorValues: map[string]any{"remoteUrl": "github.com/example/demo"}},
+			[]string{"knows no repository github.com/example/demo", "refreshes the repository list", "`oba kaya status` names"}, "KAY_NF_001"},
 		{"not found without values", &client.APIError{Status: 404, Code: "KAY_NF_001", Message: "gone"},
 			[]string{"did not find what the proposal names: gone"}, "KAY_NF_001"},
 		{"archived", &client.APIError{Status: 422, Code: "KAY_VAL_002"}, []string{"archived", "no config change"}, "KAY_VAL_002"},
@@ -474,7 +474,7 @@ func TestExplain_everyCodeNamesTheNextStep(t *testing.T) {
 		{"body too large by status", &client.APIError{Status: 413}, []string{"8 MiB"}, ""},
 		{"field invalid", &client.APIError{Status: 422, Code: "GEN_VAL_001", Message: "paths repeat", ErrorValues: map[string]any{"paths": []any{"a.md"}}},
 			[]string{"refused a field of the proposal: paths repeat", "paths: [\"a.md\"]"}, "GEN_VAL_001"},
-		{"bad request", &client.APIError{Status: 400, Code: "GEN_API_001", Message: "no remote"}, []string{"did not accept the request: no remote", "remoteUrl in kaya.yaml"}, "GEN_API_001"},
+		{"bad request", &client.APIError{Status: 400, Code: "GEN_API_001", Message: "no remote"}, []string{"did not accept the request: no remote", "`oba kaya status` names for the checkout"}, "GEN_API_001"},
 	}
 	for _, c := range cases {
 		err := Explain(c.err, 4)

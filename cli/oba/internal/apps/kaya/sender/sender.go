@@ -104,6 +104,8 @@ type run struct {
 	now      func() time.Time
 	hostname func() (string, error)
 	reported map[string]bool
+	// unresolvedHosts are the ssh hosts the resolver could not resolve in this run.
+	unresolvedHosts map[string]bool
 }
 
 // log appends a line to recorder.log; a line the log cannot take goes to stderr, which a
@@ -150,7 +152,7 @@ func Run(ctx context.Context, cfg Config) error {
 		return err
 	}
 
-	s := &run{stateDir: stateDir, now: cfg.Now, hostname: cfg.Hostname, resolver: cfg.Resolver, reported: map[string]bool{}}
+	s := &run{stateDir: stateDir, now: cfg.Now, hostname: cfg.Hostname, resolver: cfg.Resolver, reported: map[string]bool{}, unresolvedHosts: map[string]bool{}}
 	if s.now == nil {
 		s.now = time.Now
 	}
