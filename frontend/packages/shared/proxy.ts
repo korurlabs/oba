@@ -275,7 +275,7 @@ function pendingInvitationGuard(
 
   if (invitationsPath) {
     // Redirect to the invitations page: a path of this app, or the absolute
-    // URL of Admin for an app that has none. No locale segment: routing is
+    // URL of Ulak for an app that has none. No locale segment: routing is
     // localePrefix "never", so next-intl resolves the user's language from
     // the cookie as it does for every other route.
     const url = new URL(invitationsPath, request.nextUrl);

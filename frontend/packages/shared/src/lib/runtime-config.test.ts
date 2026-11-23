@@ -62,7 +62,7 @@ describe("getRuntimeConfig", () => {
           kaya: "https://kaya.example.test",
           kalkan: "https://kalkan.example.test",
           otak: "https://otak.example.test",
-          admin: "https://admin.example.test",
+          ulak: "https://ulak.example.test",
           account: "https://account.example.test",
         },
       };

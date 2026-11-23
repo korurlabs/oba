@@ -29,7 +29,7 @@ describe("sanitizeCallbackUrl", () => {
 
   test.each([
     "https://kazan.korur.com/home",
-    "https://admin.korur.com/",
+    "https://ulak.korur.com/",
     "https://korur.com",
     "https://app.sensey.io/x",
     "http://localhost:3002/home",
@@ -41,7 +41,7 @@ describe("sanitizeCallbackUrl", () => {
     "https://evil.example/",
     "https://korur.com.evil.example/",
     "https://evilkorur.com/",
-    "https://admin.korur.com@evil.example/",
+    "https://ulak.korur.com@evil.example/",
     "javascript://localhost/%0aalert(1)",
     "ftp://localhost/file",
     "not a url",

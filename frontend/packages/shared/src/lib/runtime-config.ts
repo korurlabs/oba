@@ -20,7 +20,7 @@ const APP_DEFAULTS: Record<ObaAppId, { devPort: number; host: string }> = {
   kaya: { devPort: 3014, host: "kaya.korur.com" },
   kalkan: { devPort: 3019, host: "kalkan.korur.com" },
   otak: { devPort: 3018, host: "otak.korur.com" },
-  admin: { devPort: 3016, host: "admin.korur.com" },
+  ulak: { devPort: 3016, host: "ulak.korur.com" },
   account: { devPort: 3017, host: "account.korur.com" },
 };
 
@@ -51,7 +51,7 @@ export function readRuntimeConfig(): RuntimeConfig {
       kaya: appUrl(process.env.KAYA_URL, "kaya"),
       kalkan: appUrl(process.env.KALKAN_URL, "kalkan"),
       otak: appUrl(process.env.OTAK_URL, "otak"),
-      admin: appUrl(process.env.ADMIN_URL, "admin"),
+      ulak: appUrl(process.env.ULAK_URL, "ulak"),
       account: appUrl(process.env.ACCOUNT_URL, "account"),
     },
   };

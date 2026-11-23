@@ -11,10 +11,10 @@ import { useGetMe } from "../../features/users/hooks/use-get-me";
 import { useRuntimeConfig } from "../../providers/RuntimeConfigProvider";
 
 /**
- * Admin and Account manage the organization and the user themselves, so they
+ * Ulak and Account manage the organization and the user themselves, so they
  * lead the grid; the product apps follow in their catalogue order.
  */
-const LEADING_APP_IDS: readonly ObaAppId[] = ["admin", "account"];
+const LEADING_APP_IDS: readonly ObaAppId[] = ["ulak", "account"];
 
 /** The apps in switcher order: the leading ones first, then the rest in catalogue order. */
 function switcherOrder(apps: readonly ObaApp[]): ObaApp[] {
@@ -35,11 +35,11 @@ export interface AppSwitcherProps {
  * Grid of the Oba web apps behind an icon button. Every other app opens in
  * the same tab: they share the Keycloak session, so the user lands signed in.
  *
- * An app is listed only when it has something to show the user: Admin for a
+ * An app is listed only when it has something to show the user: Ulak for a
  * user who manages an organization, Kazan, Kaya, Kalkan and Otak for a user
  * with an ACTIVE organization that grants them. The current app is always listed.
  *
- * While the user is unknown (loading, or the load failed) Admin stays hidden,
+ * While the user is unknown (loading, or the load failed) Ulak stays hidden,
  * so that a member never sees a link that leads nowhere. The granted apps stay
  * listed in that state, because most users can open them and the API refuses
  * them anyway when no grant exists; hiding them would make them flicker.
@@ -51,7 +51,7 @@ export function AppSwitcher({ currentAppId, className }: AppSwitcherProps) {
   const { appUrls } = useRuntimeConfig();
   const apps = switcherOrder(obaApps(appUrls)).filter((app) => {
     if (app.id === currentAppId) return true;
-    if (!me && app.id !== "admin") return true;
+    if (!me && app.id !== "ulak") return true;
     return canOpenApp(me, app.id);
   });
 
