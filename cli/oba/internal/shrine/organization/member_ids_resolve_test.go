@@ -30,7 +30,7 @@ func TestResolveMemberIDs(t *testing.T) {
 		t.Errorf("calls = %v", api.Calls())
 	}
 	_, err = ResolveMemberIDs(c, []string{"x@y.z"})
-	want := `no member of the organization matches "x@y.z"; run 'oba admin member list'`
+	want := `no member of the organization matches "x@y.z"; run 'oba ulak member list'`
 	if err == nil || err.Error() != want || client.ExitCode(err) != 2 {
 		t.Errorf("err = %v", err)
 	}

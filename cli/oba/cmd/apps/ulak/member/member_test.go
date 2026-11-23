@@ -6,14 +6,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/korurlabs/oba-cli/internal/apps/admin/member"
+	"github.com/korurlabs/oba-cli/internal/apps/ulak/member"
 	"github.com/korurlabs/oba-cli/internal/dojo/client"
 	"github.com/korurlabs/oba-cli/internal/dojo/clitest"
 )
 
 func TestMemberList(t *testing.T) {
 	api := newMemberAPI(t)
-	out, _, err := runCLI(t, "", "admin", "member", "list")
+	out, _, err := runCLI(t, "", "ulak", "member", "list")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,7 +33,7 @@ func TestMemberList(t *testing.T) {
 func TestMemberListEmpty(t *testing.T) {
 	api := newMemberAPI(t)
 	api.Respond("GET "+membersPath, http.StatusOK, `{"data":[]}`)
-	out, _, err := runCLI(t, "", "admin", "member", "list")
+	out, _, err := runCLI(t, "", "ulak", "member", "list")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,7 +46,7 @@ func TestMemberListSanitizesCells(t *testing.T) {
 	api := newMemberAPI(t)
 	api.Respond("GET "+membersPath, http.StatusOK, `{"data":[`+
 		`{"id":"m1","userId":"u-1","email":"a@b.c\nOlga  x@y.z  OWNER","firstName":"\u001b[2JAna","role":"MEMBER","status":"ACTIVE"}]}`)
-	out, _, err := runCLI(t, "", "admin", "member", "list")
+	out, _, err := runCLI(t, "", "ulak", "member", "list")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,7 +60,7 @@ func TestMemberListNoOrganization(t *testing.T) {
 	clitest.SetupHome(t)
 	api := clitest.NewMockAPI(t)
 	clitest.LoginTo(t, api.URL(), "")
-	_, _, err := runCLI(t, "", "admin", "member", "list")
+	_, _, err := runCLI(t, "", "ulak", "member", "list")
 	if err == nil || !strings.Contains(err.Error(), "No organization selected") {
 		t.Fatalf("err = %v", err)
 	}
@@ -81,7 +81,7 @@ func TestMemberRole(t *testing.T) {
 			api := newMemberAPI(t)
 			api.Respond("PATCH "+anaPath+"/role", http.StatusOK,
 				`{"data":{"id":"m2","userId":"`+anaID+`","email":"ana@example.com","role":"`+strings.ToUpper(tt.role)+`","status":"ACTIVE"}}`)
-			out, _, err := runCLI(t, "", "admin", "member", "role", tt.value, tt.role)
+			out, _, err := runCLI(t, "", "ulak", "member", "role", tt.value, tt.role)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -100,7 +100,7 @@ func TestMemberRoleRefusedBeforeAnyCall(t *testing.T) {
 	for _, given := range []string{"OWNER", "owner", "boss"} {
 		t.Run(given, func(t *testing.T) {
 			api := newMemberAPI(t)
-			_, _, err := runCLI(t, "", "admin", "member", "role", anaID, given)
+			_, _, err := runCLI(t, "", "ulak", "member", "role", anaID, given)
 			want := `unknown role "` + given + `"; allowed: ADMIN, MEMBER, GUEST`
 			if err == nil || err.Error() != want {
 				t.Fatalf("err = %v", err)
@@ -123,8 +123,8 @@ func TestMemberNoMatch(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			api := newMemberAPI(t)
-			_, _, err := runCLI(t, "", append([]string{"admin", "member"}, tt.args...)...)
-			want := `no member of Acme matches "nobody@example.com"; run 'oba admin member list'`
+			_, _, err := runCLI(t, "", append([]string{"ulak", "member"}, tt.args...)...)
+			want := `no member of Acme matches "nobody@example.com"; run 'oba ulak member list'`
 			if err == nil || err.Error() != want || client.ExitCode(err) != 2 {
 				t.Fatalf("err = %v, exit = %d", err, client.ExitCode(err))
 			}
@@ -148,7 +148,7 @@ func TestMemberRoleForbidden(t *testing.T) {
 			api := newMemberAPI(t)
 			api.Respond("PATCH "+anaPath+"/role", http.StatusForbidden,
 				`{"error":{"code":"`+tt.code+`","message":"`+tt.message+`"}}`)
-			_, _, err := runCLI(t, "", "admin", "member", "role", anaID, "ADMIN")
+			_, _, err := runCLI(t, "", "ulak", "member", "role", anaID, "ADMIN")
 			if err == nil || err.Error() != tt.code+": "+tt.message || client.ExitCode(err) != 3 {
 				t.Fatalf("err = %v, exit = %d", err, client.ExitCode(err))
 			}
@@ -179,7 +179,7 @@ func TestMemberRemove(t *testing.T) {
 			api := newMemberAPI(t)
 			clitest.FakeTerminal(t, &stdinIsTerminal, tt.terminal)
 			api.Respond("DELETE "+anaPath, http.StatusOK, `{"message":"ok"}`)
-			out, _, err := runCLILines(t, tt.stdin, append([]string{"admin", "member", "remove", "ana@example.com"}, tt.args...)...)
+			out, _, err := runCLILines(t, tt.stdin, append([]string{"ulak", "member", "remove", "ana@example.com"}, tt.args...)...)
 			if !errors.Is(err, tt.wantErr) {
 				t.Fatalf("err = %v, want %v", err, tt.wantErr)
 			}
@@ -205,7 +205,7 @@ func TestMemberRemove(t *testing.T) {
 func TestMemberRemoveByUserID(t *testing.T) {
 	api := newMemberAPI(t)
 	api.Respond("DELETE "+anaPath, http.StatusOK, `{"message":"ok"}`)
-	out, _, err := runCLI(t, "", "admin", "member", "remove", anaID, "--yes")
+	out, _, err := runCLI(t, "", "ulak", "member", "remove", anaID, "--yes")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -217,7 +217,7 @@ func TestMemberRemoveByUserID(t *testing.T) {
 func TestMemberRemoveForbidden(t *testing.T) {
 	api := newMemberAPI(t)
 	api.Respond("DELETE "+anaPath, http.StatusForbidden, `{"error":{"code":"ORG_SEC_006","message":"Admins cannot modify owners"}}`)
-	_, _, err := runCLI(t, "", "admin", "member", "remove", anaID, "--yes")
+	_, _, err := runCLI(t, "", "ulak", "member", "remove", anaID, "--yes")
 	if err == nil || err.Error() != "ORG_SEC_006: Admins cannot modify owners" || client.ExitCode(err) != 3 {
 		t.Fatalf("err = %v, exit = %d", err, client.ExitCode(err))
 	}

@@ -23,9 +23,9 @@ const (
 		`{"id":"m2","userId":"` + anaID + `","email":"ana@example.com","firstName":"Ana","lastName":null,"role":"MEMBER","status":"ACTIVE"}]}`
 )
 
-// newRoot builds a fresh "oba admin" tree with only this package's commands, as the oba root adds them.
+// newRoot builds a fresh "oba ulak" tree with only this package's commands, as the oba root adds them.
 func newRoot() *cobra.Command {
-	return clitest.AppRoot("admin", NewCmd())
+	return clitest.AppRoot("ulak", NewCmd())
 }
 
 // runCLI runs "oba <args>" in process on a fresh tree; see clitest.RunCLI.

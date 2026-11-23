@@ -1,4 +1,4 @@
-// Package org builds the oba admin org commands: create an organization, list the ones the
+// Package org builds the oba ulak org commands: create an organization, list the ones the
 // signed-in user belongs to (the same list as oba org list) and update the profile of the
 // current one.
 package org
@@ -10,17 +10,17 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/korurlabs/oba-cli/cmd/shrine"
-	"github.com/korurlabs/oba-cli/internal/apps/admin/org"
+	"github.com/korurlabs/oba-cli/internal/apps/ulak/org"
 	"github.com/korurlabs/oba-cli/internal/dojo/guardrail"
 	"github.com/korurlabs/oba-cli/internal/dojo/terminal"
 	"github.com/korurlabs/oba-cli/internal/shrine/session"
 )
 
-// orgHelp is the Long text of oba admin org. It names what the group leaves out on purpose, so
+// orgHelp is the Long text of oba ulak org. It names what the group leaves out on purpose, so
 // that a person or an agent looking for delete, disable or enable learns where they are done.
 const orgHelp = `Create, list and update organizations. Deleting, disabling and enabling an organization are left
 out of this CLI on purpose: delete cannot be undone, and both change who can use the
-organization. Do them in the Oba admin web app.`
+organization. Do them in the Ulak web app.`
 
 const orgCreateHelp = `Creates one organization from one JSON object on stdin and makes you its owner. The keys are
 the API's field names and the values go to the API unchanged; a key the API does not know is
@@ -30,14 +30,14 @@ belong to any. The country is an ISO 3166-1 alpha-3 code.
 Agents and scripts pass the object as a quoted heredoc: stdin does not show in 'ps', and the
 quoted 'EOF' stops the shell from expanding $ and backticks inside it:
 
-  oba admin org create <<'EOF'
+  oba ulak org create <<'EOF'
   {"name": "Korur B.V.", "country": "NLD", "website": "https://korur.com/"}
   EOF
 
 People typing by hand write the object to a file and redirect it, because a heredoc typed at
 the prompt lands in the shell history:
 
-  oba admin org create < org.json
+  oba ulak org create < org.json
 
 Work in the new organization with 'oba org use <id>'.`
 
@@ -51,19 +51,19 @@ role in the organization.
 Agents and scripts pass the object as a quoted heredoc: stdin does not show in 'ps', and the
 quoted 'EOF' stops the shell from expanding $ and backticks inside it:
 
-  oba admin org update <<'EOF'
+  oba ulak org update <<'EOF'
   {"description": "Cybersecurity for SMEs", "website": null}
   EOF
 
 People typing by hand write the object to a file and redirect it, because a heredoc typed at
 the prompt lands in the shell history:
 
-  oba admin org update < patch.json`
+  oba ulak org update < patch.json`
 
 // stdinIsTerminal is a variable so that tests can stand in for a terminal.
 var stdinIsTerminal = terminal.StdinIsTerminal
 
-// NewCmd builds "oba admin org" with its create, list and update commands.
+// NewCmd builds "oba ulak org" with its create, list and update commands.
 func NewCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "org",
@@ -167,7 +167,7 @@ func runOrgUpdate(cmd *cobra.Command, _ []string) error {
 // command fails at once instead of waiting for typed input.
 func orgStdin(cmd *cobra.Command) (io.Reader, error) {
 	if stdinIsTerminal() {
-		return nil, fmt.Errorf("no JSON on stdin; pass one JSON object, as 'oba admin org %s --help' shows", cmd.Name())
+		return nil, fmt.Errorf("no JSON on stdin; pass one JSON object, as 'oba ulak org %s --help' shows", cmd.Name())
 	}
 	return cmd.InOrStdin(), nil
 }
