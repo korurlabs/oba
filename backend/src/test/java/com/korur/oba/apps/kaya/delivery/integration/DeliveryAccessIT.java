@@ -89,6 +89,7 @@ class DeliveryAccessIT extends AbstractVersionIT {
 
         static List<MockHttpServletRequestBuilder> all(UUID releaseId, String remoteUrl) {
             return List.of(
+                    get("/kaya/delivery/repositories"),
                     get("/kaya/delivery/current").param("remoteUrl", remoteUrl),
                     get("/kaya/delivery/releases/" + releaseId),
                     get("/kaya/delivery/releases").param("remoteUrl", remoteUrl).param("number", "1"),
@@ -154,6 +155,11 @@ class DeliveryAccessIT extends AbstractVersionIT {
                             .header("X-Organization-ID", other))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.repositoryId").value(repository.getId().toString()));
+            mockMvc.perform(withToken(get("/kaya/delivery/repositories"), token).header("X-Organization-ID", other))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.organizationId").value(tenant.id()))
+                    .andExpect(jsonPath("$.data.repositories[0].remoteUrl").value(repository.getRemoteUrl()))
+                    .andExpect(jsonPath("$.data.repositories.length()").value(1));
         }
 
         private String tenantlessOrganizationId() {

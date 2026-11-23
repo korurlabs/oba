@@ -11,12 +11,14 @@ import java.util.UUID;
 import com.korur.oba.apps.kaya.delivery.dto.derived.DeliveryBlob;
 import com.korur.oba.apps.kaya.delivery.dto.derived.DeliveryCurrent;
 import com.korur.oba.apps.kaya.delivery.dto.response.DeliveryReleaseResponse;
+import com.korur.oba.apps.kaya.delivery.dto.response.DeliveryRepositoriesResponse;
 import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
 import com.korur.oba.apps.kaya.repository.dto.response.RepositoryResponse;
 
 /**
- * What the CLI downloads with a machine token: the current release of a checkout's repository,
- * a signed release and the content it names. Every read is limited to the token's organization;
+ * What the CLI downloads with a machine token: the organization's repositories a checkout is
+ * recognised by, the current release of a checkout's repository, a signed release and the content
+ * it names. Every read is limited to the token's organization;
  * a repository, release or blob of another organization answers the same 404 as an unknown one.
  * Only releases are served, and a release exists only for approved versions, so a draft is never
  * delivered.
@@ -31,6 +33,15 @@ import com.korur.oba.apps.kaya.repository.dto.response.RepositoryResponse;
  * {@link DeliveryProposalService}, which resolves the repository of a proposal.
  */
 public interface DeliveryQueryService {
+
+    /**
+     * Lists the repositories the organization delivers to: every ACTIVE one, by its normalised
+     * remote URL, sorted. An ARCHIVED repository is left out, because delivery to it is refused.
+     *
+     * @param principal the machine token's principal
+     * @return the organization and its active repositories; an empty list when it has none
+     */
+    DeliveryRepositoriesResponse getRepositories(MachinePrincipal principal);
 
     /**
      * Resolves the newest release of the checkout's repository.

@@ -22,6 +22,7 @@ public final class DeliveryServiceLogConstant {
     public static final String REMOTE_URL_INVALID = "Delivery refused a remote URL it cannot normalise, organization {}";
     public static final String REPOSITORY_NOT_FOUND = "No repository {} in organization {} for delivery";
     public static final String REPOSITORY_ARCHIVED = "Delivery refused archived repository {} of organization {}";
+    public static final String REPOSITORIES_RESOLVED = "Delivery lists {} active repositories of organization {}";
 
     // --- Releases ---
     public static final String CURRENT_RESOLVED = "Current release of repository {} of organization {}: {}";
