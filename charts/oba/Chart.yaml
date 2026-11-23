@@ -3,7 +3,7 @@ name: oba
 description: >-
   Oba, the open-source agentic operations platform for mission-critical
   companies: one Spring Boot API and the Kazan,
-  Kaya, Kalkan, Otak, Admin and Account web apps. The chart runs each
+  Kaya, Kalkan, Otak, Ulak and Account web apps. The chart runs each
   component as its own Deployment and Service, with an optional Ingress.
 type: application
 # The release workflow sets version and appVersion from the tag (vX.Y.Z gives
@@ -46,7 +46,7 @@ annotations:
       image: ghcr.io/korurlabs/oba-kalkan:0.0.0
     - name: oba-otak
       image: ghcr.io/korurlabs/oba-otak:0.0.0
-    - name: oba-admin
-      image: ghcr.io/korurlabs/oba-admin:0.0.0
+    - name: oba-ulak
+      image: ghcr.io/korurlabs/oba-ulak:0.0.0
     - name: oba-account
       image: ghcr.io/korurlabs/oba-account:0.0.0

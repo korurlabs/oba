@@ -24,7 +24,7 @@ All under one version number `X.Y.Z`:
 
 | What | Where |
 |---|---|
-| Seven images: `api`, `kazan`, `kaya`, `kalkan`, `otak`, `admin`, `account` | `ghcr.io/korurlabs/oba-<component>:X.Y.Z`, and `:latest` for a stable version |
+| Seven images: `api`, `kazan`, `kaya`, `kalkan`, `otak`, `ulak`, `account` | `ghcr.io/korurlabs/oba-<component>:X.Y.Z`, and `:latest` for a stable version |
 | The Helm chart, `version` and `appVersion` `X.Y.Z` | `oci://ghcr.io/korurlabs/charts/oba` |
 | Artifact Hub metadata | `ghcr.io/korurlabs/charts/oba:artifacthub.io` |
 | A GitHub release with the chart package and install notes | the repository's Releases page, marked pre-release for an `-rc` tag |
