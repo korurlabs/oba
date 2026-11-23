@@ -84,7 +84,7 @@ jobs:
             kind: frontend
           - name: otak
             kind: frontend
-          - name: admin
+          - name: ulak
             kind: frontend
           - name: account
             kind: frontend
@@ -313,7 +313,7 @@ jobs:
           helm install oba oci://$CHART_OCI_REF --version $VERSION -f my-values.yaml
           \`\`\`
 
-          Images: \`$REGISTRY/oba-<component>:$VERSION\` for \`api\`, \`kazan\`, \`kaya\`, \`kalkan\`, \`otak\`, \`admin\`, \`account\`.
+          Images: \`$REGISTRY/oba-<component>:$VERSION\` for \`api\`, \`kazan\`, \`kaya\`, \`kalkan\`, \`otak\`, \`ulak\`, \`account\`.
           EOF
           args=(--repo "$GITHUB_REPOSITORY" --verify-tag --title "Oba $VERSION"
             --notes-file "$RUNNER_TEMP/notes.md" --generate-notes)

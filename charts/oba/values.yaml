@@ -406,17 +406,17 @@ otak:
     enabled: false
     maxUnavailable: 1
 
-admin:
+ulak:
   enabled: true
   replicas: 1
   image:
-    repository: ghcr.io/korurlabs/oba-admin
+    repository: ghcr.io/korurlabs/oba-ulak
     # Defaults to the chart's appVersion.
     tag: ""
     pullPolicy: IfNotPresent
   # The image's command, written out so that a pod-mutating webhook that wraps
   # the command sees it.
-  command: ["node", ".next/standalone/apps/admin/server.js"]
+  command: ["node", ".next/standalone/apps/ulak/server.js"]
   args: []
   containerPort: 8080
   env:
