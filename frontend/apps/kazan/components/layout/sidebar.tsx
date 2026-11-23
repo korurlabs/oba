@@ -30,7 +30,7 @@ import { SidebarResizeHandle } from "./sidebar-resize-handle";
  * switcher at the top, navigation in the middle, account menu at the bottom.
  * Kazan is a standalone app, so there is no app switcher; the Settings row
  * leads to the Kazan settings screens, whose navigation row links to the
- * account app (profile, invitations, general settings) and to Admin
+ * account app (profile, invitations, general settings) and to Ulak
  * (organizations). The collapse toggle and the language switcher
  * live elsewhere now: the toggle at the left edge of the content area
  * (`content-sidebar-trigger.tsx`), the language list inside the account menu.

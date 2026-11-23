@@ -839,7 +839,7 @@
   },
   "noAppAccess": {
     "title": "Kazan is not open to you in {organization}",
-    "description": "An owner or admin of the organization grants Kazan in Admin.",
+    "description": "An owner or admin of the organization grants Kazan in Ulak.",
     "openAccount": "Open account"
   },
   "noOrganization": {
@@ -985,8 +985,8 @@
     },
     "memberAccess": {
       "noAccess": "No Kazan access",
-      "noAccessHint": "No Kazan access. An owner or admin can grant Kazan in Admin.",
-      "refused": "This member has no Kazan access. An owner or admin can grant Kazan in Admin."
+      "noAccessHint": "No Kazan access. An owner or admin can grant Kazan in Ulak.",
+      "refused": "This member has no Kazan access. An owner or admin can grant Kazan in Ulak."
     }
   },
   "sidebar": {
@@ -1512,7 +1512,7 @@
       "send": "Send",
       "save": "Save",
       "counter": "{count}/{max}",
-      "mentionWithoutKazanAccess": "You mentioned a member without Kazan access. Remove the mention, or ask an owner or admin to grant Kazan in Admin."
+      "mentionWithoutKazanAccess": "You mentioned a member without Kazan access. Remove the mention, or ask an owner or admin to grant Kazan in Ulak."
     },
     "mentions": {
       "title": "Members",
@@ -1883,7 +1883,7 @@
         "memberNotActive": "Everyone you add must be an active member of the organization.",
         "notFound": "This channel no longer exists, or you no longer have access to it.",
         "notAllowed": "Only an owner or admin of the organization can do this.",
-        "noKazanAccess": "Everyone you add must have Kazan access. An owner or admin can grant Kazan in Admin."
+        "noKazanAccess": "Everyone you add must have Kazan access. An owner or admin can grant Kazan in Ulak."
       }
     }
   },
