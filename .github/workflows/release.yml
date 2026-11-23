@@ -9,7 +9,8 @@ name: Release
 #
 # The chart is pushed only after every image is, so no chart version names a missing image.
 # Each image is scanned before it is pushed, and an image with a CRITICAL or HIGH vulnerability
-# that has a fixed version is never pushed. The images build in parallel, so when one fails its
+# that has a fixed version is never pushed, unless .trivyignore.yaml accepts that vulnerability
+# until a set date. The images build in parallel, so when one fails its
 # scan, images that already passed theirs may be on ghcr.io under X.Y.Z (and :latest on a
 # stable version); the matrix then cancels the images still building, and the chart, the
 # Artifact Hub metadata and the GitHub release are not published, so no chart or release names
@@ -139,7 +140,8 @@ jobs:
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
       # A release never publishes an image with a CRITICAL or HIGH vulnerability that has a
-      # fixed version. The image is first built into the local Docker daemon, scanned there,
+      # fixed version, except one that .trivyignore.yaml accepts until a set date, with its
+      # reason. The image is first built into the local Docker daemon, scanned there,
       # and pushed only if the scan passes. The build and the scan run before the registry
       # login, so the scanner never runs while a credential that can push packages is on
       # disk. The push step below keeps its inputs unchanged and runs on the same builder, so
@@ -190,6 +192,9 @@ jobs:
           scanners: vuln
           severity: CRITICAL,HIGH
           ignore-unfixed: true
+          # Trivy loads a YAML ignore file only when it is named; the path is relative to the
+          # checkout.
+          trivyignores: .trivyignore.yaml
           format: table
           exit-code: '1'
 
