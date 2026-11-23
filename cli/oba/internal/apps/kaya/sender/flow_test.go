@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/capture"
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/client"
+	"github.com/korurlabs/oba-cli/internal/apps/kaya/delivery"
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/seed"
 )
 
@@ -26,7 +28,15 @@ const flowSession = "11111111-aaaa-4bbb-8ccc-0000000000f1"
 
 var errStopLoop = errors.New("test stops the loop")
 
-// flowEnv isolates the state directory and returns it.
+// flowRemote is the repository of a queued session, recorded as the hook records it, and
+// flowListed is the same repository as the cached repository list holds it.
+const (
+	flowRemote = "https://github.com/example/app.git"
+	flowListed = "github.com/example/app"
+)
+
+// flowEnv isolates the state and config directories, caches a repository list that holds
+// flowListed, and returns the state directory.
 func flowEnv(t *testing.T) string {
 	t.Helper()
 	base, err := filepath.EvalSymlinks(t.TempDir())
@@ -34,12 +44,21 @@ func flowEnv(t *testing.T) string {
 		t.Fatal(err)
 	}
 	for key, value := range map[string]string{
-		"HOME": filepath.Join(base, "home"), "XDG_STATE_HOME": filepath.Join(base, "xdg"),
+		"HOME": filepath.Join(base, "home"), "XDG_STATE_HOME": filepath.Join(base, "xdg"), "XDG_CONFIG_HOME": filepath.Join(base, "config"),
 		"GIT_CONFIG_GLOBAL": os.DevNull, "GIT_CONFIG_NOSYSTEM": "1", "KAYA_SENDER": "off", "KAYA_RECORDER_TOKEN": "",
 	} {
 		t.Setenv(key, value)
 	}
+	listRepositories(t, flowListed)
 	return filepath.Join(base, "xdg", "kaya")
+}
+
+// listRepositories makes the cached repository list hold exactly remotes.
+func listRepositories(t *testing.T, remotes ...string) {
+	t.Helper()
+	if err := delivery.SaveRepositoryList(delivery.RepositoryList{OrganizationID: "org-example", Remotes: remotes}); err != nil {
+		t.Fatal(err)
+	}
 }
 
 // queueSession writes a session with the given number of events and returns its directory.
@@ -55,7 +74,7 @@ func queueSession(t *testing.T, state, id string, events int, ended bool) string
 		`"ended":%v,"cwd":"/tmp","branch":"main","features":[],"briefed_features":[],"event_count":%d}`, id, ended, events)
 	writeFile(t, filepath.Join(dir, capture.SummaryFile), summary)
 	writeFile(t, filepath.Join(dir, capture.SessionFile),
-		`{"sessionId":"`+id+`","machineName":"flow-host","remoteUrl":"https://github.com/senseylabs/village.git","repositoryName":"village","gitAuthorEmail":"dev@example.com"}`)
+		`{"sessionId":"`+id+`","machineName":"flow-host","remoteUrl":"`+flowRemote+`","repositoryName":"app","gitAuthorEmail":"dev@example.com"}`)
 	return dir
 }
 
@@ -483,6 +502,164 @@ func TestRecordedRemoteIsSentAsRecordedWhenSSHConfigMapsItsHost(t *testing.T) {
 	if len(asked) != 0 {
 		t.Errorf("ssh config was consulted for %q; a recorded remote is sent without resolving it", asked)
 	}
+}
+
+// aliasResolver stands in for ssh config with `Host work-gh` and `Hostname github.com`, so no
+// test reads the user's ssh config.
+func aliasResolver() *seed.RemoteResolver {
+	return &seed.RemoteResolver{Lookup: func(host string) (string, error) {
+		if host == "work-gh" {
+			return "github.com", nil
+		}
+		return host, nil
+	}}
+}
+
+// recordSession replaces the session file of the queued session; without remote it records none,
+// as a session whose first event was queued before its session file was written.
+func recordSession(t *testing.T, dir, remote string) {
+	t.Helper()
+	recorded := ""
+	if remote != "" {
+		recorded = `"remoteUrl":"` + remote + `",`
+	}
+	writeFile(t, filepath.Join(dir, capture.SessionFile),
+		`{"sessionId":"`+flowSession+`","machineName":"flow-host",`+recorded+`"gitAuthorEmail":"dev@example.com"}`)
+}
+
+// runOnce runs one sender round and returns the bodies Kaya received.
+func runOnce(t *testing.T, resolver *seed.RemoteResolver) [][]byte {
+	t.Helper()
+	poster := &scriptedPoster{answers: []error{nil}}
+	cfg := flowConfig(&fakeClock{now: time.Unix(1_800_000_000, 0)}, poster)
+	cfg.Once = true
+	cfg.Resolver = resolver
+	if err := Run(context.Background(), cfg); err != nil {
+		t.Fatal(err)
+	}
+	return poster.bodies
+}
+
+// sentRepository is the repository of one batch body.
+func sentRepository(t *testing.T, body []byte) repository {
+	t.Helper()
+	var sent struct {
+		Repository repository `json:"repository"`
+	}
+	if err := json.Unmarshal(body, &sent); err != nil {
+		t.Fatal(err)
+	}
+	return sent.Repository
+}
+
+// assertKeptUnsent checks that nothing was sent, that the session is still queued with its
+// events, and that the log names the session in one line and none of hidden.
+func assertKeptUnsent(t *testing.T, state, dir string, bodies [][]byte, hidden ...string) {
+	t.Helper()
+	if len(bodies) != 0 {
+		t.Fatalf("Kaya received %d batches, want none: %s", len(bodies), bodies[0])
+	}
+	if _, err := os.Stat(filepath.Join(dir, capture.EventsFile)); err != nil {
+		t.Errorf("the unsent session left the queue: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(dir, cursorFile)); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("the unsent session has a cursor: %v", err)
+	}
+	log := logText(t, state)
+	var named []string
+	for _, line := range strings.Split(log, "\n") {
+		if strings.Contains(line, flowSession) {
+			named = append(named, line)
+		}
+	}
+	if len(named) != 1 || !strings.Contains(named[0], "not sent") {
+		t.Errorf("want one not-sent line naming the session, log:\n%s", log)
+	}
+	for _, text := range hidden {
+		if strings.Contains(log, text) {
+			t.Errorf("the log names %q of an unlisted remote:\n%s", text, log)
+		}
+	}
+}
+
+// forkCheckout is a git checkout with the given remotes, name then url, and a queued session in
+// it that recorded no remote.
+func forkCheckout(t *testing.T, state string, remotes ...string) string {
+	t.Helper()
+	root := filepath.Join(t.TempDir(), "app")
+	git := func(args ...string) {
+		if out, err := exec.Command("git", args...).CombinedOutput(); err != nil {
+			t.Fatalf("git %s: %v\n%s", strings.Join(args, " "), err, out)
+		}
+	}
+	git("init", "-q", root)
+	for i := 0; i+1 < len(remotes); i += 2 {
+		git("-C", root, "remote", "add", remotes[i], remotes[i+1])
+	}
+	dir := queueSession(t, state, flowSession, 1, true)
+	recordSession(t, dir, "")
+	summary := filepath.Join(dir, capture.SummaryFile)
+	data, err := os.ReadFile(summary)
+	if err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, summary, strings.Replace(string(data), `"cwd":"/tmp"`, `"cwd":"`+filepath.Join(root, "src")+`"`, 1))
+	return dir
+}
+
+func TestAnAliasedRemoteOfAnOlderReleaseIsSentAsTheListedRemote(t *testing.T) {
+	state := flowEnv(t)
+	dir := queueSession(t, state, flowSession, 1, false)
+	recordSession(t, dir, "git@work-gh:example/app.git")
+	bodies := runOnce(t, aliasResolver())
+	if len(bodies) != 1 {
+		t.Fatalf("Kaya received %d batches, want 1", len(bodies))
+	}
+	if got := sentRepository(t, bodies[0]).RemoteURL; got != "git@github.com:example/app.git" {
+		t.Errorf("sent remote = %q, want the listed git@github.com:example/app.git", got)
+	}
+}
+
+func TestAnAliasedRemoteThatResolvesToNoListedRemoteStaysQueued(t *testing.T) {
+	state := flowEnv(t)
+	dir := queueSession(t, state, flowSession, 1, true)
+	recordSession(t, dir, "git@work-gh:example/private-tool.git")
+	bodies := runOnce(t, aliasResolver())
+	assertKeptUnsent(t, state, dir, bodies, "work-gh", "private-tool")
+}
+
+func TestASessionWithoutARecordedRemoteInAForkSendsTheListedUpstream(t *testing.T) {
+	state := flowEnv(t)
+	forkCheckout(t, state, "origin", "https://github.com/someone/app.git", "upstream", flowRemote)
+	bodies := runOnce(t, flowResolver())
+	if len(bodies) != 1 {
+		t.Fatalf("Kaya received %d batches, want 1", len(bodies))
+	}
+	repo := sentRepository(t, bodies[0])
+	if repo.RemoteURL != flowRemote || repo.Name == nil || *repo.Name != "app" {
+		t.Errorf("sent repository = %q named %v, want upstream's %q named app", repo.RemoteURL, repo.Name, flowRemote)
+	}
+}
+
+func TestASessionWithoutARecordedRemoteInAnUnlistedCheckoutSendsNothing(t *testing.T) {
+	state := flowEnv(t)
+	dir := forkCheckout(t, state, "origin", "https://github.com/someone/app.git")
+	bodies := runOnce(t, flowResolver())
+	assertKeptUnsent(t, state, dir, bodies, "someone")
+}
+
+func TestNoCachedRepositoryListSendsNothing(t *testing.T) {
+	state := flowEnv(t)
+	path, err := delivery.RepositoryListPath()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Remove(path); err != nil {
+		t.Fatal(err)
+	}
+	dir := queueSession(t, state, flowSession, 1, true)
+	bodies := runOnce(t, flowResolver())
+	assertKeptUnsent(t, state, dir, bodies, "example/app")
 }
 
 func TestLostAcknowledgementResendsAndKayaCountsEachSeqOnce(t *testing.T) {

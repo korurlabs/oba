@@ -191,8 +191,8 @@ func withoutGitVars(env []string) []string {
 }
 
 // recognize names the checkout's repository by the first remote on the list, in the order of
-// remotes. A remote counts as written, without user info, and else with its ssh host alias
-// resolved through lookup, so that a clone over an alias is recognised as a clone over the host.
+// remotes, each matched as ListedRemote matches it. A host that ssh cannot resolve is kept in
+// c.Unresolved.
 func (c *Checkout) recognize(list RepositoryList, remotes []gitRemote, lookup func(string) (string, error)) {
 	resolver := &seed.RemoteResolver{Lookup: func(host string) (string, error) {
 		name, err := lookup(host)
@@ -202,21 +202,32 @@ func (c *Checkout) recognize(list RepositoryList, remotes []gitRemote, lookup fu
 		return name, err
 	}}
 	for _, remote := range remotes {
-		cleaned := seed.CleanRemote(strings.TrimSpace(remote.url))
-		if normalized := seed.NormalizeRemote(cleaned); list.Has(normalized) {
-			c.Remote, c.RemoteName, c.requestRemote = normalized, remote.name, cleaned
-			return
-		}
-		// rule-10-no-op -- reason: the warning repeats the lookup error, which the Lookup above already keeps in c.Unresolved.
-		resolved, _ := resolver.Resolve(cleaned)
-		if resolved == cleaned {
-			continue
-		}
-		if normalized := seed.NormalizeRemote(resolved); list.Has(normalized) {
-			c.Remote, c.RemoteName, c.requestRemote = normalized, remote.name, resolved
+		if request, normalized, ok := ListedRemote(list, remote.url, resolver); ok {
+			c.Remote, c.RemoteName, c.requestRemote = normalized, remote.name, request
 			return
 		}
 	}
+}
+
+// ListedRemote matches one remote against the repository list: as written, without user info,
+// and else with its ssh host alias resolved through resolver, so that a clone over an alias counts
+// as a clone over the host. request is the form that matched, as Kaya is asked about it, and
+// normalized the list's entry; ok is false when neither form is on the list. A host the resolver
+// cannot resolve leaves only the remote as written, and the resolver's Lookup receives the error.
+func ListedRemote(list RepositoryList, remote string, resolver *seed.RemoteResolver) (request, normalized string, ok bool) {
+	cleaned := seed.CleanRemote(strings.TrimSpace(remote))
+	if normalized := seed.NormalizeRemote(cleaned); list.Has(normalized) {
+		return cleaned, normalized, true
+	}
+	// rule-10-no-op -- reason: the warning names the remote and repeats the lookup error, which the resolver's Lookup already receives.
+	resolved, _ := resolver.Resolve(cleaned)
+	if resolved == cleaned {
+		return "", "", false
+	}
+	if normalized := seed.NormalizeRemote(resolved); list.Has(normalized) {
+		return resolved, normalized, true
+	}
+	return "", "", false
 }
 
 // Paths of the checkout's local delivery state; .kaya/ is gitignored after the cutover.

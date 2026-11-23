@@ -3,14 +3,12 @@ package sender
 import (
 	"bufio"
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"io/fs"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -20,6 +18,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/capture"
+	"github.com/korurlabs/oba-cli/internal/apps/kaya/delivery"
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/redact"
 )
 
@@ -31,7 +30,6 @@ const (
 	batchPlans      = 20
 	bodyBudget      = 3_500_000
 	handoffLimit    = 200_000
-	gitTimeout      = 5 * time.Second
 	lostEvent       = "RecorderLostLine"
 	sessionPlanFile = "session.md"
 	sessionPlanMeta = "session.json"
@@ -498,19 +496,43 @@ func (s *run) readConfigRelease(dir, sessionID string) map[string]any {
 	return report
 }
 
-// repositoryOf is the session's repository. The hook records the remote that put the checkout
-// on the repository list, cleaned, with an ssh host alias already resolved where the list needed
-// it, and that remote is sent as recorded. Resolving it again would follow ssh config that maps
-// a listed host to another one, such as github.com to ssh.github.com for ssh over port 443, and
-// report a repository the list does not hold. Without a recorded remote git is asked in the
-// session's directory.
-func (s *run) repositoryOf(session, summary map[string]any) *repository {
-	remote, _ := session["remoteUrl"].(string)
-	if remote == "" {
-		remote = s.originRemote(session, summary)
+// unlisted is why a session whose repository the list does not hold is not sent. It names neither
+// the remote nor its host: an unlisted remote stays on the machine, the log included.
+const unlisted = "no remote of it is on the organization's repository list, as recorded or with its ssh host alias resolved; " +
+	"it stays queued until its repository is listed"
+
+// repositoryOf is the session's repository as Kaya is asked about it, or why the session is not
+// sent. Only a remote on the cached repository list leaves the machine, so the sender is the last
+// gate for what a hook recorded, whichever release recorded it.
+//
+// A recorded remote is matched as recognition matches a checkout's remote and sent in the form
+// the list holds: as recorded when the list holds that, which keeps a host that ssh config maps
+// to another one, such as github.com to ssh.github.com, else with its ssh host alias resolved, as
+// an older release recorded origin with its alias. Without a recorded remote, the session's
+// checkout is recognised as the hook recognises it, never by origin alone, which in a fork is
+// the developer's own repository. Without a cached list nothing is sent.
+func (s *run) repositoryOf(session, summary map[string]any) (*repository, string) {
+	list, err := delivery.LoadRepositoryList()
+	if err != nil {
+		return nil, "the repository list is unreadable, it stays queued: " + err.Error()
 	}
-	if remote == "" {
-		return nil
+	if len(list.Remotes) == 0 {
+		return nil, "no repository list is cached yet; it stays queued until oba kaya sync fetches one"
+	}
+	recorded, _ := session["remoteUrl"].(string)
+	var remote string
+	if recorded != "" {
+		request, _, ok := delivery.ListedRemote(list, recorded, s.resolver)
+		if !ok {
+			return nil, unlisted
+		}
+		remote = request
+	} else {
+		request, reason := recognizedRemote(session, summary)
+		if request == "" {
+			return nil, reason
+		}
+		remote = request
 	}
 	name, _ := session["repositoryName"].(string)
 	if name == "" {
@@ -520,51 +542,31 @@ func (s *run) repositoryOf(session, summary map[string]any) *repository {
 	if name != "" {
 		repo.Name = &name
 	}
-	return repo
+	return repo, ""
 }
 
-// originRemote is origin's remote in the session's directory, cleaned, for a session whose hook
-// recorded none; "" when there is none. Nothing resolved this remote's ssh host alias before, so
-// it is resolved here.
-func (s *run) originRemote(session, summary map[string]any) string {
+// recognizedRemote is the remote that puts the session's checkout on the repository list, found
+// as the hook finds it, for a session whose hook recorded none; "" and the reason when there is
+// none.
+func recognizedRemote(session, summary map[string]any) (string, string) {
 	cwd, _ := session["cwd"].(string)
 	if cwd == "" {
 		cwd, _ = summary["cwd"].(string)
 	}
 	where := capture.ExistingDir(cwd)
 	if cwd == "" || where == "" {
-		return ""
+		return "", "no remote is recorded and its directory is gone; it stays queued"
 	}
-	remote := capture.CleanRemote(s.git(where, "remote", "get-url", "origin"))
-	if remote == "" {
-		return ""
-	}
-	resolved, warning := s.resolver.Resolve(remote)
-	if warning != "" {
-		s.log("%s", warning)
-	}
-	return resolved
-}
-
-// git is the trimmed stdout of a git command in dir, "" when git fails. A git that cannot be
-// started at all is logged.
-func (s *run) git(dir string, args ...string) string {
-	ctx, cancel := context.WithTimeout(context.Background(), gitTimeout)
-	defer cancel()
-	cmd := exec.CommandContext(ctx, "git", append([]string{"-C", dir}, args...)...) // #nosec G204 -- fixed git subcommands on the session's directory
-	cmd.Env = append(os.Environ(), "GIT_OPTIONAL_LOCKS=0", "LC_ALL=C")
-	cmd.WaitDelay = 100 * time.Millisecond
-	out, err := cmd.Output()
-	var exitErr *exec.ExitError
-	if err != nil && !errors.As(err, &exitErr) {
-		s.log("git %s in %s failed: %v", strings.Join(args, " "), dir, err)
-		return ""
-	}
+	checkout, err := delivery.FindCheckout(where)
 	if err != nil {
-		// rule-10-no-op -- reason: a non-zero exit is an answer, such as a checkout without an origin remote.
-		return ""
+		return "", "no remote is recorded and its checkout cannot be recognised, it stays queued: " + err.Error()
 	}
-	return strings.TrimSpace(string(out))
+	request, _, err := checkout.Remotes()
+	if err != nil {
+		// rule-10-no-op -- reason: the error says only that no remote is listed, and names the checkout; unlisted says the same without it.
+		return "", unlisted
+	}
+	return request, ""
 }
 
 // buildBatch is the next batch of a session. A nil batch with an empty reason means there is
@@ -592,9 +594,9 @@ func (s *run) buildBatch(dir, sessionID string, cur *cursor) (*batch, *carried, 
 	if len(events) == 0 && usage == nil {
 		return nil, nil, ""
 	}
-	repo := s.repositoryOf(session, summary)
+	repo, reason := s.repositoryOf(session, summary)
 	if repo == nil {
-		return nil, nil, "no git remote for the session's directory"
+		return nil, nil, reason
 	}
 	what := &carried{}
 	b := &batch{SessionID: sessionID, Repository: *repo, Events: []json.RawMessage{}, Handoffs: []handoff{}, Plans: []plan{}}
