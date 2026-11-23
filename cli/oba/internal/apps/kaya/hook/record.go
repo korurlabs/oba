@@ -45,7 +45,8 @@ func recordHook(raw []byte, stderr io.Writer) error {
 
 // recordedCheckout is the checkout of the event's directory when one of its remotes is on the
 // cached repository list, nil when none is. The list is only read here, never fetched, so the
-// hook needs no network. A directory outside git is left to Record, which names it.
+// hook needs no network. A directory outside git is an error that names the directory, since
+// there the list is not the reason nothing is recorded.
 func recordedCheckout(in map[string]any) (*delivery.Checkout, error) {
 	dir, err := capture.EventDir(in)
 	if err != nil {
@@ -55,7 +56,10 @@ func recordedCheckout(in map[string]any) (*delivery.Checkout, error) {
 	if err != nil {
 		return nil, err
 	}
-	if checkout.Kind == delivery.NotKaya {
+	switch checkout.Kind {
+	case delivery.NotRepository:
+		return nil, fmt.Errorf("%s is not inside a git repository", dir)
+	case delivery.NotKaya:
 		return nil, nil
 	}
 	return checkout, nil

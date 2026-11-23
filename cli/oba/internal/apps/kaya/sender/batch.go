@@ -498,37 +498,52 @@ func (s *run) readConfigRelease(dir, sessionID string) map[string]any {
 	return report
 }
 
-// repositoryOf is the session's repository. The hook records the remote cleaned but with its
-// ssh host alias; the alias is resolved here, at send time, so a session queued before an ssh
-// config change is reported with today's host. Without a recorded remote git is asked in the
+// repositoryOf is the session's repository. The hook records the remote that put the checkout
+// on the repository list, cleaned, with an ssh host alias already resolved where the list needed
+// it, and that remote is sent as recorded. Resolving it again would follow ssh config that maps
+// a listed host to another one, such as github.com to ssh.github.com for ssh over port 443, and
+// report a repository the list does not hold. Without a recorded remote git is asked in the
 // session's directory.
 func (s *run) repositoryOf(session, summary map[string]any) *repository {
 	remote, _ := session["remoteUrl"].(string)
 	if remote == "" {
-		cwd, _ := session["cwd"].(string)
-		if cwd == "" {
-			cwd, _ = summary["cwd"].(string)
-		}
-		if where := capture.ExistingDir(cwd); cwd != "" && where != "" {
-			remote = capture.CleanRemote(s.git(where, "remote", "get-url", "origin"))
-		}
+		remote = s.originRemote(session, summary)
 	}
 	if remote == "" {
 		return nil
-	}
-	resolved, warning := s.resolver.Resolve(remote)
-	if warning != "" {
-		s.log("%s", warning)
 	}
 	name, _ := session["repositoryName"].(string)
 	if name == "" {
 		name = capture.RepositoryName(remote)
 	}
-	repo := &repository{RemoteURL: resolved}
+	repo := &repository{RemoteURL: remote}
 	if name != "" {
 		repo.Name = &name
 	}
 	return repo
+}
+
+// originRemote is origin's remote in the session's directory, cleaned, for a session whose hook
+// recorded none; "" when there is none. Nothing resolved this remote's ssh host alias before, so
+// it is resolved here.
+func (s *run) originRemote(session, summary map[string]any) string {
+	cwd, _ := session["cwd"].(string)
+	if cwd == "" {
+		cwd, _ = summary["cwd"].(string)
+	}
+	where := capture.ExistingDir(cwd)
+	if cwd == "" || where == "" {
+		return ""
+	}
+	remote := capture.CleanRemote(s.git(where, "remote", "get-url", "origin"))
+	if remote == "" {
+		return ""
+	}
+	resolved, warning := s.resolver.Resolve(remote)
+	if warning != "" {
+		s.log("%s", warning)
+	}
+	return resolved
 }
 
 // git is the trimmed stdout of a git command in dir, "" when git fails. A git that cannot be

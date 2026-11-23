@@ -157,14 +157,23 @@ func replayScenario(t *testing.T, dir string, c corpusCase, sc scenario) {
 		Runs []expectedRun `json:"runs"`
 	}
 	readCorpus(t, filepath.Join(expected, "sender", sc.Name+".json"), &want)
+	// The Python sender resolved the ssh host alias of the recorded remote when it sent. This
+	// sender sends the remote the hook recorded as it is, since recognition already resolved it,
+	// so every expected body names session.json's remote.
+	var session map[string]any
+	readCorpus(t, filepath.Join(expected, capture.SessionFile), &session)
+	recorded, _ := expand(session, subst).(map[string]any)["remoteUrl"].(string)
 	// A case whose session is never sent has no batch.json.
 	var batchBody any
 	if _, err := os.Stat(filepath.Join(expected, "batch.json")); err == nil {
 		readCorpus(t, filepath.Join(expected, "batch.json"), &batchBody)
 		batchBody = expand(batchBody, subst)
 		delete(batchBody.(map[string]any)["summary"].(map[string]any), "project")
+		sentAsRecorded(batchBody, recorded)
 	}
 
+	// The resolver maps the case's aliases, so a sender that resolved the recorded remote again
+	// would send another host than the hook recorded.
 	resolver := &seed.RemoteResolver{Lookup: func(host string) (string, error) {
 		if host == "broken-host" {
 			return "", errors.New("ssh -G broken-host exited 255: ssh: broken")
@@ -215,6 +224,7 @@ func replayScenario(t *testing.T, dir string, c corpusCase, sc scenario) {
 				body = batchBody
 			} else if object, ok := body.(map[string]any); ok {
 				delete(object["summary"].(map[string]any), "project")
+				sentAsRecorded(object, recorded)
 			}
 			wantRequests = append(wantRequests, map[string]any{"method": req.Method, "path": req.Path, "contentType": req.ContentType, "body": body})
 		}
@@ -383,6 +393,11 @@ func compareLog(t *testing.T, run int, wantAny any, got []string) {
 	t.Helper()
 	var want []string
 	for _, line := range wantAny.([]any) {
+		// The Python sender warned when ssh could not resolve the recorded remote's host. This
+		// sender does not resolve a recorded remote, so it has nothing to warn about.
+		if strings.HasPrefix(line.(string), "ssh -G ") {
+			continue
+		}
 		want = append(want, line.(string))
 	}
 	if len(want) != len(got) {
@@ -398,14 +413,19 @@ func compareLog(t *testing.T, run int, wantAny any, got []string) {
 		case strings.Contains(w, "unreadable, reported as UNVERIFIED:"):
 			w, _, _ = strings.Cut(w, "UNVERIFIED:")
 			g, _, _ = strings.Cut(g, "UNVERIFIED:")
-		case strings.HasPrefix(w, "ssh -G broken-host exited 255"):
-			if strings.Contains(g, "ssh -G broken-host exited 255") {
-				g = w
-			}
 		}
 		if w != g {
 			t.Errorf("run %d: log line %d\n got %q\nwant %q", run, i, got[i], want[i])
 		}
+	}
+}
+
+// sentAsRecorded makes an expected batch body name the recorded remote.
+func sentAsRecorded(body any, recorded string) {
+	object, _ := body.(map[string]any)
+	repo, _ := object["repository"].(map[string]any)
+	if repo != nil && recorded != "" {
+		repo["remoteUrl"] = recorded
 	}
 }
 
