@@ -230,15 +230,28 @@ export function toPageCreateRequest(values: PageFormValues): PageCreateRequest {
 }
 
 /**
- * The update of a page against `version`, the version the editor loaded. A
- * stale version is refused (`KLK_STA_002`), so a change made meanwhile by
- * someone else is never overwritten.
+ * Whether a page is the root of a section. Its slug is the section's route
+ * segment, which the sidebar and the section page look the section up by, so
+ * the server refuses to change it (`KLK_VAL_009`).
  */
-export function toPageUpdateRequest(values: PageFormValues, version: number): PageUpdateRequest {
+export function isSectionRoot(page: Pick<PageDetail, "parentId">): boolean {
+  return page.parentId === null;
+}
+
+/**
+ * The update of `page` against its `version`, the version the editor loaded.
+ * A stale version is refused (`KLK_STA_002`), so a change made meanwhile by
+ * someone else is never overwritten. A section root sends no slug, as its
+ * slug cannot change.
+ */
+export function toPageUpdateRequest(
+  values: PageFormValues,
+  page: Pick<PageDetail, "parentId" | "version">
+): PageUpdateRequest {
   return {
-    slug: values.slug.trim(),
+    slug: isSectionRoot(page) ? null : values.slug.trim(),
     compliance: values.compliance,
-    version,
+    version: page.version,
     translations: translationRequests(values),
   };
 }
@@ -256,10 +269,15 @@ export function isVersionConflict(error: unknown): boolean {
 /**
  * A Markdown link to an uploaded file, as the body stores it. Brackets in the
  * name are escaped and spaces and parentheses in the address encoded, so
- * neither ends the link early.
+ * neither ends the link early. `&`, `<` and `>` in the name become entities:
+ * the body allows raw HTML, so a file name must never turn into markup.
  */
 export function markdownLink(fileName: string, url: string): string {
-  const label = fileName.replace(/([\\[\]])/g, "\\$1");
+  const label = fileName
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/([\\[\]])/g, "\\$1");
   const target = url.replace(/ /g, "%20").replace(/\(/g, "%28").replace(/\)/g, "%29");
   return `[${label}](${target})`;
 }

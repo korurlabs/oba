@@ -3,6 +3,7 @@ import { AuthError } from "@oba/shared/libs/auth/types";
 import { accountOnboardingUrl, appUrl } from "@oba/shared/constants/apps";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderToStaticMarkup } from "react-dom/server";
+import { OVERVIEW_RECENT_LIMIT } from "@/features/recent/lib/recent-limits";
 
 // The root page is the home page and the sign-in gateway: it turns the
 // session and the `callbackUrl` the proxy preserved into a redirect. Each
@@ -28,6 +29,7 @@ let session: SessionState;
 let signOutCalls: unknown[];
 let prefetched: number;
 let prefetchedTrees: string[];
+let prefetchedRecent: unknown[][];
 
 // Copies, not the namespaces: mock.module rewrites a loaded module in place, so the
 // afterAll restore would otherwise put the mocks back for the files that run later.
@@ -78,6 +80,14 @@ mock.module("@/features/pages/lib/prefetch", () => ({
   ...actualPagePrefetch,
   prefetchPageTree: async (_queryClient: unknown, organizationId: string) => {
     prefetchedTrees.push(organizationId);
+  },
+  prefetchRecentPages: async (
+    _queryClient: unknown,
+    organizationId: string,
+    limit: number,
+    uiLocale: string
+  ) => {
+    prefetchedRecent.push([organizationId, limit, uiLocale]);
   },
 }));
 
@@ -132,6 +142,7 @@ beforeEach(() => {
   signOutCalls = [];
   prefetched = 0;
   prefetchedTrees = [];
+  prefetchedRecent = [];
 });
 
 describe("root page redirects", () => {
@@ -245,12 +256,13 @@ describe("root page redirects", () => {
 });
 
 describe("root page content", () => {
-  test("shows the shell to an active user with the session's organization and prefetches the current user and the page tree", async () => {
+  test("shows the shell to an active user with the session's organization and prefetches the current user, the page tree and the recent changes", async () => {
     const page = await visit();
 
     expect(markupOf(page)).toContain("kalkan-shell:org-1");
     expect(prefetched).toBe(1);
     expect(prefetchedTrees).toEqual(["org-1"]);
+    expect(prefetchedRecent).toEqual([["org-1", OVERVIEW_RECENT_LIMIT, "en"]]);
   });
 
   test("hands the shell no organization when the session has none", async () => {
@@ -260,6 +272,7 @@ describe("root page content", () => {
 
     expect(markupOf(page)).toContain("kalkan-shell:none");
     expect(prefetchedTrees).toEqual([]);
+    expect(prefetchedRecent).toEqual([]);
   });
 
   test("signs a deleted user out and renders nothing", async () => {

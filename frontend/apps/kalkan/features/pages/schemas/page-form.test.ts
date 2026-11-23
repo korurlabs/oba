@@ -5,6 +5,7 @@ import {
   appendToBody,
   createPageFormSchema,
   emptyPageFormValues,
+  isSectionRoot,
   isVersionConflict,
   markdownLink,
   pageFormValuesFromDetail,
@@ -132,14 +133,23 @@ describe("page form mapping", () => {
   });
 
   test("an update carries the loaded version and only languages with a title", () => {
-    const form = pageFormValuesFromDetail(stored);
+    const child: PageDetail = { ...stored, parentId: PARENT, rootId: PARENT, slug: "access" };
+    const form = pageFormValuesFromDetail(child);
+    form.slug = " access-v2 ";
     form.translations.TR.title = " Politikalar v2 ";
-    expect(toPageUpdateRequest(form, stored.version)).toEqual({
-      slug: "policies",
+    expect(toPageUpdateRequest(form, child)).toEqual({
+      slug: "access-v2",
       compliance: true,
       version: 7,
       translations: [{ locale: "TR", title: "Politikalar v2", body: "Gövde" }],
     });
+  });
+
+  test("an update of a section root sends no slug, even when the form holds another", () => {
+    const form = pageFormValuesFromDetail(stored);
+    form.slug = "renamed";
+    expect(isSectionRoot(stored)).toBe(true);
+    expect(toPageUpdateRequest(form, stored).slug).toBeNull();
   });
 
   test("a create sends the parent and the trimmed slug", () => {
@@ -169,6 +179,12 @@ describe("attachment links", () => {
     expect(markdownLink("scan [v2].pdf", "https://blob/x/scan (v2).pdf")).toBe(
       "[scan \\[v2\\].pdf](https://blob/x/scan%20%28v2%29.pdf)"
     );
+  });
+
+  test("turns markup in the name into text, so a file name never becomes HTML", () => {
+    expect(
+      markdownLink('<a href="https:evil.example" class="fixed">r&d.pdf', "https://blob/x/f.pdf")
+    ).toBe('[&lt;a href="https:evil.example" class="fixed"&gt;r&amp;d.pdf](https://blob/x/f.pdf)');
   });
 
   test("appends the link as its own paragraph", () => {

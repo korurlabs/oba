@@ -14,6 +14,7 @@ import { pageErrorText } from "../lib/page-error";
 import { contentLocaleOf } from "../lib/page-tree";
 import { isLevelAtLeast, KalkanLevel, type PageDetail } from "../schemas";
 import {
+  isSectionRoot,
   isVersionConflict,
   pageFormValuesFromDetail,
   storedLocales,
@@ -125,6 +126,7 @@ export function PageEditView({ pageId }: { pageId: string }) {
         requiredLocales={requiredLocales}
         initialLocale={contentLocaleOf(locale)}
         pageId={pageId}
+        isRoot={isSectionRoot(base)}
         isPending={updatePage.isPending || updatePage.isSuccess || reloading}
         notice={
           conflict ? (
@@ -137,7 +139,7 @@ export function PageEditView({ pageId }: { pageId: string }) {
         }
         onSubmit={(values, form) => {
           updatePage.mutate(
-            { pageId, data: toPageUpdateRequest(values, base.version) },
+            { pageId, data: toPageUpdateRequest(values, base) },
             {
               onSuccess: () => {
                 router.push(pageHref(pageId));
@@ -168,7 +170,7 @@ export function PageEditView({ pageId }: { pageId: string }) {
  * the newer version in the form and drops the user's unsaved text, so the
  * notice says that before the user chooses.
  */
-function VersionConflictNotice({
+export function VersionConflictNotice({
   reloading,
   error,
   onReload,

@@ -5,7 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { auth } from "@oba/shared/libs/auth";
 import { makeQueryClient } from "@oba/shared/providers/query-client";
 import { HistoryView } from "@/features/history/components/history-view";
-import { prefetchPage } from "@/features/pages/lib/prefetch";
+import { prefetchPage, requirePageId } from "@/features/pages/lib/prefetch";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("history");
@@ -25,6 +25,7 @@ export default async function PageHistoryPage({
   params: Promise<{ locale: string; pageId: string }>;
 }) {
   const { locale, pageId } = await params;
+  requirePageId(pageId);
   const session = await auth();
   const organizationId = session?.user?.defaultOrganizationId;
   const queryClient = makeQueryClient();

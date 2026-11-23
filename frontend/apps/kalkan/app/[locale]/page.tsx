@@ -14,7 +14,8 @@ import { prefetchMe } from "@oba/shared/features/users/api/prefetch-me";
 import { accountOnboardingUrl, appUrl } from "@oba/shared/constants/apps";
 import { KalkanAppShell } from "@/components/layout/kalkan-app-shell";
 import { OverviewView } from "@/features/overview/components/overview-view";
-import { prefetchPageTree } from "@/features/pages/lib/prefetch";
+import { prefetchPageTree, prefetchRecentPages } from "@/features/pages/lib/prefetch";
+import { OVERVIEW_RECENT_LIMIT } from "@/features/recent/lib/recent-limits";
 
 export const dynamic = "force-dynamic";
 
@@ -89,7 +90,8 @@ async function SignInFailed({ error, signInUrl }: { error: string; signInUrl: st
  * a session straight to sign-in and would break the failed-sign-in handling
  * above, so this page renders the shell itself, as the dashboard layout does:
  * the current-user ("me") query and the page tree prefetched and hydrated
- * around the shell, which reads both, and the session's default organization
+ * around the shell, which reads both, together with the overview's recent
+ * changes, and the session's default organization
  * handed to the shell so the first render keys its queries on the
  * organization they were prefetched under.
  */
@@ -147,7 +149,10 @@ export default async function HomePage({
   await prefetchMe(queryClient, session.accessToken, "home-page");
   const organizationId = session.user.defaultOrganizationId ?? null;
   if (organizationId) {
-    await prefetchPageTree(queryClient, organizationId, "home-page");
+    await Promise.all([
+      prefetchPageTree(queryClient, organizationId, "home-page"),
+      prefetchRecentPages(queryClient, organizationId, OVERVIEW_RECENT_LIMIT, locale, "home-page"),
+    ]);
   }
 
   return (

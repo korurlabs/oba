@@ -18,6 +18,7 @@ const ERROR_TEXT_KEYS: Partial<Record<string, string>> = {
   KLK_VAL_006: "errors.permissionOnChild",
   KLK_VAL_007: "errors.reservedSlug",
   KLK_VAL_008: "errors.notDeleted",
+  KLK_VAL_009: "errors.rootSlugFixed",
   GEN_VAL_001: "errors.validation",
 };
 
