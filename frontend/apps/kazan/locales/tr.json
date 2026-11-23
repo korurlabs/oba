@@ -839,7 +839,7 @@
   },
   "noAppAccess": {
     "title": "Kazan, {organization} kuruluşunda size açık değil",
-    "description": "Kazan erişimini kuruluşun sahibi veya yöneticisi Admin'den verir.",
+    "description": "Kazan erişimini kuruluşun sahibi veya yöneticisi Ulak'tan verir.",
     "openAccount": "Hesabı aç"
   },
   "noOrganization": {
@@ -985,8 +985,8 @@
     },
     "memberAccess": {
       "noAccess": "Kazan erişimi yok",
-      "noAccessHint": "Kazan erişimi yok. Kuruluşun sahibi veya yöneticisi Kazan erişimini Admin'den verebilir.",
-      "refused": "Bu üyenin Kazan erişimi yok. Kuruluşun sahibi veya yöneticisi Kazan erişimini Admin'den verebilir."
+      "noAccessHint": "Kazan erişimi yok. Kuruluşun sahibi veya yöneticisi Kazan erişimini Ulak'tan verebilir.",
+      "refused": "Bu üyenin Kazan erişimi yok. Kuruluşun sahibi veya yöneticisi Kazan erişimini Ulak'tan verebilir."
     }
   },
   "sidebar": {
@@ -1883,7 +1883,7 @@
         "memberNotActive": "Eklediğiniz herkes kuruluşun aktif bir üyesi olmalıdır.",
         "notFound": "Bu kanal artık yok veya artık erişiminiz yok.",
         "notAllowed": "Bunu yalnızca kuruluşun bir sahibi veya yöneticisi yapabilir.",
-        "noKazanAccess": "Eklediğiniz herkesin Kazan erişimi olmalıdır. Kuruluşun sahibi veya yöneticisi Kazan erişimini Admin'den verebilir."
+        "noKazanAccess": "Eklediğiniz herkesin Kazan erişimi olmalıdır. Kuruluşun sahibi veya yöneticisi Kazan erişimini Ulak'tan verebilir."
       }
     }
   },
