@@ -139,13 +139,21 @@ func Check(ctx context.Context, api *client.Client, plan Plan, run client.SeedRu
 			continue
 		}
 		check.ReleaseNumber = release.Number
-		check.Mismatches = Compare(*release, repo.Disk, repo.CutOver)
+		for _, mismatch := range Compare(*release, repo.Disk, repo.CutOver) {
+			if why, designed := repo.OnPurpose[mismatch.Path]; designed {
+				mismatch.Reason += ", " + why
+				check.OnPurpose = append(check.OnPurpose, mismatch)
+				continue
+			}
+			check.Mismatches = append(check.Mismatches, mismatch)
+		}
 		checks = append(checks, check)
 	}
 	return checks, nil
 }
 
-// Passed reports whether the run passed and every compared release equals its disk.
+// Passed reports whether the run passed and every compared release equals its disk, apart from
+// the paths a seed layout changes on purpose.
 func Passed(run client.SeedRun, checks []RepositoryCheck) bool {
 	if run.Status != client.SeedPassed {
 		return false
