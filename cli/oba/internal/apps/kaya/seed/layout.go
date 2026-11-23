@@ -118,8 +118,8 @@ func matchSegments(pattern, path []string) bool {
 		if len(path) == 0 {
 			return false
 		}
-		// parsePattern refused every segment path.Match calls malformed, and path.Match reports a
-		// malformed pattern whatever the name, so no error can come back here.
+		// rule-10-no-op -- reason: parsePattern refused every segment path.Match calls malformed, and
+		// path.Match reports a malformed pattern whatever the name, so no error can come back here.
 		if matched, _ := pathpkg.Match(pattern[0], path[0]); !matched {
 			return false
 		}
@@ -786,7 +786,8 @@ func checkLayoutOptions(opts Options) error {
 }
 
 // readLayoutRepo reads a repository the layout names: its own files, and the AGENTS.md of each
-// folder a pack is mounted in. A repository without .agents/.managed.json is read as it is.
+// folder a pack is mounted in. A repository without .agents/.managed.json is read as it is,
+// unless Kaya already delivers to it.
 func (b *builder) readLayoutRepo(l *seedLayout, root string, names map[string]string) (*repoBuild, []sourceFile, error) {
 	managed, err := ReadManaged(root)
 	cutOver := errors.Is(err, ErrNotManaged)
@@ -795,6 +796,9 @@ func (b *builder) readLayoutRepo(l *seedLayout, root string, names map[string]st
 	}
 	repo, err := b.readRepo(root, names, managed, cutOver)
 	if err != nil {
+		return nil, nil, err
+	}
+	if err := refuseDelivered(root, repo.Disk); err != nil {
 		return nil, nil, err
 	}
 	entry, listed := l.repos[repo.Name]
@@ -835,6 +839,9 @@ func (b *builder) readMountFolder(repo *repoBuild, pack layoutRepositoryPack) ([
 	if err != nil {
 		return nil, err
 	}
+	if err := refuseDelivered(repo.Root, scan.Delivered); err != nil {
+		return nil, err
+	}
 	for _, item := range scan.NotImported {
 		b.plan.Request.NotImported = append(b.plan.Request.NotImported, client.NotImported{Path: prefixed(repo.Name, item.Path), Reason: item.Reason})
 	}
@@ -852,6 +859,25 @@ func (b *builder) readMountFolder(repo *repoBuild, pack layoutRepositoryPack) ([
 		files = append(files, sourceFile{source: repo.Name, path: path, entry: stored, mount: pack.Name})
 	}
 	return files, nil
+}
+
+// refuseDelivered refuses the checkout at root when one of its entries is a link into the
+// checkout's .kaya/ folder. Kaya places every file it delivers as such a link, so these entries
+// are Kaya's output rather than the repository's files: seeding them would put the links in the
+// packs, the server would leave out the ones it refuses, and the next release would drop those
+// files from every checkout.
+func refuseDelivered(root string, entries map[string]Entry) error {
+	for _, path := range sortedPaths(entries) {
+		entry := entries[path]
+		if entry.Mode != client.ModeSymlink || strings.HasPrefix(entry.Target, "/") {
+			continue
+		}
+		if strings.HasPrefix(pathpkg.Join(pathpkg.Dir(path), entry.Target), ".kaya/") {
+			return fmt.Errorf("%s is a checkout Kaya delivers to: %s links into its .kaya/ folder, so its files are Kaya's output; "+
+				"seed from a checkout Kaya does not deliver to, or leave it out so that Kaya keeps its packs", root, path)
+		}
+	}
+	return nil
 }
 
 // skippedPacks names each pack that takes files from a source the run does not read, with those

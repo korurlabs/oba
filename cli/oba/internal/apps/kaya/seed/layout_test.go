@@ -506,6 +506,53 @@ func TestBuildLayout_refusesWhatItCannotPlace(t *testing.T) {
 	}
 }
 
+func TestBuildLayout_refusesACheckoutKayaDeliversTo(t *testing.T) {
+	agents, tree := layoutClone(t), mainTree(t)
+	cases := map[string]struct {
+		checkout func(t *testing.T) string
+		link     string
+	}{
+		"delivered agent files": {
+			checkout: func(t *testing.T) string {
+				repo := layoutRepo(t, "app-one")
+				write(t, repo, ".kaya/current/AGENTS.md", "app one\n", 0o644)
+				write(t, repo, ".kaya/current/.agents/rules/registry.md", "registry\n", 0o644)
+				link(t, repo, "AGENTS.md", ".kaya/current/AGENTS.md")
+				link(t, repo, ".agents/rules/registry.md", "../../.kaya/current/.agents/rules/registry.md")
+				write(t, repo, "tools/tool/AGENTS.md", "tool\n", 0o644)
+				return repo
+			},
+			link: ".agents/rules/registry.md",
+		},
+		"delivered AGENTS.md of a mounted folder": {
+			checkout: func(t *testing.T) string {
+				repo := appOne(t)
+				if err := os.Remove(filepath.Join(repo, "tools", "tool", "AGENTS.md")); err != nil {
+					t.Fatal(err)
+				}
+				write(t, repo, ".kaya/current/tools/tool/AGENTS.md", "tool\n", 0o644)
+				link(t, repo, "tools/tool/AGENTS.md", "../../.kaya/current/tools/tool/AGENTS.md")
+				return repo
+			},
+			link: "tools/tool/AGENTS.md",
+		},
+	}
+	for name, tc := range cases {
+		t.Run(name, func(t *testing.T) {
+			repo := tc.checkout(t)
+			_, err := Build(Options{AgentsDir: agents, RepoDirs: []string{repo}, SourceRef: "ref", Layout: tree})
+			if err == nil {
+				t.Fatal("a checkout Kaya delivers to was seeded")
+			}
+			for _, want := range []string{repo + " is a checkout Kaya delivers to", tc.link + " links into its .kaya/ folder"} {
+				if !strings.Contains(err.Error(), want) {
+					t.Fatalf("err = %v, want it to contain %q", err, want)
+				}
+			}
+		})
+	}
+}
+
 func TestReadLayout_refusesAnInvalidLayout(t *testing.T) {
 	cases := map[string]struct {
 		layout, want string
