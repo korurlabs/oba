@@ -57,10 +57,6 @@
     "description": "Kalkan bir organizasyonun dokümanlarını tutar. Önce hesabınızda bir organizasyon oluşturun veya birine katılın.",
     "action": "Hesabınızı açın"
   },
-  "placeholder": {
-    "title": "Yakında",
-    "description": "Bu sayfa hazırlanıyor, içeriği kısa süre içinde burada görünecek."
-  },
   "sections": {
     "loading": "Bölüm yükleniyor",
     "loadError": "Bölüm yüklenemedi",
@@ -115,6 +111,7 @@
       "duplicateLocale": "Bir dil birden fazla kez verilmiş.",
       "permissionOnChild": "Erişim bölümde ayarlanır, alt sayfalarında değil.",
       "reservedSlug": "Bu adres ayrılmıştır ve bir bölümü adlandıramaz.",
+      "rootSlugFixed": "Bir bölümün adresi değiştirilemez, çünkü bölümün menüdeki yeridir.",
       "notDeleted": "Bu sayfa çöp kutusunda değil.",
       "validation": "Bazı alanlar geçerli değil. Kontrol edip tekrar deneyin."
     }
@@ -312,6 +309,7 @@
     "parentSearch": "Sayfa ara",
     "slug": "Adres",
     "slugHint": "Sayfa yolunun parçası. Harf, rakam, nokta, tire ve alt çizgi.",
+    "slugRootHint": "Bir bölümün adresi sabittir, çünkü bölümün menüdeki yeridir.",
     "compliance": "Uyum sayfası",
     "complianceHint": "Politika ya da kontrol gibi bir uyum kaydı sayılır.",
     "unsavedChanges": "Kaydedilmemiş değişiklikler",

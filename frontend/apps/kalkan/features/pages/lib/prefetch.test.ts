@@ -4,13 +4,15 @@ import { join } from "node:path";
 import { QueryClient } from "@tanstack/react-query";
 import { ApiError } from "@oba/shared/api/axios";
 import { PAGE_KEYS } from "../hooks/query-keys";
-import type { PageDetail, PageTrashItem } from "../schemas";
+import type { PageDetail, PageRecentItem, PageTrashItem } from "../schemas";
 
 // The api calls are stand-ins; the result says whether the route renders the
 // page or answers 404.
 let pageResult: { data?: PageDetail; error?: unknown };
 let trashResult: { data?: PageTrashItem[]; error?: unknown };
 let trashCalls: string[];
+let recentResult: { data?: PageRecentItem[]; error?: unknown };
+let recentCalls: unknown[][];
 // The logged failures are read from a stand-in: a test file that loads
 // next/server earlier leaves a console.error that needs a request scope.
 let logged: ReturnType<typeof spyOn<Console, "error">>;
@@ -29,13 +31,19 @@ mock.module("../api", () => ({
     if (trashResult.error) throw trashResult.error;
     return { data: trashResult.data };
   },
+  listRecentPages: async (limit: number, locale: string) => {
+    recentCalls.push([limit, locale]);
+    if (recentResult.error) throw recentResult.error;
+    return { data: recentResult.data };
+  },
 }));
 
 afterAll(() => {
   mock.module("../api", () => actualApi);
 });
 
-const { prefetchPage } = await import("./prefetch");
+const { prefetchPage, prefetchRecentPages, prefetchTrash, requirePageId } =
+  await import("./prefetch");
 
 const ORG = "org-1";
 const NOT_FOUND = new ApiError("Not found", { status: 404, code: "KLK_NOT_001" });
@@ -52,6 +60,8 @@ beforeEach(() => {
   pageResult = {};
   trashResult = { data: [] };
   trashCalls = [];
+  recentResult = { data: [] };
+  recentCalls = [];
   logged = spyOn(console, "error").mockImplementation(() => undefined);
 });
 
@@ -101,6 +111,72 @@ describe("prefetchPage", () => {
     expect(trashCalls).toEqual([]);
     expect(logged).toHaveBeenCalledTimes(1);
   });
+});
+
+describe("prefetchRecentPages", () => {
+  test("caches the list under the key useRecentPages reads, in the content locale", async () => {
+    const client = new QueryClient();
+
+    await prefetchRecentPages(client, ORG, 10, "tr", "test");
+
+    expect(recentCalls).toEqual([[10, "TR"]]);
+    expect(client.getQueryData(PAGE_KEYS.recent(ORG, 10, "TR"))).toEqual({ data: [] });
+  });
+
+  test("a failure is logged and leaves the list to the client", async () => {
+    recentResult = { error: new ApiError("Server error", { status: 500 }) };
+    const client = new QueryClient();
+
+    await prefetchRecentPages(client, ORG, 50, "en", "test");
+
+    expect(client.getQueryData(PAGE_KEYS.recent(ORG, 50, "EN"))).toBeUndefined();
+    expect(logged).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("prefetchTrash", () => {
+  test("caches the trash under the key useTrash reads, in the content locale", async () => {
+    trashResult = { data: [DELETED] };
+    const client = new QueryClient();
+
+    await prefetchTrash(client, ORG, "en", "test");
+
+    expect(trashCalls).toEqual(["EN"]);
+    expect(client.getQueryData(PAGE_KEYS.trash(ORG, "EN"))).toEqual({ data: [DELETED] });
+  });
+
+  test("a guest's refusal caches nothing and is not logged", async () => {
+    trashResult = { error: new ApiError("Forbidden", { status: 403, code: "ORG_SEC_001" }) };
+    const client = new QueryClient();
+
+    await prefetchTrash(client, ORG, "en", "test");
+
+    expect(client.getQueryData(PAGE_KEYS.trash(ORG, "EN"))).toBeUndefined();
+    expect(logged).not.toHaveBeenCalled();
+  });
+
+  test("any other failure is logged and leaves the trash to the client", async () => {
+    trashResult = { error: new ApiError("Server error", { status: 500 }) };
+    const client = new QueryClient();
+
+    await prefetchTrash(client, ORG, "en", "test");
+
+    expect(client.getQueryData(PAGE_KEYS.trash(ORG, "EN"))).toBeUndefined();
+    expect(logged).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("requirePageId", () => {
+  test("lets a page id through", () => {
+    expect(() => requirePageId("5c2d1e0f-3a4b-4c5d-8e9f-0a1b2c3d4e5f")).not.toThrow();
+  });
+
+  test.each([["policies"], ["page-1"], ["5c2d1e0f"], [""]])(
+    "answers 404 for the segment %p",
+    (segment) => {
+      expect(() => requirePageId(segment)).toThrow("NEXT_HTTP_ERROR_FALLBACK;404");
+    }
+  );
 });
 
 // A route that calls notFound() answers HTTP 404 only while nothing has been streamed yet. A

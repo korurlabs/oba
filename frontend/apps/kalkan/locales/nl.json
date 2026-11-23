@@ -57,10 +57,6 @@
     "description": "Kalkan bewaart de documenten van een organisatie. Maak er eerst een aan of word lid van een in je account.",
     "action": "Open je account"
   },
-  "placeholder": {
-    "title": "Binnenkort",
-    "description": "Deze pagina wordt gebouwd en toont hier binnenkort haar inhoud."
-  },
   "sections": {
     "loading": "Sectie laden",
     "loadError": "De sectie kon niet worden geladen",
@@ -115,6 +111,7 @@
       "duplicateLocale": "Een taal is meer dan eens opgegeven.",
       "permissionOnChild": "Toegang wordt op de sectie ingesteld, niet op haar pagina's.",
       "reservedSlug": "Dit adres is gereserveerd en kan geen sectie benoemen.",
+      "rootSlugFixed": "Het adres van een sectie kan niet worden gewijzigd, omdat het de plek van de sectie in het menu is.",
       "notDeleted": "Deze pagina staat niet in de prullenbak.",
       "validation": "Sommige velden zijn ongeldig. Controleer ze en probeer het opnieuw."
     }
@@ -312,6 +309,7 @@
     "parentSearch": "Pagina's zoeken",
     "slug": "Adres",
     "slugHint": "Deel van het pad van de pagina. Letters, cijfers, punten, streepjes en underscores.",
+    "slugRootHint": "Het adres van een sectie ligt vast, omdat het de plek van de sectie in het menu is.",
     "compliance": "Compliancepagina",
     "complianceHint": "Telt als compliance-record, zoals een beleid of een beheersmaatregel.",
     "unsavedChanges": "Niet-opgeslagen wijzigingen",
