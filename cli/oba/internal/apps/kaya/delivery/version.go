@@ -128,8 +128,16 @@ func (c *Checkout) loadRelease(number int, keys Keys) (client.DeliveryRelease, M
 
 // activate points .kaya/current at version n with one rename, then makes the checkout match it:
 // links of the previous release that n no longer delivers are removed, every delivered path is
-// placed, and the release record is written.
+// placed, and the release record is written. Before any of that it refuses a release that would
+// replace a path git tracks, and adds the release's paths to the exclude block, so a refusal or a
+// failure to write the block changes no file, and git never sees a placed path.
 func (c *Checkout) activate(manifest Manifest, prev *Manifest, release client.DeliveryRelease, cache Cache) error {
+	if err := c.refuseTracked(manifest); err != nil {
+		return err
+	}
+	if err := c.WriteExcludes(manifest); err != nil {
+		return err
+	}
 	tmpLink := c.currentLink() + ".tmp"
 	_ = os.Remove(tmpLink)
 	if err := os.Symlink(filepath.Join("versions", strconv.Itoa(manifest.Number)), tmpLink); err != nil {
@@ -191,7 +199,8 @@ func removeEmptyParents(root, dir string) {
 // place writes every delivered path into the checkout: a file as a link into .kaya/current, a
 // link as the link the manifest names, and .claude/settings.json as a regular file with the
 // guardrail deny rules merged in. It refuses a path whose directory in the checkout is a link
-// (for example a link committed in git), because writing there would follow the link.
+// (for example a link committed in git), because writing there would follow the link. Its only
+// caller, activate, has refused a path git tracks and written the exclude block first.
 func (c *Checkout) place(manifest Manifest, cache Cache) error {
 	for _, file := range manifest.Files {
 		if err := c.checkParents(file.Path); err != nil {
