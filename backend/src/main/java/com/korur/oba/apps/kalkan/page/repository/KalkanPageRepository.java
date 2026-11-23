@@ -71,7 +71,11 @@ public interface KalkanPageRepository extends SoftDeleteRepository<KalkanPage, U
      *
      * @param organizationId the organization
      * @param slug           the slug
-     * @param excludedId     a page to leave out, the one being renamed; null to leave out none
+     * @param excludedId     a page to leave out; null to leave out none. No service passes one: a root
+     *                       keeps the slug it was created with, so only
+     *                       {@link com.korur.oba.apps.kalkan.page.service.KalkanPageService#createPage} and
+     *                       {@link com.korur.oba.apps.kalkan.page.service.KalkanPageService#restorePage}
+     *                       check a root slug, and both pass null
      * @return true when the slug is taken among the roots
      */
     @Query("""
