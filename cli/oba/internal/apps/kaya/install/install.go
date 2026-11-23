@@ -1,7 +1,9 @@
 // Package install sets a machine up for Kaya's config delivery: the VS Code extension starts
-// Claude Code through oba-kaya-launch, the terminal's claude runs through oba kaya launch, and the user
-// settings of Claude Code register the kaya hooks. Every changed file is backed up first, and a
-// second run changes nothing.
+// Claude Code through oba-kaya-launch, the terminal's claude runs through oba kaya launch, and a
+// managed settings drop-in of Claude Code registers Kaya's hooks and status line. The drop-in is
+// rendered as the user and installed by root with a system binary. Kaya's hooks that an earlier
+// install registered in the user settings are removed once the drop-in is proved in force. Every
+// changed file is backed up first, and a second run changes nothing.
 package install
 
 import (
@@ -50,6 +52,10 @@ type Options struct {
 	ObaPath string
 	// LaunchPath is an existing oba-kaya-launch on PATH; empty creates the link LinkDir/oba-kaya-launch.
 	LaunchPath string
+	// ManagedDir is the managed settings folder of Claude Code that holds Kaya's drop-in.
+	ManagedDir string
+	// InForcePath is the in-force proof of the drop-in.
+	InForcePath string
 }
 
 // Change is one file install writes. LinkTarget set means a symlink; otherwise After is the new
@@ -75,6 +81,9 @@ type Plan struct {
 func Build(opts Options) (Plan, error) {
 	if !filepath.IsAbs(opts.ObaPath) {
 		return Plan{}, fmt.Errorf("the oba path %q is not absolute", opts.ObaPath)
+	}
+	if !filepath.IsAbs(opts.ManagedDir) || !filepath.IsAbs(opts.InForcePath) {
+		return Plan{}, fmt.Errorf("the managed settings folder %q and the in-force proof %q must be absolute paths", opts.ManagedDir, opts.InForcePath)
 	}
 	var plan Plan
 	launch := opts.LaunchPath
@@ -234,22 +243,6 @@ func replaceBlock(content []byte, block string) []byte {
 	return []byte(text + block)
 }
 
-// hookEvents are the Claude Code events kaya hooks into, with the subcommand and its timeout in
-// seconds: session start may sync with Kaya (3 s online at most) and fetch plan feedback (2 s at
-// most), the others read local state. PostToolUse and UserPromptSubmit hand the session the plan
-// feedback oba kaya watch fetched.
-var hookEvents = []struct {
-	Event, Command string
-	Matcher        string
-	Timeout        int
-}{
-	{Event: "SessionStart", Command: "session-start", Timeout: 10},
-	{Event: "SessionEnd", Command: "session-end", Timeout: 5},
-	{Event: "PreToolUse", Command: "pre-tool-use", Matcher: "*", Timeout: 60},
-	{Event: "UserPromptSubmit", Command: "user-prompt-submit", Timeout: 5},
-	{Event: "PostToolUse", Command: "post-tool-use", Matcher: "*", Timeout: 5},
-}
-
 // retiredHookEvents are events an older kaya registered and the current one no longer handles.
 // Their kaya group is removed, so Claude Code does not call a subcommand that is gone.
 var retiredHookEvents = []struct{ Event, Command string }{
@@ -276,6 +269,11 @@ type hookGroup struct {
 	Hooks   []hookHandler `json:"hooks"`
 }
 
+// hooks registers no hook: the managed drop-in does. It removes the hook of a retired event, and
+// Kaya's hooks that an earlier install registered in the user settings once the drop-in is proved
+// in force. Until then they stay, because a drop-in that Claude Code skips for a higher managed
+// source would otherwise leave the machine without Kaya's hooks; removing them then keeps every
+// hook from running twice.
 func (p *Plan) hooks(opts Options) error {
 	path := ClaudeSettingsPath(opts)
 	before, err := readOptional(path)
@@ -290,62 +288,142 @@ func (p *Plan) hooks(opts Options) error {
 	if err != nil {
 		return fmt.Errorf("%s: %w", path, err)
 	}
+	var done []string
 	for _, event := range retiredHookEvents {
-		if _, ok := hooks.Get(event.Event); !ok {
-			continue
-		}
-		kept, err := withoutKayaGroup(hooks, event.Event, event.Command)
+		removed, err := dropKayaGroups(hooks, []string{event.Event}, []string{event.Command})
 		if err != nil {
 			return fmt.Errorf("%s: %w", path, err)
 		}
-		if len(kept) == 0 {
-			hooks.Delete(event.Event)
-		} else if err := hooks.Set(event.Event, kept); err != nil {
-			return err
+		if removed > 0 {
+			done = append(done, "remove the "+event.Event+" hook that the current oba no longer handles")
 		}
 	}
-	for _, event := range hookEvents {
-		kept, err := withoutKayaGroup(hooks, event.Event, event.Command)
+	events, commands := kayaHooks()
+	dropIn := checkDropIn(opts)
+	if dropIn.inForce {
+		removed, err := dropKayaGroups(hooks, events, commands)
 		if err != nil {
 			return fmt.Errorf("%s: %w", path, err)
 		}
-		group, err := json.Marshal(hookGroup{
-			Matcher: event.Matcher,
-			Hooks:   []hookHandler{{Type: "command", Command: shellQuote(opts.ObaPath) + " kaya hook " + event.Command, Timeout: event.Timeout}},
-		})
+		if removed > 0 {
+			done = append(done, "remove Kaya's hooks, which the managed drop-in registers")
+		} else {
+			p.Unchanged = append(p.Unchanged, path+" holds no Kaya hook; the managed drop-in registers them")
+		}
+	} else {
+		kept, err := countKayaGroups(hooks, events, commands)
 		if err != nil {
-			return fmt.Errorf("encode the %s hook: %w", event.Event, err)
+			return fmt.Errorf("%s: %w", path, err)
 		}
-		kept = append(kept, group)
-		if err := hooks.Set(event.Event, kept); err != nil {
-			return err
-		}
+		p.Manual = append(p.Manual, dropIn.advice(path, kept))
 	}
-	if err := settings.Set("hooks", hooks); err != nil {
+	if len(done) == 0 {
+		return nil
+	}
+	if hooks.Len() == 0 {
+		settings.Delete("hooks")
+	} else if err := settings.Set("hooks", hooks); err != nil {
 		return err
 	}
 	after, err := settings.Marshal()
 	if err != nil {
 		return err
 	}
-	if before != nil && sameJSON(before, after) {
-		p.Unchanged = append(p.Unchanged, path+" registers the kaya hooks")
-		return nil
-	}
-	p.Changes = append(p.Changes, Change{Path: path, Description: "register the kaya hooks for SessionStart, SessionEnd, PreToolUse, UserPromptSubmit and PostToolUse", Before: before, After: after})
+	p.Changes = append(p.Changes, Change{Path: path, Description: strings.Join(done, "; "), Before: before, After: after})
 	return nil
 }
 
-// sameJSON compares two documents by value, so that a file indented differently from the
-// CLI's output is not rewritten for nothing.
-func sameJSON(a, b []byte) bool {
-	var x, y any
-	if json.Unmarshal(a, &x) != nil || json.Unmarshal(b, &y) != nil {
-		return false
+// advice tells the user how to register Kaya's hooks, or to prove the drop-in in force, and
+// whether Kaya's hooks in the user settings at path stay until then.
+func (s dropInState) advice(path string, kept int) string {
+	if !s.installed {
+		return "register Kaya's hooks and status line: run oba kaya install --managed and the sudo line it prints (" + s.reason + ")"
 	}
-	ax, errX := json.Marshal(x)
-	by, errY := json.Marshal(y)
-	return errX == nil && errY == nil && bytes.Equal(ax, by)
+	advice := "prove the managed drop-in in force: run oba kaya doctor --probe in a connected checkout (" + s.reason + ")"
+	if kept > 0 {
+		advice += ", then oba kaya install again; until then Kaya's hooks stay in " + path
+	}
+	return advice
+}
+
+// kayaHooks are the events and the subcommands of every hook the drop-in registers, which an
+// earlier install may also have registered in the user settings.
+func kayaHooks() (events, commands []string) {
+	seen := map[string]bool{}
+	for _, event := range hookEvents {
+		if !seen[event.Event] {
+			seen[event.Event] = true
+			events = append(events, event.Event)
+		}
+		commands = append(commands, event.Command)
+	}
+	for _, event := range recordEvents {
+		if !seen[event.Event] {
+			seen[event.Event] = true
+			events = append(events, event.Event)
+		}
+	}
+	return events, append(commands, recordCommand)
+}
+
+// withoutKayaGroups returns the groups of event without Kaya's own groups of any of commands, and
+// how many groups it left out.
+func withoutKayaGroups(hooks *jsonedit.Object, event string, commands []string) ([]json.RawMessage, int, error) {
+	raw, ok := hooks.Get(event)
+	if !ok {
+		return nil, 0, nil
+	}
+	var groups []json.RawMessage
+	if err := json.Unmarshal(raw, &groups); err != nil {
+		return nil, 0, fmt.Errorf("hooks.%s is not a list: %w", event, err)
+	}
+	kept := groups
+	scratch := jsonedit.NewObject()
+	for _, command := range commands {
+		if err := scratch.Set(event, kept); err != nil {
+			return nil, 0, err
+		}
+		var err error
+		if kept, err = withoutKayaGroup(scratch, event, command); err != nil {
+			return nil, 0, err
+		}
+	}
+	return kept, len(groups) - len(kept), nil
+}
+
+// countKayaGroups is how many of Kaya's own groups of commands the events of hooks hold.
+func countKayaGroups(hooks *jsonedit.Object, events, commands []string) (int, error) {
+	count := 0
+	for _, event := range events {
+		_, ours, err := withoutKayaGroups(hooks, event, commands)
+		if err != nil {
+			return 0, err
+		}
+		count += ours
+	}
+	return count, nil
+}
+
+// dropKayaGroups removes Kaya's own groups of commands from the events of hooks, and an event
+// left without groups, and returns how many groups it removed.
+func dropKayaGroups(hooks *jsonedit.Object, events, commands []string) (int, error) {
+	removed := 0
+	for _, event := range events {
+		kept, ours, err := withoutKayaGroups(hooks, event, commands)
+		if err != nil {
+			return 0, err
+		}
+		if ours == 0 {
+			continue
+		}
+		removed += ours
+		if len(kept) == 0 {
+			hooks.Delete(event)
+		} else if err := hooks.Set(event, kept); err != nil {
+			return 0, err
+		}
+	}
+	return removed, nil
 }
 
 // Apply writes the changes: every existing file is first copied to <file>.oba-backup-<time>,
