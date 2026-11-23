@@ -5,6 +5,7 @@ name: Oba CLI
 #
 # Fork safety: `pull_request` only (never `pull_request_target` or `workflow_run`), so a run from a
 # fork gets a read-only token and no secret.
+# A `merge_group` run starts only for a pull request that was approved and queued.
 
 on:
   workflow_dispatch:
@@ -20,6 +21,9 @@ on:
       - 'cli/oba/**'
       - '!**/*.md'
       - '.github/workflows/cli-oba.yml'
+  # merge_group takes no paths filter, so the queue runs this workflow for every
+  # candidate and never waits on a check that was skipped.
+  merge_group:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
