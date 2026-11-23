@@ -1,0 +1,27 @@
+# Kagi binding for this directory. Secrets are addressed by the stable
+# app-id; folder-path is a human reference only and is not used for addressing.
+folder-path: /oba/ulak
+app-id: d387edd2-df2b-4449-8b35-13541468d657
+environment: local
+organization: sensey
+organization-id: 00000000-0000-0000-0000-000000000001
+
+# Local Context (Kagi spec 3.3): devstack serves this directory's per-machine
+# values. environments lists this file's own environment: slug, local.
+# keys lists exactly the env keys the ulak unit of projects/oba/devstack.yaml
+# declares, and nothing else.
+local:
+  provider: devstack
+  environments: [local]
+  keys:
+    - PORT
+    - AUTH_URL
+    - AUTH_KEYCLOAK_ISSUER
+    - BASE_URL
+    - API_BASE_URL
+    - KAZAN_URL
+    - ULAK_URL
+    - ACCOUNT_URL
+    - OTAK_URL
+    - KALKAN_URL
+    - KAYA_URL
