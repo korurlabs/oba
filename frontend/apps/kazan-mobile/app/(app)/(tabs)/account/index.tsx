@@ -28,8 +28,8 @@ const IS_IOS = Platform.OS === "ios";
 /**
  * The Account tab: who is signed in, the invitations and organizations,
  * Settings, Kazan web and Sign out. Invitations are managed in the Account
- * web app and organizations in the Admin web app, so those rows open them in
- * the in-app browser. Admin refuses a user who manages no organization, so
+ * web app and organizations in the Ulak web app, so those rows open them in
+ * the in-app browser. Ulak refuses a user who manages no organization, so
  * the Organizations row shows, as on the web, only to an owner or admin of an
  * active organization.
  */
