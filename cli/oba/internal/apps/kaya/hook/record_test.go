@@ -3,6 +3,7 @@ package hook
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -209,5 +210,43 @@ func TestRecordHook_senderOffStartsNoSender(t *testing.T) {
 		if _, err := os.Stat(filepath.Join(state, name)); !os.IsNotExist(err) {
 			t.Errorf("%s exists with KAYA_SENDER=off: %v", name, err)
 		}
+	}
+}
+
+// recordedSession records a SessionStart of session in dir and returns its session.json.
+func recordedSession(t *testing.T, dir, state, session string) map[string]any {
+	t.Helper()
+	stdout, stderr, err := runRecord(t, kayatest.HookEvent(t, map[string]any{"cwd": dir, "hook_event_name": "SessionStart", "session_id": session}))
+	if err != nil || stdout != "" || stderr != "" {
+		t.Fatalf("err = %v, stdout = %q, stderr = %q; want a silent success", err, stdout, stderr)
+	}
+	data, err := os.ReadFile(filepath.Join(capture.SessionDir(state, session), capture.SessionFile))
+	if err != nil {
+		t.Fatalf("session.json was not written: %v", err)
+	}
+	var facts map[string]any
+	if err := json.Unmarshal(data, &facts); err != nil {
+		t.Fatal(err)
+	}
+	return facts
+}
+
+func TestRecordHook_aForkIsRecordedWithItsListedRemoteNotOrigin(t *testing.T) {
+	// origin is the developer's own fork, which is not on the list; upstream is.
+	repo, state := recordEnv(t, false)
+	gitIn(t, repo, "remote", "add", "upstream", "https://github.com/example/app.git")
+	facts := recordedSession(t, repo, state, "rec-9")
+	if facts["remoteUrl"] != "https://github.com/example/app.git" || facts["repositoryName"] != "app" {
+		t.Errorf("remoteUrl = %v, repositoryName = %v; want upstream's remote and app", facts["remoteUrl"], facts["repositoryName"])
+	}
+}
+
+func TestRecordHook_aCheckoutWithoutOriginIsRecordedWithItsListedRemote(t *testing.T) {
+	repo, state := recordEnv(t, false)
+	gitIn(t, repo, "remote", "remove", "origin")
+	gitIn(t, repo, "remote", "add", "upstream", "https://someone:secret@github.com/example/app.git")
+	facts := recordedSession(t, repo, state, "rec-10")
+	if facts["remoteUrl"] != "https://github.com/example/app.git" {
+		t.Errorf("remoteUrl = %v, want upstream's remote without its user info", facts["remoteUrl"])
 	}
 }

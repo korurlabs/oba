@@ -49,9 +49,11 @@ func Decode(raw []byte) (map[string]any, error) {
 }
 
 // Record queues one hook event for Kaya; the caller has checked that Kaya recognises the event's
-// checkout. now stamps the event. Problems that cost a part of the record but not the event (a
-// snapshot, a git call) go to warnings as one line each; an error means the event was not queued.
-func Record(in map[string]any, now time.Time, warnings io.Writer) (queued bool, err error) {
+// checkout. remote is the git remote by which it did, which the session is reported with; ""
+// records none. now stamps the event. Problems that cost a part of the record but not the event
+// (a snapshot, a git call) go to warnings as one line each; an error means the event was not
+// queued.
+func Record(in map[string]any, remote string, now time.Time, warnings io.Writer) (queued bool, err error) {
 	warn := func(format string, args ...any) {
 		_, _ = fmt.Fprintf(warnings, "kaya recorder: "+format+"\n", args...)
 	}
@@ -88,7 +90,7 @@ func Record(in map[string]any, now time.Time, warnings io.Writer) (queued bool, 
 	if model := eventModel(in); model != "" {
 		event["model"] = model
 	}
-	if err := enqueue(sessionID, event, in, cwd, root, now, warn); err != nil {
+	if err := enqueue(sessionID, event, in, cwd, root, remote, now, warn); err != nil {
 		return false, fmt.Errorf("not queued for Kaya: %w", err)
 	}
 	if name == sessionStart {
@@ -121,7 +123,7 @@ func EventDir(in map[string]any) (string, error) {
 
 // enqueue adds the event to the session's queue with the next seq, under the session's lock,
 // and brings the summary, the snapshots and session.json up to date.
-func enqueue(sessionID string, event, in map[string]any, cwd, root string, now time.Time, warn func(string, ...any)) error {
+func enqueue(sessionID string, event, in map[string]any, cwd, root, remote string, now time.Time, warn func(string, ...any)) error {
 	stateDir, err := EnsureStateDir()
 	if err != nil {
 		return err
@@ -143,7 +145,7 @@ func enqueue(sessionID string, event, in map[string]any, cwd, root string, now t
 	if err := apply(dir, sessionID, event, in, cwd, root, now, warn); err != nil {
 		return err
 	}
-	return updateSession(dir, sessionID, event, in, cwd, root, warn)
+	return updateSession(dir, sessionID, event, in, cwd, root, remote, warn)
 }
 
 // apply appends the event, snapshots its handoffs and plans and writes summary.json. The caller

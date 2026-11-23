@@ -31,7 +31,7 @@ var (
 var hostname = os.Hostname
 
 // git is the trimmed stdout of a git command run in dir, "" when git fails. A git that cannot be
-// started at all is reported as a warning, since the session's branch and remote are then lost.
+// started at all is reported as a warning, since the session's branch and git author are then lost.
 func git(dir string, warn func(string, ...any), args ...string) string {
 	ctx, cancel := context.WithTimeout(context.Background(), gitTimeout)
 	defer cancel()
@@ -45,7 +45,7 @@ func git(dir string, warn func(string, ...any), args ...string) string {
 		return ""
 	}
 	if err != nil {
-		// rule-10-no-op -- reason: a non-zero exit is an answer, such as no origin remote or no user.email.
+		// rule-10-no-op -- reason: a non-zero exit is an answer, such as a branch without a commit or no user.email.
 		return ""
 	}
 	return strings.TrimSpace(string(out))
@@ -213,8 +213,9 @@ func logOrStderr(message string) {
 
 // updateSession keeps session.json, the facts of the session the sender reports beside its
 // events: machine, Claude account (read once per session), Claude Code version, model, remote
-// and git author email. git runs only on SessionStart, Stop and SessionEnd.
-func updateSession(dir, sessionID string, event, in map[string]any, cwd, root string, warn func(string, ...any)) error {
+// and git author email. The remote is the one the caller recognised the checkout by, kept from
+// the first event that brings one; git runs only on SessionStart, Stop and SessionEnd.
+func updateSession(dir, sessionID string, event, in map[string]any, cwd, root, remote string, warn func(string, ...any)) error {
 	path := filepath.Join(dir, SessionFile)
 	var session map[string]any
 	if _, err := readJSON(path, &session); err != nil {
@@ -244,20 +245,18 @@ func updateSession(dir, sessionID string, event, in map[string]any, cwd, root st
 	if model := stringOf(event["model"]); name == sessionStart && !truthy(event["agent_id"]) && model != "" {
 		session["model"] = model
 	}
+	if remote := CleanRemote(remote); remote != "" && stringOf(session["remoteUrl"]) == "" {
+		session["remoteUrl"] = remote
+		var repository any
+		if name := RepositoryName(remote); name != "" {
+			repository = name
+		}
+		session["repositoryName"] = repository
+	}
 	if branchEvents[name] {
 		where := ExistingDir(cwd)
 		if where == "" {
 			where = root
-		}
-		if stringOf(session["remoteUrl"]) == "" {
-			if remote := CleanRemote(git(where, warn, "remote", "get-url", "origin")); remote != "" {
-				session["remoteUrl"] = remote
-				var repository any
-				if name := RepositoryName(remote); name != "" {
-					repository = name
-				}
-				session["repositoryName"] = repository
-			}
 		}
 		if _, known := session["gitAuthorEmail"]; name == sessionStart || !known {
 			var email any
