@@ -172,7 +172,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     keycloakIssuer: process.env.EXPO_PUBLIC_KEYCLOAK_ISSUER,
     keycloakClientId: process.env.EXPO_PUBLIC_KEYCLOAK_CLIENT_ID,
     accountUrl: process.env.EXPO_PUBLIC_ACCOUNT_URL,
-    adminUrl: process.env.EXPO_PUBLIC_ADMIN_URL,
+    ulakUrl: process.env.EXPO_PUBLIC_ULAK_URL,
     kazanWebUrl: process.env.EXPO_PUBLIC_KAZAN_WEB_URL,
     // The EAS project, printed by `eas init`. EAS links builds and submissions
     // to it, and the Expo push service issues this app's push tokens per
