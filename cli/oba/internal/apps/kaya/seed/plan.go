@@ -45,6 +45,9 @@ type Options struct {
 	RepoPacks map[string]string
 	// Resolver replaces ssh host aliases in the remotes; nil uses `ssh -G`.
 	Resolver *RemoteResolver
+	// Layout is the layout file of a seed tree; when set, the layout's packs, parents, placement
+	// rules and content replace the packs of the clone, the org root and the family packs.
+	Layout string
 }
 
 // Repository is one consumer repository of the plan, with what its disk holds at delivered paths.
@@ -53,12 +56,16 @@ type Repository struct {
 	Name      string
 	Root      string
 	RemoteURL string
-	// FamilyPack is the pack the repository uses at its root that holds its own files.
+	// FamilyPack is the pack the repository uses at its root that holds its own files; empty in a
+	// layout seed, whose rules place them.
 	FamilyPack string
 	// Disk is every delivered path on disk, managed files included, for the release comparison.
 	Disk map[string]Entry
 	// CutOver is true when the repository has no .agents/.managed.json, so its disk is Kaya's output.
 	CutOver bool
+	// OnPurpose holds the paths where the release differs from the disk by design, with the reason:
+	// a file of the seed tree's content folder, or a file the layout leaves out.
+	OnPurpose map[string]string
 }
 
 // Plan is a seed ready to send.
@@ -69,6 +76,9 @@ type Plan struct {
 	Blobs map[string]Entry
 	// Warnings are findings the request cannot carry, such as a managed link that drifted.
 	Warnings []string
+	// Content are the files a seed tree's content folder adds to its packs or puts in place of a
+	// source file.
+	Content []ContentFile
 }
 
 // ErrCutOver means a repository has been cut over to Kaya, so its disk is Kaya's output now.
@@ -100,6 +110,9 @@ type builder struct {
 // clone, each repository's own files folded into its family pack, the mounted packs, and each
 // repository's pack list.
 func Build(opts Options) (Plan, error) {
+	if opts.Layout != "" {
+		return buildLayout(opts)
+	}
 	if len(opts.RepoDirs) == 0 {
 		return Plan{}, fmt.Errorf("name at least one repository with --repo")
 	}
@@ -188,10 +201,30 @@ func (b *builder) addRepo(root string, names map[string]string) error {
 	case err != nil:
 		return err
 	}
+	repo, err := b.readRepo(root, names, managed, cutOver)
+	if err != nil {
+		return err
+	}
+	family, err := b.familyPack(repo)
+	if err != nil {
+		return err
+	}
+	repo.family = family
+	repo.FamilyPack = family
+	if err := b.needsAgents(repo, family); err != nil {
+		return err
+	}
+	b.repos = append(b.repos, repo)
+	return nil
+}
 
+// readRepo reads the repository at root: its name from its origin remote, its delivered files,
+// the drift of its managed files, and its own files, which are the delivered ones that neither
+// .agents/.managed.json nor, on a cut-over disk, a pack of the clone accounts for.
+func (b *builder) readRepo(root string, names map[string]string, managed Managed, cutOver bool) (*repoBuild, error) {
 	rawRemote, err := gitOutput(root, "remote", "get-url", "origin")
 	if err != nil {
-		return fmt.Errorf("read the origin remote of %s: %w", root, err)
+		return nil, fmt.Errorf("read the origin remote of %s: %w", root, err)
 	}
 	resolver := b.opts.Resolver
 	if resolver == nil {
@@ -203,16 +236,16 @@ func (b *builder) addRepo(root string, names map[string]string) error {
 	}
 	name := RepositoryName(remote)
 	if !setName.MatchString(name) {
-		return fmt.Errorf("the remote %s of %s gives no valid repository name", remote, root)
+		return nil, fmt.Errorf("the remote %s of %s gives no valid repository name", remote, root)
 	}
 	if other, taken := names[name]; taken {
-		return fmt.Errorf("%s and %s both give the repository name %q", other, root, name)
+		return nil, fmt.Errorf("%s and %s both give the repository name %q", other, root, name)
 	}
 	names[name] = root
 
 	scan, err := ScanRepo(root)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	for _, item := range scan.NotImported {
 		b.plan.Request.NotImported = append(b.plan.Request.NotImported, client.NotImported{Path: prefixed(name, item.Path), Reason: item.Reason})
@@ -236,22 +269,11 @@ func (b *builder) addRepo(root string, names map[string]string) error {
 		own[path] = entry
 	}
 
-	repo := &repoBuild{
+	return &repoBuild{
 		Repository: Repository{Name: name, Root: root, RemoteURL: remote, Disk: scan.Delivered, CutOver: cutOver},
 		managed:    managed,
 		own:        own,
-	}
-	family, err := b.familyPack(repo)
-	if err != nil {
-		return err
-	}
-	repo.family = family
-	repo.FamilyPack = family
-	if err := b.needsAgents(repo, family); err != nil {
-		return err
-	}
-	b.repos = append(b.repos, repo)
-	return nil
+	}, nil
 }
 
 // familyPack is the pack that takes the repository's own files: the one --repo-pack names, else
