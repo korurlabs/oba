@@ -5,7 +5,7 @@ import { pageErrorText } from "../lib/page-error";
 import type { PageFormValues } from "../schemas/page-form";
 
 /** Refusals about the page's address, shown on the address field. */
-const SLUG_ERROR_CODES = ["KLK_STA_001", "KLK_VAL_007"];
+const SLUG_ERROR_CODES = ["KLK_STA_001", "KLK_VAL_007", "KLK_VAL_009"];
 
 /** Server properties the form shows as one of its own fields. */
 const FORM_FIELDS: readonly Path<PageFormValues>[] = ["slug", "parentId", "compliance"];

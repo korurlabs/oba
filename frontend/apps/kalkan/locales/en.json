@@ -57,10 +57,6 @@
     "description": "Kalkan keeps the documents of an organization. Create or join one in your account first.",
     "action": "Open your account"
   },
-  "placeholder": {
-    "title": "Coming soon",
-    "description": "This page is being built and will show its content here shortly."
-  },
   "sections": {
     "loading": "Loading the section",
     "loadError": "The section could not be loaded",
@@ -115,6 +111,7 @@
       "duplicateLocale": "A language is given more than once.",
       "permissionOnChild": "Access is set on the section, not on its pages.",
       "reservedSlug": "This address is reserved and cannot name a section.",
+      "rootSlugFixed": "The address of a section cannot be changed, because it is the section's place in the menu.",
       "notDeleted": "This page is not in the trash.",
       "validation": "Some fields are not valid. Check them and try again."
     }
@@ -312,6 +309,7 @@
     "parentSearch": "Search pages",
     "slug": "Address",
     "slugHint": "Part of the page's path. Letters, digits, dots, hyphens and underscores.",
+    "slugRootHint": "The address of a section is fixed, because it is the section's place in the menu.",
     "compliance": "Compliance page",
     "complianceHint": "Counts as a compliance record, such as a policy or a control.",
     "unsavedChanges": "Unsaved changes",
