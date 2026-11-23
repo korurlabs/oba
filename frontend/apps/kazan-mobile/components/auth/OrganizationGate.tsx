@@ -303,7 +303,7 @@ interface NoKazanAccessProps {
  * The signed-in user belongs to organizations, but none grants Kazan. Only an
  * owner or admin of an organization can grant it, so the screen explains that
  * and offers no action of its own beyond the Account web app, like the
- * no-access panel of the Kazan web app. Admin is not offered: it is closed to
+ * no-access panel of the Kazan web app. Ulak is not offered: it is closed to
  * a member, who cannot grant Kazan there. The screen checks again on request
  * or after the user returns from Account, where invitations are accepted and
  * organizations created, and the gate opens the app as soon as an

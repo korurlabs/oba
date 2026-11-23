@@ -24,7 +24,7 @@ function messageOf(error: unknown): unknown {
 
 /**
  * The commands of the Account screens. Pages that change the account outside
- * the app (the Account and Admin web apps, the Keycloak account console) open in the in-app browser,
+ * the app (the Account and Ulak web apps, the Keycloak account console) open in the in-app browser,
  * and the profile is read again when the user closes them, so invitations
  * and organizations accepted there show at once.
  */
@@ -104,7 +104,7 @@ export function useAccountActions() {
         if (isApiError(error, SOLE_OWNER_ERROR_CODE)) {
           Alert.alert(t("deleteAccountSoleOwnerTitle"), t("deleteAccountSoleOwnerBody"), [
             { text: t("kitCancel"), style: "cancel" },
-            { text: t("deleteAccountOpenAdmin"), onPress: () => openPlatformPage("organizations") },
+            { text: t("deleteAccountOpenUlak"), onPress: () => openPlatformPage("organizations") },
           ]);
           return;
         }

@@ -36,7 +36,7 @@ mock.module("@/lib/env", () => ({
     keycloakIssuer: "https://auth.test/realms/sensey",
     keycloakClientId: "kazan-mobile",
     accountUrl: "https://account.test",
-    adminUrl: "https://admin.test",
+    ulakUrl: "https://ulak.test",
     kazanWebUrl: "https://kazan.test",
   },
 }));

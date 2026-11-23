@@ -24,8 +24,8 @@ const ROLE_LABEL: Record<string, TranslationKey> = {
 /**
  * The Organizations sheet of the Boards tab: switch the active organization,
  * or open the Account web app to create one. Like the web organization
- * selector it offers no link to Admin, which refuses a user who manages no
- * organization; a manager reaches Admin from the Account tab.
+ * selector it offers no link to Ulak, which refuses a user who manages no
+ * organization; a manager reaches Ulak from the Account tab.
  */
 export default function OrgSwitcherSheet() {
   const { t } = useTranslation();

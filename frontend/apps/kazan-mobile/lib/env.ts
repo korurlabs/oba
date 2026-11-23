@@ -14,7 +14,7 @@ type Extra = {
   keycloakIssuer?: string;
   keycloakClientId?: string;
   accountUrl?: string;
-  adminUrl?: string;
+  ulakUrl?: string;
   kazanWebUrl?: string;
 };
 
@@ -29,7 +29,7 @@ const inlined: Extra = {
   keycloakIssuer: process.env.EXPO_PUBLIC_KEYCLOAK_ISSUER,
   keycloakClientId: process.env.EXPO_PUBLIC_KEYCLOAK_CLIENT_ID,
   accountUrl: process.env.EXPO_PUBLIC_ACCOUNT_URL,
-  adminUrl: process.env.EXPO_PUBLIC_ADMIN_URL,
+  ulakUrl: process.env.EXPO_PUBLIC_ULAK_URL,
   kazanWebUrl: process.env.EXPO_PUBLIC_KAZAN_WEB_URL,
 };
 
@@ -62,8 +62,8 @@ export const ENV = {
   keycloakClientId: required("keycloakClientId"),
   /** Account web app: onboarding, invitations and new organizations open there. */
   accountUrl: requiredUrl("accountUrl"),
-  /** Admin web app: the organizations a user owns or administers are managed there. */
-  adminUrl: requiredUrl("adminUrl"),
+  /** Ulak web app: the organizations a user owns or administers are managed there. */
+  ulakUrl: requiredUrl("ulakUrl"),
   /** Kazan web app: board settings pages the app does not draw open there. */
   kazanWebUrl: requiredUrl("kazanWebUrl"),
 } as const;
