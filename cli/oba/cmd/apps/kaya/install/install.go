@@ -3,6 +3,7 @@
 package install
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/korurlabs/oba-cli/internal/apps/kaya/delivery"
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/install"
 )
 
@@ -29,6 +31,10 @@ func NewCmd() *cobra.Command {
 			"claude() { oba kaya launch claude \"$@\"; } in ~/.bashrc and ~/.zshrc, and replaces the claude() block " +
 			"of the former kaya CLI and the ConfigChange hook of an older version. Every file it changes is first " +
 			"copied to <file>.oba-backup-<time>; a second run changes nothing.\n\n" +
+			"It sets hook.kaya-pre-commit and hook.kaya-post-checkout in your global git config: git 2.54 or newer " +
+			"runs them in every repository, beside the repository's own hooks, as the oba path found now with " +
+			"kaya git-hook <event>; they act only in a checkout Kaya delivers to. It also refreshes the cached " +
+			"list of the organization's repositories with the machine token; a failure there is a warning.\n\n" +
 			"Kaya's hooks, its session capture and its status line come from the managed settings drop-in " +
 			install.DropInName + " of Claude Code, which no user or project setting can override. --managed renders " +
 			"it into a new file in your temp folder and prints the one sudo line that installs it with /bin/mkdir and " +
@@ -59,7 +65,11 @@ func NewCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			for _, item := range plan.Unchanged {
+			gitPlan, err := install.BuildGitHooks(opts)
+			if err != nil {
+				return err
+			}
+			for _, item := range append(plan.Unchanged, gitPlan.Unchanged...) {
 				_, _ = fmt.Fprintln(w, "Already set: "+item)
 			}
 			verb := "Changed"
@@ -69,20 +79,31 @@ func NewCmd() *cobra.Command {
 			for _, change := range plan.Changes {
 				_, _ = fmt.Fprintf(w, "%s %s: %s\n", verb, change.Path, change.Description)
 			}
-			for _, item := range plan.Manual {
+			for _, setting := range gitPlan.Settings {
+				_, _ = fmt.Fprintf(w, "%s the global git config: set %s to %s\n", verb, setting.Key, setting.Value)
+			}
+			for _, item := range append(plan.Manual, gitPlan.Manual...) {
 				_, _ = fmt.Fprintln(w, "By hand: "+item)
 			}
-			if installDryRun || len(plan.Changes) == 0 {
+			if installDryRun {
 				return nil
 			}
-			backups, err := install.Apply(plan.Changes, time.Now())
-			for _, backup := range backups {
-				_, _ = fmt.Fprintln(w, "Backup: "+backup)
+			if len(plan.Changes) > 0 {
+				backups, err := install.Apply(plan.Changes, time.Now())
+				for _, backup := range backups {
+					_, _ = fmt.Fprintln(w, "Backup: "+backup)
+				}
+				if err != nil {
+					return err
+				}
 			}
-			if err != nil {
+			if err := install.ApplyGitHooks(opts, gitPlan.Settings); err != nil {
 				return err
 			}
-			_, _ = fmt.Fprintln(w, "Open a new terminal and restart VS Code to start Claude Code through Kaya.")
+			refreshRepositoryList(cmd.Context(), w, cmd.ErrOrStderr())
+			if len(plan.Changes) > 0 {
+				_, _ = fmt.Fprintln(w, "Open a new terminal and restart VS Code to start Claude Code through Kaya.")
+			}
 			return nil
 		},
 	}
@@ -92,6 +113,22 @@ func NewCmd() *cobra.Command {
 	installCmd.Flags().BoolVar(&removeManaged, "remove-managed", false, "print the sudo line that removes the managed settings drop-in")
 	installCmd.MarkFlagsMutuallyExclusive("managed", "remove-managed")
 	return installCmd
+}
+
+// repositoryListTimeout bounds the refresh of the repository list, the machine token lookup
+// included.
+const repositoryListTimeout = 60 * time.Second
+
+// refreshRepositoryList refreshes the cached list of the organization's repositories, by which
+// the hooks recognise a checkout. A failure is a warning: the machine stays installed, and every
+// sync refreshes the list again.
+func refreshRepositoryList(ctx context.Context, w, stderr io.Writer) {
+	list, err := delivery.RefreshRepositories(ctx, repositoryListTimeout)
+	if err != nil {
+		_, _ = fmt.Fprintln(stderr, "Warning: "+err.Error()+"; oba kaya sync in a checkout refreshes it again")
+		return
+	}
+	_, _ = fmt.Fprintf(w, "Refreshed the repository list: %d repositories of the organization.\n", len(list.Remotes))
 }
 
 // printManaged renders the drop-in into a new file in the temp folder and prints the root step

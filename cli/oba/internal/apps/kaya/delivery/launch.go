@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -83,44 +84,57 @@ func launchCheckout(ctx context.Context, stderr io.Writer) (*Checkout, Machine, 
 // watcher. It returns the variables Claude Code and its hooks read.
 func prepareSession(ctx context.Context, checkout *Checkout, m Machine, stderr io.Writer) []string {
 	vars := []string{EnvLaunched + "=1", EnvCheckout + "=" + checkout.Root}
-	state := StateUnverified
-	release := 0
-	var offline error
 	d, err := OpenWith(checkout, m)
 	if err != nil {
 		_, _ = fmt.Fprintln(stderr, "oba kaya:", err)
-		return append(vars, EnvReleaseState+"="+state)
+		return append(vars, EnvReleaseState+"="+StateUnverified)
 	}
 	// The launcher's own process becomes Claude Code by exec, so it never counts as another session.
 	d.ExcludePID = os.Getpid()
+	session, offline := startSession(ctx, d, stderr)
+	if err := startWatcher(checkout); err != nil {
+		_, _ = fmt.Fprintln(stderr, "oba kaya: the watcher did not start:", err)
+	}
+	vars = append(vars, EnvReleaseState+"="+session.State)
+	if session.Release > 0 {
+		vars = append(vars, EnvRelease+"="+strconv.Itoa(session.Release))
+	}
+	if offline != nil {
+		vars = append(vars, EnvOffline+"="+offlineReason(offline))
+	}
+	return vars
+}
+
+// startSession syncs the checkout and registers this process as a live session on the release the
+// sync leaves active. offline is why Kaya was not reached, or why its newest release was not taken.
+// A delivered path git tracks, as on a branch from before Kaya delivered that path, refuses only
+// the release that would replace it: the active release stays placed, so the session runs on it
+// and the refusal, with its fix, is printed as a warning.
+func startSession(ctx context.Context, d *Deliverer, stderr io.Writer) (session Session, offline error) {
+	checkout := d.Checkout
+	session = Session{PID: os.Getpid(), State: StateUnverified, DeliveredBy: DeliveredByLauncher}
 	lockCtx, cancel := LockContext(ctx)
 	defer cancel()
 	out, err := d.Sync(lockCtx, Pin)
+	var tracked *TrackedError
+	if errors.As(err, &tracked) {
+		out.Warnings = append(out.Warnings, err.Error())
+		err = nil
+	}
 	if err != nil {
 		_, _ = fmt.Fprintln(stderr, "oba kaya:", err)
 	} else {
-		state, release, offline = out.State, out.Active, out.Offline
+		session.State, session.Release, offline = out.State, out.Active, out.Offline
 		saved, loadErr := checkout.LoadState()
 		if loadErr != nil {
 			_, _ = fmt.Fprintln(stderr, "oba kaya:", loadErr)
 		}
 		PrintOutcome(stderr, "oba kaya: ", checkout, out, saved)
 	}
-	session := Session{PID: os.Getpid(), Release: release, State: state, DeliveredBy: DeliveredByLauncher}
 	if err := checkout.RegisterSession(session); err != nil {
 		_, _ = fmt.Fprintln(stderr, "oba kaya:", err)
 	}
-	if err := startWatcher(checkout); err != nil {
-		_, _ = fmt.Fprintln(stderr, "oba kaya: the watcher did not start:", err)
-	}
-	vars = append(vars, EnvReleaseState+"="+state)
-	if release > 0 {
-		vars = append(vars, EnvRelease+"="+strconv.Itoa(release))
-	}
-	if offline != nil {
-		vars = append(vars, EnvOffline+"="+offlineReason(offline))
-	}
-	return vars
+	return session, offline
 }
 
 // offlineReason is err on one line, short enough for the session context, and never empty, since
