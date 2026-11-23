@@ -24,6 +24,8 @@ func installEnv(t *testing.T, uid int) (string, string) {
 	t.Setenv("XDG_CONFIG_HOME", "")
 	t.Setenv("CLAUDE_CONFIG_DIR", "")
 	t.Setenv("TMPDIR", temp)
+	t.Setenv("GIT_CONFIG_GLOBAL", filepath.Join(home, ".gitconfig"))
+	t.Setenv("GIT_CONFIG_NOSYSTEM", "1")
 	previous := effectiveUID
 	effectiveUID = func() int { return uid }
 	t.Cleanup(func() { effectiveUID = previous })
