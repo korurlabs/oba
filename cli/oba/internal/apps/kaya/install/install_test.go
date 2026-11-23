@@ -435,6 +435,56 @@ func TestGitHooks_refuseARelativeObaPath(t *testing.T) {
 	}
 }
 
+// gitRefusingToWrite puts a git first on PATH that refuses to write key, as git does while another
+// program holds the lock of the global git config, and passes every other call to the real git.
+func gitRefusingToWrite(t *testing.T, key string) {
+	t.Helper()
+	realGit, err := exec.LookPath("git")
+	if err != nil {
+		t.Fatal(err)
+	}
+	dir := t.TempDir()
+	fake := filepath.Join(dir, "git")
+	write(t, fake, "#!/bin/sh\ncase \" $* \" in\n*\" --replace-all "+key+" \"*)\n"+
+		"\techo 'error: could not lock config file' >&2\n\texit 255\n\t;;\nesac\nexec "+shellQuote(realGit)+" \"$@\"\n")
+	if err := os.Chmod(fake, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", dir+string(os.PathListSeparator)+os.Getenv("PATH"))
+}
+
+func TestGitHooks_aWriteThatFailsLeavesGitWorking(t *testing.T) {
+	realGit, err := exec.LookPath("git")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, failing := range GitHookSettings("/usr/local/bin/oba") {
+		t.Run(failing.Key, func(t *testing.T) {
+			opts := testOptions(t)
+			t.Setenv("HOME", opts.Home)
+			t.Setenv("XDG_CONFIG_HOME", filepath.Join(opts.Home, ".config"))
+			gitRefusingToWrite(t, failing.Key)
+
+			err := ApplyGitHooks(opts, GitHookSettings(opts.ObaPath))
+			if err == nil || !strings.Contains(err.Error(), "could not lock config file") {
+				t.Fatalf("err = %v", err)
+			}
+			for _, event := range GitHookEvents {
+				name := "hook." + GitHookName(event)
+				if len(globalGit(t, name+".event")) != 0 && len(globalGit(t, name+".command")) == 0 {
+					t.Fatalf("the global git config sets %s.event without %s.command", name, name)
+				}
+			}
+			repo := t.TempDir()
+			for _, args := range [][]string{{"init", "--quiet", repo}, {"-C", repo, "status", "--short"}} {
+				if out, err := exec.Command(realGit, args...).CombinedOutput(); err != nil {
+					t.Fatalf("git %s: %v\n%s", strings.Join(args, " "), err, out)
+				}
+			}
+		})
+	}
+}
+
 // runHookCommand runs command as git runs a hook from the git config: with sh, the hook's
 // arguments appended.
 func runHookCommand(t *testing.T, command string, args ...string) (string, error) {

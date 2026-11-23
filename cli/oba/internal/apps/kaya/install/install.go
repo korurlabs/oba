@@ -558,14 +558,17 @@ func GitHookCommand(obaPath, event string) string {
 		" did not run; run oba kaya install\\n' " + oba + " >&2; exit 0; }; exec " + oba + " kaya git-hook " + event
 }
 
-// GitHookSettings are the values of Kaya's git hooks that run the oba at obaPath.
+// GitHookSettings are the values of Kaya's git hooks that run the oba at obaPath, each hook's
+// command before its event, in the order they are written. git aborts every command in every
+// repository while a hook has an event but no command, and ignores a command without an event, so
+// a write that fails or is interrupted after the first value must leave the command in place.
 func GitHookSettings(obaPath string) []GitSetting {
 	var settings []GitSetting
 	for _, event := range GitHookEvents {
 		prefix := "hook." + GitHookName(event) + "."
 		settings = append(settings,
-			GitSetting{Key: prefix + "event", Value: event},
-			GitSetting{Key: prefix + "command", Value: GitHookCommand(obaPath, event)})
+			GitSetting{Key: prefix + "command", Value: GitHookCommand(obaPath, event)},
+			GitSetting{Key: prefix + "event", Value: event})
 	}
 	return settings
 }
@@ -623,8 +626,8 @@ func gitVersionAdvice(version string) string {
 	return fmt.Sprintf("%s; this is git %d.%d, so update git", need, major, minor)
 }
 
-// ApplyGitHooks sets the values in the user's global git config, each replacing every value the
-// key held.
+// ApplyGitHooks sets the values in the user's global git config in their order, each replacing
+// every value the key held, and stops at the first write that fails.
 func ApplyGitHooks(opts Options, settings []GitSetting) error {
 	if len(settings) == 0 {
 		return nil
