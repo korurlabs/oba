@@ -16,6 +16,9 @@ type RepositoryCheck struct {
 	// Skipped says why the repository was not compared; empty when it was.
 	Skipped    string
 	Mismatches []Mismatch
+	// OnPurpose are the differences a seed layout makes by design: a file of its content folder, or
+	// a file it leaves out. They do not fail the seed.
+	OnPurpose []Mismatch
 }
 
 // PrintPlan writes what a dry run would send.
@@ -43,13 +46,15 @@ func PrintPlan(w io.Writer, plan Plan) {
 		}
 	}
 	_, _ = fmt.Fprintf(w, "\nBlobs: %d\n", len(plan.Blobs))
+	printContent(w, plan.Content)
 	printNotImported(w, plan.Request.NotImported)
 	printDrift(w, plan.Request.Drift)
 	printWarnings(w, plan.Warnings)
 }
 
-// PrintRun writes the report of a seed run and the release comparison.
-func PrintRun(w io.Writer, run client.SeedRun, warnings []string, checks []RepositoryCheck) {
+// PrintRun writes the report of a seed run, what the plan found that the run cannot report, and
+// the release comparison.
+func PrintRun(w io.Writer, run client.SeedRun, plan Plan, checks []RepositoryCheck) {
 	report := run.Report
 	applied := "applied"
 	if !report.Applied {
@@ -106,9 +111,10 @@ func PrintRun(w io.Writer, run client.SeedRun, warnings []string, checks []Repos
 		}
 	}
 	printSizeWarnings(w, report.Warnings)
+	printContent(w, plan.Content)
 	printNotImported(w, report.NotImported)
 	printDrift(w, report.Drift)
-	printWarnings(w, warnings)
+	printWarnings(w, plan.Warnings)
 
 	if len(checks) > 0 {
 		_, _ = fmt.Fprintln(w, "\nRelease compared with the repository on disk:")
@@ -116,12 +122,21 @@ func PrintRun(w io.Writer, run client.SeedRun, warnings []string, checks []Repos
 			switch {
 			case check.Skipped != "":
 				_, _ = fmt.Fprintf(w, "  %s: not compared, %s\n", check.Repository, check.Skipped)
-			case len(check.Mismatches) == 0:
+			case len(check.Mismatches) == 0 && len(check.OnPurpose) == 0:
 				_, _ = fmt.Fprintf(w, "  %s: release %d equals the disk\n", check.Repository, check.ReleaseNumber)
+			case len(check.Mismatches) == 0:
+				_, _ = fmt.Fprintf(w, "  %s: release %d equals the disk apart from %d paths changed on purpose\n",
+					check.Repository, check.ReleaseNumber, len(check.OnPurpose))
 			default:
 				_, _ = fmt.Fprintf(w, "  %s: release %d differs in %d paths\n", check.Repository, check.ReleaseNumber, len(check.Mismatches))
 				for _, mismatch := range check.Mismatches {
 					_, _ = fmt.Fprintf(w, "    %s: %s\n", mismatch.Path, mismatch.Reason)
+				}
+			}
+			if check.Skipped == "" && len(check.OnPurpose) > 0 {
+				_, _ = fmt.Fprintln(w, "    changed on purpose:")
+				for _, mismatch := range check.OnPurpose {
+					_, _ = fmt.Fprintf(w, "      %s: %s\n", mismatch.Path, mismatch.Reason)
 				}
 			}
 		}
@@ -169,6 +184,24 @@ func printSizeWarnings(w io.Writer, warnings []client.SeedWarning) {
 			text = warning.SetName + ": " + text
 		}
 		_, _ = fmt.Fprintf(w, "  %s\n", text)
+	}
+}
+
+// printContent lists the files of a seed tree's content folder, each with the source file it takes
+// the place of.
+func printContent(w io.Writer, content []ContentFile) {
+	if len(content) == 0 {
+		return
+	}
+	_, _ = fmt.Fprintf(w, "\nFrom the seed tree (%d):\n", len(content))
+	for _, file := range content {
+		line := fmt.Sprintf("  %s %s: %s", file.Pack, file.Path, contentName(file.Pack, file.Path))
+		if file.Replaces != "" {
+			line += " in place of " + file.Replaces
+		} else {
+			line += ", added"
+		}
+		_, _ = fmt.Fprintln(w, line)
 	}
 }
 

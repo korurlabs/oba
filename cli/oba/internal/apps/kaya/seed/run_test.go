@@ -292,7 +292,7 @@ func TestPrintRun_showsTheSizeWarningsKayaReturns(t *testing.T) {
 		t.Fatal(err)
 	}
 	var out strings.Builder
-	PrintRun(&out, run, []string{"a local note"}, nil)
+	PrintRun(&out, run, Plan{Warnings: []string{"a local note"}}, nil)
 	for _, want := range []string{
 		"Size limits broken, imported anyway (1):",
 		"  org: SKILL_TOO_LONG at .agents/skills/big/SKILL.md (SKILL.md has 1512 lines; it must stay under 1500)\n",
