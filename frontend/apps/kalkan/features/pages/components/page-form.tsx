@@ -42,6 +42,8 @@ interface PageFormProps {
   initialLocale: KalkanLocale;
   /** The stored page, on edit: its files are listed and new ones attached to it. */
   pageId?: string;
+  /** The page is a section root, on edit: its address is the section's route and stays fixed. */
+  isRoot?: boolean;
   isPending: boolean;
   onSubmit: (values: PageFormValues, form: UseFormReturn<PageFormValues>) => void;
   /** Shown above the panels, such as the notice that someone else saved the page. */
@@ -62,6 +64,7 @@ export function PageForm({
   parentOptions,
   initialLocale,
   pageId,
+  isRoot = false,
   isPending,
   onSubmit,
   notice,
@@ -86,6 +89,7 @@ export function PageForm({
         parentOptions={parentOptions}
         initialLocale={initialLocale}
         pageId={pageId}
+        isRoot={isRoot}
         isPending={isPending}
       />
       <PageFormActions mode={mode} isPending={isPending} secondaryAction={secondaryAction} />
@@ -98,12 +102,14 @@ function PageFormFields({
   parentOptions,
   initialLocale,
   pageId,
+  isRoot,
   isPending,
 }: {
   mode: "create" | "edit";
   parentOptions?: SelectOption[];
   initialLocale: KalkanLocale;
   pageId?: string;
+  isRoot: boolean;
   isPending: boolean;
 }) {
   const t = useTranslations("pageForm");
@@ -219,10 +225,11 @@ function PageFormFields({
             <TextField
               name="slug"
               label={t("slug")}
-              description={t("slugHint")}
+              description={isRoot ? t("slugRootHint") : t("slugHint")}
               control={control}
               required
               maxLength={100}
+              readOnly={isRoot}
               disabled={isPending}
               onInput={() => setSlugEdited(true)}
             />

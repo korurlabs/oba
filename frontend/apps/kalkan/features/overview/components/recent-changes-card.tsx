@@ -9,10 +9,8 @@ import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { useRecentPages } from "@/features/pages/hooks/use-pages";
 import { pageErrorText } from "@/features/pages/lib/page-error";
 import { listedPageTitle, sectionOfRootSlug } from "@/features/recent/lib/page-label";
+import { OVERVIEW_RECENT_LIMIT } from "@/features/recent/lib/recent-limits";
 import { pageHref, RECENT_HREF } from "@/lib/routes";
-
-/** How many changes the overview lists; the Recent page lists more. */
-export const OVERVIEW_RECENT_LIMIT = 10;
 
 /** The latest page changes, each with its section, when and by whom, and a link to all of them. */
 export function RecentChangesCard() {
