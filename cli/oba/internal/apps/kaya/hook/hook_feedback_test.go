@@ -199,7 +199,7 @@ func TestSessionStart_addsTheFeedbackOfTheBranchAndAcksIt(t *testing.T) {
 	if !strings.HasPrefix(text, "Kaya config. ") || !strings.HasSuffix(text, "\nKaya plan feedback from Ada on the plan of session sess-old version 2: Approved.") {
 		t.Fatalf("context = %q", text)
 	}
-	if len(fk.queries) != 1 || fk.queries[0] != "branch=feat%2Fx&remoteUrl=git%40github.com%3Asensey%2Fdemo.git" {
+	if len(fk.queries) != 1 || fk.queries[0] != "branch=feat%2Fx&remoteUrl=git%40github.com%3Aexample%2Fdemo.git" {
 		t.Fatalf("queries = %v", fk.queries)
 	}
 	if len(fk.acks) != 1 || fk.acks[0]["sessionId"] != "sess-9" {

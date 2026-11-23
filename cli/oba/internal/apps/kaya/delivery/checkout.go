@@ -9,11 +9,10 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"syscall"
 	"time"
-
-	"gopkg.in/yaml.v3"
 
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/seed"
 )
@@ -24,35 +23,59 @@ type Kind int
 const (
 	// NotRepository: the directory is in no git checkout.
 	NotRepository Kind = iota
-	// NotKaya: the checkout has no kaya.yaml; its config is its own.
+	// NotKaya: no remote of the checkout is on the repository list; its config is its own, and
+	// nothing of it, its remotes included, is sent to Kaya.
 	NotKaya
-	// NotCutOver: the checkout has kaya.yaml but still syncs from korurlabs/agents
-	// (.agents/.managed.json); its delivered paths are tracked in git and must not be replaced.
+	// NotCutOver: a remote of the checkout is on the repository list, but the checkout still syncs
+	// its agent config from elsewhere (.agents/.managed.json); its delivered paths are tracked in
+	// git and must not be replaced.
 	NotCutOver
 	// Delivered: Kaya delivers the checkout's config.
 	Delivered
 )
 
-// ConfigFile is the committed file that hands a checkout's agent config to Kaya.
-const ConfigFile = "kaya.yaml"
-
-// CheckoutConfig is kaya.yaml. Both fields are optional.
-type CheckoutConfig struct {
-	// RemoteURL names the repository when the origin remote does not, for example in a fork.
-	RemoteURL string `yaml:"remoteUrl"`
-	// Organization pins the organization id a release must be signed for. Without it the first
-	// verified release pins it in .kaya/state.json.
-	Organization string `yaml:"organization"`
+// String names the kind as status prints it.
+func (k Kind) String() string {
+	switch k {
+	case NotRepository:
+		return "NotRepository"
+	case NotKaya:
+		return "NotKaya"
+	case NotCutOver:
+		return "NotCutOver"
+	case Delivered:
+		return "Delivered"
+	}
+	return fmt.Sprintf("Kind(%d)", int(k))
 }
+
+// ConfigFile is the committed file that named a checkout's repository to Kaya before Kaya
+// recognised checkouts by their remotes. It is no longer read; a tracked one is a leftover.
+const ConfigFile = "kaya.yaml"
 
 // Checkout is one working tree; a linked worktree is a checkout of its own.
 type Checkout struct {
-	Root   string
-	Config CheckoutConfig
-	Kind   Kind
+	Root string
+	Kind Kind
+	// Remote is the remote on the repository list that names the checkout's repository,
+	// normalised (host/owner/name); empty in a NotKaya checkout.
+	Remote string
+	// RemoteName is the git remote it came from.
+	RemoteName string
+	// Organization is the organization of the repository list, which every release of the
+	// checkout must be signed for.
+	Organization string
+	// Unresolved names the ssh hosts of the checkout's remotes that ssh could not resolve while
+	// they were matched against the list; such a remote may name a listed repository unseen.
+	Unresolved []string
+	// requestRemote is the remote as the API is asked about it: as git reports it, without user
+	// info, its ssh host alias resolved when only the resolved form is on the list.
+	requestRemote string
 }
 
-// FindCheckout walks up from dir to the nearest directory holding .git.
+// FindCheckout walks up from dir to the nearest directory holding .git and recognises it by its
+// remotes. When the repository list or the remotes cannot be read, it returns the checkout as
+// NotKaya together with the error, so a caller that needs only the root can go on.
 func FindCheckout(dir string) (*Checkout, error) {
 	abs, err := filepath.Abs(dir)
 	if err != nil {
@@ -72,21 +95,139 @@ func FindCheckout(dir string) (*Checkout, error) {
 
 func openCheckout(root string) (*Checkout, error) {
 	c := &Checkout{Root: root, Kind: NotKaya}
-	data, err := os.ReadFile(filepath.Join(root, ConfigFile)) // #nosec G304 -- the checkout's own committed file
-	if errors.Is(err, fs.ErrNotExist) {
+	list, err := LoadRepositoryList()
+	if err != nil {
+		return c, err
+	}
+	if len(list.Remotes) == 0 {
+		// Without a list no remote can match, and git need not run.
 		return c, nil
 	}
+	remotes, err := gitRemotes(root)
 	if err != nil {
-		return nil, fmt.Errorf("read %s: %w", filepath.Join(root, ConfigFile), err)
+		return c, err
 	}
-	if err := yaml.Unmarshal(data, &c.Config); err != nil {
-		return nil, fmt.Errorf("%s: %w", filepath.Join(root, ConfigFile), err)
+	c.recognize(list, remotes, seed.NewRemoteResolver().Lookup)
+	if c.Remote == "" {
+		return c, nil
 	}
 	c.Kind = Delivered
+	c.Organization = list.OrganizationID
 	if _, err := os.Lstat(filepath.Join(root, ".agents", ".managed.json")); err == nil {
 		c.Kind = NotCutOver
 	}
 	return c, nil
+}
+
+// gitRemote is one url of a remote of the checkout's git config.
+type gitRemote struct {
+	name, url string
+}
+
+// gitRemotes lists the urls of the remotes in the checkout's own git config, origin first and
+// the other remotes in name order, each remote's urls as configured. Global, system and
+// command-line config are never read, and the variables that point git at another repository
+// are dropped, so only the checkout's own remotes count.
+func gitRemotes(root string) ([]gitRemote, error) {
+	cmd := exec.Command("git", "-C", root, "config", "--local", "-z", "--get-regexp", `^remote\..+\.url$`) // #nosec G204 -- fixed git subcommand on the checkout
+	cmd.Env = withoutGitVars(os.Environ())
+	out, err := cmd.Output()
+	var exitErr *exec.ExitError
+	if errors.As(err, &exitErr) && exitErr.ExitCode() == 1 {
+		// git config exits 1 when no key matches: the checkout has no remote.
+		return nil, nil
+	}
+	if err != nil {
+		reason := err.Error()
+		if exitErr != nil && len(exitErr.Stderr) > 0 {
+			reason = strings.TrimSpace(string(exitErr.Stderr))
+		}
+		return nil, fmt.Errorf("read the remotes of %s: %s", root, reason)
+	}
+	var remotes []gitRemote
+	for _, entry := range strings.Split(string(out), "\x00") {
+		key, value, ok := strings.Cut(entry, "\n")
+		name, isRemote := strings.CutPrefix(key, "remote.")
+		name, isURL := strings.CutSuffix(name, ".url")
+		if !ok || !isRemote || !isURL || name == "" {
+			continue
+		}
+		remotes = append(remotes, gitRemote{name: name, url: value})
+	}
+	slices.SortStableFunc(remotes, func(a, b gitRemote) int {
+		switch {
+		case a.name == b.name:
+			return 0
+		case a.name == "origin":
+			return -1
+		case b.name == "origin":
+			return 1
+		}
+		return strings.Compare(a.name, b.name)
+	})
+	return remotes, nil
+}
+
+// repositoryGitVars are the variables that tie git to one repository, as `git rev-parse
+// --local-env-vars` lists them; git drops the same ones when it enters another repository.
+var repositoryGitVars = []string{
+	"GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_CONFIG", "GIT_CONFIG_PARAMETERS", "GIT_CONFIG_COUNT",
+	"GIT_OBJECT_DIRECTORY", "GIT_DIR", "GIT_WORK_TREE", "GIT_IMPLICIT_WORK_TREE", "GIT_GRAFT_FILE",
+	"GIT_INDEX_FILE", "GIT_NO_REPLACE_OBJECTS", "GIT_REPLACE_REF_BASE", "GIT_PREFIX", "GIT_SHALLOW_FILE",
+	"GIT_COMMON_DIR",
+}
+
+// withoutGitVars drops the repository variables, such as the GIT_DIR a git hook runs under,
+// which would make git read another repository's config.
+func withoutGitVars(env []string) []string {
+	kept := make([]string, 0, len(env))
+	for _, entry := range env {
+		name, _, _ := strings.Cut(entry, "=")
+		if !slices.Contains(repositoryGitVars, name) {
+			kept = append(kept, entry)
+		}
+	}
+	return kept
+}
+
+// recognize names the checkout's repository by the first remote on the list, in the order of
+// remotes, each matched as ListedRemote matches it. A host that ssh cannot resolve is kept in
+// c.Unresolved.
+func (c *Checkout) recognize(list RepositoryList, remotes []gitRemote, lookup func(string) (string, error)) {
+	resolver := &seed.RemoteResolver{Lookup: func(host string) (string, error) {
+		name, err := lookup(host)
+		if err != nil {
+			c.Unresolved = append(c.Unresolved, fmt.Sprintf("%s (%v)", host, err))
+		}
+		return name, err
+	}}
+	for _, remote := range remotes {
+		if request, normalized, ok := ListedRemote(list, remote.url, resolver); ok {
+			c.Remote, c.RemoteName, c.requestRemote = normalized, remote.name, request
+			return
+		}
+	}
+}
+
+// ListedRemote matches one remote against the repository list: as written, without user info,
+// and else with its ssh host alias resolved through resolver, so that a clone over an alias counts
+// as a clone over the host. request is the form that matched, as Kaya is asked about it, and
+// normalized the list's entry; ok is false when neither form is on the list. A host the resolver
+// cannot resolve leaves only the remote as written, and the resolver's Lookup receives the error.
+func ListedRemote(list RepositoryList, remote string, resolver *seed.RemoteResolver) (request, normalized string, ok bool) {
+	cleaned := seed.CleanRemote(strings.TrimSpace(remote))
+	if normalized := seed.NormalizeRemote(cleaned); list.Has(normalized) {
+		return cleaned, normalized, true
+	}
+	// rule-10-no-op -- reason: the warning names the remote and repeats the lookup error, which the resolver's Lookup already receives.
+	resolved, _ := resolver.Resolve(cleaned)
+	if resolved == cleaned {
+		return "", "", false
+	}
+	if normalized := seed.NormalizeRemote(resolved); list.Has(normalized) {
+		return resolved, normalized, true
+	}
+	return "", "", false
 }
 
 // Paths of the checkout's local delivery state; .kaya/ is gitignored after the cutover.
@@ -134,24 +275,14 @@ func (c *Checkout) ensureKayaDir() error {
 	return nil
 }
 
-// Remotes gives the remote sent to the API (the origin as git reports it, without user info and
-// with an ssh host alias resolved) and the normalised remote a manifest is signed for.
+// Remotes gives the remote sent to the API and the normalised remote on the repository list that
+// a manifest is signed for. A checkout without a listed remote has neither, so nothing of it is
+// ever sent to Kaya.
 func (c *Checkout) Remotes() (request, normalized string, err error) {
-	raw := strings.TrimSpace(c.Config.RemoteURL)
-	if raw == "" {
-		cmd := exec.Command("git", "-C", c.Root, "remote", "get-url", "origin") // #nosec G204 -- fixed git subcommand on the checkout
-		out, err := cmd.Output()
-		if err != nil {
-			return "", "", fmt.Errorf("read the origin remote of %s (or set remoteUrl in %s): %w", c.Root, ConfigFile, err)
-		}
-		raw = strings.TrimSpace(string(out))
+	if c.Remote == "" {
+		return "", "", fmt.Errorf("no remote of %s is on the organization's repository list, so Kaya does not know its repository", c.Root)
 	}
-	request, _ = seed.NewRemoteResolver().Resolve(seed.CleanRemote(raw))
-	normalized = seed.NormalizeRemote(request)
-	if normalized == "" {
-		return "", "", fmt.Errorf("the remote %s is not a git remote Kaya accepts", request)
-	}
-	return request, normalized, nil
+	return c.requestRemote, c.Remote, nil
 }
 
 // State is the checkout's delivery state in .kaya/state.json.

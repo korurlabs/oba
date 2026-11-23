@@ -3,6 +3,7 @@ package hook
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -10,11 +11,16 @@ import (
 	"testing"
 
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/capture"
+	"github.com/korurlabs/oba-cli/internal/apps/kaya/delivery"
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/kayatest"
 )
 
-// recordEnv isolates HOME, the state directory and git, and returns a checkout with a committed
-// kaya.yaml (when joined) and the state directory.
+// listedRemote is on the organization's repository list in every record test.
+const listedRemote = "github.com/example/app"
+
+// recordEnv isolates HOME, the config and state directories and git, caches a repository list
+// that holds listedRemote, and returns a checkout whose origin is on it (when joined) or another
+// repository's, and the state directory.
 func recordEnv(t *testing.T, joined bool) (repo, state string) {
 	t.Helper()
 	base, err := filepath.EvalSymlinks(t.TempDir())
@@ -26,7 +32,7 @@ func recordEnv(t *testing.T, joined bool) (repo, state string) {
 		t.Fatal(err)
 	}
 	for key, value := range map[string]string{
-		"HOME": filepath.Join(base, "home"), "XDG_STATE_HOME": filepath.Join(base, "xdg"),
+		"HOME": filepath.Join(base, "home"), "XDG_STATE_HOME": filepath.Join(base, "xdg"), "XDG_CONFIG_HOME": filepath.Join(base, "config"),
 		"CLAUDE_CONFIG_DIR": filepath.Join(base, "claude"), "GIT_CONFIG_GLOBAL": os.DevNull, "GIT_CONFIG_NOSYSTEM": "1",
 		"GIT_AUTHOR_NAME": "g", "GIT_AUTHOR_EMAIL": "g@example.com", "GIT_COMMITTER_NAME": "g", "GIT_COMMITTER_EMAIL": "g@example.com",
 		"KAYA_SENDER": "off", "CLAUDE_PROJECT_DIR": "", "KAYA_RECORDER_TOKEN": "",
@@ -34,13 +40,13 @@ func recordEnv(t *testing.T, joined bool) (repo, state string) {
 		t.Setenv(key, value)
 	}
 	gitIn(t, repo, "init", "-q", "-b", "main")
+	remote := "git@github.com:someone/private.git"
 	if joined {
-		if err := os.WriteFile(filepath.Join(repo, "kaya.yaml"), []byte("# joined Kaya\n"), 0o600); err != nil {
-			t.Fatal(err)
-		}
-		gitIn(t, repo, "add", "kaya.yaml")
+		remote = "git@github.com:example/app.git"
 	}
+	gitIn(t, repo, "remote", "add", "origin", remote)
 	gitIn(t, repo, "commit", "-q", "--allow-empty", "-m", "init")
+	kayatest.ListRepositories(t, "org-1", listedRemote)
 	return repo, filepath.Join(base, "xdg", "kaya")
 }
 
@@ -95,6 +101,10 @@ func TestRecordHook_failuresAreOneStderrLineAndExitZero(t *testing.T) {
 		"a directory outside git":  kayatest.HookEvent(t, map[string]any{"cwd": outside, "hook_event_name": "Stop", "session_id": "rec-2"}),
 		"a directory that is gone": kayatest.HookEvent(t, map[string]any{"cwd": filepath.Join(outside, "gone"), "hook_event_name": "Stop", "session_id": "rec-2"}),
 	}
+	// Outside git the line names the directory, not the repository list.
+	exact := map[string]string{
+		"a directory outside git": "oba kaya hook: nothing recorded: " + outside + " is not inside a git repository\n",
+	}
 	for name, stdin := range cases {
 		t.Run(name, func(t *testing.T) {
 			stdout, stderr, err := runRecord(t, stdin)
@@ -103,6 +113,9 @@ func TestRecordHook_failuresAreOneStderrLineAndExitZero(t *testing.T) {
 			}
 			if !oneLine(stderr) || !strings.HasPrefix(stderr, "oba kaya hook: nothing recorded") {
 				t.Errorf("stderr = %q, want exactly one line starting with %q", stderr, "oba kaya hook: nothing recorded")
+			}
+			if want, ok := exact[name]; ok && stderr != want {
+				t.Errorf("stderr = %q, want %q", stderr, want)
 			}
 		})
 	}
@@ -122,18 +135,77 @@ func TestRecordHook_anUnwritableQueueIsOneStderrLine(t *testing.T) {
 	}
 }
 
-func TestRecordHook_aCheckoutWithoutKayaYAMLWritesNothing(t *testing.T) {
+// assertNothingRecorded fails when the session or a sender left a trace in the state directory.
+func assertNothingRecorded(t *testing.T, state, session string) {
+	t.Helper()
+	if _, err := os.Stat(capture.SessionDir(state, session)); !os.IsNotExist(err) {
+		t.Errorf("a session directory was written for an unrecognised checkout: %v", err)
+	}
+	if _, err := os.Stat(filepath.Join(state, "sender.started")); !os.IsNotExist(err) {
+		t.Errorf("a sender was started for an unrecognised checkout: %v", err)
+	}
+}
+
+func TestRecordHook_aCheckoutWithoutAListedRemoteWritesNothing(t *testing.T) {
 	repo, state := recordEnv(t, false)
+	// A committed kaya.yaml no longer makes a checkout Kaya's.
+	if err := os.WriteFile(filepath.Join(repo, "kaya.yaml"), []byte("remoteUrl: git@github.com:example/app.git\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	gitIn(t, repo, "add", "kaya.yaml")
+	gitIn(t, repo, "commit", "-q", "-m", "config")
 	stdout, stderr, err := runRecord(t, kayatest.HookEvent(t, map[string]any{"cwd": repo, "hook_event_name": "SessionStart", "session_id": "rec-4"}))
 	if err != nil || stdout != "" || stderr != "" {
 		t.Errorf("err = %v, stdout = %q, stderr = %q; want silence", err, stdout, stderr)
 	}
-	if _, err := os.Stat(capture.SessionDir(state, "rec-4")); !os.IsNotExist(err) {
-		t.Errorf("a session directory was written for a checkout without kaya.yaml: %v", err)
+	assertNothingRecorded(t, state, "rec-4")
+}
+
+func TestRecordHook_withoutACachedListNothingIsRecorded(t *testing.T) {
+	repo, state := recordEnv(t, true)
+	path, err := delivery.RepositoryListPath()
+	if err != nil {
+		t.Fatal(err)
 	}
-	if _, err := os.Stat(filepath.Join(state, "sender.started")); !os.IsNotExist(err) {
-		t.Errorf("a sender was started for a checkout without kaya.yaml: %v", err)
+	if err := os.Remove(path); err != nil {
+		t.Fatal(err)
 	}
+	stdout, stderr, err := runRecord(t, kayatest.HookEvent(t, map[string]any{"cwd": repo, "hook_event_name": "SessionStart", "session_id": "rec-6"}))
+	if err != nil || stdout != "" || stderr != "" {
+		t.Errorf("err = %v, stdout = %q, stderr = %q; want silence", err, stdout, stderr)
+	}
+	assertNothingRecorded(t, state, "rec-6")
+}
+
+func TestRecordHook_aSessionAnywhereInARecognisedCheckoutIsRecorded(t *testing.T) {
+	repo, state := recordEnv(t, true)
+	sub := filepath.Join(repo, "src", "app")
+	if err := os.MkdirAll(sub, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	stdout, stderr, err := runRecord(t, kayatest.HookEvent(t, map[string]any{"cwd": sub, "hook_event_name": "SessionStart", "session_id": "rec-7"}))
+	if err != nil || stdout != "" || stderr != "" {
+		t.Fatalf("err = %v, stdout = %q, stderr = %q; want a silent success", err, stdout, stderr)
+	}
+	if _, err := os.Stat(filepath.Join(capture.SessionDir(state, "rec-7"), capture.EventsFile)); err != nil {
+		t.Fatalf("the event was not queued: %v", err)
+	}
+}
+
+func TestRecordHook_aDamagedListIsOneStderrLine(t *testing.T) {
+	repo, state := recordEnv(t, true)
+	path, err := delivery.RepositoryListPath()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, []byte("{not json"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	stdout, stderr, err := runRecord(t, kayatest.HookEvent(t, map[string]any{"cwd": repo, "hook_event_name": "Stop", "session_id": "rec-8"}))
+	if err != nil || stdout != "" || !oneLine(stderr) || !strings.Contains(stderr, path) {
+		t.Errorf("err = %v, stdout = %q, stderr = %q; want exit 0 and one line naming the list", err, stdout, stderr)
+	}
+	assertNothingRecorded(t, state, "rec-8")
 }
 
 func TestRecordHook_senderOffStartsNoSender(t *testing.T) {
@@ -145,5 +217,43 @@ func TestRecordHook_senderOffStartsNoSender(t *testing.T) {
 		if _, err := os.Stat(filepath.Join(state, name)); !os.IsNotExist(err) {
 			t.Errorf("%s exists with KAYA_SENDER=off: %v", name, err)
 		}
+	}
+}
+
+// recordedSession records a SessionStart of session in dir and returns its session.json.
+func recordedSession(t *testing.T, dir, state, session string) map[string]any {
+	t.Helper()
+	stdout, stderr, err := runRecord(t, kayatest.HookEvent(t, map[string]any{"cwd": dir, "hook_event_name": "SessionStart", "session_id": session}))
+	if err != nil || stdout != "" || stderr != "" {
+		t.Fatalf("err = %v, stdout = %q, stderr = %q; want a silent success", err, stdout, stderr)
+	}
+	data, err := os.ReadFile(filepath.Join(capture.SessionDir(state, session), capture.SessionFile))
+	if err != nil {
+		t.Fatalf("session.json was not written: %v", err)
+	}
+	var facts map[string]any
+	if err := json.Unmarshal(data, &facts); err != nil {
+		t.Fatal(err)
+	}
+	return facts
+}
+
+func TestRecordHook_aForkIsRecordedWithItsListedRemoteNotOrigin(t *testing.T) {
+	// origin is the developer's own fork, which is not on the list; upstream is.
+	repo, state := recordEnv(t, false)
+	gitIn(t, repo, "remote", "add", "upstream", "https://github.com/example/app.git")
+	facts := recordedSession(t, repo, state, "rec-9")
+	if facts["remoteUrl"] != "https://github.com/example/app.git" || facts["repositoryName"] != "app" {
+		t.Errorf("remoteUrl = %v, repositoryName = %v; want upstream's remote and app", facts["remoteUrl"], facts["repositoryName"])
+	}
+}
+
+func TestRecordHook_aCheckoutWithoutOriginIsRecordedWithItsListedRemote(t *testing.T) {
+	repo, state := recordEnv(t, false)
+	gitIn(t, repo, "remote", "remove", "origin")
+	gitIn(t, repo, "remote", "add", "upstream", "https://someone:secret@github.com/example/app.git")
+	facts := recordedSession(t, repo, state, "rec-10")
+	if facts["remoteUrl"] != "https://github.com/example/app.git" {
+		t.Errorf("remoteUrl = %v, want upstream's remote without its user info", facts["remoteUrl"])
 	}
 }

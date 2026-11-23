@@ -3,8 +3,9 @@
 // handoff snapshots the event shows.
 //
 // A hook call must never get in Claude Code's way: it reads no network, prints nothing on
-// stdout, and on tool events runs no git process. Only sessions of a checkout that holds a
-// committed kaya.yaml are recorded, so a session in another repository never reaches Kaya.
+// stdout, and on tool events runs no git process of its own. Record queues every event it is
+// given; the hook records only sessions of a checkout Kaya recognises, so a session in another
+// repository never reaches Kaya.
 package capture
 
 import (
@@ -47,11 +48,12 @@ func Decode(raw []byte) (map[string]any, error) {
 	return in, nil
 }
 
-// Record queues one hook event for Kaya. queued is false when the event's checkout holds no
-// kaya.yaml, which is not an error. now stamps the event. Problems that cost a part of the
-// record but not the event (a snapshot, a git call) go to warnings as one line each; an error
-// means the event was not queued.
-func Record(in map[string]any, now time.Time, warnings io.Writer) (queued bool, err error) {
+// Record queues one hook event for Kaya; the caller has checked that Kaya recognises the event's
+// checkout. remote is the git remote by which it did, which the session is reported with; ""
+// records none. now stamps the event. Problems that cost a part of the record but not the event
+// (a snapshot, a git call) go to warnings as one line each; an error means the event was not
+// queued.
+func Record(in map[string]any, remote string, now time.Time, warnings io.Writer) (queued bool, err error) {
 	warn := func(format string, args ...any) {
 		_, _ = fmt.Fprintf(warnings, "kaya recorder: "+format+"\n", args...)
 	}
@@ -62,19 +64,9 @@ func Record(in map[string]any, now time.Time, warnings io.Writer) (queued bool, 
 	if !delivery.ValidSessionID(sessionID) {
 		return false, fmt.Errorf("the session id %q is not valid", sessionID)
 	}
-	cwd, err := eventDir(in)
+	cwd, err := EventDir(in)
 	if err != nil {
 		return false, err
-	}
-	checkout, err := delivery.FindCheckout(cwd)
-	if err != nil {
-		return false, err
-	}
-	switch checkout.Kind {
-	case delivery.NotRepository:
-		return false, fmt.Errorf("%s is not inside a git repository", cwd)
-	case delivery.NotKaya:
-		return false, nil
 	}
 	root, err := mainCheckout(cwd, warn)
 	if err != nil {
@@ -98,7 +90,7 @@ func Record(in map[string]any, now time.Time, warnings io.Writer) (queued bool, 
 	if model := eventModel(in); model != "" {
 		event["model"] = model
 	}
-	if err := enqueue(sessionID, event, in, cwd, root, now, warn); err != nil {
+	if err := enqueue(sessionID, event, in, cwd, root, remote, now, warn); err != nil {
 		return false, fmt.Errorf("not queued for Kaya: %w", err)
 	}
 	if name == sessionStart {
@@ -109,9 +101,9 @@ func Record(in map[string]any, now time.Time, warnings io.Writer) (queued bool, 
 	return true, nil
 }
 
-// eventDir is the session's directory: the event's cwd, else CLAUDE_PROJECT_DIR, else the
+// EventDir is the session's directory: the event's cwd, else CLAUDE_PROJECT_DIR, else the
 // hook's own working directory.
-func eventDir(in map[string]any) (string, error) {
+func EventDir(in map[string]any) (string, error) {
 	if value := in["cwd"]; truthy(value) {
 		cwd, ok := value.(string)
 		if !ok {
@@ -131,7 +123,7 @@ func eventDir(in map[string]any) (string, error) {
 
 // enqueue adds the event to the session's queue with the next seq, under the session's lock,
 // and brings the summary, the snapshots and session.json up to date.
-func enqueue(sessionID string, event, in map[string]any, cwd, root string, now time.Time, warn func(string, ...any)) error {
+func enqueue(sessionID string, event, in map[string]any, cwd, root, remote string, now time.Time, warn func(string, ...any)) error {
 	stateDir, err := EnsureStateDir()
 	if err != nil {
 		return err
@@ -153,7 +145,7 @@ func enqueue(sessionID string, event, in map[string]any, cwd, root string, now t
 	if err := apply(dir, sessionID, event, in, cwd, root, now, warn); err != nil {
 		return err
 	}
-	return updateSession(dir, sessionID, event, in, cwd, root, warn)
+	return updateSession(dir, sessionID, event, in, cwd, root, remote, warn)
 }
 
 // apply appends the event, snapshots its handoffs and plans and writes summary.json. The caller

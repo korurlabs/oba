@@ -95,7 +95,7 @@ func TestConcurrentHooksKeepSeqGaplessAndUnique(t *testing.T) {
 			for i := range perWorker {
 				in := map[string]any{"cwd": repo, "hook_event_name": "UserPromptSubmit", "session_id": "conc-1",
 					"prompt": fmt.Sprintf("worker %d prompt %d", w, i)}
-				if _, err := Record(in, time.Unix(1_800_000_000, 0), os.Stderr); err != nil {
+				if _, err := Record(in, "", time.Unix(1_800_000_000, 0), os.Stderr); err != nil {
 					errs <- err
 				}
 			}
@@ -126,7 +126,7 @@ func TestConcurrentHooksKeepSeqGaplessAndUnique(t *testing.T) {
 	}
 }
 
-// scratchCheckout is an isolated git checkout with a committed kaya.yaml and an empty state.
+// scratchCheckout is an isolated git checkout with one commit and an empty state.
 func scratchCheckout(t testing.TB) (base, repo, state string) {
 	t.Helper()
 	root, err := filepath.EvalSymlinks(t.TempDir())
@@ -142,9 +142,7 @@ func scratchCheckout(t testing.TB) (base, repo, state string) {
 	}
 	isolate(t, root, claude)
 	gitRun(t, repo, "init", "-q", "-b", "main")
-	writeFile(t, filepath.Join(repo, "kaya.yaml"), "# joined Kaya\n")
-	gitRun(t, repo, "add", "kaya.yaml")
-	gitRun(t, repo, "commit", "-q", "-m", "init")
+	gitRun(t, repo, "commit", "-q", "--allow-empty", "-m", "init")
 	gitRun(t, repo, "remote", "add", "origin", "git@github.com:senseylabs/village.git")
 	gitRun(t, repo, "config", "user.email", "dev@example.com")
 	return root, repo, filepath.Join(root, "xdg", "kaya")

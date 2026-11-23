@@ -655,7 +655,11 @@ func sessionEnd(ctx context.Context, in hookInput) error {
 func preToolUse(ctx context.Context, in hookInput, raw []byte, w, stderr io.Writer) error {
 	checkout, err := hookCheckout(in)
 	if err != nil {
-		return hookFailed(stderr, err)
+		// The checkout's own hooks still run when only its recognition failed.
+		_ = hookFailed(stderr, err)
+		if checkout == nil {
+			return nil
+		}
 	}
 	if checkout.Kind == delivery.Delivered {
 		if reason := guardReason(ctx, checkout, in, stderr); reason != "" {
