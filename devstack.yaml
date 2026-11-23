@@ -4,15 +4,15 @@ stack: oba
 port-block: 26
 requires: ">=0.1.0"
 notes: |
-  Kazan ${kazan.url}   Admin ${admin.url}   Account ${account.url}   Otak ${otak.url}   Kalkan ${kalkan.url}   Kaya ${kaya.url}   API ${backend.url}
+  Kazan ${kazan.url}   Ulak ${ulak.url}   Account ${account.url}   Otak ${otak.url}   Kalkan ${kalkan.url}   Kaya ${kaya.url}   API ${backend.url}
   Keycloak admin console ${keycloak.url}/admin (bootstrap credentials: backend/docker-compose.yaml).
-  backend, kazan, admin, account, otak, kalkan and kaya are Kagi-bound: each one's kagi.yaml carries a
+  backend, kazan, ulak, account, otak, kalkan and kaya are Kagi-bound: each one's kagi.yaml carries a
   local: provider: devstack block owning exactly that unit's env and unset keys,
   so the unit launches through kagi run and devstack's provider layers the values
   written here over the ones Kagi serves. That is how the backend receives
   ENCRYPTION_SECRET, which application.properties:35 binds with no default, and
-  how kazan, admin, account, otak, kalkan and kaya receive AUTH_SECRET,
-  AUTH_KEYCLOAK_ID and AUTH_KEYCLOAK_SECRET. The AUTH_SECRET of admin, account,
+  how kazan, ulak, account, otak, kalkan and kaya receive AUTH_SECRET,
+  AUTH_KEYCLOAK_ID and AUTH_KEYCLOAK_SECRET. The AUTH_SECRET of ulak, account,
   otak and kalkan must equal Kazan's, because all five apps read the one shared
   session cookie. Kaya has a session cookie of its own, so its AUTH_SECRET may differ.
   Still inert: the backend's unset: keys, because
@@ -39,7 +39,7 @@ infra:
       realms: [sensey]
       heap: small
       clients:
-        sensey/oba: [kazan, admin, account, otak, kalkan, kaya]
+        sensey/oba: [kazan, ulak, account, otak, kalkan, kaya]
     azurite:
       type: azurite
       service: azurite
@@ -103,17 +103,17 @@ apps:
       BASE_URL: "${self.url}"
       API_BASE_URL: "${backend.url}"
       KAZAN_URL: "${self.url}"
-      ADMIN_URL: "${admin.url}"
+      ULAK_URL: "${ulak.url}"
       ACCOUNT_URL: "${account.url}"
       OTAK_URL: "${otak.url}"
       KALKAN_URL: "${kalkan.url}"
       KAYA_URL: "${kaya.url}"
 
-  admin:
+  ulak:
     type: next
-    path: frontend/apps/admin
+    path: frontend/apps/ulak
     offset: 2
-    # frontend/apps/admin/kagi.yaml owns every key below; Kagi adds AUTH_SECRET,
+    # frontend/apps/ulak/kagi.yaml owns every key below; Kagi adds AUTH_SECRET,
     # AUTH_KEYCLOAK_ID and AUTH_KEYCLOAK_SECRET, which no manifest may set.
     kagi: true
     depends-on: [frontend-install, keycloak]
@@ -125,7 +125,7 @@ apps:
       BASE_URL: "${self.url}"
       API_BASE_URL: "${backend.url}"
       KAZAN_URL: "${kazan.url}"
-      ADMIN_URL: "${self.url}"
+      ULAK_URL: "${self.url}"
       ACCOUNT_URL: "${account.url}"
       OTAK_URL: "${otak.url}"
       KALKAN_URL: "${kalkan.url}"
@@ -147,7 +147,7 @@ apps:
       BASE_URL: "${self.url}"
       API_BASE_URL: "${backend.url}"
       KAZAN_URL: "${kazan.url}"
-      ADMIN_URL: "${admin.url}"
+      ULAK_URL: "${ulak.url}"
       ACCOUNT_URL: "${self.url}"
       OTAK_URL: "${otak.url}"
       KALKAN_URL: "${kalkan.url}"
@@ -169,7 +169,7 @@ apps:
       BASE_URL: "${self.url}"
       API_BASE_URL: "${backend.url}"
       KAZAN_URL: "${kazan.url}"
-      ADMIN_URL: "${admin.url}"
+      ULAK_URL: "${ulak.url}"
       ACCOUNT_URL: "${account.url}"
       OTAK_URL: "${self.url}"
       KALKAN_URL: "${kalkan.url}"
@@ -191,7 +191,7 @@ apps:
       BASE_URL: "${self.url}"
       API_BASE_URL: "${backend.url}"
       KAZAN_URL: "${kazan.url}"
-      ADMIN_URL: "${admin.url}"
+      ULAK_URL: "${ulak.url}"
       ACCOUNT_URL: "${account.url}"
       OTAK_URL: "${otak.url}"
       KALKAN_URL: "${self.url}"
@@ -213,7 +213,7 @@ apps:
       BASE_URL: "${self.url}"
       API_BASE_URL: "${backend.url}"
       KAZAN_URL: "${kazan.url}"
-      ADMIN_URL: "${admin.url}"
+      ULAK_URL: "${ulak.url}"
       ACCOUNT_URL: "${account.url}"
       OTAK_URL: "${otak.url}"
       KALKAN_URL: "${kalkan.url}"

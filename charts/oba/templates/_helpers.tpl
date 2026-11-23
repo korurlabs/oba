@@ -2,7 +2,7 @@
 The components, in the order they render.
 */}}
 {{- define "oba.components" -}}
-api kazan kaya kalkan otak admin account
+api kazan kaya kalkan otak ulak account
 {{- end }}
 
 {{- define "oba.name" -}}
