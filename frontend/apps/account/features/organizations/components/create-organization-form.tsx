@@ -34,9 +34,9 @@ import {
  * Form to create a new organization. Rendered by the thin
  * /organizations/new page.
  * On success `useCreateOrganization` refetches the cached queries and opens
- * the new organization in Admin. The active organization does not change.
+ * the new organization in Ulak. The active organization does not change.
  * The back link leads to the profile, which lists the user's organizations:
- * a user without an admin role has no organization list in Admin.
+ * a user without an admin role has no organization list in Ulak.
  *
  * There is no session-loading branch on purpose: the dashboard layout already
  * guarantees a session, and next-auth reports "loading" during every session
