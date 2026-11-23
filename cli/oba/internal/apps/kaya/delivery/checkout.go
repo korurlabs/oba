@@ -214,7 +214,8 @@ func (c *Checkout) recognize(list RepositoryList, remotes []gitRemote, lookup fu
 		return name, err
 	}}
 	for _, remote := range remotes {
-		if request, normalized, ok := ListedRemote(list, remote.url, resolver); ok {
+		// rule-10-no-op -- reason: the Lookup above keeps every host ssh cannot resolve in c.Unresolved, with its error, and the warning would repeat it.
+		if request, normalized, _, ok := ListedRemote(list, remote.url, resolver); ok {
 			c.Remote, c.RemoteName, c.requestRemote = normalized, remote.name, request
 			return
 		}
@@ -225,21 +226,22 @@ func (c *Checkout) recognize(list RepositoryList, remotes []gitRemote, lookup fu
 // and else with its ssh host alias resolved through resolver, so that a clone over an alias counts
 // as a clone over the host. request is the form that matched, as Kaya is asked about it, and
 // normalized the list's entry; ok is false when neither form is on the list. A host the resolver
-// cannot resolve leaves only the remote as written, and the resolver's Lookup receives the error.
-func ListedRemote(list RepositoryList, remote string, resolver *seed.RemoteResolver) (request, normalized string, ok bool) {
+// cannot resolve leaves only the remote as written, and warning is the resolver's warning, given
+// only on its first lookup of that host. The warning names the remote and its host, so a remote
+// off the list must not reach a log or Kaya through it.
+func ListedRemote(list RepositoryList, remote string, resolver *seed.RemoteResolver) (request, normalized, warning string, ok bool) {
 	cleaned := seed.CleanRemote(strings.TrimSpace(remote))
 	if normalized := seed.NormalizeRemote(cleaned); list.Has(normalized) {
-		return cleaned, normalized, true
+		return cleaned, normalized, "", true
 	}
-	// rule-10-no-op -- reason: the warning names the remote and repeats the lookup error, which the resolver's Lookup already receives.
-	resolved, _ := resolver.Resolve(cleaned)
+	resolved, warning := resolver.Resolve(cleaned)
 	if resolved == cleaned {
-		return "", "", false
+		return "", "", warning, false
 	}
 	if normalized := seed.NormalizeRemote(resolved); list.Has(normalized) {
-		return resolved, normalized, true
+		return resolved, normalized, "", true
 	}
-	return "", "", false
+	return "", "", "", false
 }
 
 // Paths of the checkout's local delivery state; .kaya/ is gitignored after the cutover.

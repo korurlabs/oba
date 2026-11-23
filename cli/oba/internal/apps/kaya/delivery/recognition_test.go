@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/korurlabs/oba-cli/internal/apps/kaya/seed"
 )
 
 // isolateConfig keeps the user's own configuration out of a test: git reads no global or system
@@ -265,6 +267,28 @@ func TestRecognize_anSSHAliasIsResolvedToTheListedHost(t *testing.T) {
 	})
 	if c.Remote != "github.com/example/app" || asked {
 		t.Fatalf("checkout = %+v, ssh asked = %v", c, asked)
+	}
+}
+
+func TestListedRemote_aHostSSHCannotResolveIsAWarningNotAMatch(t *testing.T) {
+	list := RepositoryList{OrganizationID: testOrg, Remotes: []string{"github.com/example/app"}}
+	resolver := &seed.RemoteResolver{Lookup: func(host string) (string, error) {
+		if host == "broken" {
+			return "", errors.New("ssh -G broken exited 255")
+		}
+		return host, nil
+	}}
+	request, normalized, warning, ok := ListedRemote(list, "git@broken:example/app.git", resolver)
+	if ok || request != "" || normalized != "" {
+		t.Fatalf("ListedRemote = %q, %q, %v; want no match", request, normalized, ok)
+	}
+	if !strings.Contains(warning, "exited 255") {
+		t.Fatalf("warning = %q, want the lookup error", warning)
+	}
+
+	// A remote off the list whose host ssh resolves gives no warning.
+	if _, _, warning, ok := ListedRemote(list, "git@gitlab.com:example/app.git", resolver); ok || warning != "" {
+		t.Fatalf("ListedRemote of an unlisted remote = %v with warning %q, want no match and no warning", ok, warning)
 	}
 }
 
