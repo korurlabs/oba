@@ -2,7 +2,7 @@
 
 import type { LucideIcon } from "lucide-react";
 import { Building2, Columns3, Mail, Settings, Siren, User } from "lucide-react";
-import { ACCOUNT_LINKS, ADMIN_LINKS } from "@oba/shared/constants/apps";
+import { ACCOUNT_LINKS, ULAK_LINKS } from "@oba/shared/constants/apps";
 import { canManageOrganizations } from "@oba/shared/features/organizations/lib/managed-organizations";
 import { useGetMe } from "@oba/shared/features/users/hooks/use-get-me";
 import { useTranslations } from "next-intl";
@@ -27,7 +27,7 @@ interface AccountTab {
 /**
  * The account screens. `id` doubles as the label key in the `sidebar`
  * namespace. Profile, my invitations and general settings are screens of the
- * account app, and organizations an Admin screen, so their tabs leave Kazan
+ * account app, and organizations a Ulak screen, so their tabs leave Kazan
  * and are never active here. Built on render, because the other apps' origins
  * are known only once the run-time config has arrived.
  */
@@ -36,17 +36,17 @@ const accountTabs = (): AccountTab[] => [
   { id: "invitations", href: ACCOUNT_LINKS.invitations, icon: Mail },
   { id: "general", href: ACCOUNT_LINKS.settings, icon: Settings },
   { id: "tableColumns", href: "/settings/columns", icon: Columns3 },
-  { id: "organizations", href: ADMIN_LINKS.organizations, icon: Building2 },
+  { id: "organizations", href: ULAK_LINKS.organizations, icon: Building2 },
   { id: "alerts", href: "/settings/alerts", icon: Siren },
 ];
 
 /**
  * Navigation row shared by the Kazan settings screens (table columns,
  * alerts), with the account app screens (profile, my invitations, general
- * settings) and the Admin organizations screen beside them. Rendered by the
+ * settings) and the Ulak organizations screen beside them. Rendered by the
  * `(account)` layout, so it stays on screen when one of those pages throws.
  * The organizations tab shows only for a user who manages an organization,
- * since Admin refuses everyone else; while the user is unknown it stays hidden.
+ * since Ulak refuses everyone else; while the user is unknown it stays hidden.
  *
  * Modelled on `board-tabs.tsx`: a row of links whose active tab comes from the
  * pathname. The row scrolls horizontally when the tabs do not fit the width.

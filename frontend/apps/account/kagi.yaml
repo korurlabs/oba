@@ -20,7 +20,7 @@ local:
     - BASE_URL
     - API_BASE_URL
     - KAZAN_URL
-    - ADMIN_URL
+    - ULAK_URL
     - ACCOUNT_URL
     - OTAK_URL
     - KALKAN_URL
