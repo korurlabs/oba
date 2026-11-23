@@ -118,7 +118,7 @@ public class OrganizationController {
     /**
      * Retrieves organization details by id.
      *
-     * The detail is a screen of the admin app, which is for the owners and admins
+     * The detail is a screen of the Ulak app, which is for the owners and admins
      * of an organization, so the minimum role is {@link OrganizationMemberRole#ADMIN}.
      * The access interceptor is the only check: the service adds none.
      */

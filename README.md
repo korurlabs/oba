@@ -8,7 +8,7 @@ Oba is the agentic operations platform for mission-critical companies. It is one
 | Kaya | The agent configuration and session log of AI coding agents: rules, skills and lessons delivered to sessions as signed releases, and the sessions recorded back. |
 | Kalkan | A docs app: pages that developers and agents read and write from the browser or the terminal. |
 | Otak | Relations: leads, customers and suppliers, their contacts, events, document and mail templates, and outreach. |
-| Admin | Platform administration of organizations. |
+| Ulak | Platform administration of organizations. |
 | Account | A user's profile, organizations, invitations and onboarding. |
 
 ## Stack
@@ -23,7 +23,7 @@ Oba is the agentic operations platform for mission-critical companies. It is one
 backend/             the Oba API (package com.korur.oba): apps under apps.<app>, platform packages dojo, shrine, connect
   docker-compose.yaml    PostgreSQL, Keycloak (realm "sensey", imported on start) and Azurite for local development
 frontend/            the Bun workspace
-  apps/              kazan, kaya, kalkan, otak, admin, account, kazan-mobile
+  apps/              kazan, kaya, kalkan, otak, ulak, account, kazan-mobile
   packages/          ui, shared
   tooling/           eslint, prettier and typescript configs
 cli/
@@ -67,7 +67,7 @@ cd apps/kazan
 bun run dev
 ```
 
-Each web app has a fixed dev port (`kazan` 3002, `kaya` 3014, `admin` 3016, `account` 3017, `otak` 3018, `kalkan` 3019). An app reads its settings from the environment at run time: `API_BASE_URL` (`http://localhost:8080`), `AUTH_URL` and `BASE_URL` (the app's own URL), `AUTH_SECRET` (any random string; Kazan, Admin, Account, Otak and Kalkan share one session cookie, so they need the same value), and `AUTH_KEYCLOAK_ISSUER` (`http://localhost:8086/realms/sensey`), `AUTH_KEYCLOAK_ID` (`oba`) and `AUTH_KEYCLOAK_SECRET` (the secret of the `oba` client in the imported realm). The URLs of the other apps go in `KAZAN_URL`, `KAYA_URL`, `KALKAN_URL`, `OTAK_URL`, `ADMIN_URL` and `ACCOUNT_URL`.
+Each web app has a fixed dev port (`kazan` 3002, `kaya` 3014, `ulak` 3016, `account` 3017, `otak` 3018, `kalkan` 3019). An app reads its settings from the environment at run time: `API_BASE_URL` (`http://localhost:8080`), `AUTH_URL` and `BASE_URL` (the app's own URL), `AUTH_SECRET` (any random string; Kazan, Ulak, Account, Otak and Kalkan share one session cookie, so they need the same value), and `AUTH_KEYCLOAK_ISSUER` (`http://localhost:8086/realms/sensey`), `AUTH_KEYCLOAK_ID` (`oba`) and `AUTH_KEYCLOAK_SECRET` (the secret of the `oba` client in the imported realm). The URLs of the other apps go in `KAZAN_URL`, `KAYA_URL`, `KALKAN_URL`, `OTAK_URL`, `ULAK_URL` and `ACCOUNT_URL`.
 
 ### With devstack
 
