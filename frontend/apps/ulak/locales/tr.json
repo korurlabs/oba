@@ -1,7 +1,6 @@
 {
   "metadata": {
-    "description": "Organizasyonlarınızı, üyelerini ve davetlerini yönetin",
-    "organization": "Organizasyon"
+    "description": "Organizasyonlarınızı, üyelerini ve davetlerini yönetin"
   },
   "sidebar": {
     "navigation": "Gezinme",
@@ -12,7 +11,6 @@
     "access": "Erişim",
     "invitations": "Davetler",
     "organizationSettings": "Organizasyon ayarları",
-    "newOrganization": "Yeni Organizasyon",
     "language": "Dil"
   },
   "organizationGate": {
@@ -43,7 +41,6 @@
     }
   },
   "organization": {
-    "description": "Organizasyon bilgilerinizi görüntüleyin ve yönetin",
     "name": "Organizasyon Adı",
     "namePlaceholder": "Acme A.Ş.",
     "companyInfo": "Şirket Bilgileri",
@@ -71,20 +68,6 @@
     "updatedAt": "Son Güncelleme",
     "notFound": "Organizasyon bulunamadı",
     "notFoundDescription": "Bu organizasyon silinmiş olabilir veya artık erişiminiz yok.",
-    "backToOrganizations": "Organizasyonlara Dön",
-    "listTitle": "Organizasyonlar",
-    "listDescription": "Organizasyonlarınızı görüntüleyin ve yönetin",
-    "noOrganizations": "Organizasyon bulunamadı",
-    "noOrganizationsDescription": "Henüz yönettiğiniz bir organizasyon yok. Hesabınızda bir tane oluşturun veya bir sahibinden sizi kendi organizasyonuna yönetici yapmasını isteyin.",
-    "role": "Rol",
-    "tabs": {
-      "detail": "Detay",
-      "members": "Üyeler",
-      "invitations": "Davetler",
-      "legalEntities": "Tüzel kişiler",
-      "groups": "Gruplar",
-      "access": "Erişim"
-    },
     "members": {
       "title": "Üyeler",
       "noMembers": "Üye bulunamadı",
@@ -160,7 +143,6 @@
     "descriptionMaxLength": "Açıklama en fazla 512 karakter olmalıdır",
     "websiteMaxLength": "Web sitesi en fazla 512 karakter olmalıdır",
     "record": "Kayıt",
-    "loading": "Organizasyonlar yükleniyor",
     "loadingOrganization": "Organizasyon yükleniyor",
     "legalEntities": {
       "title": "Tüzel kişiler",
