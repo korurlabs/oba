@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { Mail, Settings, User } from "lucide-react";
+import { Bell, Building2, Mail, Settings, ShieldCheck, User } from "lucide-react";
 import type { ReactNode } from "react";
 import { AppSwitcher } from "@oba/shared/components/app-header/app-switcher";
 import { OrganizationSelector } from "@oba/shared/components/app-header/organization-selector";
@@ -11,6 +11,7 @@ import { LanguageSwitcherSubMenu } from "@oba/shared/components/language-switche
 import { Link, usePathname } from "@oba/shared/libs/i18n/navigation";
 import { SkyAppShell, type SkyNavSection } from "@oba/ui/sky/app-shell";
 import { SUPPORTED_LOCALES } from "@/lib/i18n/supported-locales";
+import { AccountLogo } from "./account-logo";
 import { AccountSessionSync } from "./account-session-sync";
 
 /**
@@ -21,12 +22,13 @@ const PROFILE_HREF = "/";
 
 /**
  * Page frame of every signed-in Account page, shared by the gateway profile
- * page and the dashboard layout: the shared sky shell with the profile and the
- * invitations in the menu, Settings at its foot, and the organization
- * selector (every organization of the user, as Account is open in each), the
- * app switcher and the account menu in the top bar. The links and the active
- * page go through the locale-aware navigation, so a locale prefix neither
- * breaks a link nor hides the page in view.
+ * page and the dashboard layout: the shared sky shell with the profile, the
+ * organizations, security, notifications and invitations in the menu, Settings
+ * at its foot, and the organization selector (every organization of the user,
+ * as Account is open in each), the app switcher and the account menu in the
+ * top bar. The links and the active page go through the locale-aware
+ * navigation, so a locale prefix neither breaks a link nor hides the page in
+ * view.
  */
 export function AccountShell({ children }: { children: ReactNode }) {
   const t = useTranslations("sidebar");
@@ -38,6 +40,9 @@ export function AccountShell({ children }: { children: ReactNode }) {
       label: t("navigation"),
       items: [
         { label: t("profile"), href: "/", icon: User },
+        { label: t("organizations"), href: "/organizations", icon: Building2 },
+        { label: t("security"), href: "/security", icon: ShieldCheck },
+        { label: t("notifications"), href: "/notifications", icon: Bell },
         { label: t("invitations"), href: "/invitations", icon: Mail },
       ],
     },
@@ -45,18 +50,7 @@ export function AccountShell({ children }: { children: ReactNode }) {
 
   return (
     <SkyAppShell
-      logo={
-        <span className="flex items-center gap-2">
-          <Image
-            src="/assets/korur-mark.png"
-            alt=""
-            width={24}
-            height={24}
-            className="rounded bg-white"
-          />
-          <span className="text-sm font-semibold">{tApps("account.name")}</span>
-        </span>
-      }
+      logo={<AccountLogo className="h-6 w-auto sm:h-7" />}
       homeLabel={tApps("account.name")}
       actions={
         <>
