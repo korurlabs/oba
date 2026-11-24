@@ -1,5 +1,7 @@
 # Oba
 
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/korur)](https://artifacthub.io/packages/search?repo=korur)
+
 Oba is the agentic operations platform for mission-critical companies. It is one API and one web workspace that host several apps sharing the same sign-in, organizations and members.
 
 | App | What it does |
