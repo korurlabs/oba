@@ -134,6 +134,9 @@ jobs:
           scan-ref: .
           scanners: vuln,secret,misconfig
           ignore-unfixed: true
+          # The vulnerabilities the release scan accepts until a set date are left out here
+          # too. Trivy loads a YAML ignore file only when it is named.
+          trivyignores: .trivyignore.yaml
           format: sarif
           output: ${{ runner.temp }}/trivy-results.sarif
 

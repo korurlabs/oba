@@ -3,8 +3,37 @@
     "description": "Organizasyonunuzun politikaları, prosedürleri ve dokümanları"
   },
   "sidebar": {
-    "label": "Sayfalar",
-    "language": "Dil"
+    "language": "Dil",
+    "overview": "Genel bakış",
+    "groups": {
+      "compliance": "Uyum",
+      "inventory": "Envanter",
+      "knowledge": "Bilgi",
+      "legal": "Hukuk"
+    },
+    "sections": {
+      "frameworks": "Çerçeve",
+      "controls": "Kontrol",
+      "policies": "Politika",
+      "risks": "Risk",
+      "evidence": "Kanıt",
+      "audits": "Tetkik",
+      "assets": "Varlık",
+      "suppliers": "Tedarikçi",
+      "access": "Erişim",
+      "architecture": "Mimari",
+      "protection": "Koruma",
+      "monitoring": "İzleme",
+      "infrastructure": "Altyapı",
+      "guides": "Rehber",
+      "laws": "Yasa",
+      "incentives": "Teşvik"
+    },
+    "newPage": "Yeni sayfa",
+    "recent": "Son değişiklikler",
+    "trash": "Çöp kutusu",
+    "expand": "{name} sayfalarını göster",
+    "collapse": "{name} sayfalarını gizle"
   },
   "errors": {
     "somethingWentWrong": "Bir şeyler yanlış gitti",
@@ -27,5 +56,352 @@
     "title": "Henüz organizasyon yok",
     "description": "Kalkan bir organizasyonun dokümanlarını tutar. Önce hesabınızda bir organizasyon oluşturun veya birine katılın.",
     "action": "Hesabınızı açın"
+  },
+  "sections": {
+    "loading": "Bölüm yükleniyor",
+    "loadError": "Bölüm yüklenemedi",
+    "notSetUp": {
+      "title": "Bu bölüm henüz kurulmadı",
+      "description": "Kurması için bir organizasyon yöneticisine başvurun.",
+      "adminDescription": "Sayfalarını eklemeye başlamak için bölümü kurun.",
+      "action": "Bölümü kur"
+    },
+    "inTrash": {
+      "title": "Bu bölüm çöp kutusunda",
+      "description": "Bölümün sayfası, altındaki tüm sayfalarla birlikte {date} tarihinde {name} tarafından silindi. Bölümü geri getirmek için geri yükleyin.",
+      "descriptionUnknown": "Bölümün sayfası, altındaki tüm sayfalarla birlikte {date} tarihinde silindi. Bölümü geri getirmek için geri yükleyin.",
+      "restore": "Bölümü geri yükle",
+      "openTrash": "Çöp kutusunu aç",
+      "loadError": "Çöp kutusu yüklenemedi"
+    }
+  },
+  "pages": {
+    "view": {
+      "title": "Sayfa",
+      "loading": "Sayfa yükleniyor",
+      "loadError": "Sayfa yüklenemedi",
+      "retry": "Tekrar dene"
+    },
+    "toast": {
+      "created": "Sayfa oluşturuldu",
+      "createError": "Sayfa oluşturulamadı",
+      "updated": "Sayfa kaydedildi",
+      "updateError": "Sayfa kaydedilemedi",
+      "moved": "Sayfa taşındı",
+      "moveError": "Sayfa taşınamadı",
+      "deleted": "Sayfa çöp kutusuna taşındı",
+      "deleteError": "Sayfa silinemedi",
+      "restored": "Sayfa geri yüklendi",
+      "restoreError": "Sayfa geri yüklenemedi",
+      "permissionsSaved": "Erişim kaydedildi",
+      "permissionsError": "Erişim kaydedilemedi",
+      "sectionSetUp": "Bölüm kuruldu",
+      "sectionSetUpError": "Bölüm kurulamadı"
+    },
+    "errors": {
+      "levelTooLow": "Bu işlem için bu sayfadaki erişim düzeyiniz yetersiz.",
+      "attachmentKept": "Sayfa ekleri kayıt olarak saklanır ve silinemez.",
+      "notFound": "Bu sayfa yok ya da sayfaya erişiminiz yok.",
+      "slugTaken": "Bu konumdaki başka bir sayfa bu adresi zaten kullanıyor.",
+      "versionOutdated": "Bu sayfa bu arada başka biri tarafından değiştirildi. Sayfayı yeniden yükleyip değişikliğinizi tekrar uygulayın.",
+      "parentDeleted": "Üst sayfa çöp kutusunda. Önce onu geri yükleyin.",
+      "subjectNotActive": "Bu kişi organizasyonun etkin bir üyesi değil.",
+      "guestAboveView": "Bir misafire yalnızca görüntüleme erişimi verilebilir.",
+      "moveInvalid": "Sayfa kendi alt sayfalarına, 10 düzeyden daha derine ya da başka bir bölüme taşınamaz.",
+      "duplicateLocale": "Bir dil birden fazla kez verilmiş.",
+      "permissionOnChild": "Erişim bölümde ayarlanır, alt sayfalarında değil.",
+      "reservedSlug": "Bu adres ayrılmıştır ve bir bölümü adlandıramaz.",
+      "rootSlugFixed": "Bir bölümün adresi değiştirilemez, çünkü bölümün menüdeki yeridir.",
+      "notDeleted": "Bu sayfa çöp kutusunda değil.",
+      "validation": "Bazı alanlar geçerli değil. Kontrol edip tekrar deneyin."
+    }
+  },
+  "overview": {
+    "title": "Genel bakış",
+    "subtitle": "Uyum vikinizin bölümleri ve son değişiklikler.",
+    "loading": "Bölümler yükleniyor",
+    "loadError": "Bölümler yüklenemedi",
+    "sectionsLabel": "Bölümler",
+    "pageCount": "{count, plural, =0 {Henüz sayfa yok} other {# sayfa}}",
+    "notSetUp": "Kurulmadı",
+    "recentTitle": "Son değişiklikler",
+    "recentLoading": "Son değişiklikler yükleniyor",
+    "recentLoadError": "Son değişiklikler yüklenemedi",
+    "recentEmpty": "Henüz hiçbir sayfa değiştirilmedi.",
+    "viewAll": "Tümünü gör"
+  },
+  "recent": {
+    "title": "Son değişiklikler",
+    "subtitle": "Görebildiğiniz her bölümde en son değiştirilen sayfalar.",
+    "loading": "Son değişiklikler yükleniyor",
+    "loadError": "Son değişiklikler yüklenemedi",
+    "empty": "Henüz değişiklik yok",
+    "emptyHint": "Biri bir sayfa oluşturduğunda veya düzenlediğinde sayfalar burada görünür.",
+    "tableLabel": "Son değiştirilen sayfalar",
+    "unknownUser": "Bilinmiyor",
+    "columns": {
+      "title": "Sayfa",
+      "section": "Bölüm",
+      "updatedAt": "Değişiklik",
+      "updatedBy": "Kişi"
+    }
+  },
+  "trash": {
+    "title": "Çöp kutusu",
+    "subtitle": "Geri yükleyebileceğiniz silinmiş sayfalar ve onlarla birlikte silinen sayfalar.",
+    "loading": "Çöp kutusu yükleniyor",
+    "loadError": "Çöp kutusu yüklenemedi",
+    "empty": "Çöp kutusu boş",
+    "emptyHint": "Yönettiğiniz silinmiş sayfalar geri yüklenene kadar burada görünür.",
+    "membersOnly": "Çöp kutusunu yalnızca üyeler açabilir",
+    "membersOnlyHint": "Misafirler sayfaları okur ama geri yükleyemez.",
+    "tableLabel": "Silinmiş sayfalar",
+    "unknownUser": "Bilinmiyor",
+    "columns": {
+      "title": "Sayfa",
+      "deletedAt": "Silinme",
+      "deletedBy": "Kişi",
+      "descendants": "Alt sayfalar",
+      "actions": "İşlemler"
+    },
+    "restore": "Geri yükle",
+    "restoreLabel": "{title} sayfasını geri yükle",
+    "parentFirst": "Üst sayfası da çöp kutusunda. Önce üst sayfayı geri yükleyin."
+  },
+  "history": {
+    "title": "Geçmiş",
+    "loading": "Geçmiş yükleniyor",
+    "loadError": "Geçmiş yüklenemedi",
+    "empty": "Henüz sürüm yok",
+    "emptyHint": "Sayfanın her kaydı buraya bir sürüm ekler.",
+    "tableLabel": "Sayfanın sürümleri",
+    "backToPage": "Sayfaya dön",
+    "unknownUser": "Bilinmiyor",
+    "columns": {
+      "version": "Sürüm",
+      "locale": "Dil",
+      "title": "Başlık",
+      "createdAt": "Kayıt",
+      "createdBy": "Kişi"
+    },
+    "locales": {
+      "TR": "Türkçe",
+      "EN": "İngilizce"
+    },
+    "revisionLoading": "Sürüm yükleniyor",
+    "revisionLoadError": "Sürüm yüklenemedi",
+    "revisionHeading": "Sürüm {version}, {locale}",
+    "revisionMeta": "{when} tarihinde {name} kaydetti",
+    "modeLabel": "Sürümün gösterimi",
+    "modeRevision": "Sürüm",
+    "modeCompare": "Güncel metinle karşılaştır",
+    "thisRevision": "Bu sürüm",
+    "current": "Güncel",
+    "noCurrent": "Sayfanın bu dilde güncel metni yok.",
+    "emptyBody": "Bu metin boş.",
+    "added": "Güncel metinde eklendi",
+    "removed": "Güncel metinde yok",
+    "compareTooLarge": "Bu metinler farkları işaretlemek için çok uzun; yan yana gösteriliyor."
+  },
+  "sectionTree": {
+    "label": "{section} sayfaları",
+    "newPage": "Yeni sayfa",
+    "sectionPage": "Bölüm sayfası",
+    "empty": {
+      "title": "Henüz sayfa yok",
+      "editorDescription": "Bu bölümün ilk sayfasını ekleyin.",
+      "readerDescription": "Bu bölüme eklenen sayfalar burada görünür."
+    },
+    "expand": "{title} sayfasını aç",
+    "collapse": "{title} sayfasını kapat",
+    "compliance": "Uyum",
+    "actions": "{title} için işlemler",
+    "dragHandle": "{title} sayfasını taşımak için sürükleyin",
+    "dropHint": "Bir sayfayı başka bir sayfanın üzerine bırakarak onun hemen önüne yerleştirin.",
+    "moving": "Sayfa taşınıyor",
+    "moveUp": "Yukarı taşı",
+    "moveDown": "Aşağı taşı",
+    "indent": "Üstteki sayfanın içine taşı",
+    "outdent": "Bir seviye dışarı taşı",
+    "newChild": "Yeni alt sayfa",
+    "edit": "Düzenle",
+    "delete": "Sil",
+    "deleted": {
+      "title": "Silinen sayfalar",
+      "description": "Bu bölümün çöp kutusundaki sayfaları. Geri yükleme, silmenin götürdüğü sayfaları da geri getirir.",
+      "loadError": "Silinen sayfalar yüklenemedi",
+      "untitled": "Başlıksız sayfa",
+      "meta": "{date} tarihinde {name} sildi",
+      "metaUnknown": "{date} tarihinde silindi",
+      "descendants": "{count, plural, =0 {altında sayfa yok} other {altında # sayfa}}",
+      "restore": "Geri yükle",
+      "restoreLabel": "{title} sayfasını geri yükle",
+      "parentFirst": "Önce üst sayfayı geri yükleyin: {path} hâlâ çöp kutusundaki bir sayfanın altında."
+    }
+  },
+  "pageView": {
+    "breadcrumb": "Gezinti yolu",
+    "compliance": "Uyum",
+    "language": "İçerik dili",
+    "locales": {
+      "TR": "Türkçe",
+      "EN": "English"
+    },
+    "fallback": "Bu sayfanın henüz {wanted} sürümü yok, bu yüzden {shown} sürümü gösteriliyor.",
+    "emptyBody": "Bu sayfanın henüz içeriği yok.",
+    "body": "Sayfa içeriği",
+    "updated": "{date} tarihinde {name} güncelledi",
+    "updatedUnknown": "{date} tarihinde güncellendi",
+    "edit": "Düzenle",
+    "newChild": "Yeni alt sayfa",
+    "history": "Geçmiş",
+    "permissions": "Erişim",
+    "delete": "Sil",
+    "back": "Genel bakışa dön",
+    "notFound": {
+      "title": "Sayfa bulunamadı",
+      "description": "Bu sayfa yok ya da sayfaya erişiminiz yok."
+    },
+    "noAccess": {
+      "title": "Bu sayfaya erişiminiz yok",
+      "description": "Erişiminiz bu sayfayı kapsamıyor. Bölümün yöneticisinden erişim isteyin."
+    },
+    "deleted": {
+      "title": "Bu sayfa çöp kutusunda",
+      "description": "{date} tarihinde silindi. Yeniden okumak ve düzenlemek için geri yükleyin.",
+      "restore": "Sayfayı geri yükle",
+      "parentFirst": "Önce üst sayfayı geri yükleyin: bu sayfa hâlâ çöp kutusundaki bir sayfanın altında."
+    },
+    "deleteDialog": {
+      "title": "Bu sayfa silinsin mi?",
+      "description": "{title} {count, plural, =0 {çöp kutusuna taşınır} other {altındaki # sayfayla birlikte çöp kutusuna taşınır}}. Çöp kutusundan geri yüklenebilir.",
+      "confirm": "Sil",
+      "deleting": "Siliniyor",
+      "cancel": "Vazgeç"
+    }
+  },
+  "pageForm": {
+    "back": "Geri",
+    "backToPage": "Sayfaya dön",
+    "loading": "Sayfalar yükleniyor",
+    "treeLoadError": "Sayfalar yüklenemedi",
+    "retry": "Tekrar dene",
+    "newTitle": "Yeni sayfa",
+    "newSubtitle": "Sayfayı Türkçe, İngilizce ya da iki dilde yazın. Dosyalar sayfa kaydedildikten sonra eklenebilir.",
+    "editTitle": "{title} sayfasını düzenle",
+    "metaEdit": "Sayfayı düzenle",
+    "cancel": "Vazgeç",
+    "languages": "Diller",
+    "locales": {
+      "TR": "Türkçe",
+      "EN": "English"
+    },
+    "tabHasErrors": "Bu dilde düzeltilecek alanlar var",
+    "sections": {
+      "content": "İçerik",
+      "settings": "Ayarlar"
+    },
+    "title": "Başlık",
+    "body": "Metin",
+    "bodyPlaceholder": "Sayfayı Markdown ile yazın",
+    "parent": "Üst sayfa",
+    "parentPlaceholder": "Sayfanın yerini seçin",
+    "parentSearch": "Sayfa ara",
+    "slug": "Adres",
+    "slugHint": "Sayfa yolunun parçası. Harf, rakam, nokta, tire ve alt çizgi.",
+    "slugRootHint": "Bir bölümün adresi sabittir, çünkü bölümün menüdeki yeridir.",
+    "compliance": "Uyum sayfası",
+    "complianceHint": "Politika ya da kontrol gibi bir uyum kaydı sayılır.",
+    "unsavedChanges": "Kaydedilmemiş değişiklikler",
+    "discard": "Değişiklikleri at",
+    "create": "Sayfa oluştur",
+    "creating": "Oluşturuluyor...",
+    "save": "Sayfayı kaydet",
+    "saving": "Kaydediliyor...",
+    "noParent": {
+      "title": "Sayfa eklenecek yer yok",
+      "description": "Yalnızca düzenleme erişiminiz olan bir bölüme sayfa ekleyebilirsiniz. Bir bölüm yöneticisinden erişim isteyin.",
+      "action": "Genel bakışa git"
+    },
+    "readOnly": {
+      "title": "Bu sayfayı okuyabilir ama düzenleyemezsiniz",
+      "description": "Düzenlemek için bölümde düzenleme erişimi gerekir. Bir bölüm yöneticisinden isteyin."
+    },
+    "conflict": {
+      "title": "Bu sayfayı başka biri değiştirdi",
+      "description": "Sayfa siz açtıktan sonra başka biri tarafından kaydedildi, bu yüzden değişiklikleriniz kaydedilmedi. Metniniz formda duruyor: gerekeni kopyalayın, sonra en son sürümü yükleyin. Yeniden yükleme kaydedilmemiş metninizi siler.",
+      "reload": "En son sürümü yükle",
+      "reloading": "Yükleniyor..."
+    },
+    "errors": {
+      "titleMax": "Başlık en fazla 200 karakter olabilir.",
+      "bodyMax": "Metin en fazla 500.000 karakter olabilir.",
+      "slugRequired": "Bir adres girin.",
+      "slugInvalid": "Harf ya da rakamla başlayın; yalnızca harf, rakam, nokta, tire ve alt çizgi kullanın (en fazla 100).",
+      "titleRequired": "En az bir dilde başlık girin.",
+      "titleKept": "Bu dil zaten kayıtlı ve başlık gerektirir.",
+      "titleForBody": "Bu dil için bir başlık girin ya da metnini silin.",
+      "parentRequired": "Bir üst sayfa seçin."
+    },
+    "attachments": {
+      "title": "Dosyalar",
+      "description": "Bu sayfaya eklenen dosyalar kayıt olarak saklanır ve silinemez.",
+      "loadError": "Dosyalar yüklenemedi",
+      "retry": "Tekrar dene",
+      "loading": "Dosyalar yükleniyor",
+      "empty": "Henüz dosya eklenmedi.",
+      "insertLink": "Bağlantı ekle",
+      "insertLinkFor": "{name} bağlantısını {language} metnine ekle",
+      "afterCreate": "Dosyalar sayfa kaydedildikten sonra eklenebilir.",
+      "uploadMissing": "Sunucu yüklenen dosyayı döndürmedi."
+    }
+  },
+  "permissions": {
+    "meta": "Erişim",
+    "title": "{title} erişimi",
+    "subtitle": "Bu bölümü ve içindeki her sayfayı kimin görüntüleyebileceği, düzenleyebileceği ya da yönetebileceği.",
+    "backToPage": "Sayfaya dön",
+    "retry": "Tekrar dene",
+    "loading": "Erişim listesi yükleniyor",
+    "loadError": "Erişim listesi yüklenemedi",
+    "onChild": {
+      "title": "Erişim bölümde belirlenir",
+      "description": "Bir sayfa bölümünün erişimini taşır. Erişimi bölümün kök sayfasında değiştirin.",
+      "action": "Bölüm erişimini aç"
+    },
+    "noAccess": {
+      "title": "Burada erişimi değiştiremezsiniz",
+      "description": "Erişimi yalnızca bölümde yönetme erişimi olanlar görebilir ve değiştirebilir."
+    },
+    "levels": {
+      "VIEW": "Görüntüle",
+      "EDIT": "Düzenle",
+      "MANAGE": "Yönet"
+    },
+    "add": {
+      "title": "Üye ekle",
+      "member": "Üye",
+      "memberPlaceholder": "Bir üye seçin",
+      "memberSearch": "Üye ara",
+      "level": "Erişim",
+      "action": "Ekle",
+      "membersLoadError": "Üyeler yüklenemedi. Tekrar denemek için sayfayı yenileyin.",
+      "guestHint": "Bir misafire yalnızca görüntüleme erişimi verilebilir."
+    },
+    "list": {
+      "title": "Erişimi olanlar",
+      "empty": "Henüz kimseye erişim verilmedi.",
+      "subject": "Üye",
+      "level": "Erişim",
+      "actions": "İşlemler",
+      "group": "Grup",
+      "guest": "Misafir",
+      "remove": "{name} kişisini kaldır"
+    },
+    "saveErrorTitle": "Erişim kaydedilmedi",
+    "unsavedChanges": "Kaydedilmemiş değişiklikler",
+    "discard": "Değişiklikleri at",
+    "save": "Erişimi kaydet",
+    "saving": "Kaydediliyor..."
   }
 }

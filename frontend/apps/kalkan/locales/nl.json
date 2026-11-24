@@ -3,8 +3,37 @@
     "description": "Beleid, procedures en documenten van je organisatie"
   },
   "sidebar": {
-    "label": "Pagina's",
-    "language": "Taal"
+    "language": "Taal",
+    "overview": "Overzicht",
+    "groups": {
+      "compliance": "Naleving",
+      "inventory": "Inventaris",
+      "knowledge": "Kennis",
+      "legal": "Juridisch"
+    },
+    "sections": {
+      "frameworks": "Raamwerk",
+      "controls": "Beheersmaatregel",
+      "policies": "Beleid",
+      "risks": "Risico",
+      "evidence": "Bewijs",
+      "audits": "Audit",
+      "assets": "Bedrijfsmiddel",
+      "suppliers": "Leverancier",
+      "access": "Toegang",
+      "architecture": "Architectuur",
+      "protection": "Bescherming",
+      "monitoring": "Monitoring",
+      "infrastructure": "Infrastructuur",
+      "guides": "Handleiding",
+      "laws": "Wet",
+      "incentives": "Subsidie"
+    },
+    "newPage": "Nieuwe pagina",
+    "recent": "Recente wijzigingen",
+    "trash": "Prullenbak",
+    "expand": "Pagina's van {name} tonen",
+    "collapse": "Pagina's van {name} verbergen"
   },
   "errors": {
     "somethingWentWrong": "Er is iets misgegaan",
@@ -27,5 +56,352 @@
     "title": "Nog geen organisatie",
     "description": "Kalkan bewaart de documenten van een organisatie. Maak er eerst een aan of word lid van een in je account.",
     "action": "Open je account"
+  },
+  "sections": {
+    "loading": "Sectie laden",
+    "loadError": "De sectie kon niet worden geladen",
+    "notSetUp": {
+      "title": "Deze sectie is nog niet ingericht",
+      "description": "Vraag een beheerder van de organisatie om haar in te richten.",
+      "adminDescription": "Richt haar in om pagina's toe te voegen.",
+      "action": "Sectie inrichten"
+    },
+    "inTrash": {
+      "title": "Deze sectie ligt in de prullenbak",
+      "description": "Haar pagina is op {date} door {name} verwijderd, met alle pagina's eronder. Herstel haar om de sectie terug te brengen.",
+      "descriptionUnknown": "Haar pagina is op {date} verwijderd, met alle pagina's eronder. Herstel haar om de sectie terug te brengen.",
+      "restore": "Sectie herstellen",
+      "openTrash": "Prullenbak openen",
+      "loadError": "De prullenbak kon niet worden geladen"
+    }
+  },
+  "pages": {
+    "view": {
+      "title": "Pagina",
+      "loading": "Pagina laden",
+      "loadError": "De pagina kon niet worden geladen",
+      "retry": "Opnieuw proberen"
+    },
+    "toast": {
+      "created": "Pagina aangemaakt",
+      "createError": "De pagina kon niet worden aangemaakt",
+      "updated": "Pagina opgeslagen",
+      "updateError": "De pagina kon niet worden opgeslagen",
+      "moved": "Pagina verplaatst",
+      "moveError": "De pagina kon niet worden verplaatst",
+      "deleted": "Pagina naar de prullenbak verplaatst",
+      "deleteError": "De pagina kon niet worden verwijderd",
+      "restored": "Pagina hersteld",
+      "restoreError": "De pagina kon niet worden hersteld",
+      "permissionsSaved": "Toegang opgeslagen",
+      "permissionsError": "De toegang kon niet worden opgeslagen",
+      "sectionSetUp": "Sectie ingericht",
+      "sectionSetUpError": "De sectie kon niet worden ingericht"
+    },
+    "errors": {
+      "levelTooLow": "Uw toegang tot deze pagina is te laag voor deze actie.",
+      "attachmentKept": "Bijlagen van een pagina worden als vastlegging bewaard en kunnen niet worden verwijderd.",
+      "notFound": "Deze pagina bestaat niet, of u hebt er geen toegang toe.",
+      "slugTaken": "Een andere pagina op deze plek gebruikt dit adres al.",
+      "versionOutdated": "Iemand heeft deze pagina intussen gewijzigd. Laad haar opnieuw en pas uw wijziging nogmaals toe.",
+      "parentDeleted": "De bovenliggende pagina staat in de prullenbak. Herstel die eerst.",
+      "subjectNotActive": "Deze persoon is geen actief lid van de organisatie.",
+      "guestAboveView": "Een gast kan alleen leestoegang krijgen.",
+      "moveInvalid": "De pagina kan niet naar haar eigen pagina's, dieper dan 10 niveaus of naar een andere sectie worden verplaatst.",
+      "duplicateLocale": "Een taal is meer dan eens opgegeven.",
+      "permissionOnChild": "Toegang wordt op de sectie ingesteld, niet op haar pagina's.",
+      "reservedSlug": "Dit adres is gereserveerd en kan geen sectie benoemen.",
+      "rootSlugFixed": "Het adres van een sectie kan niet worden gewijzigd, omdat het de plek van de sectie in het menu is.",
+      "notDeleted": "Deze pagina staat niet in de prullenbak.",
+      "validation": "Sommige velden zijn ongeldig. Controleer ze en probeer het opnieuw."
+    }
+  },
+  "overview": {
+    "title": "Overzicht",
+    "subtitle": "De secties van je compliancewiki en wat het laatst is gewijzigd.",
+    "loading": "De secties worden geladen",
+    "loadError": "De secties konden niet worden geladen",
+    "sectionsLabel": "Secties",
+    "pageCount": "{count, plural, =0 {Nog geen pagina's} one {# pagina} other {# pagina's}}",
+    "notSetUp": "Niet ingericht",
+    "recentTitle": "Recente wijzigingen",
+    "recentLoading": "De recente wijzigingen worden geladen",
+    "recentLoadError": "De recente wijzigingen konden niet worden geladen",
+    "recentEmpty": "Er is nog geen pagina gewijzigd.",
+    "viewAll": "Alles bekijken"
+  },
+  "recent": {
+    "title": "Recente wijzigingen",
+    "subtitle": "De laatst gewijzigde pagina's, in elke sectie die je kunt zien.",
+    "loading": "De recente wijzigingen worden geladen",
+    "loadError": "De recente wijzigingen konden niet worden geladen",
+    "empty": "Nog geen wijzigingen",
+    "emptyHint": "Pagina's verschijnen hier zodra iemand er een maakt of bewerkt.",
+    "tableLabel": "Recent gewijzigde pagina's",
+    "unknownUser": "Onbekend",
+    "columns": {
+      "title": "Pagina",
+      "section": "Sectie",
+      "updatedAt": "Gewijzigd",
+      "updatedBy": "Door"
+    }
+  },
+  "trash": {
+    "title": "Prullenbak",
+    "subtitle": "Verwijderde pagina's die je kunt terugzetten, met de pagina's die mee zijn verwijderd.",
+    "loading": "De prullenbak wordt geladen",
+    "loadError": "De prullenbak kon niet worden geladen",
+    "empty": "De prullenbak is leeg",
+    "emptyHint": "Verwijderde pagina's die je beheert staan hier tot ze worden teruggezet.",
+    "membersOnly": "Alleen leden kunnen de prullenbak openen",
+    "membersOnlyHint": "Gasten lezen pagina's maar kunnen ze niet terugzetten.",
+    "tableLabel": "Verwijderde pagina's",
+    "unknownUser": "Onbekend",
+    "columns": {
+      "title": "Pagina",
+      "deletedAt": "Verwijderd",
+      "deletedBy": "Door",
+      "descendants": "Onderliggende pagina's",
+      "actions": "Acties"
+    },
+    "restore": "Terugzetten",
+    "restoreLabel": "{title} terugzetten",
+    "parentFirst": "De bovenliggende pagina staat ook in de prullenbak. Zet eerst de bovenliggende pagina terug."
+  },
+  "history": {
+    "title": "Geschiedenis",
+    "loading": "De geschiedenis wordt geladen",
+    "loadError": "De geschiedenis kon niet worden geladen",
+    "empty": "Nog geen versies",
+    "emptyHint": "Elke keer dat de pagina wordt opgeslagen, komt hier een versie bij.",
+    "tableLabel": "Versies van de pagina",
+    "backToPage": "Terug naar de pagina",
+    "unknownUser": "Onbekend",
+    "columns": {
+      "version": "Versie",
+      "locale": "Taal",
+      "title": "Titel",
+      "createdAt": "Opgeslagen",
+      "createdBy": "Door"
+    },
+    "locales": {
+      "TR": "Turks",
+      "EN": "Engels"
+    },
+    "revisionLoading": "De versie wordt geladen",
+    "revisionLoadError": "De versie kon niet worden geladen",
+    "revisionHeading": "Versie {version}, {locale}",
+    "revisionMeta": "Opgeslagen op {when} door {name}",
+    "modeLabel": "Hoe de versie wordt getoond",
+    "modeRevision": "Versie",
+    "modeCompare": "Vergelijken met huidige",
+    "thisRevision": "Deze versie",
+    "current": "Huidig",
+    "noCurrent": "De pagina heeft geen huidige tekst in deze taal.",
+    "emptyBody": "Deze tekst is leeg.",
+    "added": "Toegevoegd in de huidige tekst",
+    "removed": "Niet in de huidige tekst",
+    "compareTooLarge": "Deze teksten zijn te lang om de verschillen te markeren; ze staan naast elkaar."
+  },
+  "sectionTree": {
+    "label": "Pagina's van {section}",
+    "newPage": "Nieuwe pagina",
+    "sectionPage": "Sectiepagina",
+    "empty": {
+      "title": "Nog geen pagina's",
+      "editorDescription": "Voeg de eerste pagina van deze sectie toe.",
+      "readerDescription": "Pagina's die aan deze sectie worden toegevoegd, verschijnen hier."
+    },
+    "expand": "{title} uitklappen",
+    "collapse": "{title} inklappen",
+    "compliance": "Compliance",
+    "actions": "Acties voor {title}",
+    "dragHandle": "Sleep {title} om de pagina te verplaatsen",
+    "dropHint": "Zet een pagina op een andere pagina neer om haar direct daarvoor te plaatsen.",
+    "moving": "De pagina wordt verplaatst",
+    "moveUp": "Omhoog",
+    "moveDown": "Omlaag",
+    "indent": "Onder de pagina erboven plaatsen",
+    "outdent": "Eén niveau omhoog plaatsen",
+    "newChild": "Nieuwe subpagina",
+    "edit": "Bewerken",
+    "delete": "Verwijderen",
+    "deleted": {
+      "title": "Verwijderde pagina's",
+      "description": "Pagina's van deze sectie in de prullenbak. Herstellen brengt ook de pagina's terug die met de verwijdering meegingen.",
+      "loadError": "De verwijderde pagina's konden niet worden geladen",
+      "untitled": "Pagina zonder titel",
+      "meta": "Verwijderd op {date} door {name}",
+      "metaUnknown": "Verwijderd op {date}",
+      "descendants": "{count, plural, =0 {geen pagina's eronder} one {# pagina eronder} other {# pagina's eronder}}",
+      "restore": "Herstellen",
+      "restoreLabel": "{title} herstellen",
+      "parentFirst": "Herstel eerst de bovenliggende pagina: {path} staat onder een pagina die nog in de prullenbak ligt."
+    }
+  },
+  "pageView": {
+    "breadcrumb": "Kruimelpad",
+    "compliance": "Compliance",
+    "language": "Taal van de inhoud",
+    "locales": {
+      "TR": "Türkçe",
+      "EN": "English"
+    },
+    "fallback": "Deze pagina heeft nog geen versie in het {wanted}, daarom wordt de versie in het {shown} getoond.",
+    "emptyBody": "Deze pagina heeft nog geen inhoud.",
+    "body": "Inhoud van de pagina",
+    "updated": "Bijgewerkt op {date} door {name}",
+    "updatedUnknown": "Bijgewerkt op {date}",
+    "edit": "Bewerken",
+    "newChild": "Nieuwe subpagina",
+    "history": "Geschiedenis",
+    "permissions": "Toegang",
+    "delete": "Verwijderen",
+    "back": "Terug naar het overzicht",
+    "notFound": {
+      "title": "Pagina niet gevonden",
+      "description": "Deze pagina bestaat niet, of je hebt er geen toegang toe."
+    },
+    "noAccess": {
+      "title": "Geen toegang tot deze pagina",
+      "description": "Je toegang dekt deze pagina niet. Vraag de beheerder van de sectie om toegang."
+    },
+    "deleted": {
+      "title": "Deze pagina ligt in de prullenbak",
+      "description": "Verwijderd op {date}. Herstel haar om haar weer te lezen en te bewerken.",
+      "restore": "Pagina herstellen",
+      "parentFirst": "Herstel eerst de bovenliggende pagina: deze pagina staat onder een pagina die nog in de prullenbak ligt."
+    },
+    "deleteDialog": {
+      "title": "Deze pagina verwijderen?",
+      "description": "{title} gaat naar de prullenbak{count, plural, =0 {} one { samen met de # pagina eronder} other { samen met de # pagina's eronder}}. Ze kan vanuit de prullenbak worden hersteld.",
+      "confirm": "Verwijderen",
+      "deleting": "Verwijderen",
+      "cancel": "Annuleren"
+    }
+  },
+  "pageForm": {
+    "back": "Terug",
+    "backToPage": "Terug naar de pagina",
+    "loading": "De pagina's worden geladen",
+    "treeLoadError": "De pagina's konden niet worden geladen",
+    "retry": "Opnieuw proberen",
+    "newTitle": "Nieuwe pagina",
+    "newSubtitle": "Schrijf de pagina in het Turks, het Engels of beide. Bestanden kunnen worden toegevoegd zodra de pagina is opgeslagen.",
+    "editTitle": "{title} bewerken",
+    "metaEdit": "Pagina bewerken",
+    "cancel": "Annuleren",
+    "languages": "Talen",
+    "locales": {
+      "TR": "Türkçe",
+      "EN": "English"
+    },
+    "tabHasErrors": "Deze taal heeft velden die aangepast moeten worden",
+    "sections": {
+      "content": "Inhoud",
+      "settings": "Instellingen"
+    },
+    "title": "Titel",
+    "body": "Tekst",
+    "bodyPlaceholder": "Schrijf de pagina in Markdown",
+    "parent": "Bovenliggende pagina",
+    "parentPlaceholder": "Kies waar de pagina komt",
+    "parentSearch": "Pagina's zoeken",
+    "slug": "Adres",
+    "slugHint": "Deel van het pad van de pagina. Letters, cijfers, punten, streepjes en underscores.",
+    "slugRootHint": "Het adres van een sectie ligt vast, omdat het de plek van de sectie in het menu is.",
+    "compliance": "Compliancepagina",
+    "complianceHint": "Telt als compliance-record, zoals een beleid of een beheersmaatregel.",
+    "unsavedChanges": "Niet-opgeslagen wijzigingen",
+    "discard": "Wijzigingen verwerpen",
+    "create": "Pagina maken",
+    "creating": "Bezig met maken...",
+    "save": "Pagina opslaan",
+    "saving": "Bezig met opslaan...",
+    "noParent": {
+      "title": "Geen plek om een pagina toe te voegen",
+      "description": "Je kunt alleen pagina's toevoegen onder een sectie waar je bewerkrechten hebt. Vraag een sectiebeheerder om toegang.",
+      "action": "Naar het overzicht"
+    },
+    "readOnly": {
+      "title": "Je kunt deze pagina lezen maar niet bewerken",
+      "description": "Bewerken vraagt bewerkrechten op de sectie. Vraag een sectiebeheerder erom."
+    },
+    "conflict": {
+      "title": "Iemand anders heeft deze pagina gewijzigd",
+      "description": "De pagina is door iemand anders opgeslagen nadat je hem opende, dus je wijzigingen zijn niet opgeslagen. Je tekst staat nog in het formulier: kopieer wat je nodig hebt en laad dan de nieuwste versie. Opnieuw laden vervangt je niet-opgeslagen tekst.",
+      "reload": "Nieuwste versie laden",
+      "reloading": "Bezig met laden..."
+    },
+    "errors": {
+      "titleMax": "De titel mag hoogstens 200 tekens hebben.",
+      "bodyMax": "De tekst mag hoogstens 500.000 tekens hebben.",
+      "slugRequired": "Vul een adres in.",
+      "slugInvalid": "Begin met een letter of cijfer en gebruik alleen letters, cijfers, punten, streepjes en underscores (hoogstens 100).",
+      "titleRequired": "Vul in minstens één taal een titel in.",
+      "titleKept": "Deze taal is al opgeslagen en heeft een titel nodig.",
+      "titleForBody": "Vul een titel in voor deze taal, of maak de tekst leeg.",
+      "parentRequired": "Kies een bovenliggende pagina."
+    },
+    "attachments": {
+      "title": "Bestanden",
+      "description": "Bestanden bij deze pagina worden als record bewaard en kunnen niet worden verwijderd.",
+      "loadError": "De bestanden konden niet worden geladen",
+      "retry": "Opnieuw proberen",
+      "loading": "De bestanden worden geladen",
+      "empty": "Nog geen bestanden toegevoegd.",
+      "insertLink": "Link invoegen",
+      "insertLinkFor": "Een link naar {name} invoegen in de tekst in het {language}",
+      "afterCreate": "Bestanden kunnen worden toegevoegd zodra de pagina is opgeslagen.",
+      "uploadMissing": "De server gaf het geüploade bestand niet terug."
+    }
+  },
+  "permissions": {
+    "meta": "Toegang",
+    "title": "Toegang tot {title}",
+    "subtitle": "Wie deze sectie en elke pagina erin kan bekijken, bewerken of beheren.",
+    "backToPage": "Terug naar de pagina",
+    "retry": "Opnieuw proberen",
+    "loading": "De toegangslijst wordt geladen",
+    "loadError": "De toegangslijst kon niet worden geladen",
+    "onChild": {
+      "title": "Toegang wordt op de sectie ingesteld",
+      "description": "Een pagina heeft de toegang van haar sectie. Wijzig die op de hoofdpagina van de sectie.",
+      "action": "Toegang van de sectie openen"
+    },
+    "noAccess": {
+      "title": "Je kunt de toegang hier niet wijzigen",
+      "description": "Alleen wie beheerrechten op de sectie heeft, kan zien en wijzigen wie toegang heeft."
+    },
+    "levels": {
+      "VIEW": "Bekijken",
+      "EDIT": "Bewerken",
+      "MANAGE": "Beheren"
+    },
+    "add": {
+      "title": "Lid toevoegen",
+      "member": "Lid",
+      "memberPlaceholder": "Kies een lid",
+      "memberSearch": "Leden zoeken",
+      "level": "Toegang",
+      "action": "Toevoegen",
+      "membersLoadError": "De leden konden niet worden geladen. Laad de pagina opnieuw om het nog eens te proberen.",
+      "guestHint": "Een gast kan alleen leestoegang krijgen."
+    },
+    "list": {
+      "title": "Wie heeft toegang",
+      "empty": "Nog niemand heeft toegang gekregen.",
+      "subject": "Lid",
+      "level": "Toegang",
+      "actions": "Acties",
+      "group": "Groep",
+      "guest": "Gast",
+      "remove": "{name} verwijderen"
+    },
+    "saveErrorTitle": "De toegang is niet opgeslagen",
+    "unsavedChanges": "Niet-opgeslagen wijzigingen",
+    "discard": "Wijzigingen verwerpen",
+    "save": "Toegang opslaan",
+    "saving": "Bezig met opslaan..."
   }
 }

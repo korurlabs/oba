@@ -19,7 +19,9 @@ export default proxy({
 // sign-in check and without its locale. Only Next.js internals, the auth
 // routes and this app's own static files are skipped, each by name and as a
 // whole path segment, so a root page named `api-guide` or `assets-register`
-// still passes through the proxy.
+// still passes through the proxy. The static files sit below `/assets/`, and
+// `/assets` itself is the Asset section, so only the folder's contents are
+// skipped.
 export const config = {
-  matcher: "/((?!(?:api|_next|_vercel|assets)(?:/|$)|icon\\.png$|favicon\\.ico$).*)",
+  matcher: "/((?!(?:api|_next|_vercel)(?:/|$)|assets/|icon\\.png$|favicon\\.ico$).*)",
 };

@@ -123,6 +123,49 @@ export function serializeImageMarkdown(
   state.closeBlock(node);
 }
 
+// ── Links ────────────────────────────────────────────────────────
+
+/**
+ * StarterKit without its own code block and link. The editor adds both itself,
+ * and a second link mark would read `class`, `rel` and `target` from content
+ * again, past {@link safeLinkExtension}.
+ */
+export const markdownStarterKit = StarterKit.configure({
+  heading: { levels: [1, 2, 3, 4, 5, 6] },
+  codeBlock: false,
+  link: false,
+});
+
+/** Link attributes that only the editor sets, never the content. */
+const EDITOR_OWNED_LINK_ATTRIBUTES = ['class', 'rel', 'target'] as const;
+
+/**
+ * The editor's link mark. Stored content is Markdown with raw HTML, and the
+ * backend keeps it as written, so a page author can store any `<a>` tag. The
+ * mark therefore reads only `href` and `title` from content: an author's
+ * `class` could lay the link over the whole screen as a fake sign-in prompt,
+ * and an author's `rel` or `target` could give the opened page access to this
+ * window. Every link renders the fixed attributes below instead, whatever its
+ * mark holds.
+ */
+export const safeLinkExtension = Link.extend({
+  addAttributes() {
+    const attributes = { ...this.parent?.() };
+    for (const name of EDITOR_OWNED_LINK_ATTRIBUTES) {
+      attributes[name] = { ...attributes[name], parseHTML: () => null, rendered: false };
+    }
+    return attributes;
+  },
+}).configure({
+  openOnClick: false,
+  autolink: true,
+  HTMLAttributes: {
+    class: 'text-primary underline cursor-pointer',
+    rel: 'noopener noreferrer',
+    target: '_blank',
+  },
+});
+
 // ── Lowlight setup ───────────────────────────────────────────────
 const lowlight = createLowlight(common);
 
@@ -288,37 +331,68 @@ function CodeBlockNodeView({ node, updateAttributes, editor, getPos }: ReactNode
 
   return (
     <NodeViewWrapper as="pre" className="code-block-wrapper" spellCheck={false}>
-      <div contentEditable={false} className="code-block-controls">
-        <button
-          type="button"
-          className={cn(
-            'code-block-format-button',
-            formatFeedback === 'success' && 'code-block-format-success',
-            formatFeedback === 'error' && 'code-block-format-error',
-          )}
-          onMouseDown={handleFormat}
-          disabled={!canFormat}
-          title={t('formatCode')}
-        >
-          <WandSparkles className="h-3 w-3" />
-        </button>
-        <select
-          className="code-block-language-select"
-          value={currentLanguage}
-          onChange={(e) => updateAttributes({ language: e.target.value })}
-        >
-          {CODE_BLOCK_LANGUAGES.map((lang) => (
-            <option key={lang.value} value={lang.value}>
-              {lang.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      {/* Formatting or relabelling a block edits it, so an editor that cannot be edited shows the code only. */}
+      {editor.isEditable && (
+        <div contentEditable={false} className="code-block-controls">
+          <button
+            type="button"
+            className={cn(
+              'code-block-format-button',
+              formatFeedback === 'success' && 'code-block-format-success',
+              formatFeedback === 'error' && 'code-block-format-error',
+            )}
+            onMouseDown={handleFormat}
+            disabled={!canFormat}
+            title={t('formatCode')}
+          >
+            <WandSparkles className="h-3 w-3" />
+          </button>
+          <select
+            className="code-block-language-select"
+            value={currentLanguage}
+            onChange={(e) => updateAttributes({ language: e.target.value })}
+          >
+            {CODE_BLOCK_LANGUAGES.map((lang) => (
+              <option key={lang.value} value={lang.value}>
+                {lang.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       <div className="code-block-content">
         <NodeViewContent<'code'> as="code" className={node.attrs.language ? `language-${node.attrs.language}` : ''} />
       </div>
     </NodeViewWrapper>
   );
+}
+
+/** The editor's document as Markdown, as `onChange` reports it. */
+function editorMarkdown(editor: Pick<Editor, 'storage'>): string {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (editor.storage as any).markdown.getMarkdown() as string;
+}
+
+/**
+ * Brings a value the form set from outside (a reset, an inserted link) into
+ * the editor. `syncedValue` is the last value editor and form agreed on: the
+ * editor's own `onChange` echoed back is skipped, so typing never resets the
+ * cursor. Keying on the value instead of a one-shot flag matters because the
+ * editor also reports updates that leave the value unchanged (`setEditable`
+ * emits one), and those must not swallow the next outside change. The
+ * content is set without an update event, so a sync never reports a change
+ * back to the form.
+ */
+export function syncExternalValue(
+  editor: Pick<Editor, 'storage' | 'commands'>,
+  value: string,
+  syncedValue: { current: string | null }
+): void {
+  if (value === syncedValue.current) return;
+  if (editorMarkdown(editor) !== value) {
+    editor.commands.setContent(value || '', { emitUpdate: false });
+  }
+  syncedValue.current = value;
 }
 
 interface UploadResult {
@@ -366,6 +440,12 @@ interface MarkdownEditorBaseProps {
    */
   onImageDelete?: (src: string) => void;
   disabled?: boolean;
+  /**
+   * Shows the content for reading only: no frame, no toolbar, no code block
+   * controls, no uploads and full-strength text, where `disabled` keeps the
+   * editor's look and dims it.
+   */
+  readOnly?: boolean;
   /**
    * Optional. The app's own `Button` and `Input`, so the toolbar, link
    * popover and image delete button match the rest of that app. Defaults
@@ -981,6 +1061,7 @@ function MarkdownEditorInner({
   onImageDrop,
   onImageDelete,
   disabled = false,
+  readOnly = false,
   error = false,
   components,
 }: MarkdownEditorInnerProps) {
@@ -991,7 +1072,8 @@ function MarkdownEditorInner({
   const [linkPopoverOpen, setLinkPopoverOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounterRef = useRef(0);
-  const isInternalUpdate = useRef(false);
+  // The value the editor was created with, then the last one editor and form agreed on.
+  const syncedValue = useRef<string | null>(value);
   const linkTriggerRef = useRef<HTMLButtonElement>(null);
 
   const handleOpenLinkPopover = useCallback(() => {
@@ -1000,10 +1082,7 @@ function MarkdownEditorInner({
 
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({
-        heading: { levels: [1, 2, 3, 4, 5, 6] },
-        codeBlock: false,
-      }),
+      markdownStarterKit,
       CodeBlockLowlight.extend({
         addNodeView() {
           return ReactNodeViewRenderer(CodeBlockNodeView);
@@ -1012,13 +1091,7 @@ function MarkdownEditorInner({
         lowlight,
         defaultLanguage: 'json',
       }),
-      Link.configure({
-        openOnClick: false,
-        autolink: true,
-        HTMLAttributes: {
-          class: 'text-primary underline cursor-pointer',
-        },
-      }),
+      safeLinkExtension,
       TaskList,
       TaskItem.configure({
         nested: true,
@@ -1102,35 +1175,26 @@ function MarkdownEditorInner({
       createSlashLinkExtension(handleOpenLinkPopover),
     ],
     content: value || '',
-    editable: !disabled,
+    editable: !disabled && !readOnly,
     immediatelyRender: false,
     onUpdate: ({ editor: updatedEditor }) => {
-      isInternalUpdate.current = true;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const markdown = (updatedEditor.storage as any).markdown.getMarkdown() as string;
+      const markdown = editorMarkdown(updatedEditor);
+      syncedValue.current = markdown;
       onChange(markdown);
     },
   });
 
-  // Sync external value changes (e.g. form reset) into the editor
+  // Sync external value changes (e.g. form reset, inserted link) into the editor
   useEffect(() => {
     if (!editor) return;
-    if (isInternalUpdate.current) {
-      isInternalUpdate.current = false;
-      return;
-    }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const currentMarkdown = (editor.storage as any).markdown.getMarkdown() as string;
-    if (currentMarkdown !== value) {
-      editor.commands.setContent(value || '');
-    }
+    syncExternalValue(editor, value, syncedValue);
   }, [editor, value]);
 
-  // Sync disabled/editable state
+  // Sync disabled/editable state. No update event: the content is unchanged.
   useEffect(() => {
     if (!editor) return;
-    editor.setEditable(!disabled);
-  }, [editor, disabled]);
+    editor.setEditable(!disabled && !readOnly, false);
+  }, [editor, disabled, readOnly]);
 
   // Mirror the onImageDelete prop into the Image extension's storage so
   // the ImageNodeView trash button can reach the current callback. The
@@ -1332,7 +1396,7 @@ function MarkdownEditorInner({
   // (text, HTML) still run.
   const handlePaste = useCallback(
     async (e: React.ClipboardEvent) => {
-      if (disabled) return;
+      if (disabled || readOnly) return;
       if (!onImageDrop && !onFileUpload) return;
 
       const items = e.clipboardData?.items;
@@ -1353,7 +1417,7 @@ function MarkdownEditorInner({
       }
       // No image item found -- fall through to default paste handling.
     },
-    [disabled, onImageDrop, onFileUpload, handleImageFile],
+    [disabled, readOnly, onImageDrop, onFileUpload, handleImageFile],
   );
 
   const handleDrop = useCallback(
@@ -1363,7 +1427,7 @@ function MarkdownEditorInner({
       setIsDragging(false);
       dragCounterRef.current = 0;
 
-      if (disabled) return;
+      if (disabled || readOnly) return;
       // We can handle the drop if either the deferred-image hook or the
       // legacy /api/upload hook is wired. Bail when both are missing so
       // we don't silently swallow user input.
@@ -1374,8 +1438,19 @@ function MarkdownEditorInner({
         await uploadFile(file);
       }
     },
-    [onImageDrop, onFileUpload, disabled, uploadFile],
+    [onImageDrop, onFileUpload, disabled, readOnly, uploadFile],
   );
+
+  if (readOnly) {
+    return (
+      <MarkdownEditorComponentsProvider components={components}>
+        <EditorContent
+          editor={editor}
+          className={cn('wysiwyg-editor min-h-0 overflow-auto border-0', className)}
+        />
+      </MarkdownEditorComponentsProvider>
+    );
+  }
 
   return (
     <MarkdownEditorComponentsProvider components={components}>
