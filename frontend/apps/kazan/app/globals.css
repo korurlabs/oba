@@ -21,6 +21,15 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
+  /*
+   * Kazan's breakpoints, which the sky stylesheet does not set: without them
+   * Tailwind's defaults would move every responsive layout of Kazan's pages.
+   */
+  --breakpoint-sm: 320px;
+  --breakpoint-md: 744px;
+  --breakpoint-lg: 1440px;
+  --breakpoint-xl: 1920px;
+
   /* Korur blue shades the sky design does not define */
   --color-korur-blue-strong: #1c6fb8; /* text on light tints, gradient end */
   --color-korur-blue-medium: #beddff;
