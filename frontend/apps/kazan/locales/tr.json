@@ -1004,7 +1004,9 @@
     "tickets": "Biletler",
     "incidents": "Olaylar",
     "vulnerabilities": "Zafiyetler",
-    "disasterRecovery": "Felaket Kurtarma",
+    "disasterDrills": "Afet Tatbikatları",
+    "backupRuns": "Yedekleme Çalıştırmaları",
+    "chaosEngineering": "Kaos Mühendisliği",
     "chats": "Sohbetler",
     "dailyUpdates": "Güncellemeler",
     "pullRequests": "PR",
@@ -1409,11 +1411,23 @@
     "emptyTitle": "Henüz zafiyet yok",
     "emptyDescription": "Takip ettiğiniz zafiyetler burada görünecek."
   },
-  "disasterRecovery": {
-    "title": "Felaket Kurtarma",
-    "description": "Bir kesintiden sonra işinizin sürmesini sağlayan kurtarma planları, yedekler ve geri yükleme testleri.",
-    "emptyTitle": "Henüz kurtarma planı yok",
-    "emptyDescription": "Kurtarma planları ve geri yükleme testleri burada görünecek."
+  "disasterDrills": {
+    "title": "Afet Tatbikatları",
+    "description": "Bir kesintiden sonra işinizin kurtarılabildiğini kanıtlayan planlı tatbikatlar; senaryoları, tarihleri ve sonuçlarıyla.",
+    "emptyTitle": "Henüz afet tatbikatı yok",
+    "emptyDescription": "Planladığınız ve yaptığınız afet tatbikatları burada görünecek."
+  },
+  "backupRuns": {
+    "title": "Yedekleme Çalıştırmaları",
+    "description": "Sistemlerinizin her yedeklemesi; zamanı, boyutu ve başarılı olup olmadığıyla.",
+    "emptyTitle": "Henüz yedekleme çalıştırması yok",
+    "emptyDescription": "Takip ettiğiniz yedekleme çalıştırmaları burada görünecek."
+  },
+  "chaosEngineering": {
+    "title": "Kaos Mühendisliği",
+    "description": "Zayıf noktaları gerçek bir kesintiden önce bulmak için sistemlerinize bilerek verdiğiniz kontrollü arızalar.",
+    "emptyTitle": "Henüz kaos deneyi yok",
+    "emptyDescription": "Kaos deneyleri ve sonuçları burada görünecek."
   },
   "metadata": {
     "description": "Notion ve Jira'nın sadeliğinden ilham alan modern proje yönetim aracı"

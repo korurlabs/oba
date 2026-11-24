@@ -1004,7 +1004,9 @@
     "tickets": "Tickets",
     "incidents": "Incidents",
     "vulnerabilities": "Vulnerabilities",
-    "disasterRecovery": "Disaster Recovery",
+    "disasterDrills": "Disaster Drills",
+    "backupRuns": "Backup Runs",
+    "chaosEngineering": "Chaos Engineering",
     "chats": "Chats",
     "dailyUpdates": "Updates",
     "pullRequests": "PR",
@@ -1409,11 +1411,23 @@
     "emptyTitle": "No vulnerabilities yet",
     "emptyDescription": "Vulnerabilities you track will appear here."
   },
-  "disasterRecovery": {
-    "title": "Disaster Recovery",
-    "description": "The recovery plans, backups and restore tests that keep your work running after an outage.",
-    "emptyTitle": "No recovery plans yet",
-    "emptyDescription": "Recovery plans and restore tests will appear here."
+  "disasterDrills": {
+    "title": "Disaster Drills",
+    "description": "The planned exercises that prove your work can be recovered after an outage, with their scenario, date and outcome.",
+    "emptyTitle": "No disaster drills yet",
+    "emptyDescription": "Disaster drills you plan and run will appear here."
+  },
+  "backupRuns": {
+    "title": "Backup Runs",
+    "description": "Each backup of your systems, with its time, size and whether it succeeded.",
+    "emptyTitle": "No backup runs yet",
+    "emptyDescription": "Backup runs you track will appear here."
+  },
+  "chaosEngineering": {
+    "title": "Chaos Engineering",
+    "description": "The controlled failures you inject into your systems to find weak spots before a real outage does.",
+    "emptyTitle": "No chaos experiments yet",
+    "emptyDescription": "Chaos experiments and their results will appear here."
   },
   "metadata": {
     "description": "Modern project management tool inspired by Notion and Jira simplicity"

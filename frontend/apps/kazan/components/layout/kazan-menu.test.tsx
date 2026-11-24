@@ -148,7 +148,9 @@ describe("KazanMenu", () => {
       sidebar.tickets,
       sidebar.incidents,
       sidebar.vulnerabilities,
-      sidebar.disasterRecovery,
+      sidebar.disasterDrills,
+      sidebar.backupRuns,
+      sidebar.chaosEngineering,
       sidebar.dailyUpdates,
       sidebar.pullRequests,
       sidebar.chats,
@@ -159,14 +161,17 @@ describe("KazanMenu", () => {
     expect([...positions].sort((a, b) => a - b)).toEqual(positions);
   });
 
-  test("links Field, Incidents, Vulnerabilities, Disaster Recovery and Chats to their pages", () => {
+  test("links Field, Incidents, Vulnerabilities, Disaster Drills, Backup Runs, Chaos Engineering and Chats to their pages", () => {
     const html = markup();
     expect(html).toContain('href="/home"');
     expect(html).toContain(`<span>${sidebar.home}</span>`);
     expect(sidebar.home).toBe("Field");
     expect(html).toContain('href="/incidents"');
     expect(html).toContain('href="/vulnerabilities"');
-    expect(html).toContain('href="/disaster-recovery"');
+    expect(html).toContain('href="/disaster-drills"');
+    expect(html).toContain('href="/backup-runs"');
+    expect(html).toContain('href="/chaos-engineering"');
+    expect(html).not.toContain("/disaster-recovery");
     expect(html).toContain('href="/chats"');
   });
 

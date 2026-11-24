@@ -1004,7 +1004,9 @@
     "tickets": "Tickets",
     "incidents": "Incidenten",
     "vulnerabilities": "Kwetsbaarheden",
-    "disasterRecovery": "Disaster recovery",
+    "disasterDrills": "Rampoefeningen",
+    "backupRuns": "Back-upruns",
+    "chaosEngineering": "Chaos Engineering",
     "chats": "Chats",
     "dailyUpdates": "Updates",
     "pullRequests": "PR",
@@ -1409,11 +1411,23 @@
     "emptyTitle": "Nog geen kwetsbaarheden",
     "emptyDescription": "Kwetsbaarheden die je bijhoudt verschijnen hier."
   },
-  "disasterRecovery": {
-    "title": "Disaster recovery",
-    "description": "De herstelplannen, back-ups en hersteltests die je werk draaiende houden na een storing.",
-    "emptyTitle": "Nog geen herstelplannen",
-    "emptyDescription": "Herstelplannen en hersteltests verschijnen hier."
+  "disasterDrills": {
+    "title": "Rampoefeningen",
+    "description": "De geplande oefeningen die bewijzen dat je werk na een storing te herstellen is, met hun scenario, datum en uitkomst.",
+    "emptyTitle": "Nog geen rampoefeningen",
+    "emptyDescription": "Rampoefeningen die je plant en uitvoert verschijnen hier."
+  },
+  "backupRuns": {
+    "title": "Back-upruns",
+    "description": "Elke back-up van je systemen, met tijdstip, omvang en of hij geslaagd is.",
+    "emptyTitle": "Nog geen back-upruns",
+    "emptyDescription": "Back-upruns die je bijhoudt verschijnen hier."
+  },
+  "chaosEngineering": {
+    "title": "Chaos Engineering",
+    "description": "De gecontroleerde storingen die je in je systemen veroorzaakt om zwakke plekken te vinden voordat een echte storing dat doet.",
+    "emptyTitle": "Nog geen chaosexperimenten",
+    "emptyDescription": "Chaosexperimenten en hun resultaten verschijnen hier."
   },
   "metadata": {
     "description": "Moderne projectmanagementtool, geïnspireerd door de eenvoud van Notion en Jira"
