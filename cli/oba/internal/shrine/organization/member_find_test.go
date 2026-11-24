@@ -37,7 +37,7 @@ func TestFindMemberNoMatch(t *testing.T) {
 	members := []client.Member{{UserID: "u-1", Email: "ana@example.com"}}
 	for _, value := range []string{"U-1", "nobody@example.com"} {
 		_, err := FindMember(members, "Acme", value)
-		want := `no member of Acme matches "` + value + `"; run 'oba admin member list'`
+		want := `no member of Acme matches "` + value + `"; run 'oba ulak member list'`
 		if err == nil || err.Error() != want || client.ExitCode(err) != 2 {
 			t.Errorf("FindMember(%q) err = %v, exit = %d", value, err, client.ExitCode(err))
 		}
@@ -46,7 +46,7 @@ func TestFindMemberNoMatch(t *testing.T) {
 
 func TestFindMemberNoMatchSanitizesMessage(t *testing.T) {
 	_, err := FindMember(nil, "Ac\nme", "x\x1b[2Jy")
-	if err == nil || err.Error() != `no member of Ac me matches "xy"; run 'oba admin member list'` {
+	if err == nil || err.Error() != `no member of Ac me matches "xy"; run 'oba ulak member list'` {
 		t.Errorf("err = %v", err)
 	}
 }

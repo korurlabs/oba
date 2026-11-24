@@ -139,33 +139,33 @@ With `OBA_TOKEN` set, every call sends that value as the bearer token and the st
 OBA_TOKEN=<token> oba otak relation list --org Korur --json
 ```
 
-## Admin
+## Ulak
 
 ```sh
-oba admin org create --help   # the fields, name required, read from the live API
-oba admin org create <<'EOF'
+oba ulak org create --help   # the fields, name required, read from the live API
+oba ulak org create <<'EOF'
 {"name": "Korur B.V.", "country": "NLD", "website": "https://korur.com/"}
 EOF
-oba admin org list            # the same table as oba org list
-oba admin org update <<'EOF'  # the current organization; only the given keys change
+oba ulak org list            # the same table as oba org list
+oba ulak org update <<'EOF'  # the current organization; only the given keys change
 {"description": "Cybersecurity for SMEs", "website": null}
 EOF
-oba admin invite create ayse@example.com --role admin   # ADMIN, MEMBER (default) or GUEST
-oba admin invite list
-oba admin invite revoke <id> --yes
-oba admin member list
-oba admin member role ayse@example.com GUEST
-oba admin member remove ayse@example.com --yes
+oba ulak invite create ayse@example.com --role admin   # ADMIN, MEMBER (default) or GUEST
+oba ulak invite list
+oba ulak invite revoke <id> --yes
+oba ulak member list
+oba ulak member role ayse@example.com GUEST
+oba ulak member remove ayse@example.com --yes
 ```
 
 `org create` and `org list` work without a current organization; `org update`, `invite` and `member` act in the current one (`oba org use`). Every rule on who may do what is the API's, checked against your role in that organization; the CLI only refuses OWNER as a role before any call, since the API never assigns it.
 
-A person is added with `invite create`, never directly. The same call serves someone who already has an Oba account and someone who has none: they get an e-mail and join when they accept in the account app. Until then they appear in `invite list`, not in `member list`, which covers only the people who accepted. An invited ADMIN, MEMBER or GUEST needs an app grant, set in the admin web app, before they can open an app such as Otak; the owner has every app.
+A person is added with `invite create`, never directly. The same call serves someone who already has an Oba account and someone who has none: they get an e-mail and join when they accept in the account app. Until then they appear in `invite list`, not in `member list`, which covers only the people who accepted. An invited ADMIN, MEMBER or GUEST needs an app grant, set in the Ulak web app, before they can open an app such as Otak; the owner has every app.
 
 - `org create` checks the keys against the live `OrganizationCreateRequest` schema and sends the object unchanged in one `POST /organizations`, without an organization header. You become the owner of the new organization; switch to it with `oba org use <id>`. `country` is an ISO 3166-1 alpha-3 code.
 - `org list` prints `  NAME  ROLE  STATUS  ID` for the organizations you belong to, `*` marking the current one, or `You belong to no organization.`.
 - `org update` changes the profile of the current organization (name, description, industry, company size, country, website) and takes no id. Only the given keys change: it checks them against the live `OrganizationUpdateRequest` schema, reads `GET /organizations/{id}`, lays the keys over the current values and sends every field in one `PUT /organizations/{id}`, since the API replaces them all. `null` clears an optional field; `name` cannot be cleared, and a blank or empty value fails with 422 `GEN_VAL_001`. It prints `Updated organization <name> (<id>)`; when every key already has its value it sends nothing and prints `Nothing to update: <name> already has these values.`, and `{}` fails with `Nothing to update.`. `--help` lists the fields. It needs the ADMIN role.
-- Deleting, disabling and enabling an organization are left out of the CLI on purpose: delete cannot be undone, and both change who can use the organization. Do them in the Oba admin web app.
+- Deleting, disabling and enabling an organization are left out of the CLI on purpose: delete cannot be undone, and both change who can use the organization. Do them in the Ulak web app.
 - `invite create <email> [--role ADMIN|MEMBER|GUEST]` sends `POST /invitations` with `{"email","role"}` and prints `Invited <email> as <ROLE> to <org>. They join when they accept in Oba; the invitation expires <day>.`, the day in this machine's time zone. The role is matched without regard to case; OWNER or any other value fails with `unknown role "<x>"; allowed: ADMIN, MEMBER, GUEST` before any call. An invitation expires after 7 days. It needs the ADMIN role.
 - `invite list` prints `EMAIL  ROLE  INVITED BY  EXPIRES  ID` for the pending invitations, or `No pending invitations.`. It needs the ADMIN role.
 - `invite revoke <id>` asks `Revoke the invitation of <email>?` and sends `DELETE /invitations/{id}`; without a terminal pass `--yes`. An id that is not among the pending invitations is not asked about; the API answers it.
@@ -563,18 +563,18 @@ The packages are grouped as in the Oba backend: `dojo` is the technical foundati
 | Path | Holds |
 |---|---|
 | `main.go` | entry point; the version comes in through `-ldflags "-X main.version=..."` |
-| `cmd/` | the root command; it adds the platform commands and one command group per app, and `oba admin` |
+| `cmd/` | the root command; it adds the platform commands and one command group per app, and `oba ulak` |
 | `cmd/shrine/` | the platform commands `login`, `logout`, `org`, `legal-entity` and `document` (with `document template`) |
 | `cmd/apps/<app>/` | `NewCmd()` builds `oba <app>` and adds the commands of each domain (`cmd/apps/otak/`, `cmd/apps/kaya/`) |
-| `cmd/apps/<app>/<domain>/` | the commands of one domain, one file per command; `NewCmd()` builds `oba <app> <domain>` (`cmd/apps/otak/relation/`, `contact/`, `icp/`, `event/`, `find/`, `mailtemplate/`, `outreach/`, `attachment/`; `cmd/apps/admin/org/`, `member/`, `invite/`; `cmd/apps/kaya/delivery/` (sync, refresh, status, launch, watch, doctor), `hook/`, `githook/`, `statusline/`, `install/`, `seed/`, `propose/`, `lessons/`, `sender/`, `signingkey/`) |
-| `internal/apps/<app>/<domain>/` | the logic of one domain of an app (`internal/apps/otak/relation/`, `contact/`, `icp/`, `event/`, `find/`, `mailtemplate/`, `outreach/`, `attachment/`; `internal/apps/admin/org/`, `member/`, `invite/`, and `role/`, the role check that `invite` and `member` share) |
+| `cmd/apps/<app>/<domain>/` | the commands of one domain, one file per command; `NewCmd()` builds `oba <app> <domain>` (`cmd/apps/otak/relation/`, `contact/`, `icp/`, `event/`, `find/`, `mailtemplate/`, `outreach/`, `attachment/`; `cmd/apps/ulak/org/`, `member/`, `invite/`; `cmd/apps/kaya/delivery/` (sync, refresh, status, launch, watch, doctor), `hook/`, `githook/`, `statusline/`, `install/`, `seed/`, `propose/`, `lessons/`, `sender/`, `signingkey/`) |
+| `internal/apps/<app>/<domain>/` | the logic of one domain of an app (`internal/apps/otak/relation/`, `contact/`, `icp/`, `event/`, `find/`, `mailtemplate/`, `outreach/`, `attachment/`; `internal/apps/ulak/org/`, `member/`, `invite/`, and `role/`, the role check that `invite` and `member` share) |
 | `internal/apps/kaya/<domain>/` | the logic of Kaya's domains: `delivery/` (trusted keys, manifests, the blob cache, versions and the switch, sessions, the launcher and the watcher, the outcome texts, the repository list and recognition, the exclude block, the release floors), `hook/`, `githook/` (the global git hooks), `statusline/`, `install/`, `seed/`, `propose/`, `lessons/`, `capture/` (one hook event into the local queue) and `sender/` (the queue to Kaya) |
 | `internal/apps/kaya/client/` | the Kaya API client: every call takes a context, user calls are signed through `internal/shrine/session`, the others with the machine token |
 | `internal/apps/kaya/machine/` | the machine token (`KAYA_RECORDER_TOKEN`, else Kagi), the API URL of the machine calls (`OBA_API_URL`, else production, never the stored session), the https-or-loopback check and a client with the token |
 | `internal/apps/kaya/redact/` | what looks like a secret: `Text` redacts it, `Find` names the lines that hold one |
 | `internal/apps/kaya/kayatest/` | test helpers of the Kaya tests: a fake delivery and lessons API with a signing key, a scratch delivered checkout, the command runner; imported by tests only |
 | `internal/shrine/auth/` | the device authorization grant and the token store |
-| `internal/shrine/organization/` | the organization table that `oba org list` and `oba admin org list` share, the lookup of a member by user id or e-mail that `oba admin member` and `oba kazan` share, and the `--author` list of `oba kazan updates` and `pr`, where `me` is the signed-in user |
+| `internal/shrine/organization/` | the organization table that `oba org list` and `oba ulak org list` share, the lookup of a member by user id or e-mail that `oba ulak member` and `oba kazan` share, and the `--author` list of `oba kazan updates` and `pr`, where `me` is the signed-in user |
 | `internal/shrine/legalentity/` | the legal entities of the organization behind `oba legal-entity`: the field input, the create check, the read-and-merge update, the table and the details |
 | `internal/shrine/document/` | the documents behind `oba document`: the filters and table, the create from a template or a file, download, upload and the PDF copy onto a mail |
 | `internal/shrine/documenttemplate/` | the document templates behind `oba document template`: the filters and table, the create from a file, download and upload |
