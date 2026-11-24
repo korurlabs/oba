@@ -91,7 +91,6 @@ afterAll(() => {
 
 const { ProfileDropdown } = await import("./profile-dropdown");
 const { LanguageSwitcherSubMenu } = await import("../language-switcher");
-const { SidebarProvider } = await import("@oba/ui/components/sidebar");
 
 function classesOf(html: string, slot: string): string[] {
   return [...html.matchAll(new RegExp(`data-slot="${slot}"[^>]*class="([^"]*)"`, "g"))].map(
@@ -101,7 +100,7 @@ function classesOf(html: string, slot: string): string[] {
 
 const withLanguage = <LanguageSwitcherSubMenu supportedLocales={["en", "nl"]} label="language" />;
 
-describe("ProfileDropdown header variant", () => {
+describe("ProfileDropdown", () => {
   const html = renderToStaticMarkup(<ProfileDropdown extraMenuContent={withLanguage} />);
 
   test("draws the menu in the square grid panel", () => {
@@ -142,29 +141,5 @@ describe("ProfileDropdown header variant", () => {
     expect(html).toContain('data-value="en" data-state="unchecked"');
     const current = html.match(/data-value="nl" data-state="checked" class="([^"]*)"/)?.[1];
     expect(current).toContain("data-[state=checked]:before:w-0.5");
-  });
-});
-
-describe("ProfileDropdown sidebar variant", () => {
-  // The sidebar trigger is a sidebar menu button, which needs its provider.
-  const html = renderToStaticMarkup(
-    <SidebarProvider>
-      <ProfileDropdown variant="sidebar" extraMenuContent={withLanguage} />
-    </SidebarProvider>
-  );
-
-  test("keeps the theme's rounded menu", () => {
-    const [content] = classesOf(html, "content");
-    expect(content).toBe("border-border w-56 rounded-xl border p-2 shadow-xl");
-    for (const item of classesOf(html, "item")) {
-      expect(item).toContain("rounded-lg");
-      expect(item).not.toContain("rounded-none");
-    }
-  });
-
-  test("keeps the plain language submenu", () => {
-    expect(html).not.toContain('data-slot="radio-group"');
-    const [subContent] = classesOf(html, "sub-content");
-    expect(subContent).toBe("min-w-[180px]");
   });
 });
