@@ -319,9 +319,10 @@
 }
 
 /*
- * Large surfaces (dialog, alert dialog, sheet and the big filter panels that
- * opt in with .kazan-grid-surface) carry the full frame: the 16px grid and
- * the four corner brackets. Both are background layers rather than a pseudo
+ * Every floating surface (dialog, alert dialog, sheet, popover, menu, select,
+ * filter panel and those that opt in with .kazan-grid-surface) carries the
+ * full frame: the 16px grid and the four corner brackets, so a panel that
+ * opens over the page reads as part of the same instrument. Both are background layers rather than a pseudo
  * element, so they stay put in the corners while a long dialog scrolls, and
  * assistive technology reads nothing new.
  */
@@ -329,6 +330,13 @@
   [data-slot="dialog-content"],
   [data-slot="alert-dialog-content"],
   [data-slot="sheet-content"],
+  [data-slot="popover-content"],
+  [data-slot="dropdown-menu-content"],
+  [data-slot="dropdown-menu-sub-content"],
+  [data-slot="context-menu-content"],
+  [data-slot="context-menu-sub-content"],
+  [data-slot="select-content"],
+  [data-slot="navigation-menu-content"],
   .kazan-grid-surface
 ) {
   border-radius: 0;
@@ -379,25 +387,6 @@
 /* Dialog close buttons are square and take the primary colour on hover. */
 :is([data-slot="dialog-close"], [data-slot="sheet-close"]) {
   border-radius: 0;
-}
-
-/*
- * Plain floating panels (menus, selects, popovers, the command list): the
- * same hairline and crisp shadow, without the grid, so a short list stays
- * quiet and easy to scan.
- */
-:is(
-  [data-slot="popover-content"],
-  [data-slot="dropdown-menu-content"],
-  [data-slot="dropdown-menu-sub-content"],
-  [data-slot="context-menu-content"],
-  [data-slot="context-menu-sub-content"],
-  [data-slot="select-content"],
-  [data-slot="navigation-menu-content"]
-) {
-  border-radius: 0;
-  border-color: var(--kazan-grid-edge);
-  box-shadow: var(--kazan-grid-shadow);
 }
 
 /* A command list inside a popover draws on the popover's own frame. */
