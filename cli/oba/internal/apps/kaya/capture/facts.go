@@ -158,8 +158,10 @@ func firstLine(path string) (string, error) {
 }
 
 // CleanRemote is the remote without the user name and password a URL remote may carry, for every
-// scheme. The ssh alias is resolved later, when the sender builds a batch, so a session queued
-// before an ssh config change is reported with today's host.
+// scheme. The hook passes the remote that put the checkout on the repository list, in the form
+// that matched: as git reports it, or with its ssh host alias resolved when only the resolved host
+// is listed. The sender sends a recorded remote only while the cached list holds it, as recorded or
+// with its alias resolved, so a remote never leaves the machine unlisted.
 func CleanRemote(remote string) string {
 	return userInfo.ReplaceAllString(strings.TrimSpace(remote), "$1")
 }

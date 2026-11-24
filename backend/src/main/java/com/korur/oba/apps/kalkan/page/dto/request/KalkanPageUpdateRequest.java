@@ -22,7 +22,8 @@ import com.korur.oba.apps.kalkan.page.constant.KalkanPageConstant;
 public record KalkanPageUpdateRequest(
         @Pattern(regexp = KalkanPageConstant.SLUG_PATTERN,
                 message = "Slug must start with a letter or digit and hold only letters, digits, dots, underscores and hyphens, at most 100")
-        @Schema(description = "New URL segment; empty to keep it", nullable = true, example = "A.5.2")
+        @Schema(description = "New URL segment; empty to keep it. A root page keeps its slug, so for a root "
+                + "only its current slug or empty is accepted", nullable = true, example = "A.5.2")
         String slug,
 
         @Schema(description = "Compliance mark; empty to keep it", nullable = true, example = "true")

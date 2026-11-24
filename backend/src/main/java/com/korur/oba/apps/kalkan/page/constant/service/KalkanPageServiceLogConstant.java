@@ -21,6 +21,11 @@ public final class KalkanPageServiceLogConstant {
     // --- Reads ---
     public static final String LISTING_TREE = "Listing the page tree of organization {} for user {}";
     public static final String READING_PAGE = "Reading page {} of organization {}";
+    public static final String LISTING_REVISIONS = "Listing the revisions of page {} of organization {}";
+    public static final String READING_REVISION = "Reading revision {} of page {} of organization {}";
+    public static final String REVISION_NOT_FOUND = "Revision {} not found for page {} in organization {}";
+    public static final String LISTING_TRASH = "Listing the deleted pages of organization {} for user {}";
+    public static final String LISTING_RECENT = "Listing the {} most recently changed pages of organization {} for user {}";
     public static final String PAGE_NOT_FOUND = "Page {} not found in organization {}";
     public static final String PAGE_NOT_FOUND_BY_ID = "Page {} not found";
     public static final String DELETED_PAGE_NOT_FOUND = "Page {} not found in organization {}, deleted pages included";
@@ -36,7 +41,9 @@ public final class KalkanPageServiceLogConstant {
     // --- Refusals ---
     public static final String VERSION_OUTDATED = "Refused a change of page {} in organization {}: version {} sent, {} stored";
     public static final String SLUG_TAKEN = "Refused slug {} under parent {} in organization {}: taken";
+    public static final String ROOT_SLUG_IN_TRASH = "Refused root slug {} in organization {}: held by deleted root {}";
     public static final String RESERVED_ROOT_SLUG = "Refused reserved root slug {} in organization {}";
+    public static final String ROOT_SLUG_FIXED = "Refused a slug change of root page {} in organization {} from {} to {}";
     public static final String DUPLICATE_LOCALE = "Refused a write in organization {}: locale {} given twice";
     public static final String MOVE_INVALID = "Refused a move of page {} under parent {} in organization {}: {}";
     public static final String DEPTH_EXCEEDED = "Refused page {} under parent {} in organization {}: deeper than {} levels";

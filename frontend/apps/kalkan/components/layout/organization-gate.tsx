@@ -3,15 +3,15 @@
 import { useTranslations } from "next-intl";
 import { Building } from "lucide-react";
 import { ACCOUNT_LINKS } from "@oba/shared/constants/apps";
-import { Button } from "@/components/ui/button";
+import { Button } from "@oba/ui/sky/button";
 import { useOrganizationId } from "@/hooks/use-organization-id";
 
 /**
- * Renders the sidebar and the page only for a user with a current
- * organization: every Kalkan page belongs to one, and the API refuses a
- * request without it. A user without one is sent to the account app to create
- * or join one. The check reads the same organization the queries are keyed
- * on, so the server render already shows the right screen.
+ * Renders the page only for a user with a current organization: every
+ * Kalkan page belongs to one, and the API refuses a request without it. A
+ * user without one is sent to the account app to create or join one. The
+ * check reads the same organization the queries are keyed on, so the server
+ * render already shows the right screen.
  */
 export function OrganizationGate({ children }: { children: React.ReactNode }) {
   const t = useTranslations("organizationGate");
@@ -19,7 +19,7 @@ export function OrganizationGate({ children }: { children: React.ReactNode }) {
 
   if (!organizationId) {
     return (
-      <div className="flex flex-1 items-center justify-center p-4 py-16">
+      <div className="flex min-h-full items-center justify-center p-4 py-16">
         <div className="w-full max-w-md space-y-6 text-center">
           <div className="flex justify-center">
             <div className="bg-primary/10 rounded-full p-4">
