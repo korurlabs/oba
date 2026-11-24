@@ -12,7 +12,10 @@ import { redirect } from "@oba/shared/libs/i18n/navigation";
 import { Locale } from "@oba/shared/types";
 import { prefetchMe } from "@oba/shared/features/users/api/prefetch-me";
 import { accountOnboardingUrl, appUrl } from "@oba/shared/constants/apps";
-import { KalkanShell } from "@/components/layout/kalkan-shell";
+import { KalkanAppShell } from "@/components/layout/kalkan-app-shell";
+import { OverviewView } from "@/features/overview/components/overview-view";
+import { prefetchPageTree, prefetchRecentPages } from "@/features/pages/lib/prefetch";
+import { OVERVIEW_RECENT_LIMIT } from "@/features/recent/lib/recent-limits";
 
 export const dynamic = "force-dynamic";
 
@@ -81,15 +84,16 @@ async function SignInFailed({ error, signInUrl }: { error: string; signInUrl: st
  * - onboarding required -> account onboarding (keeps callbackUrl)
  * - active with a callbackUrl -> callbackUrl
  * - active with an `error` -> `/`, so the error leaves the URL
- * - active, no callbackUrl -> the home page inside the Kalkan shell
+ * - active, no callbackUrl -> the overview inside the Kalkan shell
  *
  * `/` cannot sit in the dashboard group, whose layout sends a visitor without
  * a session straight to sign-in and would break the failed-sign-in handling
  * above, so this page renders the shell itself, as the dashboard layout does:
- * the current-user ("me") query prefetched and hydrated around the shell,
- * which reads it, and the session's default organization handed to the shell
- * so the first render keys its queries on the organization they were
- * prefetched under.
+ * the current-user ("me") query and the page tree prefetched and hydrated
+ * around the shell, which reads both, together with the overview's recent
+ * changes, and the session's default organization
+ * handed to the shell so the first render keys its queries on the
+ * organization they were prefetched under.
  */
 export default async function HomePage({
   params,
@@ -143,10 +147,19 @@ export default async function HomePage({
   const queryClient = makeQueryClient();
   // Best-effort: on a failed prefetch the client fetches through useGetMe.
   await prefetchMe(queryClient, session.accessToken, "home-page");
+  const organizationId = session.user.defaultOrganizationId ?? null;
+  if (organizationId) {
+    await Promise.all([
+      prefetchPageTree(queryClient, organizationId, "home-page"),
+      prefetchRecentPages(queryClient, organizationId, OVERVIEW_RECENT_LIMIT, locale, "home-page"),
+    ]);
+  }
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <KalkanShell organizationId={session.user.defaultOrganizationId ?? null} />
+      <KalkanAppShell organizationId={organizationId}>
+        <OverviewView />
+      </KalkanAppShell>
     </HydrationBoundary>
   );
 }

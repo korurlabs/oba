@@ -15,9 +15,10 @@ import (
 // client's own bound.
 const tokenTimeout = 30 * time.Second
 
-// Checkout is the checkout of the working directory and the remote it names to Kaya. Any
-// git checkout will do: lessons are not delivered config, so a repository need not be cut over
-// to record or read them.
+// Checkout is the checkout of the working directory and the remote it names to Kaya: the remote
+// that puts it on the organization's repository list. A checkout not cut over yet will do, since
+// lessons are not delivered config; a checkout with no listed remote is refused, so nothing of it
+// reaches Kaya.
 func Checkout() (*delivery.Checkout, string, error) {
 	checkout, err := delivery.CurrentCheckout()
 	if err != nil {

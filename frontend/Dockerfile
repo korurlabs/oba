@@ -14,6 +14,16 @@
 ARG BASE_IMAGE=docker.io/library/node:22-alpine@sha256:1314fb30ec37592d5845e5a160d522c0e680972aa534549940b8d73bde88481a
 FROM ${BASE_IMAGE}
 
+# The standalone server runs on node alone. The base image also ships npm, npx,
+# corepack and Yarn, which nothing in the container runs, and the packages they
+# bundle carry vulnerabilities of their own that a scan of the image reports.
+# Removing them leaves only what the server needs. The Yarn glob still matches
+# when a newer base image ships another Yarn version, and a base image without
+# these tools builds unchanged.
+RUN rm -rf /usr/local/lib/node_modules /opt/yarn-v* \
+        /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
+        /usr/local/bin/yarn /usr/local/bin/yarnpkg
+
 ARG APP_NAME
 
 ENV PORT=8080

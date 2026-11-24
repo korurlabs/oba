@@ -1,0 +1,44 @@
+# Vulnerabilities that Oba's Trivy scans accept for a limited time.
+#
+# release.yml and trivy.yml pass this file to Trivy, which loads a YAML ignore
+# file only when it is named. Each entry covers one id in the packages its purls
+# name, and Trivy drops it from 00:00 UTC on its expired_at date, after which the
+# finding fails the release scan again. An entry belongs here only when Oba
+# cannot reach the vulnerable code and no usable fixed version exists yet.
+# Format: https://trivy.dev/docs/v0.76/guide/configuration/filtering/
+#
+# The three Spring Framework advisories below are fixed in open source only in
+# Spring Framework 7.0.9, which needs Spring Boot 4. The 6.2 line that Spring
+# Boot 3.5 uses has no open-source fix.
+
+vulnerabilities:
+  # https://spring.io/security/cve-2026-47884
+  - id: CVE-2026-47884
+    purls:
+      - pkg:maven/org.springframework/spring-webmvc
+    expired_at: 2026-12-31
+    statement: >-
+      Needs an XsltView that renders a view for a "/**" mapping without an
+      explicit view name. Oba defines no XsltView. The fix is the move to
+      Spring Boot 4.
+
+  # https://spring.io/security/cve-2026-47890
+  - id: CVE-2026-47890
+    purls:
+      - pkg:maven/org.springframework/spring-webmvc
+      - pkg:maven/org.springframework/spring-webflux
+    expired_at: 2026-12-31
+    statement: >-
+      Needs view fragments sent over Server-Sent Events. Oba's only event
+      stream sends JSON data, never view fragments. The fix is the move to
+      Spring Boot 4.
+
+  # https://spring.io/security/cve-2026-47892
+  - id: CVE-2026-47892
+    purls:
+      - pkg:maven/org.springframework/spring-webflux
+    expired_at: 2026-12-31
+    statement: >-
+      Needs WebFlux functional endpoints. Oba defines no RouterFunction; its
+      API is served by annotated Spring MVC controllers. The fix is the move
+      to Spring Boot 4.

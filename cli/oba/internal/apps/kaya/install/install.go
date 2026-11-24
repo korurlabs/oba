@@ -349,6 +349,46 @@ func (s dropInState) advice(path string, kept int) string {
 	return advice
 }
 
+// UserSettingsKayaHooks counts Kaya's own hook groups in the Claude Code user settings: the hooks
+// the drop-in registers, under any oba path or the former kaya one. Once the drop-in is in force
+// every such group makes its hook run twice.
+func UserSettingsKayaHooks(opts Options) (int, error) {
+	path := ClaudeSettingsPath(opts)
+	data, err := readOptional(path)
+	if err != nil {
+		return 0, err
+	}
+	settings, err := jsonedit.Parse(data)
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", path, err)
+	}
+	hooks, err := settings.Object("hooks")
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", path, err)
+	}
+	events, commands := kayaHooks()
+	count, err := countKayaGroups(hooks, events, commands)
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", path, err)
+	}
+	return count, nil
+}
+
+// MissingShellFunction names each shell rc file that does not define claude() through the oba of
+// opts as install writes it, and what to do by hand where no rc file exists; empty when nothing
+// is missing. It writes nothing.
+func MissingShellFunction(opts Options) ([]string, error) {
+	var plan Plan
+	if err := plan.shell(opts); err != nil {
+		return nil, err
+	}
+	missing := make([]string, 0, len(plan.Changes)+len(plan.Manual))
+	for _, change := range plan.Changes {
+		missing = append(missing, change.Path)
+	}
+	return append(missing, plan.Manual...), nil
+}
+
 // kayaHooks are the events and the subcommands of every hook the drop-in registers, which an
 // earlier install may also have registered in the user settings.
 func kayaHooks() (events, commands []string) {

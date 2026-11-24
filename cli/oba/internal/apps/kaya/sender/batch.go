@@ -20,6 +20,7 @@ import (
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/capture"
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/delivery"
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/redact"
+	"github.com/korurlabs/oba-cli/internal/apps/kaya/seed"
 )
 
 // What one batch may carry. The server refuses bodies over 4 MiB; bodyBudget stays well below,
@@ -501,6 +502,12 @@ func (s *run) readConfigRelease(dir, sessionID string) map[string]any {
 const unlisted = "no remote of it is on the organization's repository list, as recorded or with its ssh host alias resolved; " +
 	"it stays queued until its repository is listed"
 
+// unresolvedAlias is why a session is not sent when ssh could not resolve the host alias of its
+// recorded remote, so the sender cannot tell whether the host it stands for is on the list. Like
+// unlisted it names neither the remote nor its host.
+const unresolvedAlias = "ssh could not resolve the host alias of its recorded remote, so it is not known whether its repository is listed; " +
+	"it stays queued"
+
 // repositoryOf is the session's repository as Kaya is asked about it, or why the session is not
 // sent. Only a remote on the cached repository list leaves the machine, so the sender is the last
 // gate for what a hook recorded, whichever release recorded it.
@@ -522,8 +529,11 @@ func (s *run) repositoryOf(session, summary map[string]any) (*repository, string
 	recorded, _ := session["remoteUrl"].(string)
 	var remote string
 	if recorded != "" {
-		request, _, ok := delivery.ListedRemote(list, recorded, s.resolver)
+		request, _, warning, ok := delivery.ListedRemote(list, recorded, s.resolver)
 		if !ok {
+			if s.aliasUnresolved(recorded, warning) {
+				return nil, unresolvedAlias
+			}
 			return nil, unlisted
 		}
 		remote = request
@@ -543,6 +553,20 @@ func (s *run) repositoryOf(session, summary map[string]any) (*repository, string
 		repo.Name = &name
 	}
 	return repo, ""
+}
+
+// aliasUnresolved tells whether ssh could not resolve the host alias of the recorded remote in
+// this run. The resolver warns only on its first lookup of a host, so the host is kept for the
+// later sessions and rounds that ask about it. The warning is not logged: it names the remote.
+func (s *run) aliasUnresolved(recorded, warning string) bool {
+	_, host, _, isSSH := seed.SplitSSHRemote(seed.CleanRemote(strings.TrimSpace(recorded)))
+	if !isSSH {
+		return false
+	}
+	if warning != "" {
+		s.unresolvedHosts[host] = true
+	}
+	return s.unresolvedHosts[host]
 }
 
 // recognizedRemote is the remote that puts the session's checkout on the repository list, found

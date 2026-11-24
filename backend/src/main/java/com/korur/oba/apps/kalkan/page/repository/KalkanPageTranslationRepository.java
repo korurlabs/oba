@@ -102,4 +102,20 @@ public interface KalkanPageTranslationRepository extends SoftDeleteRepository<Ka
               AND updated_at = (SELECT updated_at FROM deleted_at)
             """, nativeQuery = true)
     int restoreBySubtree(@Param("pageId") UUID pageId, @Param("userId") UUID userId, @Param("now") Instant now);
+
+    /**
+     * Reads the titles a delete took with its pages, without their bodies: the deleted translations
+     * that carry the delete instant of their page. Native, because the soft-delete filter hides them.
+     *
+     * @param pageIds the deleted pages
+     * @return one row per translation the pages' deletes took
+     */
+    @Query(value = """
+            SELECT t.page_id AS pageId, CAST(t.locale AS TEXT) AS locale, t.title AS title
+            FROM kalkan.page_translations t
+            JOIN kalkan.pages p ON p.id = t.page_id
+            WHERE t.page_id IN (:pageIds) AND t.deleted = TRUE AND p.deleted = TRUE
+              AND t.updated_at = p.updated_at
+            """, nativeQuery = true)
+    List<KalkanPageTitleProjection> findDeletedTitles(@Param("pageIds") Collection<UUID> pageIds);
 }

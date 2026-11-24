@@ -26,4 +26,15 @@ public enum KalkanLevel {
     public boolean isAtLeast(KalkanLevel minimum) {
         return compareTo(minimum) >= 0;
     }
+
+    /**
+     * The level that deleting or restoring a page needs. A root takes the whole tree with it, which
+     * only its managers decide; a page below it is the editors' call.
+     *
+     * @param root whether the page is a root page
+     * @return MANAGE for a root, EDIT for any other page
+     */
+    public static KalkanLevel minimumToDelete(boolean root) {
+        return root ? MANAGE : EDIT;
+    }
 }

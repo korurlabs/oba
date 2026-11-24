@@ -7,10 +7,11 @@
  * a session to sign-in with a callbackUrl; this gate is the fallback for a
  * session that fails while the page renders.
  *
- * The layout server-prefetches the current-user ("me") query and hydrates it
- * around the shell, not in each page: the shell reads the query itself (see
- * AccountSessionSync), and a HydrationBoundary below a component that already
- * observes the query hydrates it only in an effect. Server and client then
+ * The layout server-prefetches the current-user ("me") query and the page
+ * tree and hydrates them around the shell, not in each page: the shell reads
+ * both itself (AccountSessionSync, the sidebar's page trees), and a
+ * HydrationBoundary below a component that already observes a query hydrates
+ * it only in an effect. Server and client then
  * render the page's first frame from different data. Hydrated above the shell,
  * the query holds the data before anything reads it, on both sides.
  *
@@ -29,7 +30,8 @@ import { AuthError } from "@oba/shared/libs/auth/types";
 import { accountOnboardingUrl, appUrl } from "@oba/shared/constants/apps";
 import { redirectToAuthApp } from "@oba/shared/libs/i18n/navigation";
 import { Locale } from "@oba/shared/types";
-import { KalkanShell } from "@/components/layout/kalkan-shell";
+import { KalkanAppShell } from "@/components/layout/kalkan-app-shell";
+import { prefetchPageTree } from "@/features/pages/lib/prefetch";
 
 export const dynamic = "force-dynamic";
 
@@ -55,12 +57,14 @@ export default async function DashboardLayout({
   const queryClient = makeQueryClient();
   // Best-effort: on a failed prefetch the client fetches through useGetMe.
   await prefetchMe(queryClient, session.accessToken, "dashboard-layout");
+  const organizationId = session.user.defaultOrganizationId ?? null;
+  if (organizationId) {
+    await prefetchPageTree(queryClient, organizationId, "dashboard-layout");
+  }
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <KalkanShell organizationId={session.user.defaultOrganizationId ?? null}>
-        {children}
-      </KalkanShell>
+      <KalkanAppShell organizationId={organizationId}>{children}</KalkanAppShell>
     </HydrationBoundary>
   );
 }
