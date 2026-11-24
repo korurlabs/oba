@@ -103,7 +103,7 @@ export const ChatReactions = memo(function ChatReactions({ message, canReact }: 
             type="button"
             aria-label={t("add")}
             title={t("add")}
-            className="border-border text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:ring-ring inline-flex h-6 items-center rounded-full border px-1.5 focus-visible:ring-2 focus-visible:outline-none"
+            className="border-border text-muted-foreground hover:text-foreground hover:bg-muted focus-visible:ring-ring inline-flex h-6 items-center rounded-none border px-1.5 focus-visible:ring-2 focus-visible:outline-none"
           >
             <SmilePlus className="size-3.5" aria-hidden />
           </button>
@@ -139,7 +139,7 @@ function ReactionPill({ reaction, names, disabled, onToggle }: ReactionPillProps
           aria-pressed={reaction.reactedByMe}
           aria-label={label}
           className={cn(
-            "focus-visible:ring-ring inline-flex h-6 items-center gap-1 rounded-full border px-2 text-xs tabular-nums transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-default",
+            "focus-visible:ring-ring inline-flex h-6 items-center gap-1 rounded-none border px-2 text-xs tabular-nums transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-default",
             reaction.reactedByMe
               ? "border-primary/50 bg-primary/10 text-primary"
               : "border-border bg-muted/40 text-foreground enabled:hover:bg-muted",

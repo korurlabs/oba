@@ -27,7 +27,7 @@ export function MilestoneBadge({ milestone, size = "md", className }: MilestoneB
   return (
     <span
       className={cn(
-        "border-border text-foreground inline-flex max-w-full items-center rounded-full border font-medium",
+        "border-border text-foreground inline-flex max-w-full items-center border font-medium",
         size === "sm" ? "gap-0.5 px-1.5 py-0.5 text-[10px]" : "gap-1 px-2 py-0.5 text-xs",
         isClosed && "text-muted-foreground",
         className,
@@ -52,7 +52,7 @@ export function MilestoneHealthBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium",
+        "inline-flex items-center border px-1.5 py-0.5 font-mono text-[11px] leading-none font-medium tracking-[0.08em] whitespace-nowrap uppercase",
         MILESTONE_HEALTH_STYLES[health].badge,
         className,
       )}

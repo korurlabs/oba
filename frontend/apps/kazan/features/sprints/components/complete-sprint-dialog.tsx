@@ -222,28 +222,28 @@ export function CompleteSprintDialog({
 
         <div className="flex flex-col gap-6 py-2">
           {/* Sprint Summary */}
-          <div className="border-border bg-muted rounded-lg border p-4">
-            <h4 className="text-foreground mb-3 text-sm font-semibold">
+          <div className="kazan-grid-frame bg-card p-4">
+            <h4 className="kazan-grid-heading mb-3">
               {t("sprint.completeDialog.summary")}
             </h4>
 
             <div className="flex flex-col gap-2">
               {/* Completed Tickets */}
               <div className="flex items-center justify-between text-sm">
-                <div className="text-success flex items-center gap-2">
+                <div className="text-korur-blue-strong flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4" />
                   <span>{t("sprint.completeDialog.completed")}</span>
                 </div>
-                <span className="font-semibold">{completedTicketsCount}</span>
+                <span className="font-mono font-semibold tabular-nums">{completedTicketsCount}</span>
               </div>
 
               {/* Incomplete Tickets */}
               <div className="flex items-center justify-between text-sm">
-                <div className="text-warning flex items-center gap-2">
+                <div className="text-foreground flex items-center gap-2">
                   <ListTodo className="h-4 w-4" />
                   <span>{t("sprint.completeDialog.incomplete")}</span>
                 </div>
-                <span className="font-semibold">{incompleteTicketsCount}</span>
+                <span className="font-mono font-semibold tabular-nums">{incompleteTicketsCount}</span>
               </div>
 
               {/* Completion Rate */}
@@ -251,9 +251,10 @@ export function CompleteSprintDialog({
                 <span>{t("sprint.completeDialog.completionRate")}</span>
                 <span
                   className={cn(
-                    "text-lg",
-                    completionRate >= 80 && "text-success",
-                    completionRate >= 50 && completionRate < 80 && "text-warning",
+                    // The rate reads in the primary ink once most work is done and in red
+                    // only when less than half of it is; between the two it is plain ink.
+                    "font-mono text-lg tabular-nums",
+                    completionRate >= 80 && "text-korur-blue-strong",
                     completionRate < 50 && "text-destructive"
                   )}
                 >

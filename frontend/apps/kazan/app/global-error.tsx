@@ -31,7 +31,7 @@ export default function GlobalError({
         >
           <div className="w-full max-w-md space-y-6 text-center">
             <div className="flex justify-center">
-              <div className="rounded-full bg-red-100 p-4">
+              <div className="border border-dashed border-red-300 p-4">
                 <AlertTriangle
                   className="h-12 w-12 text-red-600"
                   aria-hidden="true"
@@ -49,7 +49,7 @@ export default function GlobalError({
             </div>
 
             {process.env.NODE_ENV === 'development' && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-left">
+              <div className="border border-red-200 bg-white p-4 text-left">
                 <p className="mb-2 text-xs font-medium text-red-600">
                   Error Details (Development Only):
                 </p>
@@ -61,7 +61,7 @@ export default function GlobalError({
 
             <button
               onClick={reset}
-              className="inline-flex items-center gap-2 rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+              className="inline-flex items-center gap-2 bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
               aria-label="Try again"
             >
               <RefreshCcw className="h-4 w-4" aria-hidden="true" />

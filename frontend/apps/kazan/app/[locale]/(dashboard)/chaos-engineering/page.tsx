@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { EmptyState } from "@oba/ui/sky/page-states";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("chaosEngineering");
@@ -18,11 +19,10 @@ export default async function ChaosEngineeringPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
-      <header className="flex flex-col gap-1">
-        <h1 className="text-foreground text-2xl font-semibold">{t("title")}</h1>
-        <p className="text-muted-foreground text-sm">{t("description")}</p>
-      </header>
-      <EmptyState title={t("emptyTitle")} description={t("emptyDescription")} />
+      <PageHeader title={t("title")} description={t("description")} />
+      <div className="kazan-grid-frame bg-card py-10">
+        <EmptyState title={t("emptyTitle")} description={t("emptyDescription")} />
+      </div>
     </div>
   );
 }

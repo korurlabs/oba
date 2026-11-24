@@ -74,7 +74,7 @@ export function ColorPicker({
   const isTile = variant === "tile";
   const swatchClass = cn(
     "relative flex shrink-0 items-center justify-center transition-all",
-    isTile ? "h-12 w-12 rounded-lg" : "h-6 w-6 rounded-full",
+    isTile ? "h-12 w-12" : "h-6 w-6",
   );
   const selectedClass = "ring-primary ring-offset-background scale-110 ring-2 ring-offset-2";
   const idleClass = isTile ? "hover:scale-105" : "hover:scale-110";
@@ -103,7 +103,7 @@ export function ColorPicker({
       {swatch}
       {isTile && <span className="text-muted-foreground text-xs">{name}</span>}
       {isTile && selected && (
-        <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full">
+        <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center">
           <Check className="h-3 w-3" strokeWidth={3} aria-hidden />
         </span>
       )}
@@ -148,7 +148,7 @@ export function ColorPicker({
                     style={{ color: getReadableTextColor(customColor) }}
                   />
                 ) : (
-                  <span className="bg-background text-foreground flex items-center justify-center rounded-full p-0.5 shadow-sm">
+                  <span className="bg-background text-foreground flex items-center justify-center p-0.5">
                     <Plus className={isTile ? "h-3.5 w-3.5" : "h-2.5 w-2.5"} strokeWidth={3} />
                   </span>
                 )}

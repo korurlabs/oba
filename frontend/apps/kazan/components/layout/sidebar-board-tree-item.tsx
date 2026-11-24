@@ -5,7 +5,15 @@ import type { DraggableSyntheticListeners } from "@dnd-kit/core";
 import { useParams } from "next/navigation";
 import { Link } from "@oba/shared/libs/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { ChevronRight, FolderPlus, MoreHorizontal, Pin, PinOff, Settings } from "lucide-react";
+import {
+  ChevronRight,
+  FolderPlus,
+  MoreHorizontal,
+  Pin,
+  PinOff,
+  Settings,
+  SquareKanban,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,7 +27,6 @@ import { DEFAULT_BOARD_COLOR } from "@/features/boards/lib/board-colors";
 import { useSidebarContext } from "./sidebar-context";
 import { cn } from "@/lib/utils";
 import type { BoardListWithChildrenResponse } from "@/features/boards/schemas";
-import { BoardDot, boardDotAppearance } from "../ui/board-dot";
 import { useBoardHref } from "@/hooks/use-board-preferences";
 import { useBoardRole } from "@/features/boards/hooks/use-board-role";
 
@@ -34,9 +41,9 @@ interface SidebarBoardTreeItemProps {
   /** Nesting level, 0 for a top-level row; the indent itself comes from the enclosing branch. */
   depth?: number;
   isExpanded?: boolean;
-  /** Whether the row has children to show in this section; only then is its dot an expand control. */
+  /** Whether the row has children to show in this section; only then is its icon an expand control. */
   hasVisibleChildren?: boolean;
-  /** Dot click on a board with children: opens or closes them without navigating. */
+  /** Icon click on a board with children: opens or closes them without navigating. */
   onToggleExpand?: (id: string) => void;
   /** Row click on a board with children: opens them, never closes them. */
   onExpand?: (id: string) => void;
@@ -92,20 +99,17 @@ export function SidebarBoardTreeItem({
     if (hasVisibleChildren) onExpand?.(board.id);
   };
 
-  const dotAppearance = boardDotAppearance(board.color);
-
-  // The dot, or the pin of a pinned board, sits in a slot of the same width on
-  // every row, so names line up whether or not the row can expand.
+  // Every board carries the same board icon, the one of the Boards section, so
+  // the tree reads as navigation and its names carry the difference. The icon,
+  // or the pin of a pinned board, sits in a slot of the same width on every
+  // row, so names line up whether or not the row can expand.
   const marker = isPinned ? (
     <Pin className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
   ) : (
-    <span
-      className={cn("h-2.5 w-2.5 shrink-0 rounded-full", dotAppearance.className)}
-      style={dotAppearance.style}
-    />
+    <SquareKanban className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
   );
 
-  // Collapsed rail mode: only show color dot with tooltip
+  // Collapsed rail mode: only the board icon, with the name in a tooltip
   if (collapsed) {
     return (
       <Tooltip>
@@ -114,16 +118,14 @@ export function SidebarBoardTreeItem({
             href={boardHref}
             onClick={closeMobile}
             className={cn(
-              "flex items-center justify-center rounded py-2",
+              "flex items-center justify-center py-2",
               isActive && "bg-primary/10"
             )}
           >
-            <BoardDot color={board.color} />
+            <SquareKanban className="text-muted-foreground h-4 w-4 shrink-0" />
           </Link>
         </TooltipTrigger>
-        <TooltipContent side="right">
-          ({board.prefix}) {board.name}
-        </TooltipContent>
+        <TooltipContent side="right">{board.name}</TooltipContent>
       </Tooltip>
     );
   }
@@ -152,7 +154,7 @@ export function SidebarBoardTreeItem({
           <span
             aria-hidden="true"
             className={cn(
-              "bg-primary pointer-events-none absolute inset-x-0 h-0.5 rounded-full",
+              "bg-primary pointer-events-none absolute inset-x-0 h-0.5",
               dropIndicator === "before" ? "-top-0.5" : "-bottom-0.5"
             )}
           />
@@ -202,10 +204,6 @@ export function SidebarBoardTreeItem({
           )}
 
           <span className="min-w-0 flex-1 truncate">{board.name}</span>
-
-          <span className="text-muted-foreground shrink-0 text-xs font-medium uppercase">
-            {board.prefix}
-          </span>
         </Link>
 
         {/* Context menu */}
@@ -214,7 +212,7 @@ export function SidebarBoardTreeItem({
             <button
               type="button"
               aria-label={t("boardActions", { name: board.name })}
-              className="text-muted-foreground hover:text-foreground hover:bg-muted flex h-7 w-7 shrink-0 items-center justify-center rounded"
+              className="text-muted-foreground hover:text-foreground hover:bg-muted flex h-7 w-7 shrink-0 items-center justify-center"
               onClick={(e) => e.stopPropagation()}
               onMouseDown={stopDragStart}
               onTouchStart={stopDragStart}

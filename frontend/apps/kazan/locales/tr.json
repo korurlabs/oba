@@ -167,6 +167,7 @@
     "includeAllBoards": "Tüm panoları dahil et"
   },
   "ticket": {
+    "searchPlaceholder": "Ticket ara…",
     "systemActor": {
       "badge": "Sistem"
     },
@@ -206,9 +207,7 @@
       "IN_PROGRESS": "Devam Ediyor",
       "WAITING_FOR_THIRD_PARTY": "Üçüncü taraf bekleniyor",
       "IN_REVIEW": "İncelemede",
-      "DONE": "Tamamlandı",
-      "filterBy": "{status} ile filtrele",
-      "filterByWithCount": "{status} ile filtrele ({count})"
+      "DONE": "Tamamlandı"
     },
     "missionRank": {
       "XS": "XS",
@@ -636,7 +635,6 @@
   },
   "all": {
     "title": "Tümü",
-    "sprintSection": "Sprint",
     "addToSprint": "Sprint'e Ekle",
     "addToBacklog": "Backlog'a Ekle",
     "dnd": {
@@ -1011,7 +1009,7 @@
     "cyberscore": "Cyberscore",
     "chats": "Sohbetler",
     "dailyUpdates": "Güncellemeler",
-    "pullRequests": "PR",
+    "pullRequests": "Pull Requests",
     "expandBoard": "{name} panosunu genişlet",
     "collapseBoard": "{name} panosunu daralt",
     "boardActions": "{name} için işlemler",
@@ -1698,6 +1696,8 @@
       "button": "Ara",
       "title": "Mesajlarda ara",
       "placeholder": "Mesajlarda ara…",
+      "updatesPlaceholder": "Güncellemelerde ara…",
+      "pullRequestsPlaceholder": "Pull request ara…",
       "author": "Yazar",
       "anyAuthor": "Tüm yazarlar",
       "selectedAuthor": "Seçili yazar",

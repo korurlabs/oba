@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Flag, Plus } from "lucide-react";
 import { cn } from "@oba/ui/lib/utils";
 import { Button } from "@/components/ui/button";
+import { BoardBarControls } from "@/components/layout/board-bar-slot";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useManageableBoardIds } from "@/features/boards/hooks/use-board-role";
@@ -31,13 +32,13 @@ export function RoadmapPageView({ boardId }: RoadmapPageViewProps) {
   const [showCreate, setShowCreate] = useState(false);
   const timelineRef = useRef<RoadmapTimelineHandle>(null);
   const [selected, setSelected] = useState<Pick<MilestoneListResponse, "id" | "boardId"> | null>(
-    null,
+    null
   );
 
   const boards = useMemo(() => roadmapResponse?.data?.boards ?? [], [roadmapResponse]);
   const filteredBoards = useMemo(
     () => filterRoadmapBoards(boards, { status, health }),
-    [boards, status, health],
+    [boards, status, health]
   );
   const boardIds = useMemo(() => boards.map((board) => board.id), [boards]);
   const manageableBoardIds = useManageableBoardIds(boardIds);
@@ -49,10 +50,12 @@ export function RoadmapPageView({ boardId }: RoadmapPageViewProps) {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <div className="border-border bg-card flex flex-wrap items-center gap-2 border-b px-4 py-2 lg:px-6">
-        <h1 className="text-foreground text-sm font-semibold">{t("title")}</h1>
+      {/*
+        The roadmap has no sprint or backlog to name, so all of its controls
+        sit in the board bar and the timeline starts right under it.
+      */}
+      <BoardBarControls>
         <RoadmapFilters />
-        <div className="flex-1" />
         <Button
           variant="outline"
           size="sm"
@@ -74,11 +77,11 @@ export function RoadmapPageView({ boardId }: RoadmapPageViewProps) {
               aria-pressed={zoom === value}
               onClick={() => setParams({ zoom: value })}
               className={cn(
-                "rounded px-2.5 py-1 text-xs font-medium transition-colors",
+                "px-2.5 py-1 text-xs font-medium transition-colors",
                 "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
                 zoom === value
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground",
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
               {t(`zoom.${value}`)}
@@ -89,12 +92,12 @@ export function RoadmapPageView({ boardId }: RoadmapPageViewProps) {
           <Plus className="h-3.5 w-3.5" />
           {t("newMilestone")}
         </Button>
-      </div>
+      </BoardBarControls>
 
       <div
         className={cn(
           "min-h-0 flex-1 p-4 lg:p-6",
-          showTimeline ? "overflow-hidden" : "overflow-auto",
+          showTimeline ? "overflow-hidden" : "overflow-auto"
         )}
       >
         {isLoading ? (
@@ -119,7 +122,10 @@ export function RoadmapPageView({ boardId }: RoadmapPageViewProps) {
             description={t("filters.noMatchesDescription")}
             action={
               isFiltered
-                ? { label: t("filters.clear"), onClick: () => setParams({ status: null, health: null }) }
+                ? {
+                    label: t("filters.clear"),
+                    onClick: () => setParams({ status: null, health: null }),
+                  }
                 : undefined
             }
           />

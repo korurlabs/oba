@@ -672,7 +672,7 @@ export function SidebarBoardTree() {
     );
   }
 
-  // Collapsed icon rail: the rows the open branches show, flat, as dots
+  // Collapsed icon rail: the rows the open branches show, flat, as board icons
   if (collapsed) {
     const rows = [
       ...flattenVisibleRows(pinnedBoards, getPinnedChildren, isExpanded, PINNED_CONTAINER_ID),
@@ -719,7 +719,7 @@ export function SidebarBoardTree() {
             </div>
             <SidebarDragOverlay>
               {activePinnedDrag ? (
-                <div className="bg-background rounded-md border shadow-md">
+                <div className="bg-background border-primary/50 border shadow-(--kazan-grid-shadow)">
                   <SidebarBoardTreeItem
                     board={activePinnedDrag.board}
                     depth={activePinnedDrag.depth}

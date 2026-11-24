@@ -415,7 +415,7 @@ function UpdateComposer(props: UpdateComposerProps) {
   // search must not publish it, nor write the card's percentages to tickets.
   return (
     <Form {...form}>
-      <div className="bg-background flex h-full flex-col">
+      <div className="flex h-full flex-col">
         <ScreenHeader mode={mode}>
           <Button type="submit" form={formId} size="sm" disabled={submitDisabled}>
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -522,7 +522,7 @@ function CreatedUpdate({
 }) {
   const t = useTranslations("updates.form");
   return (
-    <div className="bg-background flex h-full flex-col">
+    <div className="flex h-full flex-col">
       <ScreenHeader mode="create" />
       <div className="flex-1 overflow-auto">
         <div className="mx-auto w-full max-w-3xl space-y-4 px-4 py-6 lg:px-6">
@@ -570,7 +570,7 @@ type ScreenStateProps =
 function ScreenState(props: ScreenStateProps) {
   const t = useTranslations("updates");
   return (
-    <div className="bg-background flex h-full flex-col">
+    <div className="flex h-full flex-col">
       <ScreenHeader mode={props.mode} />
       {props.kind === "loading" ? (
         <div className="flex flex-1 flex-col items-center justify-center">

@@ -48,7 +48,7 @@ export function InviteGuestDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="rounded-2xl sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserPlus className="text-primary h-5 w-5" />
@@ -87,7 +87,7 @@ export function InviteGuestDialog({
                     <Eye className="h-4 w-4" />
                     <div className="flex flex-col items-start justify-start">
                       <div className="font-medium">{t("guest.viewer")}</div>
-                      <div className="text-xs text-gray-500">{t("guest.viewerDesc")}</div>
+                      <div className="text-muted-foreground text-xs">{t("guest.viewerDesc")}</div>
                     </div>
                   </div>
                 </SelectItem>
@@ -96,7 +96,7 @@ export function InviteGuestDialog({
                     <Edit className="h-4 w-4" />
                     <div className="flex flex-col items-start justify-start">
                       <div className="font-medium">{t("guest.member")}</div>
-                      <div className="text-xs text-gray-500">{t("guest.memberDesc")}</div>
+                      <div className="text-muted-foreground text-xs">{t("guest.memberDesc")}</div>
                     </div>
                   </div>
                 </SelectItem>

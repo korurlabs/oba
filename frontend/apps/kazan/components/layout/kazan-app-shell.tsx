@@ -112,7 +112,10 @@ function KazanFrame({ children }: { children: ReactNode }) {
       <AccountSessionSync />
       <IncidentAlertWatcher />
       <ChatUnreadTitle />
-      <div className="min-h-0 flex-1 overflow-auto">
+      {/* The page area is Kazan's canvas: a pale blue sheet with the grid of
+          the menu, painted on the scroll container so it stays put while a
+          page scrolls. Toolbars, cards and tables lie on it as solid plates. */}
+      <div className="kazan-canvas min-h-0 flex-1 overflow-auto">
         {/* One gate holds the page and the ticket dialog, so an organization
             without Kazan shows one panel and no dialog over it. The dialog
             renders through a portal, so the scroll area does not clip it. */}

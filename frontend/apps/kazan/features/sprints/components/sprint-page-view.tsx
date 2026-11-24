@@ -39,7 +39,7 @@ export function SprintPageView({ boardId }: SprintPageViewProps) {
   // Show loading skeleton during initial load
   if (page.isLoading && page.sprints.length === 0) {
     return (
-      <div className="bg-background flex h-full flex-col items-center justify-center">
+      <div className="flex h-full flex-col items-center justify-center">
         <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
         <p className="text-muted-foreground mt-3 text-sm">{t("common.loading")}</p>
       </div>
@@ -49,7 +49,7 @@ export function SprintPageView({ boardId }: SprintPageViewProps) {
   // No sprints exist yet
   if (!page.isLoading && page.sprints.length === 0) {
     return (
-      <div className="bg-background flex h-full flex-col">
+      <div className="flex h-full flex-col">
         <NoSprintState
           boardId={boardId}
           onCreateSprint={canManage ? page.openCreateSprintDialog : undefined}
@@ -67,8 +67,8 @@ export function SprintPageView({ boardId }: SprintPageViewProps) {
   }
 
   return (
-    <div className="bg-background flex h-full flex-col">
-      {/* Compact toolbar with sprint selector, info, and controls */}
+    <div className="flex h-full flex-col">
+      {/* View controls in the board bar, the sprint strip above the table */}
       <SprintToolbar
         boardId={boardId}
         page={page}
@@ -89,17 +89,10 @@ export function SprintPageView({ boardId }: SprintPageViewProps) {
             </p>
           </div>
         ) : page.viewMode === "list" ? (
-          // Search moved up into SprintToolbar, so the list is all this column
-          // holds; min-h-0 still lets the table shrink and scroll internally
-          // rather than pushing the page taller.
-          //
-          // `pt-4` is the gap the deleted search row used to open above the
-          // table (it carried `pt-4 pb-3`); without it the table's header row
-          // sits flush against the toolbar's bottom border. It is padding on
-          // the `h-full` box rather than a margin, so it eats into the 100%
-          // height instead of adding to it and cannot push the table past the
-          // shell's clip.
-          <div className="flex h-full flex-col pt-4">
+          // The list is all this column holds; min-h-0 lets the table shrink
+          // and scroll internally rather than pushing the page taller. The
+          // sprint strip above already leaves the gap over the header row.
+          <div className="flex h-full flex-col">
             <div className="flex min-h-0 flex-1 flex-col">
               <SprintList
                 search={page.filters.search}

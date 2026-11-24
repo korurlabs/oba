@@ -11,6 +11,7 @@ import { useTranslations } from "next-intl";
 import { AlertCircle, LayoutGrid, Plus, RotateCw } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
 import { cn } from "@/lib/utils";
 
 /**
@@ -42,17 +43,16 @@ export function DashboardView() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   return (
-    <div className="bg-background h-full overflow-auto">
+    <div className="h-full overflow-auto">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
-        <header className="flex items-center justify-between gap-4">
-          <h1 className="text-foreground text-2xl font-semibold">{t("title")}</h1>
+        <PageHeader title={t("title")}>
           <HomeLinksMenu />
-        </header>
+        </PageHeader>
 
         {boardsError && (
           <div
             role="alert"
-            className="border-destructive/30 bg-destructive/10 text-card-foreground flex items-center gap-4 rounded-2xl border p-4 sm:p-5"
+            className="border-destructive/40 bg-destructive/5 text-card-foreground flex items-center gap-4 border p-4 sm:p-5"
           >
             <AlertCircle aria-hidden className="text-destructive size-5 shrink-0" />
             <p className="text-muted-foreground flex-1 text-sm">{t("boardsError")}</p>
@@ -71,8 +71,8 @@ export function DashboardView() {
         )}
 
         {hasNoBoards && (
-          <div className="bg-card border-border flex flex-col gap-4 rounded-2xl border p-4 sm:flex-row sm:items-center sm:p-5">
-            <span className="bg-korur-blue-light text-korur-blue-strong dark:bg-korur-slate dark:text-korur-blue flex size-12 shrink-0 items-center justify-center rounded-xl">
+          <div className="kazan-grid-frame bg-card flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:p-5">
+            <span className="border-primary/40 text-korur-blue-strong dark:bg-korur-slate dark:text-korur-blue flex size-12 shrink-0 items-center justify-center border border-dashed">
               <LayoutGrid aria-hidden className="size-6" />
             </span>
             <div className="flex flex-1 flex-col gap-1">

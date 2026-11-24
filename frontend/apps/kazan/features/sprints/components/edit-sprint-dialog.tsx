@@ -400,7 +400,7 @@ function SprintLinkedBoards({ boardId, sprintId }: SprintLinkedBoardsProps) {
                   type="button"
                   onClick={() => setUnlinkTarget({ boardId: board.id, boardName: board.name })}
                   disabled={unlinkSprintMutation.isPending}
-                  className="text-muted-foreground hover:text-foreground hover:bg-muted flex h-5 w-5 shrink-0 items-center justify-center rounded transition-colors"
+                  className="text-muted-foreground hover:text-foreground hover:bg-muted flex h-5 w-5 shrink-0 items-center justify-center transition-colors"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>

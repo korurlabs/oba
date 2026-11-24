@@ -57,13 +57,13 @@ function RowUnreadBadge({ shownCount, className }: { shownCount: string; classNa
   return (
     <>
       <SidebarMenuBadge aria-hidden className={cn(SIDEBAR_ROW_TRAILING_CLASS, className)}>
-        <Badge variant="destructive" className="h-5 min-w-5 justify-center rounded-full px-1.5 py-0 tabular-nums">
+        <Badge variant="destructive" className="h-5 min-w-5 justify-center px-1.5 py-0 font-mono text-[11px] tabular-nums">
           {shownCount}
         </Badge>
       </SidebarMenuBadge>
       <span
         aria-hidden
-        className="bg-destructive ring-sidebar pointer-events-none absolute top-1 left-5 hidden size-2 rounded-full ring-2 group-data-[collapsible=icon]:block"
+        className="bg-destructive ring-sidebar pointer-events-none absolute top-1 left-5 hidden size-2 ring-2 group-data-[collapsible=icon]:block"
       />
     </>
   );

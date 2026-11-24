@@ -167,6 +167,7 @@
     "includeAllBoards": "Inclusief alle borden"
   },
   "ticket": {
+    "searchPlaceholder": "Tickets zoeken…",
     "systemActor": {
       "badge": "Systeem"
     },
@@ -206,9 +207,7 @@
       "IN_PROGRESS": "In Uitvoering",
       "WAITING_FOR_THIRD_PARTY": "Wacht op derde partij",
       "IN_REVIEW": "In Review",
-      "DONE": "Klaar",
-      "filterBy": "Filter op {status}",
-      "filterByWithCount": "Filter op {status} ({count})"
+      "DONE": "Klaar"
     },
     "missionRank": {
       "XS": "XS",
@@ -636,7 +635,6 @@
   },
   "all": {
     "title": "Alles",
-    "sprintSection": "Sprint",
     "addToSprint": "Toevoegen aan Sprint",
     "addToBacklog": "Toevoegen aan Backlog",
     "dnd": {
@@ -1011,7 +1009,7 @@
     "cyberscore": "Cyberscore",
     "chats": "Chats",
     "dailyUpdates": "Updates",
-    "pullRequests": "PR",
+    "pullRequests": "Pull Requests",
     "expandBoard": "{name} uitklappen",
     "collapseBoard": "{name} inklappen",
     "boardActions": "Acties voor {name}",
@@ -1698,6 +1696,8 @@
       "button": "Zoeken",
       "title": "Berichten zoeken",
       "placeholder": "Berichten zoeken…",
+      "updatesPlaceholder": "Updates zoeken…",
+      "pullRequestsPlaceholder": "Pull requests zoeken…",
       "author": "Auteur",
       "anyAuthor": "Elke auteur",
       "selectedAuthor": "Gekozen auteur",

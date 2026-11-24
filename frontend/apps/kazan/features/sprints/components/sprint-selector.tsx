@@ -55,18 +55,17 @@ export function SprintSelector({
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
+        {/*
+          The trigger reads as the strip's heading, the sprint name in mono
+          caps; its state follows beside it as a readout (SprintContext).
+        */}
         <Button
-          variant="outline"
-          className="border-border bg-card text-foreground hover:border-border hover:bg-card h-8 min-w-[200px] justify-between rounded-lg border py-3 pr-2 pl-3 text-sm"
+          variant="ghost"
+          className="text-korur-blue-strong hover:bg-primary/5 h-8 max-w-[260px] gap-1.5 px-2 font-mono text-xs font-semibold tracking-[0.14em] uppercase"
         >
           <span className="truncate">
             {currentSprint ? (
-              <>
-                <span className="font-semibold">{currentSprint.name}</span>
-                {currentSprint.status === "ACTIVE" && (
-                  <span className="text-primary ml-2 text-xs">{t("active")}</span>
-                )}
-              </>
+              currentSprint.name
             ) : (
               <span className="text-muted-foreground">{t("selectSprint")}</span>
             )}
@@ -78,7 +77,7 @@ export function SprintSelector({
         {/* Active Sprints */}
         {activeSprints.length > 0 && (
           <>
-            <div className="text-muted-foreground flex items-center gap-1 px-2 py-1.5 text-xs font-semibold">
+            <div className="text-muted-foreground flex items-center gap-1.5 px-2 py-1.5 font-mono text-[11px] font-semibold tracking-[0.12em] uppercase">
               <Clock className="text-primary h-3.5 w-3.5" />
               <span>{t("active")}</span>
             </div>
@@ -118,8 +117,8 @@ export function SprintSelector({
         {/* Planned Sprints */}
         {plannedSprints.length > 0 && (
           <>
-            <div className="text-muted-foreground flex items-center gap-1 px-2 py-1.5 text-xs font-semibold">
-              <Clock className="text-warning h-3.5 w-3.5" />
+            <div className="text-muted-foreground flex items-center gap-1.5 px-2 py-1.5 font-mono text-[11px] font-semibold tracking-[0.12em] uppercase">
+              <Clock className="h-3.5 w-3.5" />
               <span>{t("planned")}</span>
             </div>
             {plannedSprints.map((sprint) => (
@@ -156,8 +155,8 @@ export function SprintSelector({
         {/* Completed Sprints */}
         {completedSprints.length > 0 && (
           <>
-            <div className="text-muted-foreground flex items-center gap-1 px-2 py-1.5 text-xs font-semibold">
-              <CheckCircle className="text-success h-3.5 w-3.5" />
+            <div className="text-muted-foreground flex items-center gap-1.5 px-2 py-1.5 font-mono text-[11px] font-semibold tracking-[0.12em] uppercase">
+              <CheckCircle className="h-3.5 w-3.5" />
               <span>{t("completed")}</span>
             </div>
             {completedSprints.map((sprint) => (
@@ -266,7 +265,7 @@ function SprintOption({
         {onEdit && (
           <button
             type="button"
-            className="text-muted-foreground hover:text-foreground rounded p-0.5"
+            className="text-muted-foreground hover:text-foreground p-0.5"
             onClick={(e) => {
               e.stopPropagation();
               onEdit();
@@ -278,7 +277,7 @@ function SprintOption({
         {onDelete && (
           <button
             type="button"
-            className="text-muted-foreground hover:text-destructive rounded p-0.5"
+            className="text-muted-foreground hover:text-destructive p-0.5"
             onClick={(e) => {
               e.stopPropagation();
               onDelete();

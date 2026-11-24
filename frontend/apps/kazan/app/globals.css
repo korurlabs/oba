@@ -31,7 +31,7 @@
   --breakpoint-xl: 1920px;
 
   /* Korur blue shades the sky design does not define */
-  --color-korur-blue-strong: #1c6fb8; /* text on light tints, gradient end */
+  --color-korur-blue-strong: #1c6fb8; /* text on light tints, the primary button */
   --color-korur-blue-medium: #beddff;
   /* Korur's slate editor surfaces, read only by the dormant dark classes */
   --color-korur-slate: #16273a;
@@ -53,35 +53,12 @@
     --warning-foreground: hsl(0 0% 100%);
     --info-foreground: hsl(0 0% 100%);
 
-    /* Ticket Type Colors */
-    --ticket-issue: #beddff; /* Korur blue medium */
-    --ticket-fix: hsl(142 76% 90%); /* Green light */
-    --ticket-hotfix: hsl(0 93% 94%); /* Red light */
-    --ticket-problem: hsl(38 100% 92%); /* Yellow light */
-
-    /* Kanban Column Colors */
-    --column-todo: hsl(0 0% 96%); /* gray-100 */
-    --column-in-progress: hsl(217 91% 95%); /* blue-50 */
-    --column-in-review: hsl(258 90% 95%); /* purple-50 */
-    --column-done: hsl(142 76% 95%); /* green-50 */
-
-    /* Gradient Presets */
-    --gradient-blue: linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%);
-    --gradient-green: linear-gradient(135deg, #d1fae5 0%, #6ee7b7 100%);
-    --gradient-purple: linear-gradient(135deg, #ede9fe 0%, #c4b5fd 100%);
-    --gradient-orange: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);
-
-    /* Chart colors */
-    --chart-1: #4aa3ff;
-    --chart-2: hsl(217 91% 60%);
-    --chart-3: hsl(142 71% 45%);
-    --chart-4: hsl(38 92% 50%);
-    --chart-5: #2f4f6a;
-
-    /* Daily update card: the Korur website's survey grid, frame corners and headings */
-    --update-grid-line: rgb(47 143 233 / 0.08);
-    --update-frame-mark: var(--korur-blue-hover);
-    --update-heading: var(--color-korur-blue-strong);
+    /* Kazan's grid look, from the Korur website's survey grid: frame corners, labels and chips */
+    --kazan-grid-line: rgb(47 143 233 / 0.08);
+    /* Korur's bow and arrow, the mark that leads every grid heading and dialog title. */
+    --kazan-grid-bow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='square' stroke-linejoin='miter'%3E%3Cpath d='M4 1.5Q10 7 4 12.5'/%3E%3Cpath d='M4 1.5L2 7L4 12.5' stroke-width='0.9'/%3E%3Cpath d='M1 7H13M10.5 4.5L13 7L10.5 9.5'/%3E%3C/svg%3E");
+    --kazan-grid-mark: var(--korur-blue-hover);
+    --kazan-grid-ink: var(--color-korur-blue-strong);
   }
 
   /* Icons outside a control are muted; inside a button or link they take its colour. */
@@ -139,104 +116,65 @@
 }
 
 @layer components {
-  /* Badge variants */
-  .badge {
-    @apply inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold;
-  }
-
-  .badge-fix {
-    @apply bg-success-light text-success;
-  }
-
-  .badge-hotfix {
-    @apply bg-error-light text-error;
-  }
-
-  .badge-problem {
-    @apply bg-warning-light text-warning;
-  }
-
-  /* Status badges */
-  .status-badge {
-    @apply inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold;
-  }
-
-  .status-todo {
-    @apply bg-gray-100 text-gray-600;
-  }
-
-  .status-in-progress {
-    @apply bg-info-light text-info;
-  }
-
-  .status-in-review {
-    @apply bg-purple-light text-purple;
-  }
-
-  .status-done {
-    @apply bg-success-light text-success;
-  }
-
-  /* Board gradient bars */
-  .gradient-bar {
-    @apply h-2 w-full;
-  }
-
-  .gradient-bar-blue {
-    background: linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%);
-  }
-
-  .gradient-bar-green {
-    background: linear-gradient(135deg, #d1fae5 0%, #6ee7b7 100%);
-  }
-
-  .gradient-bar-purple {
-    background: linear-gradient(135deg, #ede9fe 0%, #c4b5fd 100%);
-  }
-
-  .gradient-bar-orange {
-    background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);
-  }
-
   /*
-   * Daily update card: a Korur command-post panel. The grid and the corner
-   * brackets are background paint only, so assistive technology reads the
-   * card exactly as before; the bubble around it keeps its own colours.
+   * Kazan's grid panel, a Korur command-post frame used by the daily update
+   * and pull request cards. The grid and the corner brackets are background
+   * paint only, so assistive technology reads the card exactly as before; the
+   * bubble around it keeps its own colours.
    */
-  .update-card-frame {
+  .kazan-grid-frame {
     @apply border-primary/20 relative rounded-none border p-3;
     background-image:
-      linear-gradient(var(--update-grid-line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--update-grid-line) 1px, transparent 1px);
+      linear-gradient(var(--kazan-grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--kazan-grid-line) 1px, transparent 1px);
     background-size:
       16px 16px,
       16px 16px;
   }
 
+  /*
+   * A work card (a ticket on a board): a solid surface that fades very
+   * slightly into Korur blue toward its lower right, so a column of cards
+   * reads as lit panels on the grid rather than blank paper, while the text
+   * still sits on an almost white ground.
+   */
+  .kazan-card {
+    background-color: var(--card);
+    background-image: linear-gradient(160deg, transparent 45%, rgb(47 143 233 / 0.07) 100%);
+  }
+
+  .dark .kazan-card {
+    background-image: linear-gradient(160deg, transparent 45%, rgb(47 143 233 / 0.12) 100%);
+  }
+
   /* Four 10px L-shaped brackets, 2px thick, over the frame's corners. */
-  .update-card-frame::before {
+  .kazan-grid-frame::before {
     content: "";
     position: absolute;
     inset: -1px;
     pointer-events: none;
     background:
-      linear-gradient(var(--update-frame-mark), var(--update-frame-mark)) left top / 10px 2px no-repeat,
-      linear-gradient(var(--update-frame-mark), var(--update-frame-mark)) left top / 2px 10px no-repeat,
-      linear-gradient(var(--update-frame-mark), var(--update-frame-mark)) right top / 10px 2px no-repeat,
-      linear-gradient(var(--update-frame-mark), var(--update-frame-mark)) right top / 2px 10px no-repeat,
-      linear-gradient(var(--update-frame-mark), var(--update-frame-mark)) left bottom / 10px 2px no-repeat,
-      linear-gradient(var(--update-frame-mark), var(--update-frame-mark)) left bottom / 2px 10px no-repeat,
-      linear-gradient(var(--update-frame-mark), var(--update-frame-mark)) right bottom / 10px 2px no-repeat,
-      linear-gradient(var(--update-frame-mark), var(--update-frame-mark)) right bottom / 2px 10px no-repeat;
+      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) left top / 10px 2px no-repeat,
+      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) left top / 2px 10px no-repeat,
+      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) right top / 10px 2px no-repeat,
+      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) right top / 2px 10px no-repeat,
+      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) left bottom / 10px 2px no-repeat,
+      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) left bottom / 2px 10px no-repeat,
+      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) right bottom / 10px 2px no-repeat,
+      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) right bottom / 2px 10px no-repeat;
   }
 
-  .update-card-heading {
+  .kazan-grid-label {
     @apply font-mono text-[11px] font-semibold tracking-[0.14em] uppercase;
-    color: var(--update-heading);
+    color: var(--kazan-grid-ink);
   }
 
-  /* The small filled square that leads each heading. */
-  .update-card-heading::before {
+  /*
+   * The small filled square that leads each label. Labels sit in dense
+   * places (column headers, card fields), where a plain square stays quiet;
+   * the bow and arrow is kept for headings.
+   */
+  .kazan-grid-label::before {
     content: "";
     width: 6px;
     height: 6px;
@@ -244,14 +182,46 @@
     background-color: currentColor;
   }
 
-  .update-card-number {
-    @apply inline-flex size-5 shrink-0 items-center justify-center border font-mono text-[11px] font-semibold tabular-nums;
-    border-color: var(--update-frame-mark);
-    color: var(--update-heading);
+  /*
+   * A section heading inside a page (a dashboard panel, a settings group):
+   * the grid label one step larger, so it still reads as a heading.
+   */
+  .kazan-grid-heading {
+    @apply flex items-center gap-2 font-mono text-xs font-semibold tracking-[0.14em] uppercase;
+    color: var(--kazan-grid-ink);
   }
 
-  .update-card-divider {
+  /*
+   * A heading leads with Korur's bow and arrow, raised slightly so the arrow
+   * lines up with the middle of the uppercase letters rather than the box.
+   */
+  .kazan-grid-heading::before {
+    content: "";
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    transform: translateY(-1px);
+    background-color: currentColor;
+    mask: var(--kazan-grid-bow) center / contain no-repeat;
+  }
+
+  .kazan-grid-number {
+    @apply inline-flex size-5 shrink-0 items-center justify-center border font-mono text-[11px] font-semibold tabular-nums;
+    border-color: var(--kazan-grid-mark);
+    color: var(--kazan-grid-ink);
+  }
+
+  .kazan-grid-divider {
     @apply border-primary/25 border-t border-dashed pt-3;
+  }
+
+  /*
+   * A square outline tag in neutral ink for a ticket type, a status or an
+   * inline reference. It carries no fill, so a row of chips stays calm; an
+   * accent is added by the caller only where the value is a warning.
+   */
+  .kazan-grid-chip {
+    @apply border-border text-foreground/80 inline-flex items-center gap-1 rounded-none border bg-transparent px-1.5 py-0.5 font-mono text-[11px] leading-none font-medium tracking-[0.08em] whitespace-nowrap uppercase;
   }
 }
 
@@ -286,28 +256,6 @@
 }
 
 @layer utilities {
-  /* Transition utilities */
-  .transition-base {
-    @apply transition-all duration-150 ease-out;
-  }
-
-  .transition-standard {
-    @apply transition-all duration-200 ease-out;
-  }
-
-  .transition-complex {
-    @apply transition-all duration-300 ease-out;
-  }
-
-  /* Hover lift effect */
-  .hover-lift {
-    @apply transition-transform duration-150;
-  }
-
-  .hover-lift:hover {
-    transform: translateY(-2px);
-  }
-
   /* Card shadows */
   .shadow-card {
     box-shadow:
@@ -317,14 +265,6 @@
 
   .shadow-card-hover {
     box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.12);
-  }
-
-  .shadow-dialog {
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  }
-
-  .shadow-primary-glow {
-    box-shadow: 0 8px 20px rgba(47, 143, 233, 0.35);
   }
 
   /* Text utilities */
@@ -346,4 +286,280 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+}
+
+/*
+ * Kazan's grid geometry for every surface it shows, its own primitives and the
+ * shared ones (menus, dialogs, sheets, form fields) alike. The shared
+ * components are matched by their data-slot attributes, and Kazan's local
+ * primitives carry the same attributes, so one rule set gives both the look.
+ *
+ * These rules sit outside any layer on purpose: Tailwind's utilities live in
+ * layers, and an unlayered rule wins over every layered one, so a caller's
+ * `rounded-xl` or `shadow-lg` cannot bring a soft corner back. They only set
+ * corners, hairlines, shadows and background paint, never size or spacing,
+ * so no layout depends on them.
+ */
+:root {
+  /*
+   * Square corners. The sky theme derives rounded-sm, -md, -lg and -xl from
+   * this token; below zero the calc() results clamp to a square corner.
+   */
+  --radius: 0px;
+  --radius-xs: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+
+  /* One straight bar of the corner bracket colour, layered eight times below. */
+  --kazan-grid-crop: linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark));
+  --kazan-grid-edge: color-mix(in srgb, var(--primary) 28%, transparent);
+  --kazan-grid-shadow: 0 18px 40px -20px rgb(47 79 106 / 0.45), 0 2px 6px -2px rgb(47 79 106 / 0.12);
+  --kazan-grid-hover: color-mix(in srgb, var(--primary) 8%, transparent);
+  --kazan-control-edge: color-mix(in srgb, var(--foreground) 24%, transparent);
+}
+
+/*
+ * Every floating surface (dialog, alert dialog, sheet, popover, menu, select,
+ * filter panel and those that opt in with .kazan-grid-surface) carries the
+ * full frame: the 16px grid and the four corner brackets, so a panel that
+ * opens over the page reads as part of the same instrument. Both are background layers rather than a pseudo
+ * element, so they stay put in the corners while a long dialog scrolls, and
+ * assistive technology reads nothing new.
+ */
+:is(
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="sheet-content"],
+  [data-slot="popover-content"],
+  [data-slot="dropdown-menu-content"],
+  [data-slot="dropdown-menu-sub-content"],
+  [data-slot="context-menu-content"],
+  [data-slot="context-menu-sub-content"],
+  [data-slot="select-content"],
+  [data-slot="navigation-menu-content"],
+  .kazan-grid-surface
+) {
+  border-radius: 0;
+  border-color: var(--kazan-grid-edge);
+  box-shadow: var(--kazan-grid-shadow);
+  background-image:
+    var(--kazan-grid-crop), var(--kazan-grid-crop), var(--kazan-grid-crop), var(--kazan-grid-crop),
+    var(--kazan-grid-crop), var(--kazan-grid-crop), var(--kazan-grid-crop), var(--kazan-grid-crop),
+    linear-gradient(var(--kazan-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--kazan-grid-line) 1px, transparent 1px);
+  background-size:
+    12px 2px, 2px 12px, 12px 2px, 2px 12px,
+    12px 2px, 2px 12px, 12px 2px, 2px 12px,
+    16px 16px, 16px 16px;
+  background-position:
+    left top, left top, right top, right top,
+    left bottom, left bottom, right bottom, right bottom,
+    left top, left top;
+  background-repeat:
+    no-repeat, no-repeat, no-repeat, no-repeat,
+    no-repeat, no-repeat, no-repeat, no-repeat,
+    repeat, repeat;
+}
+
+/* The scrim behind a dialog or sheet: a flat Korur ink tint, no blur, so the page edge stays crisp. */
+:is([data-slot="dialog-overlay"], [data-slot="alert-dialog-overlay"], [data-slot="sheet-overlay"]) {
+  background-color: rgb(22 39 58 / 0.45);
+  backdrop-filter: none;
+}
+
+/*
+ * A dialog's heading leads with the grid label's bow and arrow, at its own
+ * readable size. A heading that already leads with an icon keeps the icon as
+ * its only marker.
+ */
+:is([data-slot="dialog-title"], [data-slot="alert-dialog-title"], [data-slot="sheet-title"]):not(:has(svg))::before {
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 0.5rem;
+  vertical-align: -0.1em;
+  flex-shrink: 0;
+  background-color: var(--kazan-grid-mark);
+  mask: var(--kazan-grid-bow) center / contain no-repeat;
+}
+
+/* Dialog close buttons are square and take the primary colour on hover. */
+:is([data-slot="dialog-close"], [data-slot="sheet-close"]) {
+  border-radius: 0;
+}
+
+/* A command list inside a popover draws on the popover's own frame. */
+[data-slot="command"] {
+  border-radius: 0;
+}
+
+/* Menu rows are square; the highlighted row gets a faint primary fill and a primary rule on its leading edge. */
+:is(
+  [data-slot="dropdown-menu-item"],
+  [data-slot="dropdown-menu-checkbox-item"],
+  [data-slot="dropdown-menu-radio-item"],
+  [data-slot="dropdown-menu-sub-trigger"],
+  [data-slot="context-menu-item"],
+  [data-slot="context-menu-checkbox-item"],
+  [data-slot="context-menu-radio-item"],
+  [data-slot="context-menu-sub-trigger"],
+  [data-slot="select-item"],
+  [data-slot="command-item"]
+) {
+  border-radius: 0;
+}
+
+:is(
+    [data-slot="dropdown-menu-item"],
+    [data-slot="dropdown-menu-checkbox-item"],
+    [data-slot="dropdown-menu-radio-item"],
+    [data-slot="dropdown-menu-sub-trigger"],
+    [data-slot="context-menu-item"],
+    [data-slot="context-menu-checkbox-item"],
+    [data-slot="context-menu-radio-item"],
+    [data-slot="context-menu-sub-trigger"],
+    [data-slot="select-item"],
+    [data-slot="command-item"]
+  ):is([data-highlighted], [data-selected="true"], [data-state="open"]):not([data-disabled]) {
+  background-color: var(--kazan-grid-hover);
+  color: var(--foreground);
+  box-shadow: inset 2px 0 0 var(--primary);
+}
+
+/* A menu's section heading reads as a grid label. */
+:is(
+  [data-slot="dropdown-menu-label"],
+  [data-slot="context-menu-label"],
+  [data-slot="select-label"],
+  [cmdk-group-heading]
+) {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--kazan-grid-ink);
+}
+
+/* Tooltips are square plates. */
+[data-slot="tooltip-content"] {
+  border-radius: 0;
+}
+
+/*
+ * Controls: square, a 1px hairline instead of a thick rounded rim, and a
+ * crisp primary edge on focus. A radio button keeps its circle, because the
+ * circle is what tells it apart from a checkbox.
+ */
+:is(
+  [data-slot="button"],
+  [data-slot="toggle"],
+  [data-slot="toggle-group"],
+  [data-slot="toggle-group-item"],
+  [data-slot="input"],
+  [data-slot="textarea"],
+  [data-slot="select-trigger"],
+  [data-slot="checkbox"],
+  [data-slot="command-input-wrapper"],
+  [data-slot="tabs-list"],
+  [data-slot="tabs-trigger"]
+) {
+  border-radius: 0;
+}
+
+/*
+ * The sky theme's --input is white, so a field's rim showed only through its
+ * soft shadow. A flat field needs a visible hairline of its own instead; a
+ * field in error keeps its red edge.
+ */
+:is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"]) {
+  box-shadow: none;
+}
+
+:is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"]):not([aria-invalid="true"]) {
+  border-color: var(--kazan-control-edge);
+}
+
+:is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"]):hover:not([aria-invalid="true"], :disabled, [data-disabled]) {
+  border-color: color-mix(in srgb, var(--primary) 55%, transparent);
+}
+
+/*
+ * Focus doubles the primary edge to 2px; a field in error keeps its red edge,
+ * and a borderless field inside its own frame leaves focus to that frame.
+ */
+:is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"]):is(:focus, :focus-visible, [data-state="open"]):not([aria-invalid="true"], [class~="border-0"], [class~="border-none"]) {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+/* A switch becomes a square track with a square thumb, still sliding on the same path. */
+:is([data-slot="switch"], [data-slot="switch-thumb"]) {
+  border-radius: 0;
+}
+
+/*
+ * Tables (the shared ticket table and its relatives): the header is a square
+ * card-coloured strip of mono labels over a primary hairline, not a tinted
+ * band, and a row marks hover and selection with the faint primary fill and
+ * the leading primary rule the menus use. The hairline is an inset shadow,
+ * because the sticky header cells lose a collapsed border while scrolling.
+ */
+[data-slot="table-head"] {
+  border-radius: 0;
+  background-color: var(--card);
+  box-shadow: inset 0 -1px 0 var(--kazan-grid-edge);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+[data-slot="table-head"]:not(.text-primary) {
+  color: var(--kazan-grid-ink);
+}
+
+[data-slot="table-head"] span {
+  font-size: inherit;
+}
+
+[data-slot="table-row"]:hover {
+  background-color: var(--kazan-grid-hover);
+}
+
+[data-slot="table-row"][data-state="selected"] {
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+  box-shadow: inset 2px 0 0 var(--primary);
+}
+
+[data-slot="checkbox"] {
+  box-shadow: none;
+}
+
+/*
+ * The page area behind boards, lists and chat: a pale blue sheet with the
+ * menu's 16px grid. The background belongs to the scroll container, so the
+ * grid stays fixed to the area instead of sliding with a long page. Text
+ * never sits on the lines: tables and the chat's message list are solid
+ * plates on top of it.
+ */
+.kazan-canvas {
+  background-color: #f6fbff;
+  background-image:
+    linear-gradient(rgb(47 143 233 / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(47 143 233 / 0.07) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.dark .kazan-canvas {
+  background-color: var(--background);
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.04) 1px, transparent 1px);
+}
+
+.kazan-canvas [data-slot="table"] {
+  background-color: var(--card);
 }

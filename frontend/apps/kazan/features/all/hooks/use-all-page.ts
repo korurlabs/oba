@@ -282,25 +282,6 @@ export function useAllPage(boardId: string) {
     [backlogTicketsResponse?.data],
   );
 
-  // Toggles one status in the shared `statuses` URL filter. Routed through
-  // `setFilters` from useBaselineTicketFilters (never a second nuqs hook) so the
-  // funnel's badge, activeFilterCount, clearFilters and the board-preference
-  // diff all stay in sync with the caption-strip chips. The functional updater
-  // reads nuqs' own latest value, so two chip clicks in the same tick cannot
-  // clobber each other through a stale closure.
-  const toggleStatusFilter = useCallback(
-    (status: TicketStatus) => {
-      setFilters((previous) => {
-        const current = previous.statuses ?? [];
-        const next = current.includes(status)
-          ? current.filter((value) => value !== status)
-          : [...current, status];
-        return { statuses: next.length > 0 ? next : null };
-      });
-    },
-    [setFilters],
-  );
-
   // Clear row selections when filters change or selected sprint switches
   useEffect(() => {
     setSprintRowSelection({});
@@ -573,7 +554,6 @@ export function useAllPage(boardId: string) {
     resetToBaseline,
     hasFilterChanges,
     activeFilterCount,
-    toggleStatusFilter,
     includeAllBoards,
     setIncludeAllBoards: handleIncludeAllBoardsChange,
     boardPrefs,

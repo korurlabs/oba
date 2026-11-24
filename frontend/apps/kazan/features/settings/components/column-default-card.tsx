@@ -74,9 +74,9 @@ export function ColumnDefaultCard() {
   };
 
   return (
-    <div className="bg-card border-border rounded-2xl border p-6">
+    <div className="bg-card border-border border p-6">
       <div className="mb-4 flex items-center gap-4">
-        <div className="bg-primary/15 flex h-10 w-10 items-center justify-center rounded-xl">
+        <div className="bg-primary/15 flex h-10 w-10 items-center justify-center">
           <Columns3 className="text-primary h-5 w-5" />
         </div>
         <div>
@@ -94,7 +94,7 @@ export function ColumnDefaultCard() {
               ? t("columnSettings.usingDefault")
               : t("columnSettings.usingBuiltIn")}
           </p>
-          <div className="border-border max-w-sm rounded-xl border p-3">
+          <div className="border-border max-w-sm border p-3">
             <ColumnVisibilityContent
               columns={columns}
               columnVisibility={columnVisibility}
@@ -130,7 +130,7 @@ export function ColumnDefaultCard() {
           </div>
         </>
       ) : (
-        <Skeleton className="h-64 max-w-sm rounded-xl" />
+        <Skeleton className="h-64 max-w-sm" />
       )}
     </div>
   );

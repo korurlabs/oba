@@ -19,11 +19,11 @@ export function ProjectBadge({ project, size = "md" }: ProjectBadgeProps) {
 
   return (
     <span
-      className={`inline-flex items-center rounded-full font-medium border ${sizeClasses}`}
+      className={`inline-flex items-center font-medium border ${sizeClasses}`}
       style={{ borderColor: `${color}40` }}
     >
       <span
-        className={`shrink-0 rounded-full ${dotClasses}`}
+        className={`shrink-0 ${dotClasses}`}
         style={{ backgroundColor: color }}
       />
       {project.name}

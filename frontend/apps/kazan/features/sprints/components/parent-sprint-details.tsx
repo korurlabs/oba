@@ -189,7 +189,7 @@ function SprintDetailsBody({
             <li
               key={row.id}
               className={cn(
-                "flex items-center gap-1 rounded py-0.5 pr-1",
+                "flex items-center gap-1 py-0.5 pr-1",
                 row.joins && "bg-primary/10"
               )}
               style={{ paddingLeft: `${row.depth * 16}px` }}

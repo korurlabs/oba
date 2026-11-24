@@ -61,7 +61,7 @@ export function MilestoneDependencies({ milestone, canManage }: MilestoneDepende
               </div>
               {dependency.conflict && (
                 <span
-                  className="border-destructive/40 bg-destructive/10 text-destructive inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-xs"
+                  className="border-destructive/50 text-destructive inline-flex shrink-0 items-center gap-1 border px-1.5 py-0.5 text-xs"
                   title={t("dependsOn.conflictHint")}
                 >
                   <AlertTriangle className="h-3 w-3" aria-hidden />

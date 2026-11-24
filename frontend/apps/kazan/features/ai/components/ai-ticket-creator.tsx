@@ -149,19 +149,19 @@ export function AITicketCreator({
         </DialogHeader>
 
         {!aiStatus?.available && (
-          <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-            <div className="flex items-center gap-2 text-amber-800">
+          <div className="border-foreground/25 border-l-foreground/70 bg-card border border-l-2 p-4">
+            <div className="text-foreground flex items-center gap-2">
               <AlertCircle className="h-5 w-5" />
               <span className="font-medium">{t('ai.ticketCreator.notConfigured')}</span>
             </div>
-            <p className="text-sm text-amber-700 mt-1">
+            <p className="text-muted-foreground mt-1 text-sm">
               {t('ai.ticketCreator.notConfiguredDescription')}
             </p>
           </div>
         )}
 
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          <div className="border-destructive/40 border-l-destructive bg-card text-destructive border border-l-2 p-3 text-sm">
             {error}
           </div>
         )}
@@ -183,7 +183,7 @@ export function AITicketCreator({
               <Button
                 onClick={handleAnalyze}
                 disabled={!userInput.trim() || analyzeMutation.isPending}
-                className="bg-primary hover:bg-primary/90 gap-2"
+                className="gap-2"
               >
                 {analyzeMutation.isPending ? (
                   <>
@@ -205,7 +205,7 @@ export function AITicketCreator({
         {stage === 'review' && (
           <div className="space-y-4">
             {reasoning && (
-              <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
+              <div className="bg-muted text-muted-foreground p-3 text-sm">
                 <strong>{t('ai.ticketCreator.aiAnalysis')}:</strong> {reasoning}
               </div>
             )}
@@ -214,10 +214,10 @@ export function AITicketCreator({
               {suggestions.map((suggestion, index) => (
                 <div
                   key={index}
-                  className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                  className={`p-3 border cursor-pointer transition-colors ${
                     suggestion.selected
-                      ? 'border-primary bg-korur-blue-accent/30 dark:bg-korur-slate/30'
-                      : 'border-gray-200'
+                      ? 'border-primary bg-primary/5 shadow-[inset_2px_0_0_var(--primary)]'
+                      : 'border-border hover:bg-primary/5'
                   }`}
                   onClick={() => toggleSuggestion(index)}
                 >
@@ -229,7 +229,7 @@ export function AITicketCreator({
                         <TicketTypeBadge type={suggestion.type} />
                         <TicketPriorityIcon priority={suggestion.priority} />
                       </div>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-muted-foreground text-sm">
                         {suggestion.description}
                       </p>
                     </div>
@@ -248,7 +248,7 @@ export function AITicketCreator({
                   createMutation.isPending ||
                   !suggestions.some((s) => s.selected)
                 }
-                className="bg-primary hover:bg-primary/90 gap-2"
+                className="gap-2"
               >
                 {createMutation.isPending ? (
                   <>
@@ -268,9 +268,9 @@ export function AITicketCreator({
         {/* Stage: Success */}
         {stage === 'success' && (
           <div className="py-8 text-center">
-            <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-3" />
+            <CheckCircle2 className="text-korur-blue-strong mx-auto mb-3 h-12 w-12" />
             <p className="text-lg font-medium">{t('ai.ticketCreator.success')}</p>
-            <p className="text-sm text-gray-500">{t('ai.ticketCreator.addedToBacklog')}</p>
+            <p className="text-muted-foreground text-sm">{t('ai.ticketCreator.addedToBacklog')}</p>
           </div>
         )}
       </DialogContent>

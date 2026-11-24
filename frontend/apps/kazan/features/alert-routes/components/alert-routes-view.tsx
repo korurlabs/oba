@@ -54,7 +54,7 @@ export function AlertRoutesView() {
   });
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-6 py-10">
+    <div className="border-border bg-card mx-auto min-h-full max-w-4xl space-y-6 border-x px-6 py-10">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <Siren className="text-muted-foreground mt-1 h-6 w-6" />
@@ -81,15 +81,15 @@ export function AlertRoutesView() {
       {hasNoDefault && (
         <div
           role="status"
-          className="border-warning/30 bg-warning/10 flex items-center gap-2 rounded-lg border p-3"
+          className="border-foreground/25 border-l-foreground/70 bg-card flex items-center gap-2 border border-l-2 p-3"
         >
-          <TriangleAlert className="text-warning h-5 w-5 shrink-0" aria-hidden="true" />
+          <TriangleAlert className="text-foreground h-5 w-5 shrink-0" aria-hidden="true" />
           <p className="text-foreground text-sm">{t("noDefault")}</p>
         </div>
       )}
 
       {isError ? (
-        <div className="bg-secondary rounded-xl p-4" role="alert">
+        <div className="border-destructive/40 border-l-destructive bg-card border border-l-2 p-4" role="alert">
           <p className="text-foreground text-sm font-medium">{tErrors("somethingWentWrong")}</p>
           <Button
             variant="outline"

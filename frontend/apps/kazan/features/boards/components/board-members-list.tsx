@@ -84,7 +84,7 @@ export function BoardMembersList({ boardId, canManage }: BoardMembersListProps) 
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-8 w-8 p-0 text-gray-400 hover:text-red-600"
+                      className="text-muted-foreground hover:text-destructive h-8 w-8 p-0"
                       onClick={() => removeMutation.mutate({ boardId, userId: member.userId })}
                     >
                       <Trash2 className="h-4 w-4" />

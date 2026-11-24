@@ -534,7 +534,7 @@ export function TicketFormFields({
     return (
       <span className="flex min-w-0 items-center gap-1.5">
         <span
-          className="h-2.5 w-2.5 shrink-0 rounded-full"
+          className="h-2.5 w-2.5 shrink-0"
           style={{ backgroundColor: color }}
         />
         <span className="truncate">{option.label}</span>

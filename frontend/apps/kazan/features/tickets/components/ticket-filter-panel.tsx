@@ -402,7 +402,7 @@ export function TicketFilterPanelContent({
               >
                 <span className="font-medium">{cat.label}</span>
                 {count > 0 && (
-                  <span className="bg-primary/15 text-primary flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-semibold">
+                  <span className="kazan-grid-number h-5 w-auto min-w-5 px-1">
                     {count}
                   </span>
                 )}
@@ -767,7 +767,7 @@ function CategoryOptions({
                 onCheckedChange={() => toggleArrayFilter("labelIds", label.id)}
               />
               <div
-                className="h-3 w-3 shrink-0 rounded-full"
+                className="h-3 w-3 shrink-0"
                 style={{ backgroundColor: label.color }}
               />
               <span className="truncate">{label.name}</span>
@@ -828,7 +828,7 @@ function CategoryOptions({
                 }
               />
               <div
-                className="h-3 w-3 shrink-0 rounded-full"
+                className="h-3 w-3 shrink-0"
                 style={{ backgroundColor: project.color }}
               />
               <span className="truncate">{project.name}</span>

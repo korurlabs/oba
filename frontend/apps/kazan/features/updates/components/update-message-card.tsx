@@ -116,7 +116,7 @@ export function UpdateMessageCard({ update, currentUserId, className }: UpdateMe
         dates={dates}
         meta={<MessageMeta editedAt={update.editedAt} pinnedAt={null} dates={dates} />}
       >
-        <ChatMessageBubble side={side} tail fill>
+        <ChatMessageBubble side={side} fill>
           <UpdateMessageContent update={update} currentUserId={currentUserId} />
         </ChatMessageBubble>
       </ChatMessageLayout>

@@ -1,5 +1,5 @@
 import { redirect } from '@oba/shared/libs/i18n/navigation';
-import { BOARD_TAB, boardPath, resolveBoardRoute } from '@/features/boards/lib/board-route';
+import { BOARD_DEFAULT_TAB, boardPath, resolveBoardRoute } from '@/features/boards/lib/board-route';
 import { isKazanClosedOnServer } from '@/components/layout/kazan-access-server';
 import { withQuery, type RouteSearchParams } from './board-page-data';
 
@@ -17,8 +17,8 @@ export default async function BoardPage({ params, searchParams }: BoardPageProps
   if (await isKazanClosedOnServer()) return null;
   const { board } = await resolveBoardRoute(boardSlug);
 
-  // A board opens on the All view, which shows the sprint and the backlog
-  // together. The target names the board by its slug, so a link by id lands
-  // on the clean URL in the same hop.
-  redirect({ href: withQuery(boardPath(board.slug, BOARD_TAB.all), await searchParams), locale });
+  // A board opens on its default tab, the current sprint. The target names
+  // the board by its slug, so a link by id lands on the clean URL in the same
+  // hop.
+  redirect({ href: withQuery(boardPath(board.slug, BOARD_DEFAULT_TAB), await searchParams), locale });
 }

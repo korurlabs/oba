@@ -168,8 +168,6 @@ export function useAllTicketsPage(variant: AllTicketsVariant = "tickets") {
     [ticketsResponse?.data],
   );
 
-  const ticketCount = tickets.length;
-
   // ── Mutations ────────────────────────────────────────────────────
   const createTicketMutation = useCreateTicket();
 
@@ -324,7 +322,6 @@ export function useAllTicketsPage(variant: AllTicketsVariant = "tickets") {
 
     // Data
     tickets,
-    ticketCount,
     isLoading,
     ticketsLoading,
     meUserId,

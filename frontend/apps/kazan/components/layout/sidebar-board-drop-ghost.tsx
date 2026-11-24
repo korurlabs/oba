@@ -1,8 +1,8 @@
 "use client";
 
+import { SquareKanban } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { BoardListWithChildrenResponse } from "@/features/boards/schemas";
-import { boardDotAppearance } from "../ui/board-dot";
 
 /** Marks the landing preview, so a pointer over it still counts as a drop inside its target row. */
 export const TREE_GHOST_ATTRIBUTE = "data-tree-ghost";
@@ -24,7 +24,6 @@ interface SidebarBoardDropGhostProps {
  * dragged row and takes no input.
  */
 export function SidebarBoardDropGhost({ board, variant, targetId }: SidebarBoardDropGhostProps) {
-  const dotAppearance = boardDotAppearance(board.color);
   const isPreview = variant === "preview";
 
   return (
@@ -36,22 +35,14 @@ export function SidebarBoardDropGhost({ board, variant, targetId }: SidebarBoard
         "mx-1 flex min-h-9 items-center gap-1 rounded-md pr-1 pl-[7px] text-sm select-none",
         isPreview
           ? "text-muted-foreground border border-dashed opacity-60"
-          : "bg-background text-foreground border shadow-md",
+          : "bg-background text-foreground border shadow-(--kazan-grid-shadow)",
       )}
     >
-      {/* Same slot and gap as a row's dot, so the dot and name line up with real rows */}
+      {/* Same slot and gap as a row's icon, so the icon and name line up with real rows */}
       <span className="flex w-4 shrink-0 items-center justify-center">
-        <span
-          className={cn("h-2.5 w-2.5 shrink-0 rounded-full", dotAppearance.className)}
-          style={dotAppearance.style}
-        />
+        <SquareKanban className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
       </span>
       <span className="min-w-0 flex-1 truncate">{board.name}</span>
-      {!isPreview && (
-        <span className="text-muted-foreground shrink-0 text-xs font-medium uppercase">
-          {board.prefix}
-        </span>
-      )}
     </div>
   );
 }

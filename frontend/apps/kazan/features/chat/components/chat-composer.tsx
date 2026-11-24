@@ -156,8 +156,10 @@ const ChatText = Node.create({
   },
 });
 
-const USER_CHIP_CLASS = "bg-primary/15 text-primary rounded px-1 py-px font-medium";
-const TICKET_CHIP_CLASS = "border-primary/30 bg-primary/5 text-primary rounded border px-1 py-px text-[13px]";
+// Square outline chips, the same as the posted message renders them, so the
+// draft shows the mention and the ticket reference as they will appear.
+const USER_CHIP_CLASS = "border-primary/25 text-primary rounded-none border px-1 py-px font-medium";
+const TICKET_CHIP_CLASS = "border-primary/30 bg-primary/5 text-primary rounded-none border px-1 py-px text-[13px]";
 
 /**
  * Member and ticket chips. `@` chips are sent as `<@userId>`, `<@everyone>`
@@ -587,12 +589,12 @@ export function ChatComposer({ typingUserIds, ...props }: ChatComposerProps) {
   const canWrite = useChatCanWrite();
 
   return (
-    <div className="shrink-0 px-4 pb-3 lg:px-6">
+    <div className="bg-card shrink-0 px-4 pb-3 lg:px-6">
       <ChatTypingLine userIds={typingUserIds} />
       {canWrite ? (
         <ChatComposerEditor {...props} />
       ) : (
-        <p className="border-border bg-muted/40 text-muted-foreground rounded-lg border px-3 py-2.5 text-sm">
+        <p className="border-border bg-muted/40 text-muted-foreground rounded-none border px-3 py-2.5 text-sm">
           {t("guest")}
         </p>
       )}
@@ -708,7 +710,7 @@ function ChatComposerEditor({
           "max-h-[40vh] min-h-6 overflow-y-auto py-2.5 text-sm leading-relaxed outline-none break-words",
           "[&_p.is-editor-empty:first-child]:before:text-muted-foreground [&_p.is-editor-empty:first-child]:before:pointer-events-none [&_p.is-editor-empty:first-child]:before:float-left [&_p.is-editor-empty:first-child]:before:h-0 [&_p.is-editor-empty:first-child]:before:content-[attr(data-placeholder)]",
           "[&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_blockquote]:border-border [&_blockquote]:border-l-4 [&_blockquote]:pl-3",
-          "[&_code]:bg-muted [&_code]:rounded [&_code]:px-1 [&_code]:font-mono [&_code]:text-[13px] [&_a]:text-primary [&_a]:underline",
+          "[&_code]:bg-muted [&_code]:px-1 [&_code]:font-mono [&_code]:text-[13px] [&_a]:text-primary [&_a]:underline",
           "[&_pre]:bg-muted/70 [&_pre]:border-border [&_pre]:my-1 [&_pre]:overflow-x-auto [&_pre]:rounded-md [&_pre]:border [&_pre]:px-3 [&_pre]:py-2 [&_pre]:font-mono [&_pre]:text-xs [&_pre]:leading-5 [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-xs",
           // Token colours of the code block, the palette of the rendered blocks.
           "[&_.hljs-comment]:text-muted-foreground [&_.hljs-comment]:italic [&_.hljs-keyword]:text-[oklch(0.55_0.2_300)] [&_.hljs-type]:text-[oklch(0.55_0.2_300)] [&_.hljs-string]:text-[oklch(0.52_0.15_155)] [&_.hljs-number]:text-[oklch(0.58_0.16_50)] [&_.hljs-literal]:text-[oklch(0.58_0.16_50)] [&_.hljs-built_in]:text-[oklch(0.55_0.15_250)] [&_.hljs-title]:text-[oklch(0.55_0.15_250)] [&_.hljs-attr]:text-[oklch(0.55_0.12_200)] [&_.hljs-variable]:text-[oklch(0.55_0.18_10)] [&_.hljs-meta]:text-[oklch(0.58_0.14_85)]",
@@ -932,7 +934,7 @@ function ChatComposerEditor({
   return (
     <div className="relative">
       {suggestion && (
-        <div className="border-border bg-popover text-popover-foreground absolute right-0 bottom-full left-0 z-20 mb-2 max-h-72 overflow-y-auto rounded-lg border shadow-md">
+        <div className="border-border bg-popover text-popover-foreground absolute right-0 bottom-full left-0 z-20 mb-2 max-h-72 overflow-y-auto border shadow-(--kazan-grid-shadow)">
           {suggestion.kind === "@" ? (
             <ChatMentionList ref={suggestionListRef} query={suggestion.query} onSelect={suggestion.command} />
           ) : (
@@ -949,7 +951,7 @@ function ChatComposerEditor({
 
       <div
         className={cn(
-          "border-border bg-muted/30 relative flex flex-col rounded-lg border transition-colors",
+          "border-border bg-muted/30 relative flex flex-col rounded-none border transition-colors",
           dragDepth > 0 && "border-primary",
           visibleErrors.length > 0 && "border-destructive",
         )}
@@ -1013,7 +1015,7 @@ function ChatComposerEditor({
         </div>
 
         {dragDepth > 0 && (
-          <div className="bg-background/90 text-primary pointer-events-none absolute inset-0 flex items-center justify-center gap-2 rounded-lg text-sm font-medium">
+          <div className="bg-background/90 text-primary pointer-events-none absolute inset-0 flex items-center justify-center gap-2 rounded-none text-sm font-medium">
             <Upload className="size-4" aria-hidden />
             {t("dropFiles")}
           </div>
@@ -1066,7 +1068,7 @@ function ComposerBar({ icon, text, hint, cancelLabel, onCancel }: ComposerBarPro
         onClick={onCancel}
         aria-label={cancelLabel}
         title={cancelLabel}
-        className="hover:bg-muted hover:text-foreground focus-visible:ring-ring rounded p-0.5 focus-visible:ring-2 focus-visible:outline-none"
+        className="hover:bg-muted hover:text-foreground focus-visible:ring-ring p-0.5 focus-visible:ring-2 focus-visible:outline-none"
       >
         <X className="size-3.5" aria-hidden />
       </button>
@@ -1131,7 +1133,7 @@ function ComposerReplyBar({ replyTo, authorName, onCancel }: ComposerReplyBarPro
           onClick={onCancel}
           aria-label={cancelLabel}
           title={cancelLabel}
-          className="hover:bg-muted hover:text-foreground focus-visible:ring-ring rounded p-0.5 focus-visible:ring-2 focus-visible:outline-none"
+          className="hover:bg-muted hover:text-foreground focus-visible:ring-ring p-0.5 focus-visible:ring-2 focus-visible:outline-none"
         >
           <X className="size-3.5" aria-hidden />
         </button>

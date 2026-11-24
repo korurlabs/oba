@@ -22,9 +22,9 @@ export function TicketDragOverlayCard({ ticket }: TicketDragOverlayCardProps) {
   const t = useTranslations();
 
   return (
-    <div className="bg-card ring-primary/30 flex max-w-md cursor-grabbing items-center gap-2 rounded-lg border px-3 py-2 opacity-95 shadow-lg ring-2">
+    <div className="bg-card border-primary/50 flex max-w-md cursor-grabbing items-center gap-2 rounded-none border px-3 py-2 opacity-95 shadow-lg">
       <TicketTypeBadge type={ticket.type} />
-      <span className="text-foreground shrink-0 text-xs font-medium whitespace-nowrap">
+      <span className="text-foreground shrink-0 font-mono text-xs font-semibold tracking-[0.08em] whitespace-nowrap uppercase">
         {ticket.key}
       </span>
       <span className="text-foreground truncate text-sm">{ticket.title}</span>

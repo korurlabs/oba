@@ -24,18 +24,9 @@ import { DueDateBadge } from "./due-date-badge";
 import { LabelBadgeList } from "@/features/labels/components/label-badge";
 import { ProjectBadge } from "@/features/projects/components/project-badge";
 import { MilestoneBadge } from "@/features/milestones/components/milestone-badge";
-import type { TicketStatus } from "@/features/tickets/schemas";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@oba/shared/libs/i18n/navigation";
 import { BOARD_TAB, boardPath } from "@/features/boards/lib/board-route";
-
-const STATUS_BORDER_COLOR: Record<TicketStatus, string> = {
-  TODO: "#9ca3af",
-  IN_PROGRESS: "#60a5fa",
-  WAITING_FOR_THIRD_PARTY: "#fbbf24",
-  IN_REVIEW: "#c084fc",
-  DONE: "#4ade80",
-};
 
 interface TicketCardProps {
   ticket: TicketListResponse;
@@ -158,18 +149,17 @@ export const TicketCard = memo(function TicketCard({
   const cardContent = (
     <div
       ref={setNodeRef}
-      style={{
-        ...style,
-        borderLeftColor: STATUS_BORDER_COLOR[ticket.status],
-        borderLeftWidth: "3px",
-      }}
+      style={style}
       {...attributes}
       {...listeners}
       onClick={onClick}
       className={cn(
-        "group border-border bg-card relative cursor-pointer rounded-[10px] border p-[14px]",
+        // The column already tells the status, so the card stays neutral
+        // apart from its faint blue fade; a primary edge on hover is the only
+        // cue that it opens.
+        "group kazan-card border-border relative cursor-pointer rounded-none border p-[14px]",
         "transition-[border-color,box-shadow,opacity] duration-150 ease-in-out",
-        "hover:border-border hover:shadow-lg",
+        "hover:border-primary/50",
         isDragging && "opacity-50 shadow-xl",
         className
       )}
@@ -188,15 +178,13 @@ export const TicketCard = memo(function TicketCard({
             );
           }}
         >
-          <div className="flex items-center gap-1">
-            <span className="text-muted-foreground text-xs font-medium italic hover:text-blue-600">
-              {tTicket("boardField")}: {ticket.board?.prefix}
-            </span>
-          </div>
+          <span className="kazan-grid-label hover:text-primary inline-flex items-center gap-1.5">
+            {tTicket("boardField")}: {ticket.board?.prefix}
+          </span>
         </button>
       )}
       {shouldShowBoard && !isFromDifferentBoard && (
-        <div className="text-muted-foreground mb-2 text-xs font-medium">
+        <div className="kazan-grid-label mb-2 flex items-center gap-1.5">
           {tTicket("boardField")}: {ticket.board?.prefix}
         </div>
       )}
@@ -214,7 +202,9 @@ export const TicketCard = memo(function TicketCard({
       {/* Header: Type Badge + Key */}
       <div className="mb-2.5 flex items-center justify-between gap-2">
         <TicketTypeBadge type={ticket.type} />
-        <span className="text-muted-foreground font-mono text-xs font-medium">{ticket.key}</span>
+        <span className="text-muted-foreground font-mono text-xs font-semibold tracking-[0.08em] uppercase">
+          {ticket.key}
+        </span>
       </div>
 
       {/* Title (max 2 lines) */}
@@ -279,7 +269,7 @@ export const TicketCard = memo(function TicketCard({
             nameClassName="line-clamp-2 whitespace-normal wrap-anywhere"
           />
         ) : (
-          <div className="bg-muted flex h-5 w-5 items-center justify-center rounded-full">
+          <div className="bg-muted flex h-5 w-5 items-center justify-center">
             <UserIcon className="text-muted-foreground h-3 w-3" />
           </div>
         )}
@@ -317,20 +307,20 @@ export const TicketCard = memo(function TicketCard({
 // Skeleton loading state for TicketCard
 export function TicketCardSkeleton() {
   return (
-    <div className="bg-card dark:bg-muted animate-pulse rounded-lg p-3.5">
+    <div className="border-border bg-card dark:bg-muted animate-pulse rounded-none border p-3.5">
       <div className="mb-2.5 flex items-center justify-between">
-        <div className="bg-muted h-5 w-14 rounded" />
-        <div className="bg-muted h-4 w-16 rounded" />
+        <div className="bg-muted h-5 w-14" />
+        <div className="bg-muted h-4 w-16" />
       </div>
       <div className="mb-3 space-y-2">
-        <div className="bg-muted h-4 w-full rounded" />
-        <div className="bg-muted h-4 w-3/4 rounded" />
+        <div className="bg-muted h-4 w-full" />
+        <div className="bg-muted h-4 w-3/4" />
       </div>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="bg-muted h-4 w-4 rounded" />
+          <div className="bg-muted h-4 w-4" />
         </div>
-        <div className="bg-muted h-6 w-6 rounded-md" />
+        <div className="bg-muted h-6 w-6 rounded-full" />
       </div>
     </div>
   );

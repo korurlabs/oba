@@ -1,31 +1,32 @@
 import type { MilestoneHealth } from "../schemas";
 
 /**
- * Health colours from the theme tokens. Health is always shown as text too,
- * so the colour is never the only signal.
+ * Health in Kazan's grid inks: primary for on track, plain ink with a dashed
+ * rim for at risk, red only for overdue, muted once done. Health is always
+ * shown as text too, so the ink is never the only signal.
  */
 export const MILESTONE_HEALTH_STYLES: Record<
   MilestoneHealth,
   { bar: string; text: string; badge: string }
 > = {
   ON_TRACK: {
-    bar: "bg-success",
-    text: "text-success",
-    badge: "border-success/40 bg-success/10 text-success",
+    bar: "bg-primary",
+    text: "text-korur-blue-strong",
+    badge: "border-primary/50 text-korur-blue-strong",
   },
   AT_RISK: {
-    bar: "bg-warning",
-    text: "text-warning",
-    badge: "border-warning/40 bg-warning/10 text-warning",
+    bar: "bg-foreground/50",
+    text: "text-foreground",
+    badge: "border-foreground/40 border-dashed text-foreground",
   },
   OVERDUE: {
     bar: "bg-destructive",
     text: "text-destructive",
-    badge: "border-destructive/40 bg-destructive/10 text-destructive",
+    badge: "border-destructive/50 text-destructive",
   },
   DONE: {
     bar: "bg-muted-foreground",
     text: "text-muted-foreground",
-    badge: "border-border bg-muted text-muted-foreground",
+    badge: "border-border text-muted-foreground",
   },
 };

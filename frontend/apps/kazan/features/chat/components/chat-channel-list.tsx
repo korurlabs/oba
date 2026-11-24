@@ -306,7 +306,7 @@ function SortableChannelRow({
         <Badge
           aria-hidden
           variant={mentions > 0 ? "destructive" : "secondary"}
-          className="h-4 min-w-4 shrink-0 justify-center rounded-full px-1 py-0 text-[10px] tabular-nums"
+          className="h-4 min-w-4 shrink-0 justify-center rounded-none px-1 py-0 text-[10px] tabular-nums"
         >
           {shownUnread}
         </Badge>
@@ -363,7 +363,7 @@ function SortableChannelRow({
           <button
             type="button"
             aria-label={t("rowActions", { name: channel.name })}
-            className="text-muted-foreground hover:text-foreground hover:bg-sidebar-accent flex h-6 w-6 shrink-0 items-center justify-center rounded opacity-0 group-hover/channel:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
+            className="text-muted-foreground hover:text-foreground hover:bg-sidebar-accent flex h-6 w-6 shrink-0 items-center justify-center opacity-0 group-hover/channel:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
             onMouseDown={stopDragStart}
             onTouchStart={stopDragStart}
           >

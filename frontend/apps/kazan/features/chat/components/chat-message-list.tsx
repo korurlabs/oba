@@ -969,11 +969,11 @@ export function ChatMessageList({
             case "day":
               return (
                 <div key={row.key} role="separator" className="my-4 flex items-center gap-3 px-4 lg:px-6">
-                  <div className="bg-border h-px flex-1" />
-                  <span className="text-muted-foreground text-xs font-medium" suppressHydrationWarning>
+                  <div className="border-border flex-1 border-t border-dashed" />
+                  <span className="kazan-grid-label inline-flex items-center gap-1.5" suppressHydrationWarning>
                     {row.label}
                   </span>
-                  <div className="bg-border h-px flex-1" />
+                  <div className="border-border flex-1 border-t border-dashed" />
                 </div>
               );
             case "divider":
@@ -984,8 +984,8 @@ export function ChatMessageList({
                   role="separator"
                   className="my-2 flex scroll-mt-3 items-center gap-2 px-4 lg:px-6"
                 >
-                  <div className="bg-destructive h-px flex-1" />
-                  <span className="text-destructive text-[11px] font-semibold uppercase">
+                  <div className="border-destructive flex-1 border-t border-dashed" />
+                  <span className="text-destructive font-mono text-[11px] font-semibold tracking-[0.14em] uppercase">
                     {t("list.newMessagesDivider")}
                   </span>
                 </div>
@@ -1097,7 +1097,7 @@ export function ChatMessageList({
         // No sideways overscroll: a horizontal swipe over a message is a reply, not a page gesture.
         // No focus ring: a click focuses the list too, and some browsers count that as visible focus;
         // keyboard focus moves on to the newest message, which shows its own.
-        className="flex flex-1 flex-col-reverse overflow-y-auto overscroll-x-none outline-none [overflow-anchor:none] focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="bg-card flex flex-1 flex-col-reverse overflow-y-auto overscroll-x-none outline-none [overflow-anchor:none] focus-visible:ring-0 focus-visible:ring-offset-0"
       >
         {body}
       </div>

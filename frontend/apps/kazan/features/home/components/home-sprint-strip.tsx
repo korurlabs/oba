@@ -18,7 +18,7 @@ import { HomeSectionError } from "./home-section-error";
 /** The URL parameter that names the focus board by slug. */
 export const HOME_BOARD_PARAM = "board";
 
-const STRIP_CLASS = "bg-card text-card-foreground border-border rounded-2xl border p-4 sm:p-5";
+const STRIP_CLASS = "kazan-grid-frame bg-card text-card-foreground p-4 sm:p-5";
 const DAY_MS = 86_400_000;
 
 /**
@@ -179,11 +179,11 @@ function Countdown({
           aria-valuemax={100}
           aria-valuenow={elapsedPercent}
           aria-label={t("elapsed", { percent: elapsedPercent })}
-          className="bg-korur-blue-light dark:bg-korur-slate h-2 w-full overflow-hidden rounded-full"
+          className="bg-primary/10 dark:bg-korur-slate h-2 w-full overflow-hidden"
         >
           <div
             className={cn(
-              "h-full rounded-full",
+              "h-full",
               daysLeft !== null && daysLeft < 0 ? "bg-destructive" : "bg-korur-blue-hover dark:bg-korur-blue",
             )}
             style={{ width: `${elapsedPercent}%` }}

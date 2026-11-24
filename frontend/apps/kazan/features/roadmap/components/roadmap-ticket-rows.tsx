@@ -12,12 +12,16 @@ import type { TicketStatus } from "@/features/tickets/schemas";
 
 export const TICKET_ROW_HEIGHT_PX = 32;
 
+/*
+ * The chip names the status in words, so it stays a neutral outline; only a
+ * finished ticket takes the primary ink, the one state a reader scans for.
+ */
 const STATUS_CHIP: Record<TicketStatus, string> = {
-  TODO: "bg-muted text-muted-foreground",
-  IN_PROGRESS: "bg-blue-500/15 text-blue-700 dark:text-blue-300",
-  WAITING_FOR_THIRD_PARTY: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
-  IN_REVIEW: "bg-purple-500/15 text-purple-700 dark:text-purple-300",
-  DONE: "bg-green-500/15 text-green-700 dark:text-green-300",
+  TODO: "text-muted-foreground",
+  IN_PROGRESS: "",
+  WAITING_FOR_THIRD_PARTY: "",
+  IN_REVIEW: "",
+  DONE: "border-primary/50 text-korur-blue-strong",
 };
 
 interface RoadmapTicketRowsProps {
@@ -77,7 +81,7 @@ export function RoadmapTicketRows({ milestoneId, nameColumnWidth, rowStyle }: Ro
             chip={
               <span
                 className={cn(
-                  "rounded px-1.5 py-0.5 text-[10px] font-semibold tracking-wide whitespace-nowrap uppercase",
+                  "kazan-grid-chip text-[10px]",
                   STATUS_CHIP[ticket.status],
                 )}
               >

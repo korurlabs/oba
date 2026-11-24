@@ -86,7 +86,7 @@ class ChatChannelRepositoryIT extends ObaIntegrationTest {
                 SELECT name, slug, purpose::text AS purpose, visibility::text AS visibility
                 FROM kazan.chat_channels WHERE organization_id = ? ORDER BY created_at
                 """, organizationId);
-        assertEquals(List.of("General", "Updates", "PR"), rows.stream().map(row -> row.get("name")).toList());
+        assertEquals(List.of("General", "Updates", "Pull Requests"), rows.stream().map(row -> row.get("name")).toList());
         assertEquals(List.of("general", "updates", "pr"), rows.stream().map(row -> row.get("slug")).toList());
         assertEquals(List.of("GENERAL", "DAILY_UPDATES", "PULL_REQUESTS"),
                 rows.stream().map(row -> row.get("purpose")).toList());

@@ -9,8 +9,8 @@ export default function SprintLoading() {
     <div className="space-y-4 p-6">
       {/* Header */}
       <div className="space-y-2">
-        <div className="h-8 w-48 animate-pulse rounded-md bg-gray-200" />
-        <div className="h-4 w-64 animate-pulse rounded-md bg-gray-200" />
+        <div className="h-8 w-48 animate-pulse rounded-md bg-muted" />
+        <div className="h-4 w-64 animate-pulse rounded-md bg-muted" />
       </div>
 
       {/* Kanban columns skeleton */}
@@ -18,8 +18,8 @@ export default function SprintLoading() {
         {['To Do', 'In Progress', 'In Review', 'Done'].map((column) => (
           <div key={column} className="space-y-4">
             <div className="flex items-center justify-between">
-              <div className="h-6 w-24 animate-pulse rounded-md bg-gray-200" />
-              <div className="h-5 w-8 animate-pulse rounded-full bg-gray-200" />
+              <div className="h-6 w-24 animate-pulse rounded-md bg-muted" />
+              <div className="h-5 w-8 animate-pulse bg-muted" />
             </div>
             <div className="space-y-3">
               {Array.from({ length: 3 }).map((_, i) => (

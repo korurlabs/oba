@@ -30,7 +30,7 @@ function Keys({ binding, isMac }: { binding: ChatKeyBinding; isMac: boolean }) {
       {chatBindingParts(binding, isMac).map((part, index) => (
         <kbd
           key={index}
-          className="border-border bg-muted text-foreground inline-flex h-6 min-w-6 items-center justify-center rounded border px-1.5 font-mono text-[11px] font-medium"
+          className="border-border bg-muted text-foreground inline-flex h-6 min-w-6 items-center justify-center border px-1.5 font-mono text-[11px] font-medium"
         >
           {"word" in part ? t(part.word) : part.text}
         </kbd>

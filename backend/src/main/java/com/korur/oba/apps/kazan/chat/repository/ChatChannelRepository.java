@@ -176,14 +176,15 @@ public interface ChatChannelRepository extends SoftDeleteRepository<ChatChannel,
 
     /**
      * Creates the channels every organization starts with: "General", then
-     * "Updates" for the daily updates, then "PR" for the pull request talk,
+     * "Updates" for the daily updates, then "Pull Requests" for the pull request talk,
      * all public, one millisecond apart so the creation order is stable. Runs
      * only for an organization without any channel, deleted ones included, so
      * running it twice creates nothing the second time; ON CONFLICT also
      * leaves a live {@link ChatChannelPurpose#DAILY_UPDATES} or
-     * {@link ChatChannelPurpose#PULL_REQUESTS} channel alone. The slugs are the
-     * base slugs of the three names: an organization without channels has every
-     * slug free.
+     * {@link ChatChannelPurpose#PULL_REQUESTS} channel alone. "Pull Requests" keeps
+     * the slug "pr" that the channel had under its earlier name "PR", so every
+     * organization reaches it at the same address; an organization without
+     * channels has every slug free.
      *
      * @param organizationId ID of the organization
      * @return number of channels created, 3 or 0
@@ -198,7 +199,7 @@ public interface ChatChannelRepository extends SoftDeleteRepository<ChatChannel,
                    :organizationId, NULL, false, v.created_at, v.created_at
             FROM (VALUES ('General', 'general', 'GENERAL', now()),
                          ('Updates', 'updates', 'DAILY_UPDATES', now() + INTERVAL '1 millisecond'),
-                         ('PR', 'pr', 'PULL_REQUESTS', now() + INTERVAL '2 milliseconds'))
+                         ('Pull Requests', 'pr', 'PULL_REQUESTS', now() + INTERVAL '2 milliseconds'))
                  AS v(name, slug, purpose, created_at)
             WHERE NOT EXISTS (SELECT 1 FROM kazan.chat_channels c
                               WHERE c.organization_id = :organizationId)

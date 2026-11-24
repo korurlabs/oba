@@ -143,7 +143,7 @@ export function MilestoneDetailDialog({
                 <section className="space-y-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <MilestoneHealthBadge health={milestone.health} />
-                    <span className="border-border text-muted-foreground rounded-full border px-2 py-0.5 text-xs">
+                    <span className="kazan-grid-chip text-muted-foreground">
                       {t(`status.${milestone.status}`)}
                     </span>
                   </div>
@@ -171,7 +171,7 @@ export function MilestoneDetailDialog({
                       </span>
                     </div>
                     <div
-                      className="bg-muted h-2 w-full overflow-hidden rounded-full"
+                      className="bg-primary/10 h-2 w-full overflow-hidden"
                       role="progressbar"
                       aria-valuemin={0}
                       aria-valuemax={100}

@@ -24,7 +24,7 @@ export function HomeSectionError({ message, isRetrying, onRetry, className }: Ho
     <div
       role="alert"
       className={cn(
-        "border-destructive/30 bg-destructive/10 text-card-foreground flex items-center gap-4 rounded-2xl border p-4 sm:p-5",
+        "border-destructive/40 bg-destructive/5 text-card-foreground flex items-center gap-4 border p-4 sm:p-5",
         className,
       )}
     >

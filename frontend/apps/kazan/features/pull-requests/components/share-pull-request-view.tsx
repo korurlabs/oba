@@ -173,7 +173,7 @@ function CreateShareComposer() {
   // id, so only Send posts the share: Enter in a picker search must not.
   return (
     <Form {...form}>
-      <div className="bg-background flex h-full flex-col">
+      <div className="flex h-full flex-col">
         <ScreenHeader mode="create">
           <Button
             type="submit"
@@ -283,7 +283,7 @@ function EditShareForm({ share }: { share: PullRequestShareResponse }) {
 
   return (
     <Form {...form}>
-      <div className="bg-background flex h-full flex-col">
+      <div className="flex h-full flex-col">
         <ScreenHeader mode="edit">
           <Button
             type="submit"
@@ -433,7 +433,7 @@ type ScreenStateProps =
 function ScreenState(props: ScreenStateProps) {
   const t = useTranslations("pullRequests.form");
   return (
-    <div className="bg-background flex h-full flex-col">
+    <div className="flex h-full flex-col">
       <ScreenHeader mode={props.mode} />
       {props.kind === "loading" ? (
         <div className="flex flex-1 flex-col items-center justify-center">

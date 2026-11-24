@@ -32,7 +32,7 @@ export function ChatJumpButton({ newCount, onClick }: ChatJumpButtonProps) {
       size="sm"
       onClick={onClick}
       aria-label={label}
-      className="absolute bottom-3 left-1/2 z-10 h-8 -translate-x-1/2 gap-1.5 rounded-full shadow-md"
+      className="absolute bottom-3 left-1/2 z-10 h-8 -translate-x-1/2 gap-1.5 shadow-(--kazan-grid-shadow)"
     >
       <ArrowDown className="h-3.5 w-3.5" aria-hidden />
       {text}

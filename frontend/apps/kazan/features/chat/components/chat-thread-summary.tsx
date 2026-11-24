@@ -83,7 +83,7 @@ export function ChatThreadStatusChip({ status, className }: { status: ChatThread
   return (
     <span
       className={cn(
-        "border-border bg-muted text-muted-foreground inline-flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-px text-[11px] font-medium",
+        "border-border bg-muted text-muted-foreground inline-flex shrink-0 items-center gap-1 rounded-none border px-1.5 py-px text-[11px] font-medium",
         className,
       )}
     >

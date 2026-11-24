@@ -436,11 +436,11 @@ function TicketFormContent({
     mode === "edit" && ticket ? (
       <div className="flex min-w-0 items-center gap-2">
         <TicketTypeBadge type={ticket.type} className="shrink-0" />
-        <span className="border-border bg-card text-muted-foreground shrink-0 rounded border px-1.5 py-0.5 font-mono text-xs">
+        <span className="border-border bg-card text-muted-foreground shrink-0 border px-1.5 py-0.5 font-mono text-xs">
           {ticket.key}
         </span>
         {currentBoard && (
-          <span className="border-border bg-card text-muted-foreground hidden max-w-40 truncate rounded border px-1.5 py-0.5 text-xs sm:inline">
+          <span className="border-border bg-card text-muted-foreground hidden max-w-40 truncate border px-1.5 py-0.5 text-xs sm:inline">
             {currentBoard.prefix} &middot; {currentBoard.name}
           </span>
         )}
@@ -620,7 +620,7 @@ function TicketFormContent({
           <div className="border-border bg-background shrink-0 space-y-1.5 border-b px-4 py-3 pr-24 md:px-6 md:pr-24">
             <DialogTitle className="text-foreground flex items-center gap-2 text-lg font-semibold">
               <span className="truncate">{titleText}</span>
-              <kbd className="text-muted-foreground border-border bg-muted shrink-0 rounded border px-1.5 py-0.5 font-mono text-[10px] font-normal">
+              <kbd className="text-muted-foreground border-border bg-muted shrink-0 border px-1.5 py-0.5 font-mono text-[10px] font-normal">
                 ⌥N
               </kbd>
             </DialogTitle>

@@ -10,17 +10,19 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, error, ...props }, ref) => {
     return (
       <input
+        data-slot="input"
         type={type}
         className={cn(
-          'flex h-11 w-full rounded-lg border-[1.5px] border-input bg-background dark:bg-input/30 px-4 py-3 text-sm text-foreground shadow-xs transition-all duration-150',
+          'flex h-11 w-full border border-input bg-background dark:bg-input/30 px-4 py-3 text-sm text-foreground transition-colors duration-150',
           'placeholder:text-muted-foreground',
           'hover:border-border dark:hover:bg-input/50',
-          'focus:outline-none focus:border-primary focus:ring-[3px] focus:ring-primary/20',
+          'focus:outline-none focus:border-primary',
           'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted',
           'file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground',
-          error && 'border-error focus:border-error focus:ring-error-light',
+          error && 'border-error focus:border-error',
           className
         )}
+        aria-invalid={error || undefined}
         ref={ref}
         {...props}
       />

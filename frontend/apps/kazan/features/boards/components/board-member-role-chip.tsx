@@ -12,11 +12,16 @@ const roleIcons: Record<BoardMemberRole, typeof Crown> = {
   VIEWER: Eye,
 };
 
+/*
+ * Outline chips in the grid inks: the roles that manage the board (owner,
+ * admin) carry the primary ink, the others plain ink; the icon and the word
+ * tell the role apart.
+ */
 const roleColors: Record<BoardMemberRole, string> = {
-  OWNER: "bg-korur-blue-light text-korur-blue-strong dark:bg-korur-slate dark:text-korur-blue",
-  ADMIN: "bg-korur-blue-accent text-korur-blue-deep dark:bg-korur-slate dark:text-korur-blue-medium",
-  MEMBER: "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200",
-  VIEWER: "bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200",
+  OWNER: "bg-transparent border-primary/50 text-korur-blue-strong hover:bg-transparent dark:text-korur-blue",
+  ADMIN: "bg-transparent border-primary/30 text-korur-blue-strong hover:bg-transparent dark:text-korur-blue-medium",
+  MEMBER: "bg-transparent border-border text-foreground hover:bg-transparent",
+  VIEWER: "bg-transparent border-border text-muted-foreground hover:bg-transparent",
 };
 
 interface BoardMemberRoleChipProps {

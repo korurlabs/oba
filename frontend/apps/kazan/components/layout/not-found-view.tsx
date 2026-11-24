@@ -22,7 +22,7 @@ export function NotFoundView({ className }: NotFoundViewProps) {
     <div className={cn("flex items-center justify-center bg-background p-4", className)}>
       <div className="w-full max-w-md space-y-6 text-center">
         <div className="flex justify-center">
-          <div className="rounded-full bg-primary/10 p-4">
+          <div className="border-primary/40 border border-dashed p-4">
             <FileQuestion className="h-12 w-12 text-primary" aria-hidden="true" />
           </div>
         </div>

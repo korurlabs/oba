@@ -38,7 +38,7 @@ interface ChatRowFrameProps {
   rowId: string;
   /** A continuation of the previous message's author group: no header, little space. */
   grouped: boolean;
-  /** The message notifies the reader (a mention, or a reply to the reader's message): a left bar and a tint. */
+  /** The message notifies the reader (a mention, or a reply to the reader's message): a primary left rule and a faint tint. */
   mentioned?: boolean;
   /** Briefly marked after a jump to it. */
   highlighted?: boolean;
@@ -89,7 +89,7 @@ export function ChatRowFrame({
       className={cn(
         "group/row relative border-l-2 px-4 transition-colors duration-500 lg:px-6",
         grouped ? "py-1" : "mt-1 py-2",
-        mentioned ? "border-amber-500 bg-amber-500/10" : "hover:bg-muted/40 border-transparent",
+        mentioned ? "border-primary bg-primary/5" : "hover:bg-muted/40 border-transparent",
         highlighted && "bg-primary/15",
         // Vertical scrolling stays the browser's; a horizontal move is the swipe.
         interaction &&
@@ -109,7 +109,7 @@ export function ChatRowFrame({
         >
           <span
             style={swipeArrowIconStyle}
-            className="bg-primary/15 text-primary group-data-[swipe-armed]/row:bg-primary group-data-[swipe-armed]/row:text-primary-foreground flex size-7 items-center justify-center rounded-full transition-[background-color,color,scale] duration-150 group-data-[swipe-armed]/row:scale-110 motion-reduce:transition-none"
+            className="bg-primary/15 text-primary group-data-[swipe-armed]/row:bg-primary group-data-[swipe-armed]/row:text-primary-foreground flex size-7 items-center justify-center transition-[background-color,color,scale] duration-150 group-data-[swipe-armed]/row:scale-110 motion-reduce:transition-none"
           >
             <Reply className="size-4" />
           </span>
@@ -409,19 +409,18 @@ export function ChatMessageLayout({
 }
 
 /**
- * The box around a message's content: muted for others, tinted for the
- * reader's own. The first message of a group points at the avatar. A card
- * fills it to the bubble's widest.
+ * The square box around a message's content: the card surface for others, a
+ * faint blue with a primary edge for the reader's own, so the two sides stay
+ * apart without a tint loud enough to compete with the text. A card fills it
+ * to the bubble's widest.
  */
 export function ChatMessageBubble({
   side,
-  tail,
   fill,
   className,
   children,
 }: {
   side: ChatMessageSide;
-  tail: boolean;
   fill?: boolean;
   className?: string;
   children: ReactNode;
@@ -431,9 +430,8 @@ export function ChatMessageBubble({
     <div
       {...partProps}
       className={cn(
-        "max-w-full min-w-0 rounded-lg border px-3 py-2 text-sm sm:max-w-[85%]",
-        end ? "bg-primary/10 border-primary/20" : "bg-muted/60 border-border",
-        tail && (end ? "rounded-tr-none" : "rounded-tl-none"),
+        "max-w-full min-w-0 rounded-none border px-3 py-2 text-sm sm:max-w-[85%]",
+        end ? "border-primary/25 bg-[#f6fbff] dark:bg-primary/10" : "bg-card border-border",
         fill && "w-full",
         className
       )}

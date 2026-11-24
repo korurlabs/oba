@@ -22,10 +22,8 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useGetMe } from "@oba/shared/features/users/hooks/use-get-me";
 import { formatDateOnly } from "@oba/shared/lib/date-only";
 import { Link, usePathname, useRouter } from "@oba/shared/libs/i18n/navigation";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -35,7 +33,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PullRequestChannelFilterPanel } from "@/features/pull-requests/components/pull-request-channel-filter-panel";
 import { PULL_REQUEST_SHARE_CREATE_PATH } from "@/features/pull-requests/components/pull-request-share-paths";
 import { usePullRequestChannelFilterParams } from "@/features/pull-requests/hooks/use-pull-request-channel-filter-params";
@@ -106,8 +103,8 @@ export function ChatView() {
 
   if (!orgId) {
     return (
-      <div className="bg-background flex h-full flex-col">
-        <ChatHeader orgId={undefined} />
+      <div className="flex h-full flex-col">
+        <ChatHeader />
         {sessionStatus !== "loading" && (
           <EmptyState
             Icon={Building2}
@@ -125,39 +122,37 @@ export function ChatView() {
 }
 
 function ChatHeader({
-  orgId,
   channel,
   controls,
+  search,
 }: {
-  orgId: string | undefined;
   /** The open channel; the header reads "Chat" until it is known. */
   channel?: ChatChannelResponse;
   controls?: ReactNode;
+  /** A search field that takes the visible place of the channel name. */
+  search?: ReactNode;
 }) {
   const t = useTranslations("chat.channel");
   const tChannels = useTranslations("chat.channels");
   const tPullRequests = useTranslations("pullRequests");
   const canWrite = useChatCanWrite();
-  const { data: meResponse } = useGetMe();
-  const organizationName = meResponse?.data?.organizations?.find((organization) => organization.id === orgId)?.name;
-  const Icon = channel?.visibility === ChatChannelVisibility.PRIVATE ? Lock : Hash;
 
   return (
-    <header className="border-border flex flex-wrap items-center gap-x-3 gap-y-2 border-b px-4 py-3 lg:px-6">
+    <header className="border-border bg-card flex flex-wrap items-center gap-x-3 gap-y-2 border-b px-4 py-3 lg:px-6">
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        <Icon className="text-muted-foreground h-5 w-5 shrink-0" aria-hidden />
-        <h1 className="text-foreground truncate text-lg font-semibold">{channel?.name ?? t("title")}</h1>
+        {/* The header names only the channel. A private channel keeps its lock,
+            the one mark that changes who can read what is written here. */}
         {channel?.visibility === ChatChannelVisibility.PRIVATE && (
-          <span className="sr-only">{tChannels("private")}</span>
+          <>
+            <Lock className="text-muted-foreground h-4 w-4 shrink-0" aria-hidden />
+            <span className="sr-only">{tChannels("private")}</span>
+          </>
         )}
-        {channel?.purpose === ChatChannelPurpose.DAILY_UPDATES && (
-          <Badge variant="outline" className="shrink-0 px-1.5 py-0 text-[10px] font-medium">
-            {tChannels("dailyUpdatesBadge")}
-          </Badge>
-        )}
-        {organizationName && (
-          <span className="text-muted-foreground hidden truncate text-sm sm:inline">{organizationName}</span>
-        )}
+        {/* The name stays the page heading for screen readers when a search field takes its place. */}
+        <h1 className={search ? "sr-only" : "kazan-grid-heading min-w-0 text-sm"}>
+          <span className="truncate">{channel?.name ?? t("title")}</span>
+        </h1>
+        {search}
       </div>
       {controls}
       {/* Daily updates land only in the daily updates channel, so only it offers to write one. */}
@@ -188,25 +183,6 @@ function ChatHeader({
         </>
       )}
     </header>
-  );
-}
-
-/** The header button that opens the keyboard shortcuts (also Mod+/). */
-function ShortcutsButton({ onClick }: { onClick: () => void }) {
-  const t = useTranslations("chat.shortcuts");
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="outline" size="icon-sm" className="border-border" aria-label={t("button")} onClick={onClick}>
-            <Keyboard className="h-3.5 w-3.5" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{t("button")}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
   );
 }
 
@@ -302,6 +278,7 @@ function ChatChannel({ orgId }: { orgId: string }) {
   const tChannels = useTranslations("chat.channels");
   const tComposer = useTranslations("chat.composer");
   const tList = useTranslations("chat.list");
+  const tSearch = useTranslations("chat.search");
   const [{ thread, jump, q, threadMessage }, setParams] = useChatParams();
   const { channelsQuery, channel, noChannel, lostName, onChannelLost, onRemoving, onRemoveFailed, dismissLost } =
     useOpenChannel(orgId);
@@ -457,6 +434,10 @@ function ChatChannel({ orgId }: { orgId: string }) {
   }, [threadMessage, setParams]);
 
   const openSearch = useCallback(() => setSearchOpen(true), []);
+  // The daily updates and pull requests channels are named by the sidebar
+  // already, so their header shows the search field in place of the name.
+  const searchInHeader =
+    channel?.purpose === ChatChannelPurpose.DAILY_UPDATES || channel?.purpose === ChatChannelPurpose.PULL_REQUESTS;
   const openShortcuts = useCallback(() => setShortcutsOpen(true), []);
   useChatShortcuts({
     rootRef,
@@ -500,11 +481,25 @@ function ChatChannel({ orgId }: { orgId: string }) {
       <div
         ref={rootRef}
         tabIndex={-1}
-        className="bg-background flex h-full flex-col outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="flex h-full flex-col outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
       >
         <ChatHeader
-          orgId={orgId}
           channel={channel}
+          search={
+            searchInHeader ? (
+              <ChatSearchPanel
+                inline
+                placeholder={
+                  channel?.purpose === ChatChannelPurpose.DAILY_UPDATES
+                    ? tSearch("updatesPlaceholder")
+                    : tSearch("pullRequestsPlaceholder")
+                }
+                open={searchOpen}
+                onOpenChange={setSearchOpen}
+                onJump={jumpToMessage}
+              />
+            ) : undefined
+          }
           controls={
             <>
               {channel && (
@@ -512,11 +507,17 @@ function ChatChannel({ orgId }: { orgId: string }) {
                   <ChatThreadList activeThreadId={thread} onOpen={openThread} />
                   <ChatPinsPopover onJump={jumpToMessage} />
                   <ChatMembersPopover channel={channel} />
-                  <ChatSearchPanel open={searchOpen} onOpenChange={setSearchOpen} onJump={jumpToMessage} />
+                  {!searchInHeader && (
+                    <ChatSearchPanel open={searchOpen} onOpenChange={setSearchOpen} onJump={jumpToMessage} />
+                  )}
                 </>
               )}
-              <ChannelMenu channel={channel} onRemoving={onRemoving} onRemoveFailed={onRemoveFailed} />
-              <ShortcutsButton onClick={openShortcuts} />
+              <ChannelMenu
+                channel={channel}
+                onRemoving={onRemoving}
+                onRemoveFailed={onRemoveFailed}
+                onShortcuts={openShortcuts}
+              />
             </>
           }
         />
@@ -795,14 +796,18 @@ function ChannelMenu({
   channel,
   onRemoving,
   onRemoveFailed,
+  onShortcuts,
 }: {
   channel: ChatChannelResponse | undefined;
   /** Called as the reader deletes or leaves the channel, whose next read is then expected to be 404. */
   onRemoving: (channelId: string) => void;
   /** Called when that delete or leave fails, so the channel's 404 is unexpected again. */
   onRemoveFailed: (channelId: string) => void;
+  /** Opens the keyboard shortcuts (also Mod+/), which every reader can see, so the menu is always there. */
+  onShortcuts: () => void;
 }) {
   const t = useTranslations("chat.channels");
+  const tShortcuts = useTranslations("chat.shortcuts");
   const router = useRouter();
   const canManage = useCanManageChatChannels();
   const [dialog, setDialog] = useState<"create" | "change" | null>(null);
@@ -812,7 +817,6 @@ function ChannelMenu({
 
   const isPrivate = channel?.visibility === ChatChannelVisibility.PRIVATE;
   const canLeave = isPrivate && !!channel?.member;
-  if (!canManage && !canLeave) return null;
 
   return (
     <>
@@ -841,6 +845,10 @@ function ChannelMenu({
               {t("manageMembers")}
             </DropdownMenuItem>
           )}
+          <DropdownMenuItem onClick={onShortcuts}>
+            <Keyboard className="h-3.5 w-3.5" />
+            {tShortcuts("button")}
+          </DropdownMenuItem>
           {channel && (canLeave || canManage) && <DropdownMenuSeparator />}
           {canLeave && (
             <DropdownMenuItem onClick={() => setLeaveOpen(true)}>

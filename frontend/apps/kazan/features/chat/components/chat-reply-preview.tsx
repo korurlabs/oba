@@ -54,7 +54,7 @@ export function chatQuoteImage(attachments: readonly AttachmentResponse[]): Atta
 
 /** The frame every quote shares: an accent bar on the left over a muted background. */
 const QUOTE_FRAME =
-  "border-primary bg-muted/50 flex min-w-0 items-center gap-2 rounded-md border-l-2 px-2 py-1 text-xs";
+  "border-primary bg-muted/50 flex min-w-0 items-center gap-2 rounded-none border-l-2 px-2 py-1 text-xs";
 
 interface ChatQuoteProps {
   /**
@@ -100,7 +100,7 @@ export function ChatQuote({ author, text, image, className }: ChatQuoteProps) {
           alt={image.fileName}
           loading="lazy"
           onError={() => setFailedUrl(image.url)}
-          className="size-10 shrink-0 rounded object-cover"
+          className="size-10 shrink-0 object-cover"
         />
       )}
     </span>

@@ -663,7 +663,7 @@ export function ChatMessageToolbar({ row }: { row: ChatMessageRowController }) {
       <div
         role="toolbar"
         aria-label={t("toolbar")}
-        className="bg-background border-border flex items-center gap-0.5 rounded-md border p-0.5 shadow-sm"
+        className="bg-background border-border flex items-center gap-0.5 border p-0.5 shadow-(--kazan-grid-shadow)"
       >
         {actions.includes("react") && (
           <Tooltip>

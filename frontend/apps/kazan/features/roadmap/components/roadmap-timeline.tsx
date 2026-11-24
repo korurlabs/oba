@@ -357,7 +357,7 @@ export function RoadmapTimeline({
                             aria-hidden
                           />
                           <span
-                            className="h-2.5 w-2.5 shrink-0 rounded-full"
+                            className="h-2.5 w-2.5 shrink-0"
                             style={{ backgroundColor: board.color ?? NEUTRAL_BAR_COLOR }}
                             aria-hidden
                           />
@@ -773,7 +773,7 @@ function MilestoneRow({
           onClick={onToggleExpanded}
           aria-expanded={expanded}
           aria-label={t(expanded ? "tickets.collapse" : "tickets.expand", { name: milestone.name })}
-          className="text-muted-foreground hover:text-foreground hover:bg-accent focus-visible:ring-ring flex h-6 w-6 shrink-0 items-center justify-center rounded focus-visible:ring-2 focus-visible:outline-none"
+          className="text-muted-foreground hover:text-foreground hover:bg-accent focus-visible:ring-ring flex h-6 w-6 shrink-0 items-center justify-center focus-visible:ring-2 focus-visible:outline-none"
         >
           <ChevronRight
             className={cn("h-4 w-4 transition-transform", expanded && "rotate-90")}
@@ -804,7 +804,7 @@ function MilestoneRow({
           />
         )}
         <span
-          className={cn("h-2 w-2 shrink-0 rounded-full", healthDot)}
+          className={cn("h-2 w-2 shrink-0", healthDot)}
           title={healthText}
           aria-hidden
         />
@@ -834,7 +834,7 @@ function MilestoneRow({
               {hasSpan ? (
                 <span
                   className={cn(
-                    "absolute inset-0 overflow-hidden rounded-[3px] shadow-sm transition-shadow group-hover:shadow-md",
+                    "absolute inset-0 overflow-hidden shadow-sm transition-shadow group-hover:shadow-md",
                     isDragging && "shadow-md",
                   )}
                   style={{ backgroundColor: color }}
@@ -847,7 +847,7 @@ function MilestoneRow({
                 </span>
               ) : (
                 <span
-                  className="absolute inset-[2px] rotate-45 rounded-[2px] shadow-sm"
+                  className="absolute inset-[2px] rotate-45 shadow-sm"
                   style={{ backgroundColor: color }}
                   aria-hidden
                 />

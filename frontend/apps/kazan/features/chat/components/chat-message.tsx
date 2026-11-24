@@ -131,7 +131,7 @@ export const ChatMessage = memo(function ChatMessage({
           footer={footer}
           toolbar={toolbar}
         >
-          <ChatMessageBubble side={side} tail fill>
+          <ChatMessageBubble side={side} fill>
             <UpdateMessageContent update={update} currentUserId={meId} />
           </ChatMessageBubble>
         </ChatMessageLayout>
@@ -164,7 +164,7 @@ export const ChatMessage = memo(function ChatMessage({
           footer={footer}
           toolbar={toolbar}
         >
-          <ChatMessageBubble side={side} tail fill>
+          <ChatMessageBubble side={side} fill>
             <PullRequestShareContent
               share={share}
               messageId={message.id}
@@ -201,7 +201,7 @@ export const ChatMessage = memo(function ChatMessage({
         toolbar={toolbar}
       >
         {message.content.trim().length > 0 && (
-          <ChatMessageBubble side={side} tail={!grouped}>
+          <ChatMessageBubble side={side}>
             <ChatMessageContent
               content={message.content}
               users={message.users}
@@ -318,7 +318,7 @@ export function ChatOutboxRow({
           aria-busy={!failed}
         >
           {row.content.trim().length > 0 && (
-            <ChatMessageBubble side="end" tail={!inGroup}>
+            <ChatMessageBubble side="end">
               <ChatMessageContent
                 content={row.content}
                 users={users}

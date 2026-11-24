@@ -56,10 +56,10 @@ function useNotificationsLabel(): (count: number) => string {
 
 /** The red notification badge; red always means a notification, as in Discord. */
 const NOTIFICATION_BADGE_CLASS =
-  "h-4 min-w-4 shrink-0 justify-center rounded-full px-1 py-0 text-[10px] leading-none tabular-nums";
+  "h-4 min-w-4 shrink-0 justify-center rounded-none px-1 py-0 text-[10px] leading-none tabular-nums";
 
 /** The neutral mark of unread messages without a notification. */
-const UNREAD_DOT_CLASS = "bg-foreground size-2 shrink-0 rounded-full";
+const UNREAD_DOT_CLASS = "bg-foreground size-2 shrink-0";
 
 function memberAvatars(thread: ChatThreadResponse): UserAvatarUser[] {
   return thread.members.map((member) => ({

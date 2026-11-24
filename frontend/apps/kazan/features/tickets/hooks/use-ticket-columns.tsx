@@ -243,7 +243,7 @@ export const useTicketColumns = (options?: UseTicketColumnsOptions) => {
                       e.stopPropagation();
                       options.onBulkAction!();
                     }}
-                    className="hover:bg-muted ml-1 rounded p-0.5"
+                    className="hover:bg-muted ml-1 p-0.5"
                     title={t("ticket.bulkMove.title")}
                   >
                     <Settings className="text-muted-foreground h-3.5 w-3.5" />

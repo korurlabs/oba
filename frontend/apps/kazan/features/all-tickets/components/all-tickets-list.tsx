@@ -12,7 +12,6 @@ import { useTranslations } from "next-intl";
 import type { VisibilityState } from "@tanstack/react-table";
 import type { TicketListResponse } from "@/features/tickets/schemas";
 import { useSearchPathFilter } from "@/features/tickets/lib/search-match";
-import { TicketStatusSummary } from "@/features/tickets/components/ticket-status-summary";
 import { SenseyTable } from "@oba/shared/components/sensey-table";
 import { useAllTicketColumns } from "../hooks/use-all-ticket-columns";
 import type { AllTicketListResponse } from "../schemas";
@@ -72,7 +71,6 @@ export function AllTicketsList({
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden p-6">
-      <TicketStatusSummary tickets={parentTickets as TicketListResponse[]} />
       <SenseyTable<TicketListResponse>
         columns={columns}
         data={parentTickets as TicketListResponse[]}

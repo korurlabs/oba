@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { SprintList } from "@/features/sprints/components/sprint-list";
 import { SprintSectionHeader } from "@/features/sprints/components/sprint-section-header";
+import { SprintContext } from "@/features/sprints/components/sprint-context";
 import { CreateSprintDialog } from "@/features/sprints/components/create-sprint-dialog";
 import { EditSprintDialog } from "@/features/sprints/components/edit-sprint-dialog";
 import { DeleteSprintDialog } from "@/features/sprints/components/delete-sprint-dialog";
@@ -25,7 +25,6 @@ import {
 import { useBoardRoleContext } from "@/features/boards/providers/board-role-provider";
 import { useBoardViewTitle } from "@/features/boards/hooks/use-board-view-title";
 import { KANBAN_DROP_ANIMATION } from "@/features/tickets/lib/kanban-config";
-import { groupListRows, listWorkItems } from "@/lib/utils/ticket-groups";
 import { DndContext, DragOverlay } from "@dnd-kit/core";
 
 interface AllPageViewProps {
@@ -36,9 +35,7 @@ export function AllPageView({ boardId }: AllPageViewProps) {
   const t = useTranslations();
   const page = useAllPage(boardId);
   useBoardViewTitle(boardId, t("all.title"));
-  // `canManage` is not read here: the sprint create/edit/delete gates moved
-  // into AllToolbar together with the SprintSelector.
-  const { currentUserRole, canEdit, isLoading: isRoleLoading } = useBoardRoleContext();
+  const { currentUserRole, canManage, canEdit, isLoading: isRoleLoading } = useBoardRoleContext();
   const canCreateTickets = !isRoleLoading && currentUserRole !== "VIEWER";
   const { columnVisibility, setColumnVisibility, columnOrder, setColumnOrder } = page.boardPrefs;
   const columnToggleItems = useTicketColumnToggleItems();
@@ -67,22 +64,9 @@ export function AllPageView({ boardId }: AllPageViewProps) {
     backlogId: page.backlogId,
     canMove: canEdit,
   });
-  // Everything in a section counts and lists the rows its table shows, which
-  // include a dropped row on its way to the other section.
-  // The caption strips count the work items of the rows their tables show:
-  // a header row for a parent planned elsewhere is not counted, its
-  // sub-tickets in the section are.
-  const sprintWorkItems = useMemo(
-    () => listWorkItems(groupListRows(dnd.sprintTickets)),
-    [dnd.sprintTickets]
-  );
-  const backlogWorkItems = useMemo(
-    () => listWorkItems(groupListRows(dnd.backlogTickets)),
-    [dnd.backlogTickets]
-  );
 
   return (
-    <div className="bg-background flex h-full flex-col">
+    <div className="flex h-full flex-col">
       <AllToolbar boardId={boardId} page={page} columnToggleItems={columnToggleItems} />
 
       <div id="table-target" className="flex-1 overflow-auto">
@@ -101,20 +85,25 @@ export function AllPageView({ boardId }: AllPageViewProps) {
             onDragEnd={dnd.handleDragEnd}
             onDragCancel={dnd.handleDragCancel}
           >
-            <div className="flex flex-col gap-4 pt-4">
+            <div className="flex flex-col gap-4 pt-2">
               {/* Sprint section -- shown when the board has any sprints */}
               {showSprintSection && page.currentSprint && (
-                <AllDropSection
-                  id={ALL_SPRINT_CONTAINER_ID}
-                  label={t("all.dnd.sprintSection")}
-                >
+                <AllDropSection id={ALL_SPRINT_CONTAINER_ID} label={t("all.dnd.sprintSection")}>
                   <section className="flex flex-col gap-2">
                     <div className="px-6">
                       <SprintSectionHeader
                         currentSprint={page.currentSprint}
-                        tickets={sprintWorkItems}
-                        selectedStatuses={page.filters.statuses ?? undefined}
-                        onStatusToggle={page.toggleStatusFilter}
+                        sprintContext={
+                          <SprintContext
+                            sprints={page.sprints}
+                            currentSprint={page.currentSprint}
+                            onSprintChange={page.setSelectedSprintId}
+                            onCreateSprint={page.openCreateSprintDialog}
+                            canManage={canManage}
+                            onEditSprint={page.handleOpenEditSprintDialog}
+                            onDeleteSprint={page.handleOpenDeleteSprintDialog}
+                          />
+                        }
                         onAddTicket={canCreateTickets ? page.openSprintAddTicketDialog : undefined}
                       />
                     </div>
@@ -169,16 +158,10 @@ export function AllPageView({ boardId }: AllPageViewProps) {
               )}
 
               {/* Backlog section -- always shown */}
-              <AllDropSection
-                id={ALL_BACKLOG_CONTAINER_ID}
-                label={t("all.dnd.backlogSection")}
-              >
+              <AllDropSection id={ALL_BACKLOG_CONTAINER_ID} label={t("all.dnd.backlogSection")}>
                 <section className="flex flex-col gap-2">
                   <div className="px-6">
                     <BacklogSectionHeader
-                      tickets={backlogWorkItems}
-                      selectedStatuses={page.filters.statuses ?? undefined}
-                      onStatusToggle={page.toggleStatusFilter}
                       onAddTicket={canCreateTickets ? page.openBacklogAddTicketDialog : undefined}
                     />
                   </div>

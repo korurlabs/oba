@@ -248,7 +248,7 @@ export function ChatThreadColumn({ open, onClose, children }: ChatThreadColumnPr
         {...{ [CHAT_THREAD_PANEL_ATTRIBUTE]: "" }}
         aria-label={t("panelLabel")}
         style={{ width }}
-        className="hidden min-h-0 shrink-0 flex-col md:flex"
+        className="bg-card hidden min-h-0 shrink-0 flex-col md:flex"
       >
         {children}
       </aside>

@@ -100,7 +100,7 @@ export function InlineSubTickets({
                     onToggleComplete(subTicket.id, !isDone);
                   }}
                   className={cn(
-                    'flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
+                    'flex h-4.5 w-4.5 shrink-0 items-center justify-center border-2 transition-colors',
                     isDone
                       ? 'border-primary bg-primary'
                       : 'border-primary/60 bg-transparent hover:border-primary',

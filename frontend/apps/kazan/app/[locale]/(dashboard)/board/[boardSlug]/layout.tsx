@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { BoardTabs } from '@/components/layout/board-tabs';
+import { BoardBarSlotProvider } from '@/components/layout/board-bar-slot';
 import { BoardRoleProvider } from '@/features/boards/providers/board-role-provider';
 import { findBoardRoute } from '@/features/boards/lib/board-route';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -45,42 +46,39 @@ export default async function BoardLayout({
 
   return (
     <BoardRoleProvider boardId={board.id}>
-      <div className="flex h-full flex-col">
-        {/* Board Tabs Navigation (includes breadcrumb and actions) */}
-        <Suspense fallback={<BoardTabsSkeleton />}>
-          <BoardTabs boardId={board.id} />
-        </Suspense>
+      <BoardBarSlotProvider>
+        <div className="flex h-full flex-col">
+          {/* The board bar: name, tabs, the page's view controls and settings */}
+          <Suspense fallback={<BoardTabsSkeleton />}>
+            <BoardTabs boardId={board.id} />
+          </Suspense>
 
-        <div className="flex-1 overflow-hidden">
-          <Suspense fallback={<ContentSkeleton />}>{children}</Suspense>
+          <div className="flex-1 overflow-hidden">
+            <Suspense fallback={<ContentSkeleton />}>{children}</Suspense>
+          </div>
         </div>
-      </div>
+      </BoardBarSlotProvider>
     </BoardRoleProvider>
   );
 }
 
 function BoardTabsSkeleton() {
   return (
-    <div className="border-b border-border bg-background px-6 py-3">
-      {/* Mirrors the phone layout of BoardTabs: below `md` the tabs take a
-        row of their own under the breadcrumb and the actions, so the
-        placeholder fits a phone and the header does not jump when it loads. */}
-      <div className="flex items-center justify-between max-md:flex-wrap max-md:justify-start max-md:gap-x-3 max-md:gap-y-3">
-        <div className="flex items-center gap-3 max-md:contents">
-          <div className="flex items-center gap-1.5">
-            <Skeleton className="h-4 w-4" />
-            <Skeleton className="h-4 w-4" />
-            <Skeleton className="h-4 w-24" />
-          </div>
-          <Skeleton className="h-5 w-px max-md:hidden" />
-          <div className="flex items-center gap-6 max-md:order-last max-md:basis-full">
-            <Skeleton className="h-4 w-16" />
-            <Skeleton className="h-4 w-12" />
-          </div>
+    <div className="border-b border-border bg-card px-4 py-3 lg:px-6">
+      {/* Mirrors BoardTabs: the name and the tabs on the left, the controls
+        on the right, which wrap under the tabs when the row is narrow. */}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+        <div className="flex items-center gap-6">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-4 w-14" />
+          <Skeleton className="h-4 w-14" />
+          <Skeleton className="h-4 w-14" />
+          <Skeleton className="h-4 w-10" />
         </div>
-        <div className="flex items-center gap-2 max-md:ml-auto">
-          <Skeleton className="h-8 w-8 rounded-md" />
-          <Skeleton className="h-8 w-20 rounded-md" />
+        <div className="ml-auto flex items-center gap-2">
+          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-8 w-20" />
+          <Skeleton className="h-8 w-8" />
         </div>
       </div>
     </div>

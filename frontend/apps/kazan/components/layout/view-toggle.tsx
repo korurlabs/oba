@@ -18,7 +18,7 @@ export function ViewToggle({ view, onViewChange, className }: ViewToggleProps) {
 
   return (
     <div
-      className={cn("inline-flex h-8 items-center gap-1 rounded-lg bg-muted p-1", className)}
+      className={cn("inline-flex h-8 items-center gap-0.5 border border-border bg-card p-0.5", className)}
       role="group"
       aria-label={t("views.modeToggle")}
     >
@@ -27,10 +27,10 @@ export function ViewToggle({ view, onViewChange, className }: ViewToggleProps) {
         variant="ghost"
         onClick={view !== "list" ? () => onViewChange("list") : undefined}
         className={cn(
-          "h-6 min-w-0 gap-1.5 rounded-md px-2 text-xs transition-all",
+          "h-6 min-w-0 gap-1.5 px-2 font-mono text-xs tracking-[0.08em] uppercase transition-colors",
           view === "list"
-            ? "bg-card text-foreground shadow-sm pointer-events-none"
-            : "text-muted-foreground hover:bg-accent hover:text-foreground"
+            ? "bg-primary/10 text-korur-blue-strong ring-1 ring-primary/50 ring-inset pointer-events-none"
+            : "text-muted-foreground hover:bg-primary/5 hover:text-foreground"
         )}
         aria-label={t("views.switchToList")}
         aria-pressed={view === "list"}
@@ -44,10 +44,10 @@ export function ViewToggle({ view, onViewChange, className }: ViewToggleProps) {
         variant="ghost"
         onClick={view !== "kanban" ? () => onViewChange("kanban") : undefined}
         className={cn(
-          "h-6 min-w-0 gap-1.5 rounded-md px-2 text-xs transition-all",
+          "h-6 min-w-0 gap-1.5 px-2 font-mono text-xs tracking-[0.08em] uppercase transition-colors",
           view === "kanban"
-            ? "bg-card text-foreground shadow-sm pointer-events-none"
-            : "text-muted-foreground hover:bg-accent hover:text-foreground"
+            ? "bg-primary/10 text-korur-blue-strong ring-1 ring-primary/50 ring-inset pointer-events-none"
+            : "text-muted-foreground hover:bg-primary/5 hover:text-foreground"
         )}
         aria-label={t("views.switchToKanban")}
         aria-pressed={view === "kanban"}

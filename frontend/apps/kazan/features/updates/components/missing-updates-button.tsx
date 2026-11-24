@@ -111,7 +111,7 @@ function MissingUpdatesPopover({ organizations, defaultOrganizationId }: Missing
             showCount && (
               <Badge
                 variant={report.deadlinePassed ? "destructive" : "secondary"}
-                className="h-4 rounded-full px-1.5 text-[10px]"
+                className="h-4 px-1.5 font-mono text-[10px] tabular-nums"
               >
                 {notPosted.length}
               </Badge>
@@ -271,7 +271,7 @@ function MissingUpdatesSection({ title, countVariant, members }: MissingUpdatesS
     <section className="space-y-2">
       <div className="flex items-center gap-2">
         <h3 className="text-foreground text-sm font-medium">{title}</h3>
-        <Badge variant={countVariant} className="h-4 rounded-full px-1.5 text-[10px]">
+        <Badge variant={countVariant} className="h-4 px-1.5 font-mono text-[10px] tabular-nums">
           {members.length}
         </Badge>
       </div>
