@@ -89,7 +89,7 @@
     },
     "ulak": {
       "name": "Ulak",
-      "description": "Organizations, members and invitations"
+      "description": "Agents, humans and permissions"
     },
     "account": {
       "name": "Account"

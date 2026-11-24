@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "description": "Manage your organizations, their members and invitations"
+    "description": "Manage your agents, humans and permissions"
   },
   "sidebar": {
     "navigation": "Navigation",
