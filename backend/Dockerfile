@@ -11,7 +11,7 @@
 #   Look up the current digest with
 #   skopeo inspect --format '{{.Digest}}' docker://docker.io/library/eclipse-temurin:25-jre-alpine
 #   and replace the digest below.
-ARG BASE_IMAGE=docker.io/library/eclipse-temurin:25-jre-alpine@sha256:e1898fd6a11fc965a994d8ace186fd3585aeb636cf8f05f47a723fcfee0b0918
+ARG BASE_IMAGE=docker.io/library/eclipse-temurin:25-jre-alpine@sha256:69c2a26e9894016e274c880fa542956d005b3755f84db765145185e87405bd89
 FROM ${BASE_IMAGE}
 
 WORKDIR /app

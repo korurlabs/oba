@@ -19,7 +19,8 @@ func NewCmd() *cobra.Command {
 			"five_hour or seven_day window, writes it to the queue's usage file, which oba kaya sender adds to the " +
 			"session's next batch. Then prints the output of your own statusLine command from the Claude Code " +
 			"user settings, run with the same input and " + statusline.Nested + "=1 for at most 2 seconds, or " +
-			"the default line `<model> | 5h 23% | 7d 41%`. Registered by the project settings. A failure is " +
+			"the default line `<model> | 5h 23% | 7d 41%`. Registered by Kaya's managed settings drop-in, which " +
+			"oba kaya install --managed renders. A failure is " +
 			"logged to recorder.log of the state directory and never fails the line.",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {

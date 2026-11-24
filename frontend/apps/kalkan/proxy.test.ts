@@ -144,6 +144,11 @@ describe("kalkan proxy matcher", () => {
     expect(runsOn("/icon.png-notes")).toBe(true);
   });
 
+  test("runs on the Asset section, whose route shares its name with the static files' folder", () => {
+    expect(runsOn("/assets")).toBe(true);
+    expect(runsOn("/assets?view=tree")).toBe(true);
+  });
+
   test("skips the auth routes, Next.js internals and the app's own static files", () => {
     expect(runsOn("/api/auth/login")).toBe(false);
     expect(runsOn("/_next/static/chunks/main.js")).toBe(false);
