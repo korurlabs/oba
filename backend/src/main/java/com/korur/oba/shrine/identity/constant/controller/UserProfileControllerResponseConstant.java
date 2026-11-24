@@ -29,8 +29,5 @@ public final class UserProfileControllerResponseConstant {
 
     public static final String RESPONSE_USER_PROFILE_DELETED = "User account disabled successfully";
 
-    public static final String RESPONSE_USER_PROFILE_DEFAULT_ORGANIZATION_CLEARED =
-            "Default organization cleared successfully";
-
     public static final String RESPONSE_INVITATION_DECISION_PROCESSED = "Invitation decision processed successfully";
 }

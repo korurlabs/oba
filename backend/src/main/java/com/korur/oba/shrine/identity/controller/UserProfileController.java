@@ -45,8 +45,7 @@ import com.korur.oba.shrine.invitation.service.InvitationService;
  * Bigger picture:
  * Handles the authenticated user's own profile lifecycle: initial sync from
  * Keycloak JWT (POST), read-only profile retrieval (GET), self-update (PUT),
- * self-disable (DELETE), clearing the default organization (DELETE
- * /default-organization), and invitation decision processing. POST and GET
+ * self-disable (DELETE), and invitation decision processing. POST and GET
  * operate directly from the JWT SecurityContext, while PUT, DELETE, and
  * invitation decision require a resolved User via GetUser.
  * Separated from UserController which handles admin operations on other users.
@@ -147,27 +146,6 @@ public class UserProfileController {
                 UserProfileControllerLogConstant.USER_PROFILE_DELETE_COMPLETED);
 
         return ResponseUtil.ok(UserProfileControllerResponseConstant.RESPONSE_USER_PROFILE_DELETED);
-    }
-
-    @DeleteMapping("/default-organization")
-    @Operation(summary = "Clear own default organization",
-            description = "Selects the personal workspace. Idempotent: answers 200 when no default is set.")
-    public ResponseEntity<CustomResponse<UserDetailResponse>> clearDefaultOrganization(
-            @Parameter(hidden = true) @GetUser User user) {
-        loggingService.observe(
-                LOG_PREFIX,
-                LogLayer.CONTROLLER,
-                UserProfileControllerLogConstant.USER_PROFILE_DEFAULT_ORGANIZATION_CLEAR_REQUEST);
-
-        UserDetailResponse response = userProfileService.clearDefaultOrganization(user.getId());
-
-        loggingService.observe(
-                LOG_PREFIX,
-                LogLayer.CONTROLLER,
-                UserProfileControllerLogConstant.USER_PROFILE_DEFAULT_ORGANIZATION_CLEAR_COMPLETED);
-
-        return ResponseUtil.ok(
-                UserProfileControllerResponseConstant.RESPONSE_USER_PROFILE_DEFAULT_ORGANIZATION_CLEARED, response);
     }
 
     @PostMapping("/invitations/decision")

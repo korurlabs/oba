@@ -43,12 +43,6 @@ public final class UserProfileControllerLogConstant {
     public static final String USER_PROFILE_DELETE_COMPLETED =
             "Own account disable request completed";
 
-    public static final String USER_PROFILE_DEFAULT_ORGANIZATION_CLEAR_REQUEST =
-            "Received request to clear own default organization";
-
-    public static final String USER_PROFILE_DEFAULT_ORGANIZATION_CLEAR_COMPLETED =
-            "Own default organization clear request completed";
-
     public static final String USER_PROFILE_INVITATION_DECISION_REQUEST =
             "Received request to process invitation decision";
 

@@ -59,18 +59,6 @@ public interface UserProfileService {
     UserDetailResponse updateProfile(UUID userId, UserSelfUpdateRequest request);
 
     /**
-     * Clears the caller's default organization, so the caller lands in the personal workspace.
-     * A separate operation from {@link #updateProfile}, where an omitted or null
-     * defaultOrganizationId keeps the current default: a caller that saves only its preferences
-     * or its profile must never lose the default by accident. Clearing a default that is not set
-     * succeeds and changes nothing.
-     *
-     * @param userId the caller's user identifier
-     * @return the updated account, with no default organization
-     */
-    UserDetailResponse clearDefaultOrganization(UUID userId);
-
-    /**
      * Disables the caller's own account. Refused while the caller is the only
      * active owner of an organization, so that organization keeps an owner.
      *

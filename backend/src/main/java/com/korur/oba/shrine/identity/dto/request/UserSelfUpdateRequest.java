@@ -33,8 +33,7 @@ public record UserSelfUpdateRequest(
         @Valid
         UserProfileEmbeddedUpdateRequest profile,
 
-        @Schema(description = "Default organization ID. Null or absent keeps the current default; "
-                + "DELETE /users/me/default-organization clears it", nullable = true,
+        @Schema(description = "Default organization ID. Null or absent keeps the current default", nullable = true,
                 example = "3fa85f64-5717-4562-b3fc-2c963f66afa6")
         UUID defaultOrganizationId,
 
