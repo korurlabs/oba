@@ -63,7 +63,7 @@ export function isNavItemActive(pathname: string, item: SkyNavItem): boolean {
   return item.isActive ? item.isActive(pathname) : matchesPath(pathname, item.href);
 }
 
-type NavEntryProps = {
+export type SkyNavEntryProps = {
   item: SkyNavItem;
   pathname: string;
   link: ComponentType<SkyLinkProps>;
@@ -72,9 +72,11 @@ type NavEntryProps = {
 
 /**
  * One menu link. Its look (the neon rail on the page in view, the hover glow)
- * lives in `styles.css` with the rest of the menu panel.
+ * lives in `styles.css` with the rest of the menu panel. An app that draws
+ * its own menu content uses it for its plain links, so they match the
+ * sections' links.
  */
-function NavEntry({ item, pathname, link: Link, onNavClick }: NavEntryProps) {
+export function SkyNavEntry({ item, pathname, link: Link, onNavClick }: SkyNavEntryProps) {
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
@@ -92,11 +94,43 @@ function NavEntry({ item, pathname, link: Link, onNavClick }: NavEntryProps) {
   );
 }
 
-export type SkySidebarProps = {
+export type SkyMenuSectionsProps = {
   sections: readonly SkyNavSection[];
-  /** A link set apart below the sections, above a lattice divider, such as Settings. */
-  footerItem?: SkyNavItem;
-  /** A faint mark at the foot of the panel, such as the Korur horse archer; shown with the footer item. */
+  pathname: string;
+  link: ComponentType<SkyLinkProps>;
+  onNavClick?: SkyNavClickHandler;
+};
+
+/** The labelled groups of links, each a menu of `SkyNavEntry` links. */
+export function SkyMenuSections({ sections, pathname, link, onNavClick }: SkyMenuSectionsProps) {
+  return sections.map((section: SkyNavSection) => (
+    <SidebarGroup key={section.label} className="py-0">
+      <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
+      <SidebarGroupContent>
+        <SidebarMenu className="gap-0.5">
+          {section.items.map((item: SkyNavItem) => (
+            <SkyNavEntry
+              key={item.href}
+              item={item}
+              pathname={pathname}
+              link={link}
+              onNavClick={onNavClick}
+            />
+          ))}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  ));
+}
+
+export type SkySidebarProps = {
+  /** The app's pages in labelled groups; an app that draws its whole menu passes none. */
+  sections?: readonly SkyNavSection[];
+  /** Menu content the app draws itself, such as a page tree, placed after the sections. */
+  children?: ReactNode;
+  /** Links set apart below the menu, above a lattice divider, such as Settings. */
+  footerItems?: readonly SkyNavItem[];
+  /** A faint mark at the foot of the panel, such as the Korur horse archer; shown with the footer links. */
   footerMark?: ReactNode;
   /** The current path; defaults to the router's. */
   pathname?: string;
@@ -105,14 +139,17 @@ export type SkySidebarProps = {
 };
 
 /**
- * The left menu: the app's pages in sections, then the footer item, on a
- * sky-blue HUD panel that floats beside the page, level with its filter row,
- * and is only as tall as its links. It collapses to icons. The panel's
- * surface is styled in `styles.css`.
+ * The left menu: the app's pages in sections and any menu content of its
+ * own, then the footer links, on a sky-blue HUD panel that floats beside the
+ * page, centred between the top bar and the window's foot, and only as tall
+ * as its links. On a window too short for it, the links scroll inside the
+ * panel and the footer stays in view. It collapses to icons. The panel's
+ * surface and placement are styled in `styles.css`.
  */
 export function SkySidebar({
-  sections,
-  footerItem,
+  sections = [],
+  children,
+  footerItems = [],
   footerMark,
   pathname,
   linkComponent = NextLink,
@@ -125,41 +162,33 @@ export function SkySidebar({
       variant="floating"
       collapsible="icon"
       // The container spans from the top bar to the window's foot; the panel
-      // hangs from the filter row's height in that span (see `styles.css`).
+      // is centred in that span (see `styles.css`).
       style={{ top: "3.5rem", bottom: 0, height: "auto" }}
     >
       <SidebarContent className="gap-4 pt-4 pb-2">
-        {sections.map((section: SkyNavSection) => (
-          <SidebarGroup key={section.label} className="py-0">
-            <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu className="gap-0.5">
-                {section.items.map((item: SkyNavItem) => (
-                  <NavEntry
-                    key={item.href}
-                    item={item}
-                    pathname={current}
-                    link={linkComponent}
-                    onNavClick={onNavClick}
-                  />
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
+        <SkyMenuSections
+          sections={sections}
+          pathname={current}
+          link={linkComponent}
+          onNavClick={onNavClick}
+        />
+        {children}
       </SidebarContent>
-      {footerItem && (
+      {footerItems.length > 0 && (
         <>
           <SidebarSeparator className="sky-lattice mx-3" />
           <SidebarFooter className="relative pt-2 pb-3">
             {footerMark}
-            <SidebarMenu>
-              <NavEntry
-                item={footerItem}
-                pathname={current}
-                link={linkComponent}
-                onNavClick={onNavClick}
-              />
+            <SidebarMenu className="gap-0.5">
+              {footerItems.map((item: SkyNavItem) => (
+                <SkyNavEntry
+                  key={item.href}
+                  item={item}
+                  pathname={current}
+                  link={linkComponent}
+                  onNavClick={onNavClick}
+                />
+              ))}
             </SidebarMenu>
           </SidebarFooter>
         </>
@@ -207,8 +236,11 @@ export function SkyTopBar({
 }
 
 export type SkyAppShellProps = Omit<SkyTopBarProps, "linkComponent"> &
-  Omit<SkySidebarProps, "linkComponent"> & {
+  Omit<SkySidebarProps, "linkComponent" | "children"> & {
+    /** The page. */
     children: ReactNode;
+    /** Menu content the app draws itself, placed after `sections`. */
+    menu?: ReactNode;
     /** Rendered after the frame, inside the sidebar's provider, such as a fixed overlay. */
     overlay?: ReactNode;
     /** The link used by the top bar and the menu; defaults to `next/link`. */
@@ -230,7 +262,8 @@ export function SkyAppShell({
   homeHref,
   actions,
   sections,
-  footerItem,
+  menu,
+  footerItems,
   footerMark,
   pathname,
   linkComponent,
@@ -249,12 +282,14 @@ export function SkyAppShell({
         <div className="flex min-h-0 flex-1">
           <SkySidebar
             sections={sections}
-            footerItem={footerItem}
+            footerItems={footerItems}
             footerMark={footerMark}
             pathname={pathname}
             linkComponent={linkComponent}
             onNavClick={onNavClick}
-          />
+          >
+            {menu}
+          </SkySidebar>
           <main className="min-w-0 flex-1 overflow-auto">
             <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-8 lg:py-10">{children}</div>
           </main>

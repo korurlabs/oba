@@ -36,7 +36,7 @@ export function AppShell({ children }: AppShellProps) {
           </>
         }
         sections={KAYA_NAV_SECTIONS}
-        footerItem={KAYA_SETTINGS_ITEM}
+        footerItems={[KAYA_SETTINGS_ITEM]}
         footerMark={
           <Image
             src="/assets/korur-mark.png"

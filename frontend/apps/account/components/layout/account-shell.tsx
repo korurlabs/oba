@@ -71,7 +71,7 @@ export function AccountShell({ children }: { children: ReactNode }) {
         </>
       }
       sections={sections}
-      footerItem={{ label: t("settings"), href: "/settings", icon: Settings }}
+      footerItems={[{ label: t("settings"), href: "/settings", icon: Settings }]}
       footerMark={
         <Image
           src="/assets/korur-mark.png"
