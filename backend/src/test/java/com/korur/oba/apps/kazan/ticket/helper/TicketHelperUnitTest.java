@@ -482,7 +482,7 @@ class TicketHelperUnitTest {
      * Shared fixture: a board with a backlog and two sprints, and a top-level parent in
      * sprintA with one sub-ticket, both IN_PROGRESS.
      */
-    abstract class HierarchyFixture {
+    abstract static class HierarchyFixture {
 
         protected Board board;
         protected User user;

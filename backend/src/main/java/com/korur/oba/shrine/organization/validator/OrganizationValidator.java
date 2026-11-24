@@ -194,14 +194,6 @@ public class OrganizationValidator {
     }
 
     /**
-     * Ensures the member is not the sole owner of the organization.
-     * Used before leave/remove to prevent orphaning an organization.
-     *
-     * @param organizationId the organization ID
-     * @param member         the member attempting to leave
-     * @throws ConflictException if the member is the sole owner
-     */
-    /**
      * Ensures the user is an owner of the organization.
      * Used by lifecycle operations that bypass OrganizationAccessService.
      *
@@ -246,6 +238,14 @@ public class OrganizationValidator {
         }
     }
 
+    /**
+     * Ensures the member is not the sole owner of the organization.
+     * Used before leave/remove to prevent orphaning an organization.
+     *
+     * @param organizationId the organization ID
+     * @param member         the member attempting to leave
+     * @throws ConflictException if the member is the sole owner
+     */
     public void ensureNotSoleOwner(UUID organizationId, OrganizationMember member) {
         if (member.getRole() == OrganizationMemberRole.OWNER) {
             long ownerCount = organizationMemberRepository.countActiveOwners(organizationId);

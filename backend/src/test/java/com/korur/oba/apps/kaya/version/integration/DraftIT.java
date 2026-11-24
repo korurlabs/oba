@@ -61,7 +61,7 @@ class DraftIT extends AbstractVersionIT {
 
     private static String body(Object... keysAndValues) throws Exception {
         Map<String, Object> map = new LinkedHashMap<>();
-        for (int index = 0; index < keysAndValues.length; index += 2) {
+        for (int index = 0; index + 1 < keysAndValues.length; index += 2) {
             map.put((String) keysAndValues[index], keysAndValues[index + 1]);
         }
         return JSON.writeValueAsString(map);
@@ -100,7 +100,7 @@ class DraftIT extends AbstractVersionIT {
     private UUID release(int number, String... pathsAndContents) {
         UUID version = approvedVersion(packId, number);
         Map<String, String> files = new LinkedHashMap<>(Map.of("AGENTS.md", AGENTS, ".agents/rules/local.md", LOCAL_RULE));
-        for (int index = 0; index < pathsAndContents.length; index += 2) {
+        for (int index = 0; index + 1 < pathsAndContents.length; index += 2) {
             files.put(pathsAndContents[index], pathsAndContents[index + 1]);
         }
         for (Map.Entry<String, String> file : files.entrySet()) {

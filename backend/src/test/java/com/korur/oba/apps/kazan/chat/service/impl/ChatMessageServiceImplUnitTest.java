@@ -285,7 +285,7 @@ class ChatMessageServiceImplUnitTest {
                     null, null, "nonce-2");
 
             // Act
-            ChatMessageResponse response = service.postMessage(author, organizationId, request, List.of());
+            service.postMessage(author, organizationId, request, List.of());
 
             // Assert
             verify(chatThreadMemberRepository).insertIfAbsent(thread.getId(), author.getId());

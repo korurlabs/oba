@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Pencil, Plus, Trash2 } from "lucide-react";
-import { InlineForm, PRESET_COLORS } from "./board-settings-inline-form";
+import { InlineForm } from "./board-settings-inline-form";
 import { useTranslations } from "next-intl";
 import {
   useProjects,

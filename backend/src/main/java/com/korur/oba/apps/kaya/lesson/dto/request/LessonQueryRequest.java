@@ -55,4 +55,14 @@ public class LessonQueryRequest extends QueryRequest {
     @Schema(description = "Matches the title or the text, case ignored", nullable = true, example = "flyway")
     @Size(max = LessonConstant.SEARCH_MAX_LENGTH, message = LessonConstant.SEARCH_SIZE_MESSAGE)
     private String search;
+
+    @Override
+    public int getAmount() {
+        return amount;
+    }
+
+    @Override
+    public void setAmount(int amount) {
+        this.amount = amount;
+    }
 }

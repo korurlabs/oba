@@ -181,7 +181,7 @@ public abstract class AbstractVersionIT extends AbstractTenantIT {
     /** Stores the given files (path, content pairs) into a version in one parse. */
     protected void insertFiles(Organization organization, UUID versionId, String... pathsAndContents) {
         List<SourceFile> files = new ArrayList<>();
-        for (int index = 0; index < pathsAndContents.length; index += 2) {
+        for (int index = 0; index + 1 < pathsAndContents.length; index += 2) {
             files.add(SourceFile.of(pathsAndContents[index], FileMode.FILE,
                     pathsAndContents[index + 1].getBytes(StandardCharsets.UTF_8)));
         }

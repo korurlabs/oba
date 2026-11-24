@@ -213,7 +213,6 @@ function CreateSprintForm({
   childBoards: SprintChildBoardResponse[] | undefined;
   childBoardsFailed: boolean;
 }) {
-  const t = useTranslations("sprint");
   const tCommon = useTranslations("common");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [defaultValues] = useState<CreateSprintFormValues>(() => {
