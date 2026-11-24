@@ -12,10 +12,10 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/korurlabs/oba-cli/cmd/apps/admin"
 	"github.com/korurlabs/oba-cli/cmd/apps/kaya"
 	"github.com/korurlabs/oba-cli/cmd/apps/kazan"
 	"github.com/korurlabs/oba-cli/cmd/apps/otak"
+	"github.com/korurlabs/oba-cli/cmd/apps/ulak"
 	"github.com/korurlabs/oba-cli/cmd/shrine"
 	"github.com/korurlabs/oba-cli/internal/dojo/client"
 	"github.com/korurlabs/oba-cli/internal/dojo/config"
@@ -42,7 +42,7 @@ func init() {
 	rootCmd.AddCommand(shrine.NewWhoamiCmd())
 	rootCmd.AddCommand(otak.NewCmd())
 	rootCmd.AddCommand(kazan.NewCmd())
-	rootCmd.AddCommand(admin.NewCmd())
+	rootCmd.AddCommand(ulak.NewCmd())
 	rootCmd.AddCommand(kaya.NewCmd())
 	for _, child := range rootCmd.Commands() {
 		rejectUnknownSubcommands(child)

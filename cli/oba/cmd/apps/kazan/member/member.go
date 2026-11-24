@@ -21,7 +21,7 @@ import (
 
 const (
 	memberUserHelp = "A member is named by email or user id; an email is looked up among the members of the " +
-		"organization ('oba admin member list')."
+		"organization ('oba ulak member list')."
 	memberRemoveHelp = `Removes a member from the board. On a terminal it asks for confirmation first, unless --yes
 is given; without a terminal, or with --json, it removes without asking.`
 )

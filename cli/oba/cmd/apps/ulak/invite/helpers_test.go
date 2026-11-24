@@ -10,9 +10,9 @@ import (
 	"github.com/korurlabs/oba-cli/internal/dojo/clitest"
 )
 
-// newRoot builds a fresh "oba admin" tree with only this package's commands, as the oba root adds them.
+// newRoot builds a fresh "oba ulak" tree with only this package's commands, as the oba root adds them.
 func newRoot() *cobra.Command {
-	return clitest.AppRoot("admin", NewCmd())
+	return clitest.AppRoot("ulak", NewCmd())
 }
 
 // runCLI runs "oba <args>" in process on a fresh tree; see clitest.RunCLI.

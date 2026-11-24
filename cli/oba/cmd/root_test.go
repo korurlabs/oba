@@ -19,7 +19,8 @@ func TestUnknownSubcommandFailsInEveryGroup(t *testing.T) {
 		{[]string{"kazan", "bogus", "--json"}, `unknown command "bogus" for "oba kazan"`},
 		{[]string{"kazan", "pr", "bogus"}, `unknown command "bogus" for "oba kazan pr"`},
 		{[]string{"otak", "bogus"}, `unknown command "bogus" for "oba otak"`},
-		{[]string{"admin", "bogus"}, `unknown command "bogus" for "oba admin"`},
+		{[]string{"ulak", "bogus"}, `unknown command "bogus" for "oba ulak"`},
+		{[]string{"admin", "member", "list"}, `unknown command "admin" for "oba"`},
 	}
 	for _, tc := range cases {
 		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {
@@ -48,7 +49,7 @@ func TestUnknownSubcommandSuggestsTheNearName(t *testing.T) {
 }
 
 func TestGroupWithoutSubcommandPrintsHelp(t *testing.T) {
-	for _, args := range [][]string{{"kazan"}, {"kazan", "pr"}, {"otak"}, {"admin"}, {"kazan", "--json"}} {
+	for _, args := range [][]string{{"kazan"}, {"kazan", "pr"}, {"otak"}, {"ulak"}, {"kazan", "--json"}} {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
 			out, _, err := run(t, args...)
 			if err != nil {

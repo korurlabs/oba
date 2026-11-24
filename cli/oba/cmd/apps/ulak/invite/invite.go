@@ -1,4 +1,4 @@
-// Package invite builds the oba admin invite commands: invite a person to the current
+// Package invite builds the oba ulak invite commands: invite a person to the current
 // organization, list the pending invitations and revoke one.
 package invite
 
@@ -11,8 +11,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/korurlabs/oba-cli/cmd/jsonresult"
-	"github.com/korurlabs/oba-cli/internal/apps/admin/invite"
-	"github.com/korurlabs/oba-cli/internal/apps/admin/role"
+	"github.com/korurlabs/oba-cli/internal/apps/ulak/invite"
+	"github.com/korurlabs/oba-cli/internal/apps/ulak/role"
 	"github.com/korurlabs/oba-cli/internal/dojo/client"
 	"github.com/korurlabs/oba-cli/internal/dojo/guardrail"
 	"github.com/korurlabs/oba-cli/internal/dojo/terminal"
@@ -25,12 +25,12 @@ const (
 	inviteCreateHelp = `Invites a person by e-mail to the current organization with a role: ADMIN, MEMBER or GUEST
 (default MEMBER, case ignored). OWNER is never given. The same call serves a person who already
 has an Oba account and one who has none: they get an e-mail and join when they accept in the
-account app. Until then they show in 'oba admin invite list', not in 'oba admin member list'.
+account app. Until then they show in 'oba ulak invite list', not in 'oba ulak member list'.
 The invitation expires after 7 days. Only an admin or owner of the organization may invite.
 
-  oba admin invite create ayse@example.com --role admin`
+  oba ulak invite create ayse@example.com --role admin`
 	inviteRevokeHelp = `Revokes a pending invitation after asking for confirmation, so the link in its e-mail stops
-working. Without a terminal to ask on, pass --yes. Find the id with 'oba admin invite list'.`
+working. Without a terminal to ask on, pass --yes. Find the id with 'oba ulak invite list'.`
 )
 
 // stdinIsTerminal and localZone are variables so that tests can stand in for a terminal and a
@@ -40,7 +40,7 @@ var (
 	localZone       = func() *time.Location { return time.Local }
 )
 
-// NewCmd builds the oba admin invite command with its subcommands.
+// NewCmd builds the oba ulak invite command with its subcommands.
 func NewCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "invite",
