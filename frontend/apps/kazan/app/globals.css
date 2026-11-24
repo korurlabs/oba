@@ -55,6 +55,8 @@
 
     /* Kazan's grid look, from the Korur website's survey grid: frame corners, labels and chips */
     --kazan-grid-line: rgb(47 143 233 / 0.08);
+    /* Korur's bow and arrow, the mark that leads every grid label and heading. */
+    --kazan-grid-bow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='square' stroke-linejoin='miter'%3E%3Cpath d='M4 1.5Q10 7 4 12.5'/%3E%3Cpath d='M4 1.5L2 7L4 12.5' stroke-width='0.9'/%3E%3Cpath d='M1 7H13M10.5 4.5L13 7L10.5 9.5'/%3E%3C/svg%3E");
     --kazan-grid-mark: var(--korur-blue-hover);
     --kazan-grid-ink: var(--color-korur-blue-strong);
   }
@@ -152,13 +154,14 @@
     color: var(--kazan-grid-ink);
   }
 
-  /* The small filled square that leads each label. */
+  /* The small bow and arrow that leads each label. */
   .kazan-grid-label::before {
     content: "";
-    width: 6px;
-    height: 6px;
+    width: 11px;
+    height: 11px;
     flex-shrink: 0;
     background-color: currentColor;
+    mask: var(--kazan-grid-bow) center / contain no-repeat;
   }
 
   /*
@@ -172,10 +175,11 @@
 
   .kazan-grid-heading::before {
     content: "";
-    width: 7px;
-    height: 7px;
+    width: 13px;
+    height: 13px;
     flex-shrink: 0;
     background-color: currentColor;
+    mask: var(--kazan-grid-bow) center / contain no-repeat;
   }
 
   .kazan-grid-number {
@@ -333,19 +337,20 @@
 }
 
 /*
- * A dialog's heading leads with the grid label's small square, at its own
+ * A dialog's heading leads with the grid label's bow and arrow, at its own
  * readable size. A heading that already leads with an icon keeps the icon as
  * its only marker.
  */
 :is([data-slot="dialog-title"], [data-slot="alert-dialog-title"], [data-slot="sheet-title"]):not(:has(svg))::before {
   content: "";
   display: inline-block;
-  width: 8px;
-  height: 8px;
+  width: 14px;
+  height: 14px;
   margin-right: 0.5rem;
-  vertical-align: 0.15em;
+  vertical-align: -0.1em;
   flex-shrink: 0;
   background-color: var(--kazan-grid-mark);
+  mask: var(--kazan-grid-bow) center / contain no-repeat;
 }
 
 /* Dialog close buttons are square and take the primary colour on hover. */
