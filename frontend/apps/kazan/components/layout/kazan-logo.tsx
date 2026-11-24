@@ -6,13 +6,12 @@ export type KazanLogoProps = {
 const LOGO_BLUE = "#2f8fe9";
 
 /**
- * The Kazan wordmark, shown at the start of the top bar: a yatagan beside the
- * name. The blade curves forward with its edge on the inside of the curve, the
- * grip drops below the blade line and ends in the two splayed ears of the
- * pommel, with a bolster but no crossguard, so the silhouette reads as a
- * yatagan and not a sabre. It follows the Otak, Kalkan and Ulak wordmarks: the
- * same height, the same blue, a heavy outline with fine inner lines for the
- * mark, and a semibold serif name.
+ * The Kazan wordmark, shown at the start of the top bar: the head of a steppe
+ * eagle in profile, facing the name. The hooked beak, the heavy brow that
+ * hides the top of the eye and the ragged neck feathers carry the silhouette,
+ * so it still reads as an eagle at header height. It follows the Otak, Kalkan
+ * and Ulak wordmarks: the same height, the same blue, a heavy outline with
+ * fine inner lines for the mark, and a semibold serif name.
  */
 export function KazanLogo({ className = "h-5 w-auto" }: KazanLogoProps) {
   return (
@@ -26,16 +25,20 @@ export function KazanLogo({ className = "h-5 w-auto" }: KazanLogoProps) {
       className={className}
     >
       <g fill="none" stroke={LOGO_BLUE} strokeLinecap="round" strokeLinejoin="round">
-        {/* The whole sword in one heavy outline: blade, bolster, grip and the pommel's ears. */}
+        {/* The head in one heavy outline: crown, hooked beak, throat and the ragged feathers of the neck. */}
         <path
           strokeWidth={7}
-          d="M71 86C79 66 93 47 112 33C131 19 151 16 172 17C146 28 104 52 84 90L88 91L86 99L80 98C77 110 76 115 74 126C74 131 77 135 82 142C85 145 82 150 77 148C70 145 69 135 65 132C60 132 54 141 47 140C42 140 42 133 46 132C54 129 58 126 61 122C65 110 66 108 69 96L64 95L66 86Z"
+          d="M54 151C48 124 48 98 58 76C70 50 92 37 118 35C130 34 139 38 146 43C160 42 172 48 177 60C181 72 180 88 171 99C169 93 165 89 159 88C151 92 141 96 130 97C121 102 118 111 120 122C122 134 130 144 138 152L126 147L114 158L102 147L90 158L78 147L66 158Z"
         />
-        {/* The fuller along the spine and the bolster's ring, as fine as the Kalkan shield's inner lines. */}
-        <path strokeWidth={3} d="M79 89C87 72 100 54 118 41C129 33 136 29 142 26M65 90.5L87 95" />
-        {/* The two rivets that hold the grip plates. */}
-        <circle cx={73} cy={105} r={3} fill={LOGO_BLUE} stroke="none" />
-        <circle cx={71} cy={116} r={3} fill={LOGO_BLUE} stroke="none" />
+        {/* The brow ridge, as heavy as the outline, overhanging the eye. */}
+        <path strokeWidth={7} d="M96 52C110 50 124 52 137 58" />
+        {/* The eye, its top cut flat where the brow covers it. */}
+        <path fill={LOGO_BLUE} stroke="none" d="M130 59.5L116 57A7.5 7.5 0 1 0 130 59.5Z" />
+        {/* The base of the beak, the gape and two neck feathers, as fine as the Kalkan shield's inner lines. */}
+        <path
+          strokeWidth={3}
+          d="M146 43C143 55 140 66 137 79M120 80C134 80 148 82 160 88M70 86C78 102 82 118 82 136M92 94C98 110 100 124 100 140"
+        />
       </g>
       <text
         x={214}
