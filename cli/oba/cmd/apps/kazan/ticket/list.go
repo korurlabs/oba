@@ -144,7 +144,7 @@ func addFilterFlags(cmd *cobra.Command, f *ticket.Filters) {
 	flags.StringVar(&f.Priority, "priority", "", "filter by priority (comma separated): "+strings.Join(ticket.Priorities, ", "))
 	flags.StringVar(&f.Reviewer, "reviewer", "", "filter by reviewer emails or user ids (comma separated)")
 	flags.StringVar(&f.Label, "label", "", "filter by label ids (comma separated)")
-	flags.StringVar(&f.Search, "search", "", "search tickets by title or key")
+	flags.StringVar(&f.Search, "search", "", "search tickets by title, description or key, case ignored and taken literally; a ticket is also listed when a sub-ticket under it matches, and that sub-ticket is shown under it")
 	flags.StringVar(&f.DueFrom, "due-from", "", "due on or after this day (YYYY-MM-DD)")
 	flags.StringVar(&f.DueTo, "due-to", "", "due on or before this day (YYYY-MM-DD)")
 	flags.StringVar(&f.SortBy, "sort-by", "", "sort field, such as createdAt or dueDate")
