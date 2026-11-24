@@ -180,6 +180,26 @@ describe("AppSwitcher", () => {
     expect(html).toContain("kazan.name");
   });
 
+  test("shows each app's own mark beside its name, as tall as the name's line", () => {
+    const html = renderSwitcher(<AppSwitcher currentAppId="kaya" />);
+    const marks = [
+      ...html.matchAll(/<svg [^>]*viewBox="([^"]+)"[^>]*aria-hidden="true"[^>]*class="([^"]*)"/g),
+    ];
+
+    // One mark per tile, in tile order: Ulak's messengers first, then Kazan's eagle,
+    // Kaya's rock, Kalkan's shield and Otak's yurt, each cropped to its artwork.
+    expect(marks.map((m) => m[1])).toEqual([
+      "18 8 160 140",
+      "17 5 278 153",
+      "4 13 276 136",
+      "37 14 132 147",
+      "4 13 199 147",
+    ]);
+    for (const mark of marks) {
+      expect(mark[2]).toContain("h-5 w-auto");
+    }
+  });
+
   test("offers the switch label on the trigger", () => {
     const html = renderSwitcher(<AppSwitcher currentAppId="kazan" />);
 

@@ -1,3 +1,5 @@
+import { ACCOUNT_MARK_BOX, AccountMark } from "@oba/shared/components/app-marks/account-mark";
+
 export type AccountLogoProps = {
   className?: string;
 };
@@ -6,13 +8,9 @@ export type AccountLogoProps = {
 const LOGO_BLUE = "#2f8fe9";
 
 /**
- * The Account wordmark, shown at the start of the top bar: a calm bust of a
- * person, the one whose profile, invitations and settings this app holds,
- * beside the name. The head and the shoulders are two heavy outlines with a
- * clear gap, so the figure still reads at header height; a fine open collar
- * and placket give it a little character from twice that size. It follows the
- * Otak, Kalkan, Ulak and Kazan wordmarks: the same height, the same blue, a
- * heavy outline with fine inner lines for the mark, and a semibold serif name.
+ * The Account wordmark, shown at the start of the top bar: the shared person
+ * mark beside the name. It follows the Otak, Kalkan, Ulak and Kazan
+ * wordmarks: the same height, the same blue and a semibold serif name.
  */
 export function AccountLogo({ className = "h-5 w-auto" }: AccountLogoProps) {
   return (
@@ -25,15 +23,7 @@ export function AccountLogo({ className = "h-5 w-auto" }: AccountLogoProps) {
       aria-label="Account"
       className={className}
     >
-      <g fill="none" stroke={LOGO_BLUE} strokeLinecap="round" strokeLinejoin="round">
-        {/* The head and the shoulders, as heavy as the shield's outer edge. */}
-        <path
-          strokeWidth={7}
-          d="M103 23a29 29 0 1 1 0 58a29 29 0 1 1 0-58ZM41 155C41 120 64 97 103 97C142 97 165 120 165 155Z"
-        />
-        {/* The open collar and the placket, as fine as the shield's inner lines. */}
-        <path strokeWidth={3} d="M84 100L103 125L122 100M103 125V155" />
-      </g>
+      <AccountMark {...ACCOUNT_MARK_BOX} />
       <text
         x={214}
         y={135}

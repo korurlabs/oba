@@ -6,7 +6,6 @@ import { useId } from "react";
 import { Button } from "@oba/ui/components/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@oba/ui/components/popover";
 import {
-  OPS_GRID_ACCENT,
   OPS_GRID_CURRENT,
   OPS_GRID_HAIRLINE,
   OPS_GRID_HEADING,
@@ -107,7 +106,7 @@ export function AppSwitcher({ currentAppId, className }: AppSwitcherProps) {
         <div role="group" aria-labelledby={headingId} className="grid grid-cols-2">
           {apps.map((app, index) => {
             const isCurrent = app.id === currentAppId;
-            const Icon = app.icon;
+            const Mark = app.mark;
             const tileClassName = cn(
               TILE,
               index % 2 === 0 && index !== apps.length - 1 && "border-e",
@@ -117,7 +116,9 @@ export function AppSwitcher({ currentAppId, className }: AppSwitcherProps) {
             const tile = (
               <>
                 <span className="flex items-center gap-2">
-                  <Icon className={cn("size-4 shrink-0", OPS_GRID_ACCENT)} aria-hidden="true" />
+                  {/* As tall as the name's line, as wide as the mark is: the
+                      eagle and the yurt stay legible beside the narrow shield. */}
+                  <Mark className="h-5 w-auto shrink-0" />
                   <span>{t(`${app.id}.name`)}</span>
                 </span>
                 <span className="text-muted-foreground text-xs leading-snug font-normal">

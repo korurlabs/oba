@@ -1,11 +1,10 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import {
-  ACCOUNT_LINKS,
-  ULAK_LINKS,
-  accountOnboardingUrl,
-  appUrl,
-  obaApps,
-} from "./apps";
+import { ACCOUNT_LINKS, ULAK_LINKS, accountOnboardingUrl, appUrl, obaApps } from "./apps";
+import { KalkanMark } from "../components/app-marks/kalkan-mark";
+import { KayaMark } from "../components/app-marks/kaya-mark";
+import { KazanMark } from "../components/app-marks/kazan-mark";
+import { OtakMark } from "../components/app-marks/otak-mark";
+import { UlakMark } from "../components/app-marks/ulak-mark";
 
 const ENV_KEYS = [
   "NODE_ENV",
@@ -137,7 +136,7 @@ describe("accountOnboardingUrl", () => {
 });
 
 describe("obaApps", () => {
-  test("lists Kazan, Kaya, Kalkan, Otak and Ulak in that order, each with its given origin and an icon, and leaves Account out", () => {
+  test("lists Kazan, Kaya, Kalkan, Otak and Ulak in that order, each with its given origin and its mark, and leaves Account out", () => {
     const appUrls = {
       kazan: "https://k.test",
       kaya: "https://y.test",
@@ -157,8 +156,12 @@ describe("obaApps", () => {
       "https://o.test",
       "https://a.test",
     ]);
-    for (const app of apps) {
-      expect(app.icon).toBeDefined();
-    }
+    expect(apps.map((app) => app.mark)).toEqual([
+      KazanMark,
+      KayaMark,
+      KalkanMark,
+      OtakMark,
+      UlakMark,
+    ]);
   });
 });
