@@ -32,8 +32,8 @@ Every component has the same keys, under `api`, `kazan`, `kaya`, `kalkan`, `otak
 | `resources` | see `values.yaml` | Requests and limits. |
 | `startupProbe`, `livenessProbe`, `readinessProbe` | see `values.yaml` | Probes; `{}` turns one off. |
 | `strategy` | rolling, `maxUnavailable: 0`, `maxSurge: 1` | Deployment strategy. |
-| `podSecurityContext`, `securityContext` | see `values.yaml` | Pod and container security context. |
-| `volumes`, `volumeMounts` | API: an emptyDir on `/tmp` | Extra volumes. |
+| `podSecurityContext`, `securityContext` | user and group 10001, `runAsNonRoot`, read-only root filesystem, no privilege escalation, all capabilities dropped, seccomp `RuntimeDefault` | Pod and container security context. |
+| `volumes`, `volumeMounts` | an emptyDir on `/tmp`; web apps also one on `/app/.next/standalone/apps/<app>/.next/cache` | Writable paths on the read-only root filesystem. Setting either replaces the default list, so keep these entries. |
 | `podLabels`, `podAnnotations` | `{}` | Added to the pod template, for example for a secret-injection webhook. |
 | `nodeSelector`, `tolerations`, `affinity` | empty | Scheduling. |
 | `serviceAccount.create`, `serviceAccount.annotations` | `true`, `{}` | ServiceAccount. Its token is never mounted. |
