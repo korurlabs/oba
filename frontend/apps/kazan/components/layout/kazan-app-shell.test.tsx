@@ -2,6 +2,7 @@ import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { NextIntlClientProvider } from "next-intl";
+import { ACCOUNT_LINKS } from "@oba/shared/constants/apps";
 import shared from "@oba/shared/locales/en.json";
 import en from "@/locales/en.json";
 
@@ -58,13 +59,13 @@ mock.module("@oba/shared/components/app-header/app-switcher", () => ({
 mock.module("@oba/shared/components/app-header/profile-dropdown", () => ({
   ...actualProfile,
   ProfileDropdown: ({
-    hrefs,
+    profileHref,
     extraMenuContent,
   }: {
-    hrefs: { profile: string; settings: string };
+    profileHref?: string;
     extraMenuContent?: ReactNode;
   }) => (
-    <div data-profile-menu="" data-settings-href={hrefs.settings}>
+    <div data-profile-menu="" data-profile-href={profileHref}>
       {extraMenuContent}
     </div>
   ),
@@ -159,8 +160,10 @@ describe("KazanAppShell top bar", () => {
     expect(profile).toBeGreaterThan(switcher);
   });
 
-  test("points the profile menu's Settings at the Kazan settings", () => {
-    expect(markup()).toContain('data-settings-href="/settings/columns"');
+  test("points the profile menu's Profile at the account app, and the menu has no Settings link", () => {
+    const menu = markup().match(/<div data-profile-menu=""[^>]*>/)?.[0];
+    expect(menu).toContain(`data-profile-href="${ACCOUNT_LINKS.profile}"`);
+    expect(menu).not.toContain("settings");
   });
 
   test("offers the language submenu to everyone", () => {
@@ -170,7 +173,7 @@ describe("KazanAppShell top bar", () => {
   test("has no Organizations row, not even for an owner", () => {
     role = "OWNER";
     const menu = between(markup(), "data-profile-menu", "</header>");
-    expect(menu).not.toContain(en.sidebar.organizations);
+    expect(menu).not.toContain("Organizations");
     expect(menu).not.toContain("ulak");
   });
 });
@@ -183,7 +186,7 @@ describe("KazanAppShell menu panel", () => {
     expect(footer).toContain(`<span>${en.sidebar.settings}</span>`);
     expect(footer).toContain('href="/settings/columns"');
     expect(footer).not.toContain(en.sidebar.downloads);
-    expect(html).not.toContain("/downloads");
+    expect(html).not.toContain("/settings/cli");
     expect(footer.match(/data-sidebar="menu-item"/g)).toHaveLength(1);
   });
 

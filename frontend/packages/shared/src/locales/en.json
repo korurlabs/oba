@@ -59,7 +59,8 @@
   "search": "Search",
   "common": {
     "profile": "Profile",
-    "settings": "Settings",
+    "darkMode": "Dark mode",
+    "soon": "Soon",
     "logOut": "Log out"
   },
   "organizationRoles": {

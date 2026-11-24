@@ -18,17 +18,6 @@ import { UlakAccessGate } from "./ulak-access-gate";
 import { UlakLogo } from "./ulak-logo";
 
 /**
- * Profile and settings are pages of the account app; Ulak owns only the
- * organization screens, so the user menu sends them there. Built on render,
- * because the account app's origin is known only once the run-time config
- * has arrived.
- */
-const accountHrefs = () => ({
-  profile: ACCOUNT_LINKS.profile,
-  settings: ACCOUNT_LINKS.settings,
-});
-
-/**
  * Page frame of every signed-in Ulak page: the shared sky shell with Ulak's
  * wordmark, the organization selector, the app switcher and the account menu
  * in the top bar, and the pages of the current organization in the floating
@@ -52,6 +41,10 @@ export function UlakShell({
   // The i18n pathname has the locale prefix stripped, so it compares with the hrefs.
   const pathname = usePathname();
   const appName = tApps("ulak.name");
+  // Profile is a page of the account app; Ulak owns only the organization
+  // screens, so the user menu sends it there. Read on render, because the
+  // account origin arrives with the run-time config.
+  const profileHref = ACCOUNT_LINKS.profile;
 
   const sections: readonly SkyNavSection[] = [
     {
@@ -82,7 +75,7 @@ export function UlakShell({
             <OrganizationSelector managedOnly />
             <AppSwitcher currentAppId="ulak" />
             <ProfileDropdown
-              hrefs={accountHrefs()}
+              profileHref={profileHref}
               extraMenuContent={
                 <LanguageSwitcherSubMenu
                   supportedLocales={SUPPORTED_LOCALES}

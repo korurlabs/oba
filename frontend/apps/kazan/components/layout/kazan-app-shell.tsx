@@ -33,9 +33,9 @@ const LocaleLink = forwardRef<HTMLAnchorElement, SkyLinkProps>(function LocaleLi
 });
 
 /**
- * The Settings link of the menu's foot and the account menu open the
- * Kazan-only settings, whose tab row links on to the account app's general
- * settings. The link stands for every `/settings` page.
+ * The Settings link of the menu's foot opens the Kazan-only settings, whose
+ * tab row links on to the account app's general settings. The link stands
+ * for every `/settings` page.
  */
 const SETTINGS_HREF = "/settings/columns";
 
@@ -74,7 +74,7 @@ function KazanFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   // Profile is a page of the account app, read on render because the account
   // origin arrives with the run-time config.
-  const accountHrefs = { profile: ACCOUNT_LINKS.profile, settings: SETTINGS_HREF };
+  const profileHref = ACCOUNT_LINKS.profile;
   const footerItems: SkyNavItem[] = [
     { label: t("settings"), href: SETTINGS_HREF, icon: Settings, isActive: isSettingsPath },
   ];
@@ -95,7 +95,7 @@ function KazanFrame({ children }: { children: ReactNode }) {
           <OrganizationSelector app={GrantedApp.KAZAN} />
           <AppSwitcher currentAppId="kazan" />
           <ProfileDropdown
-            hrefs={accountHrefs}
+            profileHref={profileHref}
             extraMenuContent={
               <LanguageSwitcherSubMenu supportedLocales={SUPPORTED_LOCALES} label={t("language")} />
             }

@@ -10,7 +10,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@oba/ui/components/dropdown-menu";
-import { ChevronDown, LogOut, Settings, User } from "lucide-react";
+import { Switch } from "@oba/ui/components/switch";
+import { ChevronDown, LogOut, Moon, User } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { useGetMe } from "@oba/shared/features/users/hooks/use-get-me";
@@ -29,20 +30,20 @@ export interface ProfileDropdownProps {
   /** Applied to the trigger. */
   className?: string;
   /**
-   * Optional extra menu content rendered between Settings and Log out, such
+   * Optional extra menu content rendered between Dark mode and Log out, such
    * as `LanguageSwitcherSubMenu`. Must be
    * dropdown-menu content (an item, a group or a submenu); it is rendered
    * directly inside `DropdownMenuContent`.
    */
   extraMenuContent?: React.ReactNode;
   /**
-   * Where Profile and Settings lead. The defaults are the app's own pages; an
-   * app without them (Ulak) passes the absolute URLs of the app that has them.
+   * Where Profile leads. The default is the app's own page; an app without one
+   * passes the absolute URL of the Account app's profile.
    */
-  hrefs?: { profile: string; settings: string };
+  profileHref?: string;
 }
 
-const DEFAULT_HREFS = { profile: "/profile", settings: "/settings" };
+const DEFAULT_PROFILE_HREF = "/profile";
 
 /*
  * The menu is drawn in the square ops grid panel of the organization selector
@@ -56,12 +57,28 @@ const GRID_PANEL = cn(
 );
 /** A row of the menu. */
 const PROFILE_MENU_GRID_ITEM = cn(OPS_GRID_ROW, OPS_GRID_HIGHLIGHT, "cursor-pointer");
+/**
+ * The Dark mode row: drawn as a grid row, but not highlighted, not pointer-led
+ * and not dimmed as a whole, since its own "Soon" and the disabled switch say
+ * that it does not work yet.
+ */
+const DARK_MODE_ROW = cn(OPS_GRID_ROW, "cursor-default data-[disabled]:opacity-100");
+/**
+ * The off switch of the Dark mode row, its track drawn in the grid's hairline
+ * blue so it stays visible on the pale panel, where the theme's input fill is
+ * almost white.
+ */
+const DARK_MODE_SWITCH =
+  "border-[rgb(47_143_233/0.35)] data-[state=unchecked]:bg-[rgb(47_143_233/0.14)] disabled:opacity-70";
 /** A separator drawn as the row hairline: no height or fill of its own, and full width. */
 const GRID_SEPARATOR = cn("mx-0 my-0 h-0 bg-transparent", OPS_GRID_HAIRLINE);
 
 /**
- * The user menu: name and email, Profile, Settings, optional extra content,
- * Log out.
+ * The user menu: name and email, Profile, Dark mode, optional extra content
+ * (the language submenu), Log out.
+ *
+ * Dark mode is not available yet, so its row is disabled: the menu skips it
+ * when moving by keyboard, it has no action, and its switch stays off.
  *
  * It is presentation only and owns no session side effects: the host calls
  * `useAccountSessionSync` (pending-invitation session sync, stored-theme sync)
@@ -70,7 +87,7 @@ const GRID_SEPARATOR = cn("mx-0 my-0 h-0 bg-transparent", OPS_GRID_HAIRLINE);
 export function ProfileDropdown({
   className,
   extraMenuContent,
-  hrefs = DEFAULT_HREFS,
+  profileHref = DEFAULT_PROFILE_HREF,
 }: ProfileDropdownProps = {}) {
   const { data: session } = useSession();
   const { data: user } = useGetMe();
@@ -135,17 +152,25 @@ export function ProfileDropdown({
         </DropdownMenuLabel>
         <DropdownMenuSeparator className={GRID_SEPARATOR} />
         <DropdownMenuItem asChild className={PROFILE_MENU_GRID_ITEM}>
-          <Link href={hrefs.profile}>
+          <Link href={profileHref}>
             <User className={iconClassName} />
             <span>{t("profile")}</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator className={GRID_SEPARATOR} />
-        <DropdownMenuItem asChild className={PROFILE_MENU_GRID_ITEM}>
-          <Link href={hrefs.settings}>
-            <Settings className={iconClassName} />
-            <span>{t("settings")}</span>
-          </Link>
+        <DropdownMenuItem disabled className={DARK_MODE_ROW}>
+          <Moon className={iconClassName} />
+          <span>{t("darkMode")}</span>
+          <span className="text-muted-foreground ms-auto font-mono text-[10px] tracking-[0.14em] uppercase">
+            {t("soon")}
+          </span>
+          <Switch
+            checked={false}
+            disabled
+            tabIndex={-1}
+            aria-hidden="true"
+            className={DARK_MODE_SWITCH}
+          />
         </DropdownMenuItem>
         {extraMenuContent && (
           <>

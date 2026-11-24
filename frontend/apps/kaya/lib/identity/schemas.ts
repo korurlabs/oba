@@ -66,19 +66,6 @@ function isKayaWithheld(organization: PlatformOrganization): boolean {
   );
 }
 
-/**
- * Whether the platform organization is one the user manages in Ulak: ACTIVE,
- * with role OWNER or ADMIN. The same rule as `managedOrganizations` of
- * `@oba/shared`, which Kaya does not depend on.
- */
-function isManaged(organization: PlatformOrganization): boolean {
-  return (
-    organization.organizationStatus === OrganizationStatus.ACTIVE &&
-    (organization.role === PlatformOrganizationRole.OWNER ||
-      organization.role === PlatformOrganizationRole.ADMIN)
-  );
-}
-
 const platformProfileSchema = z.object({
   firstName: z.string().nullish(),
   lastName: z.string().nullish(),
@@ -103,8 +90,6 @@ export function personName(
  * whose `apps` does not list Kaya, since the API refuses it there.
  * `kayaWithheld` tells that a member was left out only for a missing Kaya
  * grant, so the gate can say that an owner or admin grants it.
- * `managesOrganizations` tells whether Ulak, which only organization managers
- * may open, is offered; it reads every organization, Kaya grant or not.
  */
 export const userMeResponseSchema = z
   .object({
@@ -127,7 +112,6 @@ export const userMeResponseSchema = z
         : [{ organizationId: organization.id, name: organization.name, role: organization.role }]
     ),
     kayaWithheld: (me.organizations ?? []).some(isKayaWithheld),
-    managesOrganizations: (me.organizations ?? []).some(isManaged),
   }));
 
 // ── Inferred Types ──────────────────────────────────────────────────

@@ -59,7 +59,8 @@
   "search": "Ara",
   "common": {
     "profile": "Profil",
-    "settings": "Ayarlar",
+    "darkMode": "Karanlık mod",
+    "soon": "Yakında",
     "logOut": "Çıkış Yap"
   },
   "organizationRoles": {

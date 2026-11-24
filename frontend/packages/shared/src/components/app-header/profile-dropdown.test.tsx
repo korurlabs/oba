@@ -15,7 +15,7 @@ const actualNext = { ...(await import("next/navigation")) };
 const actualNavigation = { ...(await import("@oba/shared/libs/i18n/navigation")) };
 const actualGetMe = { ...(await import("@oba/shared/features/users/hooks/use-get-me")) };
 
-type PartProps = { children?: ReactNode; className?: string };
+type PartProps = { children?: ReactNode; className?: string; disabled?: boolean };
 const part =
   (slot: string) =>
   ({ children, className }: PartProps) => (
@@ -31,7 +31,18 @@ mock.module("@oba/ui/components/dropdown-menu", () => ({
   DropdownMenuTrigger: part("trigger"),
   DropdownMenuContent: part("content"),
   DropdownMenuLabel: part("label"),
-  DropdownMenuItem: part("item"),
+  // Radix marks a disabled item with aria-disabled and data-disabled, and
+  // leaves it out of keyboard focus.
+  DropdownMenuItem: ({ children, className, disabled }: PartProps) => (
+    <div
+      data-slot="item"
+      className={className}
+      aria-disabled={disabled || undefined}
+      data-disabled={disabled ? "" : undefined}
+    >
+      {children}
+    </div>
+  ),
   DropdownMenuSeparator: ({ className }: PartProps) => (
     <hr data-slot="separator" className={className} />
   ),
@@ -112,17 +123,57 @@ describe("ProfileDropdown", () => {
 
   test("gives every row the grid row and highlight, and parts them by hairlines", () => {
     const items = classesOf(html, "item");
+    // Profile, Dark mode, Log out; Language is a submenu.
     expect(items).toHaveLength(3);
     for (const item of items) {
       expect(item).toContain("rounded-none");
+    }
+    // Dark mode does nothing yet, so only the working rows take the highlight.
+    for (const item of [items[0], items[2]]) {
       expect(item).toContain("focus:bg-[rgb(47_143_233/0.08)]");
     }
     const separators = classesOf(html, "separator");
-    // Label | Profile | Settings | Language | Log out.
+    // Label | Profile | Dark mode | Language | Log out.
     expect(separators).toHaveLength(4);
     for (const separator of separators) {
       expect(separator).toContain("border-[rgb(47_143_233/0.22)]");
     }
+  });
+
+  test("lists Profile, Dark mode, Language and Log out, and no Settings", () => {
+    const order = ["profile", "darkMode", "language", "logOut"].map((key) =>
+      html.search(new RegExp(`<span[^>]*>${key}</span>`))
+    );
+    expect(order[0]).toBeGreaterThan(-1);
+    expect([...order].sort((a, b) => a - b)).toEqual(order);
+    expect(html).not.toContain("settings");
+  });
+
+  test("links Profile to the given page", () => {
+    const own = renderToStaticMarkup(
+      <ProfileDropdown profileHref="https://account.example.test" />
+    );
+    expect(own).toContain('href="https://account.example.test"');
+    expect(html).toContain('href="/profile"');
+  });
+
+  test("shows Dark mode as not available yet: disabled, switch off, marked Soon", () => {
+    const row = html.match(
+      /<div data-slot="item"[^>]*>(?:(?!data-slot="item").)*darkMode.*?<\/div>/
+    )?.[0];
+    expect(row).toBeDefined();
+    expect(row).toContain('aria-disabled="true"');
+    expect(row).toContain("data-disabled");
+    expect(row).toContain("lucide-moon");
+    expect(row).toContain("soon");
+    expect(row).toContain('role="switch"');
+    expect(row).toContain('aria-checked="false"');
+    expect(row).toContain('data-state="unchecked"');
+    expect(row).toMatch(/<button[^>]*role="switch"[^>]*disabled=""/);
+    expect(row).toMatch(/<button[^>]*role="switch"[^>]*tabindex="-1"/);
+    const [, darkModeClasses] = classesOf(html, "item");
+    expect(darkModeClasses).not.toContain("cursor-pointer");
+    expect(darkModeClasses).not.toContain("focus:bg-[rgb(47_143_233/0.08)]");
   });
 
   test("keeps the full name and email readable instead of cutting them", () => {

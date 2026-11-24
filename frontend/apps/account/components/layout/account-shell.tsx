@@ -17,10 +17,7 @@ import { AccountSessionSync } from "./account-session-sync";
  * The profile lives at `/`, the root of this app, so the user menu cannot use
  * the `/profile` default of `ProfileDropdown`.
  */
-const ACCOUNT_HREFS = {
-  profile: "/",
-  settings: "/settings",
-};
+const PROFILE_HREF = "/";
 
 /**
  * Page frame of every signed-in Account page, shared by the gateway profile
@@ -66,7 +63,7 @@ export function AccountShell({ children }: { children: ReactNode }) {
           <OrganizationSelector />
           <AppSwitcher currentAppId="account" />
           <ProfileDropdown
-            hrefs={ACCOUNT_HREFS}
+            profileHref={PROFILE_HREF}
             extraMenuContent={
               <LanguageSwitcherSubMenu supportedLocales={SUPPORTED_LOCALES} label={t("language")} />
             }

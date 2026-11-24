@@ -12,7 +12,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 type Membership = { organizationId: string; name: string };
 
 let memberships: Membership[];
-let managesOrganizations: boolean;
 let onValueChange: (value: string) => Promise<void>;
 let selectValue: string | undefined;
 let updateResult: () => Promise<unknown>;
@@ -129,7 +128,7 @@ mock.module("@oba/shared/components/app-header/profile-dropdown", () => ({
 mock.module("@/lib/identity/identity-context", () => ({
   ...actualIdentity,
   useIdentity: () => ({
-    me: { id: "u-1", memberships, managesOrganizations },
+    me: { id: "u-1", memberships },
     organization: { organizationId: "org-1" },
     switchOrganization: (organizationId: string) => {
       switched.push(organizationId);
@@ -194,7 +193,6 @@ beforeEach(() => {
     { organizationId: "org-1", name: "Korur" },
     { organizationId: "org-2", name: "Tayga" },
   ];
-  managesOrganizations = false;
   selectValue = undefined;
   updateResult = async () => ({ success: true });
   for (const list of [updatedMe, switched, order, errorToasts]) list.length = 0;
@@ -234,8 +232,7 @@ describe("Kaya header", () => {
     expect(switched).toEqual([]);
   });
 
-  test("the profile menu gets no extra item, not even an Organization item for a manager", () => {
-    managesOrganizations = true;
+  test("the profile menu gets no extra item, such as an Organization item", () => {
     const html = render();
     expect(html).toContain('<div data-profile=""></div>');
     expect(html).not.toContain("Organization</span>");

@@ -21,12 +21,6 @@ export type AppShellProps = {
   children: ReactNode;
 };
 
-/** Profile and Settings are Account's pages; Kaya has none of its own. */
-const accountHrefs = () => ({
-  profile: ACCOUNT_LINKS.profile,
-  settings: ACCOUNT_LINKS.settings,
-});
-
 /**
  * The organization selector of the top bar. Kaya holds the current
  * organization itself, so the selector is controlled: it offers the
@@ -59,6 +53,10 @@ function KayaOrganizationSelector() {
  * the whole window. A menu link asks first while a config edit is unsaved.
  */
 export function AppShell({ children }: AppShellProps) {
+  // Profile is Account's page; Kaya has none of its own. Read on render,
+  // because the account origin arrives with the run-time config.
+  const profileHref = ACCOUNT_LINKS.profile;
+
   return (
     <OpenChangeProvider>
       <SkyAppShell
@@ -69,7 +67,7 @@ export function AppShell({ children }: AppShellProps) {
             <ChangeControl />
             <KayaOrganizationSelector />
             <AppSwitcher currentAppId="kaya" />
-            <ProfileDropdown hrefs={accountHrefs()} />
+            <ProfileDropdown profileHref={profileHref} />
           </>
         }
         sections={KAYA_NAV_SECTIONS}

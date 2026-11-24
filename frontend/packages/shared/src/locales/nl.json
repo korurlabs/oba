@@ -59,7 +59,8 @@
   "search": "Zoeken",
   "common": {
     "profile": "Profiel",
-    "settings": "Instellingen",
+    "darkMode": "Donkere modus",
+    "soon": "Binnenkort",
     "logOut": "Uitloggen"
   },
   "organizationRoles": {
