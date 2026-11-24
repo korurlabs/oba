@@ -122,7 +122,7 @@ export function SprintChildBoardsField({ boards, disabled = false }: SprintChild
                         {selectedBoards.slice(0, MAX_TRIGGER_CHIPS).map((board) => (
                           <span
                             key={board.id}
-                            className="bg-muted max-w-[9rem] truncate rounded-xl px-2 py-0.5 text-xs"
+                            className="bg-muted max-w-[9rem] truncate px-2 py-0.5 text-xs"
                             title={board.name}
                           >
                             {board.name}
@@ -228,7 +228,7 @@ export function SprintChildBoardsField({ boards, disabled = false }: SprintChild
                               <span
                                 className={cn(
                                   "ml-auto shrink-0 text-xs",
-                                  board.canLink ? "text-warning" : "text-muted-foreground"
+                                  board.canLink ? "text-foreground" : "text-muted-foreground"
                                 )}
                               >
                                 {hint}

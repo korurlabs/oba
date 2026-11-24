@@ -100,7 +100,7 @@ export function ChatQuote({ author, text, image, className }: ChatQuoteProps) {
           alt={image.fileName}
           loading="lazy"
           onError={() => setFailedUrl(image.url)}
-          className="size-10 shrink-0 rounded object-cover"
+          className="size-10 shrink-0 object-cover"
         />
       )}
     </span>

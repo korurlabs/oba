@@ -767,7 +767,7 @@ function CategoryOptions({
                 onCheckedChange={() => toggleArrayFilter("labelIds", label.id)}
               />
               <div
-                className="h-3 w-3 shrink-0 rounded-full"
+                className="h-3 w-3 shrink-0"
                 style={{ backgroundColor: label.color }}
               />
               <span className="truncate">{label.name}</span>
@@ -828,7 +828,7 @@ function CategoryOptions({
                 }
               />
               <div
-                className="h-3 w-3 shrink-0 rounded-full"
+                className="h-3 w-3 shrink-0"
                 style={{ backgroundColor: project.color }}
               />
               <span className="truncate">{project.name}</span>

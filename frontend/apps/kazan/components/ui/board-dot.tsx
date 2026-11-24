@@ -13,6 +13,9 @@ const colorMap: Record<string, string> = {
 };
 
 /**
+ * A board's own colour as a small square, the grid's marker shape. The colour
+ * is the board owner's choice and tells boards apart, so it stays.
+ *
  * Palette colours keep their theme classes; any other valid hex (a custom
  * board colour) is drawn as it is, and an unusable value falls back to Korur blue.
  */
@@ -32,7 +35,7 @@ export function BoardDot({ color = DEFAULT_BOARD_COLOR }: { color?: string | nul
   return (
     <div className="flex w-5 shrink-0 items-center justify-center">
       <div
-        className={cn("h-2 w-2 shrink-0 rounded-full", appearance.className)}
+        className={cn("h-2 w-2 shrink-0", appearance.className)}
         style={appearance.style}
       />
     </div>

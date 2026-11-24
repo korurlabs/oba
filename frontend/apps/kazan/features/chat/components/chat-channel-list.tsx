@@ -363,7 +363,7 @@ function SortableChannelRow({
           <button
             type="button"
             aria-label={t("rowActions", { name: channel.name })}
-            className="text-muted-foreground hover:text-foreground hover:bg-sidebar-accent flex h-6 w-6 shrink-0 items-center justify-center rounded opacity-0 group-hover/channel:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
+            className="text-muted-foreground hover:text-foreground hover:bg-sidebar-accent flex h-6 w-6 shrink-0 items-center justify-center opacity-0 group-hover/channel:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
             onMouseDown={stopDragStart}
             onTouchStart={stopDragStart}
           >

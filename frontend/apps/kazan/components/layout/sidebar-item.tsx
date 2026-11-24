@@ -90,14 +90,14 @@ export function SidebarItem({ href, label, icon: Icon, activePrefixes, badge, ba
       {count > 0 && (
         <>
           <SidebarMenuBadge aria-hidden className={SIDEBAR_ROW_TRAILING_CLASS}>
-            <Badge variant="destructive" className="h-5 min-w-5 justify-center rounded-full px-1.5 py-0 tabular-nums">
+            <Badge variant="destructive" className="h-5 min-w-5 justify-center px-1.5 py-0 font-mono text-[11px] tabular-nums">
               {shownCount}
             </Badge>
           </SidebarMenuBadge>
           {/* The rail hides the badge, so a dot on the icon says that something is new. */}
           <span
             aria-hidden
-            className="bg-destructive ring-sidebar pointer-events-none absolute top-1 left-5 hidden size-2 rounded-full ring-2 group-data-[collapsible=icon]:block"
+            className="bg-destructive ring-sidebar pointer-events-none absolute top-1 left-5 hidden size-2 ring-2 group-data-[collapsible=icon]:block"
           />
         </>
       )}

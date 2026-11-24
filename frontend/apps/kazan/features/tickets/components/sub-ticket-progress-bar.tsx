@@ -21,11 +21,15 @@ interface SubTicketProgressBarProps {
   className?: string;
 }
 
+/*
+ * One blue scale from finished to far away: the deeper the shade, the closer
+ * the work is to done. The backlog share is neutral ink, as nothing plans it yet.
+ */
 const SEGMENTS = [
-  { key: "done", className: "bg-green-500" },
+  { key: "done", className: "bg-korur-blue-strong" },
   { key: "inThisSprint", className: "bg-primary" },
-  { key: "inOtherSprints", className: "bg-amber-400" },
-  { key: "inBacklog", className: "bg-gray-400" },
+  { key: "inOtherSprints", className: "bg-korur-blue-medium" },
+  { key: "inBacklog", className: "bg-foreground/30" },
 ] as const;
 
 export function SubTicketProgressBar({
@@ -43,7 +47,7 @@ export function SubTicketProgressBar({
 
   const percentage = Math.round((completed / total) * 100);
   const trackClassName = cn(
-    "flex overflow-hidden rounded-full bg-gray-200",
+    "flex overflow-hidden bg-primary/10",
     size === "sm" ? "h-1 w-full" : "h-1.5 w-full"
   );
 
@@ -82,8 +86,8 @@ export function SubTicketProgressBar({
     >
       <div
         className={cn(
-          "h-full rounded-full transition-all duration-300",
-          completed === total ? "bg-green-500" : "bg-primary"
+          "h-full transition-all duration-300",
+          completed === total ? "bg-korur-blue-strong" : "bg-primary"
         )}
         style={{ width: `${percentage}%` }}
       />
@@ -91,13 +95,13 @@ export function SubTicketProgressBar({
   );
 
   const label = showLabel && (
-    <span className={cn("font-medium", size === "sm" ? "text-[10px]" : "text-xs")}>
+    <span className={cn("font-mono font-medium tabular-nums", size === "sm" ? "text-[10px]" : "text-xs")}>
       {completed}/{total}
     </span>
   );
 
   const containerClassName = cn(
-    "flex items-center gap-1.5 w-full justify-between text-gray-500 transition-colors hover:text-gray-700",
+    "flex items-center gap-1.5 w-full justify-between text-muted-foreground transition-colors hover:text-foreground",
     onClick && "cursor-pointer",
     className
   );
@@ -125,7 +129,7 @@ export function SubTicketProgressBar({
           <ul className="space-y-0.5 text-xs">
             {SEGMENTS.map((segment) => (
               <li key={segment.key} className="flex items-center gap-1.5">
-                <span className={cn("h-2 w-2 rounded-full", segment.className)} />
+                <span className={cn("h-2 w-2 ring-1 ring-white/70", segment.className)} />
                 {t(`progress.${segment.key}`, { count: breakdown[segment.key] })}
               </li>
             ))}

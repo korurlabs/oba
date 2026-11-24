@@ -39,7 +39,7 @@ export function SprintPageView({ boardId }: SprintPageViewProps) {
   // Show loading skeleton during initial load
   if (page.isLoading && page.sprints.length === 0) {
     return (
-      <div className="bg-background flex h-full flex-col items-center justify-center">
+      <div className="flex h-full flex-col items-center justify-center">
         <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
         <p className="text-muted-foreground mt-3 text-sm">{t("common.loading")}</p>
       </div>
@@ -49,7 +49,7 @@ export function SprintPageView({ boardId }: SprintPageViewProps) {
   // No sprints exist yet
   if (!page.isLoading && page.sprints.length === 0) {
     return (
-      <div className="bg-background flex h-full flex-col">
+      <div className="flex h-full flex-col">
         <NoSprintState
           boardId={boardId}
           onCreateSprint={canManage ? page.openCreateSprintDialog : undefined}
@@ -67,7 +67,7 @@ export function SprintPageView({ boardId }: SprintPageViewProps) {
   }
 
   return (
-    <div className="bg-background flex h-full flex-col">
+    <div className="flex h-full flex-col">
       {/* Compact toolbar with sprint selector, info, and controls */}
       <SprintToolbar
         boardId={boardId}

@@ -121,7 +121,7 @@ export function MoveToSprintDialog({
                   <SelectItem key={sprint.id} value={sprint.id}>
                     {sprint.name}
                     {sprint.status === "ACTIVE" && (
-                      <span className="ml-2 text-xs text-green-600">
+                      <span className="kazan-grid-chip border-primary/50 text-korur-blue-strong ml-2">
                         {t("ticket.actions.activeLabel")}
                       </span>
                     )}

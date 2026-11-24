@@ -82,7 +82,7 @@ export function AllPageView({ boardId }: AllPageViewProps) {
   );
 
   return (
-    <div className="bg-background flex h-full flex-col">
+    <div className="flex h-full flex-col">
       <AllToolbar boardId={boardId} page={page} columnToggleItems={columnToggleItems} />
 
       <div id="table-target" className="flex-1 overflow-auto">

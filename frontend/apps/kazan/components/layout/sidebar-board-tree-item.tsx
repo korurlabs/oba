@@ -100,7 +100,7 @@ export function SidebarBoardTreeItem({
     <Pin className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
   ) : (
     <span
-      className={cn("h-2.5 w-2.5 shrink-0 rounded-full", dotAppearance.className)}
+      className={cn("h-2.5 w-2.5 shrink-0", dotAppearance.className)}
       style={dotAppearance.style}
     />
   );
@@ -114,7 +114,7 @@ export function SidebarBoardTreeItem({
             href={boardHref}
             onClick={closeMobile}
             className={cn(
-              "flex items-center justify-center rounded py-2",
+              "flex items-center justify-center py-2",
               isActive && "bg-primary/10"
             )}
           >
@@ -152,7 +152,7 @@ export function SidebarBoardTreeItem({
           <span
             aria-hidden="true"
             className={cn(
-              "bg-primary pointer-events-none absolute inset-x-0 h-0.5 rounded-full",
+              "bg-primary pointer-events-none absolute inset-x-0 h-0.5",
               dropIndicator === "before" ? "-top-0.5" : "-bottom-0.5"
             )}
           />
@@ -214,7 +214,7 @@ export function SidebarBoardTreeItem({
             <button
               type="button"
               aria-label={t("boardActions", { name: board.name })}
-              className="text-muted-foreground hover:text-foreground hover:bg-muted flex h-7 w-7 shrink-0 items-center justify-center rounded"
+              className="text-muted-foreground hover:text-foreground hover:bg-muted flex h-7 w-7 shrink-0 items-center justify-center"
               onClick={(e) => e.stopPropagation()}
               onMouseDown={stopDragStart}
               onTouchStart={stopDragStart}

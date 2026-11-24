@@ -88,7 +88,7 @@ export function BoardHierarchyPreview({
                 onClick={() => onRemove(board.id)}
                 disabled={disabled}
                 aria-label={tBoard("removeChild", { name: board.name, parent: parentBoard.name })}
-                className="text-muted-foreground hover:text-foreground hover:bg-muted flex h-7 w-7 shrink-0 items-center justify-center rounded transition-colors disabled:pointer-events-none disabled:opacity-50"
+                className="text-muted-foreground hover:text-foreground hover:bg-muted flex h-7 w-7 shrink-0 items-center justify-center transition-colors disabled:pointer-events-none disabled:opacity-50"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -100,9 +100,9 @@ export function BoardHierarchyPreview({
       </div>
 
       {showInfoMessage && (
-        <div className="flex items-start gap-2 rounded-md bg-blue-50 p-3 dark:bg-blue-950/30">
-          <Info className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" />
-          <p className="text-xs text-blue-700 dark:text-blue-400">
+        <div className="border-primary/30 border-l-primary bg-card flex items-start gap-2 border border-l-2 p-3">
+          <Info className="text-primary mt-0.5 h-4 w-4 shrink-0" />
+          <p className="text-foreground text-xs">
             {t("infoMessage", { boardName: parentBoard.name })}
           </p>
         </div>

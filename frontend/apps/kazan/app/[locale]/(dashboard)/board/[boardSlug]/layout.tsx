@@ -61,7 +61,7 @@ export default async function BoardLayout({
 
 function BoardTabsSkeleton() {
   return (
-    <div className="border-b border-border bg-background px-6 py-3">
+    <div className="border-b border-border bg-card px-6 py-3">
       {/* Mirrors the phone layout of BoardTabs: below `md` the tabs take a
         row of their own under the breadcrumb and the actions, so the
         placeholder fits a phone and the header does not jump when it loads. */}

@@ -91,10 +91,10 @@ export function AllToolbar({ boardId, page, columnToggleItems }: AllToolbarProps
             {currentSprint.status === SprintStatus.ACTIVE && daysRemaining > 0 && (
               <span
                 className={cn(
-                  "rounded px-2 py-0.5 text-xs font-medium whitespace-nowrap",
+                  "kazan-grid-chip py-1",
                   isDeadlineUrgent
-                    ? "bg-primary/15 text-primary"
-                    : "bg-muted text-muted-foreground",
+                    ? "border-primary/50 text-korur-blue-strong"
+                    : "text-muted-foreground",
                 )}
               >
                 {t("sprint.daysLeft", { count: daysRemaining })}

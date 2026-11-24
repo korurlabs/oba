@@ -35,7 +35,7 @@ export function AllTicketsView({ variant = "tickets" }: AllTicketsViewProps) {
   const columnToggleItems = useTicketColumnToggleItems();
 
   return (
-    <div className="bg-background flex h-full flex-col">
+    <div className="flex h-full flex-col">
       {/* Toolbar */}
       <AllTicketsToolbar
         page={page}

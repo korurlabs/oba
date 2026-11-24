@@ -397,7 +397,7 @@ function parseInline(text: string, ctx: RenderContext, inLink: boolean): ReactNo
       if (code) {
         flush();
         nodes.push(
-          <code key={nodes.length} className="bg-muted rounded px-1 py-px font-mono text-[0.85em]">
+          <code key={nodes.length} className="bg-muted px-1 py-px font-mono text-[0.85em]">
             {code[1]}
           </code>,
         );

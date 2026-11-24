@@ -11,7 +11,7 @@ import { useHomeDeadlines } from "../hooks/use-home-deadlines";
 import type { HomeDeadlineResponse } from "../schemas";
 import { HomeSectionError } from "./home-section-error";
 
-const SECTION_CLASS = "bg-card text-card-foreground border-border flex flex-col gap-4 rounded-2xl border p-4 sm:p-5";
+const SECTION_CLASS = "kazan-grid-frame bg-card text-card-foreground flex flex-col gap-4 p-4 sm:p-5";
 const DAY_MS = 86_400_000;
 
 function daysUntil(targetDate: string, today: string): number {
@@ -28,14 +28,14 @@ function DeadlineRow({ deadline, today }: { deadline: HomeDeadlineResponse; toda
       <Link
         href={boardPath(deadline.boardSlug, BOARD_TAB.roadmap)}
         className={cn(
-          "flex flex-col gap-1 rounded-lg px-2 py-2 transition-colors sm:flex-row sm:items-center sm:gap-3",
-          "hover:bg-korur-blue-accent dark:hover:bg-korur-slate",
+          "flex flex-col gap-1 border-l-2 border-transparent px-2 py-2 transition-colors sm:flex-row sm:items-center sm:gap-3",
+          "hover:border-primary hover:bg-primary/5 dark:hover:bg-korur-slate",
           "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
         )}
       >
         <time
           dateTime={deadline.targetDate}
-          className="text-muted-foreground w-24 shrink-0 text-xs tabular-nums"
+          className="text-muted-foreground w-24 shrink-0 font-mono text-xs tabular-nums"
         >
           {formatDateOnly(deadline.targetDate, locale)}
         </time>
@@ -44,7 +44,7 @@ function DeadlineRow({ deadline, today }: { deadline: HomeDeadlineResponse; toda
             {deadline.color && (
               <span
                 aria-hidden
-                className="size-2 shrink-0 rounded-full"
+                className="size-2 shrink-0"
                 style={{ backgroundColor: deadline.color }}
               />
             )}
@@ -88,7 +88,7 @@ export function HomeDeadlines() {
 
   return (
     <section aria-labelledby="home-deadlines-heading" className={SECTION_CLASS}>
-      <h2 id="home-deadlines-heading" className="text-foreground text-base font-semibold">
+      <h2 id="home-deadlines-heading" className="kazan-grid-heading">
         {t("title")}
       </h2>
 

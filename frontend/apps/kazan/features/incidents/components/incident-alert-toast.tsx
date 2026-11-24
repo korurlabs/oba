@@ -12,7 +12,7 @@ import type { AllTicketListResponse } from "@/features/all-tickets/schemas";
  * on it meets 4.5:1 in both themes.
  */
 const ALERT_SURFACE =
-  "bg-destructive text-white w-[26rem] max-w-[calc(100vw-2rem)] rounded-lg p-4 shadow-lg";
+  "bg-destructive text-white w-[26rem] max-w-[calc(100vw-2rem)] p-4 shadow-(--kazan-grid-shadow)";
 
 /** Buttons sit on the red surface, so focus rings are white on red. */
 const ON_RED_FOCUS = "focus-visible:ring-white focus-visible:ring-offset-destructive";
@@ -35,7 +35,7 @@ export function IncidentAlertToast({ ticket, onOpen, onDismiss }: IncidentAlertT
         <Siren className="mt-1 size-6 shrink-0" aria-hidden="true" />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 text-sm">
-            <span className="rounded border border-white/70 px-1.5 py-0.5 text-xs font-bold">
+            <span className="border border-white/70 px-1.5 py-0.5 text-xs font-bold">
               {ticket.priority}
             </span>
             <span className="truncate">
@@ -85,7 +85,7 @@ export function IncidentAlertMoreToast({ count, onDismiss }: IncidentAlertMoreTo
         <Siren className="size-6 shrink-0" aria-hidden="true" />
         <Link
           href={URGENT_INCIDENTS_HREF}
-          className="min-w-0 flex-1 rounded text-lg font-semibold underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+          className="min-w-0 flex-1 text-lg font-semibold underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
         >
           {t("more", { count })}
         </Link>

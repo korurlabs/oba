@@ -26,14 +26,15 @@ const SelectTrigger = React.forwardRef<
   }
 >(({ className, children, size = 'default', ...props }, ref) => (
   <SelectPrimitive.Trigger
+    data-slot="select-trigger"
     ref={ref}
     className={cn(
-      'flex w-full items-center justify-between whitespace-nowrap rounded-lg border-[1.5px] border-input bg-background dark:bg-input/30 text-sm text-foreground shadow-xs transition-all duration-150',
+      'flex w-full items-center justify-between whitespace-nowrap border border-input bg-background dark:bg-input/30 text-sm text-foreground transition-colors duration-150',
       selectTriggerSizes[size],
       'data-placeholder:text-muted-foreground',
       'hover:border-border dark:hover:bg-input/50',
-      'outline-none focus:border-primary focus:ring-[3px] focus:ring-primary/20',
-      'data-[state=open]:border-primary data-[state=open]:ring-[3px] data-[state=open]:ring-primary/20 data-[state=open]:outline-none',
+      'outline-none focus:border-primary',
+      'data-[state=open]:border-primary data-[state=open]:outline-none',
       'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted',
       '[&>span]:line-clamp-1',
       className
@@ -89,6 +90,7 @@ const SelectContent = React.forwardRef<
 >(({ className, children, position = 'popper', ...props }, ref) => (
   <SelectPrimitive.Portal>
     <SelectPrimitive.Content
+      data-slot="select-content"
       ref={ref}
       className={cn(
         'relative z-50 max-h-[--radix-select-content-available-height] min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-select-content-transform-origin]',
@@ -120,6 +122,7 @@ const SelectLabel = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Label>
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Label
+    data-slot="select-label"
     ref={ref}
     className={cn('px-2 py-1.5 text-sm font-semibold', className)}
     {...props}
@@ -132,6 +135,7 @@ const SelectItem = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
 >(({ className, children, ...props }, ref) => (
   <SelectPrimitive.Item
+    data-slot="select-item"
     ref={ref}
     className={cn(
       'relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',

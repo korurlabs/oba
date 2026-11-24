@@ -174,7 +174,7 @@ export function BoardSettingsLabels({ boardId, canManage }: BoardSettingsLabelsP
               >
                 <div className="flex items-center gap-3">
                   <span
-                    className="inline-block h-3 w-3 shrink-0 rounded-full"
+                    className="inline-block h-3 w-3 shrink-0"
                     style={{ backgroundColor: label.color ?? DEFAULT_COLOR }}
                   />
                   <span className="text-sm font-medium">{label.name}</span>
@@ -196,7 +196,7 @@ export function BoardSettingsLabels({ boardId, canManage }: BoardSettingsLabelsP
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-8 w-8 p-0 text-gray-400 hover:text-red-600"
+                      className="text-muted-foreground hover:text-destructive h-8 w-8 p-0"
                       onClick={() => setDeleteTarget(label)}
                       disabled={formState.type !== "closed"}
                     >

@@ -33,11 +33,11 @@ export function LabelBadge({ label, size = "md" }: LabelBadgeProps) {
 
   return (
     <span
-      className={`inline-flex items-center rounded-full font-medium border ${sizeClasses}`}
+      className={`inline-flex items-center font-medium border ${sizeClasses}`}
       style={{ borderColor: `${color}40` }}
     >
       <span
-        className={`shrink-0 rounded-full ${dotClasses}`}
+        className={`shrink-0 ${dotClasses}`}
         style={{ backgroundColor: color }}
       />
       {label.name}
@@ -66,7 +66,7 @@ function CompactLabelDots({
             <Tooltip key={label.id}>
               <TooltipTrigger asChild>
                 <span
-                  className="ring-background relative h-4 w-4 shrink-0 cursor-default rounded-full ring-2 transition-[box-shadow,ring-color] duration-150 hover:z-10"
+                  className="ring-background relative h-3.5 w-3.5 shrink-0 cursor-default ring-2 transition-[box-shadow,ring-color] duration-150 hover:z-10"
                   style={{
                     backgroundColor: color,
                     zIndex: isHovered ? 10 : index,

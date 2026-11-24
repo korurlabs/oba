@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-const SECTION_CLASS = "bg-card border-border flex flex-col gap-4 rounded-2xl border p-4 sm:p-5";
+const SECTION_CLASS = "kazan-grid-frame bg-card flex flex-col gap-4 p-4 sm:p-5";
 
 function ListSectionSkeleton({ rows }: { rows: number }) {
   return (
@@ -22,14 +22,14 @@ function ListSectionSkeleton({ rows }: { rows: number }) {
  */
 export default function HomeLoading() {
   return (
-    <div aria-busy className="bg-background h-full overflow-auto">
+    <div aria-busy className="h-full overflow-auto">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
         <div className="flex items-center justify-between gap-4">
           <Skeleton className="h-8 w-40" />
           <Skeleton className="size-9 rounded-md" />
         </div>
 
-        <div className="bg-card border-border flex flex-col gap-4 rounded-2xl border p-4 sm:p-5 md:flex-row">
+        <div className="kazan-grid-frame bg-card flex flex-col gap-4 p-4 sm:p-5 md:flex-row">
           <div className="flex flex-1 flex-col gap-3">
             <Skeleton className="h-4 w-32" />
             <Skeleton className="h-9 w-40" />

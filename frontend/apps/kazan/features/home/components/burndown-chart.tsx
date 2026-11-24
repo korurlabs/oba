@@ -229,7 +229,7 @@ export function BurndownChart({ sprintName, points, totalTickets, openTickets, t
         {active && activeIndex !== null && (
           <div
             aria-hidden
-            className="bg-popover text-popover-foreground border-border pointer-events-none absolute top-0 z-10 rounded-md border px-2 py-1.5 text-xs shadow-md"
+            className="bg-popover text-popover-foreground border-border pointer-events-none absolute top-0 z-10 border px-2 py-1.5 text-xs shadow-(--kazan-grid-shadow)"
             style={{
               left: Math.min(Math.max(geometry.x(activeIndex) - 64, 0), Math.max(width - 128, 0)),
               width: 128,
@@ -237,7 +237,7 @@ export function BurndownChart({ sprintName, points, totalTickets, openTickets, t
           >
             <p className="text-foreground font-medium">{formatDay(active.date)}</p>
             <p className="flex items-center gap-1.5">
-              <span className="bg-korur-blue-hover dark:bg-korur-blue h-0.5 w-3 rounded-full" />
+              <span className="bg-korur-blue-hover dark:bg-korur-blue h-0.5 w-3" />
               <span className="text-muted-foreground">{t("remaining")}</span>
               <span className="text-foreground ml-auto tabular-nums">{active.remaining ?? "-"}</span>
             </p>

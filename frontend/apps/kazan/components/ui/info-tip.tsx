@@ -18,7 +18,7 @@ export function InfoTip({ label, children }: { label: string; children: React.Re
           <button
             type="button"
             aria-label={label}
-            className="text-muted-foreground hover:text-foreground focus-visible:ring-ring rounded-full outline-none focus-visible:ring-2"
+            className="text-muted-foreground hover:text-foreground focus-visible:ring-ring outline-none focus-visible:ring-2"
           >
             <Info className="size-4" />
           </button>

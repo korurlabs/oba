@@ -73,7 +73,7 @@ export function ChatConnectionBanner() {
   return (
     <div
       role="status"
-      className="flex items-center gap-2 border-b border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs text-amber-900 lg:px-6 dark:text-amber-100"
+      className="border-foreground/20 bg-card text-foreground flex items-center gap-2 border-b px-4 py-1.5 text-xs shadow-[inset_2px_0_0_var(--foreground)] lg:px-6"
     >
       {busy ? (
         <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" aria-hidden />

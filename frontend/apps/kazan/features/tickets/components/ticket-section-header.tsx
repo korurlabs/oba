@@ -47,11 +47,10 @@ export function TicketSectionHeader({
 }: TicketSectionHeaderProps) {
   return (
     <div className="flex min-h-8 flex-wrap items-center gap-x-3 gap-y-2">
-      <h2 className="text-foreground text-sm font-semibold whitespace-nowrap">
+      <h2 className="kazan-grid-label inline-flex items-center gap-1.5 whitespace-nowrap">
         {title}
-        <span className="text-muted-foreground ml-1.5 font-normal">
-          · {tickets.length}
-        </span>
+        <span aria-hidden>·</span>
+        <span className="tabular-nums">{String(tickets.length).padStart(2, "0")}</span>
       </h2>
 
       <TicketStatusSummary

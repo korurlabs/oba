@@ -71,10 +71,10 @@ function NoOrganization() {
   const t = useTranslations("noOrganization");
 
   return (
-    <div className="bg-background flex min-h-full items-center justify-center p-4">
+    <div className="flex min-h-full items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6 text-center">
         <div className="flex justify-center">
-          <div className="bg-muted rounded-full p-4">
+          <div className="border-primary/40 border border-dashed p-4">
             <Building2 className="text-muted-foreground h-12 w-12" aria-hidden="true" />
           </div>
         </div>
@@ -105,10 +105,10 @@ function NoAppAccess({ organizationName }: NoAppAccessProps) {
   const t = useTranslations("noAppAccess");
 
   return (
-    <div className="bg-background flex min-h-full items-center justify-center p-4">
+    <div className="flex min-h-full items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6 text-center">
         <div className="flex justify-center">
-          <div className="bg-muted rounded-full p-4">
+          <div className="border-primary/40 border border-dashed p-4">
             <ShieldOff className="text-muted-foreground h-12 w-12" aria-hidden="true" />
           </div>
         </div>

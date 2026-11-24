@@ -3,16 +3,20 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
+/*
+ * A notice in the grid look: a card-coloured plate with a hairline rim and a
+ * 2px leading rule. The rule and the icon carry the tone (primary for
+ * information, ink for a warning, red for danger), never a tinted fill.
+ */
 const inlineAlertVariants = cva(
-  "flex flex-row items-center gap-2 rounded-lg border p-3",
+  "flex flex-row items-center gap-2 border border-l-2 bg-card p-3",
   {
     variants: {
       variant: {
-        info: "border-info/30 bg-info/10 [&>svg]:text-info",
-        success: "border-success/30 bg-success/10 [&>svg]:text-success",
-        warning: "border-warning/30 bg-warning/10 [&>svg]:text-warning",
-        danger:
-          "border-destructive/30 bg-destructive/10 [&>svg]:text-destructive",
+        info: "border-primary/30 border-l-primary [&_svg]:text-primary",
+        success: "border-primary/30 border-l-korur-blue-strong [&_svg]:text-korur-blue-strong",
+        warning: "border-foreground/25 border-l-foreground/70 [&_svg]:text-foreground",
+        danger: "border-destructive/40 border-l-destructive [&_svg]:text-destructive",
       },
     },
     defaultVariants: {

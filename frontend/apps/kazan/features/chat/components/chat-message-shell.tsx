@@ -109,7 +109,7 @@ export function ChatRowFrame({
         >
           <span
             style={swipeArrowIconStyle}
-            className="bg-primary/15 text-primary group-data-[swipe-armed]/row:bg-primary group-data-[swipe-armed]/row:text-primary-foreground flex size-7 items-center justify-center rounded-full transition-[background-color,color,scale] duration-150 group-data-[swipe-armed]/row:scale-110 motion-reduce:transition-none"
+            className="bg-primary/15 text-primary group-data-[swipe-armed]/row:bg-primary group-data-[swipe-armed]/row:text-primary-foreground flex size-7 items-center justify-center transition-[background-color,color,scale] duration-150 group-data-[swipe-armed]/row:scale-110 motion-reduce:transition-none"
           >
             <Reply className="size-4" />
           </span>

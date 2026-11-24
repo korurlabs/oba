@@ -5,23 +5,24 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm cursor-pointer font-medium transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-none text-sm cursor-pointer font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        // Primary (CTA) - Korur blue gradient
+        // Primary (CTA): flat Korur blue in the strong shade, which keeps white
+        // text readable, and a deeper shade on hover instead of a lift and glow.
         default:
-          "bg-gradient-to-br from-korur-blue-hover to-korur-blue-strong text-white shadow-sm hover:-translate-y-0.5 hover:shadow-primary-glow active:translate-y-0",
-        // Secondary - White with border
+          "bg-korur-blue-strong text-white border border-korur-blue-strong hover:bg-korur-blue-deep hover:border-korur-blue-deep",
+        // Secondary: a card-coloured plate with a hairline rim.
         secondary:
-          "bg-white border border-gray-200 text-gray-700 shadow-sm hover:bg-gray-50 hover:border-gray-300",
-        // Ghost - Transparent
+          "bg-card border border-border text-foreground hover:bg-primary/5 hover:border-primary/40",
+        // Ghost: no rim until hovered.
         ghost: "text-foreground hover:bg-accent hover:[&_svg]:text-foreground",
         // Destructive/Danger
-        destructive: "bg-error text-white shadow-sm hover:bg-error/90",
-        // Outline
+        destructive: "bg-error text-white border border-error hover:bg-error/90",
+        // Outline: a hairline rim that turns primary on hover.
         outline:
-          "border border-gray-200 bg-transparent text-foreground hover:bg-accent hover:[&_svg]:text-current",
+          "border border-border bg-transparent text-foreground hover:bg-primary/5 hover:border-primary/40 hover:[&_svg]:text-current",
         // Link
         link: "text-primary underline-offset-4 hover:underline",
       },
@@ -50,7 +51,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
     return (
-      <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
+      <Comp
+        data-slot="button"
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
     );
   }
 );

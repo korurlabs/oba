@@ -73,8 +73,9 @@ export function DueDateBadge({ dueDate, showIcon = true, className }: DueDateBad
   if (!formattedDate) return null;
 
   const urgencyStyles: Record<DueDateUrgency, string> = {
+    // Red is kept for a date already missed; a near date is told in the primary ink.
     overdue: "text-red-600 dark:text-red-400",
-    "due-soon": "text-amber-600 dark:text-amber-400",
+    "due-soon": "text-korur-blue-strong font-medium dark:text-korur-blue",
     normal: "text-muted-foreground",
   };
 

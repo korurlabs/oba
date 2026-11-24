@@ -31,7 +31,7 @@ export default async function TableColumnsPage() {
   await prefetchMe(queryClient, session?.accessToken, "table-columns-page");
 
   return (
-    <div className="mx-auto max-w-3xl px-8 py-10">
+    <div className="border-border bg-card mx-auto min-h-full max-w-3xl border-x px-8 py-10">
       <div className="mb-8">
         <h1 className="text-foreground text-3xl font-bold tracking-tight">{t("title")}</h1>
         <p className="text-muted-foreground mt-2 text-base">{t("subtitle")}</p>

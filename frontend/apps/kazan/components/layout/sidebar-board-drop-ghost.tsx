@@ -36,13 +36,13 @@ export function SidebarBoardDropGhost({ board, variant, targetId }: SidebarBoard
         "mx-1 flex min-h-9 items-center gap-1 rounded-md pr-1 pl-[7px] text-sm select-none",
         isPreview
           ? "text-muted-foreground border border-dashed opacity-60"
-          : "bg-background text-foreground border shadow-md",
+          : "bg-background text-foreground border shadow-(--kazan-grid-shadow)",
       )}
     >
       {/* Same slot and gap as a row's dot, so the dot and name line up with real rows */}
       <span className="flex w-4 shrink-0 items-center justify-center">
         <span
-          className={cn("h-2.5 w-2.5 shrink-0 rounded-full", dotAppearance.className)}
+          className={cn("h-2.5 w-2.5 shrink-0", dotAppearance.className)}
           style={dotAppearance.style}
         />
       </span>

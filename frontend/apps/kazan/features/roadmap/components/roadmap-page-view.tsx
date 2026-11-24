@@ -74,7 +74,7 @@ export function RoadmapPageView({ boardId }: RoadmapPageViewProps) {
               aria-pressed={zoom === value}
               onClick={() => setParams({ zoom: value })}
               className={cn(
-                "rounded px-2.5 py-1 text-xs font-medium transition-colors",
+                "px-2.5 py-1 text-xs font-medium transition-colors",
                 "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
                 zoom === value
                   ? "bg-primary text-primary-foreground"

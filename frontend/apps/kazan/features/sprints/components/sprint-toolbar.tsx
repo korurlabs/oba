@@ -106,8 +106,8 @@ export function SprintToolbar({
         {currentSprintStatus === "ACTIVE" && daysRemaining > 0 && (
           <span
             className={cn(
-              "rounded px-2 py-0.5 text-xs font-medium whitespace-nowrap",
-              daysRemaining <= 2 ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
+              "kazan-grid-chip py-1",
+              daysRemaining <= 2 ? "border-primary/50 text-korur-blue-strong" : "text-muted-foreground"
             )}
           >
             {t("sprint.daysLeft", { count: daysRemaining })}
@@ -130,7 +130,7 @@ export function SprintToolbar({
           <Button
             size="sm"
             variant="outline"
-            className="border-success text-success hover:bg-success/10"
+            className="border-primary/50 text-korur-blue-strong"
             onClick={() => page.setShowCompleteSprintDialog(true)}
           >
             <CheckCircle2 className="h-4 w-4" />

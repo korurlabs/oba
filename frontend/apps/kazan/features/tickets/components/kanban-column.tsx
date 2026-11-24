@@ -58,7 +58,7 @@ interface KanbanEmptyColumnProps {
 
 export function KanbanEmptyColumn({ message, showAddHint = false }: KanbanEmptyColumnProps) {
   return (
-    <div className="border-border flex flex-1 flex-col items-center justify-center rounded-none border border-dashed py-8">
+    <div className="border-primary/30 flex flex-1 flex-col items-center justify-center border border-dashed py-8">
       {showAddHint && (
         <div className="border-border mb-3 flex size-10 items-center justify-center border border-dashed">
           <Plus className="text-muted-foreground size-5" />
@@ -79,7 +79,7 @@ export function KanbanAddTicketButton({ label, onClick }: KanbanAddTicketButtonP
     <button
       type="button"
       onClick={onClick}
-      className="text-foreground border-border hover:border-primary hover:text-primary hover:bg-primary/5 dark:hover:bg-accent dark:hover:text-foreground mt-2 flex w-full cursor-pointer items-center justify-center gap-2 rounded-none border border-dashed py-2.5 text-sm transition-colors duration-200"
+      className="bg-card text-foreground border-border hover:border-primary hover:text-primary hover:bg-primary/5 dark:hover:bg-accent dark:hover:text-foreground mt-2 flex w-full cursor-pointer items-center justify-center gap-2 rounded-none border border-dashed py-2.5 text-sm transition-colors duration-200"
     >
       <Plus className="size-4" />
       {label}

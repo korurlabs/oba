@@ -9,6 +9,7 @@ const Checkbox = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>
 >(({ className, checked, ...props }, ref) => (
   <CheckboxPrimitive.Root
+    data-slot="checkbox"
     ref={ref}
     checked={checked}
     className={cn(

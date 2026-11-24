@@ -1,18 +1,20 @@
 /**
  * TicketStatusIcon Component
  *
- * Displays a colored dot for ticket status levels
- * Colors match the Kanban column colors:
- * - TODO: gray
- * - IN_PROGRESS: blue
- * - WAITING_FOR_THIRD_PARTY: amber
- * - IN_REVIEW: purple
- * - DONE: green
+ * The ticket status as a small square glyph in neutral ink, Kazan's grid
+ * marker. Each status has its own shape, so a list reads the same for every
+ * reader and on any screen, without telling status apart by colour:
+ * - TODO: an empty square
+ * - IN_PROGRESS: the left half filled
+ * - WAITING_FOR_THIRD_PARTY: a dashed square, the work is parked outside
+ * - IN_REVIEW: a square with a filled core
+ * - DONE: a solid square in the primary ink
  *
  * An unknown status, such as one added on the server before this client knows
  * it, falls back to the TODO entry, so a page that lists it does not crash.
  */
 
+import type { ReactNode } from 'react';
 import type { TicketStatus } from '@/features/tickets/schemas';
 import { cn } from '@oba/ui/lib/utils';
 
@@ -22,50 +24,67 @@ interface TicketStatusIconProps {
   size?: number;
 }
 
-const statusConfig: Record<
-  TicketStatus,
-  { colorClass: string; label: string }
-> = {
+/* The glyphs are drawn on a 10 by 10 grid; the frame's stroke sits on the half pixel. */
+const FRAME = { x: 0.75, y: 0.75, width: 8.5, height: 8.5 };
+
+const statusConfig: Record<TicketStatus, { label: string; glyph: ReactNode; colorClass: string }> = {
   TODO: {
-    colorClass: 'bg-gray-400',
     label: 'Todo',
+    colorClass: 'text-foreground/55',
+    glyph: <rect {...FRAME} fill="none" stroke="currentColor" strokeWidth={1.5} />,
   },
   IN_PROGRESS: {
-    colorClass: 'bg-blue-400',
     label: 'In Progress',
+    colorClass: 'text-foreground/75',
+    glyph: (
+      <>
+        <rect {...FRAME} fill="none" stroke="currentColor" strokeWidth={1.5} />
+        <rect x={0.75} y={0.75} width={4.25} height={8.5} fill="currentColor" />
+      </>
+    ),
   },
   WAITING_FOR_THIRD_PARTY: {
-    colorClass: 'bg-amber-400',
     label: 'Waiting for 3rd party',
+    colorClass: 'text-foreground/75',
+    glyph: (
+      <rect {...FRAME} fill="none" stroke="currentColor" strokeWidth={1.5} strokeDasharray="2 1.4" />
+    ),
   },
   IN_REVIEW: {
-    colorClass: 'bg-purple-400',
     label: 'In Review',
+    colorClass: 'text-foreground/75',
+    glyph: (
+      <>
+        <rect {...FRAME} fill="none" stroke="currentColor" strokeWidth={1.5} />
+        <rect x={3} y={3} width={4} height={4} fill="currentColor" />
+      </>
+    ),
   },
   DONE: {
-    colorClass: 'bg-green-400',
     label: 'Done',
+    colorClass: 'text-korur-blue-strong',
+    glyph: <rect x={0} y={0} width={10} height={10} fill="currentColor" />,
   },
 };
 
-function getStatusConfig(status: TicketStatus): { colorClass: string; label: string } {
+function getStatusConfig(status: TicketStatus): (typeof statusConfig)[TicketStatus] {
   return statusConfig[status] ?? statusConfig.TODO;
 }
 
-export function TicketStatusIcon({
-  status,
-  className,
-  size = 8,
-}: TicketStatusIconProps) {
+export function TicketStatusIcon({ status, className, size = 10 }: TicketStatusIconProps) {
   const config = getStatusConfig(status);
 
   return (
-    <span
-      className={cn('inline-block shrink-0 rounded-full', config.colorClass, className)}
-      style={{ width: size, height: size }}
+    <svg
+      viewBox="0 0 10 10"
+      width={size}
+      height={size}
+      className={cn('inline-block shrink-0', config.colorClass, className)}
       role="img"
       aria-label={`Status: ${config.label}`}
-    />
+    >
+      {config.glyph}
+    </svg>
   );
 }
 
@@ -74,7 +93,7 @@ export function getStatusLabel(status: TicketStatus): string {
   return getStatusConfig(status).label;
 }
 
-// Utility to get status color class
+// Utility to get the status glyph's ink class
 export function getStatusColorClass(status: TicketStatus): string {
   return getStatusConfig(status).colorClass;
 }

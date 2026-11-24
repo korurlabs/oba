@@ -33,7 +33,7 @@ export function RouteError({ error, reset, className }: RouteErrorProps) {
     >
       <div className="w-full max-w-md space-y-6 text-center">
         <div className="flex justify-center">
-          <div className="rounded-full bg-destructive/10 p-4">
+          <div className="border-destructive/40 border border-dashed p-4">
             <AlertTriangle className="h-12 w-12 text-destructive" aria-hidden="true" />
           </div>
         </div>

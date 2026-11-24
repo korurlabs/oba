@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
  */
 export function BoardCardSkeleton() {
   return (
-    <div className="group relative h-[180px] overflow-hidden rounded-lg border border-border bg-card dark:bg-muted p-4 shadow-card">
+    <div className="group relative h-[180px] overflow-hidden rounded-lg border border-border bg-card dark:bg-muted p-4">
       {/* Gradient background skeleton */}
       <Skeleton className="absolute inset-0 opacity-30 dark:bg-muted" />
 
@@ -58,7 +58,7 @@ export function TicketCardSkeleton() {
       <div className="space-y-3">
         {/* Type badge and key */}
         <div className="flex items-center gap-2">
-          <Skeleton className="h-5 w-16 rounded" />
+          <Skeleton className="h-5 w-16" />
           <Skeleton className="h-5 w-20" />
         </div>
 

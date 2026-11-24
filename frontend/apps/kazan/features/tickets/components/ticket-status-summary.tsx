@@ -5,6 +5,9 @@
  * preceded by a total. Groups tickets by status internally so
  * consumers only need to pass the tickets array.
  *
+ * Each status reads as a neutral mono readout, "TO DO 05", in the grid
+ * look: the words and the numbers carry the meaning, no colour does.
+ *
  * Two modes:
  * - Passive (default): each status renders as a static label + count.
  * - Interactive: pass `onStatusToggle` and each status renders as a
@@ -21,7 +24,6 @@ import { useTranslations } from "next-intl";
 import { ListCheck } from "lucide-react";
 import { cn } from "@oba/ui/lib/utils";
 import { TicketStatus, type TicketListResponse } from "@/features/tickets/schemas";
-import { TicketStatusIcon } from "./ticket-status-icon";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -46,6 +48,11 @@ const STATUS_ORDER = [
   TicketStatus.IN_REVIEW,
   TicketStatus.DONE,
 ] as const;
+
+/** Two digits at least, so the readouts line up as a counter does. */
+function formatCount(count: number): string {
+  return String(count).padStart(2, "0");
+}
 
 // ── Main Component ───────────────────────────────────────────────────
 
@@ -81,20 +88,22 @@ export function TicketStatusSummary({
       {showTotal && (
         <div className="flex items-center gap-2">
           <ListCheck className="text-muted-foreground h-4 w-4" />
-          <span className="text-muted-foreground text-xs font-medium">
-            {t("total")}: {tickets.length}
+          <span className="text-muted-foreground font-mono text-[11px] font-medium tracking-[0.08em] uppercase tabular-nums">
+            {t("total")} {formatCount(tickets.length)}
           </span>
         </div>
       )}
       {ticketsGroupedByStatus.map((group) => {
         const label = tTicket(`status.${group.status}`);
         const body = (
-          <>
-            <TicketStatusIcon status={group.status} />
-            <span className="text-xs font-medium whitespace-nowrap">
-              {hasStatusFilter ? label : `${label} (${group.count})`}
-            </span>
-          </>
+          <span className="font-mono text-[11px] font-medium tracking-[0.08em] whitespace-nowrap uppercase tabular-nums">
+            {label}
+            {!hasStatusFilter && (
+              <span className={cn("ml-1.5", group.count > 0 ? "text-foreground" : "text-muted-foreground/70")}>
+                {formatCount(group.count)}
+              </span>
+            )}
+          </span>
         );
 
         if (!onStatusToggle) {
@@ -128,11 +137,11 @@ export function TicketStatusSummary({
             className={cn(
               // min-h-6 + py-1 keeps the hit target at the 24x24 CSS-px floor
               // (WCAG 2.2 SC 2.5.8) inside the 32px caption strip.
-              "flex min-h-6 items-center gap-2 rounded-md px-2 py-1 transition-colors",
+              "flex min-h-6 items-center gap-2 border px-2 py-1 transition-colors",
               "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",
               isSelected
-                ? "bg-muted text-foreground"
-                : "text-muted-foreground hover:bg-muted/50",
+                ? "border-primary/50 bg-primary/5 text-korur-blue-strong"
+                : "text-muted-foreground hover:border-border border-transparent hover:bg-primary/5",
             )}
           >
             {body}

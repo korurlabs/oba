@@ -22,10 +22,8 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useGetMe } from "@oba/shared/features/users/hooks/use-get-me";
 import { formatDateOnly } from "@oba/shared/lib/date-only";
 import { Link, usePathname, useRouter } from "@oba/shared/libs/i18n/navigation";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -106,8 +104,8 @@ export function ChatView() {
 
   if (!orgId) {
     return (
-      <div className="bg-background flex h-full flex-col">
-        <ChatHeader orgId={undefined} />
+      <div className="flex h-full flex-col">
+        <ChatHeader />
         {sessionStatus !== "loading" && (
           <EmptyState
             Icon={Building2}
@@ -125,11 +123,9 @@ export function ChatView() {
 }
 
 function ChatHeader({
-  orgId,
   channel,
   controls,
 }: {
-  orgId: string | undefined;
   /** The open channel; the header reads "Chat" until it is known. */
   channel?: ChatChannelResponse;
   controls?: ReactNode;
@@ -138,26 +134,21 @@ function ChatHeader({
   const tChannels = useTranslations("chat.channels");
   const tPullRequests = useTranslations("pullRequests");
   const canWrite = useChatCanWrite();
-  const { data: meResponse } = useGetMe();
-  const organizationName = meResponse?.data?.organizations?.find((organization) => organization.id === orgId)?.name;
-  const Icon = channel?.visibility === ChatChannelVisibility.PRIVATE ? Lock : Hash;
 
   return (
-    <header className="border-border flex flex-wrap items-center gap-x-3 gap-y-2 border-b px-4 py-3 lg:px-6">
+    <header className="border-border bg-card flex flex-wrap items-center gap-x-3 gap-y-2 border-b px-4 py-3 lg:px-6">
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        <Icon className="text-muted-foreground h-5 w-5 shrink-0" aria-hidden />
-        <h1 className="text-foreground truncate text-lg font-semibold">{channel?.name ?? t("title")}</h1>
+        {/* The header names only the channel. A private channel keeps its lock,
+            the one mark that changes who can read what is written here. */}
         {channel?.visibility === ChatChannelVisibility.PRIVATE && (
-          <span className="sr-only">{tChannels("private")}</span>
+          <>
+            <Lock className="text-muted-foreground h-4 w-4 shrink-0" aria-hidden />
+            <span className="sr-only">{tChannels("private")}</span>
+          </>
         )}
-        {channel?.purpose === ChatChannelPurpose.DAILY_UPDATES && (
-          <Badge variant="outline" className="shrink-0 px-1.5 py-0 text-[10px] font-medium">
-            {tChannels("dailyUpdatesBadge")}
-          </Badge>
-        )}
-        {organizationName && (
-          <span className="text-muted-foreground hidden truncate text-sm sm:inline">{organizationName}</span>
-        )}
+        <h1 className="kazan-grid-heading min-w-0 text-sm">
+          <span className="truncate">{channel?.name ?? t("title")}</span>
+        </h1>
       </div>
       {controls}
       {/* Daily updates land only in the daily updates channel, so only it offers to write one. */}
@@ -500,10 +491,9 @@ function ChatChannel({ orgId }: { orgId: string }) {
       <div
         ref={rootRef}
         tabIndex={-1}
-        className="bg-background flex h-full flex-col outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="flex h-full flex-col outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
       >
         <ChatHeader
-          orgId={orgId}
           channel={channel}
           controls={
             <>

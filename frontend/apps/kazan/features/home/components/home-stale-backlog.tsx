@@ -29,7 +29,7 @@ import { useHomeStaleBacklog } from "../hooks/use-home-stale-backlog";
 import type { HomeStaleTicketResponse } from "../schemas";
 import { HomeSectionError } from "./home-section-error";
 
-const SECTION_CLASS = "bg-card text-card-foreground border-border flex flex-col gap-4 rounded-2xl border p-4 sm:p-5";
+const SECTION_CLASS = "kazan-grid-frame bg-card text-card-foreground flex flex-col gap-4 p-4 sm:p-5";
 const DAY_MS = 86_400_000;
 
 function daysSince(instant: string, now: number): number {
@@ -59,7 +59,7 @@ function StaleRow({
   const lastActivity = t("daysAgo", { count: daysSince(ticket.lastActivityAt, now) });
 
   return (
-    <tr className={cn("border-border border-t", selected && "bg-korur-blue-accent dark:bg-korur-slate")}>
+    <tr className={cn("border-border border-t", selected && "bg-primary/5 dark:bg-korur-slate")}>
       <td className="w-8 py-2 pl-2 align-middle">
         {ticket.canDelete && (
           <Checkbox
@@ -198,7 +198,7 @@ export function HomeStaleBacklog() {
     <section aria-labelledby="home-stale-backlog-heading" className={SECTION_CLASS}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <h2 id="home-stale-backlog-heading" className="text-foreground text-base font-semibold">
+          <h2 id="home-stale-backlog-heading" className="kazan-grid-heading">
             {heading}
           </h2>
           <InfoTip label={t("infoLabel")}>{t("info")}</InfoTip>
@@ -238,7 +238,7 @@ export function HomeStaleBacklog() {
         <table className="w-full table-fixed border-collapse text-left">
           <caption className="sr-only">{heading}</caption>
           <thead>
-            <tr className="text-muted-foreground text-xs">
+            <tr className="text-muted-foreground font-mono text-[11px] tracking-[0.08em] uppercase">
               <th scope="col" className="w-8 pb-2 pl-2 font-medium">
                 {deletable.length > 0 && (
                   <Checkbox

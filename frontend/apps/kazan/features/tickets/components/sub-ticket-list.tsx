@@ -155,13 +155,13 @@ export function SubTicketList({
             </span>
             {totalCount > 0 && (
               <>
-                <div className="h-1.5 max-w-[120px] flex-1 overflow-hidden rounded-full bg-gray-100">
+                <div className="bg-primary/10 h-1.5 max-w-[120px] flex-1 overflow-hidden">
                   <div
-                    className="bg-primary h-full rounded-full transition-all duration-300"
+                    className="bg-primary h-full transition-all duration-300"
                     style={{ width: `${progressPercent}%` }}
                   />
                 </div>
-                <span className="text-xs whitespace-nowrap text-gray-500">
+                <span className="text-muted-foreground font-mono text-xs whitespace-nowrap tabular-nums">
                   {completedCount}/{totalCount}
                 </span>
               </>
@@ -204,7 +204,7 @@ export function SubTicketList({
 
             {/* Quick add (if no full dialog available) or Add button */}
             {isQuickAdding && !onRequestCreateSubTicket ? (
-              <div className="-mx-2 flex items-center gap-2 rounded-md bg-gray-50 px-2 py-1.5">
+              <div className="bg-muted -mx-2 flex items-center gap-2 px-2 py-1.5">
                 <Checkbox disabled className="opacity-50" />
                 <Input
                   ref={inputRef}
@@ -329,7 +329,7 @@ function SubTicketRow({
           aria-label={dragHandleLabel}
           title={isReorderLocked ? lockedHandleLabel : dragHandleLabel}
           className={cn(
-            "text-muted-foreground flex-shrink-0 touch-none rounded opacity-0 transition-opacity focus-visible:opacity-100",
+            "text-muted-foreground flex-shrink-0 touch-none opacity-0 transition-opacity focus-visible:opacity-100",
             isReorderLocked
               ? "cursor-not-allowed group-hover:opacity-40 focus-visible:opacity-40"
               : "cursor-grab group-hover:opacity-100 active:cursor-grabbing"
@@ -409,7 +409,7 @@ function SubTicketRow({
             deletingRef.current = true;
             onDelete(subTicket.id);
           }}
-          className="text-muted-foreground p-1 opacity-0 transition-all group-hover:opacity-100 hover:text-red-500"
+          className="text-muted-foreground p-1 opacity-0 transition-all group-hover:opacity-100 hover:text-destructive"
         >
           <Trash2 className="h-3.5 w-3.5" />
         </button>

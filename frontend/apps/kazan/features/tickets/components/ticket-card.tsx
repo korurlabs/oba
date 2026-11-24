@@ -269,7 +269,7 @@ export const TicketCard = memo(function TicketCard({
             nameClassName="line-clamp-2 whitespace-normal wrap-anywhere"
           />
         ) : (
-          <div className="bg-muted flex h-5 w-5 items-center justify-center rounded-full">
+          <div className="bg-muted flex h-5 w-5 items-center justify-center">
             <UserIcon className="text-muted-foreground h-3 w-3" />
           </div>
         )}

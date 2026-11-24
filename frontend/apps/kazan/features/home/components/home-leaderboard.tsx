@@ -27,7 +27,7 @@ const MEDAL_CLASS: Record<number, string> = {
   3: "text-orange-700 dark:text-orange-400",
 };
 
-const SECTION_CLASS = "bg-card text-card-foreground border-border flex flex-col gap-4 rounded-2xl border p-4 sm:p-5";
+const SECTION_CLASS = "kazan-grid-frame bg-card text-card-foreground flex flex-col gap-4 p-4 sm:p-5";
 
 function LeaderboardRow({
   entry,
@@ -47,11 +47,11 @@ function LeaderboardRow({
     <li
       aria-current={isCurrentUser ? "true" : undefined}
       className={cn(
-        "flex items-center gap-3 rounded-lg px-2 py-1.5",
-        isCurrentUser && "bg-korur-blue-accent dark:bg-korur-slate",
+        "flex items-center gap-3 border-l-2 border-transparent px-2 py-1.5",
+        isCurrentUser && "border-primary bg-primary/5 dark:bg-korur-slate",
       )}
     >
-      <span className="text-muted-foreground flex w-8 shrink-0 items-center gap-0.5 text-sm tabular-nums">
+      <span className="text-muted-foreground flex w-8 shrink-0 items-center gap-0.5 font-mono text-sm tabular-nums">
         <span className="sr-only">{t("rank", { rank })}</span>
         <span aria-hidden>{rank}</span>
         {medalClass && <Medal aria-hidden className={cn("size-4", medalClass)} />}
@@ -112,7 +112,7 @@ export function HomeLeaderboard() {
     <section aria-labelledby="home-leaderboard-heading" className={SECTION_CLASS}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <h2 id="home-leaderboard-heading" className="text-foreground text-base font-semibold">
+          <h2 id="home-leaderboard-heading" className="kazan-grid-heading">
             {t("title")}
           </h2>
           <InfoTip label={t("infoLabel")}>{t("info")}</InfoTip>

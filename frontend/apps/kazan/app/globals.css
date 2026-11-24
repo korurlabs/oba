@@ -31,7 +31,7 @@
   --breakpoint-xl: 1920px;
 
   /* Korur blue shades the sky design does not define */
-  --color-korur-blue-strong: #1c6fb8; /* text on light tints, gradient end */
+  --color-korur-blue-strong: #1c6fb8; /* text on light tints, the primary button */
   --color-korur-blue-medium: #beddff;
   /* Korur's slate editor surfaces, read only by the dormant dark classes */
   --color-korur-slate: #16273a;
@@ -52,19 +52,6 @@
     --error-foreground: hsl(0 0% 100%);
     --warning-foreground: hsl(0 0% 100%);
     --info-foreground: hsl(0 0% 100%);
-
-    /* Gradient Presets */
-    --gradient-blue: linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%);
-    --gradient-green: linear-gradient(135deg, #d1fae5 0%, #6ee7b7 100%);
-    --gradient-purple: linear-gradient(135deg, #ede9fe 0%, #c4b5fd 100%);
-    --gradient-orange: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);
-
-    /* Chart colors */
-    --chart-1: #4aa3ff;
-    --chart-2: hsl(217 91% 60%);
-    --chart-3: hsl(142 71% 45%);
-    --chart-4: hsl(38 92% 50%);
-    --chart-5: #2f4f6a;
 
     /* Kazan's grid look, from the Korur website's survey grid: frame corners, labels and chips */
     --kazan-grid-line: rgb(47 143 233 / 0.08);
@@ -127,65 +114,6 @@
 }
 
 @layer components {
-  /* Badge variants */
-  .badge {
-    @apply inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold;
-  }
-
-  .badge-fix {
-    @apply bg-success-light text-success;
-  }
-
-  .badge-hotfix {
-    @apply bg-error-light text-error;
-  }
-
-  .badge-problem {
-    @apply bg-warning-light text-warning;
-  }
-
-  /* Status badges */
-  .status-badge {
-    @apply inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold;
-  }
-
-  .status-todo {
-    @apply bg-gray-100 text-gray-600;
-  }
-
-  .status-in-progress {
-    @apply bg-info-light text-info;
-  }
-
-  .status-in-review {
-    @apply bg-purple-light text-purple;
-  }
-
-  .status-done {
-    @apply bg-success-light text-success;
-  }
-
-  /* Board gradient bars */
-  .gradient-bar {
-    @apply h-2 w-full;
-  }
-
-  .gradient-bar-blue {
-    background: linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%);
-  }
-
-  .gradient-bar-green {
-    background: linear-gradient(135deg, #d1fae5 0%, #6ee7b7 100%);
-  }
-
-  .gradient-bar-purple {
-    background: linear-gradient(135deg, #ede9fe 0%, #c4b5fd 100%);
-  }
-
-  .gradient-bar-orange {
-    background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);
-  }
-
   /*
    * Kazan's grid panel, a Korur command-post frame used by the daily update
    * and pull request cards. The grid and the corner brackets are background
@@ -229,6 +157,23 @@
     content: "";
     width: 6px;
     height: 6px;
+    flex-shrink: 0;
+    background-color: currentColor;
+  }
+
+  /*
+   * A section heading inside a page (a dashboard panel, a settings group):
+   * the grid label one step larger, so it still reads as a heading.
+   */
+  .kazan-grid-heading {
+    @apply flex items-center gap-2 font-mono text-xs font-semibold tracking-[0.14em] uppercase;
+    color: var(--kazan-grid-ink);
+  }
+
+  .kazan-grid-heading::before {
+    content: "";
+    width: 7px;
+    height: 7px;
     flex-shrink: 0;
     background-color: currentColor;
   }
@@ -284,28 +229,6 @@
 }
 
 @layer utilities {
-  /* Transition utilities */
-  .transition-base {
-    @apply transition-all duration-150 ease-out;
-  }
-
-  .transition-standard {
-    @apply transition-all duration-200 ease-out;
-  }
-
-  .transition-complex {
-    @apply transition-all duration-300 ease-out;
-  }
-
-  /* Hover lift effect */
-  .hover-lift {
-    @apply transition-transform duration-150;
-  }
-
-  .hover-lift:hover {
-    transform: translateY(-2px);
-  }
-
   /* Card shadows */
   .shadow-card {
     box-shadow:
@@ -315,14 +238,6 @@
 
   .shadow-card-hover {
     box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.12);
-  }
-
-  .shadow-dialog {
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  }
-
-  .shadow-primary-glow {
-    box-shadow: 0 8px 20px rgba(47, 143, 233, 0.35);
   }
 
   /* Text utilities */
@@ -344,4 +259,290 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+}
+
+/*
+ * Kazan's grid geometry for every surface it shows, its own primitives and the
+ * shared ones (menus, dialogs, sheets, form fields) alike. The shared
+ * components are matched by their data-slot attributes, and Kazan's local
+ * primitives carry the same attributes, so one rule set gives both the look.
+ *
+ * These rules sit outside any layer on purpose: Tailwind's utilities live in
+ * layers, and an unlayered rule wins over every layered one, so a caller's
+ * `rounded-xl` or `shadow-lg` cannot bring a soft corner back. They only set
+ * corners, hairlines, shadows and background paint, never size or spacing,
+ * so no layout depends on them.
+ */
+:root {
+  /*
+   * Square corners. The sky theme derives rounded-sm, -md, -lg and -xl from
+   * this token; below zero the calc() results clamp to a square corner.
+   */
+  --radius: 0px;
+  --radius-xs: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+
+  /* One straight bar of the corner bracket colour, layered eight times below. */
+  --kazan-grid-crop: linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark));
+  --kazan-grid-edge: color-mix(in srgb, var(--primary) 28%, transparent);
+  --kazan-grid-shadow: 0 18px 40px -20px rgb(47 79 106 / 0.45), 0 2px 6px -2px rgb(47 79 106 / 0.12);
+  --kazan-grid-hover: color-mix(in srgb, var(--primary) 8%, transparent);
+  --kazan-control-edge: color-mix(in srgb, var(--foreground) 24%, transparent);
+}
+
+/*
+ * Large surfaces (dialog, alert dialog, sheet and the big filter panels that
+ * opt in with .kazan-grid-surface) carry the full frame: the 16px grid and
+ * the four corner brackets. Both are background layers rather than a pseudo
+ * element, so they stay put in the corners while a long dialog scrolls, and
+ * assistive technology reads nothing new.
+ */
+:is(
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="sheet-content"],
+  .kazan-grid-surface
+) {
+  border-radius: 0;
+  border-color: var(--kazan-grid-edge);
+  box-shadow: var(--kazan-grid-shadow);
+  background-image:
+    var(--kazan-grid-crop), var(--kazan-grid-crop), var(--kazan-grid-crop), var(--kazan-grid-crop),
+    var(--kazan-grid-crop), var(--kazan-grid-crop), var(--kazan-grid-crop), var(--kazan-grid-crop),
+    linear-gradient(var(--kazan-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--kazan-grid-line) 1px, transparent 1px);
+  background-size:
+    12px 2px, 2px 12px, 12px 2px, 2px 12px,
+    12px 2px, 2px 12px, 12px 2px, 2px 12px,
+    16px 16px, 16px 16px;
+  background-position:
+    left top, left top, right top, right top,
+    left bottom, left bottom, right bottom, right bottom,
+    left top, left top;
+  background-repeat:
+    no-repeat, no-repeat, no-repeat, no-repeat,
+    no-repeat, no-repeat, no-repeat, no-repeat,
+    repeat, repeat;
+}
+
+/* The scrim behind a dialog or sheet: a flat Korur ink tint, no blur, so the page edge stays crisp. */
+:is([data-slot="dialog-overlay"], [data-slot="alert-dialog-overlay"], [data-slot="sheet-overlay"]) {
+  background-color: rgb(22 39 58 / 0.45);
+  backdrop-filter: none;
+}
+
+/*
+ * A dialog's heading leads with the grid label's small square, at its own
+ * readable size. A heading that already leads with an icon keeps the icon as
+ * its only marker.
+ */
+:is([data-slot="dialog-title"], [data-slot="alert-dialog-title"], [data-slot="sheet-title"]):not(:has(svg))::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 0.5rem;
+  vertical-align: 0.15em;
+  flex-shrink: 0;
+  background-color: var(--kazan-grid-mark);
+}
+
+/* Dialog close buttons are square and take the primary colour on hover. */
+:is([data-slot="dialog-close"], [data-slot="sheet-close"]) {
+  border-radius: 0;
+}
+
+/*
+ * Plain floating panels (menus, selects, popovers, the command list): the
+ * same hairline and crisp shadow, without the grid, so a short list stays
+ * quiet and easy to scan.
+ */
+:is(
+  [data-slot="popover-content"],
+  [data-slot="dropdown-menu-content"],
+  [data-slot="dropdown-menu-sub-content"],
+  [data-slot="context-menu-content"],
+  [data-slot="context-menu-sub-content"],
+  [data-slot="select-content"],
+  [data-slot="navigation-menu-content"]
+) {
+  border-radius: 0;
+  border-color: var(--kazan-grid-edge);
+  box-shadow: var(--kazan-grid-shadow);
+}
+
+/* A command list inside a popover draws on the popover's own frame. */
+[data-slot="command"] {
+  border-radius: 0;
+}
+
+/* Menu rows are square; the highlighted row gets a faint primary fill and a primary rule on its leading edge. */
+:is(
+  [data-slot="dropdown-menu-item"],
+  [data-slot="dropdown-menu-checkbox-item"],
+  [data-slot="dropdown-menu-radio-item"],
+  [data-slot="dropdown-menu-sub-trigger"],
+  [data-slot="context-menu-item"],
+  [data-slot="context-menu-checkbox-item"],
+  [data-slot="context-menu-radio-item"],
+  [data-slot="context-menu-sub-trigger"],
+  [data-slot="select-item"],
+  [data-slot="command-item"]
+) {
+  border-radius: 0;
+}
+
+:is(
+    [data-slot="dropdown-menu-item"],
+    [data-slot="dropdown-menu-checkbox-item"],
+    [data-slot="dropdown-menu-radio-item"],
+    [data-slot="dropdown-menu-sub-trigger"],
+    [data-slot="context-menu-item"],
+    [data-slot="context-menu-checkbox-item"],
+    [data-slot="context-menu-radio-item"],
+    [data-slot="context-menu-sub-trigger"],
+    [data-slot="select-item"],
+    [data-slot="command-item"]
+  ):is([data-highlighted], [data-selected="true"], [data-state="open"]):not([data-disabled]) {
+  background-color: var(--kazan-grid-hover);
+  color: var(--foreground);
+  box-shadow: inset 2px 0 0 var(--primary);
+}
+
+/* A menu's section heading reads as a grid label. */
+:is(
+  [data-slot="dropdown-menu-label"],
+  [data-slot="context-menu-label"],
+  [data-slot="select-label"],
+  [cmdk-group-heading]
+) {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--kazan-grid-ink);
+}
+
+/* Tooltips are square plates. */
+[data-slot="tooltip-content"] {
+  border-radius: 0;
+}
+
+/*
+ * Controls: square, a 1px hairline instead of a thick rounded rim, and a
+ * crisp primary edge on focus. A radio button keeps its circle, because the
+ * circle is what tells it apart from a checkbox.
+ */
+:is(
+  [data-slot="button"],
+  [data-slot="toggle"],
+  [data-slot="toggle-group"],
+  [data-slot="toggle-group-item"],
+  [data-slot="input"],
+  [data-slot="textarea"],
+  [data-slot="select-trigger"],
+  [data-slot="checkbox"],
+  [data-slot="command-input-wrapper"],
+  [data-slot="tabs-list"],
+  [data-slot="tabs-trigger"]
+) {
+  border-radius: 0;
+}
+
+/*
+ * The sky theme's --input is white, so a field's rim showed only through its
+ * soft shadow. A flat field needs a visible hairline of its own instead; a
+ * field in error keeps its red edge.
+ */
+:is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"]) {
+  box-shadow: none;
+}
+
+:is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"]):not([aria-invalid="true"]) {
+  border-color: var(--kazan-control-edge);
+}
+
+:is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"]):hover:not([aria-invalid="true"], :disabled, [data-disabled]) {
+  border-color: color-mix(in srgb, var(--primary) 55%, transparent);
+}
+
+/*
+ * Focus doubles the primary edge to 2px; a field in error keeps its red edge,
+ * and a borderless field inside its own frame leaves focus to that frame.
+ */
+:is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"]):is(:focus, :focus-visible, [data-state="open"]):not([aria-invalid="true"], [class~="border-0"], [class~="border-none"]) {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+/* A switch becomes a square track with a square thumb, still sliding on the same path. */
+:is([data-slot="switch"], [data-slot="switch-thumb"]) {
+  border-radius: 0;
+}
+
+/*
+ * Tables (the shared ticket table and its relatives): the header is a square
+ * card-coloured strip of mono labels over a primary hairline, not a tinted
+ * band, and a row marks hover and selection with the faint primary fill and
+ * the leading primary rule the menus use. The hairline is an inset shadow,
+ * because the sticky header cells lose a collapsed border while scrolling.
+ */
+[data-slot="table-head"] {
+  border-radius: 0;
+  background-color: var(--card);
+  box-shadow: inset 0 -1px 0 var(--kazan-grid-edge);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+[data-slot="table-head"]:not(.text-primary) {
+  color: var(--kazan-grid-ink);
+}
+
+[data-slot="table-head"] span {
+  font-size: inherit;
+}
+
+[data-slot="table-row"]:hover {
+  background-color: var(--kazan-grid-hover);
+}
+
+[data-slot="table-row"][data-state="selected"] {
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+  box-shadow: inset 2px 0 0 var(--primary);
+}
+
+[data-slot="checkbox"] {
+  box-shadow: none;
+}
+
+/*
+ * The page area behind boards, lists and chat: a pale blue sheet with the
+ * menu's 16px grid. The background belongs to the scroll container, so the
+ * grid stays fixed to the area instead of sliding with a long page. Text
+ * never sits on the lines: tables and the chat's message list are solid
+ * plates on top of it.
+ */
+.kazan-canvas {
+  background-color: #f6fbff;
+  background-image:
+    linear-gradient(rgb(47 143 233 / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(47 143 233 / 0.07) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.dark .kazan-canvas {
+  background-color: var(--background);
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.04) 1px, transparent 1px);
+}
+
+.kazan-canvas [data-slot="table"] {
+  background-color: var(--card);
 }

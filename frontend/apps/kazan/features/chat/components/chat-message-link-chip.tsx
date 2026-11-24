@@ -81,7 +81,7 @@ export function ChatMessageLinkPreview({ link, onJump }: ChatMessageLinkPreviewP
         {failed ? (
           <span className="truncate">{label}</span>
         ) : (
-          <span className="bg-primary/15 inline-block h-3 w-40 animate-pulse rounded" aria-hidden />
+          <span className="bg-primary/15 inline-block h-3 w-40 animate-pulse" aria-hidden />
         )}
       </>
     );

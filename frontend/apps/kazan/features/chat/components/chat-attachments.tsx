@@ -175,7 +175,7 @@ export function ChatComposerFiles({ files, onRemove }: ChatComposerFilesProps) {
   if (files.length === 0) return null;
 
   const removeButtonClass =
-    "focus-visible:ring-ring rounded focus-visible:ring-2 focus-visible:outline-none";
+    "focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none";
 
   return (
     <div role="group" aria-label={t("files")} className="flex flex-col gap-2 px-3 pt-2.5">

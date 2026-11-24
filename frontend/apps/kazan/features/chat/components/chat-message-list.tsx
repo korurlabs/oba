@@ -1097,7 +1097,7 @@ export function ChatMessageList({
         // No sideways overscroll: a horizontal swipe over a message is a reply, not a page gesture.
         // No focus ring: a click focuses the list too, and some browsers count that as visible focus;
         // keyboard focus moves on to the newest message, which shows its own.
-        className="flex flex-1 flex-col-reverse overflow-y-auto overscroll-x-none outline-none [overflow-anchor:none] focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="bg-card flex flex-1 flex-col-reverse overflow-y-auto overscroll-x-none outline-none [overflow-anchor:none] focus-visible:ring-0 focus-visible:ring-offset-0"
       >
         {body}
       </div>

@@ -31,7 +31,7 @@ export function BacklogPageView({ boardId }: BacklogPageViewProps) {
   const columnToggleItems = useTicketColumnToggleItems();
 
   return (
-    <div className="bg-background flex h-full flex-col">
+    <div className="flex h-full flex-col">
       <BacklogToolbar
         boardId={boardId}
         page={page}
@@ -45,7 +45,7 @@ export function BacklogPageView({ boardId }: BacklogPageViewProps) {
       {/* Backlog Content */}
       <div id="table-target" className="flex-1 overflow-auto">
         {page.isLoading ? (
-          <div className="bg-background flex h-full flex-col items-center justify-center">
+          <div className="flex h-full flex-col items-center justify-center">
             <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
             <p className="text-muted-foreground mt-3 text-sm">{t("common.loading")}</p>
           </div>
