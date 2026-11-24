@@ -36,8 +36,10 @@ WORKDIR /app
 # AUTH_* values arrive at run time through Kagi injection.
 # .dockerignore keeps every .env* out of the build context, including any copy
 # Next.js writes into .next/standalone.
+# The app's postbuild step (copy-static-to-standalone.mjs) has already copied
+# public/ and .next/static/ into .next/standalone, so this one copy carries
+# them. An app without a public/ folder builds the same way.
 COPY apps/${APP_NAME}/.next .next
-COPY apps/${APP_NAME}/public .next/standalone/apps/${APP_NAME}/public
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
