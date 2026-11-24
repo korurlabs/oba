@@ -3,6 +3,7 @@ import { AuthError } from "@oba/shared/libs/auth/types";
 import { accountOnboardingUrl, appUrl } from "@oba/shared/constants/apps";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderToStaticMarkup } from "react-dom/server";
+import { OVERVIEW_RECENT_LIMIT } from "@/features/recent/lib/recent-limits";
 
 // The root page is the home page and the sign-in gateway: it turns the
 // session and the `callbackUrl` the proxy preserved into a redirect. Each
@@ -27,6 +28,8 @@ class Redirected extends Error {
 let session: SessionState;
 let signOutCalls: unknown[];
 let prefetched: number;
+let prefetchedTrees: string[];
+let prefetchedRecent: unknown[][];
 
 // Copies, not the namespaces: mock.module rewrites a loaded module in place, so the
 // afterAll restore would otherwise put the mocks back for the files that run later.
@@ -35,7 +38,8 @@ const actualNavigation = { ...(await import("next/navigation")) };
 const actualI18nNavigation = { ...(await import("@oba/shared/libs/i18n/navigation")) };
 const actualPrefetch = { ...(await import("@oba/shared/features/users/api/prefetch-me")) };
 const actualServerIntl = { ...(await import("next-intl/server")) };
-const actualShell = { ...(await import("@/components/layout/kalkan-shell")) };
+const actualShell = { ...(await import("@/components/layout/kalkan-app-shell")) };
+const actualPagePrefetch = { ...(await import("@/features/pages/lib/prefetch")) };
 
 mock.module("@oba/shared/libs/auth", () => ({
   ...actualAuth,
@@ -66,11 +70,25 @@ mock.module("next-intl/server", () => ({
   ...actualServerIntl,
   getTranslations: async () => (key: string) => key,
 }));
-mock.module("@/components/layout/kalkan-shell", () => ({
+mock.module("@/components/layout/kalkan-app-shell", () => ({
   ...actualShell,
-  KalkanShell: ({ organizationId }: { organizationId: string | null }) => (
+  KalkanAppShell: ({ organizationId }: { organizationId: string | null }) => (
     <main>kalkan-shell:{organizationId ?? "none"}</main>
   ),
+}));
+mock.module("@/features/pages/lib/prefetch", () => ({
+  ...actualPagePrefetch,
+  prefetchPageTree: async (_queryClient: unknown, organizationId: string) => {
+    prefetchedTrees.push(organizationId);
+  },
+  prefetchRecentPages: async (
+    _queryClient: unknown,
+    organizationId: string,
+    limit: number,
+    uiLocale: string
+  ) => {
+    prefetchedRecent.push([organizationId, limit, uiLocale]);
+  },
 }));
 
 afterAll(() => {
@@ -79,7 +97,8 @@ afterAll(() => {
   mock.module("@oba/shared/libs/i18n/navigation", () => actualI18nNavigation);
   mock.module("@oba/shared/features/users/api/prefetch-me", () => actualPrefetch);
   mock.module("next-intl/server", () => actualServerIntl);
-  mock.module("@/components/layout/kalkan-shell", () => actualShell);
+  mock.module("@/components/layout/kalkan-app-shell", () => actualShell);
+  mock.module("@/features/pages/lib/prefetch", () => actualPagePrefetch);
 });
 
 const { default: RootPage } = await import("./page");
@@ -122,6 +141,8 @@ beforeEach(() => {
   session = ACTIVE;
   signOutCalls = [];
   prefetched = 0;
+  prefetchedTrees = [];
+  prefetchedRecent = [];
 });
 
 describe("root page redirects", () => {
@@ -235,11 +256,13 @@ describe("root page redirects", () => {
 });
 
 describe("root page content", () => {
-  test("shows the shell to an active user with the session's organization and prefetches the current user", async () => {
+  test("shows the shell to an active user with the session's organization and prefetches the current user, the page tree and the recent changes", async () => {
     const page = await visit();
 
     expect(markupOf(page)).toContain("kalkan-shell:org-1");
     expect(prefetched).toBe(1);
+    expect(prefetchedTrees).toEqual(["org-1"]);
+    expect(prefetchedRecent).toEqual([["org-1", OVERVIEW_RECENT_LIMIT, "en"]]);
   });
 
   test("hands the shell no organization when the session has none", async () => {
@@ -248,6 +271,8 @@ describe("root page content", () => {
     const page = await visit();
 
     expect(markupOf(page)).toContain("kalkan-shell:none");
+    expect(prefetchedTrees).toEqual([]);
+    expect(prefetchedRecent).toEqual([]);
   });
 
   test("signs a deleted user out and renders nothing", async () => {
