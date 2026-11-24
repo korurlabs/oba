@@ -1,7 +1,7 @@
 # Kagi binding for this directory. Secrets are addressed by the stable
 # app-id; folder-path is a human reference only and is not used for addressing.
 folder-path: /oba/ulak
-app-id: d387edd2-df2b-4449-8b35-13541468d657
+app-id: a9493497-9f66-4196-9157-9d74419f5689
 environment: local
 organization: sensey
 organization-id: 00000000-0000-0000-0000-000000000001
