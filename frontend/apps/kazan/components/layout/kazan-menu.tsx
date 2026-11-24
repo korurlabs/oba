@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import {
   DatabaseBackup,
+  Gauge,
   GitPullRequest,
   House,
   LifeBuoy,
@@ -57,6 +58,7 @@ export function KazanMenu() {
             <SidebarItem href="/disaster-drills" label={t("disasterDrills")} icon={LifeBuoy} />
             <SidebarItem href="/backup-runs" label={t("backupRuns")} icon={DatabaseBackup} />
             <SidebarItem href="/chaos-engineering" label={t("chaosEngineering")} icon={Tornado} />
+            <SidebarItem href="/cyberscore" label={t("cyberscore")} icon={Gauge} />
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>

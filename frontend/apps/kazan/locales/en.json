@@ -1008,6 +1008,7 @@
     "disasterDrills": "Disaster Drills",
     "backupRuns": "Backup Runs",
     "chaosEngineering": "Chaos Engineering",
+    "cyberscore": "Cyberscore",
     "chats": "Chats",
     "dailyUpdates": "Updates",
     "pullRequests": "PR",
@@ -1429,6 +1430,12 @@
     "description": "The controlled failures you inject into your systems to find weak spots before a real outage does.",
     "emptyTitle": "No chaos experiments yet",
     "emptyDescription": "Chaos experiments and their results will appear here."
+  },
+  "cyberscore": {
+    "title": "Cyberscore",
+    "description": "The rating of your security posture, built from the state of your systems and practices.",
+    "emptyTitle": "No cyberscore yet",
+    "emptyDescription": "Your cyberscore and how it changes will appear here."
   },
   "metadata": {
     "description": "Modern project management tool inspired by Notion and Jira simplicity"

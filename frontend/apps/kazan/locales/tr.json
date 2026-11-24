@@ -994,7 +994,7 @@
   "sidebar": {
     "home": "Saha",
     "downloads": "CLI indir",
-    "operations": "Operasyonlar",
+    "operations": "Operasyon",
     "work": "İş",
     "resizeSidebar": "Kenar çubuğunu yeniden boyutlandır",
     "boards": "Panolar",
@@ -1008,6 +1008,7 @@
     "disasterDrills": "Afet Tatbikatları",
     "backupRuns": "Yedekleme Çalıştırmaları",
     "chaosEngineering": "Kaos Mühendisliği",
+    "cyberscore": "Cyberscore",
     "chats": "Sohbetler",
     "dailyUpdates": "Güncellemeler",
     "pullRequests": "PR",
@@ -1429,6 +1430,12 @@
     "description": "Zayıf noktaları gerçek bir kesintiden önce bulmak için sistemlerinize bilerek verdiğiniz kontrollü arızalar.",
     "emptyTitle": "Henüz kaos deneyi yok",
     "emptyDescription": "Kaos deneyleri ve sonuçları burada görünecek."
+  },
+  "cyberscore": {
+    "title": "Cyberscore",
+    "description": "Sistemlerinizin ve uygulamalarınızın durumundan oluşan güvenlik duruşu puanınız.",
+    "emptyTitle": "Henüz cyberscore yok",
+    "emptyDescription": "Cyberscore'unuz ve değişimi burada görünecek."
   },
   "metadata": {
     "description": "Notion ve Jira'nın sadeliğinden ilham alan modern proje yönetim aracı"

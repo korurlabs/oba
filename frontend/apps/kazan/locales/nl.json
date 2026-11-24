@@ -1008,6 +1008,7 @@
     "disasterDrills": "Rampoefeningen",
     "backupRuns": "Back-upruns",
     "chaosEngineering": "Chaos Engineering",
+    "cyberscore": "Cyberscore",
     "chats": "Chats",
     "dailyUpdates": "Updates",
     "pullRequests": "PR",
@@ -1429,6 +1430,12 @@
     "description": "De gecontroleerde storingen die je in je systemen veroorzaakt om zwakke plekken te vinden voordat een echte storing dat doet.",
     "emptyTitle": "Nog geen chaosexperimenten",
     "emptyDescription": "Chaosexperimenten en hun resultaten verschijnen hier."
+  },
+  "cyberscore": {
+    "title": "Cyberscore",
+    "description": "De beoordeling van je beveiliging, opgebouwd uit de staat van je systemen en werkwijzen.",
+    "emptyTitle": "Nog geen cyberscore",
+    "emptyDescription": "Je cyberscore en hoe die verandert verschijnen hier."
   },
   "metadata": {
     "description": "Moderne projectmanagementtool, geïnspireerd door de eenvoud van Notion en Jira"

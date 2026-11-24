@@ -150,6 +150,7 @@ describe("KazanMenu", () => {
       `<span>${sidebar.disasterDrills}</span>`,
       `<span>${sidebar.backupRuns}</span>`,
       `<span>${sidebar.chaosEngineering}</span>`,
+      `<span>${sidebar.cyberscore}</span>`,
       `>${sidebar.work}<`,
       `<span>${sidebar.tickets}</span>`,
       `<span>${sidebar.dailyUpdates}</span>`,
@@ -170,7 +171,7 @@ describe("KazanMenu", () => {
     expect(sidebar).not.toHaveProperty("navigation");
   });
 
-  test("links Field, Incidents, Vulnerabilities, Disaster Drills, Backup Runs, Chaos Engineering and Chats to their pages", () => {
+  test("links Field, Incidents, Vulnerabilities, Disaster Drills, Backup Runs, Chaos Engineering, Cyberscore and Chats to their pages", () => {
     const html = markup();
     expect(html).toContain('href="/home"');
     expect(html).toContain(`<span>${sidebar.home}</span>`);
@@ -180,6 +181,7 @@ describe("KazanMenu", () => {
     expect(html).toContain('href="/disaster-drills"');
     expect(html).toContain('href="/backup-runs"');
     expect(html).toContain('href="/chaos-engineering"');
+    expect(html).toContain('href="/cyberscore"');
     expect(html).not.toContain("/disaster-recovery");
     expect(html).toContain('href="/chats"');
   });
