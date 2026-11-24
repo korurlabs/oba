@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, type ReactNode } from "react";
+import { type ReactNode, useCallback, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import {
   AlertCircle,
@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -139,6 +139,14 @@ interface ChatSearchPanelProps {
   onOpenChange: (open: boolean) => void;
   /** Shows the message: in the channel around it, or in its thread's panel. */
   onJump: (message: ChatMessageResponse) => void;
+  /**
+   * Shows the search field itself in the header instead of a Search button,
+   * as on the tickets page. Used where the channel name adds nothing (the
+   * daily updates and pull requests channels); the results open beneath it.
+   */
+  inline?: boolean;
+  /** The inline field's placeholder, naming what the channel holds; defaults to searching messages. */
+  placeholder?: string;
 }
 
 /**
@@ -147,10 +155,11 @@ interface ChatSearchPanelProps {
  * The text and the author live in the URL (`q`, `author`), so a search
  * survives a reload; it runs from 2 characters, debounced by the input.
  */
-export function ChatSearchPanel({ open, onOpenChange, onJump }: ChatSearchPanelProps) {
+export function ChatSearchPanel({ open, onOpenChange, onJump, inline = false, placeholder }: ChatSearchPanelProps) {
   const t = useTranslations("chat.search");
   const [{ q, author }, setParams] = useChatParams();
   const inputRef = useRef<HTMLInputElement>(null);
+  const anchorRef = useRef<HTMLDivElement>(null);
 
   const onSearchChange = useCallback(
     (value: string | undefined) => void setParams({ q: value ?? null }),
@@ -160,6 +169,48 @@ export function ChatSearchPanel({ open, onOpenChange, onJump }: ChatSearchPanelP
     onOpenChange(false);
     onJump(message);
   };
+
+  // Mod+F opens the search; in the header field that means putting the caret there.
+  useEffect(() => {
+    if (inline && open) inputRef.current?.focus();
+  }, [inline, open]);
+
+  if (inline) {
+    return (
+      <Popover open={open} onOpenChange={onOpenChange}>
+        <PopoverAnchor asChild>
+          <div ref={anchorRef} className="w-40 sm:w-56">
+            <SenseySearchInput
+              value={q}
+              inputRef={inputRef}
+              placeholder={placeholder ?? t("placeholder")}
+              onSearchChange={(value) => {
+                onSearchChange(value);
+                if (value) onOpenChange(true);
+              }}
+              className="w-full"
+            />
+          </div>
+        </PopoverAnchor>
+        <PopoverContent
+          align="start"
+          className="flex w-[min(28rem,calc(100vw-2rem))] flex-col gap-2 p-3"
+          // Typing stays in the header field: the panel only shows results.
+          onOpenAutoFocus={(event) => event.preventDefault()}
+          onInteractOutside={(event) => {
+            if (anchorRef.current?.contains(event.target as Node)) event.preventDefault();
+          }}
+        >
+          <AuthorFilter
+            enabled={open}
+            value={author}
+            onChange={(authorId) => void setParams({ author: authorId })}
+          />
+          <SearchResults q={q} author={author} onJump={jump} />
+        </PopoverContent>
+      </Popover>
+    );
+  }
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>

@@ -81,7 +81,7 @@ export function SprintToolbar({
         <SenseySearchInput
           value={filters.search}
           onSearchChange={(search) => onFiltersChange({ search: search ?? null })}
-          placeholder={t("search")}
+          placeholder={t("ticket.searchPlaceholder")}
           className="w-32 sm:w-56"
         />
         <ViewToggle view={viewMode} onViewChange={onViewModeChange} />

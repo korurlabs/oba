@@ -167,6 +167,7 @@
     "includeAllBoards": "Inclusief alle borden"
   },
   "ticket": {
+    "searchPlaceholder": "Tickets zoeken…",
     "systemActor": {
       "badge": "Systeem"
     },
@@ -1695,6 +1696,8 @@
       "button": "Zoeken",
       "title": "Berichten zoeken",
       "placeholder": "Berichten zoeken…",
+      "updatesPlaceholder": "Updates zoeken…",
+      "pullRequestsPlaceholder": "Pull requests zoeken…",
       "author": "Auteur",
       "anyAuthor": "Elke auteur",
       "selectedAuthor": "Gekozen auteur",

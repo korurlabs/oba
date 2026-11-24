@@ -167,6 +167,7 @@
     "includeAllBoards": "Tüm panoları dahil et"
   },
   "ticket": {
+    "searchPlaceholder": "Ticket ara…",
     "systemActor": {
       "badge": "Sistem"
     },
@@ -1695,6 +1696,8 @@
       "button": "Ara",
       "title": "Mesajlarda ara",
       "placeholder": "Mesajlarda ara…",
+      "updatesPlaceholder": "Güncellemelerde ara…",
+      "pullRequestsPlaceholder": "Pull request ara…",
       "author": "Yazar",
       "anyAuthor": "Tüm yazarlar",
       "selectedAuthor": "Seçili yazar",

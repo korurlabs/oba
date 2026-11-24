@@ -56,6 +56,7 @@ export function AllTicketsToolbar({
         {/* Search */}
         <SenseySearchInput
           value={filters.search}
+          placeholder={t("ticket.searchPlaceholder")}
           onSearchChange={onSearchChange}
           className="w-40 sm:w-56"
         />

@@ -47,7 +47,7 @@ export function AllToolbar({ boardId, page, columnToggleItems }: AllToolbarProps
       <SenseySearchInput
         value={filters.search}
         onSearchChange={(search) => setFilters({ search: search ?? null })}
-        placeholder={t("search")}
+        placeholder={t("ticket.searchPlaceholder")}
         className="w-32 sm:w-56"
       />
       <ViewOptionsPopover

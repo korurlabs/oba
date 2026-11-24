@@ -167,6 +167,7 @@
     }
   },
   "ticket": {
+    "searchPlaceholder": "Search tickets…",
     "systemActor": {
       "badge": "System"
     },
@@ -1695,6 +1696,8 @@
       "button": "Search",
       "title": "Search messages",
       "placeholder": "Search messages…",
+      "updatesPlaceholder": "Search updates…",
+      "pullRequestsPlaceholder": "Search pull requests…",
       "author": "Author",
       "anyAuthor": "Any author",
       "selectedAuthor": "Selected author",
