@@ -994,7 +994,8 @@
   "sidebar": {
     "home": "Field",
     "downloads": "Download CLI",
-    "navigation": "Navigation",
+    "operations": "Operations",
+    "work": "Work",
     "resizeSidebar": "Resize sidebar",
     "boards": "Boards",
     "newBoard": "New Board",

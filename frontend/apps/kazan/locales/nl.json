@@ -994,7 +994,8 @@
   "sidebar": {
     "home": "Veld",
     "downloads": "CLI downloaden",
-    "navigation": "Navigatie",
+    "operations": "Operaties",
+    "work": "Werk",
     "resizeSidebar": "Zijbalk vergroten of verkleinen",
     "boards": "Borden",
     "newBoard": "Nieuw Bord",

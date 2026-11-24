@@ -26,16 +26,17 @@ import { ChatChannelNavItem, ChatNavItem } from "./sidebar-chat-nav";
 import { SidebarItem } from "./sidebar-item";
 
 /**
- * Kazan's navigation inside the sky shell's floating panel: one list, so the
- * places the team reads every day are one click away. The daily updates and
- * pull requests channels sit at the root, next to the Chats and Boards
- * sections; each channel row shows only once its channel exists. Settings
- * sits apart at the panel's foot, drawn by the shell. When the rows do not fit,
- * the panel scrolls.
+ * Kazan's navigation inside the sky shell's floating panel, in two labelled
+ * sections like the other sky apps: Operations holds the security operations
+ * pages, Work the tickets and the team's conversations. The daily updates and
+ * pull requests channels sit in Work, next to the Chats and Boards rows; each
+ * channel row shows only once its channel exists. Settings sits apart at the
+ * panel's foot, drawn by the shell. When the rows do not fit, the panel
+ * scrolls.
  *
  * The rows close the menu sheet of a narrow window on a click, and the Chats
- * and Boards sections hide their channel list, board tree and "+" while Kazan
- * is shut in the selected organization.
+ * and Boards rows hide their channel list, board tree and "+" while Kazan is
+ * shut in the selected organization.
  */
 export function KazanMenu() {
   const t = useTranslations("sidebar");
@@ -45,35 +46,44 @@ export function KazanMenu() {
   useChatChannelListRealtime();
 
   return (
-    <SidebarGroup className="py-0">
-      <SidebarGroupLabel>{t("navigation")}</SidebarGroupLabel>
-      <SidebarGroupContent>
-        <SidebarMenu className="gap-0.5">
-          <SidebarItem href="/home" label={t("home")} icon={House} />
-          <SidebarItem
-            href={`/tickets?assigneeIds=${currentUserId}`}
-            label={t("tickets")}
-            icon={Ticket}
-          />
-          <SidebarItem href="/incidents" label={t("incidents")} icon={Siren} />
-          <SidebarItem href="/vulnerabilities" label={t("vulnerabilities")} icon={ShieldAlert} />
-          <SidebarItem href="/disaster-drills" label={t("disasterDrills")} icon={LifeBuoy} />
-          <SidebarItem href="/backup-runs" label={t("backupRuns")} icon={DatabaseBackup} />
-          <SidebarItem href="/chaos-engineering" label={t("chaosEngineering")} icon={Tornado} />
-          <ChatChannelNavItem
-            purpose={ChatChannelPurpose.DAILY_UPDATES}
-            label={t("dailyUpdates")}
-            icon={Newspaper}
-          />
-          <ChatChannelNavItem
-            purpose={ChatChannelPurpose.PULL_REQUESTS}
-            label={t("pullRequests")}
-            icon={GitPullRequest}
-          />
-          <ChatNavItem />
-          <BoardsNavItem />
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
+    <>
+      <SidebarGroup className="py-0">
+        <SidebarGroupLabel>{t("operations")}</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu className="gap-0.5">
+            <SidebarItem href="/home" label={t("home")} icon={House} />
+            <SidebarItem href="/incidents" label={t("incidents")} icon={Siren} />
+            <SidebarItem href="/vulnerabilities" label={t("vulnerabilities")} icon={ShieldAlert} />
+            <SidebarItem href="/disaster-drills" label={t("disasterDrills")} icon={LifeBuoy} />
+            <SidebarItem href="/backup-runs" label={t("backupRuns")} icon={DatabaseBackup} />
+            <SidebarItem href="/chaos-engineering" label={t("chaosEngineering")} icon={Tornado} />
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+      <SidebarGroup className="py-0">
+        <SidebarGroupLabel>{t("work")}</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu className="gap-0.5">
+            <SidebarItem
+              href={`/tickets?assigneeIds=${currentUserId}`}
+              label={t("tickets")}
+              icon={Ticket}
+            />
+            <ChatChannelNavItem
+              purpose={ChatChannelPurpose.DAILY_UPDATES}
+              label={t("dailyUpdates")}
+              icon={Newspaper}
+            />
+            <ChatChannelNavItem
+              purpose={ChatChannelPurpose.PULL_REQUESTS}
+              label={t("pullRequests")}
+              icon={GitPullRequest}
+            />
+            <ChatNavItem />
+            <BoardsNavItem />
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    </>
   );
 }

@@ -139,26 +139,35 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("KazanMenu", () => {
-  test("lists the rows under one Navigation label in order", () => {
+  test("lists the Operations rows, then the Work rows, each under its label", () => {
     channels = [channel("DAILY_UPDATES"), channel("PULL_REQUESTS")];
     const html = markup();
-    expect(html).toContain(`>${sidebar.navigation}<`);
-    const labels = [
-      sidebar.home,
-      sidebar.tickets,
-      sidebar.incidents,
-      sidebar.vulnerabilities,
-      sidebar.disasterDrills,
-      sidebar.backupRuns,
-      sidebar.chaosEngineering,
-      sidebar.dailyUpdates,
-      sidebar.pullRequests,
-      sidebar.chats,
-      sidebar.boards,
+    const entries = [
+      `>${sidebar.operations}<`,
+      `<span>${sidebar.home}</span>`,
+      `<span>${sidebar.incidents}</span>`,
+      `<span>${sidebar.vulnerabilities}</span>`,
+      `<span>${sidebar.disasterDrills}</span>`,
+      `<span>${sidebar.backupRuns}</span>`,
+      `<span>${sidebar.chaosEngineering}</span>`,
+      `>${sidebar.work}<`,
+      `<span>${sidebar.tickets}</span>`,
+      `<span>${sidebar.dailyUpdates}</span>`,
+      `<span>${sidebar.pullRequests}</span>`,
+      `<span>${sidebar.chats}</span>`,
+      `<span>${sidebar.boards}</span>`,
     ];
-    const positions = labels.map((label) => html.indexOf(`<span>${label}</span>`));
+    const positions = entries.map((entry) => html.indexOf(entry));
     expect(positions.every((position) => position > -1)).toBe(true);
     expect([...positions].sort((a, b) => a - b)).toEqual(positions);
+  });
+
+  test("draws the two sections as separate labelled groups, with no Navigation label", () => {
+    const html = markup();
+    expect(html.match(/data-sidebar="group-label"/g)).toHaveLength(2);
+    expect(html.match(/data-sidebar="group"/g)).toHaveLength(2);
+    expect(html).not.toContain(">Navigation<");
+    expect(sidebar).not.toHaveProperty("navigation");
   });
 
   test("links Field, Incidents, Vulnerabilities, Disaster Drills, Backup Runs, Chaos Engineering and Chats to their pages", () => {

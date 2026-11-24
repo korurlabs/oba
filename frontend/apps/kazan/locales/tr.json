@@ -994,7 +994,8 @@
   "sidebar": {
     "home": "Saha",
     "downloads": "CLI indir",
-    "navigation": "Gezinme",
+    "operations": "Operasyonlar",
+    "work": "İş",
     "resizeSidebar": "Kenar çubuğunu yeniden boyutlandır",
     "boards": "Panolar",
     "newBoard": "Yeni Pano",
