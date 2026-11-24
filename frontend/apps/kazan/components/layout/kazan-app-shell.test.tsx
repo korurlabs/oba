@@ -22,7 +22,6 @@ const actualSelector = {
 const actualSwitcher = { ...(await import("@oba/shared/components/app-header/app-switcher")) };
 const actualProfile = { ...(await import("@oba/shared/components/app-header/profile-dropdown")) };
 const actualLanguage = { ...(await import("@oba/shared/components/language-switcher")) };
-const actualDropdown = { ...(await import("@oba/ui/components/dropdown-menu")) };
 const actualMenu = { ...(await import("./kazan-menu")) };
 const actualGate = { ...(await import("./app-access-gate")) };
 const actualSync = { ...(await import("./account-session-sync")) };
@@ -74,10 +73,6 @@ mock.module("@oba/shared/components/language-switcher", () => ({
   ...actualLanguage,
   LanguageSwitcherSubMenu: () => <div data-language="" />,
 }));
-mock.module("@oba/ui/components/dropdown-menu", () => ({
-  ...actualDropdown,
-  DropdownMenuItem: ({ children }: { children?: ReactNode }) => children,
-}));
 mock.module("./kazan-menu", () => ({ ...actualMenu, KazanMenu: () => <div data-menu="" /> }));
 mock.module("./app-access-gate", () => ({
   ...actualGate,
@@ -103,7 +98,6 @@ afterAll(() => {
   mock.module("@oba/shared/components/app-header/app-switcher", () => actualSwitcher);
   mock.module("@oba/shared/components/app-header/profile-dropdown", () => actualProfile);
   mock.module("@oba/shared/components/language-switcher", () => actualLanguage);
-  mock.module("@oba/ui/components/dropdown-menu", () => actualDropdown);
   mock.module("./kazan-menu", () => actualMenu);
   mock.module("./app-access-gate", () => actualGate);
   mock.module("./account-session-sync", () => actualSync);
@@ -173,13 +167,11 @@ describe("KazanAppShell top bar", () => {
     expect(markup()).toContain("data-language");
   });
 
-  test("shows the Organizations row only to an owner or admin", () => {
-    const member = between(markup(), "data-profile-menu", "</header>");
-    expect(member).not.toContain(en.sidebar.organizations);
-
+  test("has no Organizations row, not even for an owner", () => {
     role = "OWNER";
-    const owner = between(markup(), "data-profile-menu", "</header>");
-    expect(owner).toContain(`<span>${en.sidebar.organizations}</span>`);
+    const menu = between(markup(), "data-profile-menu", "</header>");
+    expect(menu).not.toContain(en.sidebar.organizations);
+    expect(menu).not.toContain("ulak");
   });
 });
 

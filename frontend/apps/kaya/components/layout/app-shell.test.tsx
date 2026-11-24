@@ -1,7 +1,6 @@
 import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import { QueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { ULAK_LINKS } from "@oba/shared/constants/apps";
 import { renderToStaticMarkup } from "react-dom/server";
 
 // The header's real parts are Kaya's shell and the shared organization
@@ -235,18 +234,11 @@ describe("Kaya header", () => {
     expect(switched).toEqual([]);
   });
 
-  test("the profile menu has an Organization item for a manager, linked to Ulak", () => {
+  test("the profile menu gets no extra item, not even an Organization item for a manager", () => {
     managesOrganizations = true;
     const html = render();
-    expect(html).toContain("<span>Organization</span>");
-    expect(html).toContain(`href="${ULAK_LINKS.organizations}"`);
-  });
-
-  test("the profile menu has no Organization item for anyone else", () => {
-    managesOrganizations = false;
-    const html = render();
-    expect(html).not.toContain("<span>Organization</span>");
-    expect(html).toContain('data-profile=""');
+    expect(html).toContain('<div data-profile=""></div>');
+    expect(html).not.toContain("Organization</span>");
   });
 
   test("Settings stays at the foot of the menu and the page is shown", () => {

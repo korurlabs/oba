@@ -1,19 +1,12 @@
 "use client";
 
-import { Building2 } from "lucide-react";
 import Image from "next/image";
 import type { ReactNode } from "react";
 
 import { AppSwitcher } from "@oba/shared/components/app-header/app-switcher";
 import { OrganizationSelector } from "@oba/shared/components/app-header/organization-selector";
-import {
-  PROFILE_MENU_GRID_ITEM,
-  ProfileDropdown,
-} from "@oba/shared/components/app-header/profile-dropdown";
-import { ACCOUNT_LINKS, ULAK_LINKS } from "@oba/shared/constants/apps";
-import { DropdownMenuItem } from "@oba/ui/components/dropdown-menu";
-import { OPS_GRID_ACCENT } from "@oba/ui/components/ops-grid";
-import { cn } from "@oba/ui/lib/utils";
+import { ProfileDropdown } from "@oba/shared/components/app-header/profile-dropdown";
+import { ACCOUNT_LINKS } from "@oba/shared/constants/apps";
 import { SkyAppShell } from "@oba/ui/sky/app-shell";
 
 import { ChangeControl } from "@/features/versions/components/change-control";
@@ -58,18 +51,6 @@ function KayaOrganizationSelector() {
   );
 }
 
-/** Organization settings and members live in Ulak. */
-function OrganizationMenuItem() {
-  return (
-    <DropdownMenuItem asChild className={PROFILE_MENU_GRID_ITEM}>
-      <a href={ULAK_LINKS.organizations}>
-        <Building2 className={cn("size-4", OPS_GRID_ACCENT)} aria-hidden />
-        <span>Organization</span>
-      </a>
-    </DropdownMenuItem>
-  );
-}
-
 /**
  * Page frame: the shared sky shell with Kaya's menu, its wordmark, the
  * member's change, the organization selector, the app switcher and the
@@ -78,8 +59,6 @@ function OrganizationMenuItem() {
  * the whole window. A menu link asks first while a config edit is unsaved.
  */
 export function AppShell({ children }: AppShellProps) {
-  const { me } = useIdentity();
-
   return (
     <OpenChangeProvider>
       <SkyAppShell
@@ -90,11 +69,7 @@ export function AppShell({ children }: AppShellProps) {
             <ChangeControl />
             <KayaOrganizationSelector />
             <AppSwitcher currentAppId="kaya" />
-            <ProfileDropdown
-              hrefs={accountHrefs()}
-              // Ulak refuses a user who manages no organization, so only a manager sees the way there.
-              extraMenuContent={me.managesOrganizations ? <OrganizationMenuItem /> : undefined}
-            />
+            <ProfileDropdown hrefs={accountHrefs()} />
           </>
         }
         sections={KAYA_NAV_SECTIONS}

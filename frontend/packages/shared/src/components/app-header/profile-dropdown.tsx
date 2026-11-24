@@ -30,7 +30,7 @@ export interface ProfileDropdownProps {
   className?: string;
   /**
    * Optional extra menu content rendered between Settings and Log out, such
-   * as `LanguageSwitcherSubMenu` or an app's own row. Must be
+   * as `LanguageSwitcherSubMenu`. Must be
    * dropdown-menu content (an item, a group or a submenu); it is rendered
    * directly inside `DropdownMenuContent`.
    */
@@ -54,11 +54,8 @@ const GRID_PANEL = cn(
   OPS_GRID_SHADOW,
   "w-[min(18rem,calc(100vw-2rem))] min-w-[220px] px-2 py-1.5"
 );
-/**
- * A row of the menu. Exported for a row a host app passes in
- * `extraMenuContent`, so it matches Profile and Settings.
- */
-export const PROFILE_MENU_GRID_ITEM = cn(OPS_GRID_ROW, OPS_GRID_HIGHLIGHT, "cursor-pointer");
+/** A row of the menu. */
+const PROFILE_MENU_GRID_ITEM = cn(OPS_GRID_ROW, OPS_GRID_HIGHLIGHT, "cursor-pointer");
 /** A separator drawn as the row hairline: no height or fill of its own, and full width. */
 const GRID_SEPARATOR = cn("mx-0 my-0 h-0 bg-transparent", OPS_GRID_HAIRLINE);
 

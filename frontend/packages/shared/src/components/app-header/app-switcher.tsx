@@ -22,10 +22,10 @@ import { useGetMe } from "../../features/users/hooks/use-get-me";
 import { useRuntimeConfig } from "../../providers/RuntimeConfigProvider";
 
 /**
- * Ulak and Account manage the organization and the user themselves, so they
- * lead the grid; the product apps follow in their catalogue order.
+ * Ulak manages the organization itself, so it leads the grid; the product apps
+ * follow in their catalogue order.
  */
-const LEADING_APP_IDS: readonly ObaAppId[] = ["ulak", "account"];
+const LEADING_APP_IDS: readonly ObaAppId[] = ["ulak"];
 
 /** The apps in switcher order: the leading ones first, then the rest in catalogue order. */
 function switcherOrder(apps: readonly ObaApp[]): ObaApp[] {
@@ -45,7 +45,10 @@ const TILE = cn(
 );
 
 export interface AppSwitcherProps {
-  /** The app rendering the switcher; it is marked as current and not linked. */
+  /**
+   * The app rendering the switcher; its tile is marked as current and not
+   * linked. Account has no tile, so inside Account no tile is current.
+   */
   currentAppId: ObaAppId;
   /** Applied to the trigger. */
   className?: string;
@@ -56,6 +59,7 @@ export interface AppSwitcherProps {
  * of the organization selector beside it. Every other app opens in
  * the same tab: they share the Keycloak session, so the user lands signed in.
  *
+ * Account is not listed: the profile menu leads to the user's own pages.
  * An app is listed only when it has something to show the user: Ulak for a
  * user who manages an organization, Kazan, Kaya, Kalkan and Otak for a user
  * with an ACTIVE organization that grants them. The current app is always listed.
@@ -78,8 +82,10 @@ export function AppSwitcher({ currentAppId, className }: AppSwitcherProps) {
   });
 
   // Tiles fill two columns; hairlines part the rows and the columns, never the
-  // outer edge, which the panel's own border draws.
-  const lastRowStart = apps.length - (apps.length % 2 === 0 ? 2 : 1);
+  // outer edge, which the panel's own border draws. A last tile left alone
+  // spans both columns, so the hairline above it runs the full width.
+  const isOdd = apps.length % 2 === 1;
+  const lastRowStart = apps.length - (isOdd ? 1 : 2);
 
   return (
     <Popover>
@@ -105,7 +111,8 @@ export function AppSwitcher({ currentAppId, className }: AppSwitcherProps) {
             const tileClassName = cn(
               TILE,
               index % 2 === 0 && index !== apps.length - 1 && "border-e",
-              index >= lastRowStart && "border-b-0"
+              index >= lastRowStart && "border-b-0",
+              isOdd && index === apps.length - 1 && "col-span-2"
             );
             const tile = (
               <>

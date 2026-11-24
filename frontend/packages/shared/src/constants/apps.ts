@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Bot, Building2, Handshake, ShieldCheck, Ticket, UserCog } from "lucide-react";
+import { Bot, Building2, Handshake, ShieldCheck, Ticket } from "lucide-react";
 import type { GrantedApp } from "../features/users/schema";
 import { getRuntimeConfig } from "../lib/runtime-config";
 
@@ -66,19 +66,27 @@ export function accountOnboardingUrl(callbackUrl: string, appBaseUrl: string): s
   return url.href;
 }
 
-/** The Oba web apps, in the order the app switcher lists them. */
-export const OBA_APP_IDS: readonly ObaAppId[] = ["kazan", "kaya", "kalkan", "otak", "ulak", "account"];
+/**
+ * The Oba web apps the app switcher lists, in catalogue order. Account is not
+ * one of them: it holds the user's own pages, which the profile menu opens.
+ */
+export const OBA_APP_IDS = [
+  "kazan",
+  "kaya",
+  "kalkan",
+  "otak",
+  "ulak",
+] as const satisfies readonly ObaAppId[];
 
-const APP_ICONS: Record<ObaAppId, LucideIcon> = {
+const APP_ICONS: Record<(typeof OBA_APP_IDS)[number], LucideIcon> = {
   kazan: Ticket,
   kaya: Bot,
   kalkan: ShieldCheck,
   otak: Handshake,
   ulak: Building2,
-  account: UserCog,
 };
 
-/** The Oba web apps with their origins in this deployment, in the order the app switcher lists them. */
+/** The apps of the app switcher with their origins in this deployment, in catalogue order. */
 export function obaApps(appUrls: Record<ObaAppId, string>): ObaApp[] {
   return OBA_APP_IDS.map((id) => ({ id, url: appUrls[id], icon: APP_ICONS[id] }));
 }

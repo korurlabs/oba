@@ -1,23 +1,15 @@
 "use client";
 
 import { forwardRef, type ReactNode } from "react";
-import { Building2, Settings } from "lucide-react";
+import { Settings } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { AppSwitcher } from "@oba/shared/components/app-header/app-switcher";
 import { OrganizationSelector } from "@oba/shared/components/app-header/organization-selector";
-import {
-  PROFILE_MENU_GRID_ITEM,
-  ProfileDropdown,
-} from "@oba/shared/components/app-header/profile-dropdown";
+import { ProfileDropdown } from "@oba/shared/components/app-header/profile-dropdown";
 import { LanguageSwitcherSubMenu } from "@oba/shared/components/language-switcher";
-import { ACCOUNT_LINKS, ULAK_LINKS } from "@oba/shared/constants/apps";
-import { canManageOrganizations } from "@oba/shared/features/organizations/lib/managed-organizations";
-import { useGetMe } from "@oba/shared/features/users/hooks/use-get-me";
+import { ACCOUNT_LINKS } from "@oba/shared/constants/apps";
 import { GrantedApp } from "@oba/shared/features/users/schema";
 import { Link, usePathname } from "@oba/shared/libs/i18n/navigation";
-import { DropdownMenuItem } from "@oba/ui/components/dropdown-menu";
-import { OPS_GRID_ACCENT } from "@oba/ui/components/ops-grid";
-import { cn } from "@oba/ui/lib/utils";
 import { SkyAppShell, type SkyLinkProps, type SkyNavItem } from "@oba/ui/sky/app-shell";
 import { IncidentAlertWatcher } from "@/features/incidents/components/incident-alert-watcher";
 import { SUPPORTED_LOCALES } from "@/lib/i18n/supported-locales";
@@ -78,8 +70,6 @@ function KazanFrame({ children }: { children: ReactNode }) {
   const t = useTranslations("sidebar");
   const tApps = useTranslations("apps");
   const { providerStyle, providerClassName } = useSidebarWidthContext();
-  const { data: meResponse } = useGetMe();
-  const managesOrganizations = canManageOrganizations(meResponse?.data);
   // The i18n pathname has the locale stripped, so it compares with the hrefs.
   const pathname = usePathname();
   // Profile is a page of the account app, read on render because the account
@@ -107,22 +97,7 @@ function KazanFrame({ children }: { children: ReactNode }) {
           <ProfileDropdown
             hrefs={accountHrefs}
             extraMenuContent={
-              <>
-                {/* Organizations are managed in Ulak, so this item leaves Kazan. Ulak
-                    refuses a user who manages none, so only a manager sees the item. */}
-                {managesOrganizations && (
-                  <DropdownMenuItem asChild className={PROFILE_MENU_GRID_ITEM}>
-                    <a href={ULAK_LINKS.organizations}>
-                      <Building2 className={cn("size-4", OPS_GRID_ACCENT)} aria-hidden />
-                      <span>{t("organizations")}</span>
-                    </a>
-                  </DropdownMenuItem>
-                )}
-                <LanguageSwitcherSubMenu
-                  supportedLocales={SUPPORTED_LOCALES}
-                  label={t("language")}
-                />
-              </>
+              <LanguageSwitcherSubMenu supportedLocales={SUPPORTED_LOCALES} label={t("language")} />
             }
           />
         </>

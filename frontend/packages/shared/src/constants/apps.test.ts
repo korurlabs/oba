@@ -137,7 +137,7 @@ describe("accountOnboardingUrl", () => {
 });
 
 describe("obaApps", () => {
-  test("lists Kazan, Kaya, Kalkan, Otak, Ulak and Account in that order, each with its given origin and an icon", () => {
+  test("lists Kazan, Kaya, Kalkan, Otak and Ulak in that order, each with its given origin and an icon, and leaves Account out", () => {
     const appUrls = {
       kazan: "https://k.test",
       kaya: "https://y.test",
@@ -149,14 +149,13 @@ describe("obaApps", () => {
 
     const apps = obaApps(appUrls);
 
-    expect(apps.map((app) => app.id)).toEqual(["kazan", "kaya", "kalkan", "otak", "ulak", "account"]);
+    expect(apps.map((app) => app.id)).toEqual(["kazan", "kaya", "kalkan", "otak", "ulak"]);
     expect(apps.map((app) => app.url)).toEqual([
       "https://k.test",
       "https://y.test",
       "https://l.test",
       "https://o.test",
       "https://a.test",
-      "https://c.test",
     ]);
     for (const app of apps) {
       expect(app.icon).toBeDefined();
