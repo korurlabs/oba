@@ -38,7 +38,7 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   useSidebar,
-} from "@oba/ui/components/sidebar";
+} from "@oba/ui/sky/sidebar";
 import { cn } from "@oba/ui/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import {
