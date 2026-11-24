@@ -1,8 +1,15 @@
 import { describe, expect, test } from "bun:test";
-import type { ReactNode } from "react";
+import type { CSSProperties, MouseEvent, ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-import { SkySidebar, type SkyLinkProps, type SkyNavItem } from "./app-shell";
+import {
+  handleNavClick,
+  SkyAppShell,
+  SkySidebar,
+  SkyTopBar,
+  type SkyLinkProps,
+  type SkyNavItem,
+} from "./app-shell";
 import { SidebarProvider } from "./sidebar";
 
 function Link({ href, children, ...rest }: SkyLinkProps) {
@@ -92,5 +99,119 @@ describe("SkySidebar", () => {
   test("renders without sections, children or footer entries", () => {
     const html = markup({});
     expect(html).toContain('data-sidebar="content"');
+  });
+
+  test("draws the rail at the panel's edge by default", () => {
+    const html = markup({});
+    expect(html).toContain('data-sidebar="rail"');
+  });
+
+  test("draws the given edge in place of the rail", () => {
+    const html = markup({ edge: <span data-edge="" /> });
+    expect(html).toContain('data-edge=""');
+    expect(html).not.toContain('data-sidebar="rail"');
+  });
+});
+
+function topBarToggle(menuToggle?: "mobile" | "always"): string {
+  const html = renderToStaticMarkup(
+    <SidebarProvider>
+      <SkyTopBar logo="Logo" homeLabel="Home" linkComponent={Link} menuToggle={menuToggle} />
+    </SidebarProvider>
+  );
+  const trigger = html.match(/<button[^>]*data-sidebar="trigger"[^>]*>/);
+  expect(trigger).not.toBeNull();
+  return trigger?.[0] ?? "";
+}
+
+describe("SkyTopBar", () => {
+  test("shows the menu toggle only on narrow windows by default", () => {
+    expect(topBarToggle()).toContain("md:hidden");
+    expect(topBarToggle("mobile")).toContain("md:hidden");
+  });
+
+  test("shows the menu toggle on every width when asked to", () => {
+    expect(topBarToggle("always")).not.toContain("md:hidden");
+  });
+});
+
+function shell(props: Partial<Parameters<typeof SkyAppShell>[0]>): string {
+  return renderToStaticMarkup(
+    <SkyAppShell logo="Logo" homeLabel="Home" pathname="/" linkComponent={Link} {...props}>
+      <p data-page="">The page</p>
+    </SkyAppShell>
+  );
+}
+
+describe("SkyAppShell", () => {
+  test("puts the page in a centred column by default", () => {
+    const html = shell({});
+    expect(html).toContain("max-w-7xl");
+    expect(html).toContain("overflow-auto");
+    expect(html).toContain('data-page=""');
+  });
+
+  test("lets the page fill the space beside the menu with fill", () => {
+    const html = shell({ fill: true });
+    expect(html).not.toContain("max-w-7xl");
+    expect(html).toMatch(/<main class="[^"]*flex-col[^"]*overflow-hidden[^"]*"><p data-page="">/);
+  });
+
+  test("passes the provider style and classes to the sidebar wrapper", () => {
+    const html = shell({
+      providerStyle: { "--sidebar-width": "280px" } as CSSProperties,
+      providerClassName: "cursor-col-resize",
+    });
+    const wrapper = html.match(/<div[^>]*data-slot="sidebar-wrapper"[^>]*>/)?.[0] ?? "";
+    expect(wrapper).toContain("--sidebar-width:280px");
+    expect(wrapper).toContain("cursor-col-resize");
+  });
+
+  test("passes the menu toggle and the edge through", () => {
+    const html = shell({ menuToggle: "always", edge: <span data-edge="" /> });
+    expect(html).toContain('data-edge=""');
+    expect(html).not.toContain('data-sidebar="rail"');
+    expect(html).not.toContain("md:hidden");
+  });
+});
+
+function click(prevent: boolean): { closed: boolean; handled: boolean } {
+  const state = { closed: false, handled: false, prevented: false };
+  const event = {
+    preventDefault: () => {
+      state.prevented = true;
+    },
+    get defaultPrevented() {
+      return state.prevented;
+    },
+  } as unknown as MouseEvent<HTMLAnchorElement>;
+  handleNavClick(
+    event,
+    (clicked: MouseEvent<HTMLAnchorElement>) => {
+      state.handled = true;
+      if (prevent) clicked.preventDefault();
+    },
+    () => {
+      state.closed = true;
+    }
+  );
+  return { closed: state.closed, handled: state.handled };
+}
+
+describe("handleNavClick", () => {
+  test("runs the app's handler and closes the menu sheet", () => {
+    expect(click(false)).toEqual({ closed: true, handled: true });
+  });
+
+  test("keeps the sheet open when the app's handler keeps the page", () => {
+    expect(click(true)).toEqual({ closed: false, handled: true });
+  });
+
+  test("closes the sheet when the app passes no handler", () => {
+    let closed = false;
+    handleNavClick({ defaultPrevented: false } as MouseEvent<HTMLAnchorElement>, undefined, () => {
+      closed = true;
+    });
+    expect(closed).toBe(true);
   });
 });
