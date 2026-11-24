@@ -128,6 +128,7 @@
         "lucide-react": "catalog:",
         "next": "catalog:",
         "next-auth": "5.0.0-beta.32",
+        "next-intl": "catalog:",
         "nuqs": "catalog:",
         "radix-ui": "catalog:",
         "react": "catalog:",
