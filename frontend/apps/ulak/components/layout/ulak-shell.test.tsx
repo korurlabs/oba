@@ -40,12 +40,8 @@ mock.module("@oba/shared/components/app-header/app-switcher", () => ({
 }));
 mock.module("@oba/shared/components/app-header/organization-selector", () => ({
   ...actualSelector,
-  OrganizationSelector: (props: { withPersonal?: boolean; managedOnly?: boolean }) => (
-    <div
-      data-selector=""
-      data-without-personal={String(props.withPersonal === false)}
-      data-managed-only={String(props.managedOnly === true)}
-    />
+  OrganizationSelector: (props: { managedOnly?: boolean }) => (
+    <div data-selector="" data-managed-only={String(props.managedOnly === true)} />
   ),
 }));
 mock.module("@oba/shared/components/app-header/profile-dropdown", () => ({
@@ -162,10 +158,9 @@ describe("UlakShell menu", () => {
     expect(html.indexOf('href="/settings"')).toBeGreaterThan(html.indexOf('data-sidebar="footer"'));
   });
 
-  test("offers the organizations the user manages, without Personal, in the top bar", () => {
+  test("offers the organizations the user manages in the top bar", () => {
     const html = render();
     expect(html).toContain('data-managed-only="true"');
-    expect(html).toContain('data-without-personal="true"');
   });
 });
 

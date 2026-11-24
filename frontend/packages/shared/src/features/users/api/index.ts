@@ -54,19 +54,4 @@ export const usersApi = {
       body: JSON.stringify(data),
     });
   },
-  /**
-   * Clears the default organization, which selects the personal workspace.
-   * `PUT /users/me` keeps the current default for an absent, null or empty
-   * `defaultOrganizationId`, so that callers saving only their profile or
-   * preferences never clear it by accident; clearing has its own endpoint.
-   * Answers the updated user, with `defaultOrganizationId: null`.
-   */
-  clearDefaultOrganization: async (token?: string): Promise<UserMeResponse> => {
-    return edgeFetch("/users/me/default-organization", {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-  },
 } as const;

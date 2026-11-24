@@ -8,7 +8,6 @@
   "organizationSwitchFailed": "Organizasyon değiştirilemedi. Lütfen tekrar deneyin.",
   "yourOrganizations": "Organizasyonlarınız",
   "createOrganization": "Organizasyon oluştur",
-  "personalWorkspace": "Kişisel",
   "noResults": "Sonuç bulunamadı.",
   "attachments": {
     "upload": {
@@ -60,7 +59,8 @@
   "search": "Ara",
   "common": {
     "profile": "Profil",
-    "settings": "Ayarlar",
+    "darkMode": "Karanlık mod",
+    "soon": "Yakında",
     "logOut": "Çıkış Yap"
   },
   "organizationRoles": {
@@ -73,27 +73,26 @@
     "switchApp": "Uygulama değiştir",
     "kazan": {
       "name": "Kazan",
-      "description": "Panolar, biletler ve sprintler"
+      "description": "Operasyon, iş ve güvenlik"
     },
     "kaya": {
       "name": "Kaya",
-      "description": "Ajan oturumları ve yapılandırma"
+      "description": "Ajan yönetişimi ve izleme"
     },
     "kalkan": {
       "name": "Kalkan",
-      "description": "Uyum ve dokümanlar"
+      "description": "Uyum ve dokümantasyon"
     },
     "otak": {
       "name": "Otak",
-      "description": "İlişkiler, potansiyel müşteriler ve müşteriler"
+      "description": "Sözleşmeler, SLA'lar ve ilişkiler"
     },
     "ulak": {
       "name": "Ulak",
-      "description": "Organizasyonlar, üyeler ve davetler"
+      "description": "Ajanlar, insanlar ve yetkiler"
     },
     "account": {
-      "name": "Hesap",
-      "description": "Profil, ayarlar ve davetler"
+      "name": "Hesap"
     }
   },
   "markdownEditor": {

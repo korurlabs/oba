@@ -8,7 +8,6 @@
   "organizationSwitchFailed": "Could not switch organization. Please try again.",
   "yourOrganizations": "Your organizations",
   "createOrganization": "Create organization",
-  "personalWorkspace": "Personal",
   "noResults": "No results found.",
   "attachments": {
     "upload": {
@@ -60,7 +59,8 @@
   "search": "Search",
   "common": {
     "profile": "Profile",
-    "settings": "Settings",
+    "darkMode": "Dark mode",
+    "soon": "Soon",
     "logOut": "Log out"
   },
   "organizationRoles": {
@@ -73,27 +73,26 @@
     "switchApp": "Switch app",
     "kazan": {
       "name": "Kazan",
-      "description": "Boards, tickets and sprints"
+      "description": "Operations, work and security"
     },
     "kaya": {
       "name": "Kaya",
-      "description": "Agent sessions and configuration"
+      "description": "Agent governance and monitoring"
     },
     "kalkan": {
       "name": "Kalkan",
-      "description": "Compliance and documents"
+      "description": "Compliance and documentation"
     },
     "otak": {
       "name": "Otak",
-      "description": "Relations, leads and customers"
+      "description": "Contracts, SLAs and relations"
     },
     "ulak": {
       "name": "Ulak",
-      "description": "Organizations, members and invitations"
+      "description": "Agents, humans and permissions"
     },
     "account": {
-      "name": "Account",
-      "description": "Profile, settings and invitations"
+      "name": "Account"
     }
   },
   "markdownEditor": {

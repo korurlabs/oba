@@ -5,6 +5,9 @@
   "sidebar": {
     "navigation": "Navigatie",
     "profile": "Profiel",
+    "organizations": "Organisaties",
+    "security": "Beveiliging",
+    "notifications": "Meldingen",
     "settings": "Instellingen",
     "invitations": "Mijn uitnodigingen",
     "language": "Taal"
@@ -32,23 +35,29 @@
     "updatePersonalInfo": "Werk je persoonlijke gegevens bij",
     "displayName": "Weergavenaam",
     "emailAddress": "E-mailadres",
-    "comingSoon": "Binnenkort beschikbaar...",
-    "security": "Beveiliging",
-    "securitySubtitle": "Beheer je beveiligingsinstellingen",
-    "securityDescription": "Wachtwoordbeheer en tweefactorauthenticatie-instellingen zijn hier binnenkort beschikbaar.",
-    "notifications": "Meldingen",
-    "notificationsSubtitle": "Configureer meldingsvoorkeuren",
-    "notificationsDescription": "E-mail- en in-app meldingsvoorkeuren zijn hier binnenkort beschikbaar.",
     "title": "Profiel",
     "firstName": "Voornaam",
     "lastName": "Achternaam",
     "phoneNumber": "Telefoonnummer",
-    "organizations": "Jouw organisaties",
     "save": "Wijzigingen opslaan",
     "saving": "Opslaan...",
     "updateSuccess": "Profiel bijgewerkt",
     "updateError": "Je profiel kon niet worden bijgewerkt",
     "loading": "Laden..."
+  },
+  "security": {
+    "title": "Beveiliging",
+    "subtitle": "Bescherm je account en de manier waarop je inlogt",
+    "panelSubtitle": "Beheer je beveiligingsinstellingen",
+    "panelDescription": "Wachtwoordbeheer en tweefactorauthenticatie-instellingen zijn hier binnenkort beschikbaar.",
+    "comingSoon": "Binnenkort beschikbaar..."
+  },
+  "notifications": {
+    "title": "Meldingen",
+    "subtitle": "Kies welke updates je ontvangt en waar",
+    "panelSubtitle": "Configureer meldingsvoorkeuren",
+    "panelDescription": "E-mail- en in-app meldingsvoorkeuren zijn hier binnenkort beschikbaar.",
+    "comingSoon": "Binnenkort beschikbaar..."
   },
   "settings": {
     "subtitle": "Configureer je applicatievoorkeuren",
@@ -91,7 +100,7 @@
       "submitting": "Aanmaken...",
       "createSuccess": "Organisatie succesvol aangemaakt",
       "createError": "Organisatie aanmaken mislukt. Probeer het opnieuw.",
-      "backToProfile": "Terug naar profiel"
+      "backToOrganizations": "Terug naar organisaties"
     },
     "nameRequired": "Organisatienaam is verplicht",
     "nameMaxLength": "Naam mag maximaal 255 tekens bevatten",
@@ -99,7 +108,13 @@
     "companySizeMaxLength": "Bedrijfsgrootte mag maximaal 50 tekens bevatten",
     "countryMaxLength": "Landcode mag maximaal 3 tekens bevatten",
     "descriptionMaxLength": "Beschrijving mag maximaal 512 tekens bevatten",
-    "websiteMaxLength": "Website mag maximaal 512 tekens bevatten"
+    "websiteMaxLength": "Website mag maximaal 512 tekens bevatten",
+    "list": {
+      "title": "Organisaties",
+      "subtitle": "De organisaties waar je lid van bent en je rol in elk ervan",
+      "yourOrganizations": "Jouw organisaties",
+      "loading": "Laden..."
+    }
   },
   "pendingInvitations": {
     "title": "Mijn uitnodigingen",

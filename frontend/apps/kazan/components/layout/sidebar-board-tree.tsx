@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo, useSyncExternalStore, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
@@ -716,7 +717,7 @@ export function SidebarBoardTree() {
                 onTogglePin={handlePinnedSectionTogglePin}
               />
             </div>
-            <DragOverlay>
+            <SidebarDragOverlay>
               {activePinnedDrag ? (
                 <div className="bg-background rounded-md border shadow-md">
                   <SidebarBoardTreeItem
@@ -728,7 +729,7 @@ export function SidebarBoardTree() {
                   />
                 </div>
               ) : null}
-            </DragOverlay>
+            </SidebarDragOverlay>
           </DndContext>
 
           {/* Pin separator */}
@@ -770,12 +771,41 @@ export function SidebarBoardTree() {
           {showRootDropStrip && <TreeRootDropStrip isTarget={dropIntent?.zone === "root"} />}
         </div>
 
-        <DragOverlay>
+        <SidebarDragOverlay>
           {activeTreeDrag ? (
             <SidebarBoardDropGhost board={activeTreeDrag.board} variant="overlay" />
           ) : null}
-        </DragOverlay>
+        </SidebarDragOverlay>
       </DndContext>
     </div>
+  );
+}
+
+const subscribeToNothing = () => () => {};
+
+/**
+ * The row that follows the pointer while a board is dragged. The sky panel's
+ * backdrop filter makes the panel the containing block of fixed elements, so
+ * an overlay drawn inside it would sit offset from the pointer by the panel's
+ * own position; it is drawn on the document body instead. The wrapper takes
+ * the sidebar's slot so the row keeps the panel's colour tokens. The portal
+ * waits for the client, since the server has no document body.
+ */
+function SidebarDragOverlay({ children }: { children: ReactNode }) {
+  const isClient = useSyncExternalStore(
+    subscribeToNothing,
+    () => true,
+    () => false,
+  );
+  if (!isClient) return null;
+  return createPortal(
+    <DragOverlay>
+      {children ? (
+        <div data-slot="sidebar" className="text-sidebar-foreground">
+          {children}
+        </div>
+      ) : null}
+    </DragOverlay>,
+    document.body,
   );
 }

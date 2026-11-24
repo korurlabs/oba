@@ -2,20 +2,16 @@
 
 import { useTranslations } from "next-intl";
 import type { LucideIcon } from "lucide-react";
-import { Lock, Mail, Plus, User } from "lucide-react";
+import { Lock, Mail, User } from "lucide-react";
 import { useGetMe } from "@oba/shared/features/users/hooks/use-get-me";
-import { Link } from "@oba/shared/libs/i18n/navigation";
-import { OrganizationRoleBadge } from "@oba/shared/components/organization-role-badge";
-import { Button } from "@oba/ui/sky/button";
-import { Card, CardAction, CardContent, CardDescription, CardHeader } from "@oba/ui/sky/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@oba/ui/sky/card";
 import { LoadError } from "@oba/ui/sky/page-states";
-import { ComingSoonPanel, PageHeading, PanelTitle } from "@/components/layout/page-heading";
+import { PageHeading, PanelTitle } from "@/components/layout/page-heading";
 import { ProfileForm } from "./profile-form";
 
 /**
- * Profile screen: the signed-in user's name and email, the edit form, the
- * read-only list of memberships with a link to create an organization, and the
- * Security and Notifications panels, which are still placeholders.
+ * Profile screen: the signed-in user's name and email, read-only, and the
+ * form that edits the profile.
  */
 export function ProfileView() {
   const t = useTranslations();
@@ -26,7 +22,6 @@ export function ProfileView() {
   // the user typed. Without a user, the first fetch failed.
   const user = me?.data;
   const displayName = [user?.profile?.firstName, user?.profile?.lastName].filter(Boolean).join(" ");
-  const organizations = user?.organizations ?? [];
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
@@ -49,82 +44,27 @@ export function ProfileView() {
           }}
         />
       ) : (
-        <>
-          {/* Identity: the read-only name and email, then the edit form */}
-          <Card role="region" aria-labelledby="profile-identity-heading">
-            <CardHeader>
-              <PanelTitle id="profile-identity-heading">{t("profile.yourProfile")}</PanelTitle>
-              <CardDescription>{t("profile.updatePersonalInfo")}</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-6">
-              <dl className="grid gap-3 md:grid-cols-2">
-                <ReadOnlyField
-                  icon={User}
-                  label={t("profile.displayName")}
-                  value={displayName || "-"}
-                />
-                <ReadOnlyField icon={Mail} label={t("profile.emailAddress")} value={user.email} />
-              </dl>
-              <div className="border-t pt-6">
-                <ProfileForm profile={user.profile} />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Organizations (memberships read-only) */}
-          <Card role="region" aria-labelledby="profile-organizations-heading">
-            <CardHeader>
-              <PanelTitle id="profile-organizations-heading">
-                {t("profile.organizations")}
-              </PanelTitle>
-              <CardAction>
-                {/* Any signed-in user may create an organization; they become its owner. */}
-                <Button asChild size="sm">
-                  <Link href="/organizations/new">
-                    <Plus aria-hidden="true" />
-                    {t("organization.new.title")}
-                  </Link>
-                </Button>
-              </CardAction>
-            </CardHeader>
-            <CardContent>
-              {organizations.length === 0 ? (
-                <p className="text-muted-foreground text-sm">{t("organization.noOrganizations")}</p>
-              ) : (
-                <ul className="divide-y">
-                  {organizations.map((organization) => (
-                    <li
-                      key={organization.id}
-                      className="flex items-center justify-between gap-4 py-2 text-sm"
-                    >
-                      <span className="min-w-0 truncate font-medium">{organization.name}</span>
-                      <OrganizationRoleBadge role={organization.role} />
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </CardContent>
-          </Card>
-        </>
+        // Identity: the read-only name and email, then the edit form.
+        <Card role="region" aria-labelledby="profile-identity-heading">
+          <CardHeader>
+            <PanelTitle id="profile-identity-heading">{t("profile.yourProfile")}</PanelTitle>
+            <CardDescription>{t("profile.updatePersonalInfo")}</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-6">
+            <dl className="grid gap-3 md:grid-cols-2">
+              <ReadOnlyField
+                icon={User}
+                label={t("profile.displayName")}
+                value={displayName || "-"}
+              />
+              <ReadOnlyField icon={Mail} label={t("profile.emailAddress")} value={user.email} />
+            </dl>
+            <div className="border-t pt-6">
+              <ProfileForm profile={user.profile} />
+            </div>
+          </CardContent>
+        </Card>
       )}
-
-      {/* Security and notifications: not built yet */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <ComingSoonPanel
-          id="profile-security-heading"
-          title={t("profile.security")}
-          description={t("profile.securitySubtitle")}
-          body={t("profile.securityDescription")}
-          comingSoon={t("profile.comingSoon")}
-        />
-        <ComingSoonPanel
-          id="profile-notifications-heading"
-          title={t("profile.notifications")}
-          description={t("profile.notificationsSubtitle")}
-          body={t("profile.notificationsDescription")}
-          comingSoon={t("profile.comingSoon")}
-        />
-      </div>
     </div>
   );
 }

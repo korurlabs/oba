@@ -18,6 +18,8 @@
     "settings": "Settings",
     "actions": "Actions",
     "profile": "Profile",
+    "darkMode": "Dark mode",
+    "soon": "Soon",
     "logOut": "Log out",
     "back": "Back",
     "change": "Change",
@@ -670,7 +672,7 @@
     "comingSoon": "This feature is not yet available. Guest invitations will be supported in a future update."
   },
   "home": {
-    "title": "Home",
+    "title": "Field",
     "boardsError": "Your boards could not be loaded.",
     "retry": "Try again",
     "opensInNewTab": "(opens in a new tab)",
@@ -990,11 +992,10 @@
     }
   },
   "sidebar": {
-    "home": "Home",
-    "downloads": "Download CLI",
-    "navigation": "Navigation",
-    "workspace": "Workspace",
-    "toggleSidebar": "Toggle sidebar",
+    "home": "Field",
+    "downloads": "Oba CLI",
+    "operations": "Operations",
+    "work": "Work",
     "resizeSidebar": "Resize sidebar",
     "boards": "Boards",
     "newBoard": "New Board",
@@ -1003,6 +1004,11 @@
     "pinned": "Pinned",
     "tickets": "Tickets",
     "incidents": "Incidents",
+    "vulnerabilities": "Vulnerabilities",
+    "disasterDrills": "Disaster Drills",
+    "backupRuns": "Backup Runs",
+    "chaosEngineering": "Chaos Engineering",
+    "cyberscore": "Cyberscore",
     "chats": "Chats",
     "dailyUpdates": "Updates",
     "pullRequests": "PR",
@@ -1017,13 +1023,9 @@
       "unpin": "Unpin"
     },
     "language": "Language",
-    "general": "General",
-    "organizations": "Organizations",
     "organization": "Organization",
     "newOrganization": "New Organization",
-    "profile": "Profile",
     "settings": "Settings",
-    "invitations": "My Invitations",
     "alerts": "Alerts",
     "updatesUnread": "{count} unread",
     "updatesUnreadMentions": "{count} unread, {mentions, plural, one {# notification} other {# notifications}}",
@@ -1069,7 +1071,6 @@
   },
   "selectOrganization": "Select organization",
   "organizationSwitchFailed": "Could not switch organization. Please try again.",
-  "personalWorkspace": "Personal",
   "yourOrganizations": "Your organizations",
   "createOrganization": "Create organization",
   "organization": {
@@ -1205,28 +1206,45 @@
       "conflict": "Starts before a dependency is due"
     }
   },
-  "downloads": {
-    "title": "Download Kazan CLI",
-    "description": "Manage Kazan boards, tickets and sprints from your terminal. Install on macOS or Linux, with amd64 and arm64 support.",
-    "openKazan": "Open Kazan",
-    "homebrew": {
-      "title": "Homebrew",
-      "description": "Install on macOS or Linux using the Korur tap."
+  "cli": {
+    "title": "Oba CLI",
+    "description": "Work with Kazan from your terminal with the oba CLI: tickets, comments, daily updates and the PR channel. Releases support macOS and Linux on amd64 and arm64.",
+    "install": {
+      "title": "Install",
+      "homebrew": "With Homebrew, from the Korur tap:",
+      "script": "With the installer: it picks the archive for your system, checks its SHA-256 checksum and installs oba in /usr/local/bin when that is writable, else in ~/.local/bin. It never calls sudo.",
+      "userInstall": "OBA_INSTALL_DIR chooses another directory. Add the directory to your PATH when the installer says it is missing.",
+      "direct": "By hand: download oba-cli_<version>_<os>_<arch>.tar.gz from the latest release, compare its SHA-256 digest with oba-cli_<version>_checksums.txt, and put the oba binary from the archive on your PATH.",
+      "link": "View the releases on GitHub",
+      "version": "Check the installed version:"
     },
-    "script": {
-      "title": "macOS and Linux installer",
-      "description": "Download and run the installer. It selects your architecture and verifies the archive checksum before installation. It uses /usr/local/bin when writable, otherwise ~/.local/bin.",
-      "userInstall": "To choose an installation without administrator access, run the downloaded installer with the directory below. Add ~/.local/bin to your PATH if needed."
+    "signIn": {
+      "title": "Sign in",
+      "description": "oba login opens your browser and signs you in with your Oba account. Then choose the organization the commands act in and check who you are signed in as.",
+      "org": "Without oba org use, commands act in the default organization of your account. --org <name|id> runs one command in another organization and keeps the chosen one."
     },
-    "direct": {
-      "title": "Direct downloads",
-      "description": "Choose the tar.gz archive for macOS or Linux. Use amd64 for Intel/AMD processors and arm64 for Apple Silicon and ARM Linux.",
-      "link": "View release assets on GitHub",
-      "checksums": "Each release includes a checksums file. The shell installer verifies it automatically. For manual downloads, compare the SHA-256 checksum before installing."
+    "board": {
+      "title": "Choose a board",
+      "description": "Make one board the default board of the current organization. Each organization keeps its own default. Without an argument, oba kazan board use lists the boards and lets you pick one.",
+      "override": "--board <name|prefix|id> runs one command on another board. A ticket key such as OPS-42 names its own board."
     },
-    "verify": {
-      "title": "Start using Kazan",
-      "description": "Log in through your browser with your existing Kazan account. To update later, use Homebrew or run the installer again."
+    "everyday": {
+      "title": "Everyday commands",
+      "description": "A short set to start with.",
+      "items": {
+        "mine": "List the tickets assigned to you on every board you are a member of.",
+        "get": "Show every field of a ticket.",
+        "create": "Create a ticket on the default board. Title, type, priority, status and mission rank are required.",
+        "update": "Change the status of a ticket; every other field keeps its value.",
+        "comment": "Add a comment to a ticket.",
+        "updates": "Write and post your daily update. On a terminal it starts from your tickets in progress and shows a preview before posting.",
+        "pr": "Share a pull request in your organization's PR channel."
+      },
+      "help": "oba kazan --help lists every command, and oba kazan <command> --help shows its flags."
+    },
+    "json": {
+      "title": "Output for scripts and agents",
+      "description": "With --json, stdout holds only the data the API returned, as JSON; tables, messages and prompts go to stderr. A failed command prints no JSON: its exit status (2 for not found, 3 for forbidden, 1 otherwise) and the error on stderr tell why."
     }
   },
   "updates": {
@@ -1407,9 +1425,38 @@
       "region": "Urgent incidents"
     }
   },
+  "vulnerabilities": {
+    "title": "Vulnerabilities",
+    "description": "The security weaknesses found in your systems, with their severity, owner and fix status.",
+    "emptyTitle": "No vulnerabilities yet",
+    "emptyDescription": "Vulnerabilities you track will appear here."
+  },
+  "disasterDrills": {
+    "title": "Disaster Drills",
+    "description": "The planned exercises that prove your work can be recovered after an outage, with their scenario, date and outcome.",
+    "emptyTitle": "No disaster drills yet",
+    "emptyDescription": "Disaster drills you plan and run will appear here."
+  },
+  "backupRuns": {
+    "title": "Backup Runs",
+    "description": "Each backup of your systems, with its time, size and whether it succeeded.",
+    "emptyTitle": "No backup runs yet",
+    "emptyDescription": "Backup runs you track will appear here."
+  },
+  "chaosEngineering": {
+    "title": "Chaos Engineering",
+    "description": "The controlled failures you inject into your systems to find weak spots before a real outage does.",
+    "emptyTitle": "No chaos experiments yet",
+    "emptyDescription": "Chaos experiments and their results will appear here."
+  },
+  "cyberscore": {
+    "title": "Cyberscore",
+    "description": "The rating of your security posture, built from the state of your systems and practices.",
+    "emptyTitle": "No cyberscore yet",
+    "emptyDescription": "Your cyberscore and how it changes will appear here."
+  },
   "metadata": {
-    "description": "Modern project management tool inspired by Notion and Jira simplicity",
-    "dashboard": "Dashboard"
+    "description": "Modern project management tool inspired by Notion and Jira simplicity"
   },
   "chat": {
     "channel": {

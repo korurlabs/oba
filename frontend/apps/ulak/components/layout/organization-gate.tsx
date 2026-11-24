@@ -55,7 +55,7 @@ export function OrganizationGate({ children }: { children: React.ReactNode }) {
           <p className="text-muted-foreground text-sm">{t("organizationGate.description")}</p>
         </div>
         <div className="flex justify-center">
-          <OrganizationSelector withPersonal={false} managedOnly className="w-full max-w-xs" />
+          <OrganizationSelector managedOnly className="w-full max-w-xs" />
         </div>
       </div>
     </div>

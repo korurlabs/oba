@@ -6,7 +6,6 @@ import { useId } from "react";
 import { Button } from "@oba/ui/components/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@oba/ui/components/popover";
 import {
-  OPS_GRID_ACCENT,
   OPS_GRID_CURRENT,
   OPS_GRID_HAIRLINE,
   OPS_GRID_HEADING,
@@ -22,10 +21,10 @@ import { useGetMe } from "../../features/users/hooks/use-get-me";
 import { useRuntimeConfig } from "../../providers/RuntimeConfigProvider";
 
 /**
- * Ulak and Account manage the organization and the user themselves, so they
- * lead the grid; the product apps follow in their catalogue order.
+ * Ulak manages the organization itself, so it leads the grid; the product apps
+ * follow in their catalogue order.
  */
-const LEADING_APP_IDS: readonly ObaAppId[] = ["ulak", "account"];
+const LEADING_APP_IDS: readonly ObaAppId[] = ["ulak"];
 
 /** The apps in switcher order: the leading ones first, then the rest in catalogue order. */
 function switcherOrder(apps: readonly ObaApp[]): ObaApp[] {
@@ -45,7 +44,10 @@ const TILE = cn(
 );
 
 export interface AppSwitcherProps {
-  /** The app rendering the switcher; it is marked as current and not linked. */
+  /**
+   * The app rendering the switcher; its tile is marked as current and not
+   * linked. Account has no tile, so inside Account no tile is current.
+   */
   currentAppId: ObaAppId;
   /** Applied to the trigger. */
   className?: string;
@@ -56,6 +58,7 @@ export interface AppSwitcherProps {
  * of the organization selector beside it. Every other app opens in
  * the same tab: they share the Keycloak session, so the user lands signed in.
  *
+ * Account is not listed: the profile menu leads to the user's own pages.
  * An app is listed only when it has something to show the user: Ulak for a
  * user who manages an organization, Kazan, Kaya, Kalkan and Otak for a user
  * with an ACTIVE organization that grants them. The current app is always listed.
@@ -78,8 +81,10 @@ export function AppSwitcher({ currentAppId, className }: AppSwitcherProps) {
   });
 
   // Tiles fill two columns; hairlines part the rows and the columns, never the
-  // outer edge, which the panel's own border draws.
-  const lastRowStart = apps.length - (apps.length % 2 === 0 ? 2 : 1);
+  // outer edge, which the panel's own border draws. A last tile left alone
+  // spans both columns, so the hairline above it runs the full width.
+  const isOdd = apps.length % 2 === 1;
+  const lastRowStart = apps.length - (isOdd ? 1 : 2);
 
   return (
     <Popover>
@@ -101,16 +106,19 @@ export function AppSwitcher({ currentAppId, className }: AppSwitcherProps) {
         <div role="group" aria-labelledby={headingId} className="grid grid-cols-2">
           {apps.map((app, index) => {
             const isCurrent = app.id === currentAppId;
-            const Icon = app.icon;
+            const Mark = app.mark;
             const tileClassName = cn(
               TILE,
               index % 2 === 0 && index !== apps.length - 1 && "border-e",
-              index >= lastRowStart && "border-b-0"
+              index >= lastRowStart && "border-b-0",
+              isOdd && index === apps.length - 1 && "col-span-2"
             );
             const tile = (
               <>
                 <span className="flex items-center gap-2">
-                  <Icon className={cn("size-4 shrink-0", OPS_GRID_ACCENT)} aria-hidden="true" />
+                  {/* As tall as the name's line, as wide as the mark is: the
+                      eagle and the yurt stay legible beside the narrow shield. */}
+                  <Mark className="h-5 w-auto shrink-0" />
                   <span>{t(`${app.id}.name`)}</span>
                 </span>
                 <span className="text-muted-foreground text-xs leading-snug font-normal">

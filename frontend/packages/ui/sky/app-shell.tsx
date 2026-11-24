@@ -2,7 +2,13 @@
 
 import NextLink from "next/link";
 import { usePathname } from "next/navigation";
-import type { ComponentPropsWithRef, ComponentType, MouseEvent, ReactNode } from "react";
+import type {
+  ComponentPropsWithRef,
+  ComponentType,
+  CSSProperties,
+  MouseEvent,
+  ReactNode,
+} from "react";
 
 import {
   Sidebar,
@@ -18,6 +24,7 @@ import {
   SidebarRail,
   SidebarSeparator,
   SidebarTrigger,
+  useSidebar,
 } from "./sidebar";
 
 /** One link of the menu. */
@@ -63,6 +70,20 @@ export function isNavItemActive(pathname: string, item: SkyNavItem): boolean {
   return item.isActive ? item.isActive(pathname) : matchesPath(pathname, item.href);
 }
 
+/**
+ * Runs the app's handler for a click on a menu link, then closes the menu
+ * sheet of a narrow window unless the handler kept the page: the sheet covers
+ * the page it opens, so it must not stay over it.
+ */
+export function handleNavClick(
+  event: MouseEvent<HTMLAnchorElement>,
+  onNavClick: SkyNavClickHandler | undefined,
+  closeMobile: () => void
+): void {
+  onNavClick?.(event);
+  if (!event.defaultPrevented) closeMobile();
+}
+
 export type SkyNavEntryProps = {
   item: SkyNavItem;
   pathname: string;
@@ -74,9 +95,10 @@ export type SkyNavEntryProps = {
  * One menu link. Its look (the neon rail on the page in view, the hover glow)
  * lives in `styles.css` with the rest of the menu panel. An app that draws
  * its own menu content uses it for its plain links, so they match the
- * sections' links.
+ * sections' links. A click closes the menu sheet on a narrow window.
  */
 export function SkyNavEntry({ item, pathname, link: Link, onNavClick }: SkyNavEntryProps) {
+  const { setOpenMobile } = useSidebar();
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
@@ -85,7 +107,12 @@ export function SkyNavEntry({ item, pathname, link: Link, onNavClick }: SkyNavEn
         tooltip={item.label}
         className="h-9 gap-3 px-3"
       >
-        <Link href={item.href} onClick={onNavClick}>
+        <Link
+          href={item.href}
+          onClick={(event: MouseEvent<HTMLAnchorElement>) =>
+            handleNavClick(event, onNavClick, () => setOpenMobile(false))
+          }
+        >
           <item.icon className="shrink-0" />
           <span>{item.label}</span>
         </Link>
@@ -136,6 +163,11 @@ export type SkySidebarProps = {
   pathname?: string;
   linkComponent?: ComponentType<SkyLinkProps>;
   onNavClick?: SkyNavClickHandler;
+  /**
+   * Drawn at the panel's right edge in place of the rail that toggles the
+   * menu, such as a handle that resizes it.
+   */
+  edge?: ReactNode;
 };
 
 /**
@@ -154,6 +186,7 @@ export function SkySidebar({
   pathname,
   linkComponent = NextLink,
   onNavClick,
+  edge,
 }: SkySidebarProps) {
   const routerPathname = usePathname();
   const current = pathname ?? routerPathname;
@@ -193,7 +226,7 @@ export function SkySidebar({
           </SidebarFooter>
         </>
       )}
-      <SidebarRail />
+      {edge ?? <SidebarRail />}
     </Sidebar>
   );
 }
@@ -210,10 +243,15 @@ export type SkyTopBarProps = {
 };
 
 /**
- * The bar across the top: the wordmark and the app's actions. The menu
- * toggle shows only on narrow windows, where the menu is a sheet that has no
- * other way to open; on wider windows the menu floats beside the page, and
- * the 12px side padding puts the wordmark level with the panel's left edge.
+ * The bar across the top: the wordmark and the app's actions. The menu toggle
+ * shows only on narrow windows, where the menu is a sheet that has no other
+ * way to open; on wider windows the menu floats beside the page, and the 12px
+ * side padding puts the wordmark level with the panel's left edge.
+ *
+ * The toggle hides at 768px, the `MOBILE_BREAKPOINT` of `./use-mobile` where the
+ * menu stops being a sheet, and not at `md:`: apps may set their own `md`
+ * (Kazan's is 744px), which would leave a band of widths where the sheet has
+ * no toggle. Change both together.
  */
 export function SkyTopBar({
   logo,
@@ -224,7 +262,7 @@ export function SkyTopBar({
 }: SkyTopBarProps) {
   return (
     <header className="bg-background/80 sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2 border-b px-3 backdrop-blur">
-      <SidebarTrigger className="md:hidden" />
+      <SidebarTrigger className="min-[768px]:hidden" />
       <Link href={homeHref} aria-label={homeLabel} className="flex shrink-0 items-center">
         {logo}
       </Link>
@@ -245,12 +283,22 @@ export type SkyAppShellProps = Omit<SkyTopBarProps, "linkComponent"> &
     overlay?: ReactNode;
     /** The link used by the top bar and the menu; defaults to `next/link`. */
     linkComponent?: ComponentType<SkyLinkProps>;
+    /**
+     * The page fills the space beside the menu, as a flex column that does not
+     * scroll, for a page that lays out and scrolls its own panes, such as a
+     * board. Without it the page scrolls in a centred column of at most 80rem.
+     */
+    fill?: boolean;
+    /** Style of the sidebar's provider, such as a `--sidebar-width` the app keeps. */
+    providerStyle?: CSSProperties;
+    /** Classes of the sidebar's provider. */
+    providerClassName?: string;
   };
 
 /**
  * Page frame: the top bar across the window, the floating menu on the left
  * below it, and the page scrolling on its own beside the menu, in a centred
- * column of at most 80rem. It is a client component, so an app passes its
+ * column of at most 80rem unless `fill` is set. It is a client component, so an app passes its
  * menu from a client module: the icons are components and cannot cross from
  * the server.
  */
@@ -268,9 +316,13 @@ export function SkyAppShell({
   pathname,
   linkComponent,
   onNavClick,
+  edge,
+  fill = false,
+  providerStyle,
+  providerClassName,
 }: SkyAppShellProps) {
   return (
-    <SidebarProvider>
+    <SidebarProvider style={providerStyle} className={providerClassName}>
       <div className="flex h-svh w-full flex-col overflow-hidden">
         <SkyTopBar
           logo={logo}
@@ -287,12 +339,17 @@ export function SkyAppShell({
             pathname={pathname}
             linkComponent={linkComponent}
             onNavClick={onNavClick}
+            edge={edge}
           >
             {menu}
           </SkySidebar>
-          <main className="min-w-0 flex-1 overflow-auto">
-            <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-8 lg:py-10">{children}</div>
-          </main>
+          {fill ? (
+            <main className="flex min-w-0 flex-1 flex-col overflow-hidden">{children}</main>
+          ) : (
+            <main className="min-w-0 flex-1 overflow-auto">
+              <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-8 lg:py-10">{children}</div>
+            </main>
+          )}
         </div>
       </div>
       {overlay}

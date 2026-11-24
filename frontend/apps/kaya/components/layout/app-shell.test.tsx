@@ -1,7 +1,6 @@
 import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import { QueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { ULAK_LINKS } from "@oba/shared/constants/apps";
 import { renderToStaticMarkup } from "react-dom/server";
 
 // The header's real parts are Kaya's shell and the shared organization
@@ -13,7 +12,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 type Membership = { organizationId: string; name: string };
 
 let memberships: Membership[];
-let managesOrganizations: boolean;
 let onValueChange: (value: string) => Promise<void>;
 let selectValue: string | undefined;
 let updateResult: () => Promise<unknown>;
@@ -30,9 +28,6 @@ const actualSonner = { ...(await import("sonner")) };
 const actualNavigation = { ...(await import("@oba/shared/libs/i18n/navigation")) };
 const actualGetMe = { ...(await import("@oba/shared/features/users/hooks/use-get-me")) };
 const actualUpdateMe = { ...(await import("@oba/shared/features/users/hooks/use-update-me")) };
-const actualClear = {
-  ...(await import("@oba/shared/features/users/hooks/use-clear-default-organization")),
-};
 const actualSwitcher = { ...(await import("@oba/shared/components/app-header/app-switcher")) };
 const actualProfile = { ...(await import("@oba/shared/components/app-header/profile-dropdown")) };
 const actualNext = { ...(await import("next/navigation")) };
@@ -118,10 +113,6 @@ mock.module("@oba/shared/features/users/hooks/use-update-me", () => ({
     },
   }),
 }));
-mock.module("@oba/shared/features/users/hooks/use-clear-default-organization", () => ({
-  ...actualClear,
-  useClearDefaultOrganization: () => ({ mutateAsync: async () => ({}) }),
-}));
 mock.module("@oba/shared/components/app-header/app-switcher", () => ({
   ...actualSwitcher,
   AppSwitcher: () => null,
@@ -137,7 +128,7 @@ mock.module("@oba/shared/components/app-header/profile-dropdown", () => ({
 mock.module("@/lib/identity/identity-context", () => ({
   ...actualIdentity,
   useIdentity: () => ({
-    me: { id: "u-1", memberships, managesOrganizations },
+    me: { id: "u-1", memberships },
     organization: { organizationId: "org-1" },
     switchOrganization: (organizationId: string) => {
       switched.push(organizationId);
@@ -166,7 +157,6 @@ afterAll(() => {
   mock.module("@oba/shared/libs/i18n/navigation", () => actualNavigation);
   mock.module("@oba/shared/features/users/hooks/use-get-me", () => actualGetMe);
   mock.module("@oba/shared/features/users/hooks/use-update-me", () => actualUpdateMe);
-  mock.module("@oba/shared/features/users/hooks/use-clear-default-organization", () => actualClear);
   mock.module("@oba/shared/components/app-header/app-switcher", () => actualSwitcher);
   mock.module("@oba/shared/components/app-header/profile-dropdown", () => actualProfile);
   mock.module("@/lib/identity/identity-context", () => actualIdentity);
@@ -203,14 +193,13 @@ beforeEach(() => {
     { organizationId: "org-1", name: "Korur" },
     { organizationId: "org-2", name: "Tayga" },
   ];
-  managesOrganizations = false;
   selectValue = undefined;
   updateResult = async () => ({ success: true });
   for (const list of [updatedMe, switched, order, errorToasts]) list.length = 0;
 });
 
 describe("Kaya header", () => {
-  test("the selector lists the memberships without a Personal row and marks the current one", () => {
+  test("the selector lists the memberships and marks the current one", () => {
     const html = render();
     expect(rowValues(html)).toEqual(["org-1", "org-2"]);
     expect(html).toContain('data-value="org-1" data-state="checked"');
@@ -243,18 +232,10 @@ describe("Kaya header", () => {
     expect(switched).toEqual([]);
   });
 
-  test("the profile menu has an Organization item for a manager, linked to Ulak", () => {
-    managesOrganizations = true;
+  test("the profile menu gets no extra item, such as an Organization item", () => {
     const html = render();
-    expect(html).toContain("<span>Organization</span>");
-    expect(html).toContain(`href="${ULAK_LINKS.organizations}"`);
-  });
-
-  test("the profile menu has no Organization item for anyone else", () => {
-    managesOrganizations = false;
-    const html = render();
-    expect(html).not.toContain("<span>Organization</span>");
-    expect(html).toContain('data-profile=""');
+    expect(html).toContain('<div data-profile=""></div>');
+    expect(html).not.toContain("Organization</span>");
   });
 
   test("Settings stays at the foot of the menu and the page is shown", () => {

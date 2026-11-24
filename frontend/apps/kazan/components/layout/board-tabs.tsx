@@ -31,7 +31,6 @@ import {
   useTicketFilterParams,
 } from "@/features/tickets/hooks/use-ticket-filter-params";
 import { useBoardRoleContext } from "@/features/boards/providers/board-role-provider";
-import { ContentSidebarTrigger } from "@/components/layout/content-sidebar-trigger";
 
 interface BoardTabsProps {
   boardId: string;
@@ -127,13 +126,8 @@ export function BoardTabs({ boardId }: BoardTabsProps) {
         scrolls sideways. From `md` up all of them share one row.
       */}
       <div className="flex items-center justify-between px-6 max-md:flex-wrap max-md:justify-start max-md:gap-x-3 max-md:pt-2">
-        {/* Left side: collapse toggle + Breadcrumb + Tabs */}
+        {/* Left side: Breadcrumb + Tabs */}
         <div className="flex items-center gap-3 max-md:contents">
-          {/* Sidebar collapse toggle -- lives here (not in the sidebar) so it
-            stays reachable while the sidebar is collapsed. Mirrors the Kagi
-            portal header: panel icon, separator, then the breadcrumb. */}
-          <ContentSidebarTrigger className="-ml-2 flex items-center gap-2" />
-
           <div className="flex items-center gap-6 max-md:contents">
             {/* Breadcrumb */}
             <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm max-md:min-w-0">

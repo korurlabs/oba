@@ -21,7 +21,6 @@ describe("userMeResponseSchema", () => {
       defaultOrganizationId: KORUR,
       memberships: [{ organizationId: KORUR, name: "Korur", role: "OWNER" }],
       kayaWithheld: false,
-      managesOrganizations: false,
     });
   });
 
@@ -55,42 +54,6 @@ describe("userMeResponseSchema", () => {
       }).success
     ).toBe(false);
     expect(userMeResponseSchema.safeParse({ id: "u", email: "e" }).success).toBe(false);
-  });
-});
-
-describe("userMeResponseSchema managesOrganizations", () => {
-  const parseWith = (
-    organizations: { id: string; name: string; role: string; organizationStatus?: string }[]
-  ) =>
-    userMeResponseSchema.parse({ id: "u", email: "e", userStatus: "ACTIVE", organizations })
-      .managesOrganizations;
-
-  test("is true for an ACTIVE ADMIN and for an ACTIVE OWNER", () => {
-    expect(parseWith([{ id: KORUR, name: "Korur", role: "ADMIN", organizationStatus: "ACTIVE" }])).toBe(true);
-    expect(parseWith([{ id: KORUR, name: "Korur", role: "OWNER", organizationStatus: "ACTIVE" }])).toBe(true);
-  });
-
-  test("is false for an ACTIVE MEMBER or GUEST", () => {
-    expect(parseWith([{ id: KORUR, name: "Korur", role: "MEMBER", organizationStatus: "ACTIVE" }])).toBe(false);
-    expect(parseWith([{ id: KORUR, name: "Korur", role: "GUEST", organizationStatus: "ACTIVE" }])).toBe(false);
-  });
-
-  test("is false for an OWNER of a DISABLED organization", () => {
-    expect(parseWith([{ id: KORUR, name: "Korur", role: "OWNER", organizationStatus: "DISABLED" }])).toBe(false);
-  });
-
-  test("is false when the API sends no organization status", () => {
-    expect(parseWith([{ id: KORUR, name: "Korur", role: "OWNER" }])).toBe(false);
-  });
-
-  test("is true when one of several organizations is managed, and false without organizations", () => {
-    expect(
-      parseWith([
-        { id: "a", name: "A", role: "MEMBER", organizationStatus: "ACTIVE" },
-        { id: "b", name: "B", role: "ADMIN", organizationStatus: "ACTIVE" },
-      ])
-    ).toBe(true);
-    expect(parseWith([])).toBe(false);
   });
 
   test("refuses an unknown organization status", () => {
@@ -160,12 +123,6 @@ describe("userMeResponseSchema Kaya access", () => {
   test("kayaWithheld is false without organizations", () => {
     expect(parse().kayaWithheld).toBe(false);
     expect(parse([]).kayaWithheld).toBe(false);
-  });
-
-  test("managesOrganizations reads a manager organization that grants no Kaya", () => {
-    const parsed = parse([{ id: "a", name: "A", role: "OWNER", organizationStatus: "ACTIVE", apps: ["KAZAN"] }]);
-    expect(parsed.memberships).toEqual([]);
-    expect(parsed.managesOrganizations).toBe(true);
   });
 });
 

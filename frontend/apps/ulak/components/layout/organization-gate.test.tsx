@@ -31,12 +31,8 @@ mock.module("@oba/shared/features/users/hooks/use-get-me", () => ({
 }));
 mock.module("@oba/shared/components/app-header/organization-selector", () => ({
   ...actualSelector,
-  OrganizationSelector: (props: { withPersonal?: boolean; managedOnly?: boolean }) => (
-    <div
-      data-selector=""
-      data-without-personal={String(props.withPersonal === false)}
-      data-managed-only={String(props.managedOnly === true)}
-    />
+  OrganizationSelector: (props: { managedOnly?: boolean }) => (
+    <div data-selector="" data-managed-only={String(props.managedOnly === true)} />
   ),
 }));
 
@@ -109,11 +105,10 @@ describe("OrganizationGate", () => {
     expect(render()).toContain(en.organizationGate.title);
   });
 
-  test("offers only the organizations the user manages, without Personal", () => {
+  test("offers only the organizations the user manages", () => {
     me = loaded([membership("org-1", "GUEST")]);
     const html = render();
     expect(html).toContain('data-managed-only="true"');
-    expect(html).toContain('data-without-personal="true"');
   });
 
   test("shows the loading state, not the panel, while the user loads", () => {

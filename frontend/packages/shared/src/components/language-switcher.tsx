@@ -32,8 +32,6 @@ import {
 } from "@oba/ui/components/ops-grid";
 import { cn } from "@oba/ui/lib/utils";
 
-import { useMenuLook } from "./app-header/menu-look";
-
 export interface Language {
   code: string;
   name: string;
@@ -181,12 +179,9 @@ interface LanguageSwitcherSubMenuProps {
 
 /**
  * The same locale list as `LanguageSwitcher`, presented as a submenu row so it
- * can live INSIDE another dropdown (Kazan nests it in the sidebar account
+ * can live INSIDE another dropdown (every app nests it in the header's account
  * menu). It renders no menu root of its own -- it must be a child of a
- * `DropdownMenuContent`.
- *
- * Inside the header's account menu it takes that menu's ops grid look (see
- * `useMenuLook`); elsewhere it keeps the theme's menu.
+ * `DropdownMenuContent` -- and it takes that menu's ops grid look.
  *
  * Routing is the shared `useLanguageSwitch` hook, so switching here behaves
  * exactly as it does from the standalone switcher.
@@ -194,65 +189,40 @@ interface LanguageSwitcherSubMenuProps {
 export function LanguageSwitcherSubMenu({ supportedLocales, label }: LanguageSwitcherSubMenuProps) {
   const { locale, availableLanguages, currentLanguage, handleLanguageChange } =
     useLanguageSwitch(supportedLocales);
-  const isGrid = useMenuLook() === "grid";
 
   return (
     <DropdownMenuSub>
-      <DropdownMenuSubTrigger
-        className={isGrid ? GRID_SUB_TRIGGER : "cursor-pointer rounded-lg px-3 py-2.5"}
-      >
-        <Globe
-          className={isGrid ? cn("size-4", OPS_GRID_ACCENT) : "text-muted-foreground h-4 w-4"}
-        />
+      <DropdownMenuSubTrigger className={GRID_SUB_TRIGGER}>
+        <Globe className={cn("size-4", OPS_GRID_ACCENT)} />
         <span className="flex-1">{label}</span>
-        <span className={cn("text-muted-foreground text-xs", isGrid && "font-normal")}>
+        <span className="text-muted-foreground text-xs font-normal">
           {currentLanguage?.nativeName}
         </span>
       </DropdownMenuSubTrigger>
       <DropdownMenuSubContent
-        // The host menu can sit at the very bottom of the viewport (Kazan opens this from
-        // the sidebar footer, so the trigger row is always ~110px above the window edge).
-        // Radix already shifts a submenu up to keep it on screen, but with the default
-        // collisionPadding of 0 it lands flush against the window edge and hangs below the
-        // parent menu. Reserving the same 16px inset the parent menu keeps makes it flip
-        // cleanly upward instead, bottom-aligned with the menu it belongs to.
+        // Radix shifts a submenu to keep it on screen, but with the default
+        // collisionPadding of 0 it lands flush against the window edge. The
+        // 16px inset the parent menu keeps lets it flip cleanly instead.
         collisionPadding={16}
-        sideOffset={isGrid ? 6 : undefined}
-        className={isGrid ? GRID_SUB_PANEL : "min-w-[180px]"}
+        sideOffset={6}
+        className={GRID_SUB_PANEL}
       >
-        {isGrid ? (
-          // A radio group, so the current language is the checked item and
-          // carries the same mark as the current organization.
-          <DropdownMenuRadioGroup value={locale} onValueChange={handleLanguageChange}>
-            {availableLanguages.map((language) => (
-              <DropdownMenuRadioItem
-                key={language.code}
-                value={language.code}
-                className={GRID_LANGUAGE_ROW}
-              >
-                <span className="text-base" aria-hidden="true">
-                  {getFlagEmoji(language.flag)}
-                </span>
-                <span className="flex-1">{language.nativeName}</span>
-              </DropdownMenuRadioItem>
-            ))}
-          </DropdownMenuRadioGroup>
-        ) : (
-          availableLanguages.map((language) => (
-            <DropdownMenuItem
+        {/* A radio group, so the current language is the checked item and
+            carries the same mark as the current organization. */}
+        <DropdownMenuRadioGroup value={locale} onValueChange={handleLanguageChange}>
+          {availableLanguages.map((language) => (
+            <DropdownMenuRadioItem
               key={language.code}
-              onClick={() => handleLanguageChange(language.code)}
-              className={cn(
-                "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5",
-                locale === language.code && "bg-primary/10 text-primary"
-              )}
+              value={language.code}
+              className={GRID_LANGUAGE_ROW}
             >
-              <span className="text-base">{getFlagEmoji(language.flag)}</span>
+              <span className="text-base" aria-hidden="true">
+                {getFlagEmoji(language.flag)}
+              </span>
               <span className="flex-1">{language.nativeName}</span>
-              {locale === language.code && <span className="bg-primary h-2 w-2 rounded-full" />}
-            </DropdownMenuItem>
-          ))
-        )}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
       </DropdownMenuSubContent>
     </DropdownMenuSub>
   );

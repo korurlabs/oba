@@ -36,8 +36,9 @@ import {
  * On success `useCreateOrganization` refetches the cached queries and opens
  * Ulak. The new organization becomes the user's default, so every app,
  * Ulak included, opens on it.
- * The back link leads to the profile, which lists the user's organizations:
- * Ulak shows only the organization in the header, and only to its managers.
+ * The back link leads to the Organizations page, which lists the user's
+ * organizations: Ulak shows only the organization in the header, and only to
+ * its managers.
  *
  * There is no session-loading branch on purpose: the dashboard layout already
  * guarantees a session, and next-auth reports "loading" during every session
@@ -57,11 +58,11 @@ export function CreateOrganizationForm() {
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
       {/* Back link */}
       <Link
-        href="/"
+        href="/organizations"
         className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm"
       >
         <ArrowLeft className="size-4" aria-hidden="true" />
-        {tNew("backToProfile")}
+        {tNew("backToOrganizations")}
       </Link>
 
       <PageHeading title={tNew("title")} description={tNew("description")} />

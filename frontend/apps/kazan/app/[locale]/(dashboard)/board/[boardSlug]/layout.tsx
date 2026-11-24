@@ -67,12 +67,6 @@ function BoardTabsSkeleton() {
         placeholder fits a phone and the header does not jump when it loads. */}
       <div className="flex items-center justify-between max-md:flex-wrap max-md:justify-start max-md:gap-x-3 max-md:gap-y-3">
         <div className="flex items-center gap-3 max-md:contents">
-          {/* Placeholder for the sidebar collapse toggle + its separator, so
-            the breadcrumb does not shift left when BoardTabs resolves. */}
-          <div className="flex items-center gap-2">
-            <Skeleton className="size-7 rounded-md" />
-            <Skeleton className="h-4 w-px" />
-          </div>
           <div className="flex items-center gap-1.5">
             <Skeleton className="h-4 w-4" />
             <Skeleton className="h-4 w-4" />

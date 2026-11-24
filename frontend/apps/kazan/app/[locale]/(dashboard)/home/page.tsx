@@ -10,9 +10,9 @@ import { isKazanClosedOnServer } from "@/components/layout/kazan-access-server";
 import { DashboardView } from "./dashboard-view";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("metadata");
+  const t = await getTranslations("home");
   return {
-    title: t("dashboard"),
+    title: t("title"),
   };
 }
 

@@ -15,7 +15,7 @@ const actualNext = { ...(await import("next/navigation")) };
 const actualNavigation = { ...(await import("@oba/shared/libs/i18n/navigation")) };
 const actualGetMe = { ...(await import("@oba/shared/features/users/hooks/use-get-me")) };
 
-type PartProps = { children?: ReactNode; className?: string };
+type PartProps = { children?: ReactNode; className?: string; disabled?: boolean };
 const part =
   (slot: string) =>
   ({ children, className }: PartProps) => (
@@ -31,7 +31,18 @@ mock.module("@oba/ui/components/dropdown-menu", () => ({
   DropdownMenuTrigger: part("trigger"),
   DropdownMenuContent: part("content"),
   DropdownMenuLabel: part("label"),
-  DropdownMenuItem: part("item"),
+  // Radix marks a disabled item with aria-disabled and data-disabled, and
+  // leaves it out of keyboard focus.
+  DropdownMenuItem: ({ children, className, disabled }: PartProps) => (
+    <div
+      data-slot="item"
+      className={className}
+      aria-disabled={disabled || undefined}
+      data-disabled={disabled ? "" : undefined}
+    >
+      {children}
+    </div>
+  ),
   DropdownMenuSeparator: ({ className }: PartProps) => (
     <hr data-slot="separator" className={className} />
   ),
@@ -91,7 +102,6 @@ afterAll(() => {
 
 const { ProfileDropdown } = await import("./profile-dropdown");
 const { LanguageSwitcherSubMenu } = await import("../language-switcher");
-const { SidebarProvider } = await import("@oba/ui/components/sidebar");
 
 function classesOf(html: string, slot: string): string[] {
   return [...html.matchAll(new RegExp(`data-slot="${slot}"[^>]*class="([^"]*)"`, "g"))].map(
@@ -101,7 +111,7 @@ function classesOf(html: string, slot: string): string[] {
 
 const withLanguage = <LanguageSwitcherSubMenu supportedLocales={["en", "nl"]} label="language" />;
 
-describe("ProfileDropdown header variant", () => {
+describe("ProfileDropdown", () => {
   const html = renderToStaticMarkup(<ProfileDropdown extraMenuContent={withLanguage} />);
 
   test("draws the menu in the square grid panel", () => {
@@ -113,17 +123,57 @@ describe("ProfileDropdown header variant", () => {
 
   test("gives every row the grid row and highlight, and parts them by hairlines", () => {
     const items = classesOf(html, "item");
+    // Profile, Dark mode, Log out; Language is a submenu.
     expect(items).toHaveLength(3);
     for (const item of items) {
       expect(item).toContain("rounded-none");
+    }
+    // Dark mode does nothing yet, so only the working rows take the highlight.
+    for (const item of [items[0], items[2]]) {
       expect(item).toContain("focus:bg-[rgb(47_143_233/0.08)]");
     }
     const separators = classesOf(html, "separator");
-    // Label | Profile | Settings | Language | Log out.
+    // Label | Profile | Dark mode | Language | Log out.
     expect(separators).toHaveLength(4);
     for (const separator of separators) {
       expect(separator).toContain("border-[rgb(47_143_233/0.22)]");
     }
+  });
+
+  test("lists Profile, Dark mode, Language and Log out, and no Settings", () => {
+    const order = ["profile", "darkMode", "language", "logOut"].map((key) =>
+      html.search(new RegExp(`<span[^>]*>${key}</span>`))
+    );
+    expect(order[0]).toBeGreaterThan(-1);
+    expect([...order].sort((a, b) => a - b)).toEqual(order);
+    expect(html).not.toContain("settings");
+  });
+
+  test("links Profile to the given page", () => {
+    const own = renderToStaticMarkup(
+      <ProfileDropdown profileHref="https://account.example.test" />
+    );
+    expect(own).toContain('href="https://account.example.test"');
+    expect(html).toContain('href="/profile"');
+  });
+
+  test("shows Dark mode as not available yet: disabled, switch off, marked Soon", () => {
+    const row = html.match(
+      /<div data-slot="item"[^>]*>(?:(?!data-slot="item").)*darkMode.*?<\/div>/
+    )?.[0];
+    expect(row).toBeDefined();
+    expect(row).toContain('aria-disabled="true"');
+    expect(row).toContain("data-disabled");
+    expect(row).toContain("lucide-moon");
+    expect(row).toContain("soon");
+    expect(row).toContain('role="switch"');
+    expect(row).toContain('aria-checked="false"');
+    expect(row).toContain('data-state="unchecked"');
+    expect(row).toMatch(/<button[^>]*role="switch"[^>]*disabled=""/);
+    expect(row).toMatch(/<button[^>]*role="switch"[^>]*tabindex="-1"/);
+    const [, darkModeClasses] = classesOf(html, "item");
+    expect(darkModeClasses).not.toContain("cursor-pointer");
+    expect(darkModeClasses).not.toContain("focus:bg-[rgb(47_143_233/0.08)]");
   });
 
   test("keeps the full name and email readable instead of cutting them", () => {
@@ -142,29 +192,5 @@ describe("ProfileDropdown header variant", () => {
     expect(html).toContain('data-value="en" data-state="unchecked"');
     const current = html.match(/data-value="nl" data-state="checked" class="([^"]*)"/)?.[1];
     expect(current).toContain("data-[state=checked]:before:w-0.5");
-  });
-});
-
-describe("ProfileDropdown sidebar variant", () => {
-  // The sidebar trigger is a sidebar menu button, which needs its provider.
-  const html = renderToStaticMarkup(
-    <SidebarProvider>
-      <ProfileDropdown variant="sidebar" extraMenuContent={withLanguage} />
-    </SidebarProvider>
-  );
-
-  test("keeps the theme's rounded menu", () => {
-    const [content] = classesOf(html, "content");
-    expect(content).toBe("border-border w-56 rounded-xl border p-2 shadow-xl");
-    for (const item of classesOf(html, "item")) {
-      expect(item).toContain("rounded-lg");
-      expect(item).not.toContain("rounded-none");
-    }
-  });
-
-  test("keeps the plain language submenu", () => {
-    expect(html).not.toContain('data-slot="radio-group"');
-    const [subContent] = classesOf(html, "sub-content");
-    expect(subContent).toBe("min-w-[180px]");
   });
 });

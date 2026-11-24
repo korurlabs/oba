@@ -25,7 +25,6 @@ public final class UserServiceLogConstant {
     public static final String USER_CREATED_FROM_JWT = "User created from JWT with keycloakId={}";
     public static final String USER_ACTIVATED = "User activated after onboarding with database ID: {}";
     public static final String USER_DEFAULT_ORG_SET = "Default organization set for user: {} to organization: {}";
-    public static final String USER_DEFAULT_ORG_CLEARED = "Default organization cleared for user: {}";
     public static final String USER_ORG_DELETION_APPLIED = "Organization deletion applied to user: {} for organization: {}";
 
     // Audit constants

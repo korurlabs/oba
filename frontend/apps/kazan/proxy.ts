@@ -1,7 +1,7 @@
 import { proxy } from "@oba/shared/proxy";
 import { ACCOUNT_LINKS } from "@oba/shared/constants/apps";
 
-const PUBLIC_ROUTES = ["/", "/downloads"];
+const PUBLIC_ROUTES = ["/"];
 
 export default proxy({
   publicRoutes: PUBLIC_ROUTES,

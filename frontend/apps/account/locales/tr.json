@@ -5,6 +5,9 @@
   "sidebar": {
     "navigation": "Gezinme",
     "profile": "Profil",
+    "organizations": "Organizasyonlar",
+    "security": "Güvenlik",
+    "notifications": "Bildirimler",
     "settings": "Ayarlar",
     "invitations": "Davetiyelerim",
     "language": "Dil"
@@ -32,23 +35,29 @@
     "updatePersonalInfo": "Kişisel bilgilerinizi güncelleyin",
     "displayName": "Görünen Ad",
     "emailAddress": "E-posta Adresi",
-    "comingSoon": "Yakında...",
-    "security": "Güvenlik",
-    "securitySubtitle": "Güvenlik ayarlarınızı yönetin",
-    "securityDescription": "Şifre yönetimi ve iki faktörlü kimlik doğrulama ayarları burada yakında kullanılabilir olacak.",
-    "notifications": "Bildirimler",
-    "notificationsSubtitle": "Bildirim tercihlerini yapılandırın",
-    "notificationsDescription": "E-posta ve uygulama içi bildirim tercihleri burada yakında kullanılabilir olacak.",
     "title": "Profil",
     "firstName": "Ad",
     "lastName": "Soyad",
     "phoneNumber": "Telefon numarası",
-    "organizations": "Organizasyonlarınız",
     "save": "Değişiklikleri kaydet",
     "saving": "Kaydediliyor...",
     "updateSuccess": "Profil güncellendi",
     "updateError": "Profiliniz güncellenemedi",
     "loading": "Yükleniyor..."
+  },
+  "security": {
+    "title": "Güvenlik",
+    "subtitle": "Hesabınızı ve oturum açma yönteminizi koruyun",
+    "panelSubtitle": "Güvenlik ayarlarınızı yönetin",
+    "panelDescription": "Şifre yönetimi ve iki faktörlü kimlik doğrulama ayarları burada yakında kullanılabilir olacak.",
+    "comingSoon": "Yakında..."
+  },
+  "notifications": {
+    "title": "Bildirimler",
+    "subtitle": "Hangi güncellemelerin size nereden ulaşacağını seçin",
+    "panelSubtitle": "Bildirim tercihlerini yapılandırın",
+    "panelDescription": "E-posta ve uygulama içi bildirim tercihleri burada yakında kullanılabilir olacak.",
+    "comingSoon": "Yakında..."
   },
   "settings": {
     "subtitle": "Uygulama tercihlerinizi yapılandırın",
@@ -91,7 +100,7 @@
       "submitting": "Oluşturuluyor...",
       "createSuccess": "Organizasyon başarıyla oluşturuldu",
       "createError": "Organizasyon oluşturulamadı. Lütfen tekrar deneyin.",
-      "backToProfile": "Profile Dön"
+      "backToOrganizations": "Organizasyonlara Dön"
     },
     "nameRequired": "Organizasyon adı gereklidir",
     "nameMaxLength": "Ad en fazla 255 karakter olmalıdır",
@@ -99,7 +108,13 @@
     "companySizeMaxLength": "Şirket büyüklüğü en fazla 50 karakter olmalıdır",
     "countryMaxLength": "Ülke kodu en fazla 3 karakter olmalıdır",
     "descriptionMaxLength": "Açıklama en fazla 512 karakter olmalıdır",
-    "websiteMaxLength": "Web sitesi en fazla 512 karakter olmalıdır"
+    "websiteMaxLength": "Web sitesi en fazla 512 karakter olmalıdır",
+    "list": {
+      "title": "Organizasyonlar",
+      "subtitle": "Üyesi olduğunuz organizasyonlar ve her birindeki rolünüz",
+      "yourOrganizations": "Organizasyonlarınız",
+      "loading": "Yükleniyor..."
+    }
   },
   "pendingInvitations": {
     "title": "Davetiyelerim",

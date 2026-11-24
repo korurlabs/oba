@@ -4,7 +4,6 @@ import { useTranslations } from "next-intl";
 import type { VisibilityState } from "@tanstack/react-table";
 import { ViewToggle } from "@/components/layout/view-toggle";
 import { Separator } from "@/components/ui/separator";
-import { SidebarTrigger } from "@oba/ui/components/sidebar";
 import {
   ColumnVisibilityToggle,
   type ColumnToggleItem,

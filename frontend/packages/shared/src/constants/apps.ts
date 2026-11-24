@@ -1,5 +1,10 @@
-import type { LucideIcon } from "lucide-react";
-import { Bot, Building2, Handshake, ShieldCheck, Ticket, UserCog } from "lucide-react";
+import type { AppMark } from "../components/app-marks/app-mark";
+import { AccountMark } from "../components/app-marks/account-mark";
+import { KalkanMark } from "../components/app-marks/kalkan-mark";
+import { KayaMark } from "../components/app-marks/kaya-mark";
+import { KazanMark } from "../components/app-marks/kazan-mark";
+import { OtakMark } from "../components/app-marks/otak-mark";
+import { UlakMark } from "../components/app-marks/ulak-mark";
 import type { GrantedApp } from "../features/users/schema";
 import { getRuntimeConfig } from "../lib/runtime-config";
 
@@ -10,7 +15,8 @@ export interface ObaApp {
   id: ObaAppId;
   /** Absolute origin of the app, without a trailing slash. */
   url: string;
-  icon: LucideIcon;
+  /** The picture of the app's header logo, without its name. */
+  mark: AppMark;
 }
 
 /**
@@ -41,9 +47,6 @@ export const ACCOUNT_LINKS = {
   get profile(): string {
     return appUrl("account");
   },
-  get settings(): string {
-    return `${appUrl("account")}/settings`;
-  },
   get invitations(): string {
     return `${appUrl("account")}/invitations`;
   },
@@ -66,21 +69,34 @@ export function accountOnboardingUrl(callbackUrl: string, appBaseUrl: string): s
   return url.href;
 }
 
-/** The Oba web apps, in the order the app switcher lists them. */
-export const OBA_APP_IDS: readonly ObaAppId[] = ["kazan", "kaya", "kalkan", "otak", "ulak", "account"];
+/**
+ * The Oba web apps the app switcher lists, in catalogue order. Account is not
+ * one of them: it holds the user's own pages, which the profile menu opens.
+ */
+export const OBA_APP_IDS = [
+  "kazan",
+  "kaya",
+  "kalkan",
+  "otak",
+  "ulak",
+] as const satisfies readonly ObaAppId[];
 
-const APP_ICONS: Record<ObaAppId, LucideIcon> = {
-  kazan: Ticket,
-  kaya: Bot,
-  kalkan: ShieldCheck,
-  otak: Handshake,
-  ulak: Building2,
-  account: UserCog,
+/**
+ * The mark of each app, the same picture its header logo shows, so a user
+ * finds an app by the sign they already know from its top bar.
+ */
+export const APP_MARKS: Record<ObaAppId, AppMark> = {
+  kazan: KazanMark,
+  kaya: KayaMark,
+  kalkan: KalkanMark,
+  otak: OtakMark,
+  ulak: UlakMark,
+  account: AccountMark,
 };
 
-/** The Oba web apps with their origins in this deployment, in the order the app switcher lists them. */
+/** The apps of the app switcher with their origins in this deployment, in catalogue order. */
 export function obaApps(appUrls: Record<ObaAppId, string>): ObaApp[] {
-  return OBA_APP_IDS.map((id) => ({ id, url: appUrls[id], icon: APP_ICONS[id] }));
+  return OBA_APP_IDS.map((id) => ({ id, url: appUrls[id], mark: APP_MARKS[id] }));
 }
 
 /**

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Alexandria } from 'next/font/google';
 import { connection } from 'next/server';
 import { getTranslations } from 'next-intl/server';
 import { SkipToContent } from '@/components/shared/skip-to-content';
@@ -10,9 +10,11 @@ import { Providers } from '@/providers';
 import { Locale } from '@oba/shared/types';
 import { readRuntimeConfig } from '@oba/shared/lib/runtime-config';
 
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
+const alexandria = Alexandria({
+  subsets: ['latin', 'latin-ext'],
+  weight: ['300', '400', '500', '600', '700', '800'],
+  variable: '--font-alexandria',
+  display: 'swap',
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -43,7 +45,7 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${alexandria.variable} font-sans antialiased`}>
         <SkipToContent label={t('skipToContent')} />
         <Providers locale={locale} runtimeConfig={runtimeConfig}>{children}</Providers>
       </body>

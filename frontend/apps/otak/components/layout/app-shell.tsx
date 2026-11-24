@@ -57,10 +57,10 @@ export function OtakAppShell({
   const tApps = useTranslations("apps");
   // The i18n pathname has the locale stripped, so it compares with the hrefs.
   const pathname = usePathname();
-  // Profile and settings are pages of the account app; Otak owns only the
-  // battlefield and relation screens, so the user menu sends them there. Read
-  // on render, because the account origin arrives with the run-time config.
-  const accountHrefs = { profile: ACCOUNT_LINKS.profile, settings: ACCOUNT_LINKS.settings };
+  // Profile is a page of the account app; Otak owns only the battlefield and
+  // relation screens, so the user menu sends it there. Read on render, because
+  // the account origin arrives with the run-time config.
+  const profileHref = ACCOUNT_LINKS.profile;
 
   const sections = useMemo(
     (): SkyNavSection[] => [
@@ -91,7 +91,7 @@ export function OtakAppShell({
             <OrganizationSelector app={GrantedApp.OTAK} />
             <AppSwitcher currentAppId="otak" />
             <ProfileDropdown
-              hrefs={accountHrefs}
+              profileHref={profileHref}
               extraMenuContent={
                 <LanguageSwitcherSubMenu
                   supportedLocales={SUPPORTED_LOCALES}

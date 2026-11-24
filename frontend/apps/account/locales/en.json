@@ -5,6 +5,9 @@
   "sidebar": {
     "navigation": "Navigation",
     "profile": "Profile",
+    "organizations": "Organizations",
+    "security": "Security",
+    "notifications": "Notifications",
     "settings": "Settings",
     "invitations": "My Invitations",
     "language": "Language"
@@ -32,23 +35,29 @@
     "updatePersonalInfo": "Update your personal information",
     "displayName": "Display Name",
     "emailAddress": "Email Address",
-    "comingSoon": "Coming soon...",
-    "security": "Security",
-    "securitySubtitle": "Manage your security settings",
-    "securityDescription": "Password management and two-factor authentication settings will be available here.",
-    "notifications": "Notifications",
-    "notificationsSubtitle": "Configure notification preferences",
-    "notificationsDescription": "Email and in-app notification preferences will be available here.",
     "title": "Profile",
     "firstName": "First name",
     "lastName": "Last name",
     "phoneNumber": "Phone number",
-    "organizations": "Your organizations",
     "save": "Save changes",
     "saving": "Saving...",
     "updateSuccess": "Profile updated",
     "updateError": "Could not update your profile",
     "loading": "Loading..."
+  },
+  "security": {
+    "title": "Security",
+    "subtitle": "Protect your account and the way you sign in",
+    "panelSubtitle": "Manage your security settings",
+    "panelDescription": "Password management and two-factor authentication settings will be available here.",
+    "comingSoon": "Coming soon..."
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Choose which updates reach you and where",
+    "panelSubtitle": "Configure notification preferences",
+    "panelDescription": "Email and in-app notification preferences will be available here.",
+    "comingSoon": "Coming soon..."
   },
   "settings": {
     "subtitle": "Configure your application preferences",
@@ -91,7 +100,7 @@
       "submitting": "Creating...",
       "createSuccess": "Organization created successfully",
       "createError": "Failed to create organization. Please try again.",
-      "backToProfile": "Back to Profile"
+      "backToOrganizations": "Back to Organizations"
     },
     "nameRequired": "Organization name is required",
     "nameMaxLength": "Name must be at most 255 characters",
@@ -99,7 +108,13 @@
     "companySizeMaxLength": "Company size must be at most 50 characters",
     "countryMaxLength": "Country code must be at most 3 characters",
     "descriptionMaxLength": "Description must be at most 512 characters",
-    "websiteMaxLength": "Website must be at most 512 characters"
+    "websiteMaxLength": "Website must be at most 512 characters",
+    "list": {
+      "title": "Organizations",
+      "subtitle": "The organizations you belong to and your role in each",
+      "yourOrganizations": "Your organizations",
+      "loading": "Loading..."
+    }
   },
   "pendingInvitations": {
     "title": "My Invitations",

@@ -101,9 +101,9 @@ describe("AppSwitcher", () => {
     }
   });
 
-  test("lists Ulak and Account first, then the product apps in catalogue order", () => {
+  test("lists Ulak first, then the product apps in catalogue order", () => {
     const html = renderSwitcher(<AppSwitcher currentAppId="kazan" />);
-    const order = ["ulak", "account", "kazan", "kaya", "kalkan", "otak"];
+    const order = ["ulak", "kazan", "kaya", "kalkan", "otak"];
     const positions = order.map((id) => html.indexOf(`${id}.name`));
 
     expect(positions.every((position) => position >= 0)).toBe(true);
@@ -142,13 +142,62 @@ describe("AppSwitcher", () => {
       ),
     ].map((m) => (m[1] ?? "").split(" "));
 
-    expect(tiles).toHaveLength(6);
-    // Two columns of three rows: the left column draws the vertical rule, the
-    // last row draws no bottom rule.
+    expect(tiles).toHaveLength(5);
+    // Two full rows and a last tile alone: the left column of the full rows
+    // draws the vertical rule, and the last tile spans both columns and draws
+    // no bottom rule.
+    tiles.forEach((classes, index) => {
+      expect(classes.includes("border-e")).toBe(index % 2 === 0 && index < 4);
+      expect(classes.includes("border-b-0")).toBe(index === 4);
+      expect(classes.includes("col-span-2")).toBe(index === 4);
+    });
+  });
+
+  test("closes an even grid with a bottom row of two, neither spanning", () => {
+    meResult = {};
+    const html = renderSwitcher(<AppSwitcher currentAppId="kaya" />);
+    const tiles = [
+      ...html.matchAll(
+        /<(?:a href="[^"]*"|div aria-current="page" data-state="checked") class="([^"]*)"/g
+      ),
+    ].map((m) => (m[1] ?? "").split(" "));
+
+    // Ulak stays hidden while the user is unknown, so four tiles remain.
+    expect(tiles).toHaveLength(4);
     tiles.forEach((classes, index) => {
       expect(classes.includes("border-e")).toBe(index % 2 === 0);
-      expect(classes.includes("border-b-0")).toBe(index >= 4);
+      expect(classes.includes("border-b-0")).toBe(index >= 2);
+      expect(classes.includes("col-span-2")).toBe(false);
     });
+  });
+
+  test("never lists Account, and marks no tile current inside Account", () => {
+    const html = renderSwitcher(<AppSwitcher currentAppId="account" />);
+
+    expect(html).not.toContain("account.name");
+    expect(html).not.toContain(`href="${CONFIG.appUrls.account}"`);
+    expect(html).not.toContain('aria-current="page"');
+    expect(html).toContain("kazan.name");
+  });
+
+  test("shows each app's own mark beside its name, as tall as the name's line", () => {
+    const html = renderSwitcher(<AppSwitcher currentAppId="kaya" />);
+    const marks = [
+      ...html.matchAll(/<svg [^>]*viewBox="([^"]+)"[^>]*aria-hidden="true"[^>]*class="([^"]*)"/g),
+    ];
+
+    // One mark per tile, in tile order: Ulak's messengers first, then Kazan's eagle,
+    // Kaya's rock, Kalkan's shield and Otak's yurt, each cropped to its artwork.
+    expect(marks.map((m) => m[1])).toEqual([
+      "18 8 160 140",
+      "17 5 278 153",
+      "4 13 276 136",
+      "37 14 132 147",
+      "4 13 199 147",
+    ]);
+    for (const mark of marks) {
+      expect(mark[2]).toContain("h-5 w-auto");
+    }
   });
 
   test("offers the switch label on the trigger", () => {

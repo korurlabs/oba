@@ -83,7 +83,6 @@ const MEMBER_OF_ONE: UserMeResponse = {
   defaultOrganizationId: null,
   memberships: [{ organizationId: "org-1", name: "Korur", role: "MEMBER" }],
   kayaWithheld: false,
-  managesOrganizations: false,
 };
 
 function render(): string {

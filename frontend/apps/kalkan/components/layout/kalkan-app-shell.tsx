@@ -65,10 +65,10 @@ function KalkanFrame({ children }: { children: ReactNode }) {
   const isMember = useIsOrganizationMember();
   // The i18n pathname has the locale stripped, so it compares with the hrefs.
   const pathname = usePathname();
-  // Profile and settings are pages of the account app; Kalkan owns only the
-  // document pages, so the user menu sends them there. Read on render, because
-  // the account origin arrives with the run-time config.
-  const accountHrefs = { profile: ACCOUNT_LINKS.profile, settings: ACCOUNT_LINKS.settings };
+  // Profile is a page of the account app; Kalkan owns only the document
+  // pages, so the user menu sends it there. Read on render, because the
+  // account origin arrives with the run-time config.
+  const profileHref = ACCOUNT_LINKS.profile;
   const footerItems: SkyNavItem[] = [
     { label: t("recent"), href: RECENT_HREF, icon: History },
     ...(isMember ? [{ label: t("trash"), href: TRASH_HREF, icon: Trash2 }] : []),
@@ -85,7 +85,7 @@ function KalkanFrame({ children }: { children: ReactNode }) {
           <OrganizationSelector app={GrantedApp.KALKAN} />
           <AppSwitcher currentAppId="kalkan" />
           <ProfileDropdown
-            hrefs={accountHrefs}
+            profileHref={profileHref}
             extraMenuContent={
               <LanguageSwitcherSubMenu supportedLocales={SUPPORTED_LOCALES} label={t("language")} />
             }

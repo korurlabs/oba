@@ -18,6 +18,8 @@
     "settings": "Instellingen",
     "actions": "Acties",
     "profile": "Profiel",
+    "darkMode": "Donkere modus",
+    "soon": "Binnenkort",
     "logOut": "Uitloggen",
     "back": "Terug",
     "change": "Wijzigen",
@@ -670,7 +672,7 @@
     "comingSoon": "Deze functie is nog niet beschikbaar. Gastuitnodigingen worden in een toekomstige update ondersteund."
   },
   "home": {
-    "title": "Home",
+    "title": "Veld",
     "boardsError": "Je borden konden niet worden geladen.",
     "retry": "Opnieuw proberen",
     "opensInNewTab": "(opent in een nieuw tabblad)",
@@ -990,11 +992,10 @@
     }
   },
   "sidebar": {
-    "home": "Home",
-    "downloads": "CLI downloaden",
-    "navigation": "Navigatie",
-    "workspace": "Werkruimte",
-    "toggleSidebar": "Zijbalk in-/uitklappen",
+    "home": "Veld",
+    "downloads": "Oba CLI",
+    "operations": "Operaties",
+    "work": "Werk",
     "resizeSidebar": "Zijbalk vergroten of verkleinen",
     "boards": "Borden",
     "newBoard": "Nieuw Bord",
@@ -1003,6 +1004,11 @@
     "pinned": "Vastgepind",
     "tickets": "Tickets",
     "incidents": "Incidenten",
+    "vulnerabilities": "Kwetsbaarheden",
+    "disasterDrills": "Rampoefeningen",
+    "backupRuns": "Back-upruns",
+    "chaosEngineering": "Chaos Engineering",
+    "cyberscore": "Cyberscore",
     "chats": "Chats",
     "dailyUpdates": "Updates",
     "pullRequests": "PR",
@@ -1017,13 +1023,9 @@
       "unpin": "Losmaken"
     },
     "language": "Taal",
-    "general": "Algemeen",
-    "organizations": "Organisaties",
     "organization": "Organisatie",
     "newOrganization": "Nieuwe organisatie",
-    "profile": "Profiel",
     "settings": "Instellingen",
-    "invitations": "Mijn uitnodigingen",
     "alerts": "Meldingen",
     "updatesUnread": "{count} ongelezen",
     "updatesUnreadMentions": "{count} ongelezen, {mentions, plural, one {# melding} other {# meldingen}}",
@@ -1069,7 +1071,6 @@
   },
   "selectOrganization": "Organisatie selecteren",
   "organizationSwitchFailed": "Wisselen van organisatie is mislukt. Probeer het opnieuw.",
-  "personalWorkspace": "Persoonlijk",
   "yourOrganizations": "Jouw organisaties",
   "createOrganization": "Organisatie aanmaken",
   "organization": {
@@ -1205,28 +1206,45 @@
       "conflict": "Begint voordat een afhankelijkheid klaar is"
     }
   },
-  "downloads": {
-    "title": "Kazan CLI downloaden",
-    "description": "Beheer Kazan-borden, tickets en sprints vanuit je terminal. Installeer op macOS of Linux, met ondersteuning voor amd64 en arm64.",
-    "openKazan": "Kazan openen",
-    "homebrew": {
-      "title": "Homebrew",
-      "description": "Installeer op macOS of Linux via de Korur-tap."
+  "cli": {
+    "title": "Oba CLI",
+    "description": "Werk met Kazan vanuit je terminal met de oba CLI: tickets, opmerkingen, dagelijkse updates en het PR-kanaal. Releases ondersteunen macOS en Linux op amd64 en arm64.",
+    "install": {
+      "title": "Installeren",
+      "homebrew": "Met Homebrew, via de Korur-tap:",
+      "script": "Met het installatieprogramma: het kiest het archief voor je systeem, controleert de SHA-256-controlesom en installeert oba in /usr/local/bin als die schrijfbaar is, anders in ~/.local/bin. Het roept nooit sudo aan.",
+      "userInstall": "Met OBA_INSTALL_DIR kies je een andere map. Voeg de map toe aan je PATH als het installatieprogramma meldt dat die ontbreekt.",
+      "direct": "Handmatig: download oba-cli_<version>_<os>_<arch>.tar.gz uit de nieuwste release, vergelijk de SHA-256-digest met oba-cli_<version>_checksums.txt en zet het oba-bestand uit het archief in je PATH.",
+      "link": "Releases op GitHub bekijken",
+      "version": "Controleer de geïnstalleerde versie:"
     },
-    "script": {
-      "title": "Installatieprogramma voor macOS en Linux",
-      "description": "Download het installatieprogramma en voer het uit. Het selecteert je architectuur en controleert de controlesom vóór installatie. Het gebruikt /usr/local/bin als die schrijfbaar is, anders ~/.local/bin.",
-      "userInstall": "Voer het gedownloade installatieprogramma uit met de onderstaande map om zonder beheerdersrechten te installeren. Voeg indien nodig ~/.local/bin toe aan je PATH."
+    "signIn": {
+      "title": "Inloggen",
+      "description": "oba login opent je browser en logt je in met je Oba-account. Kies daarna de organisatie waarin de commando's werken en controleer als wie je bent ingelogd.",
+      "org": "Zonder oba org use werken commando's in de standaardorganisatie van je account. --org <name|id> voert één commando uit in een andere organisatie en behoudt de gekozen organisatie."
     },
-    "direct": {
-      "title": "Direct downloaden",
-      "description": "Kies het tar.gz-archief voor macOS of Linux. Gebruik amd64 voor Intel/AMD-processors en arm64 voor Apple Silicon en ARM Linux.",
-      "link": "Releasebestanden op GitHub bekijken",
-      "checksums": "Elke release bevat een bestand met controlesommen. Het installatieprogramma controleert dit automatisch. Vergelijk bij handmatige downloads de SHA-256-controlesom vóór installatie."
+    "board": {
+      "title": "Kies een bord",
+      "description": "Maak één bord het standaardbord van de huidige organisatie. Elke organisatie houdt haar eigen standaardbord. Zonder argument toont oba kazan board use de borden en kies je er één.",
+      "override": "--board <name|prefix|id> voert één commando uit op een ander bord. Een ticketsleutel zoals OPS-42 noemt zelf zijn bord."
     },
-    "verify": {
-      "title": "Aan de slag met Kazan",
-      "description": "Log via je browser in met je bestaande Kazan-account. Werk later bij met Homebrew of voer het installatieprogramma opnieuw uit."
+    "everyday": {
+      "title": "Dagelijkse commando's",
+      "description": "Een korte set om mee te beginnen.",
+      "items": {
+        "mine": "Toon de tickets die aan jou zijn toegewezen op elk bord waarvan je lid bent.",
+        "get": "Toon alle velden van een ticket.",
+        "create": "Maak een ticket op het standaardbord. Titel, type, prioriteit, status en mission rank zijn verplicht.",
+        "update": "Wijzig de status van een ticket; alle andere velden blijven ongewijzigd.",
+        "comment": "Voeg een opmerking toe aan een ticket.",
+        "updates": "Schrijf en plaats je dagelijkse update. In een terminal begint die bij je tickets in uitvoering en toont een voorbeeld vóór het plaatsen.",
+        "pr": "Deel een pull request in het PR-kanaal van je organisatie."
+      },
+      "help": "oba kazan --help toont alle commando's, en oba kazan <command> --help toont de opties van een commando."
+    },
+    "json": {
+      "title": "Uitvoer voor scripts en agents",
+      "description": "Met --json bevat stdout alleen de gegevens die de API teruggaf, als JSON; tabellen, berichten en vragen gaan naar stderr. Een mislukt commando print geen JSON: de exitstatus (2 voor niet gevonden, 3 voor geen toegang, anders 1) en de fout op stderr vertellen waarom."
     }
   },
   "updates": {
@@ -1407,9 +1425,38 @@
       "region": "Urgente incidenten"
     }
   },
+  "vulnerabilities": {
+    "title": "Kwetsbaarheden",
+    "description": "De zwakke plekken in je systemen, met hun ernst, eigenaar en herstelstatus.",
+    "emptyTitle": "Nog geen kwetsbaarheden",
+    "emptyDescription": "Kwetsbaarheden die je bijhoudt verschijnen hier."
+  },
+  "disasterDrills": {
+    "title": "Rampoefeningen",
+    "description": "De geplande oefeningen die bewijzen dat je werk na een storing te herstellen is, met hun scenario, datum en uitkomst.",
+    "emptyTitle": "Nog geen rampoefeningen",
+    "emptyDescription": "Rampoefeningen die je plant en uitvoert verschijnen hier."
+  },
+  "backupRuns": {
+    "title": "Back-upruns",
+    "description": "Elke back-up van je systemen, met tijdstip, omvang en of hij geslaagd is.",
+    "emptyTitle": "Nog geen back-upruns",
+    "emptyDescription": "Back-upruns die je bijhoudt verschijnen hier."
+  },
+  "chaosEngineering": {
+    "title": "Chaos Engineering",
+    "description": "De gecontroleerde storingen die je in je systemen veroorzaakt om zwakke plekken te vinden voordat een echte storing dat doet.",
+    "emptyTitle": "Nog geen chaosexperimenten",
+    "emptyDescription": "Chaosexperimenten en hun resultaten verschijnen hier."
+  },
+  "cyberscore": {
+    "title": "Cyberscore",
+    "description": "De beoordeling van je beveiliging, opgebouwd uit de staat van je systemen en werkwijzen.",
+    "emptyTitle": "Nog geen cyberscore",
+    "emptyDescription": "Je cyberscore en hoe die verandert verschijnen hier."
+  },
   "metadata": {
-    "description": "Moderne projectmanagementtool, geïnspireerd door de eenvoud van Notion en Jira",
-    "dashboard": "Dashboard"
+    "description": "Moderne projectmanagementtool, geïnspireerd door de eenvoud van Notion en Jira"
   },
   "chat": {
     "channel": {

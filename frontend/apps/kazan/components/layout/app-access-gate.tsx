@@ -12,9 +12,7 @@ import { isKazanShut, useKazanAccess } from "./use-kazan-access";
 
 /**
  * The dashboard pages that work without an organization: they read and write
- * only the user's own preferences, never a board, ticket or chat. `/profile`
- * and `/settings` need no entry: their pages redirect to the account app on
- * the server, before anything renders.
+ * only the user's own preferences, never a board, ticket or chat.
  */
 const ORGANIZATION_FREE_PATHS: readonly string[] = ["/settings/columns"];
 
@@ -24,9 +22,8 @@ interface AppAccessGateProps {
 
 /**
  * Shows a screen in place of the page when Kazan cannot serve it: the
- * choose-an-organization screen when no organization is selected (the
- * personal workspace; every board, ticket and chat belongs to an
- * organization), and the no-access panel when the selected organization does
+ * choose-an-organization screen when no organization is chosen (every
+ * board, ticket and chat belongs to an organization), and the no-access panel when the selected organization does
  * not grant Kazan to the user. The API refuses every Kazan call in both
  * cases; the screen says why, instead of a page of error states. The pages in
  * `ORGANIZATION_FREE_PATHS` still render without an organization.
@@ -34,8 +31,8 @@ interface AppAccessGateProps {
  * The page renders in every other state of `useKazanAccess`, also while it is
  * still pending, so the server-rendered page shows at once; the queries that
  * run on every page wait for the same answer before they go out. The gate
- * sits inside the content area, so the sidebar stays and the user can switch
- * to an organization with Kazan.
+ * sits inside the content area, so the top bar stays and the user can switch
+ * to an organization with Kazan from its selector.
  *
  * The server renders no Kazan data while Kazan is shut, and a board or
  * ticket page renders nothing at all. An organization switch does not reload
@@ -66,9 +63,9 @@ export function AppAccessGate({ children }: AppAccessGateProps) {
 }
 
 /**
- * Asks the user to choose an organization. Kazan has no personal boards, so
- * the personal workspace has nothing to show. The switcher offers the
- * organizations that grant Kazan, the same menu as the sidebar.
+ * Asks the user to choose an organization. Kazan has no boards outside an
+ * organization, so without one it has nothing to show. The switcher offers
+ * the organizations that grant Kazan, the same menu as the top bar's.
  */
 function NoOrganization() {
   const t = useTranslations("noOrganization");

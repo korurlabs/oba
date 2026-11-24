@@ -8,7 +8,6 @@
   "organizationSwitchFailed": "Wisselen van organisatie is mislukt. Probeer het opnieuw.",
   "yourOrganizations": "Uw organisaties",
   "createOrganization": "Organisatie aanmaken",
-  "personalWorkspace": "Persoonlijk",
   "noResults": "Geen resultaten gevonden.",
   "attachments": {
     "upload": {
@@ -60,7 +59,8 @@
   "search": "Zoeken",
   "common": {
     "profile": "Profiel",
-    "settings": "Instellingen",
+    "darkMode": "Donkere modus",
+    "soon": "Binnenkort",
     "logOut": "Uitloggen"
   },
   "organizationRoles": {
@@ -73,27 +73,26 @@
     "switchApp": "Wissel van app",
     "kazan": {
       "name": "Kazan",
-      "description": "Borden, tickets en sprints"
+      "description": "Operaties, werk en beveiliging"
     },
     "kaya": {
       "name": "Kaya",
-      "description": "Agentsessies en configuratie"
+      "description": "Agentbeheer en monitoring"
     },
     "kalkan": {
       "name": "Kalkan",
-      "description": "Compliance en documenten"
+      "description": "Compliance en documentatie"
     },
     "otak": {
       "name": "Otak",
-      "description": "Relaties, leads en klanten"
+      "description": "Contracten, SLA's en relaties"
     },
     "ulak": {
       "name": "Ulak",
-      "description": "Organisaties, leden en uitnodigingen"
+      "description": "Agents, mensen en rechten"
     },
     "account": {
-      "name": "Account",
-      "description": "Profiel, instellingen en uitnodigingen"
+      "name": "Account"
     }
   },
   "markdownEditor": {
