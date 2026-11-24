@@ -22,7 +22,17 @@ import { useGetMe } from "@oba/shared/features/users/hooks/use-get-me";
 import type { GrantedApp } from "@oba/shared/features/users/schema";
 import { useUpdateMe } from "@oba/shared/features/users/hooks/use-update-me";
 import { useClearDefaultOrganization } from "@oba/shared/features/users/hooks/use-clear-default-organization";
-import { OPS_GRID_ACCENT, OPS_GRID_HIGHLIGHT, OPS_GRID_SURFACE } from "@oba/ui/components/ops-grid";
+import {
+  OPS_GRID_ACCENT,
+  OPS_GRID_CURRENT,
+  OPS_GRID_HAIRLINE,
+  OPS_GRID_HEADING,
+  OPS_GRID_HIGHLIGHT,
+  OPS_GRID_NO_INDICATOR,
+  OPS_GRID_ROW,
+  OPS_GRID_SHADOW,
+  OPS_GRID_SURFACE,
+} from "@oba/ui/components/ops-grid";
 import { cn } from "@oba/ui/lib/utils";
 import { markAllOrganizationQueriesStale } from "../../hooks/use-invalidate-org-queries";
 import { ACCOUNT_LINKS } from "../../constants/apps";
@@ -46,18 +56,11 @@ const GRID_TRIGGER =
   "h-8 max-h-8 !min-h-8 gap-2 rounded-lg border-0 bg-transparent px-2.5 text-sm font-medium shadow-none hover:bg-muted data-[state=open]:bg-muted dark:bg-transparent dark:hover:bg-muted [&>svg:last-child]:size-3.5";
 const GRID_PANEL = cn(
   OPS_GRID_SURFACE,
-  "shadow-[0_18px_48px_-12px_rgb(11_42_71/0.35)] dark:shadow-[0_18px_48px_-12px_rgb(0_0_0/0.7)] w-[min(20rem,calc(100vw-2rem))] min-w-[220px] [&_[data-radix-select-viewport]]:px-2 [&_[data-radix-select-viewport]]:py-1.5"
+  OPS_GRID_SHADOW,
+  "w-[min(20rem,calc(100vw-2rem))] min-w-[220px] [&_[data-radix-select-viewport]]:px-2 [&_[data-radix-select-viewport]]:py-1.5"
 );
-const GRID_LABEL =
-  "mt-2 mb-1 px-3 py-0 font-mono text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground";
-const GRID_ROW = cn(
-  "min-h-11 gap-3 rounded-none px-3 py-2.5 text-[15px] font-medium leading-snug whitespace-normal break-words focus:text-inherit [&>span:first-child]:hidden transition-colors duration-150 motion-reduce:transition-none",
-  OPS_GRID_HIGHLIGHT
-);
-const GRID_HAIRLINE = "border-b border-[rgb(47_143_233/0.22)] dark:border-[rgb(122_190_255/0.14)]";
-const GRID_CURRENT =
-  "data-[state=checked]:bg-[rgb(26_100_184/0.10)] data-[state=checked]:font-semibold data-[state=checked]:text-[#1a64b8] dark:data-[state=checked]:text-[#7abeff] data-[state=checked]:before:absolute data-[state=checked]:before:inset-y-1.5 data-[state=checked]:before:start-0 data-[state=checked]:before:w-0.5 data-[state=checked]:before:bg-[#1a64b8] dark:data-[state=checked]:before:bg-[#7abeff]";
-const GRID_SELECTABLE_ROW = cn(GRID_ROW, GRID_HAIRLINE, GRID_CURRENT);
+const GRID_ROW = cn(OPS_GRID_ROW, OPS_GRID_NO_INDICATOR, OPS_GRID_HIGHLIGHT);
+const GRID_SELECTABLE_ROW = cn(GRID_ROW, OPS_GRID_HAIRLINE, OPS_GRID_CURRENT);
 
 export interface OrganizationSelectorProps {
   /**
@@ -377,7 +380,7 @@ export function OrganizationSelector({
         )}
         {selectableOrganizations.length > 0 && (
           <SelectGroup>
-            <SelectLabel className={isGrid ? GRID_LABEL : "text-muted-foreground text-xs"}>
+            <SelectLabel className={isGrid ? OPS_GRID_HEADING : "text-muted-foreground text-xs"}>
               {t("yourOrganizations")}
             </SelectLabel>
             {selectableOrganizations.map((org) => (

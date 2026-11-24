@@ -6,9 +6,14 @@ import type { ReactNode } from "react";
 
 import { AppSwitcher } from "@oba/shared/components/app-header/app-switcher";
 import { OrganizationSelector } from "@oba/shared/components/app-header/organization-selector";
-import { ProfileDropdown } from "@oba/shared/components/app-header/profile-dropdown";
+import {
+  PROFILE_MENU_GRID_ITEM,
+  ProfileDropdown,
+} from "@oba/shared/components/app-header/profile-dropdown";
 import { ACCOUNT_LINKS, ULAK_LINKS } from "@oba/shared/constants/apps";
 import { DropdownMenuItem } from "@oba/ui/components/dropdown-menu";
+import { OPS_GRID_ACCENT } from "@oba/ui/components/ops-grid";
+import { cn } from "@oba/ui/lib/utils";
 import { SkyAppShell } from "@oba/ui/sky/app-shell";
 
 import { ChangeControl } from "@/features/versions/components/change-control";
@@ -57,9 +62,9 @@ function KayaOrganizationSelector() {
 /** Organization settings and members live in Ulak. */
 function OrganizationMenuItem() {
   return (
-    <DropdownMenuItem asChild className="cursor-pointer rounded-lg px-3 py-2.5">
+    <DropdownMenuItem asChild className={PROFILE_MENU_GRID_ITEM}>
       <a href={ULAK_LINKS.organizations}>
-        <Building2 className="text-muted-foreground h-4 w-4" aria-hidden />
+        <Building2 className={cn("size-4", OPS_GRID_ACCENT)} aria-hidden />
         <span>Organization</span>
       </a>
     </DropdownMenuItem>

@@ -2,8 +2,19 @@
 
 import { LayoutGrid } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useId } from "react";
 import { Button } from "@oba/ui/components/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@oba/ui/components/popover";
+import {
+  OPS_GRID_ACCENT,
+  OPS_GRID_CURRENT,
+  OPS_GRID_HAIRLINE,
+  OPS_GRID_HEADING,
+  OPS_GRID_HIGHLIGHT,
+  OPS_GRID_ROW,
+  OPS_GRID_SHADOW,
+  OPS_GRID_SURFACE,
+} from "@oba/ui/components/ops-grid";
 import { cn } from "@oba/ui/lib/utils";
 import { obaApps, type ObaApp, type ObaAppId } from "../../constants/apps";
 import { canOpenApp } from "../../features/organizations/lib/app-access";
@@ -24,6 +35,15 @@ function switcherOrder(apps: readonly ObaApp[]): ObaApp[] {
   ];
 }
 
+/** The square grid panel of the header menus; wide enough for two columns of tiles. */
+const PANEL = cn(OPS_GRID_SURFACE, OPS_GRID_SHADOW, "w-[min(22rem,calc(100vw-2rem))] px-2 py-1.5");
+/** An app tile: a grid row laid out as a name over its description, which wraps. */
+const TILE = cn(
+  OPS_GRID_ROW,
+  OPS_GRID_HAIRLINE,
+  "relative flex h-full flex-col items-stretch gap-1"
+);
+
 export interface AppSwitcherProps {
   /** The app rendering the switcher; it is marked as current and not linked. */
   currentAppId: ObaAppId;
@@ -32,7 +52,8 @@ export interface AppSwitcherProps {
 }
 
 /**
- * Grid of the Oba web apps behind an icon button. Every other app opens in
+ * Grid of the Oba web apps behind an icon button, in the square grid panel
+ * of the organization selector beside it. Every other app opens in
  * the same tab: they share the Keycloak session, so the user lands signed in.
  *
  * An app is listed only when it has something to show the user: Ulak for a
@@ -49,11 +70,16 @@ export function AppSwitcher({ currentAppId, className }: AppSwitcherProps) {
   const { data: meResponse } = useGetMe();
   const me = meResponse?.data;
   const { appUrls } = useRuntimeConfig();
+  const headingId = useId();
   const apps = switcherOrder(obaApps(appUrls)).filter((app) => {
     if (app.id === currentAppId) return true;
     if (!me && app.id !== "ulak") return true;
     return canOpenApp(me, app.id);
   });
+
+  // Tiles fill two columns; hairlines part the rows and the columns, never the
+  // outer edge, which the panel's own border draws.
+  const lastRowStart = apps.length - (apps.length % 2 === 0 ? 2 : 1);
 
   return (
     <Popover>
@@ -61,43 +87,52 @@ export function AppSwitcher({ currentAppId, className }: AppSwitcherProps) {
         <Button
           variant="ghost"
           size="icon"
-          className={cn("h-8 w-8 cursor-pointer", className)}
+          className={cn("data-[state=open]:bg-muted h-8 w-8 cursor-pointer", className)}
           aria-label={t("switchApp")}
           title={t("switchApp")}
         >
           <LayoutGrid className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-[340px] p-3">
-        <p className="text-muted-foreground mb-2 px-1 text-xs font-medium">{t("switchApp")}</p>
-        <div className="grid grid-cols-2 gap-2">
-          {apps.map((app) => {
+      <PopoverContent align="end" sideOffset={8} className={PANEL}>
+        <p id={headingId} className={OPS_GRID_HEADING}>
+          {t("switchApp")}
+        </p>
+        <div role="group" aria-labelledby={headingId} className="grid grid-cols-2">
+          {apps.map((app, index) => {
             const isCurrent = app.id === currentAppId;
             const Icon = app.icon;
-            const card = (
+            const tileClassName = cn(
+              TILE,
+              index % 2 === 0 && index !== apps.length - 1 && "border-e",
+              index >= lastRowStart && "border-b-0"
+            );
+            const tile = (
               <>
                 <span className="flex items-center gap-2">
-                  <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-                  <span className="text-sm font-medium">{t(`${app.id}.name`)}</span>
+                  <Icon className={cn("size-4 shrink-0", OPS_GRID_ACCENT)} aria-hidden="true" />
+                  <span>{t(`${app.id}.name`)}</span>
                 </span>
-                <span className="text-muted-foreground text-xs leading-tight">
+                <span className="text-muted-foreground text-xs leading-snug font-normal">
                   {t(`${app.id}.description`)}
                 </span>
               </>
             );
-            const cardClassName = "flex h-full flex-col gap-1 rounded-lg border p-3 transition-colors";
 
             return isCurrent ? (
+              // Marked like the checked row of a menu, so the current app reads
+              // the same as the current organization beside it.
               <div
                 key={app.id}
                 aria-current="page"
-                className={cn(cardClassName, "border-primary bg-primary/5")}
+                data-state="checked"
+                className={cn(tileClassName, OPS_GRID_CURRENT)}
               >
-                {card}
+                {tile}
               </div>
             ) : (
-              <a key={app.id} href={app.url} className={cn(cardClassName, "hover:bg-accent")}>
-                {card}
+              <a key={app.id} href={app.url} className={cn(tileClassName, OPS_GRID_HIGHLIGHT)}>
+                {tile}
               </a>
             );
           })}

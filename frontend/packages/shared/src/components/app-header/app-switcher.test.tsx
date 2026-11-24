@@ -71,7 +71,9 @@ const CONFIG = {
 const OBA_APPS = obaApps(CONFIG.appUrls);
 
 function renderSwitcher(switcher: React.ReactElement): string {
-  return renderToStaticMarkup(<RuntimeConfigProvider config={CONFIG}>{switcher}</RuntimeConfigProvider>);
+  return renderToStaticMarkup(
+    <RuntimeConfigProvider config={CONFIG}>{switcher}</RuntimeConfigProvider>
+  );
 }
 
 beforeEach(() => {
@@ -106,6 +108,47 @@ describe("AppSwitcher", () => {
 
     expect(positions.every((position) => position >= 0)).toBe(true);
     expect(positions).toEqual([...positions].sort((a, b) => a - b));
+  });
+
+  test("marks the current tile like the current organization and links the others in the grid look", () => {
+    const html = renderSwitcher(<AppSwitcher currentAppId="kaya" />);
+    const current = html.match(
+      /<div aria-current="page" data-state="checked" class="([^"]*)"/
+    )?.[1];
+
+    expect(current).toContain("data-[state=checked]:bg-[rgb(26_100_184/0.10)]");
+    expect(current).toContain("data-[state=checked]:before:w-0.5");
+    const links = [...html.matchAll(/<a href="[^"]*" class="([^"]*)"/g)].map((m) => m[1] ?? "");
+    expect(links.length).toBeGreaterThan(0);
+    for (const link of links) {
+      expect(link).toContain("rounded-none");
+      expect(link).toContain("focus:bg-[rgb(47_143_233/0.08)]");
+    }
+  });
+
+  test("heads the grid with the ops group heading that labels it", () => {
+    const html = renderSwitcher(<AppSwitcher currentAppId="kaya" />);
+    const id = html.match(/<p id="([^"]+)" class="[^"]*font-mono[^"]*">switchApp<\/p>/)?.[1];
+
+    expect(id).toBeDefined();
+    expect(html).toContain(`role="group" aria-labelledby="${id}"`);
+  });
+
+  test("parts the tiles by hairlines inside the grid, never on its outer edge", () => {
+    const html = renderSwitcher(<AppSwitcher currentAppId="kaya" />);
+    const tiles = [
+      ...html.matchAll(
+        /<(?:a href="[^"]*"|div aria-current="page" data-state="checked") class="([^"]*)"/g
+      ),
+    ].map((m) => (m[1] ?? "").split(" "));
+
+    expect(tiles).toHaveLength(6);
+    // Two columns of three rows: the left column draws the vertical rule, the
+    // last row draws no bottom rule.
+    tiles.forEach((classes, index) => {
+      expect(classes.includes("border-e")).toBe(index % 2 === 0);
+      expect(classes.includes("border-b-0")).toBe(index >= 4);
+    });
   });
 
   test("offers the switch label on the trigger", () => {
