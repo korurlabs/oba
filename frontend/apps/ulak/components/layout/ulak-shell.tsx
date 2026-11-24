@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { Bot, KeyRound, Landmark, Mail, Settings, Users, UsersRound } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
@@ -16,6 +15,7 @@ import { SUPPORTED_LOCALES } from "@/lib/i18n/supported-locales";
 import { AccountSessionSync } from "./account-session-sync";
 import { OrganizationGate } from "./organization-gate";
 import { UlakAccessGate } from "./ulak-access-gate";
+import { UlakLogo } from "./ulak-logo";
 
 /**
  * Profile and settings are pages of the account app; Ulak owns only the
@@ -75,18 +75,7 @@ export function UlakShell({
       <AccountSessionSync />
       <UlakAccessGate />
       <SkyAppShell
-        logo={
-          <span className="flex items-center gap-2">
-            <Image
-              src="/assets/korur-mark.png"
-              alt=""
-              width={24}
-              height={24}
-              className="size-6 object-contain"
-            />
-            <span className="text-foreground text-base font-bold tracking-tight">{appName}</span>
-          </span>
-        }
+        logo={<UlakLogo className="h-6 w-auto sm:h-7" />}
         homeLabel={appName}
         actions={
           <>
