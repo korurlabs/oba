@@ -1,13 +1,27 @@
 {
   "metadata": {
-    "description": "Beheer je organisaties, hun leden en uitnodigingen",
-    "organization": "Organisatie"
+    "description": "Beheer je organisaties, hun leden en uitnodigingen"
   },
   "sidebar": {
     "navigation": "Navigatie",
-    "organizations": "Organisaties",
-    "newOrganization": "Nieuwe organisatie",
+    "agents": "Agents",
+    "humans": "Mensen",
+    "groups": "Groepen",
+    "legalEntities": "Rechtspersonen",
+    "access": "Toegang",
+    "invitations": "Uitnodigingen",
+    "organizationSettings": "Organisatie-instellingen",
     "language": "Taal"
+  },
+  "organizationGate": {
+    "title": "Kies een organisatie",
+    "description": "Ulak beheert één organisatie tegelijk. Kies er een waarvan je eigenaar of beheerder bent."
+  },
+  "agents": {
+    "title": "Agents",
+    "description": "De AI-agents die in deze organisatie werken, met hun rollen, apps en tokens.",
+    "emptyTitle": "Nog geen agents",
+    "emptyDescription": "Agents die je aan deze organisatie toevoegt, verschijnen hier."
   },
   "errors": {
     "somethingWentWrong": "Er is iets misgegaan",
@@ -27,7 +41,6 @@
     }
   },
   "organization": {
-    "description": "Bekijk en beheer de gegevens van uw organisatie",
     "name": "Organisatienaam",
     "namePlaceholder": "Acme B.V.",
     "companyInfo": "Bedrijfsinformatie",
@@ -55,24 +68,10 @@
     "updatedAt": "Laatst bijgewerkt",
     "notFound": "Organisatie niet gevonden",
     "notFoundDescription": "Deze organisatie is mogelijk verwijderd of u heeft geen toegang meer.",
-    "backToOrganizations": "Terug naar organisaties",
-    "listTitle": "Organisaties",
-    "listDescription": "Bekijk en beheer uw organisaties",
-    "noOrganizations": "Geen organisaties gevonden",
-    "noOrganizationsDescription": "Je beheert nog geen organisatie. Maak er een aan in je account, of vraag een eigenaar om je beheerder van de zijne te maken.",
-    "role": "Rol",
-    "tabs": {
-      "detail": "Details",
-      "members": "Leden",
-      "invitations": "Uitnodigingen",
-      "legalEntities": "Juridische entiteiten",
-      "groups": "Groepen",
-      "access": "Toegang"
-    },
     "members": {
       "title": "Leden",
       "noMembers": "Geen leden gevonden",
-      "noMembersDescription": "Er hoort nog niemand bij deze organisatie. Nodig mensen uit via het tabblad Uitnodigingen.",
+      "noMembersDescription": "Er hoort nog niemand bij deze organisatie. Nodig mensen uit op de pagina Uitnodigingen.",
       "userId": "Gebruiker",
       "email": "E-mail",
       "role": "Rol",
@@ -144,7 +143,6 @@
     "descriptionMaxLength": "Beschrijving mag maximaal 512 tekens bevatten",
     "websiteMaxLength": "Website mag maximaal 512 tekens bevatten",
     "record": "Gegevens",
-    "loading": "Organisaties laden",
     "loadingOrganization": "De organisatie laden",
     "legalEntities": {
       "title": "Juridische entiteiten",

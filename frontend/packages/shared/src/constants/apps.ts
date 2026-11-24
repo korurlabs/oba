@@ -31,8 +31,6 @@ export const ULAK_LINKS = {
   get organizations(): string {
     return appUrl("ulak");
   },
-  organization: (organizationId: string): string =>
-    `${appUrl("ulak")}/organizations/${encodeURIComponent(organizationId)}`,
 };
 
 /**

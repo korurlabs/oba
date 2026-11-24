@@ -29,11 +29,13 @@
       "laws": "Wet",
       "incentives": "Subsidie"
     },
-    "newPage": "Nieuwe pagina",
     "recent": "Recente wijzigingen",
     "trash": "Prullenbak",
     "expand": "Pagina's van {name} tonen",
-    "collapse": "Pagina's van {name} verbergen"
+    "collapse": "Pagina's van {name} verbergen",
+    "addChild": "Pagina toevoegen onder {name}",
+    "newChildName": "Naam van de nieuwe pagina",
+    "newChildNameMax": "De naam mag hoogstens 200 tekens lang zijn."
   },
   "errors": {
     "somethingWentWrong": "Er is iets misgegaan",

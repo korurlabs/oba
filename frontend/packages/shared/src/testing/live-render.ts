@@ -209,6 +209,10 @@ function installGlobals(document: FakeDocument): void {
   }
   scope.window = Object.assign(Object.create((scope.window as object | undefined) ?? null), {
     document,
+    innerWidth: 1280,
+    setTimeout: globalThis.setTimeout.bind(globalThis),
+    clearTimeout: globalThis.clearTimeout.bind(globalThis),
+    matchMedia: () => ({ addEventListener: () => undefined, removeEventListener: () => undefined }),
     addEventListener: () => undefined,
     removeEventListener: () => undefined,
   });
@@ -233,6 +237,8 @@ export type Screen = {
   byText: (text: string) => Handle | null;
   /** Every element whose given attribute holds the value. */
   byAttribute: (name: string, value: string) => Handle[];
+  /** Every element with this tag name. */
+  byTag: (tag: string) => Handle[];
   /** Runs work that updates state and lets React settle. */
   act: (work: () => void | Promise<void>) => Promise<void>;
   /** Lets pending promises, such as a query answer, finish and React settle. */
@@ -252,6 +258,12 @@ export type Handle = {
   change: (value: string) => Promise<void>;
   /** Runs the handler React attached to a click, as the browser would. */
   click: () => Promise<void>;
+  /** Runs the handler React attached to a key press on the element. */
+  keyDown: (key: string) => Promise<void>;
+  /** Runs the handler React attached to a form's submit. */
+  submit: () => Promise<void>;
+  /** Whether this element holds the focus. */
+  focused: () => boolean;
 };
 
 function elementsOf(node: FakeNode): FakeNode[] {
@@ -287,6 +299,28 @@ function handleOf(node: FakeNode, press: (work: () => void) => Promise<void>): H
           currentTarget: target,
         });
       }),
+    keyDown: (key: string) =>
+      press(() => {
+        (propsOf(node).onKeyDown as ((event: unknown) => void) | undefined)?.({
+          type: "keydown",
+          key,
+          target: node,
+          currentTarget: node,
+          preventDefault: () => undefined,
+          stopPropagation: () => undefined,
+        });
+      }),
+    submit: () =>
+      press(() => {
+        (propsOf(node).onSubmit as ((event: unknown) => void) | undefined)?.({
+          type: "submit",
+          target: node,
+          currentTarget: node,
+          preventDefault: () => undefined,
+          stopPropagation: () => undefined,
+        });
+      }),
+    focused: () => node.ownerDocument.activeElement === node,
     click: () =>
       press(() => {
         const props = propsOf(node);
@@ -332,6 +366,10 @@ export async function renderLive(element: ReactElement): Promise<Screen> {
     byAttribute: (name: string, value: string) =>
       all()
         .filter((node: FakeNode) => node.nodeType === 1 && String(propsOf(node)[name]) === value)
+        .map((node: FakeNode) => handleOf(node, press)),
+    byTag: (tag: string) =>
+      all()
+        .filter((node: FakeNode) => node.nodeType === 1 && node.tagName === tag.toUpperCase())
         .map((node: FakeNode) => handleOf(node, press)),
     act: press,
     settle: () =>

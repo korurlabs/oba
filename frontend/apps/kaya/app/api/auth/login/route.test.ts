@@ -2,6 +2,7 @@ import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import { NextRequest } from "next/server";
 
 import { REAUTH_COOKIE, REAUTH_WINDOW_SECONDS, SESSION_REJECTED } from "@/lib/auth/reauth";
+import { AuthError } from "@/lib/auth/types";
 
 // The route reads the session through `auth()`, starts the Keycloak sign-in
 // through `signIn()` and sets the forced sign-in's cookie through `cookies()`;
@@ -89,7 +90,7 @@ describe("sign-in route", () => {
   });
 
   test("starts the Keycloak sign-in for a session that can no longer be refreshed", async () => {
-    session = { error: "REFRESH_TOKEN_ERROR" };
+    session = { error: AuthError.REFRESH_TOKEN_ERROR };
     await get("callbackUrl=%2F");
     expect(signIns).toEqual([{ provider: "keycloak", redirectTo: "/" }]);
   });

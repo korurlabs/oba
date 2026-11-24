@@ -1,18 +1,21 @@
 "use client";
 
-import Image from "next/image";
-import { Building2 } from "lucide-react";
+import { Bot, KeyRound, Landmark, Mail, Settings, Users, UsersRound } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { AppSwitcher } from "@oba/shared/components/app-header/app-switcher";
+import { OrganizationSelector } from "@oba/shared/components/app-header/organization-selector";
 import { ProfileDropdown } from "@oba/shared/components/app-header/profile-dropdown";
 import { LanguageSwitcherSubMenu } from "@oba/shared/components/language-switcher";
 import { ACCOUNT_LINKS } from "@oba/shared/constants/apps";
 import { Link, usePathname } from "@oba/shared/libs/i18n/navigation";
-import { matchesPath, SkyAppShell, type SkyNavSection } from "@oba/ui/sky/app-shell";
+import { SkyAppShell, type SkyNavItem, type SkyNavSection } from "@oba/ui/sky/app-shell";
+import { OrganizationIdProvider } from "@/hooks/use-organization-id";
 import { SUPPORTED_LOCALES } from "@/lib/i18n/supported-locales";
 import { AccountSessionSync } from "./account-session-sync";
+import { OrganizationGate } from "./organization-gate";
 import { UlakAccessGate } from "./ulak-access-gate";
+import { UlakLogo } from "./ulak-logo";
 
 /**
  * Profile and settings are pages of the account app; Ulak owns only the
@@ -26,23 +29,24 @@ const accountHrefs = () => ({
 });
 
 /**
- * Whether the page in view belongs to Organizations. The organization list is
- * Ulak's home page at `/`, while an organization's pages live under
- * `/organizations`, so the link owns both.
+ * Page frame of every signed-in Ulak page: the shared sky shell with Ulak's
+ * wordmark, the organization selector, the app switcher and the account menu
+ * in the top bar, and the pages of the current organization in the floating
+ * menu. Every page administers the organization chosen in the header, so the
+ * gate shows the page only for one the user manages. It also keeps the
+ * session in step with the account app and sends a user who manages no
+ * organization to the no-access page.
+ *
+ * `organizationId` is the default organization of the session the server
+ * rendered with, so the first render keys its queries as the server did.
  */
-export function isOrganizationsPage(pathname: string): boolean {
-  return pathname === "/" || matchesPath(pathname, "/organizations");
-}
-
-/**
- * Page frame of every signed-in Ulak page, shared by the organization list
- * (which is also the sign-in gateway) and the dashboard layout: the shared
- * sky shell, as in Kaya, with Ulak's wordmark, the app switcher and the
- * account menu in the top bar and Organizations in the floating menu. It also
- * keeps the session in step with the account app and sends a user who
- * manages no organization to the no-access page.
- */
-export function UlakShell({ children }: { children: ReactNode }) {
+export function UlakShell({
+  organizationId,
+  children,
+}: {
+  organizationId: string | null;
+  children: ReactNode;
+}) {
   const t = useTranslations("sidebar");
   const tApps = useTranslations("apps");
   // The i18n pathname has the locale prefix stripped, so it compares with the hrefs.
@@ -53,36 +57,29 @@ export function UlakShell({ children }: { children: ReactNode }) {
     {
       label: t("navigation"),
       items: [
-        {
-          label: t("organizations"),
-          href: "/",
-          icon: Building2,
-          isActive: isOrganizationsPage,
-        },
+        { label: t("agents"), href: "/agents", icon: Bot },
+        { label: t("humans"), href: "/humans", icon: Users },
+        { label: t("groups"), href: "/groups", icon: UsersRound },
+        { label: t("legalEntities"), href: "/legal-entities", icon: Landmark },
+        { label: t("access"), href: "/access", icon: KeyRound },
+        { label: t("invitations"), href: "/invitations", icon: Mail },
       ],
     },
   ];
+  const footerItems: readonly SkyNavItem[] = [
+    { label: t("organizationSettings"), href: "/settings", icon: Settings },
+  ];
 
   return (
-    <>
+    <OrganizationIdProvider organizationId={organizationId}>
       <AccountSessionSync />
       <UlakAccessGate />
       <SkyAppShell
-        logo={
-          <span className="flex items-center gap-2">
-            <Image
-              src="/assets/korur-mark.png"
-              alt=""
-              width={24}
-              height={24}
-              className="size-6 object-contain"
-            />
-            <span className="text-foreground text-base font-bold tracking-tight">{appName}</span>
-          </span>
-        }
+        logo={<UlakLogo className="h-6 w-auto sm:h-7" />}
         homeLabel={appName}
         actions={
           <>
+            <OrganizationSelector withPersonal={false} managedOnly />
             <AppSwitcher currentAppId="ulak" />
             <ProfileDropdown
               hrefs={accountHrefs()}
@@ -96,11 +93,12 @@ export function UlakShell({ children }: { children: ReactNode }) {
           </>
         }
         sections={sections}
+        footerItems={footerItems}
         pathname={pathname}
         linkComponent={Link}
       >
-        {children}
+        <OrganizationGate>{children}</OrganizationGate>
       </SkyAppShell>
-    </>
+    </OrganizationIdProvider>
   );
 }

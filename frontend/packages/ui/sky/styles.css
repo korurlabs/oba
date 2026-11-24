@@ -248,8 +248,6 @@
   --sidebar-border: rgb(47 143 233 / 0.3);
   --sidebar-ring: #2f8fe9;
   --muted-foreground: #335675;
-  /* Where the panel's top edge sits: level with the page's filter row. */
-  --sky-sidebar-top: 11.875rem;
   /* The focus ring's offset takes the panel colour, not the page's white. */
   --background: #d8ecff;
   --ring: #2f8fe9;
@@ -266,30 +264,26 @@
 }
 
 /*
- * The panel container spans from the top bar to the foot of the window; the
- * panel inside is as tall as its links and hangs from `--sky-sidebar-top`,
- * level with the page's filter row. A spacer above the panel holds it there.
- * When the window is too short for the panel, only the spacer shrinks, so the
- * panel moves up until it pins below the top bar, and the max height then
- * lets the links scroll. The 12px inset keeps the panel off the top bar and
- * the window edges; the spacer subtracts it and the 3.5rem top bar.
+ * The panel container spans from the top bar to the foot of the window, less
+ * a 12px inset that keeps the panel off the top bar and the window edges. The
+ * panel inside is as tall as its links, and its auto block margins centre it
+ * in that span, so the gap above equals the gap below. When the window is too
+ * short for the panel, the margins drop to zero (auto margins never push an
+ * item past the container's start, as centring the container's content
+ * would), the panel shrinks to the span and its links scroll while the footer
+ * stays in view.
  */
 [data-slot="sidebar"][data-variant="floating"] > [data-slot="sidebar-container"] {
   flex-direction: column;
   padding: 0.75rem;
 }
 
-[data-slot="sidebar"][data-variant="floating"] > [data-slot="sidebar-container"]::before {
-  content: "";
-  flex: 0 1 max(0px, calc(var(--sky-sidebar-top) - 3.5rem - 0.75rem));
-  min-height: 0;
-}
-
 [data-slot="sidebar"][data-variant="floating"] [data-slot="sidebar-inner"] {
-  flex: 0 0 auto;
+  flex: 0 1 auto;
   height: auto;
   max-height: 100%;
   min-height: 0;
+  margin-block: auto;
 }
 
 /*
@@ -383,7 +377,7 @@
   background: linear-gradient(90deg, rgb(47 143 233 / 0.45), transparent);
 }
 
-/* The divider above the footer item: the same lattice, fading at both ends. */
+/* The divider above the footer links: the same lattice, fading at both ends. */
 [data-slot="sidebar"] .sky-lattice {
   width: auto;
   height: 7px;

@@ -1,11 +1,14 @@
 /**
  * Dashboard Layout
  *
- * The Ulak shell of every signed-in page except the organization list at `/`,
- * which renders the same shell itself because it also serves as the sign-in
- * gateway (see `app/[locale]/page.tsx`). The proxy sends a request without a
- * session to sign-in with a callbackUrl; this gate is the fallback for a
- * session that fails while the page renders.
+ * The Ulak shell of every signed-in page. `/` is only the sign-in gateway
+ * (see `app/[locale]/page.tsx`) and sends a manager on to `/humans`. The
+ * proxy sends a request without a session to sign-in with a callbackUrl;
+ * this gate is the fallback for a session that fails while the page renders.
+ *
+ * Every page administers the session's default organization, which the
+ * shell receives so that the first render keys its queries on the same
+ * organization the pages prefetched for.
  *
  * The layout server-prefetches the current-user ("me") query and hydrates it
  * around the shell, not in each page: the shell reads the query itself (see
@@ -48,7 +51,7 @@ export default async function DashboardLayout({
     return redirectToAuthApp(locale, "login");
   }
 
-  // Pending users onboard in the account app, which returns them to the list.
+  // Pending users onboard in the account app, which returns them to Ulak.
   if (session.userStatus === "PENDING_ONBOARDING") {
     return nextRedirect(accountOnboardingUrl("/", appUrl("ulak")));
   }
@@ -65,7 +68,7 @@ export default async function DashboardLayout({
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <UlakShell>{children}</UlakShell>
+      <UlakShell organizationId={session.user.defaultOrganizationId ?? null}>{children}</UlakShell>
     </HydrationBoundary>
   );
 }

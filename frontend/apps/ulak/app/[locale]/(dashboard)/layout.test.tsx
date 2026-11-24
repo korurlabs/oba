@@ -8,7 +8,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 // The dashboard layout guards every Ulak page but the list: it turns the
 // session and the prefetched current user into a redirect. Each redirect records
 // its target and throws, as the real ones do, so the test reads where it went.
-type SessionState = { user?: { id: string }; error?: string; userStatus?: string; accessToken?: string } | null;
+type SessionState = { user?: { id: string; defaultOrganizationId?: string | null }; error?: string; userStatus?: string; accessToken?: string } | null;
 type Membership = { id: string; name: string; role: string; organizationStatus: string };
 
 class Redirected extends Error {
@@ -22,6 +22,8 @@ class Redirected extends Error {
 
 let session: SessionState;
 let prefetched: number;
+// The organizationId the layout handed the shell on its last render.
+let shellOrganizationId: string | null | undefined;
 // The organizations the prefetched current user holds; undefined means the prefetch failed.
 let prefetchedMe: Membership[] | undefined;
 
@@ -68,7 +70,16 @@ mock.module("@oba/shared/features/users/api/prefetch-me", () => ({
 }));
 mock.module("@/components/layout/ulak-shell", () => ({
   ...actualShell,
-  UlakShell: ({ children }: { children: React.ReactNode }) => <main>{children}</main>,
+  UlakShell: ({
+    organizationId,
+    children,
+  }: {
+    organizationId: string | null;
+    children: React.ReactNode;
+  }) => {
+    shellOrganizationId = organizationId;
+    return <main>{children}</main>;
+  },
 }));
 
 afterAll(() => {
@@ -103,6 +114,7 @@ async function redirectOf(): Promise<Redirected> {
 beforeEach(() => {
   session = ACTIVE;
   prefetched = 0;
+  shellOrganizationId = undefined;
   prefetchedMe = [{ id: "org-1", name: "Korur", role: "OWNER", organizationStatus: "ACTIVE" }];
 });
 
@@ -114,6 +126,29 @@ describe("dashboard layout", () => {
 
     expect(html).toContain("the page");
     expect(prefetched).toBe(1);
+  });
+
+  test("hands the shell the session's default organization, so the first render keys as the server did", async () => {
+    session = { ...ACTIVE, user: { id: "u1", defaultOrganizationId: "org-1" } };
+    renderToStaticMarkup(
+      <QueryClientProvider client={new QueryClient()}>{(await visit()) as React.ReactElement}</QueryClientProvider>,
+    );
+
+    expect(shellOrganizationId).toBe("org-1");
+  });
+
+  test("hands the shell null when the session has no default organization", async () => {
+    session = { ...ACTIVE, user: { id: "u1", defaultOrganizationId: null } };
+    renderToStaticMarkup(
+      <QueryClientProvider client={new QueryClient()}>{(await visit()) as React.ReactElement}</QueryClientProvider>,
+    );
+    expect(shellOrganizationId).toBeNull();
+
+    session = ACTIVE;
+    renderToStaticMarkup(
+      <QueryClientProvider client={new QueryClient()}>{(await visit()) as React.ReactElement}</QueryClientProvider>,
+    );
+    expect(shellOrganizationId).toBeNull();
   });
 
   test("redirects a member-only user to /no-access", async () => {

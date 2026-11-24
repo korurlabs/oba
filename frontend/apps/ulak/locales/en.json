@@ -1,13 +1,27 @@
 {
   "metadata": {
-    "description": "Manage your organizations, their members and invitations",
-    "organization": "Organization"
+    "description": "Manage your organizations, their members and invitations"
   },
   "sidebar": {
     "navigation": "Navigation",
-    "organizations": "Organizations",
-    "newOrganization": "New Organization",
+    "agents": "Agents",
+    "humans": "Humans",
+    "groups": "Groups",
+    "legalEntities": "Legal entities",
+    "access": "Access",
+    "invitations": "Invitations",
+    "organizationSettings": "Organization settings",
     "language": "Language"
+  },
+  "organizationGate": {
+    "title": "Choose an organization",
+    "description": "Ulak manages one organization at a time. Choose one you own or administer."
+  },
+  "agents": {
+    "title": "Agents",
+    "description": "The AI agents that work in this organization, with their roles, apps and tokens.",
+    "emptyTitle": "No agents yet",
+    "emptyDescription": "Agents you add to this organization will appear here."
   },
   "errors": {
     "somethingWentWrong": "Something went wrong",
@@ -27,7 +41,6 @@
     }
   },
   "organization": {
-    "description": "View and manage your organization details",
     "name": "Organization Name",
     "namePlaceholder": "Acme Corp",
     "companyInfo": "Company Information",
@@ -55,24 +68,10 @@
     "updatedAt": "Last Updated",
     "notFound": "Organization not found",
     "notFoundDescription": "This organization may have been deleted or you no longer have access.",
-    "backToOrganizations": "Back to Organizations",
-    "listTitle": "Organizations",
-    "listDescription": "View and manage your organizations",
-    "noOrganizations": "No organizations found",
-    "noOrganizationsDescription": "You manage no organization yet. Create one in your account, or ask an owner to make you an admin of theirs.",
-    "role": "Role",
-    "tabs": {
-      "detail": "Detail",
-      "members": "Members",
-      "invitations": "Invitations",
-      "legalEntities": "Legal entities",
-      "groups": "Groups",
-      "access": "Access"
-    },
     "members": {
       "title": "Members",
       "noMembers": "No members found",
-      "noMembersDescription": "Nobody belongs to this organization yet. Invite people from the Invitations tab.",
+      "noMembersDescription": "Nobody belongs to this organization yet. Invite people on the Invitations page.",
       "userId": "User",
       "email": "Email",
       "role": "Role",
@@ -144,7 +143,6 @@
     "descriptionMaxLength": "Description must be at most 512 characters",
     "websiteMaxLength": "Website must be at most 512 characters",
     "record": "Record",
-    "loading": "Loading organizations",
     "loadingOrganization": "Loading the organization",
     "legalEntities": {
       "title": "Legal entities",

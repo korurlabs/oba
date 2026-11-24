@@ -29,11 +29,13 @@
       "laws": "Yasa",
       "incentives": "Teşvik"
     },
-    "newPage": "Yeni sayfa",
     "recent": "Son değişiklikler",
     "trash": "Çöp kutusu",
     "expand": "{name} sayfalarını göster",
-    "collapse": "{name} sayfalarını gizle"
+    "collapse": "{name} sayfalarını gizle",
+    "addChild": "Alt sayfa ekle: {name}",
+    "newChildName": "Yeni sayfanın adı",
+    "newChildNameMax": "Ad en fazla 200 karakter olabilir."
   },
   "errors": {
     "somethingWentWrong": "Bir şeyler yanlış gitti",

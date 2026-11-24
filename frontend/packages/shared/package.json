@@ -103,6 +103,7 @@
     "./features/organizations/schemas": "./src/features/organizations/schemas/index.ts",
     "./helpers/*": "./src/helpers/*.ts",
     "./schema": "./src/schema/index.ts",
-    "./realtime": "./src/realtime/index.ts"
+    "./realtime": "./src/realtime/index.ts",
+    "./testing/*": "./src/testing/*.ts"
   }
 }

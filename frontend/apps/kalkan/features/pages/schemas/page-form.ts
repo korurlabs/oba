@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { isApiError } from "@oba/shared/api/axios";
 import type { SelectOption } from "@oba/shared/features/form";
-import { childrenOf, pageTitle } from "../lib/page-tree";
+import { childrenOf, depthOf, pageTitle } from "../lib/page-tree";
 import {
   isLevelAtLeast,
   KalkanLevel,
@@ -100,6 +100,13 @@ export const createPageFormSchema = (
 
 export type PageFormValues = z.infer<ReturnType<typeof createPageFormSchema>>;
 
+/**
+ * The name of a page added from the menu's tree: the title of the new page in
+ * the reader's content locale, held to the title limit the server checks.
+ */
+export const createChildPageNameSchema = (t: (key: string) => string) =>
+  z.string().trim().min(1).max(PAGE_LIMITS.titleMax, t("newChildNameMax"));
+
 // ── Slug ────────────────────────────────────────────────────────────
 
 /** Turkish letters that do not decompose into a Latin letter and a mark. */
@@ -137,12 +144,30 @@ export function slugFromTitle(title: string): string {
     .replace(/-+$/, "");
 }
 
-// ── Parent choice ───────────────────────────────────────────────────
+/** The longest slug the server accepts, as `PAGE_SLUG_PATTERN` allows. */
+const SLUG_MAX = 100;
 
-/** How deep a page sits: a root page is at depth 1. */
-function depthOf(page: Pick<PageListItem, "path">): number {
-  return page.path.split("/").length;
+/**
+ * The slug of a page named `title` under a parent whose children hold
+ * `siblingSlugs`: the slug the title suggests, or `page` when the title has
+ * nothing usable, then `-2`, `-3` and so on until no sibling holds it. The
+ * server refuses a slug a sibling already has; siblings are compared here
+ * without regard to case as well, so two paths never differ in case alone.
+ * The base is cut so the slug with its suffix stays within the server's
+ * length limit.
+ */
+export function uniqueChildSlug(title: string, siblingSlugs: readonly string[]): string {
+  const base = slugFromTitle(title) || "page";
+  const taken = new Set(siblingSlugs.map((slug) => slug.toLowerCase()));
+  if (!taken.has(base)) return base;
+  for (let counter = 2; ; counter++) {
+    const suffix = `-${counter}`;
+    const candidate = `${base.slice(0, SLUG_MAX - suffix.length).replace(/[-.]+$/, "")}${suffix}`;
+    if (!taken.has(candidate)) return candidate;
+  }
 }
+
+// ── Parent choice ───────────────────────────────────────────────────
 
 /**
  * The pages a new page can go under, section by section in tree order: every

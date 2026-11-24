@@ -3,6 +3,7 @@ import { ApiError } from "@oba/shared/api/axios";
 import type { PageDetail, PageListItem } from "./index";
 import {
   appendToBody,
+  createChildPageNameSchema,
   createPageFormSchema,
   emptyPageFormValues,
   isSectionRoot,
@@ -14,6 +15,7 @@ import {
   storedLocales,
   toPageCreateRequest,
   toPageUpdateRequest,
+  uniqueChildSlug,
   type PageFormValues,
 } from "./page-form";
 
@@ -220,5 +222,59 @@ describe("parentOptions", () => {
     expect(options.map((option) => option.value)).toEqual(["policies", "a", "a1", "b"]);
     expect(options.map((option) => option.meta?.depth)).toEqual([0, 1, 2, 1]);
     expect(new Set(options.map((option) => option.group))).toEqual(new Set(["policies"]));
+  });
+});
+
+describe("uniqueChildSlug", () => {
+  test("turns Turkish letters into Latin ones", () => {
+    expect(uniqueChildSlug("Ağ Topolojisi", [])).toBe("ag-topolojisi");
+    expect(uniqueChildSlug("ŞÇÖĞÜİ ışık", [])).toBe("scogui-isik");
+  });
+
+  test("falls back to page when the title holds only punctuation", () => {
+    expect(uniqueChildSlug("???", [])).toBe("page");
+    expect(uniqueChildSlug("  --  ", [])).toBe("page");
+  });
+
+  test("adds -2, -3 until no sibling holds the slug, ignoring case", () => {
+    expect(uniqueChildSlug("Network", ["network"])).toBe("network-2");
+    expect(uniqueChildSlug("Network", ["Network", "NETWORK-2"])).toBe("network-3");
+    expect(uniqueChildSlug("???", ["page"])).toBe("page-2");
+  });
+
+  test("keeps 200 characters within the 100 character limit, also with a suffix", () => {
+    const title = "a".repeat(200);
+    const plain = uniqueChildSlug(title, []);
+    expect(plain).toHaveLength(100);
+    const suffixed = uniqueChildSlug(title, [plain]);
+    expect(suffixed).toHaveLength(100);
+    expect(suffixed.endsWith("-2")).toBe(true);
+    expect(suffixed).not.toBe(plain);
+  });
+
+  test("trims a hyphen the cut leaves before the suffix", () => {
+    const title = `${"a".repeat(97)} b`;
+    const slug = uniqueChildSlug(title, [uniqueChildSlug(title, [])]);
+    expect(slug.length).toBeLessThanOrEqual(100);
+    expect(slug).not.toContain("--");
+  });
+});
+
+describe("createChildPageNameSchema", () => {
+  test("accepts a name up to 200 characters and trims it", () => {
+    expect(createChildPageNameSchema(t).safeParse("a".repeat(200)).success).toBe(true);
+    const parsed = createChildPageNameSchema(t).safeParse("  Network  ");
+    expect(parsed.success && parsed.data).toBe("Network");
+  });
+
+  test("refuses a name over 200 characters with the message", () => {
+    const result = createChildPageNameSchema(t).safeParse("a".repeat(201));
+    expect(result.success ? [] : result.error.issues.map((issue) => issue.message)).toEqual([
+      "newChildNameMax",
+    ]);
+  });
+
+  test("refuses an empty name", () => {
+    expect(createChildPageNameSchema(t).safeParse("   ").success).toBe(false);
   });
 });

@@ -1,13 +1,27 @@
 {
   "metadata": {
-    "description": "Organizasyonlarınızı, üyelerini ve davetlerini yönetin",
-    "organization": "Organizasyon"
+    "description": "Organizasyonlarınızı, üyelerini ve davetlerini yönetin"
   },
   "sidebar": {
     "navigation": "Gezinme",
-    "organizations": "Organizasyonlar",
-    "newOrganization": "Yeni Organizasyon",
+    "agents": "Ajanlar",
+    "humans": "İnsanlar",
+    "groups": "Gruplar",
+    "legalEntities": "Tüzel kişiler",
+    "access": "Erişim",
+    "invitations": "Davetler",
+    "organizationSettings": "Organizasyon ayarları",
     "language": "Dil"
+  },
+  "organizationGate": {
+    "title": "Bir organizasyon seçin",
+    "description": "Ulak tek seferde bir organizasyonu yönetir. Sahibi veya yöneticisi olduğunuz birini seçin."
+  },
+  "agents": {
+    "title": "Ajanlar",
+    "description": "Bu organizasyonda çalışan yapay zekâ ajanları; rolleri, uygulamaları ve token'larıyla.",
+    "emptyTitle": "Henüz ajan yok",
+    "emptyDescription": "Bu organizasyona eklediğiniz ajanlar burada görünür."
   },
   "errors": {
     "somethingWentWrong": "Bir şeyler yanlış gitti",
@@ -27,7 +41,6 @@
     }
   },
   "organization": {
-    "description": "Organizasyon bilgilerinizi görüntüleyin ve yönetin",
     "name": "Organizasyon Adı",
     "namePlaceholder": "Acme A.Ş.",
     "companyInfo": "Şirket Bilgileri",
@@ -55,24 +68,10 @@
     "updatedAt": "Son Güncelleme",
     "notFound": "Organizasyon bulunamadı",
     "notFoundDescription": "Bu organizasyon silinmiş olabilir veya artık erişiminiz yok.",
-    "backToOrganizations": "Organizasyonlara Dön",
-    "listTitle": "Organizasyonlar",
-    "listDescription": "Organizasyonlarınızı görüntüleyin ve yönetin",
-    "noOrganizations": "Organizasyon bulunamadı",
-    "noOrganizationsDescription": "Henüz yönettiğiniz bir organizasyon yok. Hesabınızda bir tane oluşturun veya bir sahibinden sizi kendi organizasyonuna yönetici yapmasını isteyin.",
-    "role": "Rol",
-    "tabs": {
-      "detail": "Detay",
-      "members": "Üyeler",
-      "invitations": "Davetler",
-      "legalEntities": "Tüzel kişiler",
-      "groups": "Gruplar",
-      "access": "Erişim"
-    },
     "members": {
       "title": "Üyeler",
       "noMembers": "Üye bulunamadı",
-      "noMembersDescription": "Bu organizasyonda henüz kimse yok. Davetler sekmesinden kişileri davet edin.",
+      "noMembersDescription": "Bu organizasyonda henüz kimse yok. Davetler sayfasından kişileri davet edin.",
       "userId": "Kullanıcı",
       "email": "E-posta",
       "role": "Rol",
@@ -144,7 +143,6 @@
     "descriptionMaxLength": "Açıklama en fazla 512 karakter olmalıdır",
     "websiteMaxLength": "Web sitesi en fazla 512 karakter olmalıdır",
     "record": "Kayıt",
-    "loading": "Organizasyonlar yükleniyor",
     "loadingOrganization": "Organizasyon yükleniyor",
     "legalEntities": {
       "title": "Tüzel kişiler",

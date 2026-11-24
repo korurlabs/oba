@@ -85,20 +85,11 @@ describe("appUrl", () => {
 });
 
 describe("ULAK_LINKS", () => {
-  test("are paths under the Ulak origin", () => {
+  test("the organizations link is the Ulak origin", () => {
     setEnv({ NODE_ENV: "production", ULAK_URL: "https://ulak.example.test/" });
 
     expect(ULAK_LINKS.organizations).toBe("https://ulak.example.test");
-    expect(ULAK_LINKS.organization("6f1c2a9e-0000-4000-8000-000000000001")).toBe(
-      "https://ulak.example.test/organizations/6f1c2a9e-0000-4000-8000-000000000001"
-    );
-    expect(Object.keys(ULAK_LINKS)).toEqual(["organizations", "organization"]);
-  });
-
-  test("an organization id is encoded as one path segment", () => {
-    setEnv({ NODE_ENV: "production" });
-
-    expect(ULAK_LINKS.organization("a/b")).toBe("https://ulak.korur.com/organizations/a%2Fb");
+    expect(Object.keys(ULAK_LINKS)).toEqual(["organizations"]);
   });
 
   test("follow a changed environment on the next read", () => {
