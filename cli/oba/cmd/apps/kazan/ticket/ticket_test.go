@@ -48,24 +48,19 @@ func TestListWithoutArgumentsListsTheBacklog(t *testing.T) {
 	}
 }
 
-// searchedTicketJSON is ticketJSON with a searchMatch mark and sub-tickets.
-func searchedTicketJSON(id, key, title string, match bool, subTickets ...string) string {
-	base := ticketJSON(id, key, title, idOps, "OPS")
-	mark := "false"
-	if match {
-		mark = "true"
-	}
-	return strings.TrimSuffix(base, "}") + `,"searchMatch":` + mark +
+// withSubTickets is ticketJSON with sub-tickets.
+func withSubTickets(id, key, title string, subTickets ...string) string {
+	return strings.TrimSuffix(ticketJSON(id, key, title, idOps, "OPS"), "}") +
 		`,"subTickets":[` + strings.Join(subTickets, ",") + `]}`
 }
 
 func TestAllWithSearchShowsTheMatchingSubTicketsUnderTheirTicket(t *testing.T) {
 	api := newTicketAPI(t)
-	grandchild := searchedTicketJSON("g1", "OPS-52", "Locked out of the org", true)
-	child := searchedTicketJSON("c1", "OPS-51", "Approval flow", false, grandchild)
-	sibling := searchedTicketJSON("c2", "OPS-53", "Unrelated sibling", false)
-	direct := searchedTicketJSON("c3", "OPS-54", "Locked out on sign-in", true)
-	parent := searchedTicketJSON("p1", "OPS-50", "Go-live", false, child, sibling, direct)
+	grandchild := withSubTickets("g1", "OPS-52", "Locked out of the org")
+	child := withSubTickets("c1", "OPS-51", "Approval flow", grandchild)
+	sibling := withSubTickets("c2", "OPS-53", "Unrelated sibling")
+	direct := withSubTickets("c3", "OPS-54", "LOCKED OUT on sign-in")
+	parent := withSubTickets("p1", "OPS-50", "Go-live", child, sibling, direct)
 	var query string
 	captureQuery(api, "GET /kazan/tickets", `{"data":[`+parent+`]}`, &query)
 

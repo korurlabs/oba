@@ -200,9 +200,8 @@ public class TicketSpecification {
     }
 
     /**
-     * Case-insensitive keyword search across ticket title, description, and key; the
-     * keyword is literal ({@link TicketSearchText}). Returns no-op if {@code keyword} is
-     * null or blank.
+     * Case-insensitive keyword search across ticket title and key.
+     * Returns no-op if {@code keyword} is null or blank.
      *
      * A listed ticket also matches when one of the sub-tickets nested under it in the list
      * matches, so a sub-ticket can be found by searching even though the list holds only
@@ -223,28 +222,26 @@ public class TicketSpecification {
     private static Specification<Ticket> searchSpecification(String keyword, List<UUID> boardIds,
                                                              UUID milestoneId, UUID sprintId,
                                                              List<UUID> backlogIds) {
-        TicketSearchText search = TicketSearchText.of(keyword);
-        if (search == null) {
+        if (keyword == null || keyword.isBlank()) {
             return noOp();
         }
-        String pattern = search.likePattern();
+        String pattern = "%" + keyword.toLowerCase() + "%";
         int depth = milestoneId != null ? 0 : SEARCH_SUB_TICKET_DEPTH;
         return (root, query, cb) -> matchesSelfOrSubTicket(root, query, cb, pattern, depth,
                 boardIds, sprintId, backlogIds);
     }
 
     /**
-     * Matches a ticket whose title, description or key matches the {@link TicketSearchText}
-     * pattern, or one with a nested sub-ticket, down to {@code depth} levels, that does.
+     * Matches a ticket whose title or key contains the pattern, or one with a nested
+     * sub-ticket, down to {@code depth} levels, that does.
      */
     private static Predicate matchesSelfOrSubTicket(From<?, Ticket> ticket, CommonAbstractCriteria owner,
                                                     CriteriaBuilder cb, String pattern, int depth,
                                                     List<UUID> boardIds, UUID sprintId,
                                                     List<UUID> backlogIds) {
         Predicate self = cb.or(
-                cb.like(cb.lower(ticket.get("title")), pattern, TicketSearchText.LIKE_ESCAPE),
-                cb.like(cb.lower(ticket.get("description")), pattern, TicketSearchText.LIKE_ESCAPE),
-                cb.like(cb.lower(ticket.get("key")), pattern, TicketSearchText.LIKE_ESCAPE));
+                cb.like(cb.lower(ticket.get("title")), pattern),
+                cb.like(cb.lower(ticket.get("key")), pattern));
         if (depth == 0 || boardIds == null || boardIds.isEmpty()) {
             return self;
         }

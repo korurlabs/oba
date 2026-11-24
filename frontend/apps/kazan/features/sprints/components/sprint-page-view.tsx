@@ -102,7 +102,7 @@ export function SprintPageView({ boardId }: SprintPageViewProps) {
           <div className="flex h-full flex-col pt-4">
             <div className="flex min-h-0 flex-1 flex-col">
               <SprintList
-                showSearchMatches={!!page.filters.search}
+                search={page.filters.search}
                 boardId={boardId}
                 tickets={page.tickets?.data ?? []}
                 onTicketClick={page.handleTicketClick}
@@ -130,7 +130,7 @@ export function SprintPageView({ boardId }: SprintPageViewProps) {
           </div>
         ) : (
           <SprintKanban
-            showSearchMatches={!!page.filters.search}
+            search={page.filters.search}
             currentBoardId={boardId}
             tickets={page.tickets?.data ?? []}
             currentSprintId={page.currentSprint?.id}

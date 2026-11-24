@@ -365,11 +365,6 @@ export const ticketListResponseSchema: z.ZodType<TicketListResponseRaw> = z.obje
   sprint: ticketSprintResponseSchema.nullable().optional(),
   /** Null for a top-level ticket. */
   parentTicket: ticketParentResponseSchema.nullable().optional(),
-  /**
-   * Whether the ticket's own title, description or key holds the list's
-   * search text; null when the list is not searched.
-   */
-  searchMatch: z.boolean().nullable().optional(),
 });
 
 // Helper type for the recursive schema definition
@@ -398,7 +393,6 @@ type TicketListResponseRaw = {
   labels?: LabelResponse[] | null;
   sprint?: z.infer<typeof ticketSprintResponseSchema> | null;
   parentTicket?: z.infer<typeof ticketParentResponseSchema> | null;
-  searchMatch?: boolean | null;
 };
 
 // NOTE: LabelResponse is imported as a type from labels/schemas.

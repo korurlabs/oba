@@ -119,12 +119,6 @@ public record TicketListResponse(
         // Parent of a sub-ticket with the placement of its sub-tickets; null for a top-level ticket.
         @Schema(description = "Parent ticket with the status and placement of its sub-tickets; "
                 + "null for a top-level ticket", nullable = true)
-        TicketParentResponse parentTicket,
-
-        // Whether the ticket's own title, description or key holds the list's search text; null
-        // without a search. A list shows the sub-tickets that match or lead to one that does.
-        @Schema(description = "Whether the ticket's own title, description or key contains the "
-                + "search text; null when the list is not searched", nullable = true)
-        Boolean searchMatch
+        TicketParentResponse parentTicket
     ) {
 }

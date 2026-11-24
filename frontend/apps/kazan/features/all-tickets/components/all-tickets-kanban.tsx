@@ -51,8 +51,8 @@ interface AllTicketsKanbanProps {
   /** Whether the current user can edit tickets (toggle sub-ticket complete, quick-add). Defaults to true. */
   canEdit?: boolean;
   isLoading?: boolean;
-  /** While a search is active: show only the sub-tickets on a card that match or lead to a match, expanded. */
-  showSearchMatches?: boolean;
+  /** The active search, if any: each card then lists only the sub-tickets whose title or key matches it, or that lead to one that does, expanded. */
+  search?: string | null;
 }
 
 export function AllTicketsKanban({
@@ -65,7 +65,7 @@ export function AllTicketsKanban({
   onRequestCreateSubTicket,
   canEdit = true,
   isLoading = false,
-  showSearchMatches = false,
+  search,
 }: AllTicketsKanbanProps) {
   const t = useTranslations();
   const { activeTicket, displayTickets, beginDrag, releaseDrag, handOffTo } =
@@ -219,7 +219,7 @@ export function AllTicketsKanban({
                           onRequestCreateSubTicket={onRequestCreateSubTicket}
                           showBoardName={true}
                           canEdit={canEdit}
-                          showSearchMatches={showSearchMatches}
+                          search={search}
                         />
                       ))
                     )}

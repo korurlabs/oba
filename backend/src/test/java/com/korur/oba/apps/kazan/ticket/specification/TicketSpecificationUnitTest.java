@@ -334,15 +334,16 @@ class TicketSpecificationUnitTest {
         }
 
         @Test
-        void search_matchesTheTextLiterallyWithAnEscapedLikePattern() {
+        void search_matchesTitleAndKeyButNotTheDescription() {
             TicketQueryRequest request = new TicketQueryRequest();
-            request.setSearch("50%_Off");
+            request.setSearch("NUL");
             request.setSprintId(UUID.randomUUID());
 
             apply(TicketSpecification.filterBy(List.of(UUID.randomUUID()), null, request));
 
-            verify(cb, atLeastOnce()).like(any(), eq("%50\\%\\_off%"), eq('\\'));
-            verify(cb, never()).like(any(), anyString());
+            verify(cb, atLeastOnce()).like(any(), eq("%nul%"));
+            verify(root, atLeastOnce()).get("title");
+            verify(root, never()).get("description");
         }
 
         @Test

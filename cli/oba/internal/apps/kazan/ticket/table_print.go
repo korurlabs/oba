@@ -12,16 +12,19 @@ import (
 // titleWidth is the most of a title the table shows.
 const titleWidth = 50
 
-// PrintTable writes tickets as a table with a count line. In a list read with a search, the API
-// lists a ticket when its own text or a sub-ticket nested under it matches, so the sub-tickets on
-// the way to a match are written under their ticket, indented, and counted apart.
-func PrintTable(out io.Writer, tickets []client.Ticket) error {
+// PrintTable writes tickets as a table with a count line. With a search, the API lists a ticket
+// when its own title or key, or that of a sub-ticket nested under it, contains the text, so the
+// sub-tickets on the way to a match are written under their ticket, indented, and counted apart.
+func PrintTable(out io.Writer, tickets []client.Ticket, search string) error {
+	search = strings.ToLower(strings.TrimSpace(search))
 	w := tabwriter.NewWriter(out, 0, 0, 2, ' ', 0)
 	_, _ = fmt.Fprintln(w, "KEY\tTITLE\tSTATUS\tPRIORITY\tASSIGNEE\tLOCATION")
 	subTickets := 0
 	for _, t := range tickets {
 		printRow(w, t, cell(t.Key))
-		subTickets += printSearchedSubTickets(w, t.SubTickets, 1)
+		if search != "" {
+			subTickets += printSearchedSubTickets(w, t.SubTickets, search, 1)
+		}
 	}
 	if err := w.Flush(); err != nil {
 		return fmt.Errorf("failed to write the tickets: %w", err)
@@ -34,31 +37,28 @@ func PrintTable(out io.Writer, tickets []client.Ticket) error {
 	return nil
 }
 
-// printSearchedSubTickets writes the sub-tickets on the way to a search match, each under its
-// parent and indented by depth, and returns how many it wrote.
-func printSearchedSubTickets(w io.Writer, subTickets []client.Ticket, depth int) int {
+// printSearchedSubTickets writes the sub-tickets on the way to a match of search, lowercased,
+// each under its parent and indented by depth, and returns how many it wrote.
+func printSearchedSubTickets(w io.Writer, subTickets []client.Ticket, search string, depth int) int {
 	written := 0
 	for _, sub := range subTickets {
-		if !onSearchPath(sub) {
+		if !onSearchPath(sub, search) {
 			continue
 		}
 		printRow(w, sub, strings.Repeat("  ", depth-1)+"└ "+cell(sub.Key))
-		written += 1 + printSearchedSubTickets(w, sub.SubTickets, depth+1)
+		written += 1 + printSearchedSubTickets(w, sub.SubTickets, search, depth+1)
 	}
 	return written
 }
 
-// onSearchPath reports whether the ticket matches the list's search, or has a sub-ticket at any
-// depth that does. A ticket of a list read without a search carries no mark and is not.
-func onSearchPath(t client.Ticket) bool {
-	if t.SearchMatch == nil {
-		return false
-	}
-	if *t.SearchMatch {
+// onSearchPath reports whether the ticket's title or key contains search, lowercased, or that of
+// a sub-ticket at any depth does.
+func onSearchPath(t client.Ticket, search string) bool {
+	if strings.Contains(strings.ToLower(t.Title), search) || strings.Contains(strings.ToLower(t.Key), search) {
 		return true
 	}
 	for _, sub := range t.SubTickets {
-		if onSearchPath(sub) {
+		if onSearchPath(sub, search) {
 			return true
 		}
 	}

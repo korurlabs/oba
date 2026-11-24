@@ -11,7 +11,7 @@ import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
 import { Button } from "@/components/ui/button";
 import { TicketFilterPanel } from "@/features/tickets/components/ticket-filter-panel";
 import type { TicketListResponse } from "@/features/tickets/schemas";
-import { isOnSearchPath } from "@/features/tickets/lib/search-match";
+import { useSearchPathFilter } from "@/features/tickets/lib/search-match";
 import { useTicketPickerColumns } from "../hooks/use-ticket-picker-columns";
 import type { useTicketPicker } from "../hooks/use-ticket-picker";
 
@@ -106,6 +106,7 @@ export function TicketPicker({
   // given changes, so only a real change counts as one; an echo would end the
   // starting filters before the reader touched anything.
   const currentSearch = picker.filters.search;
+  const subRowFilter = useSearchPathFilter<TicketListResponse>(currentSearch);
   const setPickerFilters = picker.setFilters;
   const handleSearchChange = useCallback(
     (search: string | undefined) => {
@@ -200,7 +201,7 @@ export function TicketPicker({
             hierarchyKey="subTickets"
             selectableSubRows
             expandAll={!!picker.filters.search}
-            subRowFilter={picker.filters.search ? isOnSearchPath : undefined}
+            subRowFilter={subRowFilter}
             isLoading={picker.isLoading}
             emptyMessage={emptyMessage}
             onRowClick={toggleTicket}
