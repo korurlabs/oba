@@ -29,11 +29,13 @@
       "laws": "Law",
       "incentives": "Incentive"
     },
-    "newPage": "New page",
     "recent": "Recent",
     "trash": "Trash",
     "expand": "Show the pages of {name}",
-    "collapse": "Hide the pages of {name}"
+    "collapse": "Hide the pages of {name}",
+    "addChild": "Add a page under {name}",
+    "newChildName": "Name of the new page",
+    "newChildNameMax": "The name can be at most 200 characters."
   },
   "errors": {
     "somethingWentWrong": "Something went wrong",
