@@ -1,7 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { Building2, Columns3, Mail, Settings, Siren, User } from "lucide-react";
+import { Building2, Columns3, Download, Mail, Settings, Siren, User } from "lucide-react";
 import { ACCOUNT_LINKS, ULAK_LINKS } from "@oba/shared/constants/apps";
 import { canManageOrganizations } from "@oba/shared/features/organizations/lib/managed-organizations";
 import { useGetMe } from "@oba/shared/features/users/hooks/use-get-me";
@@ -15,7 +15,8 @@ type AccountTabId =
   | "general"
   | "tableColumns"
   | "organizations"
-  | "alerts";
+  | "alerts"
+  | "downloads";
 
 interface AccountTab {
   id: AccountTabId;
@@ -28,8 +29,10 @@ interface AccountTab {
  * The account screens. `id` doubles as the label key in the `sidebar`
  * namespace. Profile, my invitations and general settings are screens of the
  * account app, and organizations a Ulak screen, so their tabs leave Kazan
- * and are never active here. Built on render, because the other apps' origins
- * are known only once the run-time config has arrived.
+ * and are never active here. Download CLI comes last: the downloads page sits
+ * outside the settings screens, so its tab is never active either. Built on
+ * render, because the other apps' origins are known only once the run-time
+ * config has arrived.
  */
 const accountTabs = (): AccountTab[] => [
   { id: "profile", href: ACCOUNT_LINKS.profile, icon: User },
@@ -38,15 +41,17 @@ const accountTabs = (): AccountTab[] => [
   { id: "tableColumns", href: "/settings/columns", icon: Columns3 },
   { id: "organizations", href: ULAK_LINKS.organizations, icon: Building2 },
   { id: "alerts", href: "/settings/alerts", icon: Siren },
+  { id: "downloads", href: "/downloads", icon: Download },
 ];
 
 /**
  * Navigation row shared by the Kazan settings screens (table columns,
  * alerts), with the account app screens (profile, my invitations, general
- * settings) and the Ulak organizations screen beside them. Rendered by the
- * `(account)` layout, so it stays on screen when one of those pages throws.
- * The organizations tab shows only for a user who manages an organization,
- * since Ulak refuses everyone else; while the user is unknown it stays hidden.
+ * settings), the Ulak organizations screen and the CLI downloads beside
+ * them. Rendered by the `(account)` layout, so it stays on screen when one
+ * of those pages throws. The organizations tab shows only for a user who
+ * manages an organization, since Ulak refuses everyone else; while the user
+ * is unknown it stays hidden.
  *
  * Modelled on `board-tabs.tsx`: a row of links whose active tab comes from the
  * pathname. The row scrolls horizontally when the tabs do not fit the width.
@@ -58,7 +63,7 @@ export function AccountNav() {
   const managesOrganizations = canManageOrganizations(meResponse?.data);
   const tabs = accountTabs().filter((tab) => tab.id !== "organizations" || managesOrganizations);
 
-  const isTabActive = (tab: AccountTab): boolean => pathname === tab.href;
+  const isTabActive = (tab: AccountTab): boolean => tab.id !== "downloads" && pathname === tab.href;
 
   return (
     <div className="border-border bg-card shrink-0 border-b">
