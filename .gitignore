@@ -21,6 +21,8 @@
 *.p8
 *.p12
 *.key
+# A Kagi binding names one deployment's apps and stays out of this public repo; copy kagi.example.yaml.
+kagi.yaml
 
 # Agent configuration
 .claude/

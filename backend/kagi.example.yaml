@@ -1,0 +1,33 @@
+# Example Kagi binding. Copy this file to kagi.yaml in this directory and fill
+# in your own Kagi app (`kagi setup` writes the binding lines). kagi.yaml is
+# ignored by git: a binding names one deployment's apps and does not belong in
+# this public repository.
+folder-path: "/<folder>/api"
+app-id: "<your Kagi app id>"
+environment: local
+organization: "<your organization slug>"
+organization-id: "<your organization id>"
+
+# Local Context (Kagi spec 3.3): devstack serves this directory's per-machine
+# values under the provider name devstack, resolved at run time to the
+# executable kagi-context-devstack.
+# testing is listed so that the integration tests, run as
+# kagi run --env testing --local-context=required -- mvn clean verify, reach
+# the PostgreSQL and Azurite of this worktree's devstack instance instead of
+# the fixed ports the testing environment holds.
+local:
+  provider: devstack
+  environments: [local, testing]
+  keys:
+    - SERVER_PORT
+    - SERVER_ADDRESS
+    - SPRING_DATASOURCE_URL
+    - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI
+    - OBA_OPENAPI_URL
+    - AZURE_STORAGE_CONNECTION_STRING
+    - AZURE_STORAGE_BLOB_BASE_URL
+    - SENSEY_CORS_ALLOW_LOCAL_ORIGINS
+    # The unit's unset: list. Inert today, because application.properties:33,37
+    # are literals, but owned so the provider may clear them.
+    - KEYCLOAK_ISSUER
+    - OPENAPI_URL
