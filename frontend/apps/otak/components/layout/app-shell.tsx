@@ -13,9 +13,11 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { AppSwitcher } from "@oba/shared/components/app-header/app-switcher";
+import { OrganizationSelector } from "@oba/shared/components/app-header/organization-selector";
 import { ProfileDropdown } from "@oba/shared/components/app-header/profile-dropdown";
 import { LanguageSwitcherSubMenu } from "@oba/shared/components/language-switcher";
 import { ACCOUNT_LINKS } from "@oba/shared/constants/apps";
+import { GrantedApp } from "@oba/shared/features/users/schema";
 import { Link, usePathname } from "@oba/shared/libs/i18n/navigation";
 import { SkyAppShell, type SkyLinkProps, type SkyNavSection } from "@oba/ui/sky/app-shell";
 import { OrganizationIdProvider } from "@/hooks/use-organization-id";
@@ -37,8 +39,9 @@ const LocaleLink = forwardRef<HTMLAnchorElement, SkyLinkProps>(function LocaleLi
 
 /**
  * Page frame of every signed-in Otak page: the shared sky shell with Otak's
- * sections in the floating menu, and the app switcher and the account menu in
- * the top bar. The account session side effects run on every page, and a
+ * sections in the floating menu, and the organization selector (offering
+ * the organizations that grant Otak), the app switcher and the account menu
+ * in the top bar. The account session side effects run on every page, and a
  * user without an organization sees the gate instead of the page.
  * `organizationId` is the default organization of the session the server
  * rendered with; see `useOrganizationId`.
@@ -85,6 +88,7 @@ export function OtakAppShell({
         homeLabel={tApps("otak.name")}
         actions={
           <>
+            <OrganizationSelector app={GrantedApp.OTAK} />
             <AppSwitcher currentAppId="otak" />
             <ProfileDropdown
               hrefs={accountHrefs}
