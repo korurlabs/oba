@@ -8,7 +8,7 @@ describe("KazanLogo", () => {
 
     expect(html).toContain('role="img"');
     expect(html).toContain('aria-label="Kazan"');
-    expect(html).toContain('viewBox="0 0 600 164"');
+    expect(html).toContain('viewBox="0 0 726 164"');
     expect(html).toContain(">Kazan</text>");
   });
 
