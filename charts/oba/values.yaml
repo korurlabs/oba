@@ -73,14 +73,27 @@ api:
     rollingUpdate:
       maxUnavailable: 0
       maxSurge: 1
+  # Every image runs as user and group 10001 (the USER of both Dockerfiles), with
+  # no capability, no privilege escalation and the runtime's default seccomp
+  # profile, which meets the restricted Pod Security Standard.
   podSecurityContext:
-    runAsUser: 1000
-    runAsGroup: 3000
-    fsGroup: 2000
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+    seccompProfile:
+      type: RuntimeDefault
   securityContext:
-    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
     allowPrivilegeEscalation: false
     privileged: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop: [ALL]
+    seccompProfile:
+      type: RuntimeDefault
   # The root filesystem is read-only, so /tmp is a per-pod emptyDir.
   volumes:
     - name: tmp-volume
@@ -160,14 +173,39 @@ kazan:
     rollingUpdate:
       maxUnavailable: 0
       maxSurge: 1
-  podSecurityContext: {}
+  # Every image runs as user and group 10001 (the USER of both Dockerfiles), with
+  # no capability, no privilege escalation and the runtime's default seccomp
+  # profile, which meets the restricted Pod Security Standard.
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+    seccompProfile:
+      type: RuntimeDefault
   securityContext:
     runAsNonRoot: true
-    runAsUser: 1001
-    runAsGroup: 1001
+    runAsUser: 10001
+    runAsGroup: 10001
     allowPrivilegeEscalation: false
-  volumes: []
-  volumeMounts: []
+    privileged: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop: [ALL]
+    seccompProfile:
+      type: RuntimeDefault
+  # The root filesystem is read-only, so /tmp and the Next.js cache (the image
+  # optimizer writes there) are per-pod emptyDirs.
+  volumes:
+    - name: tmp-volume
+      emptyDir: {}
+    - name: next-cache
+      emptyDir: {}
+  volumeMounts:
+    - name: tmp-volume
+      mountPath: /tmp
+    - name: next-cache
+      mountPath: /app/.next/standalone/apps/kazan/.next/cache
   podLabels: {}
   podAnnotations: {}
   nodeSelector: {}
@@ -232,14 +270,39 @@ kaya:
     rollingUpdate:
       maxUnavailable: 0
       maxSurge: 1
-  podSecurityContext: {}
+  # Every image runs as user and group 10001 (the USER of both Dockerfiles), with
+  # no capability, no privilege escalation and the runtime's default seccomp
+  # profile, which meets the restricted Pod Security Standard.
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+    seccompProfile:
+      type: RuntimeDefault
   securityContext:
     runAsNonRoot: true
-    runAsUser: 1001
-    runAsGroup: 1001
+    runAsUser: 10001
+    runAsGroup: 10001
     allowPrivilegeEscalation: false
-  volumes: []
-  volumeMounts: []
+    privileged: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop: [ALL]
+    seccompProfile:
+      type: RuntimeDefault
+  # The root filesystem is read-only, so /tmp and the Next.js cache (the image
+  # optimizer writes there) are per-pod emptyDirs.
+  volumes:
+    - name: tmp-volume
+      emptyDir: {}
+    - name: next-cache
+      emptyDir: {}
+  volumeMounts:
+    - name: tmp-volume
+      mountPath: /tmp
+    - name: next-cache
+      mountPath: /app/.next/standalone/apps/kaya/.next/cache
   podLabels: {}
   podAnnotations: {}
   nodeSelector: {}
@@ -304,14 +367,39 @@ kalkan:
     rollingUpdate:
       maxUnavailable: 0
       maxSurge: 1
-  podSecurityContext: {}
+  # Every image runs as user and group 10001 (the USER of both Dockerfiles), with
+  # no capability, no privilege escalation and the runtime's default seccomp
+  # profile, which meets the restricted Pod Security Standard.
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+    seccompProfile:
+      type: RuntimeDefault
   securityContext:
     runAsNonRoot: true
-    runAsUser: 1001
-    runAsGroup: 1001
+    runAsUser: 10001
+    runAsGroup: 10001
     allowPrivilegeEscalation: false
-  volumes: []
-  volumeMounts: []
+    privileged: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop: [ALL]
+    seccompProfile:
+      type: RuntimeDefault
+  # The root filesystem is read-only, so /tmp and the Next.js cache (the image
+  # optimizer writes there) are per-pod emptyDirs.
+  volumes:
+    - name: tmp-volume
+      emptyDir: {}
+    - name: next-cache
+      emptyDir: {}
+  volumeMounts:
+    - name: tmp-volume
+      mountPath: /tmp
+    - name: next-cache
+      mountPath: /app/.next/standalone/apps/kalkan/.next/cache
   podLabels: {}
   podAnnotations: {}
   nodeSelector: {}
@@ -376,14 +464,39 @@ otak:
     rollingUpdate:
       maxUnavailable: 0
       maxSurge: 1
-  podSecurityContext: {}
+  # Every image runs as user and group 10001 (the USER of both Dockerfiles), with
+  # no capability, no privilege escalation and the runtime's default seccomp
+  # profile, which meets the restricted Pod Security Standard.
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+    seccompProfile:
+      type: RuntimeDefault
   securityContext:
     runAsNonRoot: true
-    runAsUser: 1001
-    runAsGroup: 1001
+    runAsUser: 10001
+    runAsGroup: 10001
     allowPrivilegeEscalation: false
-  volumes: []
-  volumeMounts: []
+    privileged: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop: [ALL]
+    seccompProfile:
+      type: RuntimeDefault
+  # The root filesystem is read-only, so /tmp and the Next.js cache (the image
+  # optimizer writes there) are per-pod emptyDirs.
+  volumes:
+    - name: tmp-volume
+      emptyDir: {}
+    - name: next-cache
+      emptyDir: {}
+  volumeMounts:
+    - name: tmp-volume
+      mountPath: /tmp
+    - name: next-cache
+      mountPath: /app/.next/standalone/apps/otak/.next/cache
   podLabels: {}
   podAnnotations: {}
   nodeSelector: {}
@@ -448,14 +561,39 @@ ulak:
     rollingUpdate:
       maxUnavailable: 0
       maxSurge: 1
-  podSecurityContext: {}
+  # Every image runs as user and group 10001 (the USER of both Dockerfiles), with
+  # no capability, no privilege escalation and the runtime's default seccomp
+  # profile, which meets the restricted Pod Security Standard.
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+    seccompProfile:
+      type: RuntimeDefault
   securityContext:
     runAsNonRoot: true
-    runAsUser: 1001
-    runAsGroup: 1001
+    runAsUser: 10001
+    runAsGroup: 10001
     allowPrivilegeEscalation: false
-  volumes: []
-  volumeMounts: []
+    privileged: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop: [ALL]
+    seccompProfile:
+      type: RuntimeDefault
+  # The root filesystem is read-only, so /tmp and the Next.js cache (the image
+  # optimizer writes there) are per-pod emptyDirs.
+  volumes:
+    - name: tmp-volume
+      emptyDir: {}
+    - name: next-cache
+      emptyDir: {}
+  volumeMounts:
+    - name: tmp-volume
+      mountPath: /tmp
+    - name: next-cache
+      mountPath: /app/.next/standalone/apps/ulak/.next/cache
   podLabels: {}
   podAnnotations: {}
   nodeSelector: {}
@@ -520,14 +658,39 @@ account:
     rollingUpdate:
       maxUnavailable: 0
       maxSurge: 1
-  podSecurityContext: {}
+  # Every image runs as user and group 10001 (the USER of both Dockerfiles), with
+  # no capability, no privilege escalation and the runtime's default seccomp
+  # profile, which meets the restricted Pod Security Standard.
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+    seccompProfile:
+      type: RuntimeDefault
   securityContext:
     runAsNonRoot: true
-    runAsUser: 1001
-    runAsGroup: 1001
+    runAsUser: 10001
+    runAsGroup: 10001
     allowPrivilegeEscalation: false
-  volumes: []
-  volumeMounts: []
+    privileged: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop: [ALL]
+    seccompProfile:
+      type: RuntimeDefault
+  # The root filesystem is read-only, so /tmp and the Next.js cache (the image
+  # optimizer writes there) are per-pod emptyDirs.
+  volumes:
+    - name: tmp-volume
+      emptyDir: {}
+    - name: next-cache
+      emptyDir: {}
+  volumeMounts:
+    - name: tmp-volume
+      mountPath: /tmp
+    - name: next-cache
+      mountPath: /app/.next/standalone/apps/account/.next/cache
   podLabels: {}
   podAnnotations: {}
   nodeSelector: {}

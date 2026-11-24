@@ -41,12 +41,14 @@ WORKDIR /app
 # them. An app without a public/ folder builds the same way.
 COPY apps/${APP_NAME}/.next .next
 
-# Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nextjs -u 1001 -G nodejs && \
+# The server runs as a non-root user. The numeric USER lets Kubernetes verify
+# runAsNonRoot without reading /etc/passwd; the chart runs every component as
+# 10001.
+RUN addgroup -g 10001 -S nodejs && \
+    adduser -S nextjs -u 10001 -G nodejs && \
     chown -R nextjs:nodejs /app
 
-USER nextjs
+USER 10001:10001
 
 EXPOSE 8080
 
