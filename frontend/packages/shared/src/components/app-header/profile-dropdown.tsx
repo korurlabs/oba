@@ -16,8 +16,17 @@ import { useTranslations } from "next-intl";
 import { useGetMe } from "@oba/shared/features/users/hooks/use-get-me";
 import { SidebarMenuButton } from "@oba/ui/components/sidebar";
 import { useIsMobile } from "@oba/ui/hooks/use-mobile";
+import {
+  OPS_GRID_ACCENT,
+  OPS_GRID_HAIRLINE,
+  OPS_GRID_HIGHLIGHT,
+  OPS_GRID_ROW,
+  OPS_GRID_SHADOW,
+  OPS_GRID_SURFACE,
+} from "@oba/ui/components/ops-grid";
 import { cn } from "@oba/ui/lib/utils";
 import { submitLogout } from "@oba/shared/libs/auth/logout-client";
+import { MenuLookContext } from "./menu-look";
 
 export interface ProfileDropdownProps {
   /**
@@ -52,6 +61,26 @@ export interface ProfileDropdownProps {
 }
 
 const DEFAULT_HREFS = { profile: "/profile", settings: "/settings" };
+
+/*
+ * The header ("default") variant draws the menu in the square ops grid panel
+ * of the organization selector beside it: hairlines part every row, a row is
+ * tinted while highlighted, and icons take the accent colour. The "sidebar"
+ * variant keeps the theme's rounded menu.
+ */
+const GRID_PANEL = cn(
+  OPS_GRID_SURFACE,
+  OPS_GRID_SHADOW,
+  "w-[min(18rem,calc(100vw-2rem))] min-w-[220px] px-2 py-1.5"
+);
+/**
+ * A row of the header variant. Exported for a row a host app passes in
+ * `extraMenuContent`, so it matches Profile and Settings.
+ */
+export const PROFILE_MENU_GRID_ITEM = cn(OPS_GRID_ROW, OPS_GRID_HIGHLIGHT, "cursor-pointer");
+const PLAIN_ITEM = "cursor-pointer rounded-lg px-3 py-2.5";
+/** A separator drawn as the row hairline: no height or fill of its own, and full width. */
+const GRID_SEPARATOR = cn("mx-0 my-0 h-0 bg-transparent", OPS_GRID_HAIRLINE);
 
 /**
  * The user menu: name and email, Profile, Settings, optional extra content,
@@ -105,6 +134,9 @@ export function ProfileDropdown({
   }
 
   const isSidebar = variant === "sidebar";
+  const itemClassName = isSidebar ? PLAIN_ITEM : PROFILE_MENU_GRID_ITEM;
+  const separatorClassName = isSidebar ? "my-1" : GRID_SEPARATOR;
+  const iconClassName = isSidebar ? "text-muted-foreground h-4 w-4" : cn("size-4", OPS_GRID_ACCENT);
 
   return (
     <DropdownMenu>
@@ -134,7 +166,7 @@ export function ProfileDropdown({
         ) : (
           <button
             className={cn(
-              "hover:bg-muted flex items-center gap-1 rounded-lg px-1 py-0.5 transition-colors duration-150 md:gap-3 md:rounded-xl md:px-3 md:py-1.5",
+              "hover:bg-muted data-[state=open]:bg-muted flex items-center gap-1 rounded-lg px-1 py-0.5 transition-colors duration-150 md:gap-3 md:rounded-xl md:px-3 md:py-1.5",
               className
             )}
           >
@@ -152,44 +184,56 @@ export function ProfileDropdown({
       <DropdownMenuContent
         align="end"
         side={isSidebar && !isMobile ? "right" : "bottom"}
-        sideOffset={isSidebar ? 4 : undefined}
-        className="border-border w-56 rounded-xl border p-2 shadow-xl"
+        sideOffset={isSidebar ? 4 : 8}
+        className={isSidebar ? "border-border w-56 rounded-xl border p-2 shadow-xl" : GRID_PANEL}
       >
-        <DropdownMenuLabel className="px-3 py-3">
-          <div className="flex flex-col space-y-1">
-            <p className="text-foreground text-sm font-semibold">
-              {firstName} {lastName}
-            </p>
-            {email && <p className="text-muted-foreground text-xs">{email}</p>}
-          </div>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator className="my-1" />
-        <DropdownMenuItem asChild className="cursor-pointer rounded-lg px-3 py-2.5">
-          <Link href={hrefs.profile} onClick={onNavigate}>
-            <User className="text-muted-foreground h-4 w-4" />
-            <span>{t("profile")}</span>
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild className="cursor-pointer rounded-lg px-3 py-2.5">
-          <Link href={hrefs.settings} onClick={onNavigate}>
-            <Settings className="text-muted-foreground h-4 w-4" />
-            <span>{t("settings")}</span>
-          </Link>
-        </DropdownMenuItem>
-        {extraMenuContent && (
-          <>
-            <DropdownMenuSeparator className="my-1" />
-            {extraMenuContent}
-          </>
-        )}
-        <DropdownMenuSeparator className="my-1" />
-        <DropdownMenuItem
-          onClick={handleLogout}
-          className="text-foreground cursor-pointer rounded-lg px-3 py-2.5"
-        >
-          <LogOut className="text-muted-foreground h-4 w-4" />
-          <span>{t("logOut")}</span>
-        </DropdownMenuItem>
+        <MenuLookContext.Provider value={isSidebar ? "plain" : "grid"}>
+          <DropdownMenuLabel className={isSidebar ? "px-3 py-3" : "px-3 py-2.5"}>
+            <div className="flex flex-col space-y-1">
+              <p
+                className={cn(
+                  "font-semibold",
+                  isSidebar ? "text-foreground text-sm" : "text-[15px] leading-snug break-words"
+                )}
+              >
+                {firstName} {lastName}
+              </p>
+              {email && (
+                <p className={cn("text-muted-foreground text-xs", !isSidebar && "break-all")}>
+                  {email}
+                </p>
+              )}
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator className={separatorClassName} />
+          <DropdownMenuItem asChild className={itemClassName}>
+            <Link href={hrefs.profile} onClick={onNavigate}>
+              <User className={iconClassName} />
+              <span>{t("profile")}</span>
+            </Link>
+          </DropdownMenuItem>
+          {!isSidebar && <DropdownMenuSeparator className={separatorClassName} />}
+          <DropdownMenuItem asChild className={itemClassName}>
+            <Link href={hrefs.settings} onClick={onNavigate}>
+              <Settings className={iconClassName} />
+              <span>{t("settings")}</span>
+            </Link>
+          </DropdownMenuItem>
+          {extraMenuContent && (
+            <>
+              <DropdownMenuSeparator className={separatorClassName} />
+              {extraMenuContent}
+            </>
+          )}
+          <DropdownMenuSeparator className={separatorClassName} />
+          <DropdownMenuItem
+            onClick={handleLogout}
+            className={cn(itemClassName, isSidebar && "text-foreground")}
+          >
+            <LogOut className={iconClassName} />
+            <span>{t("logOut")}</span>
+          </DropdownMenuItem>
+        </MenuLookContext.Provider>
       </DropdownMenuContent>
     </DropdownMenu>
   );

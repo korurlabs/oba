@@ -19,6 +19,7 @@ import {
   SidebarMenuSubItem,
 } from "@oba/ui/sky/sidebar";
 import { pageHref } from "@/lib/routes";
+import type { SectionSlug } from "@/lib/sections";
 import { cn } from "@/lib/utils";
 import { childrenOf, depthOf, pageTitle } from "../lib/page-tree";
 import { PAGE_LIMITS, type PageListItem } from "../schemas";
@@ -39,11 +40,22 @@ const ADD_ACTION_CLASS = cn(
   "group-focus-within/tree-row:opacity-100 group-hover/tree-row:opacity-100 md:opacity-0"
 );
 
-export type PageTreeNodeProps = {
-  page: PageListItem;
+/**
+ * The row's page, or, on a section row whose section has no root page yet,
+ * no page and the section the "+" sets up before it adds the first page.
+ */
+type PageTreeNodeRow =
+  | { page: PageListItem; setUpSection?: never }
+  | { page: null; setUpSection: SectionSlug; section: SkyNavItem };
+
+export type PageTreeNodeProps = PageTreeNodeRow & {
   /** The organization's whole tree, flat, as `usePageTree` gives it. */
   pages: readonly PageListItem[];
-  /** Whether the reader may add pages in this section: a member with EDIT on its root. */
+  /**
+   * Whether the reader may add pages in this section: a member with EDIT on
+   * its root, or an organization OWNER or ADMIN where the root does not exist
+   * yet, since only they may create it.
+   */
   canEdit: boolean;
   /** The pages whose children show. */
   openIds: ReadonlySet<string>;
@@ -67,6 +79,7 @@ export type PageTreeNodeProps = {
  */
 export function PageTreeNode({
   page,
+  setUpSection,
   pages,
   canEdit,
   openIds,
@@ -80,19 +93,20 @@ export function PageTreeNode({
   const [adding, setAdding] = useState(false);
   const addRef = useRef<HTMLButtonElement>(null);
 
-  const children = childrenOf(pages, page.id);
-  const hasChildren = children.length > 0;
+  const children = page ? childrenOf(pages, page.id) : [];
+  const hasChildren = page !== null && children.length > 0;
   const expanded = hasChildren && openIds.has(page.id);
-  const canAdd = canEdit && depthOf(page) < PAGE_LIMITS.maxDepth;
-  const label = section?.label ?? pageTitle(page, locale);
-  const href = section?.href ?? pageHref(page.id);
+  const canAdd = canEdit && (page === null || depthOf(page) < PAGE_LIMITS.maxDepth);
+  const label = section?.label ?? (page ? pageTitle(page, locale) : "");
+  const href = section?.href ?? (page ? pageHref(page.id) : "");
   const isActive = section ? isNavItemActive(pathname, section) : matchesPath(pathname, href);
 
   // The new page sits under this row, so the row opens to show it once the
-  // refetched tree holds it.
-  const closeField = () => {
+  // refetched tree holds it. The id comes from the field, because a section
+  // set up by the field had no root page when the field opened.
+  const closeField = (parentId: string) => {
     setAdding(false);
-    onToggle(page.id, true);
+    onToggle(parentId, true);
   };
   const cancelField = () => {
     // Escape hands the focus back to the "+" that opened the field.
@@ -108,7 +122,7 @@ export function PageTreeNode({
 
   const actions = (
     <>
-      {hasChildren && (
+      {page && hasChildren && (
         <SidebarMenuAction
           className={cn(actionTop, chevronRight)}
           aria-expanded={expanded}
@@ -132,14 +146,25 @@ export function PageTreeNode({
     </>
   );
 
-  const field = adding && (
-    <NewChildPageField
-      parentId={page.id}
-      siblingSlugs={children.map((child) => child.slug)}
-      onCancel={cancelField}
-      onCreated={closeField}
-    />
-  );
+  const childSlugs = children.map((child) => child.slug);
+  const field =
+    adding &&
+    (page ? (
+      <NewChildPageField
+        parentId={page.id}
+        siblingSlugs={childSlugs}
+        onCancel={cancelField}
+        onCreated={closeField}
+      />
+    ) : (
+      <NewChildPageField
+        parentId={null}
+        setUpSection={setUpSection}
+        siblingSlugs={childSlugs}
+        onCancel={cancelField}
+        onCreated={closeField}
+      />
+    ));
 
   const subtree = expanded && (
     <SidebarMenuSub className={cn(!section && "mr-0 ml-3 pr-0")}>
