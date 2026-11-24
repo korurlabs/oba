@@ -5,9 +5,9 @@ import (
 	"github.com/korurlabs/oba-cli/internal/dojo/docfile"
 )
 
-// Pull writes a mail template into dir as <name>.md, in the form Push reads. It returns the path
-// written.
-func Pull(c *client.Client, mailTemplateID, dir string, overwrite bool) ([]string, error) {
+// Download writes a mail template into dir as <name>.md, in the form Upload reads. It returns the
+// path written.
+func Download(c *client.Client, mailTemplateID, dir string, overwrite bool) ([]string, error) {
 	t, err := c.GetMailTemplate(mailTemplateID)
 	if err != nil {
 		return nil, err

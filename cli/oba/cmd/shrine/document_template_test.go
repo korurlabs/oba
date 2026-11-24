@@ -133,7 +133,7 @@ func TestDocumentTemplateCreateChecksBeforeAnyCall(t *testing.T) {
 		{[]string{"--file", html, "--language", "nl"}, "--type is required"},
 		{[]string{"--file", html, "--type", "nda"}, "--language is required"},
 		{[]string{"--file", html, "--type", "mail", "--language", "nl"}, "oba otak mail-template"},
-		{[]string{"--file", md, "--type", "nda", "--language", "nl"}, "use 'oba otak mail-template push'"},
+		{[]string{"--file", md, "--type", "nda", "--language", "nl"}, "use 'oba otak mail-template upload'"},
 		{[]string{"--file", html, "--type", "nda", "--language", "nl", "--legal-entity", "korur"}, `invalid --legal-entity "korur"`},
 	} {
 		_, _, err := runCLI(t, "", append([]string{"document", "template", "create"}, tt.args...)...)

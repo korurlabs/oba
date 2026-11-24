@@ -1,6 +1,6 @@
 // Package docfile holds the file forms that the document commands and the Otak mail-template
 // and outreach commands share: the .md mail file, the .html document file with its rendered
-// PDF, the language and type values, and the files a download or pull writes.
+// PDF, the language and type values, and the files a download writes.
 package docfile
 
 import (
@@ -63,7 +63,7 @@ func CheckDocumentFile(path, what string) error {
 	}
 	if ext == ExtMail {
 		return fmt.Errorf("%s is an %s file, rendered to PDF on upload, not %s; a %s mail is a mail template: "+
-			"use 'oba otak mail-template push'", what, ExtHTML, filepath.Base(path), ExtMail)
+			"use 'oba otak mail-template upload'", what, ExtHTML, filepath.Base(path), ExtMail)
 	}
 	return fmt.Errorf("%s is an %s file, rendered to PDF on upload, not %s", what, ExtHTML, filepath.Base(path))
 }
@@ -76,7 +76,7 @@ func CheckMailFile(path string) error {
 	return nil
 }
 
-// BaseName is a file name without its extension, as the default name of a pushed file.
+// BaseName is a file name without its extension, as the default name of an uploaded file.
 func BaseName(path string) string {
 	base := filepath.Base(path)
 	return strings.TrimSuffix(base, filepath.Ext(base))

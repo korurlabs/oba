@@ -1,6 +1,7 @@
 package mailtemplate
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -9,6 +10,26 @@ import (
 
 	"github.com/korurlabs/oba-cli/internal/dojo/clitest"
 )
+
+const (
+	mailTemplateID    = "cccccccc-cccc-4ccc-8ccc-cccccccccccc"
+	mailTemplatesPath = "/otak/mail-templates"
+	mailTemplatePath  = mailTemplatesPath + "/" + mailTemplateID
+)
+
+func mailTemplateJSON(name, lang, subject, body string) string {
+	return `{"id":"` + mailTemplateID + `","name":"` + name + `","language":"` + lang + `","subject":"` + subject +
+		`","body":"` + body + `","updatedAt":"2026-11-17T10:00:00Z","createdAt":"2026-11-17T09:00:00Z"}`
+}
+
+func decodeBody(t *testing.T, body string) map[string]any {
+	t.Helper()
+	var obj map[string]any
+	if err := json.Unmarshal([]byte(body), &obj); err != nil {
+		t.Fatalf("body %q: %v", body, err)
+	}
+	return obj
+}
 
 // newRoot builds a fresh "oba otak" tree with only this package's commands, as the oba root adds them.
 func newRoot() *cobra.Command {
