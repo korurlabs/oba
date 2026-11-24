@@ -7,12 +7,25 @@ import {
   SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@oba/ui/components/sidebar";
+} from "@oba/ui/sky/sidebar";
+import { cn } from "@oba/ui/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { useSidebarContext } from "./sidebar-context";
 
 /** Counts above this show as "99+". */
 export const BADGE_MAX = 99;
+
+/**
+ * The height, gap and padding of the sky menu's own links, so Kazan's rows
+ * line up with the Settings link in the menu's foot.
+ */
+export const SIDEBAR_ROW_CLASS = "h-9 gap-3 px-3";
+
+/**
+ * Centres a row's badge, "+" or chevron on the taller row; the primitives
+ * place them for the default row height.
+ */
+export const SIDEBAR_ROW_TRAILING_CLASS = "peer-data-[size=default]/menu-button:top-2";
 
 interface SidebarItemProps {
   href: string;
@@ -64,7 +77,7 @@ export function SidebarItem({ href, label, icon: Icon, activePrefixes, badge, ba
         asChild
         isActive={isActive}
         tooltip={countLabel ? `${label} (${countLabel})` : label}
-        className={count > 0 ? "pr-9" : undefined}
+        className={cn(SIDEBAR_ROW_CLASS, count > 0 && "pr-9")}
       >
         <Link href={href} onClick={closeMobile}>
           <Icon />
@@ -76,7 +89,7 @@ export function SidebarItem({ href, label, icon: Icon, activePrefixes, badge, ba
       </SidebarMenuButton>
       {count > 0 && (
         <>
-          <SidebarMenuBadge aria-hidden>
+          <SidebarMenuBadge aria-hidden className={SIDEBAR_ROW_TRAILING_CLASS}>
             <Badge variant="destructive" className="h-5 min-w-5 justify-center rounded-full px-1.5 py-0 tabular-nums">
               {shownCount}
             </Badge>

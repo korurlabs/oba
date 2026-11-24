@@ -14,7 +14,7 @@ import {
   SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@oba/ui/components/sidebar";
+} from "@oba/ui/sky/sidebar";
 import { cn } from "@oba/ui/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { ChatChannelList } from "@/features/chat/components/chat-channel-list";
@@ -25,7 +25,7 @@ import type { ChatChannelPurpose } from "@/features/chat/schemas";
 import { useSidebarSectionOpen } from "@/hooks/use-sidebar-section-open";
 import { useSidebarContext } from "./sidebar-context";
 import { useChatUnreadCount } from "./sidebar-chat-unread";
-import { BADGE_MAX } from "./sidebar-item";
+import { BADGE_MAX, SIDEBAR_ROW_CLASS, SIDEBAR_ROW_TRAILING_CLASS } from "./sidebar-item";
 import { isKazanShut, useKazanAccess } from "./use-kazan-access";
 
 const CHAT_CHANNELS_OPEN_STORAGE_KEY = "kazan-sidebar-chat-channels-open";
@@ -56,7 +56,7 @@ function useChannelsUnreadBadge(channelIds: ReadonlySet<string>): UnreadBadge {
 function RowUnreadBadge({ shownCount, className }: { shownCount: string; className?: string }) {
   return (
     <>
-      <SidebarMenuBadge aria-hidden className={className}>
+      <SidebarMenuBadge aria-hidden className={cn(SIDEBAR_ROW_TRAILING_CLASS, className)}>
         <Badge variant="destructive" className="h-5 min-w-5 justify-center rounded-full px-1.5 py-0 tabular-nums">
           {shownCount}
         </Badge>
@@ -110,7 +110,7 @@ export function ChatChannelNavItem({ purpose, label, icon: Icon }: ChatChannelNa
         asChild
         isActive={isActive}
         tooltip={countLabel ? `${label} (${countLabel})` : label}
-        className={countLabel ? "pr-9" : undefined}
+        className={cn(SIDEBAR_ROW_CLASS, countLabel && "pr-9")}
       >
         <Link href={path} onClick={closeMobile}>
           <Icon />
@@ -163,7 +163,7 @@ export function ChatNavItem() {
           asChild
           isActive={isActive}
           tooltip={countLabel ? `${label} (${countLabel})` : label}
-          className={cn(countLabel && "group-has-data-[sidebar=menu-action]/menu-item:pr-14")}
+          className={cn(SIDEBAR_ROW_CLASS, countLabel && "group-has-data-[sidebar=menu-action]/menu-item:pr-14")}
         >
           <Link href={CHATS_PATH} onClick={closeMobile}>
             <MessagesSquare />
@@ -175,7 +175,10 @@ export function ChatNavItem() {
         </SidebarMenuButton>
         {countLabel && <RowUnreadBadge shownCount={shownCount} className="right-7" />}
         <CollapsibleTrigger asChild>
-          <SidebarMenuAction aria-label={t(open ? "hideChannels" : "showChannels")}>
+          <SidebarMenuAction
+            aria-label={t(open ? "hideChannels" : "showChannels")}
+            className={SIDEBAR_ROW_TRAILING_CLASS}
+          >
             <ChevronRight className={cn("transition-transform", open && "rotate-90")} />
           </SidebarMenuAction>
         </CollapsibleTrigger>

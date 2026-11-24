@@ -15,7 +15,8 @@ import { GrantedApp, type UserMe, type UserOrganization } from "@oba/shared/feat
  *
  * - `pending`: the session or the user is still loading, so it is not known yet.
  * - `open`: Kazan calls may go out.
- * - `noOrganization`: no organization is selected (the personal workspace).
+ * - `noOrganization`: no organization is chosen, as for a new user or one
+ *   whose default organization is gone.
  *   Every Kazan board, ticket and chat belongs to an organization, and the
  *   API refuses those calls without one.
  * - `closed`: the selected organization does not grant Kazan to the user;

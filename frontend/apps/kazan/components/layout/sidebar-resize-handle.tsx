@@ -7,7 +7,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { useTranslations } from "next-intl";
-import { useSidebar } from "@oba/ui/components/sidebar";
+import { useSidebar } from "@oba/ui/sky/sidebar";
 import { cn } from "@/lib/utils";
 import {
   clampSidebarWidth,
@@ -32,8 +32,9 @@ interface DragState {
 }
 
 /**
- * The drag-to-resize rail on the desktop sidebar's right edge, a window
- * splitter between the sidebar and the content.
+ * The drag-to-resize edge of the desktop menu panel, a window splitter
+ * between the menu and the page. The app shell draws it in place of the
+ * primitive's rail, inside the sidebar container whose width it measures.
  *
  * Dragging changes the width live between the minimum and the maximum. Below
  * the minimum the sidebar holds at the minimum until the pointer passes the

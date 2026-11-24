@@ -41,7 +41,7 @@ export function KazanAccessProvider({ serverAccess, children }: KazanAccessProvi
  *
  * The selected organization is the session default, the one the API client
  * sends as `X-Organization-ID`. Without one the answer is `noOrganization`
- * (the personal workspace). Kazan is open when the API is left to decide:
+ * (no organization chosen). Kazan is open when the API is left to decide:
  * the user could not be loaded, the session has no token to load it with, or
  * the selected organization is not among the user's memberships (a stale
  * default). The

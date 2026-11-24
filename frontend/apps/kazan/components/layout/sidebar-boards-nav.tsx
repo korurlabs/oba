@@ -12,11 +12,12 @@ import {
   SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@oba/ui/components/sidebar";
+} from "@oba/ui/sky/sidebar";
 import { cn } from "@oba/ui/lib/utils";
 import { CreateBoardDialog } from "@/features/boards/components/create-board-dialog";
 import { useSidebarSectionOpen } from "@/hooks/use-sidebar-section-open";
 import { SidebarBoardTree } from "./sidebar-board-tree";
+import { SIDEBAR_ROW_CLASS, SIDEBAR_ROW_TRAILING_CLASS } from "./sidebar-item";
 import { isKazanShut, useKazanAccess } from "./use-kazan-access";
 
 const BOARDS_OPEN_STORAGE_KEY = "kazan-sidebar-boards-open";
@@ -51,7 +52,10 @@ export function BoardsNavItem() {
           <CollapsibleTrigger asChild>
             <SidebarMenuButton
               tooltip={label}
-              className="cursor-pointer group-has-data-[sidebar=menu-action]/menu-item:pr-14"
+              className={cn(
+                SIDEBAR_ROW_CLASS,
+                "cursor-pointer group-has-data-[sidebar=menu-action]/menu-item:pr-14",
+              )}
             >
               <SquareKanban />
               <span>{label}</span>
@@ -60,7 +64,7 @@ export function BoardsNavItem() {
           {!kazanClosed && (
             <SidebarMenuAction
               title={t("newBoard")}
-              className="right-7 cursor-pointer"
+              className={cn(SIDEBAR_ROW_TRAILING_CLASS, "right-7 cursor-pointer")}
               onClick={() => setCreateDialogOpen(true)}
             >
               <Plus />
@@ -70,7 +74,7 @@ export function BoardsNavItem() {
           <CollapsibleTrigger asChild>
             <SidebarMenuAction
               aria-label={t(open ? "hideBoards" : "showBoards")}
-              className="cursor-pointer"
+              className={cn(SIDEBAR_ROW_TRAILING_CLASS, "cursor-pointer")}
             >
               <ChevronRight className={cn("transition-transform", open && "rotate-90")} />
             </SidebarMenuAction>
