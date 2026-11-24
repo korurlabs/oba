@@ -47,9 +47,6 @@ export const ACCOUNT_LINKS = {
   get profile(): string {
     return appUrl("account");
   },
-  get settings(): string {
-    return `${appUrl("account")}/settings`;
-  },
   get invitations(): string {
     return `${appUrl("account")}/invitations`;
   },

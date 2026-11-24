@@ -106,7 +106,6 @@ describe("ACCOUNT_LINKS", () => {
 
     expect({ ...ACCOUNT_LINKS }).toEqual({
       profile: "https://account.example.test",
-      settings: "https://account.example.test/settings",
       invitations: "https://account.example.test/invitations",
       newOrganization: "https://account.example.test/organizations/new",
       onboarding: "https://account.example.test/onboarding",

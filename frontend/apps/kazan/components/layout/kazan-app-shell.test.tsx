@@ -141,13 +141,14 @@ describe("KazanAppShell top bar", () => {
     expect(header).toContain('aria-label="Kazan"');
   });
 
-  test("shows the menu toggle only on narrow windows, for the menu sheet", () => {
+  test("shows the menu toggle below 768px, where the menu is a sheet, not at Kazan's 744px md", () => {
     const html = markup();
     const at = html.indexOf('data-sidebar="trigger"');
     expect(at).toBeGreaterThan(-1);
     const toggle = html.slice(html.lastIndexOf("<button", at), html.indexOf(">", at));
     expect(toggle).toContain('data-slot="sidebar-trigger"');
-    expect(toggle).toContain("md:hidden");
+    expect(toggle).toContain("min-[768px]:hidden");
+    expect(toggle).not.toMatch(/[" ]md:hidden/);
   });
 
   test("holds the selector for Kazan, the switcher marking Kazan and the profile menu, in order", () => {

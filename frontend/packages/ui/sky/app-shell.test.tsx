@@ -125,8 +125,10 @@ function topBarToggle(): string {
 }
 
 describe("SkyTopBar", () => {
-  test("shows the menu toggle only on narrow windows", () => {
-    expect(topBarToggle()).toContain("md:hidden");
+  test("shows the menu toggle only below 768px, where the menu is a sheet, whatever the app's md breakpoint", () => {
+    const toggle = topBarToggle();
+    expect(toggle).toContain("min-[768px]:hidden");
+    expect(toggle).not.toMatch(/[" ]md:hidden/);
   });
 });
 

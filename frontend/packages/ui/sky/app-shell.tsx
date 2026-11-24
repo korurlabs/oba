@@ -247,6 +247,11 @@ export type SkyTopBarProps = {
  * shows only on narrow windows, where the menu is a sheet that has no other
  * way to open; on wider windows the menu floats beside the page, and the 12px
  * side padding puts the wordmark level with the panel's left edge.
+ *
+ * The toggle hides at 768px, the `MOBILE_BREAKPOINT` of `./use-mobile` where the
+ * menu stops being a sheet, and not at `md:`: apps may set their own `md`
+ * (Kazan's is 744px), which would leave a band of widths where the sheet has
+ * no toggle. Change both together.
  */
 export function SkyTopBar({
   logo,
@@ -257,7 +262,7 @@ export function SkyTopBar({
 }: SkyTopBarProps) {
   return (
     <header className="bg-background/80 sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2 border-b px-3 backdrop-blur">
-      <SidebarTrigger className="md:hidden" />
+      <SidebarTrigger className="min-[768px]:hidden" />
       <Link href={homeHref} aria-label={homeLabel} className="flex shrink-0 items-center">
         {logo}
       </Link>
