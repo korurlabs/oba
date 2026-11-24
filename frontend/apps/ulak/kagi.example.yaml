@@ -1,0 +1,27 @@
+# Example Kagi binding. Copy this file to kagi.yaml in this directory and fill
+# in your own Kagi app (`kagi setup` writes the binding lines). kagi.yaml is
+# ignored by git: a binding names one deployment's apps and does not belong in
+# this public repository.
+folder-path: "/<folder>/ulak"
+app-id: "<your Kagi app id>"
+environment: local
+organization: "<your organization slug>"
+organization-id: "<your organization id>"
+
+# Local Context (Kagi spec 3.3): devstack serves this directory's per-machine
+# values. environments lists this file's own environment: slug, local.
+local:
+  provider: devstack
+  environments: [local]
+  keys:
+    - PORT
+    - AUTH_URL
+    - AUTH_KEYCLOAK_ISSUER
+    - BASE_URL
+    - API_BASE_URL
+    - KAZAN_URL
+    - ULAK_URL
+    - ACCOUNT_URL
+    - OTAK_URL
+    - KALKAN_URL
+    - KAYA_URL
