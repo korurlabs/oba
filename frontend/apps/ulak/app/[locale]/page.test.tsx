@@ -2,11 +2,11 @@ import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import { AuthError } from "@oba/shared/libs/auth/types";
 import { accountOnboardingUrl, appUrl } from "@oba/shared/constants/apps";
 import { USERS_KEYS } from "@oba/shared/features/users/hooks/use-get-me";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { renderToStaticMarkup } from "react-dom/server";
+import type { QueryClient } from "@tanstack/react-query";
 
-// The root page is the organization list and the sign-in gateway: it turns the
-// session and the `callbackUrl` the proxy preserved into a redirect. Each
+// The root page is the sign-in gateway: it turns the session and the
+// `callbackUrl` the proxy preserved into a redirect, and sends a manager on to
+// the Humans page. Each
 // redirect records its target and throws, as the real ones do, so the test reads
 // where the page sent the user.
 type SessionState = {
@@ -40,8 +40,6 @@ const actualNavigation = { ...(await import("next/navigation")) };
 const actualI18nNavigation = { ...(await import("@oba/shared/libs/i18n/navigation")) };
 const actualPrefetch = { ...(await import("@oba/shared/features/users/api/prefetch-me")) };
 const actualServerIntl = { ...(await import("next-intl/server")) };
-const actualShell = { ...(await import("@/components/layout/ulak-shell")) };
-const actualTable = { ...(await import("@/features/organizations/components/organization-table")) };
 
 mock.module("@oba/shared/libs/auth", () => ({
   ...actualAuth,
@@ -80,14 +78,6 @@ mock.module("next-intl/server", () => ({
   ...actualServerIntl,
   getTranslations: async () => (key: string) => key,
 }));
-mock.module("@/components/layout/ulak-shell", () => ({
-  ...actualShell,
-  UlakShell: ({ children }: { children: React.ReactNode }) => <main>{children}</main>,
-}));
-mock.module("@/features/organizations/components/organization-table", () => ({
-  ...actualTable,
-  OrganizationTable: () => <p>organization-list</p>,
-}));
 
 afterAll(() => {
   mock.module("@oba/shared/libs/auth", () => actualAuth);
@@ -95,8 +85,6 @@ afterAll(() => {
   mock.module("@oba/shared/libs/i18n/navigation", () => actualI18nNavigation);
   mock.module("@oba/shared/features/users/api/prefetch-me", () => actualPrefetch);
   mock.module("next-intl/server", () => actualServerIntl);
-  mock.module("@/components/layout/ulak-shell", () => actualShell);
-  mock.module("@/features/organizations/components/organization-table", () => actualTable);
 });
 
 const { default: RootPage } = await import("./page");
@@ -108,13 +96,6 @@ async function visit(searchParams: { error?: string; callbackUrl?: string } = {}
     params: Promise.resolve({ locale: "en" }),
     searchParams: Promise.resolve(searchParams),
   });
-}
-
-/** The page renders a HydrationBoundary, which needs a query client above it. */
-function markupOf(page: unknown): string {
-  return renderToStaticMarkup(
-    <QueryClientProvider client={new QueryClient()}>{page as React.ReactElement}</QueryClientProvider>,
-  );
 }
 
 async function redirectOf(searchParams: { error?: string; callbackUrl?: string } = {}): Promise<Redirected> {
@@ -187,7 +168,7 @@ describe("root page redirects", () => {
     expect(redirected.target).toBe(accountOnboardingUrl("https://kazan.korur.com/home", appUrl("ulak")));
   });
 
-  test("sends a user who has to onboard to account onboarding with the list as callbackUrl when there is none", async () => {
+  test("sends a user who has to onboard to account onboarding with Ulak's root as callbackUrl when there is none", async () => {
     session = { ...ACTIVE, userStatus: "PENDING_ONBOARDING" };
 
     const redirected = await redirectOf();
@@ -228,18 +209,20 @@ describe("root page redirects", () => {
     expect(redirected.target).toBe("/organizations/org-1");
   });
 
-  test("ignores an unsafe callbackUrl for an active user and shows the list", async () => {
-    const page = await visit({ callbackUrl: "https://evil.example/" });
+  test("ignores an unsafe callbackUrl for an active user and opens the Humans page", async () => {
+    const redirected = await redirectOf({ callbackUrl: "https://evil.example/" });
 
-    expect(markupOf(page)).toContain("organization-list");
+    expect(redirected.kind).toBe("localized");
+    expect(redirected.target).toEqual({ href: "/humans", locale: "en" });
   });
 });
 
-describe("root page content", () => {
-  test("shows the organization list to an active user and prefetches the current user", async () => {
-    const page = await visit();
+describe("root page outcome", () => {
+  test("sends an active manager to the Humans page and prefetches the current user", async () => {
+    const redirected = await redirectOf();
 
-    expect(markupOf(page)).toContain("organization-list");
+    expect(redirected.kind).toBe("localized");
+    expect(redirected.target).toEqual({ href: "/humans", locale: "en" });
     expect(prefetched).toBe(1);
   });
 
@@ -276,19 +259,19 @@ describe("root page Ulak access", () => {
     expect((await redirectOf()).target).toEqual({ href: "/no-access", locale: "en" });
   });
 
-  test("renders the list for an ADMIN of an ACTIVE organization", async () => {
+  test("sends an ADMIN of an ACTIVE organization to the Humans page", async () => {
     prefetchedMe = [
       { id: "org-1", name: "Joined", role: "MEMBER", organizationStatus: "ACTIVE" },
       { id: "org-2", name: "Korur", role: "ADMIN", organizationStatus: "ACTIVE" },
     ];
 
-    expect(markupOf(await visit())).toContain("organization-list");
+    expect((await redirectOf()).target).toEqual({ href: "/humans", locale: "en" });
   });
 
-  test("renders the list when the prefetch failed, so the client gate decides", async () => {
+  test("sends the user to the Humans page when the prefetch failed, so the layout decides", async () => {
     prefetchedMe = undefined;
 
-    expect(markupOf(await visit())).toContain("organization-list");
+    expect((await redirectOf()).target).toEqual({ href: "/humans", locale: "en" });
   });
 
   test("honours a safe callbackUrl before it checks the access", async () => {
