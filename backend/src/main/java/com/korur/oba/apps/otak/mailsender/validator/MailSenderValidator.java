@@ -107,14 +107,14 @@ public class MailSenderValidator {
         GraphMailboxLookup lookup = msGraphClient.findMailbox(mailAddress);
         return switch (lookup) {
             case GraphMailboxLookup.Found found -> found.mailbox();
-            case GraphMailboxLookup.AccountNotFound accountNotFound -> {
+            case GraphMailboxLookup.AccountNotFound _ -> {
                 loggingService.warn(LOG_PREFIX, LogLayer.VALIDATOR,
                         MailSenderExceptionLogConstant.MAILBOX_NOT_IN_TENANT, organizationId);
                 throw new ValidationException(
                         ExceptionDomainOtakError.VAL_MAILBOX_NOT_IN_TENANT,
                         Map.of(MailSenderConstant.FIELD_MAIL_ADDRESS, mailAddress));
             }
-            case GraphMailboxLookup.AccountWithoutMailbox accountWithoutMailbox -> {
+            case GraphMailboxLookup.AccountWithoutMailbox _ -> {
                 loggingService.warn(LOG_PREFIX, LogLayer.VALIDATOR,
                         MailSenderExceptionLogConstant.ACCOUNT_WITHOUT_MAILBOX, organizationId);
                 throw new ValidationException(

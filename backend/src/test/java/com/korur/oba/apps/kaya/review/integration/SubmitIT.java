@@ -53,7 +53,7 @@ class SubmitIT extends AbstractVersionIT {
 
     private static String body(Object... keysAndValues) throws Exception {
         Map<String, Object> map = new LinkedHashMap<>();
-        for (int index = 0; index < keysAndValues.length; index += 2) {
+        for (int index = 0; index + 1 < keysAndValues.length; index += 2) {
             map.put((String) keysAndValues[index], keysAndValues[index + 1]);
         }
         return JSON.writeValueAsString(map);

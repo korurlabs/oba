@@ -62,4 +62,14 @@ public class PlanQueryRequest extends QueryRequest {
     @Schema(description = "Matches the title or the path, case ignored", nullable = true, example = "kaya plans")
     @Size(max = PlanConstant.SEARCH_MAX_LENGTH, message = PlanConstant.SEARCH_SIZE_MESSAGE)
     private String search;
+
+    @Override
+    public int getAmount() {
+        return amount;
+    }
+
+    @Override
+    public void setAmount(int amount) {
+        this.amount = amount;
+    }
 }

@@ -58,4 +58,14 @@ public class SessionQueryRequest extends QueryRequest {
 
     @Schema(description = "true: only ended sessions; false: only sessions still running", nullable = true)
     private Boolean ended;
+
+    @Override
+    public int getAmount() {
+        return amount;
+    }
+
+    @Override
+    public void setAmount(int amount) {
+        this.amount = amount;
+    }
 }

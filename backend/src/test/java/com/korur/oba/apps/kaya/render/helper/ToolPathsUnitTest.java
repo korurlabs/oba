@@ -231,7 +231,7 @@ class ToolPathsUnitTest {
 
     private static Map<PathMapping, Integer> counts(Object... rowsAndCounts) {
         Map<PathMapping, Integer> counts = new HashMap<>();
-        for (int index = 0; index < rowsAndCounts.length; index += 2) {
+        for (int index = 0; index + 1 < rowsAndCounts.length; index += 2) {
             counts.put((PathMapping) rowsAndCounts[index], (Integer) rowsAndCounts[index + 1]);
         }
         return counts;

@@ -11,13 +11,11 @@ import com.korur.oba.dojo.exception.enums.ExceptionError;
 
 @Getter
 public class ThirdPartyException extends RuntimeException {
-    private final String message;
     private final String code;
     private Map<String, Object> errorValues;
 
     public ThirdPartyException(ExceptionError exceptionError, Exception ex) {
         super(exceptionError.getMessage(), ex);
-        this.message = exceptionError.getMessage();
         this.code = exceptionError.getCode();
 
         if (ex instanceof ApplicationException applicationException) {

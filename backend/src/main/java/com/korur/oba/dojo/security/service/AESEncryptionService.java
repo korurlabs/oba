@@ -27,6 +27,7 @@ public class AESEncryptionService {
     private static final String AES_ALGORITHM = "AES/GCM/NoPadding";
     private static final int GCM_IV_LENGTH = 12; // 96 bits
     private static final int GCM_TAG_LENGTH = 128; // 128-bit authentication tag
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     private final SecretKey secretKey;
 
@@ -58,7 +59,7 @@ public class AESEncryptionService {
 
             // Generate random 12-byte IV
             byte[] iv = new byte[GCM_IV_LENGTH];
-            new SecureRandom().nextBytes(iv);
+            RANDOM.nextBytes(iv);
 
             GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, spec);

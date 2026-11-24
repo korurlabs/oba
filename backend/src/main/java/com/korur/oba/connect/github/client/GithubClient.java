@@ -287,7 +287,8 @@ public class GithubClient {
                     ? List.of()
                     : list.repositories();
             repositories.addAll(payloadMapper.toRepositoryPayloads(pageItems));
-            if (pageItems.size() < GithubConstant.REPOSITORIES_PER_PAGE || repositories.size() >= list.totalCount()) {
+            if (list == null || pageItems.size() < GithubConstant.REPOSITORIES_PER_PAGE
+                    || repositories.size() >= list.totalCount()) {
                 break;
             }
         }

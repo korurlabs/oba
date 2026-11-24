@@ -7,12 +7,10 @@ import lombok.Getter;
 
 @Getter
 public class InternalProcessException extends RuntimeException {
-    private final String message;
     private final String code;
 
     public InternalProcessException(ExceptionError exceptionError, Throwable cause) {
         super(exceptionError.getMessage(), cause);
-        this.message = exceptionError.getMessage();
         this.code = exceptionError.getCode();
     }
 }

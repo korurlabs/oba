@@ -40,6 +40,7 @@ class AzureBlobStorageClientUnitTest {
     private static final String HTTP_ENDPOINT = "http://127.0.0.1:10000/" + ACCOUNT_NAME;
     private static final String SIGNED_PROTOCOL_PARAM = "spr";
     private static final int SAS_TTL_MINUTES = 60;
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     @Nested
     class GenerateBlobSasUrl {
@@ -77,7 +78,7 @@ class AzureBlobStorageClientUnitTest {
 
     private static BlobContainerClient buildContainerClient(String endpoint) {
         byte[] accountKey = new byte[64];
-        new SecureRandom().nextBytes(accountKey);
+        RANDOM.nextBytes(accountKey);
         StorageSharedKeyCredential credential = new StorageSharedKeyCredential(
                 ACCOUNT_NAME, Base64.getEncoder().encodeToString(accountKey));
         return new BlobContainerClientBuilder()
