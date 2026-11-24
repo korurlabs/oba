@@ -212,24 +212,6 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     @Transactional
     @Override
-    public UserDetailResponse clearDefaultOrganization(UUID userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(ExceptionDomainIdentityError.NOT_USER_FOUND));
-
-        user.setDefaultOrganization(null);
-        user = userRepository.save(user);
-
-        loggingService.info(
-                LOG_PREFIX,
-                LogLayer.SERVICE,
-                UserServiceLogConstant.USER_DEFAULT_ORG_CLEARED,
-                user.getId());
-
-        return toDetailResponse(user);
-    }
-
-    @Transactional
-    @Override
     public void disableOwnAccount(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(ExceptionDomainIdentityError.NOT_USER_FOUND));

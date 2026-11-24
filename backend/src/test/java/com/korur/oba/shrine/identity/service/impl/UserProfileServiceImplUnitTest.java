@@ -16,7 +16,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -55,7 +54,6 @@ import com.korur.oba.shrine.identity.exception.ExceptionDomainIdentityError;
 import com.korur.oba.shrine.identity.mapper.UserMapper;
 import com.korur.oba.shrine.identity.repository.UserRepository;
 import com.korur.oba.shrine.identity.validator.UserValidator;
-import com.korur.oba.shrine.organization.entity.Organization;
 import com.korur.oba.shrine.organization.event.AccessRevokedEvent;
 import com.korur.oba.shrine.organization.exception.ExceptionDomainOrganizationError;
 import com.korur.oba.shrine.organization.service.OrganizationMemberQueryService;
@@ -225,42 +223,6 @@ class UserProfileServiceImplUnitTest {
             // Act & Assert
             assertThrows(NotFoundException.class, () -> userProfileServiceImpl.updateProfile(userId,
                     new UserSelfUpdateRequest(null, null, null, null)));
-            verify(userRepository, never()).save(any());
-        }
-    }
-
-    @Nested
-    class ClearDefaultOrganization {
-
-        @Test
-        void defaultOrganizationSet_clearsItAndSaves() {
-            // Arrange
-            UUID userId = UUID.randomUUID();
-            User user = activeUser(userId);
-            user.setDefaultOrganization(Organization.builder().id(UUID.randomUUID()).build());
-            UserDetailResponse response = mock(UserDetailResponse.class);
-            when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-            when(userRepository.save(user)).thenReturn(user);
-            when(userMapper.toDetailResponse(eq(user), any())).thenReturn(response);
-
-            // Act
-            UserDetailResponse result = userProfileServiceImpl.clearDefaultOrganization(userId);
-
-            // Assert
-            assertNull(user.getDefaultOrganization());
-            assertSame(response, result);
-            verify(userRepository).save(user);
-            verifyNoInteractions(organizationQueryService);
-        }
-
-        @Test
-        void unknownUser_throwsNotFoundAndSavesNothing() {
-            // Arrange
-            UUID userId = UUID.randomUUID();
-            when(userRepository.findById(userId)).thenReturn(Optional.empty());
-
-            // Act & Assert
-            assertThrows(NotFoundException.class, () -> userProfileServiceImpl.clearDefaultOrganization(userId));
             verify(userRepository, never()).save(any());
         }
     }
