@@ -36,7 +36,7 @@
     "react-phone-number-input": "catalog:",
     "class-variance-authority": "catalog:",
     "jwt-decode": "catalog:",
-    "@stomp/stompjs": "7.3.0",
+    "@stomp/stompjs": "7.5.0",
     "@tiptap/core": "^3.35.0",
     "@tiptap/extension-code-block-lowlight": "^3.35.0",
     "@tiptap/extension-image": "^3.35.0",
