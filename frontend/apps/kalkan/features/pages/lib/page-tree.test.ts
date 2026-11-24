@@ -1,6 +1,14 @@
 import { describe, expect, test } from "bun:test";
 import type { PageListItem } from "../schemas";
-import { childrenOf, contentLocaleOf, findSectionRoot, pageTitle } from "./page-tree";
+import {
+  ancestorIds,
+  childrenOf,
+  contentLocaleOf,
+  depthOf,
+  findSectionRoot,
+  pageIdFromPathname,
+  pageTitle,
+} from "./page-tree";
 
 function page(overrides: Partial<PageListItem> & Pick<PageListItem, "id" | "slug">): PageListItem {
   return {
@@ -46,5 +54,48 @@ describe("page tree", () => {
     expect(findSectionRoot(TREE, "guides")?.id).toBe("r2");
     expect(findSectionRoot(TREE, "a")).toBeNull();
     expect(findSectionRoot(TREE, "risks")).toBeNull();
+  });
+
+  test("lists the ancestors of a page, its parent first and its root last", () => {
+    const deep = [
+      page({ id: "r", slug: "r" }),
+      page({ id: "a", slug: "a", parentId: "r", rootId: "r", path: "r/a" }),
+      page({ id: "b", slug: "b", parentId: "a", rootId: "r", path: "r/a/b" }),
+      page({ id: "c", slug: "c", parentId: "b", rootId: "r", path: "r/a/b/c" }),
+    ];
+    expect(ancestorIds(deep, "c")).toEqual(["b", "a", "r"]);
+    expect(ancestorIds(deep, "a")).toEqual(["r"]);
+  });
+
+  test("has no ancestors for a root page, no page or an id the tree does not hold", () => {
+    expect(ancestorIds(TREE, "r1")).toEqual([]);
+    expect(ancestorIds(TREE, null)).toEqual([]);
+    expect(ancestorIds(TREE, "unknown")).toEqual([]);
+  });
+
+  test("stops walking a malformed tree whose parents form a cycle", () => {
+    const cycle = [
+      page({ id: "x", slug: "x", parentId: "y" }),
+      page({ id: "y", slug: "y", parentId: "x" }),
+    ];
+    expect(ancestorIds(cycle, "x").length).toBeLessThanOrEqual(10);
+  });
+
+  test("counts a root page at depth 1 and a page below it one deeper", () => {
+    expect(depthOf({ path: "policies" })).toBe(1);
+    expect(depthOf({ path: "policies/a/c" })).toBe(3);
+  });
+
+  test("reads the page id from a page path and its sub screens", () => {
+    expect(pageIdFromPathname("/pages/abc")).toBe("abc");
+    expect(pageIdFromPathname("/pages/abc/edit")).toBe("abc");
+    expect(pageIdFromPathname("/pages/abc/history")).toBe("abc");
+  });
+
+  test("gives no page id for the new-page screen, a section or the overview", () => {
+    expect(pageIdFromPathname("/pages/new")).toBeNull();
+    expect(pageIdFromPathname("/sections/policies")).toBeNull();
+    expect(pageIdFromPathname("/")).toBeNull();
+    expect(pageIdFromPathname("/pages")).toBeNull();
   });
 });
