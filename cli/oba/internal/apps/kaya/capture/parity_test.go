@@ -143,7 +143,7 @@ func scratchCheckout(t testing.TB) (base, repo, state string) {
 	isolate(t, root, claude)
 	gitRun(t, repo, "init", "-q", "-b", "main")
 	gitRun(t, repo, "commit", "-q", "--allow-empty", "-m", "init")
-	gitRun(t, repo, "remote", "add", "origin", "git@github.com:senseylabs/village.git")
+	gitRun(t, repo, "remote", "add", "origin", "git@github.com:example/demo.git")
 	gitRun(t, repo, "config", "user.email", "dev@example.com")
 	return root, repo, filepath.Join(root, "xdg", "kaya")
 }

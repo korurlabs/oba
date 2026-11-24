@@ -9,8 +9,11 @@ Releases support macOS and Linux on amd64 and arm64. They are published to the p
 With Homebrew:
 
 ```sh
-brew install korurlabs/tap/oba-cli   # installs the binary oba, and oba-kaya-launch linked to it
+brew trust --formula korurlabs/tap/oba-cli   # once: Homebrew loads no formula from a tap you have not trusted
+brew install korurlabs/tap/oba-cli           # installs the binary oba, and oba-kaya-launch linked to it
 ```
+
+Without the trust, Homebrew stops with `Refusing to load formula ... from untrusted tap`.
 
 With the installer:
 
@@ -402,37 +405,52 @@ A mail's attachments change only while its outreach is not SENT (`OTK_STA_011`) 
 
 ## Kaya
 
-`oba kaya` keeps the agent config of Claude Code with Kaya: it seeds an organization's agent config from its repositories (`seed`), delivers that config to Claude Code sessions as signed releases (`install`, `launch`, `sync`, `refresh`, `status`, `watch`, `hook`), checks that delivery on the machine and in a checkout (`doctor`), proposes changes of that config for review (`propose`), shares lessons between sessions and repositories (`lessons`), and records Claude Code sessions for Kaya (`hook record`, `sender`, `statusline`).
+`oba kaya` keeps the agent config of Claude Code with Kaya: it seeds an organization's agent config from its repositories (`seed`), makes every repository of the organization compose a pack (`pack required`), delivers that config to Claude Code sessions as signed releases (`install`, `launch`, `sync`, `refresh`, `status`, `watch`, `hook`), checks that delivery on the machine and in a checkout (`doctor`), proposes changes of that config for review (`propose`), shares lessons between sessions and repositories (`lessons`), and records Claude Code sessions for Kaya (`hook record`, `sender`, `statusline`).
 
 Kaya works in the checkouts of the repositories on the organization's repository list. It recognises a checkout by its git remotes, so no file in the repository names Kaya. Its Claude Code hooks and status line come from a managed settings drop-in, and two entries in your global git config run its git hooks in every repository (see Kaya config delivery).
 
-`seed`, `signing-keys` and the signing key check of `doctor` act as you, with the sign-in of `oba login` (or `OBA_TOKEN`) in the current organization. Everything that runs inside sessions, in git hooks or in the background sends the machine token instead (see Kaya config delivery).
+`seed`, `pack required`, `signing-keys` and the signing key check of `doctor` act as you, with the sign-in of `oba login` (or `OBA_TOKEN`) in the current organization. Everything that runs inside sessions, in git hooks or in the background sends the machine token instead (see Kaya config delivery).
 
 ## Kaya seed
 
 ```sh
-oba kaya seed --agents ~/src/agents --repo ~/src/village --repo ~/src/acme
+oba kaya seed --agents ~/src/agents --repo ~/src/app-one --repo ~/src/app-two
 oba kaya seed --repo . --dry-run                  # print what would be sent; no sign-in, no network
 oba kaya seed --repo . --json                     # the seed run as JSON
 oba kaya seed --repo . --pack kagi=projects/kagi  # also mount the pack kagi in the folder projects/kagi
 oba kaya seed --layout ~/src/seed-tree/layout.yaml --agents ~/src/agents --repo ~/src/app-one  # packs and placement from a seed tree
 ```
 
-Only an OWNER seeds, signed in with `oba login` (or `OBA_TOKEN`) in the organization `--org` names, else the chosen one. The seed reads the packs of a `korurlabs/agents` clone and, per repository, its packs from `.agents/.managed.json` and its own files at the paths Kaya delivers, uploads only the blobs the server is missing, posts the seed run, prints its report and compares each repository's release with the repository on disk. `oba kaya seed --help` describes the pack tree, the family pack of a repository (`--repo-pack`), mounted packs (`--pack`) and the cutover (`--after-cutover`).
+Only an OWNER seeds, signed in with `oba login` (or `OBA_TOKEN`) in the organization `--org` names, else the chosen one. The seed reads the packs of a clone of your agent config repository and, per repository, its packs from `.agents/.managed.json` and its own files at the paths Kaya delivers, uploads only the blobs the server is missing, posts the seed run, prints its report and compares each repository's release with the repository on disk. `oba kaya seed --help` describes the pack tree, the family pack of a repository (`--repo-pack`), mounted packs (`--pack`) and the cutover (`--after-cutover`).
 
 `--layout <file>` builds the packs from a seed tree instead. Its layout file names the packs with their parents, each repository's packs (at its root, or mounted in a folder), the ordered rules that place each file of the agents clone (`agents:<path>`) and of each repository (`<repository>:<path>`) in a pack, and the files left out; `content/<pack>/<path>` beside the layout file replaces or adds that path in that pack. The first rule that matches places a file, and a file that no rule and no `leftOut` entry matches fails the seed, every such file named. A repository is read with or without `.agents/.managed.json`, and `--pack`, `--pack-parent`, `--repo-pack` and `--after-cutover` do not apply. A checkout Kaya delivers to is refused, because its delivered files are links into its `.kaya/` folder, Kaya's own output: name only checkouts Kaya does not deliver to yet, and leave the others out. A pack is sent only when the run reads every source it takes files from, and a repository the run does not read keeps its stored packs, so a later run adds packs and repositories while Kaya leaves equal packs as they are. The release comparison reports the `content/` files and the files left out as changed on purpose. `oba kaya seed --help` shows an example layout file.
 
 Exit status: 0 when the run is PASSED and every release equals its repository; 2 when the run is FAILED or a release differs; 1 on any other error. With `--json` the run is printed in each case.
 
+## Kaya packs
+
+```sh
+oba kaya pack required base          # every repository of the organization composes the pack base
+oba kaya pack required base --off    # only the repositories that list base compose it again
+oba kaya pack required base --json   # Kaya's answer: packId, required and releaseCount
+```
+
+Only an OWNER marks a pack required or not required, signed in with `oba login` (or `OBA_TOKEN`) in the organization `--org` names, else the chosen one. A required pack is composed into every repository of the organization, ahead of the repository's own packs. The command finds the pack by its name in the organization's pack list; an unknown name fails and lists the names there are. Kaya then checks every active repository whose composition changes and releases each one, all in one transaction. When the change breaks a rule, such as a pack below a required one overriding one of its items, nothing changes and the error lists every violation. A pack marked the state it already has gets no release. The command prints the pack, its new state and the number of releases created. A 403 means that you are not an OWNER of the organization.
+
 ## Kaya config delivery
 
 Kaya recognises a checkout by its git remotes, so no file in a repository names Kaya; a committed `kaya.yaml` is no longer read. A checkout is Delivered when one of its remotes is on the organization's repository list and it holds no `.agents/.managed.json`. With that file it is NotCutOver: its agent config is still synced from elsewhere until the cutover, and Kaya leaves it alone. With no listed remote it is NotKaya, and nothing of it, its remotes included, is sent to Kaya. A linked worktree is a checkout of its own. Every release must be signed for the organization of the list, which is the machine token's.
 
+Once per organization, before its first machine:
+
+- An admin of the organization in Kagi creates the Kagi app `/kaya/recorder` under Secrets: folder `kaya`, app `recorder`. Each person keeps the machine token of their machines in their own personal environment of that app.
+- An OWNER of the organization seeds its agent config (`oba kaya seed`, see Kaya seed) and marks each pack that belongs in every repository required (`oba kaya pack required <name>`, see Kaya packs). `seed` and `pack required` need an OWNER of the organization.
+
 To connect a machine:
 
-1. Install oba (see Install).
+1. Install oba (see Install). With Homebrew, run `brew trust --formula korurlabs/tap/oba-cli` before `brew install`: Homebrew refuses a formula from a tap you have not trusted (`Refusing to load formula ... from untrusted tap`).
 2. Run `oba login`. `oba kaya doctor` uses this sign-in to check that Kaya signs releases with a key this oba trusts; without it, doctor skips that check.
-3. In the Kaya app, open Machines and choose New machine. Run the `kagi secrets set --personal --path /kaya/recorder KAYA_RECORDER_TOKEN=<token>` line it shows, or set `KAYA_RECORDER_TOKEN` yourself (see Machine token below).
+3. In the Kaya app, open Machines and choose New machine. Run the `kagi secrets set --personal --path /kaya/recorder KAYA_RECORDER_TOKEN=<token>` line it shows, or set `KAYA_RECORDER_TOKEN` yourself (see Machine token below). Your first token goes in by hand instead: open the app `/kaya/recorder` in the Kagi portal and add `KAYA_RECORDER_TOKEN` in its Personal tab, because `kagi secrets set --personal` refuses while you have no personal environment on the app. Later tokens take the line.
 4. Run `oba kaya install --managed`, then the `sudo` line it prints.
 5. Run `oba kaya install`, then open a new terminal and restart VS Code.
 6. Run `oba kaya doctor --probe` in a connected checkout to prove the drop-in is in force. It exits 0 when every check passes.
@@ -445,6 +463,7 @@ oba kaya refresh            # switch even while other sessions of the checkout r
 oba kaya status             # local state only, with the remote that recognised the checkout; --json for scripts, as with sync and refresh
 oba kaya doctor             # check the machine and the checkout; exits 1 when a check fails; --json for scripts
 oba kaya doctor --probe     # also run one claude -p session that proves the drop-in in force
+oba kaya pack required <name>  # OWNER, once per organization: every repository composes the pack; --off undoes it
 ```
 
 - Repository list: the remotes of the organization's repositories, cached in `<user config dir>/oba/kaya/repositories.json` (`~/Library/Application Support/oba/kaya/` on macOS, `$XDG_CONFIG_HOME/oba/kaya/` or `~/.config/oba/kaya/` on Linux). `install`, `sync`, `launch`, `watch` and `doctor` refresh it with the machine token, and a refresh adds repositories and never removes one; the hooks only read it. Without a cached list every checkout is NotKaya. A checkout's remotes are read from its own git config (`git config --local`): origin first, then the other remotes by name. A remote matches as written, without the user info a URL may carry (an `ssh://` user name stays), or with its ssh host alias resolved through `ssh -G`, so a clone over an alias counts as a clone over the host. `oba kaya status` names the kind and the remote that recognised the checkout.
@@ -463,7 +482,7 @@ oba kaya doctor --probe     # also run one claude -p session that proves the dro
 - Layout: `.kaya/versions/<n>/` holds each built release, `.kaya/current` points at the active one (switched by one rename), and every delivered path is a relative link into `.kaya/current`, except `.claude/settings.json`, a regular file with the guardrail deny rules merged into `permissions.deny`. `.agents/.kaya-release.json` names the active release. The blob cache is `$XDG_CACHE_HOME/kaya/blobs/<sha256>`, shared by the machine's checkouts. The newest three versions stay.
 - Pinning: while another session of the checkout runs, a newer release is staged (state STALE) and activated by `oba kaya hook session-end` of the last session, or by `oba kaya refresh`.
 - States: FRESH (the newest release the server named), CACHED (Kaya not reached, or its newest release not taken), STALE (a newer release waits), NONE (no verified release; the guard refuses `Bash`, `Edit`, `Write`, `MultiEdit`, `NotebookEdit`, `Skill` and `Agent`), UNVERIFIED (the active release fails its check and cannot be restored). `oba kaya hook session-start` writes the state, the release and `deliveredBy` (LAUNCHER or HOOK) to `$XDG_STATE_HOME/kaya/queue/sessions/<session id>/config-release.json`, which the sender adds to the session's batch.
-- Hooks read only local state, except `session-start`: in a session the launcher did not start it syncs, switches when no always-on file changed (`reloadSkills`), and otherwise stages the release and asks for a restart; in every session it asks Kaya for plan feedback and lessons (below). `pre-tool-use` also refuses edits of delivered paths and runs `.agents/hooks/dispatch.sh` of the checkout when neither the project settings nor the korurlabs/agents user-level launcher run it.
+- Hooks read only local state, except `session-start`: in a session the launcher did not start it syncs, switches when no always-on file changed (`reloadSkills`), and otherwise stages the release and asks for a restart; in every session it asks Kaya for plan feedback and lessons (below). `pre-tool-use` also refuses edits of delivered paths and runs `.agents/hooks/dispatch.sh` of the checkout when neither the project settings nor a user-level guard launcher in the Claude Code user settings run it.
 - Watcher: `oba kaya watch` asks `/kaya/delivery/current` every minute and builds a newer release for the next session, without switching.
 - Plan feedback: every 15 seconds `oba kaya watch` fetches the reviewer feedback on plans whose latest version came from a live session of the checkout (`GET /kaya/delivery/plan-feedback?sessionId=`) into `.kaya/inbox/<session id>.json`, leaving out what a hook already delivered, and posts `.kaya/inbox/<session id>.acks.json` to `POST /kaya/delivery/plan-feedback/acks`, deleting each id after a 2xx (the last round runs when the last session ended). `oba kaya hook user-prompt-submit` and `post-tool-use` read only the inbox: they add the items as `additionalContext` (10 000 characters at most; the rest is named as "and N more on the Kaya plan page <url>" and waits for the next hook) and move the added ids to the acks file. No inbox gives no output. `session-start` asks `GET /kaya/delivery/plan-feedback?remoteUrl=&branch=` for the feedback a session that ended on the checkout's branch left, for 2 seconds at most, adds it after the release lines, and acknowledges it with the new session id (queued in the acks file when Kaya is not reached); offline it adds nothing and the feedback stays pending. `session-end` removes the session's inbox.
 - Lessons: `session-start` asks `GET /kaya/delivery/lessons?remoteUrl=&since=` with `If-None-Match`, for 2 seconds at most (see Lessons).
@@ -566,7 +585,7 @@ The packages are grouped as in the Oba backend: `dojo` is the technical foundati
 | `cmd/` | the root command; it adds the platform commands and one command group per app, and `oba ulak` |
 | `cmd/shrine/` | the platform commands `login`, `logout`, `org`, `legal-entity` and `document` (with `document template`) |
 | `cmd/apps/<app>/` | `NewCmd()` builds `oba <app>` and adds the commands of each domain (`cmd/apps/otak/`, `cmd/apps/kaya/`) |
-| `cmd/apps/<app>/<domain>/` | the commands of one domain, one file per command; `NewCmd()` builds `oba <app> <domain>` (`cmd/apps/otak/relation/`, `contact/`, `icp/`, `event/`, `find/`, `mailtemplate/`, `outreach/`, `attachment/`; `cmd/apps/ulak/org/`, `member/`, `invite/`; `cmd/apps/kaya/delivery/` (sync, refresh, status, launch, watch, doctor), `hook/`, `githook/`, `statusline/`, `install/`, `seed/`, `propose/`, `lessons/`, `sender/`, `signingkey/`) |
+| `cmd/apps/<app>/<domain>/` | the commands of one domain, one file per command; `NewCmd()` builds `oba <app> <domain>` (`cmd/apps/otak/relation/`, `contact/`, `icp/`, `event/`, `find/`, `mailtemplate/`, `outreach/`, `attachment/`; `cmd/apps/ulak/org/`, `member/`, `invite/`; `cmd/apps/kaya/delivery/` (sync, refresh, status, launch, watch, doctor), `hook/`, `githook/`, `statusline/`, `install/`, `seed/`, `pack/`, `propose/`, `lessons/`, `sender/`, `signingkey/`) |
 | `internal/apps/<app>/<domain>/` | the logic of one domain of an app (`internal/apps/otak/relation/`, `contact/`, `icp/`, `event/`, `find/`, `mailtemplate/`, `outreach/`, `attachment/`; `internal/apps/ulak/org/`, `member/`, `invite/`, and `role/`, the role check that `invite` and `member` share) |
 | `internal/apps/kaya/<domain>/` | the logic of Kaya's domains: `delivery/` (trusted keys, manifests, the blob cache, versions and the switch, sessions, the launcher and the watcher, the outcome texts, the repository list and recognition, the exclude block, the release floors), `hook/`, `githook/` (the global git hooks), `statusline/`, `install/`, `seed/`, `propose/`, `lessons/`, `capture/` (one hook event into the local queue) and `sender/` (the queue to Kaya) |
 | `internal/apps/kaya/client/` | the Kaya API client: every call takes a context, user calls are signed through `internal/shrine/session`, the others with the machine token |

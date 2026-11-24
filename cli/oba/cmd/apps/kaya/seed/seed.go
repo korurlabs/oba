@@ -1,5 +1,5 @@
 // Package seed builds oba kaya seed, which imports an organization's agent config into Kaya from
-// a korurlabs/agents clone and the checkouts of its repositories.
+// a clone of its agent config repository and the checkouts of its repositories.
 package seed
 
 import (
@@ -37,21 +37,21 @@ var seedOpts seedFlags
 func NewCmd() *cobra.Command {
 	seedOpts = seedFlags{}
 	var seedCmd = &cobra.Command{
-		Use: "seed --repo <checkout> [--repo <checkout>...] [--agents <clone of korurlabs/agents>] " +
+		Use: "seed --repo <checkout> [--repo <checkout>...] [--agents <clone of your agent config repository>] " +
 			"[--pack <name>=<folder>...] [--pack-parent <child>=<parent>...] [--repo-pack [<repository>=]<pack>...] " +
 			"[--layout <seed tree>/layout.yaml]",
 		Short: "Import today's agent config from the repositories into Kaya (OWNER)",
-		Long: `Reads every pack of a korurlabs/agents clone and, per repository, its packs from
-.agents/.managed.json and its own files at the paths Kaya delivers (AGENTS.md, .agents/AGENTS.md,
-.agents/{rules,skills,roles,workflows,templates,hooks}/, .claude/{agents,skills}/,
-.claude/settings.json), with their file modes and symlinks. The tool links it delivers are
-the root AGENTS.md, .claude/rules and .claude/templates. It uploads the blobs the server is
-missing, posts the seed run, prints its report and compares each repository's release with the
-repository on disk.
+		Long: `Reads every pack below packs/ of a clone of your agent config repository and, per
+repository, its packs from .agents/.managed.json and its own files at the paths Kaya delivers
+(AGENTS.md, .agents/AGENTS.md, .agents/{rules,skills,roles,workflows,templates,hooks}/,
+.claude/{agents,skills}/, .claude/settings.json), with their file modes and symlinks. The tool
+links it delivers are the root AGENTS.md, .claude/rules and .claude/templates. It uploads the
+blobs the server is missing, posts the seed run, prints its report and compares each
+repository's release with the repository on disk.
 
 Packs form a tree: org is the root and every other pack of the clone is its child, unless
---pack-parent <child>=<parent> names another parent. A stored pack keeps its parent. packs/mdf is
-deprecated and is reported, not imported.
+--pack-parent <child>=<parent> names another parent. A stored pack keeps its parent. A pack the
+CLI knows as deprecated is reported, not imported.
 
 A repository's own files go into its family pack, the pack it uses at its root: the last pack of
 its .agents/.managed.json other than org, or a pack named after the repository when it has none.
@@ -106,7 +106,7 @@ run FAILED or a release differs; 1 on any other error.`,
 	}
 
 	flags := seedCmd.Flags()
-	flags.StringVar(&seedOpts.agents, "agents", "", "clone of korurlabs/agents whose packs/ are imported")
+	flags.StringVar(&seedOpts.agents, "agents", "", "clone of your agent config repository, whose packs/ are imported")
 	flags.StringArrayVar(&seedOpts.repos, "repo", nil, "checkout of a consumer repository (repeatable)")
 	flags.StringArrayVar(&seedOpts.mounts, "pack", nil, "pack mounted in a folder of a repository, <name>=<folder> (repeatable)")
 	flags.StringArrayVar(&seedOpts.parents, "pack-parent", nil, "parent of a seeded pack, <child>=<parent> (repeatable)")
