@@ -2,7 +2,7 @@
 
 import { Building2, LogOut, UserCog } from "lucide-react";
 
-import { ACCOUNT_LINKS, ADMIN_LINKS } from "@oba/shared/constants/apps";
+import { ACCOUNT_LINKS, ULAK_LINKS } from "@oba/shared/constants/apps";
 import { Button } from "@oba/ui/sky/button";
 import { submitLogout } from "@/lib/auth/logout-client";
 import { useIdentity } from "@/lib/identity/identity-context";
@@ -61,10 +61,10 @@ export function UserMenu() {
             Account
           </a>
         </DropdownMenuItem>
-        {/* Organization settings live in Admin, which refuses a user who manages no organization. */}
+        {/* Organization settings live in Ulak, which refuses a user who manages no organization. */}
         {me.managesOrganizations && (
           <DropdownMenuItem asChild>
-            <a href={ADMIN_LINKS.organizations}>
+            <a href={ULAK_LINKS.organizations}>
               <Building2 className="size-4" aria-hidden />
               Organization
             </a>

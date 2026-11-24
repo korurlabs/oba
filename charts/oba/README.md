@@ -1,6 +1,6 @@
 # Oba Helm chart
 
-Runs Oba on Kubernetes: the Spring Boot API (`api`) and the six Next.js web apps `kazan`, `kaya`, `kalkan`, `otak`, `admin` and `account`. Each component is one Deployment, one Service, one ServiceAccount and, when you enable them, one Ingress and one PodDisruptionBudget.
+Runs Oba on Kubernetes: the Spring Boot API (`api`) and the six Next.js web apps `kazan`, `kaya`, `kalkan`, `otak`, `ulak` and `account`. Each component is one Deployment, one Service, one ServiceAccount and, when you enable them, one Ingress and one PodDisruptionBudget.
 
 The chart creates no Secret, database or identity provider. You bring PostgreSQL, an OpenID Connect issuer (Oba is developed against Keycloak) and the environment of each component.
 
@@ -18,7 +18,7 @@ Every object is named `<fullname>-<component>`, and each Service `<fullname>-<co
 
 ## Values
 
-Every component has the same keys, under `api`, `kazan`, `kaya`, `kalkan`, `otak`, `admin` and `account`:
+Every component has the same keys, under `api`, `kazan`, `kaya`, `kalkan`, `otak`, `ulak` and `account`:
 
 | Key | Default | Meaning |
 |---|---|---|
@@ -77,7 +77,7 @@ Every web app reads the same keys:
 | `AUTH_SECRET` | Auth.js session secret, for example `openssl rand -base64 32`. |
 | `AUTH_KEYCLOAK_ISSUER` | Issuer URL of the OpenID Connect realm. |
 | `AUTH_KEYCLOAK_ID`, `AUTH_KEYCLOAK_SECRET` | The OpenID Connect client of this app. |
-| `KAZAN_URL`, `KAYA_URL`, `KALKAN_URL`, `OTAK_URL`, `ADMIN_URL`, `ACCOUNT_URL` | Public URLs of the other apps, for the app switcher. |
+| `KAZAN_URL`, `KAYA_URL`, `KALKAN_URL`, `OTAK_URL`, `ULAK_URL`, `ACCOUNT_URL` | Public URLs of the other apps, for the app switcher. |
 
 The chart sets `HOSTNAME=0.0.0.0`, so that Next.js listens on every interface of the pod.
 

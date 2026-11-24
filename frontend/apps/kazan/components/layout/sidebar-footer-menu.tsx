@@ -4,7 +4,7 @@ import { Building2, Download } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { DropdownMenuItem } from "@oba/ui/components/dropdown-menu";
 import { SidebarMenu, SidebarMenuItem } from "@oba/ui/components/sidebar";
-import { ACCOUNT_LINKS, ADMIN_LINKS } from "@oba/shared/constants/apps";
+import { ACCOUNT_LINKS, ULAK_LINKS } from "@oba/shared/constants/apps";
 import { ProfileDropdown } from "@oba/shared/components/app-header/profile-dropdown";
 import { LanguageSwitcherSubMenu } from "@oba/shared/components/language-switcher";
 import { canManageOrganizations } from "@oba/shared/features/organizations/lib/managed-organizations";
@@ -36,11 +36,11 @@ export function SidebarFooterMenu() {
           hrefs={{ profile: ACCOUNT_LINKS.profile, settings: PROFILE_SETTINGS_HREF }}
           extraMenuContent={
             <>
-              {/* Organizations are managed in Admin, so this item leaves Kazan. Admin
+              {/* Organizations are managed in Ulak, so this item leaves Kazan. Ulak
                   refuses a user who manages none, so only a manager sees the item. */}
               {managesOrganizations && (
                 <DropdownMenuItem asChild className="cursor-pointer rounded-lg px-3 py-2.5">
-                  <a href={ADMIN_LINKS.organizations}>
+                  <a href={ULAK_LINKS.organizations}>
                     <Building2 className="text-muted-foreground h-4 w-4" />
                     <span>{t("organizations")}</span>
                   </a>

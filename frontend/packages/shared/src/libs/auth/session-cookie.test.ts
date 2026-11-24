@@ -27,10 +27,10 @@ describe("authCookieOverrides on a plain-http AUTH_URL", () => {
 
   test("gives two local apps disjoint handshake cookies and one shared session cookie", () => {
     const kazan = authCookieOverrides("http://localhost:3002");
-    const admin = authCookieOverrides("http://localhost:3016");
+    const ulak = authCookieOverrides("http://localhost:3016");
 
     expect(kazan?.sessionToken?.name).toBe("oba.session-token");
-    expect(admin?.sessionToken?.name).toBe("oba.session-token");
+    expect(ulak?.sessionToken?.name).toBe("oba.session-token");
     const kazanNames = handshakeNames("http://localhost:3002");
     for (const name of handshakeNames("http://localhost:3016")) {
       expect(kazanNames).not.toContain(name);

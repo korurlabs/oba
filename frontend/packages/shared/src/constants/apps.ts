@@ -4,7 +4,7 @@ import type { GrantedApp } from "../features/users/schema";
 import { getRuntimeConfig } from "../lib/runtime-config";
 
 /** Identifier of an Oba web app; also its key under `apps` in the shared locales. */
-export type ObaAppId = "kazan" | "kaya" | "kalkan" | "otak" | "admin" | "account";
+export type ObaAppId = "kazan" | "kaya" | "kalkan" | "otak" | "ulak" | "account";
 
 export interface ObaApp {
   id: ObaAppId;
@@ -23,21 +23,21 @@ export function appUrl(id: ObaAppId): string {
 }
 
 /**
- * Admin paths other apps link to. Admin holds the screens of organization owners and admins.
+ * Ulak paths other apps link to. Ulak holds the screens of organization owners and admins.
  * Each link is a getter, resolved on read against the run-time origin, so it
  * must be read while rendering or later, never at module load.
  */
-export const ADMIN_LINKS = {
+export const ULAK_LINKS = {
   get organizations(): string {
-    return appUrl("admin");
+    return appUrl("ulak");
   },
   organization: (organizationId: string): string =>
-    `${appUrl("admin")}/organizations/${encodeURIComponent(organizationId)}`,
+    `${appUrl("ulak")}/organizations/${encodeURIComponent(organizationId)}`,
 };
 
 /**
  * Account paths other apps link to. Account holds the pages every user manages for themselves.
- * Getters, like `ADMIN_LINKS`, for the same reason.
+ * Getters, like `ULAK_LINKS`, for the same reason.
  */
 export const ACCOUNT_LINKS = {
   get profile(): string {
@@ -69,14 +69,14 @@ export function accountOnboardingUrl(callbackUrl: string, appBaseUrl: string): s
 }
 
 /** The Oba web apps, in the order the app switcher lists them. */
-export const OBA_APP_IDS: readonly ObaAppId[] = ["kazan", "kaya", "kalkan", "otak", "admin", "account"];
+export const OBA_APP_IDS: readonly ObaAppId[] = ["kazan", "kaya", "kalkan", "otak", "ulak", "account"];
 
 const APP_ICONS: Record<ObaAppId, LucideIcon> = {
   kazan: Ticket,
   kaya: Bot,
   kalkan: ShieldCheck,
   otak: Handshake,
-  admin: Building2,
+  ulak: Building2,
   account: UserCog,
 };
 
@@ -86,8 +86,8 @@ export function obaApps(appUrls: Record<ObaAppId, string>): ObaApp[] {
 }
 
 /**
- * The grant each web app needs, by app id. Admin and Account have no entry:
- * Admin is gated by the organization role and Account is open to every user.
+ * The grant each web app needs, by app id. Ulak and Account have no entry:
+ * Ulak is gated by the organization role and Account is open to every user.
  */
 export const GRANTED_APP_OF: Partial<Record<ObaAppId, GrantedApp>> = {
   kazan: "KAZAN",

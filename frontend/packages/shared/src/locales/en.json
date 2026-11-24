@@ -87,8 +87,8 @@
       "name": "Otak",
       "description": "Relations, leads and customers"
     },
-    "admin": {
-      "name": "Admin",
+    "ulak": {
+      "name": "Ulak",
       "description": "Organizations, members and invitations"
     },
     "account": {

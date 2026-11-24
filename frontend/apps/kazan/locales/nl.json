@@ -839,7 +839,7 @@
   },
   "noAppAccess": {
     "title": "Kazan is niet voor je open in {organization}",
-    "description": "Een eigenaar of beheerder van de organisatie geeft je toegang tot Kazan in Admin.",
+    "description": "Een eigenaar of beheerder van de organisatie geeft je toegang tot Kazan in Ulak.",
     "openAccount": "Account openen"
   },
   "noOrganization": {
@@ -985,8 +985,8 @@
     },
     "memberAccess": {
       "noAccess": "Geen toegang tot Kazan",
-      "noAccessHint": "Geen toegang tot Kazan. Een eigenaar of beheerder kan Kazan toekennen in Admin.",
-      "refused": "Dit lid heeft geen toegang tot Kazan. Een eigenaar of beheerder kan Kazan toekennen in Admin."
+      "noAccessHint": "Geen toegang tot Kazan. Een eigenaar of beheerder kan Kazan toekennen in Ulak.",
+      "refused": "Dit lid heeft geen toegang tot Kazan. Een eigenaar of beheerder kan Kazan toekennen in Ulak."
     }
   },
   "sidebar": {
@@ -1512,7 +1512,7 @@
       "send": "Versturen",
       "save": "Opslaan",
       "counter": "{count}/{max}",
-      "mentionWithoutKazanAccess": "Je noemt een lid zonder toegang tot Kazan. Verwijder de vermelding, of vraag een eigenaar of beheerder om Kazan toe te kennen in Admin."
+      "mentionWithoutKazanAccess": "Je noemt een lid zonder toegang tot Kazan. Verwijder de vermelding, of vraag een eigenaar of beheerder om Kazan toe te kennen in Ulak."
     },
     "mentions": {
       "title": "Leden",
@@ -1883,7 +1883,7 @@
         "memberNotActive": "Iedereen die je toevoegt moet een actief lid van de organisatie zijn.",
         "notFound": "Dit kanaal bestaat niet meer, of je hebt er geen toegang meer toe.",
         "notAllowed": "Alleen een eigenaar of beheerder van de organisatie kan dit doen.",
-        "noKazanAccess": "Iedereen die je toevoegt moet toegang tot Kazan hebben. Een eigenaar of beheerder kan Kazan toekennen in Admin."
+        "noKazanAccess": "Iedereen die je toevoegt moet toegang tot Kazan hebben. Een eigenaar of beheerder kan Kazan toekennen in Ulak."
       }
     }
   },

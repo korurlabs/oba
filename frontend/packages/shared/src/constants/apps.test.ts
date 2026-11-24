@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
   ACCOUNT_LINKS,
-  ADMIN_LINKS,
+  ULAK_LINKS,
   accountOnboardingUrl,
   appUrl,
   obaApps,
@@ -13,7 +13,7 @@ const ENV_KEYS = [
   "KAYA_URL",
   "KALKAN_URL",
   "OTAK_URL",
-  "ADMIN_URL",
+  "ULAK_URL",
   "ACCOUNT_URL",
 ] as const;
 
@@ -44,7 +44,7 @@ describe("appUrl", () => {
     expect(appUrl("kaya")).toBe("https://kaya.korur.com");
     expect(appUrl("kalkan")).toBe("https://kalkan.korur.com");
     expect(appUrl("otak")).toBe("https://otak.korur.com");
-    expect(appUrl("admin")).toBe("https://admin.korur.com");
+    expect(appUrl("ulak")).toBe("https://ulak.korur.com");
     expect(appUrl("account")).toBe("https://account.korur.com");
   });
 
@@ -55,21 +55,21 @@ describe("appUrl", () => {
     expect(appUrl("kaya")).toBe("http://localhost:3014");
     expect(appUrl("kalkan")).toBe("http://localhost:3019");
     expect(appUrl("otak")).toBe("http://localhost:3018");
-    expect(appUrl("admin")).toBe("http://localhost:3016");
+    expect(appUrl("ulak")).toBe("http://localhost:3016");
     expect(appUrl("account")).toBe("http://localhost:3017");
   });
 
   test("a configured URL wins and loses its trailing slashes", () => {
     setEnv({
       NODE_ENV: "production",
-      ADMIN_URL: "https://admin.example.test//",
+      ULAK_URL: "https://ulak.example.test//",
       KAZAN_URL: "https://kazan.example.test",
       ACCOUNT_URL: "https://account.example.test/",
       OTAK_URL: "https://otak.example.test/",
       KALKAN_URL: "https://kalkan.example.test///",
     });
 
-    expect(appUrl("admin")).toBe("https://admin.example.test");
+    expect(appUrl("ulak")).toBe("https://ulak.example.test");
     expect(appUrl("account")).toBe("https://account.example.test");
     expect(appUrl("kazan")).toBe("https://kazan.example.test");
     expect(appUrl("otak")).toBe("https://otak.example.test");
@@ -78,35 +78,35 @@ describe("appUrl", () => {
   });
 
   test("an empty configured URL counts as unset", () => {
-    setEnv({ NODE_ENV: "production", ADMIN_URL: "" });
+    setEnv({ NODE_ENV: "production", ULAK_URL: "" });
 
-    expect(appUrl("admin")).toBe("https://admin.korur.com");
+    expect(appUrl("ulak")).toBe("https://ulak.korur.com");
   });
 });
 
-describe("ADMIN_LINKS", () => {
-  test("are paths under the Admin origin", () => {
-    setEnv({ NODE_ENV: "production", ADMIN_URL: "https://admin.example.test/" });
+describe("ULAK_LINKS", () => {
+  test("are paths under the Ulak origin", () => {
+    setEnv({ NODE_ENV: "production", ULAK_URL: "https://ulak.example.test/" });
 
-    expect(ADMIN_LINKS.organizations).toBe("https://admin.example.test");
-    expect(ADMIN_LINKS.organization("6f1c2a9e-0000-4000-8000-000000000001")).toBe(
-      "https://admin.example.test/organizations/6f1c2a9e-0000-4000-8000-000000000001"
+    expect(ULAK_LINKS.organizations).toBe("https://ulak.example.test");
+    expect(ULAK_LINKS.organization("6f1c2a9e-0000-4000-8000-000000000001")).toBe(
+      "https://ulak.example.test/organizations/6f1c2a9e-0000-4000-8000-000000000001"
     );
-    expect(Object.keys(ADMIN_LINKS)).toEqual(["organizations", "organization"]);
+    expect(Object.keys(ULAK_LINKS)).toEqual(["organizations", "organization"]);
   });
 
   test("an organization id is encoded as one path segment", () => {
     setEnv({ NODE_ENV: "production" });
 
-    expect(ADMIN_LINKS.organization("a/b")).toBe("https://admin.korur.com/organizations/a%2Fb");
+    expect(ULAK_LINKS.organization("a/b")).toBe("https://ulak.korur.com/organizations/a%2Fb");
   });
 
   test("follow a changed environment on the next read", () => {
-    setEnv({ NODE_ENV: "production", ADMIN_URL: "https://one.example.test" });
-    expect(ADMIN_LINKS.organizations).toBe("https://one.example.test");
+    setEnv({ NODE_ENV: "production", ULAK_URL: "https://one.example.test" });
+    expect(ULAK_LINKS.organizations).toBe("https://one.example.test");
 
-    setEnv({ NODE_ENV: "production", ADMIN_URL: "https://two.example.test" });
-    expect(ADMIN_LINKS.organizations).toBe("https://two.example.test");
+    setEnv({ NODE_ENV: "production", ULAK_URL: "https://two.example.test" });
+    expect(ULAK_LINKS.organizations).toBe("https://two.example.test");
   });
 });
 
@@ -138,27 +138,27 @@ describe("accountOnboardingUrl", () => {
     setEnv({ NODE_ENV: "production" });
 
     const url = new URL(
-      accountOnboardingUrl("https://admin.korur.com/organizations", "https://kazan.korur.com")
+      accountOnboardingUrl("https://ulak.korur.com/organizations", "https://kazan.korur.com")
     );
 
-    expect(url.searchParams.get("callbackUrl")).toBe("https://admin.korur.com/organizations");
+    expect(url.searchParams.get("callbackUrl")).toBe("https://ulak.korur.com/organizations");
   });
 });
 
 describe("obaApps", () => {
-  test("lists Kazan, Kaya, Kalkan, Otak, Admin and Account in that order, each with its given origin and an icon", () => {
+  test("lists Kazan, Kaya, Kalkan, Otak, Ulak and Account in that order, each with its given origin and an icon", () => {
     const appUrls = {
       kazan: "https://k.test",
       kaya: "https://y.test",
       kalkan: "https://l.test",
       otak: "https://o.test",
-      admin: "https://a.test",
+      ulak: "https://a.test",
       account: "https://c.test",
     };
 
     const apps = obaApps(appUrls);
 
-    expect(apps.map((app) => app.id)).toEqual(["kazan", "kaya", "kalkan", "otak", "admin", "account"]);
+    expect(apps.map((app) => app.id)).toEqual(["kazan", "kaya", "kalkan", "otak", "ulak", "account"]);
     expect(apps.map((app) => app.url)).toEqual([
       "https://k.test",
       "https://y.test",

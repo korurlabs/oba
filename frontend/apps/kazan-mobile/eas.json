@@ -10,7 +10,7 @@
         "EXPO_PUBLIC_KEYCLOAK_ISSUER": "http://localhost:8086/realms/sensey",
         "EXPO_PUBLIC_KEYCLOAK_CLIENT_ID": "kazan-mobile",
         "EXPO_PUBLIC_ACCOUNT_URL": "http://localhost:3017",
-        "EXPO_PUBLIC_ADMIN_URL": "http://localhost:3016",
+        "EXPO_PUBLIC_ULAK_URL": "http://localhost:3016",
         "EXPO_PUBLIC_KAZAN_WEB_URL": "http://localhost:3002"
       }
     },
@@ -24,7 +24,7 @@
         "EXPO_PUBLIC_KEYCLOAK_ISSUER": "https://auth.korur.com/realms/sensey",
         "EXPO_PUBLIC_KEYCLOAK_CLIENT_ID": "kazan-mobile",
         "EXPO_PUBLIC_ACCOUNT_URL": "https://account.korur.com",
-        "EXPO_PUBLIC_ADMIN_URL": "https://admin.korur.com",
+        "EXPO_PUBLIC_ULAK_URL": "https://ulak.korur.com",
         "EXPO_PUBLIC_KAZAN_WEB_URL": "https://kazan.korur.com"
       }
     },
@@ -37,7 +37,7 @@
         "EXPO_PUBLIC_KEYCLOAK_ISSUER": "https://auth.korur.com/realms/sensey",
         "EXPO_PUBLIC_KEYCLOAK_CLIENT_ID": "kazan-mobile",
         "EXPO_PUBLIC_ACCOUNT_URL": "https://account.korur.com",
-        "EXPO_PUBLIC_ADMIN_URL": "https://admin.korur.com",
+        "EXPO_PUBLIC_ULAK_URL": "https://ulak.korur.com",
         "EXPO_PUBLIC_KAZAN_WEB_URL": "https://kazan.korur.com"
       }
     }
