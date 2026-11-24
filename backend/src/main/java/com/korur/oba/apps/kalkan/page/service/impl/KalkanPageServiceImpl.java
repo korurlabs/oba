@@ -92,6 +92,7 @@ public class KalkanPageServiceImpl implements KalkanPageService {
         if (request.parentId() == null) {
             kalkanAccessQueryService.requireRootCreate(organizationId, user);
             requireNotReservedRootSlug(organizationId, request.slug());
+            requireRootSlugNotInTrash(organizationId, request.slug());
             // The creator is granted MANAGE below; an OWNER holds it anyway.
             level = KalkanLevel.MANAGE;
         } else {
@@ -122,9 +123,7 @@ public class KalkanPageServiceImpl implements KalkanPageService {
 
         boolean slugChanged = request.slug() != null && !request.slug().equals(page.getSlug());
         if (slugChanged) {
-            if (page.getParent() == null) {
-                requireNotReservedRootSlug(organizationId, request.slug());
-            }
+            requireSlugChangeBelowRoot(organizationId, page, request.slug());
             requireSlugFree(organizationId, page.getParent(), request.slug(), page.getId());
         }
         boolean complianceChanged = request.compliance() != null && request.compliance() != page.isCompliance();
@@ -197,7 +196,7 @@ public class KalkanPageServiceImpl implements KalkanPageService {
     @Transactional
     public void deletePage(User user, UUID organizationId, UUID pageId) {
         KalkanPage page = kalkanPageQueryService.getEntity(organizationId, pageId);
-        kalkanAccessQueryService.verifyLevel(organizationId, page, user, minimumForDelete(page.getParent() == null));
+        kalkanAccessQueryService.verifyLevel(organizationId, page, user, KalkanLevel.minimumToDelete(page.getParent() == null));
         // One instant for every row, so a restore brings back exactly what this delete took.
         Instant now = Instant.now(clock).truncatedTo(ChronoUnit.MICROS);
         // Translations first: their query walks the subtree while its pages are still live.
@@ -221,7 +220,7 @@ public class KalkanPageServiceImpl implements KalkanPageService {
         UUID accessRootId = root ? state.getId() : state.getRootId();
         // The level comes first, so a page the caller cannot see answers 404 whatever its state.
         KalkanLevel level = kalkanAccessQueryService.verifyLevel(organizationId, pageId, accessRootId, user,
-                minimumForDelete(root));
+                KalkanLevel.minimumToDelete(root));
         if (!Boolean.TRUE.equals(state.getDeleted())) {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, KalkanPageServiceLogConstant.PAGE_NOT_DELETED,
                     pageId, organizationId);
@@ -278,6 +277,7 @@ public class KalkanPageServiceImpl implements KalkanPageService {
             }
             kalkanAccessQueryService.requireRootCreate(organizationId, user);
             requireNotReservedRootSlug(organizationId, slugs[0]);
+            requireRootSlugNotInTrash(organizationId, slugs[0]);
             return createByPath(user, organizationId, null, request, dryRun);
         }
         // The root's level is checked before any deeper page is looked up, so a hidden tree reveals nothing.
@@ -450,11 +450,6 @@ public class KalkanPageServiceImpl implements KalkanPageService {
         return stored != null && stored.getTitle().equals(request.title()) && stored.getBody().equals(request.body());
     }
 
-    private static KalkanLevel minimumForDelete(boolean root) {
-        // Deleting or restoring a root takes the whole tree, which only its managers decide.
-        return root ? KalkanLevel.MANAGE : KalkanLevel.EDIT;
-    }
-
     private int nextPosition(UUID organizationId, KalkanPage parent) {
         Optional<Integer> max = parent == null
                 ? kalkanPageRepository.findMaxRootPosition(organizationId)
@@ -498,12 +493,42 @@ public class KalkanPageServiceImpl implements KalkanPageService {
         }
     }
 
+    /**
+     * A root's slug is the fixed route segment of its section: the web app routes the section by it
+     * and pushes name it as the first segment of their paths, so a root keeps the slug it was
+     * created with, whoever asks for the change.
+     */
+    private void requireSlugChangeBelowRoot(UUID organizationId, KalkanPage page, String slug) {
+        if (page.getParent() == null) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, KalkanPageServiceLogConstant.ROOT_SLUG_FIXED,
+                    page.getId(), organizationId, page.getSlug(), slug);
+            throw new ValidationException(ExceptionDomainKalkanError.VAL_ROOT_SLUG_FIXED,
+                    Map.of(KalkanPageConstant.FIELD_PAGE_ID, page.getId().toString(),
+                            KalkanPageConstant.FIELD_SLUG, page.getSlug()));
+        }
+    }
+
     private void requireSlugFree(UUID organizationId, KalkanPage parent, String slug, UUID excludedId) {
         boolean taken = parent == null
                 ? kalkanPageRepository.existsRootSlug(organizationId, slug, excludedId)
                 : kalkanPageRepository.existsChildSlug(parent.getId(), slug, excludedId);
         if (taken) {
             throw slugTaken(organizationId, parent == null ? null : parent.getId(), slug);
+        }
+    }
+
+    /**
+     * A deleted root keeps its slug: a second root with it would leave the section split in two and
+     * make the old root's restore fail, so the deleted root has to be restored instead.
+     */
+    private void requireRootSlugNotInTrash(UUID organizationId, String slug) {
+        Optional<UUID> deletedRootId = kalkanPageRepository.findDeletedRootIdBySlug(organizationId, slug);
+        if (deletedRootId.isPresent()) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, KalkanPageServiceLogConstant.ROOT_SLUG_IN_TRASH,
+                    slug, organizationId, deletedRootId.get());
+            throw new ConflictException(ExceptionDomainKalkanError.STA_SLUG_TAKEN,
+                    Map.of(KalkanPageConstant.FIELD_SLUG, slug,
+                            KalkanPageConstant.FIELD_DELETED_PAGE_ID, deletedRootId.get().toString()));
         }
     }
 

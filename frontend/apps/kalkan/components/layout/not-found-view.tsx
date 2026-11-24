@@ -1,7 +1,7 @@
 import { FileQuestion, Home } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@oba/shared/libs/i18n/navigation";
-import { Button } from "@/components/ui/button";
+import { Button } from "@oba/ui/sky/button";
 import { cn } from "@/lib/utils";
 
 interface NotFoundViewProps {
@@ -17,7 +17,7 @@ export function NotFoundView({ className }: NotFoundViewProps) {
   const t = useTranslations("errors");
 
   return (
-    <div className={cn("bg-background flex items-center justify-center p-4", className)}>
+    <div className={cn("flex items-center justify-center p-4", className)}>
       <div className="w-full max-w-md space-y-6 text-center">
         <div className="flex justify-center">
           <div className="bg-primary/10 rounded-full p-4">

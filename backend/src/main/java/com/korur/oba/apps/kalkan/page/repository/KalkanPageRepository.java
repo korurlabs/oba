@@ -16,7 +16,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
+import com.korur.oba.apps.kalkan.page.dto.projection.KalkanPageRecentProjection;
 import com.korur.oba.apps.kalkan.page.dto.projection.KalkanPageStateProjection;
+import com.korur.oba.apps.kalkan.page.dto.projection.KalkanPageTrashProjection;
 import com.korur.oba.apps.kalkan.page.dto.projection.KalkanPageTreeProjection;
 import com.korur.oba.apps.kalkan.page.entity.KalkanPage;
 import com.korur.oba.dojo.repository.SoftDeleteRepository;
@@ -69,7 +71,11 @@ public interface KalkanPageRepository extends SoftDeleteRepository<KalkanPage, U
      *
      * @param organizationId the organization
      * @param slug           the slug
-     * @param excludedId     a page to leave out, the one being renamed; null to leave out none
+     * @param excludedId     a page to leave out; null to leave out none. No service passes one: a root
+     *                       keeps the slug it was created with, so only
+     *                       {@link com.korur.oba.apps.kalkan.page.service.KalkanPageService#createPage} and
+     *                       {@link com.korur.oba.apps.kalkan.page.service.KalkanPageService#restorePage}
+     *                       check a root slug, and both pass null
      * @return true when the slug is taken among the roots
      */
     @Query("""
@@ -79,6 +85,24 @@ public interface KalkanPageRepository extends SoftDeleteRepository<KalkanPage, U
             """)
     boolean existsRootSlug(@Param("organizationId") UUID organizationId, @Param("slug") String slug,
                            @Param("excludedId") UUID excludedId);
+
+    /**
+     * Finds the most recently deleted root page of the organization with a slug. A deleted root
+     * keeps its slug for its restore, so a new root may not take it.
+     *
+     * @param organizationId the organization
+     * @param slug           the root slug
+     * @return the deleted root's id; empty when no deleted root has the slug
+     */
+    @Query(value = """
+            SELECT p.id FROM kalkan.pages p
+            WHERE p.organization_id = :organizationId AND p.parent_id IS NULL AND p.slug = :slug
+              AND p.deleted = TRUE
+            ORDER BY p.updated_at DESC
+            LIMIT 1
+            """, nativeQuery = true)
+    Optional<UUID> findDeletedRootIdBySlug(@Param("organizationId") UUID organizationId,
+                                           @Param("slug") String slug);
 
     /**
      * Whether a live child of the parent other than the given page has the slug.
@@ -165,9 +189,9 @@ public interface KalkanPageRepository extends SoftDeleteRepository<KalkanPage, U
 
     /**
      * The depth the deepest page a restore of this deleted page would bring back: the page's live
-     * ancestors plus the height of the subtree restoreSubtree matches, the page itself counting as
-     * one. A move after the delete counts only the live subtree, so the restored pages may end
-     * up deeper than a move would have allowed.
+     * ancestors plus the height of the subtree {@link #restoreSubtree(UUID, UUID, Instant)} matches,
+     * the page itself counting as one. A move after the delete counts only the live subtree, so the
+     * restored pages may end up deeper than a move would have allowed.
      *
      * @param pageId the deleted page
      * @return the resulting depth; 0 when the page is not deleted
@@ -307,4 +331,106 @@ public interface KalkanPageRepository extends SoftDeleteRepository<KalkanPage, U
             WHERE id IN (SELECT id FROM subtree)
             """, nativeQuery = true)
     int restoreSubtree(@Param("pageId") UUID pageId, @Param("userId") UUID userId, @Param("now") Instant now);
+
+    /**
+     * Lists the ids of every root page of an organization, deleted ones included. The grants of a
+     * deleted root stay live, so the trash resolves the caller's level on it like on a live one.
+     *
+     * @param organizationId the organization
+     * @return the root ids
+     */
+    @Query(value = """
+            SELECT p.id FROM kalkan.pages p
+            WHERE p.organization_id = :organizationId AND p.parent_id IS NULL
+            """, nativeQuery = true)
+    List<UUID> findRootIdsIncludingDeleted(@Param("organizationId") UUID organizationId);
+
+    /**
+     * Lists the top page of every delete under the given roots, newest delete first. A deleted page
+     * is the top of its delete when it is a root, its parent is live, or its parent was deleted at
+     * another instant, so each delete is listed once, by the page a restore takes. The path walks
+     * the ancestors whatever their state, and the descendant count matches the pages
+     * {@link #restoreSubtree(UUID, UUID, Instant)} would bring back. Each row carries its access
+     * root and whether it is a root, so the caller can apply the restore level.
+     *
+     * @param organizationId the organization
+     * @param rootIds        the roots, live or deleted, all of that organization; must not be empty
+     * @return one row per delete
+     */
+    @Query(value = """
+            WITH RECURSIVE tops AS (
+                SELECT p.id, p.parent_id, COALESCE(p.root_id, p.id) AS access_root_id, p.updated_at,
+                       p.updated_by_id
+                FROM kalkan.pages p
+                LEFT JOIN kalkan.pages parent ON parent.id = p.parent_id
+                WHERE p.organization_id = :organizationId AND p.deleted = TRUE
+                  AND COALESCE(p.root_id, p.id) IN (:rootIds)
+                  AND (parent.id IS NULL OR parent.deleted = FALSE OR parent.updated_at <> p.updated_at)
+            ),
+            taken AS (
+                SELECT t.id AS top_id, t.id AS page_id, t.updated_at FROM tops t
+                UNION ALL
+                SELECT k.top_id, c.id, k.updated_at
+                FROM kalkan.pages c
+                JOIN taken k ON c.parent_id = k.page_id
+                WHERE c.deleted = TRUE AND c.updated_at = k.updated_at
+            ),
+            ancestry AS (
+                SELECT t.id AS page_id, t.parent_id, p.slug, 0 AS height
+                FROM tops t
+                JOIN kalkan.pages p ON p.id = t.id
+                UNION ALL
+                SELECT a.page_id, p.parent_id, p.slug, a.height + 1
+                FROM ancestry a
+                JOIN kalkan.pages p ON p.id = a.parent_id
+            )
+            SELECT t.id AS id, t.access_root_id AS accessRootId, t.parent_id IS NULL AS root,
+                   (SELECT STRING_AGG(a.slug, '/' ORDER BY a.height DESC) FROM ancestry a
+                    WHERE a.page_id = t.id) AS path,
+                   t.updated_at AS deletedAt, t.updated_by_id AS deletedById,
+                   (SELECT COUNT(k.page_id) - 1 FROM taken k WHERE k.top_id = t.id) AS descendantCount
+            FROM tops t
+            ORDER BY t.updated_at DESC, t.id
+            """, nativeQuery = true)
+    List<KalkanPageTrashProjection> findTrash(@Param("organizationId") UUID organizationId,
+                                              @Param("rootIds") Collection<UUID> rootIds);
+
+    /**
+     * Lists the most recently changed live pages under the given roots, with each page's path and
+     * the slug of its root, in one query.
+     *
+     * @param organizationId the organization
+     * @param rootIds        the live roots, all of that organization; must not be empty
+     * @param limit          the most rows to return
+     * @return the pages, last change first
+     */
+    @Query(value = """
+            WITH RECURSIVE recent AS (
+                SELECT p.id, p.updated_at, p.updated_by_id
+                FROM kalkan.pages p
+                WHERE p.organization_id = :organizationId AND p.deleted = FALSE
+                  AND COALESCE(p.root_id, p.id) IN (:rootIds)
+                ORDER BY p.updated_at DESC, p.id
+                LIMIT :limit
+            ),
+            ancestry AS (
+                SELECT r.id AS page_id, p.parent_id, p.slug, 0 AS height
+                FROM recent r
+                JOIN kalkan.pages p ON p.id = r.id
+                UNION ALL
+                SELECT a.page_id, p.parent_id, p.slug, a.height + 1
+                FROM ancestry a
+                JOIN kalkan.pages p ON p.id = a.parent_id
+            )
+            SELECT r.id AS id,
+                   (SELECT STRING_AGG(a.slug, '/' ORDER BY a.height DESC) FROM ancestry a
+                    WHERE a.page_id = r.id) AS path,
+                   (SELECT a.slug FROM ancestry a WHERE a.page_id = r.id AND a.parent_id IS NULL) AS rootSlug,
+                   r.updated_at AS updatedAt, r.updated_by_id AS updatedById
+            FROM recent r
+            ORDER BY r.updated_at DESC, r.id
+            """, nativeQuery = true)
+    List<KalkanPageRecentProjection> findRecent(@Param("organizationId") UUID organizationId,
+                                                @Param("rootIds") Collection<UUID> rootIds,
+                                                @Param("limit") int limit);
 }

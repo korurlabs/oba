@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { AlertTriangle, RefreshCcw, Home } from "lucide-react";
 import { devError } from "@oba/shared/helpers/dev-log";
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
+import { Button } from "@oba/ui/sky/button";
 import { cn } from "@/lib/utils";
 
 interface RouteErrorProps {
@@ -27,7 +27,7 @@ export function RouteError({ error, reset, className }: RouteErrorProps) {
 
   return (
     <div
-      className={cn("bg-background flex items-center justify-center p-4", className)}
+      className={cn("flex items-center justify-center p-4", className)}
       role="alert"
       aria-live="assertive"
     >
