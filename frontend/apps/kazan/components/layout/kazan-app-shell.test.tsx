@@ -218,15 +218,15 @@ describe("KazanAppShell menu panel", () => {
     const edge = between(html, 'role="separator"', ">");
     expect(edge).toContain(`aria-label="${en.sidebar.resizeSidebar}"`);
     expect(edge).toContain('aria-orientation="vertical"');
-    expect(edge).toContain('aria-valuenow="320"');
+    expect(edge).toContain('aria-valuenow="256"');
     expect(edge).toContain('tabindex="0"');
     // The rail primitive is a button with the same data attribute; only the handle is left.
     expect(html).not.toContain('<button data-sidebar="rail"');
   });
 
-  test("gives the panel the stored-width variable, 320 by default", () => {
+  test("gives the panel the stored-width variable, 256 by default", () => {
     expect(between(markup(), 'data-slot="sidebar-wrapper"', ">")).toContain(
-      "--sidebar-width:320px"
+      "--sidebar-width:256px"
     );
   });
 });

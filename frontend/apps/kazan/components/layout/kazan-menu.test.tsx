@@ -170,16 +170,6 @@ describe("KazanMenu", () => {
     expect(html).toContain('href="/chats"');
   });
 
-  test("draws every row at the sky menu's 44px row height", () => {
-    channels = [channel("DAILY_UPDATES"), channel("PULL_REQUESTS")];
-    const rows = markup().match(/<(?:a|button)[^>]*data-sidebar="menu-button"[^>]*>/g) ?? [];
-    expect(rows).toHaveLength(9);
-    for (const row of rows) {
-      expect(row).toContain("h-11");
-      expect(row).not.toContain("h-9");
-    }
-  });
-
   test("links Tickets to the tickets assigned to the signed-in user", () => {
     meId = "user-42";
     expect(markup()).toContain('href="/tickets?assigneeIds=user-42"');

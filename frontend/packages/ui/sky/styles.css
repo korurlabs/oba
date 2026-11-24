@@ -266,16 +266,28 @@
 /*
  * The panel container spans from the top bar to the foot of the window, less
  * a 12px inset that keeps the panel off the top bar and the window edges. The
- * panel inside is as tall as its links, and its auto block margins centre it
- * in that span, so the gap above equals the gap below. When the window is too
- * short for the panel, the margins drop to zero (auto margins never push an
- * item past the container's start, as centring the container's content
- * would), the panel shrinks to the span and its links scroll while the footer
- * stays in view.
+ * panel inside is as tall as its links. Two spacers share the free space of
+ * that span 1 : 3, so a short menu sits in the upper part of the column, below
+ * the top bar but not glued to it, as a menu is read from the top. The
+ * spacers start at zero height and never shrink below it, so when the window
+ * is too short for the panel they collapse, the panel shrinks to the span
+ * with equal 12px gaps and its links scroll while the footer stays in view;
+ * a tall panel is never pushed past the foot of the window.
  */
 [data-slot="sidebar"][data-variant="floating"] > [data-slot="sidebar-container"] {
   flex-direction: column;
   padding: 0.75rem;
+}
+
+[data-slot="sidebar"][data-variant="floating"] > [data-slot="sidebar-container"]::before,
+[data-slot="sidebar"][data-variant="floating"] > [data-slot="sidebar-container"]::after {
+  content: "";
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+[data-slot="sidebar"][data-variant="floating"] > [data-slot="sidebar-container"]::after {
+  flex-grow: 3;
 }
 
 [data-slot="sidebar"][data-variant="floating"] [data-slot="sidebar-inner"] {
@@ -283,7 +295,6 @@
   height: auto;
   max-height: 100%;
   min-height: 0;
-  margin-block: auto;
 }
 
 /*

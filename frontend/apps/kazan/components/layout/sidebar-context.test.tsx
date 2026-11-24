@@ -17,8 +17,8 @@ afterEach(async () => {
 });
 
 describe("SidebarWidthProvider", () => {
-  test("starts at the widest panel when nothing is stored", async () => {
-    expect(await widthAfterRestore(null)).toBe("320");
+  test("starts at the shared 256 default when nothing is stored", async () => {
+    expect(await widthAfterRestore(null)).toBe("256");
   });
 
   test("reads a stored width", async () => {
@@ -34,15 +34,15 @@ describe("SidebarWidthProvider", () => {
   });
 
   test("ignores a stored value that is not a number", async () => {
-    expect(await widthAfterRestore("wide")).toBe("320");
-    expect(await widthAfterRestore("")).toBe("320");
-    expect(await widthAfterRestore("   ")).toBe("320");
-    expect(await widthAfterRestore("NaN")).toBe("320");
+    expect(await widthAfterRestore("wide")).toBe("256");
+    expect(await widthAfterRestore("")).toBe("256");
+    expect(await widthAfterRestore("   ")).toBe("256");
+    expect(await widthAfterRestore("NaN")).toBe("256");
   });
 
   test("keeps the default and works when storage is blocked", async () => {
     storage.unavailable = true;
-    expect(await widthAfterRestore("272")).toBe("320");
+    expect(await widthAfterRestore("272")).toBe("256");
   });
 
   test("hands the width to the sidebar as --sidebar-width", async () => {

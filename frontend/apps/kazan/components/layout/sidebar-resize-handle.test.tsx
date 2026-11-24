@@ -38,8 +38,8 @@ describe("SidebarResizeHandle", () => {
   test("ArrowLeft narrows by 16 and remembers it", async () => {
     const { screen, separator } = await handle();
     await separator().keyDown("ArrowLeft");
-    expect(probe(screen).attribute("data-width")).toBe("304");
-    expect(storage.store.get(STORAGE_KEY)).toBe("304");
+    expect(probe(screen).attribute("data-width")).toBe("240");
+    expect(storage.store.get(STORAGE_KEY)).toBe("240");
   });
 
   test("ArrowRight widens by 16, up to 320", async () => {
