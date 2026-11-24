@@ -22,7 +22,7 @@ export const WEB_LOCALES: readonly string[] = ["en", "nl", "tr"];
 export function normalizeTicketKey(raw: string | string[] | undefined | null): string | null {
   const value: string | undefined = Array.isArray(raw) ? raw[0] : (raw ?? undefined);
   if (!value) return null;
-  let decoded: string = value;
+  let decoded: string;
   try {
     decoded = decodeURIComponent(value);
   } catch (error: unknown) {

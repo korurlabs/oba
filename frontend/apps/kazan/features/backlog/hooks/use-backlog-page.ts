@@ -17,7 +17,6 @@ import {
   useTickets,
   useDeleteTicket,
   useMoveTicket,
-  useCreateTicket,
   useBulkMoveTickets,
 } from "@/features/tickets/hooks/use-tickets";
 import {
@@ -208,7 +207,6 @@ export function useBacklogPage(boardId: string) {
   // ── Mutations ────────────────────────────────────────────────────
   const moveToSprintMutation = useMoveTicket();
   const deleteTicketMutation = useDeleteTicket();
-  const createTicketMutation = useCreateTicket();
   const bulkMoveTicketsMutation = useBulkMoveTickets();
   const bulkDeleteTicketsMutation = useBulkDeleteTickets();
 

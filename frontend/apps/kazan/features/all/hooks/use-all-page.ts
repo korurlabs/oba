@@ -19,7 +19,6 @@ import type { SprintUpdateRequest } from "@/features/sprints/schemas";
 import type { CreateSprintData } from "@/features/sprints/components/create-sprint-dialog";
 import {
   useTickets,
-  useUpdateTicket,
   useDeleteTicket,
   useMoveTicket,
   useBulkMoveTickets,
@@ -311,7 +310,6 @@ export function useAllPage(boardId: string) {
   }, [filters]);
 
   // ── Mutations ────────────────────────────────────────────────────
-  const updateTicketMutation = useUpdateTicket();
   const deleteTicketMutation = useDeleteTicket();
   const moveTicketMutation = useMoveTicket();
   const bulkMoveTicketsMutation = useBulkMoveTickets();

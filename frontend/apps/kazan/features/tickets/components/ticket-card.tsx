@@ -76,7 +76,6 @@ export const TicketCard = memo(function TicketCard({
   canEdit = true,
   search,
 }: TicketCardProps) {
-  const t = useTranslations("board");
   const tTicket = useTranslations("ticket");
   const subTickets = useMemo(() => ticket.subTickets ?? [], [ticket.subTickets]);
   const searchFilter = useSearchPathFilter<TicketListResponse>(search);

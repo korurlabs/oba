@@ -13,7 +13,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
 import { Sparkles, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { TicketTypeBadge } from '@/features/tickets/components/ticket-type-badge';
 import { TicketPriorityIcon } from '@/features/tickets/components/ticket-priority-icon';
