@@ -4,12 +4,15 @@ import type { ReactNode } from "react";
 import { OPS_GRID_SURFACE } from "@oba/ui/components/ops-grid";
 import { SidebarMenu, SidebarProvider } from "@oba/ui/sky/sidebar";
 import en from "@/locales/en.json";
-import { cleanup, renderLive, type Screen } from "@/lib/testing/live-render";
+import { cleanup, renderLive, type Screen } from "@oba/shared/testing/live-render";
 import { PAGE_LIMITS, type PageListItem } from "../schemas";
 
-// The create hook and the router are stand-ins; the node, its field, the tree
-// helpers, the sidebar primitives and the messages are real.
+// The create hook and the router are stand-ins; the hook records the request
+// and either reports success or, as a refused create does, leaves the field
+// alone. The node, its field, the tree helpers, the sidebar primitives and the
+// messages are real.
 let requests: unknown[];
+let created: boolean;
 
 const actualPages = { ...(await import("../hooks/use-pages")) };
 const actualNavigation = { ...(await import("@oba/shared/libs/i18n/navigation")) };
@@ -18,8 +21,12 @@ mock.module("../hooks/use-pages", () => ({
   ...actualPages,
   useCreatePage: () => ({
     isPending: false,
-    mutate: (request: unknown) => {
+    mutate: (
+      request: unknown,
+      options?: { onSuccess?: (response: { data?: { id: string } }) => void }
+    ) => {
       requests.push(request);
+      if (created) options?.onSuccess?.({ data: { id: "new-page" } });
     },
   }),
 }));
@@ -120,6 +127,7 @@ const plus = (screen: Screen, name: string) =>
 
 beforeEach(() => {
   requests = [];
+  created = false;
 });
 
 afterEach(cleanup);
@@ -228,6 +236,18 @@ describe("PageTreeNode plus", () => {
     await screen.byTag("form")[0]?.submit();
     expect(requests).toHaveLength(1);
     expect(screen.byAttribute("aria-label", en.sidebar.newChildName)[0]?.value).toBe("Network");
+  });
+
+  test("a create closes the field and opens the row, so the new page shows under it", async () => {
+    created = true;
+    const toggled: Array<[string, boolean]> = [];
+    const screen = await show({ pages: [ROOT], toggled });
+    await plus(screen, "Policy")?.click();
+    await screen.byAttribute("aria-label", en.sidebar.newChildName)[0]?.change("Network");
+    await screen.byTag("form")[0]?.submit();
+    expect(requests).toHaveLength(1);
+    expect(screen.byAttribute("aria-label", en.sidebar.newChildName)).toEqual([]);
+    expect(toggled).toEqual([["root", true]]);
   });
 
   test("hands the sibling slugs to the field so the new slug avoids them", async () => {

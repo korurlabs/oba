@@ -3,7 +3,7 @@ import { focusManager, QueryClient, QueryClientProvider } from "@tanstack/react-
 
 import type { VersionDetailResponse } from "@/features/versions/schemas";
 import { KayaApiError } from "@/lib/api/errors";
-import { cleanup, renderLive, type Screen } from "@/lib/testing/live-render";
+import { cleanup, renderLive, type Screen } from "@oba/shared/testing/live-render";
 
 // The change is read through the real query cache; only the server answer and
 // the identity are fixed, so a refetch on focus shows what another tab did.

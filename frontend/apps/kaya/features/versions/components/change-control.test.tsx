@@ -15,7 +15,7 @@ import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 
 import type { ReadyScope } from "@/features/scope/components/scope-page";
 import type { VersionDetailResponse } from "@/features/versions/schemas";
-import { cleanup, renderLive, type Screen } from "@/lib/testing/live-render";
+import { cleanup, renderLive, type Screen } from "@oba/shared/testing/live-render";
 
 import {
   holdUnsavedEdit,

@@ -80,11 +80,18 @@ export function KalkanMenu({ pathname, link }: KalkanMenuProps) {
   const [openIds, setOpenIds] = useState<ReadonlySet<string>>(() => new Set());
   const [openedFor, setOpenedFor] = useState<string | null>(null);
 
-  // Opens the ancestors of the page in view once per path, as soon as the
-  // tree is there, and leaves every branch the user opened or closed as is.
-  if (pages && openedFor !== pathname) {
+  // Opens the ancestors of the page in view once per path and leaves every
+  // branch the user opened or closed as is. A path counts as handled only once
+  // the tree holds its page: a page just created from the tree is routed to
+  // before the refetched tree arrives, and its branch must still open then.
+  const pageInView = pageIdFromPathname(pathname);
+  if (
+    pages &&
+    openedFor !== pathname &&
+    (pageInView === null || pages.some((page) => page.id === pageInView))
+  ) {
     setOpenedFor(pathname);
-    const ancestors = ancestorIds(pages, pageIdFromPathname(pathname));
+    const ancestors = ancestorIds(pages, pageInView);
     if (ancestors.some((id) => !openIds.has(id))) {
       setOpenIds(new Set([...openIds, ...ancestors]));
     }

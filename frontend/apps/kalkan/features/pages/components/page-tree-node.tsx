@@ -88,7 +88,12 @@ export function PageTreeNode({
   const href = section?.href ?? pageHref(page.id);
   const isActive = section ? isNavItemActive(pathname, section) : matchesPath(pathname, href);
 
-  const closeField = () => setAdding(false);
+  // The new page sits under this row, so the row opens to show it once the
+  // refetched tree holds it.
+  const closeField = () => {
+    setAdding(false);
+    onToggle(page.id, true);
+  };
   const cancelField = () => {
     // Escape hands the focus back to the "+" that opened the field.
     addRef.current?.focus();

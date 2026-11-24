@@ -1,7 +1,8 @@
-import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
+import { afterAll, afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { NextIntlClientProvider } from "next-intl";
+import { cleanup, renderLive } from "@oba/shared/testing/live-render";
 import { SidebarProvider } from "@oba/ui/sky/sidebar";
 import en from "@/locales/en.json";
 import type { PageListItem } from "@/features/pages/schemas";
@@ -83,6 +84,16 @@ function markup(pathname = "/"): string {
   );
 }
 
+function menu(pathname: string) {
+  return (
+    <NextIntlClientProvider locale="en" messages={en} timeZone="UTC">
+      <SidebarProvider>
+        <KalkanMenu pathname={pathname} link={Link} />
+      </SidebarProvider>
+    </NextIntlClientProvider>
+  );
+}
+
 const count = (html: string, needle: string) => html.split(needle).length - 1;
 const expandLabel = (name: string) => `aria-label="${en.sidebar.expand.replace("{name}", name)}"`;
 const addLabel = (name: string) => `aria-label="${en.sidebar.addChild.replace("{name}", name)}"`;
@@ -91,6 +102,8 @@ beforeEach(() => {
   tree = fullTree();
   isMember = true;
 });
+
+afterEach(cleanup);
 
 describe("KalkanMenu", () => {
   test("lists Overview and the four groups with their sections in order", () => {
@@ -157,6 +170,24 @@ describe("KalkanMenu", () => {
     expect(html).toContain("Page access");
     expect(html).toContain("Page review");
     expect(html).not.toContain("Page other");
+  });
+
+  test("opens the branch of a page created from the tree once the refetched tree holds it", async () => {
+    const policies = root("policies");
+    const access = child(policies, "access");
+    const created = child(access, "created");
+    tree = [policies, access];
+    const screen = await renderLive(menu("/"));
+    expect(screen.text()).not.toContain("Page access");
+
+    // The route to the new page commits before the tree refetch returns.
+    await screen.rerender(menu(`/pages/${created.id}/edit`));
+    expect(screen.text()).not.toContain("Page access");
+
+    tree = [policies, access, created];
+    await screen.rerender(menu(`/pages/${created.id}/edit`));
+    expect(screen.text()).toContain("Page access");
+    expect(screen.text()).toContain("Page created");
   });
 
   test("keeps a section folded on a page that is not in the tree", () => {

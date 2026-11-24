@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeEach, describe, expect, mock, test } from "b
 import { NextIntlClientProvider } from "next-intl";
 import en from "@/locales/en.json";
 import tr from "@/locales/tr.json";
-import { cleanup, renderLive, type Screen } from "@/lib/testing/live-render";
+import { cleanup, renderLive, type Screen } from "@oba/shared/testing/live-render";
 import type { PageCreateRequest } from "../schemas";
 
 // The create hook is a stand-in that records the request and either reports
