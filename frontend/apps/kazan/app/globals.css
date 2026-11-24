@@ -132,6 +132,21 @@
       16px 16px;
   }
 
+  /*
+   * A work card (a ticket on a board): a solid surface that fades very
+   * slightly into Korur blue toward its lower right, so a column of cards
+   * reads as lit panels on the grid rather than blank paper, while the text
+   * still sits on an almost white ground.
+   */
+  .kazan-card {
+    background-color: var(--card);
+    background-image: linear-gradient(160deg, transparent 45%, rgb(47 143 233 / 0.07) 100%);
+  }
+
+  .dark .kazan-card {
+    background-image: linear-gradient(160deg, transparent 45%, rgb(47 143 233 / 0.12) 100%);
+  }
+
   /* Four 10px L-shaped brackets, 2px thick, over the frame's corners. */
   .kazan-grid-frame::before {
     content: "";

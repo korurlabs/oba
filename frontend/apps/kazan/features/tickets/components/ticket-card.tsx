@@ -155,9 +155,10 @@ export const TicketCard = memo(function TicketCard({
       {...listeners}
       onClick={onClick}
       className={cn(
-        // The column already tells the status, so the card stays neutral; a
-        // primary edge on hover is the only cue that it opens.
-        "group border-border bg-card relative cursor-pointer rounded-none border p-[14px]",
+        // The column already tells the status, so the card stays neutral
+        // apart from its faint blue fade; a primary edge on hover is the only
+        // cue that it opens.
+        "group kazan-card border-border relative cursor-pointer rounded-none border p-[14px]",
         "transition-[border-color,box-shadow,opacity] duration-150 ease-in-out",
         "hover:border-primary/50",
         isDragging && "opacity-50 shadow-xl",
