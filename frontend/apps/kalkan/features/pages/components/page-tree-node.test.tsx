@@ -7,14 +7,16 @@ import en from "@/locales/en.json";
 import { cleanup, renderLive, type Screen } from "@oba/shared/testing/live-render";
 import { PAGE_LIMITS, type PageListItem } from "../schemas";
 
-// The create hook and the router are stand-ins; the hook records the request
-// and either reports success or, as a refused create does, leaves the field
-// alone. The node, its field, the tree helpers, the sidebar primitives and the
+// The create and set-up hooks and the router are stand-ins; the create hook
+// records the request and either reports success or, as a refused create does,
+// leaves the field alone, and the set-up hook answers with the new root. The node, its field, the tree helpers, the sidebar primitives and the
 // messages are real.
 let requests: unknown[];
 let created: boolean;
+let setUps: string[];
 
 const actualPages = { ...(await import("../hooks/use-pages")) };
+const actualSectionRoot = { ...(await import("../hooks/use-section-root")) };
 const actualNavigation = { ...(await import("@oba/shared/libs/i18n/navigation")) };
 
 mock.module("../hooks/use-pages", () => ({
@@ -30,6 +32,19 @@ mock.module("../hooks/use-pages", () => ({
     },
   }),
 }));
+mock.module("../hooks/use-section-root", () => ({
+  ...actualSectionRoot,
+  useSetUpSection: () => ({
+    isPending: false,
+    mutate: (
+      slug: string,
+      options?: { onSuccess?: (response: { data?: { id: string } }) => void }
+    ) => {
+      setUps.push(slug);
+      options?.onSuccess?.({ data: { id: "new-root" } });
+    },
+  }),
+}));
 mock.module("@oba/shared/libs/i18n/navigation", () => ({
   ...actualNavigation,
   useRouter: () => ({ push: () => undefined, replace: () => undefined }),
@@ -37,6 +52,7 @@ mock.module("@oba/shared/libs/i18n/navigation", () => ({
 
 afterAll(() => {
   mock.module("../hooks/use-pages", () => actualPages);
+  mock.module("../hooks/use-section-root", () => actualSectionRoot);
   mock.module("@oba/shared/libs/i18n/navigation", () => actualNavigation);
 });
 
@@ -128,6 +144,7 @@ const plus = (screen: Screen, name: string) =>
 beforeEach(() => {
   requests = [];
   created = false;
+  setUps = [];
 });
 
 afterEach(cleanup);
@@ -256,6 +273,55 @@ describe("PageTreeNode plus", () => {
     await screen.byAttribute("aria-label", en.sidebar.newChildName)[0]?.change("Access");
     await screen.byTag("form")[0]?.submit();
     expect(requests[0]).toMatchObject({ parentId: "root", slug: "access-2" });
+  });
+});
+
+describe("PageTreeNode of a section that is not set up", () => {
+  async function showUnset(canEdit: boolean, toggled: Array<[string, boolean]> = []) {
+    return renderLive(
+      <NextIntlClientProvider locale="en" messages={en} timeZone="UTC">
+        <SidebarProvider>
+          <SidebarMenu>
+            <PageTreeNode
+              page={null}
+              setUpSection="policies"
+              pages={[]}
+              canEdit={canEdit}
+              openIds={new Set()}
+              onToggle={(id: string, open: boolean) => toggled.push([id, open])}
+              pathname="/"
+              link={Link}
+              section={{ label: "Policy", href: "/policies", icon: () => null }}
+            />
+          </SidebarMenu>
+        </SidebarProvider>
+      </NextIntlClientProvider>
+    );
+  }
+
+  test("links to the section and shows a plus but no chevron", async () => {
+    const screen = await showUnset(true);
+    expect(screen.byAttribute("href", "/policies")).not.toHaveLength(0);
+    expect(plus(screen, "Policy")).toBeDefined();
+    expect(chevron(screen, "Policy", false)).toBeUndefined();
+  });
+
+  test("shows no plus to a reader who may not set the section up", async () => {
+    const screen = await showUnset(false);
+    expect(plus(screen, "Policy")).toBeUndefined();
+  });
+
+  test("sets the section up, adds the page under the new root and opens that row", async () => {
+    created = true;
+    const toggled: Array<[string, boolean]> = [];
+    const screen = await showUnset(true, toggled);
+    await plus(screen, "Policy")?.click();
+    await screen.byAttribute("aria-label", en.sidebar.newChildName)[0]?.change("Network");
+    await screen.byTag("form")[0]?.submit();
+    expect(setUps).toEqual(["policies"]);
+    expect(requests[0]).toMatchObject({ parentId: "new-root", slug: "network" });
+    expect(toggled).toEqual([["new-root", true]]);
+    expect(screen.byAttribute("aria-label", en.sidebar.newChildName)).toEqual([]);
   });
 });
 
