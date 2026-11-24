@@ -172,6 +172,47 @@ describe("KalkanMenu", () => {
     expect(html).not.toContain("Page other");
   });
 
+  test("leaves a section closed while its section page or root page is in view", () => {
+    expect(markup("/policies")).not.toContain("Page first");
+    expect(markup("/pages/root-policies")).not.toContain("Page first");
+    expect(markup("/pages/root-policies/edit")).not.toContain("Page first");
+  });
+
+  test("opens the ancestors of a child page and keeps its own children closed", () => {
+    const policies = root("policies");
+    const access = child(policies, "access");
+    const review = child(access, "review");
+    tree = [policies, access, review];
+    const html = markup(`/pages/${access.id}`);
+    expect(html).toContain("Page access");
+    expect(html).not.toContain("Page review");
+    expect(html).toContain(expandLabel("Page access"));
+  });
+
+  test("folds the branch opened for an earlier page once another page is in view", async () => {
+    const policies = root("policies");
+    const access = child(policies, "access");
+    tree = [policies, access];
+    const screen = await renderLive(menu(`/pages/${access.id}`));
+    expect(screen.text()).toContain("Page access");
+
+    await screen.rerender(menu("/policies"));
+    expect(screen.text()).not.toContain("Page access");
+  });
+
+  test("keeps a row the user opened open across navigation", async () => {
+    const policies = root("policies");
+    const access = child(policies, "access");
+    tree = [policies, access];
+    const screen = await renderLive(menu("/"));
+    const policyLabel = en.sidebar.expand.replace("{name}", en.sidebar.sections.policies);
+    await screen.byAttribute("aria-label", policyLabel)[0]?.click();
+    expect(screen.text()).toContain("Page access");
+
+    await screen.rerender(menu("/controls"));
+    expect(screen.text()).toContain("Page access");
+  });
+
   test("opens the branch of a page created from the tree once the refetched tree holds it", async () => {
     const policies = root("policies");
     const access = child(policies, "access");

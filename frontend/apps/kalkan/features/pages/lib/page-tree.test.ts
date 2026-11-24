@@ -67,6 +67,11 @@ describe("page tree", () => {
     expect(ancestorIds(deep, "a")).toEqual(["r"]);
   });
 
+  test("leaves the page itself out of its ancestors", () => {
+    expect(ancestorIds(TREE, "c1")).toEqual(["r1"]);
+    expect(ancestorIds(TREE, "g1")).toEqual(["c1", "r1"]);
+  });
+
   test("has no ancestors for a root page, no page or an id the tree does not hold", () => {
     expect(ancestorIds(TREE, "r1")).toEqual([]);
     expect(ancestorIds(TREE, null)).toEqual([]);
