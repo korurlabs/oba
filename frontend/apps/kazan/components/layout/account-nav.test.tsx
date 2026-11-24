@@ -38,7 +38,8 @@ function tabs(html: string): Array<[string, string, boolean]> {
   return [...html.matchAll(/<a ([^>]*)>(.*?)<\/a>/g)].map((match) => {
     const attributes = match[1] ?? "";
     const href = /href="([^"]*)"/.exec(attributes)?.[1] ?? "";
-    const label = (match[2] ?? "").replace(/<[^>]*>/g, "");
+    // The label is the text node right after the icon, before the active indicator.
+    const label = ((match[2] ?? "").split("</svg>").at(-1) ?? "").split("<")[0] ?? "";
     return [href, label, attributes.includes('aria-current="page"')];
   });
 }
