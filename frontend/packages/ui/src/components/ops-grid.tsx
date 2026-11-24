@@ -1,8 +1,8 @@
 /**
  * The "ops grid" look of the Korur website's panels (its language picker and
  * menu sheets) as Tailwind class lists, so an Oba control that should read as
- * part of the same family (the organization selector's menu, a tree row's
- * "+" action) draws it from one place.
+ * part of the same family (the header's organization selector, app switcher
+ * and account menu, a tree row's "+" action) draws it from one place.
  *
  * Each constant is a complete class list, never built from parts: Tailwind
  * finds classes by scanning source text, and this folder is one every sky
@@ -33,3 +33,44 @@ export const OPS_GRID_HIGHLIGHT = "focus:bg-[rgb(47_143_233/0.08)] hover:bg-[rgb
  * because no theme token holds it in both Kazan and the sky apps.
  */
 export const OPS_GRID_ACCENT = "text-[#1a64b8] dark:text-[#7abeff]";
+
+/** The drop shadow under a floating panel (a menu, a popover). */
+export const OPS_GRID_SHADOW =
+  "shadow-[0_18px_48px_-12px_rgb(11_42_71/0.35)] dark:shadow-[0_18px_48px_-12px_rgb(0_0_0/0.7)]";
+
+/** The group heading of a panel, such as "Your organizations" or "Switch app". */
+export const OPS_GRID_HEADING =
+  "mt-2 mb-1 px-3 py-0 font-mono text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground";
+
+/**
+ * A row of a panel. It wraps a long label instead of cutting it, and keeps
+ * the ink colour when highlighted, so the tint alone marks the focus.
+ */
+export const OPS_GRID_ROW =
+  "min-h-11 gap-3 rounded-none px-3 py-2.5 text-[15px] font-medium leading-snug whitespace-normal break-words focus:text-inherit transition-colors duration-150 motion-reduce:transition-none";
+
+/**
+ * The hairline that parts two rows. It sets the colour of every side, so an
+ * element that also needs a vertical rule adds only `border-e`.
+ */
+export const OPS_GRID_HAIRLINE =
+  "border-b border-[rgb(47_143_233/0.22)] dark:border-[rgb(122_190_255/0.14)]";
+
+/**
+ * The current row (`data-state="checked"`, as a menu sets it on the chosen
+ * item): a deeper tint, the accent colour, a heavier weight and a rail on the
+ * start edge, so it never depends on colour alone. The element must be
+ * positioned (`relative`) for the rail.
+ */
+export const OPS_GRID_CURRENT =
+  "data-[state=checked]:bg-[rgb(26_100_184/0.10)] data-[state=checked]:font-semibold data-[state=checked]:text-[#1a64b8] dark:data-[state=checked]:text-[#7abeff] data-[state=checked]:before:absolute data-[state=checked]:before:inset-y-1.5 data-[state=checked]:before:start-0 data-[state=checked]:before:w-0.5 data-[state=checked]:before:bg-[#1a64b8] dark:data-[state=checked]:before:bg-[#7abeff]";
+
+/**
+ * A submenu trigger whose submenu is open keeps the highlight tint and the
+ * ink colour, instead of the theme's accent fill.
+ */
+export const OPS_GRID_OPEN =
+  "data-[state=open]:bg-[rgb(47_143_233/0.08)] data-[state=open]:text-inherit";
+
+/** Hides the check or radio indicator a menu item draws first; the current-row mark replaces it. */
+export const OPS_GRID_NO_INDICATOR = "[&>span:first-child]:hidden";
