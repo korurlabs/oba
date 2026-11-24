@@ -101,11 +101,8 @@ export function useSidebarContext() {
     openMobile: () => ctx.setOpenMobile(true),
     closeMobile: () => ctx.setOpenMobile(false),
     setMobileOpen: ctx.setOpenMobile,
-    /** Expose the full shadcn context for components that need it */
+    /** Whether the menu shows as icons, so a row can adapt to it. */
     state: ctx.state,
-    open: ctx.open,
-    setOpen: ctx.setOpen,
     isMobile: ctx.isMobile,
-    toggleSidebar: ctx.toggleSidebar,
   };
 }

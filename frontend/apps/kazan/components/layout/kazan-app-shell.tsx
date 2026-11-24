@@ -59,8 +59,9 @@ function isSettingsPath(pathname: string): boolean {
  *
  * Kazan's menu is wide enough for nested board names, so the viewer resizes
  * it by dragging its right edge (the handle takes the place of the shell's
- * rail) and the width is remembered in this browser; the top bar's toggle
- * collapses it to icons at every width. Boards lay out and scroll their own
+ * rail) and the width is remembered in this browser. On a wide window the
+ * menu is always shown; the top bar's toggle opens it as a sheet only on a
+ * narrow one, as in the other apps. Boards lay out and scroll their own
  * panes, so the page fills the space beside the menu and scrolls in its own
  * area here.
  */
@@ -95,7 +96,6 @@ function KazanFrame({ children }: { children: ReactNode }) {
       homeHref="/home"
       linkComponent={LocaleLink}
       pathname={pathname}
-      menuToggle="always"
       fill
       edge={<SidebarResizeHandle />}
       providerStyle={providerStyle}

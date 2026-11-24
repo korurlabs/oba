@@ -240,18 +240,13 @@ export type SkyTopBarProps = {
   /** What sits at the right end of the bar, such as the account menu. */
   actions?: ReactNode;
   linkComponent?: ComponentType<SkyLinkProps>;
-  /**
-   * Where the menu toggle shows: "mobile" only on narrow windows, "always" on
-   * every width, for an app whose menu collapses to icons from the bar.
-   */
-  menuToggle?: "mobile" | "always";
 };
 
 /**
- * The bar across the top: the wordmark and the app's actions. By default the
- * menu toggle shows only on narrow windows, where the menu is a sheet that has
- * no other way to open; on wider windows the menu floats beside the page, and
- * the 12px side padding puts the wordmark level with the panel's left edge.
+ * The bar across the top: the wordmark and the app's actions. The menu toggle
+ * shows only on narrow windows, where the menu is a sheet that has no other
+ * way to open; on wider windows the menu floats beside the page, and the 12px
+ * side padding puts the wordmark level with the panel's left edge.
  */
 export function SkyTopBar({
   logo,
@@ -259,11 +254,10 @@ export function SkyTopBar({
   homeHref = "/",
   actions,
   linkComponent: Link = NextLink,
-  menuToggle = "mobile",
 }: SkyTopBarProps) {
   return (
     <header className="bg-background/80 sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2 border-b px-3 backdrop-blur">
-      <SidebarTrigger className={menuToggle === "mobile" ? "md:hidden" : undefined} />
+      <SidebarTrigger className="md:hidden" />
       <Link href={homeHref} aria-label={homeLabel} className="flex shrink-0 items-center">
         {logo}
       </Link>
@@ -317,7 +311,6 @@ export function SkyAppShell({
   pathname,
   linkComponent,
   onNavClick,
-  menuToggle,
   edge,
   fill = false,
   providerStyle,
@@ -332,7 +325,6 @@ export function SkyAppShell({
           homeHref={homeHref}
           actions={actions}
           linkComponent={linkComponent}
-          menuToggle={menuToggle}
         />
         <div className="flex min-h-0 flex-1">
           <SkySidebar

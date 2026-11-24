@@ -60,28 +60,19 @@ describe("SidebarResizeHandle", () => {
     expect(probe(screen).attribute("data-width")).toBe("320");
   });
 
-  test("ArrowLeft at the narrowest width collapses the panel to icons, keeping the width", async () => {
+  test("ArrowLeft at the narrowest width keeps the panel expanded at that width", async () => {
     const { screen, separator } = await handle("224");
     await separator().keyDown("ArrowLeft");
-    expect(probe(screen).attribute("data-open")).toBe("false");
-    expect(probe(screen).attribute("data-width")).toBe("224");
-    expect(separator().attribute("aria-valuenow")).toBe("0");
-  });
-
-  test("ArrowRight on a collapsed panel expands it again at its width", async () => {
-    const { screen, separator } = await handle("224");
-    await separator().keyDown("ArrowLeft");
-    await separator().keyDown("ArrowRight");
     expect(probe(screen).attribute("data-open")).toBe("true");
     expect(probe(screen).attribute("data-width")).toBe("224");
+    expect(separator().attribute("aria-valuenow")).toBe("224");
   });
 
-  test("Enter toggles the panel", async () => {
+  test("Enter does not collapse the panel", async () => {
     const { screen, separator } = await handle();
     await separator().keyDown("Enter");
-    expect(probe(screen).attribute("data-open")).toBe("false");
-    await separator().keyDown("Enter");
     expect(probe(screen).attribute("data-open")).toBe("true");
+    expect(separator().attribute("aria-valuemin")).toBe("224");
   });
 
   test("ignores other keys", async () => {

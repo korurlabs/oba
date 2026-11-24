@@ -113,10 +113,10 @@ describe("SkySidebar", () => {
   });
 });
 
-function topBarToggle(menuToggle?: "mobile" | "always"): string {
+function topBarToggle(): string {
   const html = renderToStaticMarkup(
     <SidebarProvider>
-      <SkyTopBar logo="Logo" homeLabel="Home" linkComponent={Link} menuToggle={menuToggle} />
+      <SkyTopBar logo="Logo" homeLabel="Home" linkComponent={Link} />
     </SidebarProvider>
   );
   const trigger = html.match(/<button[^>]*data-sidebar="trigger"[^>]*>/);
@@ -125,13 +125,8 @@ function topBarToggle(menuToggle?: "mobile" | "always"): string {
 }
 
 describe("SkyTopBar", () => {
-  test("shows the menu toggle only on narrow windows by default", () => {
+  test("shows the menu toggle only on narrow windows", () => {
     expect(topBarToggle()).toContain("md:hidden");
-    expect(topBarToggle("mobile")).toContain("md:hidden");
-  });
-
-  test("shows the menu toggle on every width when asked to", () => {
-    expect(topBarToggle("always")).not.toContain("md:hidden");
   });
 });
 
@@ -167,11 +162,10 @@ describe("SkyAppShell", () => {
     expect(wrapper).toContain("cursor-col-resize");
   });
 
-  test("passes the menu toggle and the edge through", () => {
-    const html = shell({ menuToggle: "always", edge: <span data-edge="" /> });
+  test("passes the edge through", () => {
+    const html = shell({ edge: <span data-edge="" /> });
     expect(html).toContain('data-edge=""');
     expect(html).not.toContain('data-sidebar="rail"');
-    expect(html).not.toContain("md:hidden");
   });
 });
 
