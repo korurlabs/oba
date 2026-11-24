@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -59,7 +60,8 @@ func TestAllWithSearchShowsTheMatchingSubTicketsUnderTheirTicket(t *testing.T) {
 	grandchild := withSubTickets("g1", "OPS-52", "Locked out of the org")
 	child := withSubTickets("c1", "OPS-51", "Approval flow", grandchild)
 	sibling := withSubTickets("c2", "OPS-53", "Unrelated sibling")
-	direct := withSubTickets("c3", "OPS-54", "LOCKED OUT on sign-in")
+	direct := strings.Replace(withSubTickets("c3", "OPS-54", "LOCKED OUT on sign-in"),
+		`"sprint":{"id":"`+idSprint3+`","name":"Sprint 3"}`, `"sprint":null`, 1)
 	parent := withSubTickets("p1", "OPS-50", "Go-live", child, sibling, direct)
 	var query string
 	captureQuery(api, "GET /kazan/tickets", `{"data":[`+parent+`]}`, &query)
@@ -73,6 +75,9 @@ func TestAllWithSearchShowsTheMatchingSubTicketsUnderTheirTicket(t *testing.T) {
 		if !strings.Contains(out, want) {
 			t.Errorf("out lacks %q:\n%s", want, out)
 		}
+	}
+	if !regexp.MustCompile(`└ OPS-54 .*Backlog`).MatchString(out) {
+		t.Errorf("a sub-ticket without a sprint is not shown in the backlog:\n%s", out)
 	}
 	if strings.Contains(out, "OPS-53") {
 		t.Errorf("out lists the sibling that does not match:\n%s", out)

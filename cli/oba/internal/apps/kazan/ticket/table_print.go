@@ -21,7 +21,7 @@ func PrintTable(out io.Writer, tickets []client.Ticket, search string) error {
 	_, _ = fmt.Fprintln(w, "KEY\tTITLE\tSTATUS\tPRIORITY\tASSIGNEE\tLOCATION")
 	subTickets := 0
 	for _, t := range tickets {
-		printRow(w, t, cell(t.Key))
+		printRow(w, t, cell(t.Key), "-")
 		if search != "" {
 			subTickets += printSearchedSubTickets(w, t.SubTickets, search, 1)
 		}
@@ -45,7 +45,8 @@ func printSearchedSubTickets(w io.Writer, subTickets []client.Ticket, search str
 		if !onSearchPath(sub, search) {
 			continue
 		}
-		printRow(w, sub, strings.Repeat("  ", depth-1)+"└ "+cell(sub.Key))
+		// A sub-ticket carries only its sprint, which is empty in the backlog.
+		printRow(w, sub, strings.Repeat("  ", depth-1)+"└ "+cell(sub.Key), "Backlog")
 		written += 1 + printSearchedSubTickets(w, sub.SubTickets, search, depth+1)
 	}
 	return written
@@ -65,12 +66,13 @@ func onSearchPath(t client.Ticket, search string) bool {
 	return false
 }
 
-func printRow(w io.Writer, t client.Ticket, key string) {
+// printRow writes one ticket; noPlacement is the location shown when it names no sprint or backlog.
+func printRow(w io.Writer, t client.Ticket, key, noPlacement string) {
 	assignee := ""
 	if len(t.Assignees) > 0 {
 		assignee = personName(t.Assignees[0])
 	}
-	location := "-"
+	location := noPlacement
 	if t.Sprint != nil {
 		location = cell(t.Sprint.Name)
 	} else if t.Backlog != nil {
