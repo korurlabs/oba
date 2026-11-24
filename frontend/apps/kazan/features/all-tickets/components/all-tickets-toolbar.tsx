@@ -34,7 +34,6 @@ export function AllTicketsToolbar({
   onColumnOrderChange,
 }: AllTicketsToolbarProps) {
   const {
-    ticketCount,
     viewMode,
     setViewMode: onViewModeChange,
     filters,
@@ -54,11 +53,6 @@ export function AllTicketsToolbar({
   return (
     <div className="border-border bg-card border-b px-4 py-2 lg:px-6">
       <div className="flex flex-wrap items-center gap-2 lg:gap-3">
-        {/* Ticket count */}
-        <span className="text-muted-foreground hidden text-sm sm:inline">
-          {ticketCount} {t("ticket.tickets")}
-        </span>
-
         {/* Search */}
         <SenseySearchInput
           value={filters.search}
