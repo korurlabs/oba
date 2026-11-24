@@ -993,7 +993,7 @@
   },
   "sidebar": {
     "home": "Saha",
-    "downloads": "CLI indir",
+    "downloads": "Oba CLI",
     "operations": "Operasyon",
     "work": "İş",
     "resizeSidebar": "Kenar çubuğunu yeniden boyutlandır",
@@ -1206,27 +1206,45 @@
       "conflict": "Bir bağımlılığın hedef tarihinden önce başlıyor"
     }
   },
-  "downloads": {
-    "title": "Kazan CLI indir",
-    "description": "Kazan panolarını, iş kayıtlarını ve sprintleri terminalinizden yönetin. amd64 ve arm64 desteğiyle macOS veya Linux üzerine kurun.",
-    "homebrew": {
-      "title": "Homebrew",
-      "description": "Korur tap üzerinden macOS veya Linux üzerine kurun."
+  "cli": {
+    "title": "Oba CLI",
+    "description": "oba CLI ile Kazan'da terminalinizden çalışın: iş kayıtları, yorumlar, günlük güncellemeler ve PR kanalı. Sürümler amd64 ve arm64 üzerinde macOS ve Linux'u destekler.",
+    "install": {
+      "title": "Kurulum",
+      "homebrew": "Homebrew ile, Korur tap üzerinden:",
+      "script": "Kurulum betiğiyle: betik sisteminize uygun arşivi seçer, SHA-256 sağlama toplamını doğrular ve oba'yı yazılabilir durumdaysa /usr/local/bin, değilse ~/.local/bin dizinine kurar. Hiçbir zaman sudo çağırmaz.",
+      "userInstall": "OBA_INSTALL_DIR başka bir dizin seçer. Kurulum betiği dizinin eksik olduğunu söylerse dizini PATH değişkeninize ekleyin.",
+      "direct": "Elle: en son sürümden oba-cli_<version>_<os>_<arch>.tar.gz dosyasını indirin, SHA-256 özetini oba-cli_<version>_checksums.txt ile karşılaştırın ve arşivdeki oba dosyasını PATH üzerindeki bir dizine koyun.",
+      "link": "GitHub'daki sürümleri görüntüle",
+      "version": "Kurulu sürümü kontrol edin:"
     },
-    "script": {
-      "title": "macOS ve Linux kurulum betiği",
-      "description": "Kurulum betiğini indirip çalıştırın. Betik, mimarinizi seçer ve kurulumdan önce arşivin sağlama toplamını doğrular. Yazılabilir durumdaysa /usr/local/bin, değilse ~/.local/bin kullanılır.",
-      "userInstall": "Yönetici yetkisi olmadan kurmak için indirdiğiniz betiği aşağıdaki dizinle çalıştırın. Gerekirse ~/.local/bin dizinini PATH değişkeninize ekleyin."
+    "signIn": {
+      "title": "Giriş yapın",
+      "description": "oba login tarayıcınızı açar ve Oba hesabınızla giriş yapmanızı sağlar. Ardından komutların çalışacağı organizasyonu seçin ve kimle giriş yaptığınızı kontrol edin.",
+      "org": "oba org use olmadan komutlar hesabınızın varsayılan organizasyonunda çalışır. --org <name|id> tek bir komutu başka bir organizasyonda çalıştırır ve seçili organizasyonu korur."
     },
-    "direct": {
-      "title": "Doğrudan indirme",
-      "description": "macOS veya Linux için tar.gz arşivini seçin. Intel/AMD işlemciler için amd64, Apple Silicon ve ARM Linux için arm64 kullanın.",
-      "link": "GitHub’daki sürüm dosyalarını görüntüle",
-      "checksums": "Her sürüm bir sağlama toplamı dosyası içerir. Kurulum betiği bunu otomatik olarak doğrular. Elle indirirken kurulumdan önce SHA-256 sağlama toplamını karşılaştırın."
+    "board": {
+      "title": "Pano seçin",
+      "description": "Bir panoyu mevcut organizasyonun varsayılan panosu yapın. Her organizasyon kendi varsayılan panosunu tutar. Argüman verilmezse oba kazan board use panoları listeler ve birini seçmenizi ister.",
+      "override": "--board <name|prefix|id> tek bir komutu başka bir panoda çalıştırır. OPS-42 gibi bir iş kaydı anahtarı kendi panosunu belirtir."
     },
-    "verify": {
-      "title": "Kazan kullanmaya başlayın",
-      "description": "Mevcut Kazan hesabınızla tarayıcı üzerinden giriş yapın. Daha sonra güncellemek için Homebrew’u kullanın veya kurulum betiğini yeniden çalıştırın."
+    "everyday": {
+      "title": "Günlük komutlar",
+      "description": "Başlamak için kısa bir set.",
+      "items": {
+        "mine": "Üyesi olduğunuz tüm panolarda size atanan iş kayıtlarını listeleyin.",
+        "get": "Bir iş kaydının tüm alanlarını gösterin.",
+        "create": "Varsayılan panoda bir iş kaydı oluşturun. Başlık, tür, öncelik, durum ve mission rank zorunludur.",
+        "update": "Bir iş kaydının durumunu değiştirin; diğer alanlar değerini korur.",
+        "comment": "Bir iş kaydına yorum ekleyin.",
+        "updates": "Günlük güncellemenizi yazıp paylaşın. Terminalde devam eden iş kayıtlarınızdan başlar ve paylaşmadan önce bir önizleme gösterir.",
+        "pr": "Bir pull request'i organizasyonunuzun PR kanalında paylaşın."
+      },
+      "help": "oba kazan --help tüm komutları listeler, oba kazan <command> --help bir komutun seçeneklerini gösterir."
+    },
+    "json": {
+      "title": "Betikler ve ajanlar için çıktı",
+      "description": "--json ile stdout yalnızca API'nin döndürdüğü veriyi JSON olarak içerir; tablolar, mesajlar ve sorular stderr'e gider. Başarısız bir komut JSON yazdırmaz: çıkış kodu (bulunamadı için 2, yetki yok için 3, diğer durumlarda 1) ve stderr'deki hata nedenini söyler."
     }
   },
   "updates": {
