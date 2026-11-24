@@ -22,23 +22,50 @@ import { useGetMe } from "@oba/shared/features/users/hooks/use-get-me";
 import type { GrantedApp } from "@oba/shared/features/users/schema";
 import { useUpdateMe } from "@oba/shared/features/users/hooks/use-update-me";
 import { useClearDefaultOrganization } from "@oba/shared/features/users/hooks/use-clear-default-organization";
+import { OPS_GRID_ACCENT, OPS_GRID_HIGHLIGHT, OPS_GRID_SURFACE } from "@oba/ui/components/ops-grid";
 import { cn } from "@oba/ui/lib/utils";
 import { markAllOrganizationQueriesStale } from "../../hooks/use-invalidate-org-queries";
 import { ACCOUNT_LINKS } from "../../constants/apps";
 import { organizationsWithApp } from "../../features/organizations/lib/app-access";
+import { managedOrganizations } from "../../features/organizations/lib/managed-organizations";
 
 // Sentinel for the "Personal" entry. The Radix Select won't accept an
 // empty string as a value, so the personal mode has an explicit token here,
 // which stands for "no default organization" on the user.
 const PERSONAL_VALUE = "__personal__";
 
+/*
+ * The header ("default") variant in the look of the Korur website's language
+ * picker: a ghost trigger, and a square grid panel whose rows are parted by
+ * hairlines. The current row is marked by a tint, a rail on its start edge and
+ * a heavier weight, so it never depends on colour alone. Long names wrap in
+ * their row and are cut only in the trigger, which carries the full name as
+ * its `title`. The "sidebar" variant keeps the plain menu.
+ */
+const GRID_TRIGGER =
+  "h-8 max-h-8 !min-h-8 gap-2 rounded-lg border-0 bg-transparent px-2.5 text-sm font-medium shadow-none hover:bg-muted data-[state=open]:bg-muted dark:bg-transparent dark:hover:bg-muted [&>svg:last-child]:size-3.5";
+const GRID_PANEL = cn(
+  OPS_GRID_SURFACE,
+  "shadow-[0_18px_48px_-12px_rgb(11_42_71/0.35)] dark:shadow-[0_18px_48px_-12px_rgb(0_0_0/0.7)] w-[min(20rem,calc(100vw-2rem))] min-w-[220px] [&_[data-radix-select-viewport]]:px-2 [&_[data-radix-select-viewport]]:py-1.5"
+);
+const GRID_LABEL =
+  "mt-2 mb-1 px-3 py-0 font-mono text-[9.5px] uppercase tracking-[0.14em] text-muted-foreground";
+const GRID_ROW = cn(
+  "min-h-11 gap-3 rounded-none px-3 py-2.5 text-[15px] font-medium leading-snug whitespace-normal break-words focus:text-inherit [&>span:first-child]:hidden transition-colors duration-150 motion-reduce:transition-none",
+  OPS_GRID_HIGHLIGHT
+);
+const GRID_HAIRLINE = "border-b border-[rgb(47_143_233/0.22)] dark:border-[rgb(122_190_255/0.14)]";
+const GRID_CURRENT =
+  "data-[state=checked]:bg-[rgb(26_100_184/0.10)] data-[state=checked]:font-semibold data-[state=checked]:text-[#1a64b8] dark:data-[state=checked]:text-[#7abeff] data-[state=checked]:before:absolute data-[state=checked]:before:inset-y-1.5 data-[state=checked]:before:start-0 data-[state=checked]:before:w-0.5 data-[state=checked]:before:bg-[#1a64b8] dark:data-[state=checked]:before:bg-[#7abeff]";
+const GRID_SELECTABLE_ROW = cn(GRID_ROW, GRID_HAIRLINE, GRID_CURRENT);
+
 export interface OrganizationSelectorProps {
   /**
-   * "default" renders the bordered header select.
+   * "default" renders the header's ghost trigger and the grid panel menu.
    * "sidebar" renders a sidebar menu-button shaped trigger (org icon, name,
    * secondary line, and -- unless `showChevron` is false -- an up/down
    * chevron) that collapses to icon-only inside a shadcn sidebar with
-   * collapsible="icon". The menu itself is identical.
+   * collapsible="icon", and the plain menu with check marks and separators.
    */
   variant?: "default" | "sidebar";
   /**
@@ -81,6 +108,27 @@ export interface OrganizationSelectorProps {
    * it, the menu offers every organization of the user.
    */
   app?: GrantedApp;
+  /**
+   * Whether the menu offers "Personal" (no default organization). Defaults to
+   * true; an app that works only inside an organization passes false.
+   */
+  withPersonal?: boolean;
+  /**
+   * Offer only the organizations the user manages (OWNER or ADMIN of an ACTIVE
+   * organization) instead of every organization or those granting `app`.
+   */
+  managedOnly?: boolean;
+  /**
+   * The host holds the current organization itself, as an app whose session
+   * carries no default organization does. The value and the list come from
+   * here and the session is not read; a switch saves the default
+   * organization, then calls `onSwitch`, so the other apps follow too.
+   */
+  controlled?: {
+    organizationId: string;
+    organizations: readonly { id: string; name: string }[];
+    onSwitch: (organizationId: string) => void;
+  };
   /** Applied to the trigger. */
   className?: string;
 }
@@ -93,6 +141,9 @@ export function OrganizationSelector({
   createOrganizationHref = ACCOUNT_LINKS.newOrganization,
   onNavigate,
   app,
+  withPersonal = true,
+  managedOnly = false,
+  controlled,
   className,
 }: OrganizationSelectorProps = {}) {
   const queryClient = useQueryClient();
@@ -109,22 +160,35 @@ export function OrganizationSelector({
   const [open, setOpen] = useState(false);
   const t = useTranslations();
 
-  const organizations = meResponse?.data?.organizations ?? [];
-  const selectableOrganizations = app ? organizationsWithApp(meResponse?.data, app) : organizations;
-  const isSyncing = isFetching || isSwitching;
+  const me = meResponse?.data;
+  const organizations: readonly { id: string; name: string }[] =
+    controlled?.organizations ?? me?.organizations ?? [];
+  const selectableOrganizations: readonly { id: string; name: string }[] = controlled
+    ? controlled.organizations
+    : managedOnly
+      ? managedOrganizations(me)
+      : app
+        ? organizationsWithApp(me, app)
+        : organizations;
+  // A controlled host does not wait for the current user: its list is its own.
+  const isSyncing = controlled ? isSwitching : isFetching || isSwitching;
+  const isGrid = variant === "default";
 
   // Personal mode is active under a /personal route, or when the session
   // carries no default organization. The trigger label and icon follow the
   // same value the menu marks as selected, so the two cannot disagree in an
   // app that has no /personal route.
-  const isPersonalRoute = pathname?.includes("/personal") ?? false;
-  const selectedValue = isPersonalRoute
-    ? PERSONAL_VALUE
-    : session?.user?.defaultOrganizationId || PERSONAL_VALUE;
+  // Without a Personal entry the same token means "no organization chosen":
+  // no row is marked and the trigger asks for a choice.
+  const isPersonalRoute = withPersonal && (pathname?.includes("/personal") ?? false);
+  const currentOrganizationId = controlled
+    ? controlled.organizationId
+    : session?.user?.defaultOrganizationId || null;
+  const selectedValue = isPersonalRoute ? PERSONAL_VALUE : currentOrganizationId || PERSONAL_VALUE;
   // Until the session has arrived there is no default organization to read,
   // which would otherwise look like personal mode for a moment.
-  const isSessionPending = status === "loading" && !session;
-  const isPersonal = !isSessionPending && selectedValue === PERSONAL_VALUE;
+  const isSessionPending = !controlled && status === "loading" && !session;
+  const isPersonal = withPersonal && !isSessionPending && selectedValue === PERSONAL_VALUE;
   const showOrganizationLogo = Boolean(organizationLogoSrc) && !isSyncing && !isPersonal;
 
   const handleCreateOrganization = () => {
@@ -139,7 +203,32 @@ export function OrganizationSelector({
     router.push(createOrganizationHref);
   };
 
+  const handleControlledValueChange = async (
+    host: NonNullable<OrganizationSelectorProps["controlled"]>,
+    organizationId: string
+  ) => {
+    if (organizationId === host.organizationId) {
+      return;
+    }
+    setIsSwitching(true);
+    try {
+      // Saved first, so the host switches only to an organization the API
+      // accepted as the default; a refusal leaves the host where it was.
+      await updateMe({ defaultOrganizationId: organizationId });
+      host.onSwitch(organizationId);
+    } catch (error) {
+      console.error("[OrganizationSelector] organization switch failed:", error);
+      toast.error(t("organizationSwitchFailed"));
+    } finally {
+      setIsSwitching(false);
+    }
+  };
+
   const handleValueChange = async (value: string) => {
+    if (controlled) {
+      await handleControlledValueChange(controlled, value);
+      return;
+    }
     // The default organization is null for personal, the org UUID otherwise.
     const nextOrganizationId = value === PERSONAL_VALUE ? null : value;
     if (nextOrganizationId === (session?.user?.defaultOrganizationId || null)) {
@@ -183,7 +272,7 @@ export function OrganizationSelector({
   // matches yet).
   const triggerLabel = isPersonal
     ? t("personalWorkspace")
-    : (organizations.find((org) => org.id === session?.user?.defaultOrganizationId)?.name ??
+    : (organizations.find((org) => org.id === currentOrganizationId)?.name ??
       t("selectOrganization"));
 
   return (
@@ -250,43 +339,70 @@ export function OrganizationSelector({
         </SelectTrigger>
       ) : (
         <SelectTrigger
-          className={cn("h-9 max-h-9 !min-h-9 max-w-[200px]", className)}
+          className={cn(GRID_TRIGGER, className)}
           aria-label={t("selectOrganization")}
+          title={triggerLabel}
         >
           <SelectValue aria-label={t("selectOrganization")}>
-            <span className="flex items-center gap-2">
-              {isSyncing && <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />}
-              <span className="truncate text-sm">{triggerLabel}</span>
+            <span className="flex min-w-0 items-center gap-2">
+              {isSyncing ? (
+                <Loader2 className={cn("size-4 shrink-0 animate-spin", OPS_GRID_ACCENT)} />
+              ) : isPersonal ? (
+                <UserIcon className={cn("size-4 shrink-0", OPS_GRID_ACCENT)} />
+              ) : (
+                <Building2 className={cn("size-4 shrink-0", OPS_GRID_ACCENT)} />
+              )}
+              {/* Below `sm` the trigger is the icon alone; its aria-label names it. */}
+              <span className="hidden max-w-56 truncate sm:block">{triggerLabel}</span>
             </span>
           </SelectValue>
         </SelectTrigger>
       )}
-      <SelectContent>
+      <SelectContent
+        className={isGrid ? GRID_PANEL : undefined}
+        align={isGrid ? "end" : undefined}
+        sideOffset={isGrid ? 8 : undefined}
+      >
         {/* Personal entry stays at the top so it's always one click away. */}
-        <SelectItem value={PERSONAL_VALUE}>
-          <div className="flex items-center gap-2">
-            <UserIcon className="h-4 w-4" />
-            {t("personalWorkspace")}
-          </div>
-        </SelectItem>
-        <SelectSeparator />
+        {withPersonal && (
+          <>
+            <SelectItem value={PERSONAL_VALUE} className={isGrid ? GRID_SELECTABLE_ROW : undefined}>
+              <div className="flex items-center gap-2">
+                <UserIcon className={isGrid ? cn("size-4", OPS_GRID_ACCENT) : "h-4 w-4"} />
+                {t("personalWorkspace")}
+              </div>
+            </SelectItem>
+            {!isGrid && <SelectSeparator />}
+          </>
+        )}
         {selectableOrganizations.length > 0 && (
           <SelectGroup>
-            <SelectLabel className="text-muted-foreground text-xs">
+            <SelectLabel className={isGrid ? GRID_LABEL : "text-muted-foreground text-xs"}>
               {t("yourOrganizations")}
             </SelectLabel>
             {selectableOrganizations.map((org) => (
-              <SelectItem key={org.id} value={org.id}>
+              <SelectItem
+                key={org.id}
+                value={org.id}
+                className={isGrid ? GRID_SELECTABLE_ROW : undefined}
+              >
                 {org.name}
               </SelectItem>
             ))}
           </SelectGroup>
         )}
-        <SelectSeparator />
+        {!isGrid && <SelectSeparator />}
         <div
           role="option"
           tabIndex={0}
-          className="text-muted-foreground hover:bg-accent hover:text-accent-foreground relative flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none select-none"
+          className={
+            isGrid
+              ? cn(
+                  "relative flex w-full cursor-pointer items-center outline-none select-none",
+                  GRID_ROW
+                )
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground relative flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none select-none"
+          }
           onMouseDown={(e) => {
             e.preventDefault();
             handleCreateOrganization();
@@ -298,7 +414,7 @@ export function OrganizationSelector({
             }
           }}
         >
-          <Plus className="h-3.5 w-3.5" />
+          <Plus className={isGrid ? cn("size-4", OPS_GRID_ACCENT) : "h-3.5 w-3.5"} />
           {t("createOrganization")}
         </div>
       </SelectContent>

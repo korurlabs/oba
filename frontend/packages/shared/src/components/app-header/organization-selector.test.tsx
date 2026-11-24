@@ -25,9 +25,25 @@ const actualClear = {
 
 const PERSONAL_VALUE = "__personal__";
 
+type MeOrganization = {
+  id: string;
+  name: string;
+  role: "OWNER" | "ADMIN" | "MEMBER" | "GUEST";
+  organizationStatus: "ACTIVE" | "DISABLED";
+};
+
+const DEFAULT_ORGANIZATIONS: MeOrganization[] = [
+  { id: "org-1", name: "Korur", role: "MEMBER", organizationStatus: "ACTIVE" },
+  { id: "org-2", name: "Sensey", role: "MEMBER", organizationStatus: "ACTIVE" },
+];
+
 let onValueChange: (value: string) => Promise<void>;
+// The value the selector hands the Select, so a row can be rendered checked.
+let selectValue: string | undefined;
+let meOrganizations: MeOrganization[];
 let defaultOrganizationId: string | null;
 let clearResult: () => Promise<unknown>;
+let updateResult: () => Promise<unknown>;
 const cleared: number[] = [];
 const updatedMe: unknown[] = [];
 const sessionUpdates: unknown[] = [];
@@ -45,16 +61,34 @@ const PAGE_QUERY_KEY = ["kazan", "boards"];
 const passthrough = ({ children }: { children?: ReactNode }) => <div>{children}</div>;
 mock.module("@oba/ui/components/select", () => ({
   ...actualSelect,
-  Select: (props: { children?: ReactNode; onValueChange: (value: string) => Promise<void> }) => {
+  Select: (props: {
+    children?: ReactNode;
+    value?: string;
+    onValueChange: (value: string) => Promise<void>;
+  }) => {
     onValueChange = props.onValueChange;
+    selectValue = props.value;
     return <div>{props.children}</div>;
   },
   SelectContent: passthrough,
   SelectGroup: passthrough,
-  SelectItem: passthrough,
+  // A row carries its value, its classes and the state Radix gives it.
+  SelectItem: (props: { children?: ReactNode; value: string; className?: string }) => (
+    <div
+      data-value={props.value}
+      data-state={props.value === selectValue ? "checked" : "unchecked"}
+      className={props.className}
+    >
+      {props.children}
+    </div>
+  ),
   SelectLabel: passthrough,
   SelectSeparator: () => null,
-  SelectTrigger: passthrough,
+  SelectTrigger: (props: { children?: ReactNode; title?: string }) => (
+    <div data-slot="trigger" title={props.title}>
+      {props.children}
+    </div>
+  ),
   SelectValue: passthrough,
 }));
 mock.module("next-intl", () => ({
@@ -96,12 +130,7 @@ mock.module("../../features/users/hooks/use-get-me", () => ({
   useGetMe: () => ({
     data: {
       success: true,
-      data: {
-        organizations: [
-          { id: "org-1", name: "Korur", role: "MEMBER", organizationStatus: "ACTIVE" },
-          { id: "org-2", name: "Sensey", role: "MEMBER", organizationStatus: "ACTIVE" },
-        ],
-      },
+      data: { organizations: meOrganizations },
     },
     isFetching: false,
   }),
@@ -111,7 +140,7 @@ mock.module("../../features/users/hooks/use-update-me", () => ({
   useUpdateMe: () => ({
     mutateAsync: async (data: unknown) => {
       updatedMe.push(data);
-      return { success: true };
+      return updateResult();
     },
   }),
 }));
@@ -138,10 +167,27 @@ afterAll(() => {
 });
 
 const { OrganizationSelector } = await import("./organization-selector");
+type OrganizationSelectorProps = import("./organization-selector").OrganizationSelectorProps;
 const { invalidateAllOrganizationQueries } = await import("../../hooks/use-invalidate-org-queries");
 
-function renderSelector(): string {
-  return renderToStaticMarkup(<OrganizationSelector />);
+function renderSelector(props: OrganizationSelectorProps = {}): string {
+  return renderToStaticMarkup(<OrganizationSelector {...props} />);
+}
+
+/** The values of the menu's rows, in order. */
+function rowValues(html: string): string[] {
+  return [...html.matchAll(/data-value="([^"]+)"/g)].map((match) => match[1] ?? "");
+}
+
+/** Runs `action` with `console.error` silenced, for a path that logs a failure on purpose. */
+async function withoutConsoleError(action: () => Promise<void>): Promise<void> {
+  const originalConsoleError = console.error;
+  console.error = () => undefined;
+  try {
+    await action();
+  } finally {
+    console.error = originalConsoleError;
+  }
 }
 
 /** The page query, mounted and enabled while the page shows organization `org-1`. */
@@ -176,7 +222,10 @@ function pageQueryState() {
 beforeEach(async () => {
   defaultOrganizationId = "org-1";
   requestOrganization = "org-1";
+  meOrganizations = DEFAULT_ORGANIZATIONS;
+  selectValue = undefined;
   clearResult = async () => ({ success: true, data: { defaultOrganizationId: null } });
+  updateResult = async () => ({ success: true });
   for (const list of [cleared, updatedMe, sessionUpdates, errorToasts, fetches]) {
     list.length = 0;
   }
@@ -271,5 +320,142 @@ describe("OrganizationSelector", () => {
     expect(sessionUpdates).toHaveLength(0);
     expect(pageQueryState()?.isInvalidated).toBe(false);
     expect(fetches).toHaveLength(0);
+  });
+
+  test("without Personal the menu has no Personal row and an empty default asks for a choice", () => {
+    defaultOrganizationId = null;
+
+    const html = renderSelector({ withPersonal: false });
+
+    expect(rowValues(html)).toEqual(["org-1", "org-2"]);
+    expect(html).not.toContain("personalWorkspace");
+    expect(html).toContain('title="selectOrganization"');
+  });
+
+  test("managedOnly lists only the ACTIVE organizations the user owns or administers", () => {
+    meOrganizations = [
+      { id: "org-1", name: "Korur", role: "OWNER", organizationStatus: "ACTIVE" },
+      { id: "org-2", name: "Sensey", role: "MEMBER", organizationStatus: "ACTIVE" },
+      { id: "org-3", name: "Tayga", role: "ADMIN", organizationStatus: "DISABLED" },
+      { id: "org-4", name: "Alar", role: "ADMIN", organizationStatus: "ACTIVE" },
+    ];
+
+    const html = renderSelector({ withPersonal: false, managedOnly: true });
+
+    expect(rowValues(html)).toEqual(["org-1", "org-4"]);
+  });
+
+  describe("controlled", () => {
+    const hostOrganizations = [
+      { id: "kaya-1", name: "Kaya One" },
+      { id: "kaya-2", name: "Kaya Two" },
+    ];
+
+    test("shows the host's organization and lists the host's organizations", () => {
+      const html = renderSelector({
+        withPersonal: false,
+        controlled: {
+          organizationId: "kaya-2",
+          organizations: hostOrganizations,
+          onSwitch: () => {},
+        },
+      });
+
+      expect(rowValues(html)).toEqual(["kaya-1", "kaya-2"]);
+      expect(html).toContain('title="Kaya Two"');
+      expect(html).toContain('data-value="kaya-2" data-state="checked"');
+    });
+
+    test("a switch saves the default organization, then hands it to the host", async () => {
+      const calls: string[] = [];
+      updateResult = async () => {
+        calls.push("saved");
+        return { success: true };
+      };
+      renderSelector({
+        withPersonal: false,
+        controlled: {
+          organizationId: "kaya-1",
+          organizations: hostOrganizations,
+          onSwitch: (organizationId) => calls.push(`switched ${organizationId}`),
+        },
+      });
+
+      await onValueChange("kaya-2");
+
+      expect(updatedMe).toEqual([{ defaultOrganizationId: "kaya-2" }]);
+      expect(calls).toEqual(["saved", "switched kaya-2"]);
+      expect(sessionUpdates).toHaveLength(0);
+      expect(pageQueryState()?.isInvalidated).toBe(false);
+    });
+
+    test("a refused save shows the switch error and leaves the host where it was", async () => {
+      updateResult = async () => {
+        throw new Error("PUT /users/me was rejected");
+      };
+      const switched: string[] = [];
+      renderSelector({
+        withPersonal: false,
+        controlled: {
+          organizationId: "kaya-1",
+          organizations: hostOrganizations,
+          onSwitch: (organizationId) => switched.push(organizationId),
+        },
+      });
+
+      await withoutConsoleError(() => onValueChange("kaya-2"));
+
+      expect(updatedMe).toHaveLength(1);
+      expect(switched).toEqual([]);
+      expect(errorToasts).toEqual(["organizationSwitchFailed"]);
+      expect(sessionUpdates).toHaveLength(0);
+    });
+
+    test("choosing the host's current organization sends nothing", async () => {
+      const switched: string[] = [];
+      renderSelector({
+        controlled: {
+          organizationId: "kaya-1",
+          organizations: hostOrganizations,
+          onSwitch: (organizationId) => switched.push(organizationId),
+        },
+      });
+
+      await onValueChange("kaya-1");
+
+      expect(updatedMe).toHaveLength(0);
+      expect(switched).toEqual([]);
+    });
+  });
+
+  test("a long name renders whole in its row and in the trigger's title", () => {
+    const longName = "Korur Siber Güvenlik Limited Şirketi";
+    meOrganizations = [
+      { id: "org-1", name: longName, role: "OWNER", organizationStatus: "ACTIVE" },
+      ...DEFAULT_ORGANIZATIONS.slice(1),
+    ];
+
+    const html = renderSelector();
+
+    expect(html).toContain(`title="${longName}"`);
+    const row = html.match(/<div data-value="org-1"[^>]*>([^<]*)<\/div>/);
+    expect(row?.[1]).toBe(longName);
+    expect(row?.[0]).toContain("whitespace-normal");
+    expect(row?.[0]).toContain("break-words");
+  });
+
+  test("the current row is checked and carries the tint, rail and weight", () => {
+    const html = renderSelector();
+
+    const current = html.match(/<div data-value="org-1" data-state="checked" class="([^"]*)"/);
+    expect(current).not.toBeNull();
+    for (const mark of [
+      "data-[state=checked]:bg-[rgb(26_100_184/0.10)]",
+      "data-[state=checked]:font-semibold",
+      "data-[state=checked]:before:w-0.5",
+    ]) {
+      expect(current?.[1]).toContain(mark);
+    }
+    expect(html).toContain('data-value="org-2" data-state="unchecked"');
   });
 });

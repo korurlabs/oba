@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Mail, Settings, User } from "lucide-react";
 import type { ReactNode } from "react";
 import { AppSwitcher } from "@oba/shared/components/app-header/app-switcher";
+import { OrganizationSelector } from "@oba/shared/components/app-header/organization-selector";
 import { ProfileDropdown } from "@oba/shared/components/app-header/profile-dropdown";
 import { LanguageSwitcherSubMenu } from "@oba/shared/components/language-switcher";
 import { Link, usePathname } from "@oba/shared/libs/i18n/navigation";
@@ -24,10 +25,11 @@ const ACCOUNT_HREFS = {
 /**
  * Page frame of every signed-in Account page, shared by the gateway profile
  * page and the dashboard layout: the shared sky shell with the profile and the
- * invitations in the menu, Settings at its foot, and the app switcher and the
- * account menu in the top bar. The links and the active page go through the
- * locale-aware navigation, so a locale prefix neither breaks a link nor hides
- * the page in view.
+ * invitations in the menu, Settings at its foot, and the organization
+ * selector (every organization of the user, as Account is open in each), the
+ * app switcher and the account menu in the top bar. The links and the active
+ * page go through the locale-aware navigation, so a locale prefix neither
+ * breaks a link nor hides the page in view.
  */
 export function AccountShell({ children }: { children: ReactNode }) {
   const t = useTranslations("sidebar");
@@ -61,6 +63,7 @@ export function AccountShell({ children }: { children: ReactNode }) {
       homeLabel={tApps("account.name")}
       actions={
         <>
+          <OrganizationSelector />
           <AppSwitcher currentAppId="account" />
           <ProfileDropdown
             hrefs={ACCOUNT_HREFS}
