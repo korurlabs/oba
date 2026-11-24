@@ -11,6 +11,7 @@ const actualSonner = { ...(await import("sonner")) };
 const actualApps = { ...(await import("@oba/shared/constants/apps")) };
 const actualInvalidate = { ...(await import("@oba/shared/hooks/use-invalidate-org-queries")) };
 const actualUpdateMe = { ...(await import("@oba/shared/features/users/hooks/use-update-me")) };
+const actualNextAuth = { ...(await import("next-auth/react")) };
 
 const ULAK_ORIGIN = "https://ulak.example.test";
 
@@ -19,6 +20,7 @@ type MutationOptions = {
 };
 
 let updateResult: () => Promise<unknown>;
+const sessionUpdates: unknown[] = [];
 const events: string[] = [];
 const errorToasts: string[] = [];
 
@@ -57,6 +59,17 @@ mock.module("@oba/shared/hooks/use-invalidate-org-queries", () => ({
     events.push("invalidated");
   },
 }));
+mock.module("next-auth/react", () => ({
+  ...actualNextAuth,
+  useSession: () => ({
+    data: { user: { id: "user-1", defaultOrganizationId: "org-old" } },
+    update: async (data: { user: { defaultOrganizationId: string } }) => {
+      sessionUpdates.push(data);
+      events.push(`session ${data.user.defaultOrganizationId}`);
+      return null;
+    },
+  }),
+}));
 mock.module("@oba/shared/features/users/hooks/use-update-me", () => ({
   ...actualUpdateMe,
   useUpdateMe: () => ({
@@ -84,6 +97,7 @@ afterAll(() => {
   mock.module("@oba/shared/constants/apps", () => actualApps);
   mock.module("@oba/shared/hooks/use-invalidate-org-queries", () => actualInvalidate);
   mock.module("@oba/shared/features/users/hooks/use-update-me", () => actualUpdateMe);
+  mock.module("next-auth/react", () => actualNextAuth);
 });
 
 const { useCreateOrganization } = await import("./use-organizations");
@@ -108,19 +122,22 @@ async function withoutConsoleError(action: () => Promise<void>): Promise<void> {
 beforeEach(() => {
   updateResult = async () => ({ success: true });
   events.length = 0;
+  sessionUpdates.length = 0;
   errorToasts.length = 0;
 });
 
 describe("useCreateOrganization", () => {
-  test("a new organization becomes the default, then Ulak opens on it", async () => {
+  test("a new organization becomes the default in the API and the session, then Ulak opens on it", async () => {
     await createdOrganization({ data: { id: "org-new" } });
 
     expect(events).toEqual([
       "invalidated",
       "success createSuccess",
       "saved org-new",
+      "session org-new",
       `opened ${ULAK_ORIGIN}`,
     ]);
+    expect(sessionUpdates).toEqual([{ user: { id: "user-1", defaultOrganizationId: "org-new" } }]);
     expect(errorToasts).toEqual([]);
   });
 
@@ -131,6 +148,7 @@ describe("useCreateOrganization", () => {
 
     await withoutConsoleError(() => createdOrganization({ data: { id: "org-new" } }));
 
+    expect(sessionUpdates).toEqual([]);
     expect(errorToasts).toEqual(["organizationSwitchFailed"]);
     expect(events.at(-1)).toBe(`opened ${ULAK_ORIGIN}`);
   });
@@ -139,6 +157,7 @@ describe("useCreateOrganization", () => {
     await withoutConsoleError(() => createdOrganization({}));
 
     expect(events.some((event) => event.startsWith("saved"))).toBe(false);
+    expect(sessionUpdates).toEqual([]);
     expect(errorToasts).toEqual(["organizationSwitchFailed"]);
     expect(events.at(-1)).toBe(`opened ${ULAK_ORIGIN}`);
   });
