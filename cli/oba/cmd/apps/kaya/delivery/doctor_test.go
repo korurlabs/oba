@@ -20,6 +20,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/korurlabs/oba-cli/internal/apps/kaya/capture"
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/client"
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/delivery"
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/install"
@@ -42,30 +43,40 @@ fi
 exit 0
 `
 
-// fakeClaude stands in for claude -p. It prints the init event with the skills and subagents
-// the test names, writes the agents-md line of the debug log, and queues a record event of the
-// session as the drop-in's record hook does, each as the test asks.
+// fakeClaude stands in for claude -p. A session started with --setting-sources is the probe
+// session; one without it loads the user settings. FAKE_CLAUDE_START, FAKE_CLAUDE_AGENTS_MD and
+// FAKE_CLAUDE_RECORD list the sessions, "probe" and "user", that start, that write the agents-md
+// line of the debug log, and that queue a record event as a record hook does; "no" lists none.
+// A session that starts prints the init event with the skills and subagents the test names.
 const fakeClaude = `#!/bin/sh
 printf '%s\n' "$*" >> "$FAKE_CLAUDE_ARGS"
 session=""
 debug=""
+kind="user"
 while [ $# -gt 0 ]; do
   case "$1" in
     --session-id) session="$2"; shift ;;
     --debug-file) debug="$2"; shift ;;
+    --setting-sources) kind="probe"; shift ;;
   esac
   shift
 done
-if [ "$FAKE_CLAUDE_START" = "no" ]; then
+does() {
+  case " $1 " in
+    *" $kind "*) return 0 ;;
+  esac
+  return 1
+}
+if ! does "$FAKE_CLAUDE_START"; then
   echo "Invalid API key" >&2
   exit 1
 fi
 printf '{"type":"system","subtype":"init","cwd":"%s","session_id":"%s","skills":%s,"agents":%s}\n' "$PWD" "$session" "$FAKE_CLAUDE_SKILLS" "$FAKE_CLAUDE_AGENTS"
 printf '2026-11-23T10:00:00.000Z [DEBUG] Session started\n' > "$debug"
-if [ "$FAKE_CLAUDE_AGENTS_MD" != "no" ]; then
+if does "$FAKE_CLAUDE_AGENTS_MD"; then
   printf '2026-11-23T10:00:00.000Z [DEBUG] [agents-md] no CLAUDE.md found; AGENTS.md loaded: %s/AGENTS.md\n' "$PWD" >> "$debug"
 fi
-if [ "$FAKE_CLAUDE_RECORD" = "yes" ]; then
+if does "$FAKE_CLAUDE_RECORD"; then
   dir="$XDG_STATE_HOME/kaya/queue/sessions/$session"
   /bin/mkdir -p "$dir"
   printf '{"seq":1,"event":"SessionStart"}\n' >> "$dir/events.jsonl"
@@ -113,7 +124,9 @@ func setupDoctor(t *testing.T) *doctorEnv {
 		"GIT_CONFIG_GLOBAL": filepath.Join(t.TempDir(), "gitconfig"), "SHELL": "/bin/bash", "TMPDIR": t.TempDir(),
 		"FAKE_OBA_VERSION": obaVersionUnderTest, "FAKE_CLAUDE_ARGS": filepath.Join(t.TempDir(), "claude-args"),
 		"FAKE_CLAUDE_SKILLS": `["notes","example:other"]`, "FAKE_CLAUDE_AGENTS": `["docs-helper","general-purpose"]`,
-		"FAKE_CLAUDE_RECORD": "yes", "FAKE_CLAUDE_AGENTS_MD": "yes", "FAKE_CLAUDE_START": "yes",
+		// As Claude Code does: both sessions start and queue a record event, and only the session
+		// with the user settings loads AGENTS.md.
+		"FAKE_CLAUDE_START": "probe user", "FAKE_CLAUDE_RECORD": "probe user", "FAKE_CLAUDE_AGENTS_MD": "user",
 	} {
 		t.Setenv(key, value)
 	}
@@ -796,9 +809,149 @@ func TestDoctorProbe_writesTheProofWhenTheDropInRecordsTheSession(t *testing.T) 
 	if !regexp.MustCompile(`"dropInSha256": "[0-9a-f]{64}"`).Match(raw) || !regexp.MustCompile(`"provedAt": "\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?Z"`).Match(raw) {
 		t.Fatalf("the proof is not lower-case hex and RFC 3339:\n%s", raw)
 	}
+	// The probe session first, with the user settings left out; then the AGENTS.md session with the
+	// same arguments but every settings source, its own session id and its own debug log.
 	args := probeArgs(t)
-	if len(args) != 1 || !strings.HasPrefix(args[0], "-p ") || !strings.Contains(args[0], " --setting-sources project,local ") ||
-		!strings.Contains(args[0], " --output-format stream-json --verbose ") || !strings.Contains(args[0], " --no-session-persistence ") {
+	const shared = "-p " + probePrompt + " --output-format stream-json --verbose "
+	pattern := regexp.MustCompile(`^` + regexp.QuoteMeta(shared) + `(--setting-sources project,local )?--session-id \S+ --no-session-persistence --debug-file \S+$`)
+	if len(args) != 2 || !pattern.MatchString(args[0]) || !strings.Contains(args[0], "--setting-sources project,local") ||
+		!pattern.MatchString(args[1]) || strings.Contains(args[1], "--setting-sources") {
+		t.Fatalf("claude ran with %q", args)
+	}
+	for _, flag := range []string{"--session-id", "--debug-file"} {
+		if first, second := argValue(t, args[0], flag), argValue(t, args[1], flag); first == second {
+			t.Fatalf("both sessions ran with %s %s", flag, first)
+		}
+	}
+}
+
+// argValue is the value that follows flag in a line of probeArgs.
+func argValue(t *testing.T, line, flag string) string {
+	t.Helper()
+	match := regexp.MustCompile(` ` + regexp.QuoteMeta(flag) + ` (\S+)`).FindStringSubmatch(line)
+	if match == nil {
+		t.Fatalf("no %s in %q", flag, line)
+	}
+	return match[1]
+}
+
+func TestLoadedAgentsMD_findsTheCheckoutAmongThePathsOfALine(t *testing.T) {
+	dir := t.TempDir()
+	root := filepath.Join(dir, "repo")
+	comma := filepath.Join(dir, "old, new")
+	for _, path := range []string{filepath.Join(root, "AGENTS.md"), filepath.Join(comma, "AGENTS.md")} {
+		writeTestFile(t, path, "# Rules\n")
+	}
+	link := filepath.Join(dir, "link")
+	if err := os.Symlink(root, link); err != nil {
+		t.Fatal(err)
+	}
+	want := filepath.Join(root, "AGENTS.md")
+	parent := filepath.Join(dir, "AGENTS.md")
+	const loaded = "2026-11-24T10:00:00.000Z [DEBUG] [agents-md] no CLAUDE.md found; AGENTS.md loaded: "
+	for name, tc := range map[string]struct {
+		log, want string
+		found     bool
+	}{
+		"one path":                       {log: loaded + want, want: want, found: true},
+		"two paths, the checkout last":   {log: loaded + parent + ", " + want, want: want, found: true},
+		"two paths, the checkout first":  {log: loaded + want + ", " + filepath.Join(root, ".claude", "AGENTS.md"), want: want, found: true},
+		"the checkout through a link":    {log: loaded + parent + ", " + filepath.Join(link, "AGENTS.md") + "\n", want: want, found: true},
+		"a checkout path with the comma": {log: loaded + filepath.Join(comma, "AGENTS.md"), want: filepath.Join(comma, "AGENTS.md"), found: true},
+		"only the folder above":          {log: loaded + parent + ", " + filepath.Join(root+"-other", "AGENTS.md"), want: want},
+		"no agents-md line":              {log: "2026-11-24T10:00:00.000Z [DEBUG] Session started\n", want: want},
+	} {
+		if got := loadedAgentsMD([]byte(tc.log), tc.want); got != tc.found {
+			t.Fatalf("%s: loadedAgentsMD(%q, %q) = %v", name, tc.log, tc.want, got)
+		}
+	}
+}
+
+func TestDoctorProbe_checksAGENTSmdInTheSessionWithTheUserSettings(t *testing.T) {
+	for name, tc := range map[string]struct {
+		agentsMD string
+		failed   []string
+		detail   string
+	}{
+		"only that session loads it":      {agentsMD: "user", detail: "with every settings source, as a normal session has, loaded "},
+		"only the probe session loads it": {agentsMD: "probe", failed: []string{"AGENTS.md"}, detail: "CLAUDE.local.md"},
+		"neither session loads it":        {agentsMD: "no", failed: []string{"AGENTS.md"}, detail: "pluginConfigs"},
+		"both sessions load it":           {agentsMD: "probe user", detail: "as a normal session has, loaded "},
+	} {
+		t.Run(name, func(t *testing.T) {
+			e := setupDelivered(t)
+			writeExecutable(t, e.bin, "claude", fakeClaude)
+			t.Setenv("FAKE_CLAUDE_AGENTS_MD", tc.agentsMD)
+			report, err := e.doctor(t, "--probe")
+			e.wantFailed(t, report, err, tc.failed...)
+			check := checkNamed(t, report, "AGENTS.md")
+			if !strings.Contains(check.Detail, tc.detail) || !strings.Contains(check.Detail, filepath.Join(e.root, "AGENTS.md")) ||
+				strings.Contains(check.Detail, "setting-sources") {
+				t.Fatalf("AGENTS.md: %+v, want %q", check, tc.detail)
+			}
+		})
+	}
+}
+
+func TestDoctorProbe_namesASecondSessionThatDoesNotStart(t *testing.T) {
+	e := setupDelivered(t)
+	writeExecutable(t, e.bin, "claude", fakeClaude)
+	t.Setenv("FAKE_CLAUDE_START", "probe")
+	if err := install.RemoveInForce(e.opts.InForcePath); err != nil {
+		t.Fatal(err)
+	}
+	report, err := e.doctor(t, "--probe")
+	e.wantFailed(t, report, err, "AGENTS.md")
+	if check := checkNamed(t, report, "AGENTS.md"); !strings.Contains(check.Detail, "started no session") || !strings.Contains(check.Detail, "Invalid API key") {
+		t.Fatalf("AGENTS.md: %+v", check)
+	}
+	if _, ok, err := install.LoadInForce(e.opts.InForcePath); !ok || err != nil {
+		t.Fatalf("the probe session alone proves the drop-in in force: %v, %v", ok, err)
+	}
+}
+
+func TestDoctorProbe_takesTheProofOnlyFromTheProbeSession(t *testing.T) {
+	e := setupDelivered(t)
+	writeExecutable(t, e.bin, "claude", fakeClaude)
+	// A record hook left in the user settings queues the events of the session with the user
+	// settings only, as when Claude Code skips the drop-in.
+	t.Setenv("FAKE_CLAUDE_RECORD", "user")
+	report, err := e.doctor(t, "--probe")
+	e.wantFailed(t, report, err, "record event", "drop-in in force")
+	if check := checkNamed(t, report, "AGENTS.md"); check.Status != checkOK {
+		t.Fatalf("AGENTS.md: %+v", check)
+	}
+	if _, ok, err := install.LoadInForce(e.opts.InForcePath); ok || err != nil {
+		t.Fatalf("the proof is still there: %v, %v", ok, err)
+	}
+	args := probeArgs(t)
+	if len(args) != 2 {
+		t.Fatalf("claude ran with %q", args)
+	}
+	stateDir, err := delivery.RecorderStateDir()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i, queued := range []bool{false, true} {
+		_, err := os.Stat(filepath.Join(capture.SessionDir(stateDir, argValue(t, args[i], "--session-id")), capture.EventsFile))
+		if (err == nil) != queued {
+			t.Fatalf("session %d queued an event: %v, want %v", i+1, err == nil, queued)
+		}
+	}
+}
+
+func TestDoctorProbe_runsNoSecondSessionWithoutAnAGENTSmd(t *testing.T) {
+	e := setupDelivered(t)
+	writeExecutable(t, e.bin, "claude", fakeClaude)
+	if err := os.Remove(filepath.Join(e.root, "AGENTS.md")); err != nil {
+		t.Fatal(err)
+	}
+	report, err := e.doctor(t, "--probe")
+	e.wantFailed(t, report, err, "placed", "AGENTS.md")
+	if check := checkNamed(t, report, "AGENTS.md"); !strings.Contains(check.Detail, "no root AGENTS.md") {
+		t.Fatalf("AGENTS.md: %+v", check)
+	}
+	if args := probeArgs(t); len(args) != 1 || !strings.Contains(args[0], " --setting-sources project,local ") {
 		t.Fatalf("claude ran with %q", args)
 	}
 }
@@ -906,6 +1059,9 @@ func TestDoctorProbe_leavesTheProofAloneWhenItProvesNothing(t *testing.T) {
 			}
 			if after, err := os.ReadFile(e.opts.InForcePath); err != nil || string(after) != string(before) {
 				t.Fatalf("the proof changed: %s, %v", after, err)
+			}
+			if args := probeArgs(t); len(args) > 1 {
+				t.Fatalf("a second session ran after a probe that proved nothing: %q", args)
 			}
 		})
 	}
