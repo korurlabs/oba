@@ -1,3 +1,25 @@
 @import "tailwindcss";
 /* Kaya's look (tokens, typography, the menu panel) is the shared sky design. */
 @import "@oba/ui/sky/styles.css";
+
+/*
+ * The top bar's organization selector, app switcher and account menu are
+ * shared components built on `@oba/ui`'s primitives. Tailwind only scans the
+ * app's own directory, so their classes are named here.
+ */
+@source "../../../packages/shared/src/components/**/*.{ts,tsx}";
+@source "../../../packages/shared/src/features/**/*.{ts,tsx}";
+@source "../../../packages/ui/src/components/**/*.{ts,tsx}";
+
+/*
+ * The sky design has no dark mode. The shared components carry `dark:`
+ * classes; tied to a class Kaya never sets, they stay off on a system in dark
+ * mode.
+ */
+@custom-variant dark (&:is(.dark *));
+
+/* Brand shades the shared components use that the sky palette leaves out. */
+@theme {
+  --color-korur-blue-strong: #1c6fb8;
+  --color-korur-blue-medium: #beddff;
+}

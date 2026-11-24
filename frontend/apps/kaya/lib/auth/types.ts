@@ -1,12 +1,14 @@
 import "next-auth";
 import "next-auth/jwt";
 
-/** Why a session can no longer call Kaya's API. */
-export const AuthError = {
-  /** The refresh token was refused or is gone: the user signs in again. */
-  REFRESH_TOKEN_ERROR: "REFRESH_TOKEN_ERROR",
-} as const;
-export type AuthError = (typeof AuthError)[keyof typeof AuthError];
+import { AuthError } from "@oba/shared/libs/auth/types";
+
+/**
+ * Kaya shares the session error enum with the shared auth module: both augment
+ * next-auth's Session and JWT, and TypeScript requires the two declarations of
+ * `error` to have the same type once a shared component brings both into one program.
+ */
+export { AuthError };
 
 declare module "next-auth" {
   interface Session {
