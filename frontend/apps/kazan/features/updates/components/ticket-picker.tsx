@@ -11,6 +11,7 @@ import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
 import { Button } from "@/components/ui/button";
 import { TicketFilterPanel } from "@/features/tickets/components/ticket-filter-panel";
 import type { TicketListResponse } from "@/features/tickets/schemas";
+import { useSearchPathFilter } from "@/features/tickets/lib/search-match";
 import { useTicketPickerColumns } from "../hooks/use-ticket-picker-columns";
 import type { useTicketPicker } from "../hooks/use-ticket-picker";
 
@@ -36,8 +37,11 @@ interface TicketPickerProps {
  * The all-tickets list with row selection, kept in step with the
  * selected-tickets card: ticking a row adds the ticket to the card and
  * unticking removes it. The card is the source of truth, so a selected
- * ticket the current filters hide, or a sub-ticket (the list shows root
- * tickets only), stays selected.
+ * ticket the current filters hide stays selected. Sub-tickets are listed
+ * under their root ticket and are picked on their own; while a search is
+ * active every root is expanded and shows only the sub-tickets that match or
+ * lead to one that does, because a root can be listed only because one of its
+ * sub-tickets matched.
  */
 export function TicketPicker({
   picker,
@@ -58,19 +62,33 @@ export function TicketPicker({
 
   // Row selection keeps the IDs of rows the table does not show, so an ID
   // missing from the next selection was unticked in the table.
+  // Every ticket the table can show: the roots and, nested at any depth, their
+  // sub-tickets, so a ticked sub-row is found as well as a ticked root.
+  const listedTickets = useMemo((): TicketListResponse[] => {
+    const all: TicketListResponse[] = [];
+    const collect = (tickets: readonly TicketListResponse[]) => {
+      for (const ticket of tickets) {
+        all.push(ticket);
+        collect(ticket.subTickets ?? []);
+      }
+    };
+    collect(picker.tickets as TicketListResponse[]);
+    return all;
+  }, [picker.tickets]);
+
   const handleRowSelectionChange = useCallback(
     (next: RowSelectionState) => {
       const nextIds = new Set(Object.keys(next).filter((id) => next[id]));
       const current = new Set(selectedIds);
       const removedIds = selectedIds.filter((id) => !nextIds.has(id));
-      const added = picker.tickets.filter(
+      const added = listedTickets.filter(
         (ticket) => nextIds.has(ticket.id) && !current.has(ticket.id),
       );
       if (added.length > 0 || removedIds.length > 0) {
         onSelectionChange(added as TicketListResponse[], removedIds);
       }
     },
-    [selectedIds, picker.tickets, onSelectionChange],
+    [selectedIds, listedTickets, onSelectionChange],
   );
 
   const toggleTicket = useCallback(
@@ -88,6 +106,7 @@ export function TicketPicker({
   // given changes, so only a real change counts as one; an echo would end the
   // starting filters before the reader touched anything.
   const currentSearch = picker.filters.search;
+  const subRowFilter = useSearchPathFilter<TicketListResponse>(currentSearch);
   const setPickerFilters = picker.setFilters;
   const handleSearchChange = useCallback(
     (search: string | undefined) => {
@@ -179,6 +198,10 @@ export function TicketPicker({
           <SenseyTable<TicketListResponse>
             columns={columns}
             data={picker.tickets as TicketListResponse[]}
+            hierarchyKey="subTickets"
+            selectableSubRows
+            expandAll={!!picker.filters.search}
+            subRowFilter={subRowFilter}
             isLoading={picker.isLoading}
             emptyMessage={emptyMessage}
             onRowClick={toggleTicket}

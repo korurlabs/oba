@@ -73,6 +73,7 @@ export function AllTicketsView({ variant = "tickets" }: AllTicketsViewProps) {
           </div>
         ) : page.viewMode === "list" ? (
           <AllTicketsList
+            search={page.filters.search}
             tickets={page.tickets}
             onTicketClick={page.handleTicketClick}
             onCreateTicket={() => page.handleCreateTicket()}
@@ -85,6 +86,7 @@ export function AllTicketsView({ variant = "tickets" }: AllTicketsViewProps) {
           />
         ) : (
           <AllTicketsKanban
+            search={page.filters.search}
             tickets={page.tickets}
             onStatusChange={page.handleStatusChange}
             onTicketClick={page.handleTicketClick}

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -45,6 +46,59 @@ func TestListWithoutArgumentsListsTheBacklog(t *testing.T) {
 	}
 	if !strings.Contains(query, "backlogId="+idBacklog) || !strings.Contains(query, "statuses=TODO&statuses=IN_PROGRESS") {
 		t.Errorf("query = %s", query)
+	}
+}
+
+// withSubTickets is ticketJSON with sub-tickets.
+func withSubTickets(id, key, title string, subTickets ...string) string {
+	return strings.TrimSuffix(ticketJSON(id, key, title, idOps, "OPS"), "}") +
+		`,"subTickets":[` + strings.Join(subTickets, ",") + `]}`
+}
+
+func TestAllWithSearchShowsTheMatchingSubTicketsUnderTheirTicket(t *testing.T) {
+	api := newTicketAPI(t)
+	grandchild := withSubTickets("g1", "OPS-52", "Locked out of the org")
+	child := withSubTickets("c1", "OPS-51", "Approval flow", grandchild)
+	sibling := withSubTickets("c2", "OPS-53", "Unrelated sibling")
+	direct := strings.Replace(withSubTickets("c3", "OPS-54", "LOCKED OUT on sign-in"),
+		`"sprint":{"id":"`+idSprint3+`","name":"Sprint 3"}`, `"sprint":null`, 1)
+	parent := withSubTickets("p1", "OPS-50", "Go-live", child, sibling, direct)
+	var query string
+	captureQuery(api, "GET /kazan/tickets", `{"data":[`+parent+`]}`, &query)
+
+	out, _, err := runCLI(t, "", "kazan", "ticket", "all", "--search", "locked out")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{"OPS-50", "└ OPS-51", "  └ OPS-52", "└ OPS-54",
+		"Showing 1 tickets and 3 sub-tickets that match the search"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("out lacks %q:\n%s", want, out)
+		}
+	}
+	if !regexp.MustCompile(`└ OPS-54 .*Backlog`).MatchString(out) {
+		t.Errorf("a sub-ticket without a sprint is not shown in the backlog:\n%s", out)
+	}
+	if strings.Contains(out, "OPS-53") {
+		t.Errorf("out lists the sibling that does not match:\n%s", out)
+	}
+	if !strings.Contains(query, "search=locked+out") {
+		t.Errorf("query = %s", query)
+	}
+}
+
+func TestListWithoutSearchShowsNoSubTickets(t *testing.T) {
+	api := newTicketAPI(t)
+	parent := strings.TrimSuffix(ticketJSON("p1", "OPS-50", "Go-live", idOps, "OPS"), "}") +
+		`,"subTickets":[` + ticketJSON("c1", "OPS-51", "Approval flow", idOps, "OPS") + `]}`
+	api.Respond("GET /kazan/tickets", http.StatusOK, `{"data":[`+parent+`]}`)
+
+	out, _, err := runCLI(t, "", "kazan", "ticket", "all")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(out, "OPS-51") || !strings.Contains(out, "Showing 1 tickets\n") {
+		t.Errorf("out =\n%s", out)
 	}
 }
 

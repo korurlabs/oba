@@ -47,6 +47,7 @@ import com.korur.oba.apps.kazan.project.validator.ProjectValidator;
 import com.korur.oba.apps.kazan.sprint.entity.Sprint;
 import com.korur.oba.apps.kazan.sprint.service.SprintService;
 import com.korur.oba.apps.kazan.sprint.validator.SprintValidator;
+import com.korur.oba.apps.kazan.ticket.dto.request.AllTicketQueryRequest;
 import com.korur.oba.apps.kazan.ticket.dto.request.TicketMoveRequest;
 import com.korur.oba.apps.kazan.ticket.dto.request.TicketQueryRequest;
 import com.korur.oba.apps.kazan.ticket.entity.Ticket;
@@ -309,6 +310,128 @@ class TicketListRootsRepositoryIT extends ObaIntegrationTest {
 
             // Assert
             assertThat(result).containsExactlyInAnyOrder(parent, sub);
+        }
+    }
+
+    @Nested
+    class SearchThroughSubTickets {
+
+        private void setTitle(UUID ticketId, String title) {
+            jdbc.update("UPDATE kazan.tickets SET title = ? WHERE id = ?", title, ticketId);
+        }
+
+        private List<UUID> allTicketIds(String search) {
+            AllTicketQueryRequest request = new AllTicketQueryRequest();
+            request.setSearch(search);
+            return ticketRepository.findAll(TicketSpecification.filterByBoards(List.of(boardId), request)).stream()
+                    .map(Ticket::getId)
+                    .toList();
+        }
+
+        @Test
+        void filterBy_sprintSearch_matchingNestedSubTicket_returnsItsParentOnce() {
+            // Arrange
+            UUID parent = inSprint(null, sprintId);
+            UUID first = inSprint(parent, sprintId);
+            UUID second = inSprint(parent, sprintId);
+            setTitle(first, "A NUL character in any cell");
+            setTitle(second, "Another nul character case");
+            inSprint(null, sprintId);
+            TicketQueryRequest request = new TicketQueryRequest();
+            request.setSprintId(sprintId);
+            request.setSearch("nul character");
+
+            // Act
+            List<UUID> result = listIds(null, request);
+
+            // Assert
+            assertThat(result).containsExactly(parent);
+        }
+
+        @Test
+        void filterBy_sprintSearch_subTicketInAnotherSprint_doesNotReturnItsParent() {
+            // Arrange: the sub-ticket is planned apart from its parent, so it is a root of the
+            // other sprint's list and must not pull its parent into this one.
+            UUID parent = inSprint(null, sprintId);
+            UUID elsewhere = inSprint(parent, otherSprintId);
+            setTitle(elsewhere, "Show why each row was skipped");
+            TicketQueryRequest request = new TicketQueryRequest();
+            request.setSprintId(sprintId);
+            request.setSearch("why each row");
+
+            // Act
+            List<UUID> result = listIds(null, request);
+
+            // Assert
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void filterBy_sprintSearch_matchingGrandchild_returnsTheTopParent() {
+            // Arrange
+            UUID parent = inSprint(null, sprintId);
+            UUID child = inSprint(parent, sprintId);
+            UUID grandchild = inSprint(child, sprintId);
+            setTitle(grandchild, "deeply nested needle");
+            TicketQueryRequest request = new TicketQueryRequest();
+            request.setSprintId(sprintId);
+            request.setSearch("NEEDLE");
+
+            // Act
+            List<UUID> result = listIds(null, request);
+
+            // Assert
+            assertThat(result).containsExactly(parent);
+        }
+
+        @Test
+        void filterBy_backlogSearch_matchingNestedSubTicketByKey_returnsItsParent() {
+            // Arrange
+            UUID parent = inBacklog(null, backlogId);
+            UUID sub = inBacklog(parent, backlogId);
+            inBacklog(null, backlogId);
+            TicketQueryRequest request = new TicketQueryRequest();
+            request.setBacklogId(backlogId);
+            request.setSearch("itest-" + sub);
+
+            // Act
+            List<UUID> result = listIds(List.of(backlogId), request);
+
+            // Assert
+            assertThat(result).containsExactly(parent);
+        }
+
+        @Test
+        void filterBy_sprintSearch_deletedSubTicket_doesNotMatch() {
+            // Arrange
+            UUID parent = inSprint(null, sprintId);
+            UUID sub = inSprint(parent, sprintId);
+            setTitle(sub, "deleted needle");
+            jdbc.update("UPDATE kazan.tickets SET deleted = TRUE WHERE id = ?", sub);
+            TicketQueryRequest request = new TicketQueryRequest();
+            request.setSprintId(sprintId);
+            request.setSearch("needle");
+
+            // Act
+            List<UUID> result = listIds(null, request);
+
+            // Assert
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void filterByBoards_search_matchingSubTicketInAnyPlacement_returnsItsParentOnly() {
+            // Arrange
+            UUID parent = inBacklog(null, backlogId);
+            UUID sub = inSprint(parent, sprintId);
+            setTitle(sub, "skip only that row");
+            inBacklog(null, backlogId);
+
+            // Act
+            List<UUID> result = allTicketIds("ONLY THAT ROW");
+
+            // Assert
+            assertThat(result).containsExactly(parent);
         }
     }
 

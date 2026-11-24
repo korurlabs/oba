@@ -14,6 +14,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { TicketTypeBadge } from "./ticket-type-badge";
 import { TicketPriorityIcon } from "./ticket-priority-icon";
 import { InlineSubTickets } from "./inline-sub-tickets";
+import { useSearchPathFilter } from "@/features/tickets/lib/search-match";
 import { UserMultipleAvatar } from "@/components/ui/user-avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@oba/ui/lib/utils";
@@ -51,6 +52,13 @@ interface TicketCardProps {
   showBoardName?: boolean;
   /** Whether the current user can edit tickets (toggle sub-ticket complete, quick-add). Defaults to true. */
   canEdit?: boolean;
+  /**
+   * The active search, if any: the card then lists only the sub-tickets whose
+   * title or key matches it, or that lead to one that does, expanded, since the
+   * card can be listed because one of its sub-tickets matched. The progress bar
+   * still counts every sub-ticket, and the reader can still collapse the list.
+   */
+  search?: string | null;
 }
 
 export const TicketCard = memo(function TicketCard({
@@ -66,10 +74,26 @@ export const TicketCard = memo(function TicketCard({
   currentSprintId,
   showBoardName = false,
   canEdit = true,
+  search,
 }: TicketCardProps) {
   const t = useTranslations("board");
   const tTicket = useTranslations("ticket");
-  const [isSubTicketsExpanded, setIsSubTicketsExpanded] = useState(false);
+  const subTickets = useMemo(() => ticket.subTickets ?? [], [ticket.subTickets]);
+  const searchFilter = useSearchPathFilter<TicketListResponse>(search);
+  const shownSubTickets = useMemo(
+    () => (searchFilter ? subTickets.filter(searchFilter) : subTickets),
+    [searchFilter, subTickets]
+  );
+  // A search expands the card when it has a sub-ticket to show.
+  const expandForSearch = !!searchFilter && shownSubTickets.length > 0;
+  const [isSubTicketsExpanded, setIsSubTicketsExpanded] = useState(expandForSearch);
+  // Follow `expandForSearch` when it changes; adjusted during render so the
+  // card never shows a frame with the old expansion.
+  const [lastExpandForSearch, setLastExpandForSearch] = useState(expandForSearch);
+  if (lastExpandForSearch !== expandForSearch) {
+    setLastExpandForSearch(expandForSearch);
+    setIsSubTicketsExpanded(expandForSearch);
+  }
   const router = useRouter();
   // Check if ticket is from a different board (child board ticket)
   const isFromDifferentBoard = currentBoardId && ticket.board && ticket.board.id !== currentBoardId;
@@ -117,8 +141,6 @@ export const TicketCard = memo(function TicketCard({
     }),
     [transform, transition, isDragging]
   );
-
-  const subTickets = useMemo(() => ticket.subTickets ?? [], [ticket.subTickets]);
 
   const assignees = useMemo(() => ticket.assignees ?? [], [ticket.assignees]);
 
@@ -268,6 +290,7 @@ export const TicketCard = memo(function TicketCard({
         <div className="mt-3">
           <InlineSubTickets
             subTickets={subTickets}
+            shownSubTickets={shownSubTickets}
             isExpanded={isSubTicketsExpanded}
             onToggleExpand={(e) => {
               e.stopPropagation();
@@ -279,7 +302,7 @@ export const TicketCard = memo(function TicketCard({
               onRequestCreateSubTicket ? handleRequestCreateSubTicket : undefined
             }
             canEdit={canEdit}
-            maxVisible={3}
+            maxVisible={searchFilter ? shownSubTickets.length : 3}
             // On the cross-board board no sprint is shown; the card's own
             // sprint is then the one its sub-tickets are compared with.
             currentSprintId={currentSprintId ?? ticket.sprint?.id}

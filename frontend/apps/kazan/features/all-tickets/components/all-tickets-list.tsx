@@ -11,6 +11,7 @@ import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import type { VisibilityState } from "@tanstack/react-table";
 import type { TicketListResponse } from "@/features/tickets/schemas";
+import { useSearchPathFilter } from "@/features/tickets/lib/search-match";
 import { TicketStatusSummary } from "@/features/tickets/components/ticket-status-summary";
 import { SenseyTable } from "@oba/shared/components/sensey-table";
 import { useAllTicketColumns } from "../hooks/use-all-ticket-columns";
@@ -28,6 +29,12 @@ interface AllTicketsListProps {
   onColumnVisibilityChange: (visibility: VisibilityState) => void;
   columnOrder: string[];
   onColumnOrderChange: (order: string[]) => void;
+  /**
+   * The active search, if any: the list then shows only the sub-tickets whose
+   * title or key matches it, or that lead to one that does, expanded. A ticket
+   * can be listed because one of its sub-tickets matched.
+   */
+  search?: string | null;
 }
 
 // ── Main Component ───────────────────────────────────────────────────
@@ -42,7 +49,9 @@ export function AllTicketsList({
   onColumnVisibilityChange,
   columnOrder,
   onColumnOrderChange,
+  search,
 }: AllTicketsListProps) {
+  const subRowFilter = useSearchPathFilter<TicketListResponse>(search);
   const t = useTranslations();
   const columns = useAllTicketColumns({ onCopyLink });
 
@@ -70,6 +79,8 @@ export function AllTicketsList({
         isLoading={isLoading}
         emptyMessage={emptyMessage}
         hierarchyKey="subTickets"
+        expandAll={!!search}
+        subRowFilter={subRowFilter}
         onRowClick={onTicketClick}
         virtualized={true}
         columnVisibility={columnVisibility}

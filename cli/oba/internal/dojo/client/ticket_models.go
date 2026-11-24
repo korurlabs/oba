@@ -62,6 +62,8 @@ type Ticket struct {
 	Milestone            *TicketMilestone   `json:"milestone"`
 	// Percentage is the ticket's progress, 0 to 100.
 	Percentage int `json:"percentage"`
+	// SubTickets are the sub-tickets nested under the ticket in the list.
+	SubTickets []Ticket `json:"subTickets,omitempty"`
 }
 
 // TicketDetail is one ticket as GET /kazan/boards/{boardId}/tickets/{id} returns it.

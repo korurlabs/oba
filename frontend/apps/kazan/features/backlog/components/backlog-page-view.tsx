@@ -65,6 +65,7 @@ export function BacklogPageView({ boardId }: BacklogPageViewProps) {
           // than adding to it -- BacklogList still scrolls inside the shell.
           <div className="flex h-full flex-col pt-4">
             <BacklogList
+              search={page.filters.search}
               boardId={boardId}
               tickets={page.tickets as TicketListResponse[]}
               onTicketClick={page.handleTicketClick}
@@ -87,6 +88,7 @@ export function BacklogPageView({ boardId }: BacklogPageViewProps) {
           </div>
         ) : (
           <BacklogKanban
+            search={page.filters.search}
             tickets={page.tickets as TicketListResponse[]}
             onTicketClick={page.handleTicketClick}
             onSubTicketClick={page.handleTicketClick}
