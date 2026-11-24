@@ -1011,7 +1011,7 @@
     "cyberscore": "Cyberscore",
     "chats": "Chats",
     "dailyUpdates": "Updates",
-    "pullRequests": "PR Share",
+    "pullRequests": "Pull Requests",
     "expandBoard": "Expand {name}",
     "collapseBoard": "Collapse {name}",
     "boardActions": "Actions for {name}",
