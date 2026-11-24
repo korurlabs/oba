@@ -1,0 +1,33 @@
+# CodeQL configuration for every language the CodeQL workflow analyses.
+#
+# security-and-quality runs every security-extended query plus the
+# maintainability and reliability queries, so a pull request is checked for
+# code-quality defects as well as for vulnerabilities.
+#
+# The quality queries excluded below report code that is correct by design in
+# this backend. Each one would raise a new alert for every new entity or
+# controller, so dismissing alerts one by one would never end. A query belongs
+# here only when its findings are false by construction in this codebase; a
+# finding that is only inconvenient is fixed or dismissed with its reason.
+# Format: https://docs.github.com/en/code-security/code-scanning/creating-an-advanced-setup-for-code-scanning/customizing-your-advanced-setup-for-code-scanning#excluding-specific-queries-from-analysis
+
+queries:
+  - uses: security-and-quality
+
+query-filters:
+  # A `@GetUser User user` parameter is an access gate: the argument resolver
+  # refuses a request from a user who is not active before the method runs, so
+  # the parameter does its job even when the method body never reads it. The
+  # other matches are bound request headers, interface contracts and test
+  # lambdas.
+  - exclude:
+      id: java/unused-parameter
+  # Every match sits on the `@SuperBuilder` annotation of a JPA entity and
+  # points at the builder's toString() that Lombok generates, which nothing
+  # calls.
+  - exclude:
+      id: java/call-to-object-tostring
+  # Every match is a collection on a JPA entity that Hibernate manages. A
+  # defensive copy in the getter would break orphan removal and dirty checking.
+  - exclude:
+      id: java/internal-representation-exposure
