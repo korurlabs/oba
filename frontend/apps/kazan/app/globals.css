@@ -53,18 +53,6 @@
     --warning-foreground: hsl(0 0% 100%);
     --info-foreground: hsl(0 0% 100%);
 
-    /* Ticket Type Colors */
-    --ticket-issue: #beddff; /* Korur blue medium */
-    --ticket-fix: hsl(142 76% 90%); /* Green light */
-    --ticket-hotfix: hsl(0 93% 94%); /* Red light */
-    --ticket-problem: hsl(38 100% 92%); /* Yellow light */
-
-    /* Kanban Column Colors */
-    --column-todo: hsl(0 0% 96%); /* gray-100 */
-    --column-in-progress: hsl(217 91% 95%); /* blue-50 */
-    --column-in-review: hsl(258 90% 95%); /* purple-50 */
-    --column-done: hsl(142 76% 95%); /* green-50 */
-
     /* Gradient Presets */
     --gradient-blue: linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%);
     --gradient-green: linear-gradient(135deg, #d1fae5 0%, #6ee7b7 100%);
@@ -78,10 +66,10 @@
     --chart-4: hsl(38 92% 50%);
     --chart-5: #2f4f6a;
 
-    /* Daily update card: the Korur website's survey grid, frame corners and headings */
-    --update-grid-line: rgb(47 143 233 / 0.08);
-    --update-frame-mark: var(--korur-blue-hover);
-    --update-heading: var(--color-korur-blue-strong);
+    /* Kazan's grid look, from the Korur website's survey grid: frame corners, labels and chips */
+    --kazan-grid-line: rgb(47 143 233 / 0.08);
+    --kazan-grid-mark: var(--korur-blue-hover);
+    --kazan-grid-ink: var(--color-korur-blue-strong);
   }
 
   /* Icons outside a control are muted; inside a button or link they take its colour. */
@@ -199,44 +187,45 @@
   }
 
   /*
-   * Daily update card: a Korur command-post panel. The grid and the corner
-   * brackets are background paint only, so assistive technology reads the
-   * card exactly as before; the bubble around it keeps its own colours.
+   * Kazan's grid panel, a Korur command-post frame used by the daily update
+   * and pull request cards. The grid and the corner brackets are background
+   * paint only, so assistive technology reads the card exactly as before; the
+   * bubble around it keeps its own colours.
    */
-  .update-card-frame {
+  .kazan-grid-frame {
     @apply border-primary/20 relative rounded-none border p-3;
     background-image:
-      linear-gradient(var(--update-grid-line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--update-grid-line) 1px, transparent 1px);
+      linear-gradient(var(--kazan-grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--kazan-grid-line) 1px, transparent 1px);
     background-size:
       16px 16px,
       16px 16px;
   }
 
   /* Four 10px L-shaped brackets, 2px thick, over the frame's corners. */
-  .update-card-frame::before {
+  .kazan-grid-frame::before {
     content: "";
     position: absolute;
     inset: -1px;
     pointer-events: none;
     background:
-      linear-gradient(var(--update-frame-mark), var(--update-frame-mark)) left top / 10px 2px no-repeat,
-      linear-gradient(var(--update-frame-mark), var(--update-frame-mark)) left top / 2px 10px no-repeat,
-      linear-gradient(var(--update-frame-mark), var(--update-frame-mark)) right top / 10px 2px no-repeat,
-      linear-gradient(var(--update-frame-mark), var(--update-frame-mark)) right top / 2px 10px no-repeat,
-      linear-gradient(var(--update-frame-mark), var(--update-frame-mark)) left bottom / 10px 2px no-repeat,
-      linear-gradient(var(--update-frame-mark), var(--update-frame-mark)) left bottom / 2px 10px no-repeat,
-      linear-gradient(var(--update-frame-mark), var(--update-frame-mark)) right bottom / 10px 2px no-repeat,
-      linear-gradient(var(--update-frame-mark), var(--update-frame-mark)) right bottom / 2px 10px no-repeat;
+      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) left top / 10px 2px no-repeat,
+      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) left top / 2px 10px no-repeat,
+      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) right top / 10px 2px no-repeat,
+      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) right top / 2px 10px no-repeat,
+      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) left bottom / 10px 2px no-repeat,
+      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) left bottom / 2px 10px no-repeat,
+      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) right bottom / 10px 2px no-repeat,
+      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) right bottom / 2px 10px no-repeat;
   }
 
-  .update-card-heading {
+  .kazan-grid-label {
     @apply font-mono text-[11px] font-semibold tracking-[0.14em] uppercase;
-    color: var(--update-heading);
+    color: var(--kazan-grid-ink);
   }
 
-  /* The small filled square that leads each heading. */
-  .update-card-heading::before {
+  /* The small filled square that leads each label. */
+  .kazan-grid-label::before {
     content: "";
     width: 6px;
     height: 6px;
@@ -244,14 +233,23 @@
     background-color: currentColor;
   }
 
-  .update-card-number {
+  .kazan-grid-number {
     @apply inline-flex size-5 shrink-0 items-center justify-center border font-mono text-[11px] font-semibold tabular-nums;
-    border-color: var(--update-frame-mark);
-    color: var(--update-heading);
+    border-color: var(--kazan-grid-mark);
+    color: var(--kazan-grid-ink);
   }
 
-  .update-card-divider {
+  .kazan-grid-divider {
     @apply border-primary/25 border-t border-dashed pt-3;
+  }
+
+  /*
+   * A square outline tag in neutral ink for a ticket type, a status or an
+   * inline reference. It carries no fill, so a row of chips stays calm; an
+   * accent is added by the caller only where the value is a warning.
+   */
+  .kazan-grid-chip {
+    @apply border-border text-foreground/80 inline-flex items-center gap-1 rounded-none border bg-transparent px-1.5 py-0.5 font-mono text-[11px] leading-none font-medium tracking-[0.08em] whitespace-nowrap uppercase;
   }
 }
 

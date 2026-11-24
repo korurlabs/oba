@@ -18,7 +18,7 @@ import type { ChatChannelResponse } from "../schemas";
 const SNIPPET_LENGTH = 80;
 
 const CHIP_CLASS =
-  "inline-flex max-w-full min-w-0 items-center gap-1 rounded border px-1 py-px align-middle text-[13px] leading-5";
+  "inline-flex max-w-full min-w-0 items-center gap-1 rounded-none border px-1 py-px align-middle text-[13px] leading-5";
 
 /**
  * A loaded chip is about one line of text wide (`max-w-md` on the chip) and

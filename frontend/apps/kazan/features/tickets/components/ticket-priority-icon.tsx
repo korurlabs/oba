@@ -1,13 +1,11 @@
 /**
  * TicketPriorityIcon Component
  *
- * Displays an icon for ticket priority levels
- * Per visual-design-reference.md section 7:
- * - LOWEST: gray arrow down
- * - LOW: blue arrow down
- * - MEDIUM: gray arrow right
- * - HIGH: orange arrow up
- * - HIGHEST: red double arrow up
+ * The priority as an arrow in muted ink: the arrow's shape and direction tell
+ * the level, and the top of each scale (HIGHEST, and P1 for incidents) is the
+ * only one in red, so the tickets that need attention now stand out instead of
+ * every level competing for it. HIGH and P2 sit in full ink, one step above
+ * the muted rest.
  */
 
 import type { TicketPriority as Priority } from '@/features/tickets/schemas';
@@ -33,27 +31,27 @@ const priorityConfig: Record<
 > = {
   LOWEST: {
     icon: ChevronsDown,
-    className: 'text-gray-400',
+    className: 'text-muted-foreground',
     label: 'Lowest',
   },
   LOW: {
     icon: ChevronDown,
-    className: 'text-blue-500',
+    className: 'text-muted-foreground',
     label: 'Low',
   },
   MEDIUM: {
     icon: Minus,
-    className: 'text-gray-500',
+    className: 'text-muted-foreground',
     label: 'Medium',
   },
   HIGH: {
     icon: ChevronUp,
-    className: 'text-orange-500',
+    className: 'text-foreground',
     label: 'High',
   },
   HIGHEST: {
     icon: ChevronsUp,
-    className: 'text-red-500',
+    className: 'text-red-600',
     label: 'Highest',
   },
   P1: {
@@ -63,12 +61,12 @@ const priorityConfig: Record<
   },
   P2: {
     icon: ChevronsUp,
-    className: 'text-orange-600',
+    className: 'text-foreground',
     label: 'P2',
   },
   P3: {
     icon: ChevronUp,
-    className: 'text-yellow-600',
+    className: 'text-muted-foreground',
     label: 'P3',
   },
 };

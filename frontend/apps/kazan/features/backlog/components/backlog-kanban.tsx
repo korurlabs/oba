@@ -25,22 +25,14 @@ import { useMemo } from "react";
 import { TicketStatus } from "@/types/enums";
 import type { TicketListResponse } from "@/features/tickets/schemas";
 import { TicketCard, TicketCardSkeleton } from "@/features/tickets/components/ticket-card";
-import { cn } from "@oba/ui/lib/utils";
-import { Plus } from "lucide-react";
+import {
+  KanbanAddTicketButton,
+  KanbanColumnHeader,
+  KanbanColumnHeaderSkeleton,
+  KanbanEmptyColumn,
+} from "@/features/tickets/components/kanban-column";
 import { useTranslations } from "next-intl";
-import { KANBAN_COLUMNS } from "@/features/tickets/lib/kanban-config";
 import { sortByPriority } from "@/features/tickets/lib/ticket-priority-order";
-
-// The backlog only ever holds TODO tickets, so it borrows the TODO column's
-// styling. The cards are NOT filtered by status though: a ticket written before
-// the rule existed may still carry IN_PROGRESS in the database, and hiding it
-// here would make it unreachable from this view.
-const TODO_COLUMN = KANBAN_COLUMNS.find((column) => column.id === TicketStatus.TODO);
-const BACKLOG_COLUMN = {
-  colorClass: TODO_COLUMN?.colorClass ?? "bg-muted/50",
-  borderClass: TODO_COLUMN?.borderClass ?? "border-l-4 border-l-gray-300",
-  countClass: TODO_COLUMN?.countClass ?? "bg-muted text-foreground",
-};
 
 interface BacklogKanbanProps {
   tickets: TicketListResponse[];
@@ -76,9 +68,7 @@ export function BacklogKanban({
     return (
       <div className="p-4 lg:p-6">
         <div className="mx-auto flex max-w-3xl flex-col gap-3">
-          <div className={cn("rounded-lg p-3", BACKLOG_COLUMN.colorClass)}>
-            <div className="h-6 w-24 animate-pulse rounded" />
-          </div>
+          <KanbanColumnHeaderSkeleton />
           <TicketCardSkeleton />
           <TicketCardSkeleton />
           <TicketCardSkeleton />
@@ -90,40 +80,21 @@ export function BacklogKanban({
   return (
     <div className="p-4 lg:p-6">
       <div className="mx-auto flex max-w-3xl flex-col gap-3">
-        {/* Column Header */}
-        <div
-          className={cn(
-            "flex items-center justify-between rounded-xl p-3.5",
-            BACKLOG_COLUMN.colorClass,
-            BACKLOG_COLUMN.borderClass
-          )}
-        >
-          <div className="flex flex-col">
-            <h3 className="text-foreground text-sm font-semibold">{t("backlog.title")}</h3>
-            <p className="text-muted-foreground text-xs">{t("ticket.backlogStatusHint")}</p>
-          </div>
-          <span
-            className={cn(
-              "flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-xs font-semibold",
-              BACKLOG_COLUMN.countClass
-            )}
-          >
-            {tickets.length}
-          </span>
-        </div>
+        {/* The cards are NOT filtered by status: a ticket written before the
+            TODO-only rule existed may still carry IN_PROGRESS in the database,
+            and hiding it here would make it unreachable from this view. */}
+        <KanbanColumnHeader
+          title={t("backlog.title")}
+          hint={t("ticket.backlogStatusHint")}
+          count={tickets.length}
+        />
 
         <div className="flex min-h-[500px] flex-col gap-3">
           {tickets.length === 0 ? (
-            <div className="flex flex-1 flex-col items-center justify-center py-8">
-              {canCreateTickets && (
-                <div className="bg-background mb-3 flex h-10 w-10 items-center justify-center rounded-xl">
-                  <Plus className="text-muted-foreground h-5 w-5" />
-                </div>
-              )}
-              <p className="text-muted-foreground text-center text-sm">
-                {t("backlog.noTicketsInColumn")}
-              </p>
-            </div>
+            <KanbanEmptyColumn
+              message={t("backlog.noTicketsInColumn")}
+              showAddHint={canCreateTickets}
+            />
           ) : (
             sortedTickets.map((ticket) => (
               <TicketCard
@@ -143,14 +114,10 @@ export function BacklogKanban({
           {/* Add Ticket Button. Always creates a TODO ticket -- the only status
               the backlog accepts. */}
           {canCreateTickets && (
-            <button
-              type="button"
+            <KanbanAddTicketButton
+              label={t("sprint.addTicket")}
               onClick={() => onCreateTicket(TicketStatus.TODO)}
-              className="hover:border-primary hover:text-primary hover:bg-primary/10 dark:hover:bg-accent dark:hover:text-foreground text-foreground mt-2 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border py-2.5 text-sm transition-all duration-200"
-            >
-              <Plus className="h-4 w-4" />
-              {t("sprint.addTicket")}
-            </button>
+            />
           )}
         </div>
       </div>

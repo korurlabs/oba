@@ -33,7 +33,7 @@ export function UpdateCardBody({ data }: { data: UpdateCardData }) {
   );
 
   return (
-    <div className="update-card-frame space-y-3">
+    <div className="kazan-grid-frame space-y-3">
       <UpdateSection title={t("sections.tickets")}>
         <ol className="space-y-1.5">
           {items.map((item, index) => (
@@ -45,13 +45,13 @@ export function UpdateCardBody({ data }: { data: UpdateCardData }) {
         </ol>
       </UpdateSection>
 
-      <UpdateSection title={t("sections.focus")} className="update-card-divider">
+      <UpdateSection title={t("sections.focus")} className="kazan-grid-divider">
         <TextBullets text={data.focus} emptyLabel={t("none")} />
       </UpdateSection>
 
       <FinishedSection tickets={finishedTickets} />
 
-      <UpdateSection title={t("sections.questions")} className="update-card-divider">
+      <UpdateSection title={t("sections.questions")} className="kazan-grid-divider">
         <TextBullets text={data.questions} emptyLabel={t("none")} />
       </UpdateSection>
     </div>
@@ -69,13 +69,13 @@ function UpdateSection({
   title: string;
   /** Shown after the title, as an explanation the heading itself leaves out. */
   info?: ReactNode;
-  /** `update-card-divider` on every section after the first. */
+  /** `kazan-grid-divider` on every section after the first. */
   className?: string;
   children: ReactNode;
 }) {
   return (
     <section className={cn("space-y-1", className)}>
-      <h3 className="update-card-heading inline-flex items-center gap-1">
+      <h3 className="kazan-grid-label inline-flex items-center gap-1">
         {title}
         {info}
       </h3>
@@ -96,7 +96,7 @@ function FinishedSection({ tickets }: { tickets: UpdateFinishedTicketResponse[] 
 
   if (tickets.length === 0) {
     return (
-      <UpdateSection title={title} info={<UpdateSizingInfo />} className="update-card-divider">
+      <UpdateSection title={title} info={<UpdateSizingInfo />} className="kazan-grid-divider">
         <p className="text-muted-foreground italic">{t("none")}</p>
       </UpdateSection>
     );
@@ -104,9 +104,9 @@ function FinishedSection({ tickets }: { tickets: UpdateFinishedTicketResponse[] 
 
   return (
     <Collapsible open={open} onOpenChange={setOpen} asChild>
-      <section className="update-card-divider space-y-1">
+      <section className="kazan-grid-divider space-y-1">
         {/* The sizing tip sits outside the trigger, so opening it does not toggle the list. */}
-        <h3 className="update-card-heading inline-flex items-center gap-1">
+        <h3 className="kazan-grid-label inline-flex items-center gap-1">
           <CollapsibleTrigger asChild>
             <button
               type="button"
@@ -141,7 +141,7 @@ function FinishedSection({ tickets }: { tickets: UpdateFinishedTicketResponse[] 
 /** The visible position of a line; the `<ol>` already gives it to assistive technology. */
 function LineNumber({ value }: { value: number }) {
   return (
-    <span aria-hidden className="update-card-number">
+    <span aria-hidden className="kazan-grid-number">
       {value}
     </span>
   );

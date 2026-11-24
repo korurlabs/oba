@@ -306,7 +306,7 @@ function SortableChannelRow({
         <Badge
           aria-hidden
           variant={mentions > 0 ? "destructive" : "secondary"}
-          className="h-4 min-w-4 shrink-0 justify-center rounded-full px-1 py-0 text-[10px] tabular-nums"
+          className="h-4 min-w-4 shrink-0 justify-center rounded-none px-1 py-0 text-[10px] tabular-nums"
         >
           {shownUnread}
         </Badge>

@@ -200,7 +200,15 @@ function parseBlocks(content: string): Block[] {
 
 // ── Inline ──────────────────────────────────────────────────────────
 
-const chipBase = "rounded px-1 py-px font-medium whitespace-nowrap";
+const chipBase = "rounded-none border px-1 py-px font-medium whitespace-nowrap";
+
+/**
+ * A mention of the reader stands out by a full primary edge and a heavier
+ * weight; any other member's mention keeps a faint edge, so the reader's own
+ * name is the one that catches the eye.
+ */
+const MENTION_OTHER_CLASS = "border-primary/25 text-primary";
+const MENTION_ME_CLASS = "border-primary bg-primary/10 text-primary font-semibold";
 
 function isWordChar(char: string | undefined): boolean {
   return !!char && /[\p{L}\p{N}]/u.test(char);
@@ -239,7 +247,7 @@ function mentionChip(target: string, ctx: RenderContext, key: number): ReactNode
         key={key}
         className={cn(
           chipBase,
-          ctx.mentionsMe ? "bg-amber-400/30 text-amber-900 dark:text-amber-100" : "bg-primary/15 text-primary",
+          ctx.mentionsMe ? MENTION_ME_CLASS : MENTION_OTHER_CLASS,
         )}
       >
         @{target}
@@ -255,11 +263,7 @@ function mentionChip(target: string, ctx: RenderContext, key: number): ReactNode
       key={key}
       className={cn(
         chipBase,
-        !known
-          ? "bg-muted text-muted-foreground"
-          : isMe
-            ? "bg-amber-400/30 text-amber-900 dark:text-amber-100"
-            : "bg-primary/15 text-primary",
+        !known ? "border-border text-muted-foreground" : isMe ? MENTION_ME_CLASS : MENTION_OTHER_CLASS,
       )}
     >
       @{chatUserDisplayName(user, ctx.labels.unknownMember)}
@@ -279,7 +283,7 @@ function findTicketRef(ticketId: string, ctx: RenderContext): ChatTicketRefRespo
 
 function ticketChip(ticketId: string, ctx: RenderContext, key: number): ReactNode {
   const ref = findTicketRef(ticketId, ctx);
-  const chip = "inline-flex max-w-full items-baseline gap-1 rounded border px-1 py-px align-baseline text-[13px]";
+  const chip = "inline-flex max-w-full items-baseline gap-1 rounded-none border px-1 py-px align-baseline text-[13px]";
   if (!ref) {
     return (
       <span key={key} className={cn(chip, "text-muted-foreground")}>

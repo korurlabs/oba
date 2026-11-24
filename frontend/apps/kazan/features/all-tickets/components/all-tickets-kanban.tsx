@@ -25,8 +25,12 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { TicketCard, TicketCardSkeleton } from "@/features/tickets/components/ticket-card";
-import { cn } from "@oba/ui/lib/utils";
-import { Plus } from "lucide-react";
+import {
+  KanbanAddTicketButton,
+  KanbanColumnHeader,
+  KanbanColumnHeaderSkeleton,
+  KanbanEmptyColumn,
+} from "@/features/tickets/components/kanban-column";
 import { useTranslations } from "next-intl";
 import type { AllTicketListResponse } from "../schemas";
 import {
@@ -137,9 +141,7 @@ export function AllTicketsKanban({
         <div className="grid min-w-[1000px] grid-cols-5 gap-4">
           {KANBAN_COLUMNS.map((column) => (
             <div key={column.id} className="flex flex-col gap-3">
-              <div className={cn("rounded-lg p-3", column.colorClass)}>
-                <div className="h-6 w-24 animate-pulse rounded" />
-              </div>
+              <KanbanColumnHeaderSkeleton />
               <div className="flex flex-col gap-3">
                 <TicketCardSkeleton />
                 <TicketCardSkeleton />
@@ -162,31 +164,16 @@ export function AllTicketsKanban({
     >
       <div className="overflow-x-auto p-4 lg:p-6">
         <div className="grid min-w-[1000px] grid-cols-5 gap-4">
-          {KANBAN_COLUMNS.map((column) => {
+          {KANBAN_COLUMNS.map((column, columnIndex) => {
             const columnTickets = getTicketsByStatus(displayTickets, column.id);
 
             return (
               <div key={column.id} className="flex min-h-[500px] flex-col gap-3">
-                {/* Column Header */}
-                <div
-                  className={cn(
-                    "flex items-center justify-between rounded-xl p-3.5",
-                    column.colorClass,
-                    column.borderClass,
-                  )}
-                >
-                  <h3 className="text-foreground text-sm font-semibold">
-                    {t(`ticket.status.${column.id}`)}
-                  </h3>
-                  <span
-                    className={cn(
-                      "flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-xs font-semibold",
-                      column.countClass,
-                    )}
-                  >
-                    {columnTickets.length}
-                  </span>
-                </div>
+                <KanbanColumnHeader
+                  index={columnIndex + 1}
+                  title={t(`ticket.status.${column.id}`)}
+                  count={columnTickets.length}
+                />
 
                 {/* Droppable Area */}
                 <SortableContext
@@ -199,14 +186,10 @@ export function AllTicketsKanban({
                     isOver={activeTicket !== null && activeTicket.status !== column.id}
                   >
                     {columnTickets.length === 0 ? (
-                      <div className="flex flex-1 flex-col items-center justify-center py-8">
-                        <div className="bg-background mb-3 flex h-10 w-10 items-center justify-center rounded-xl">
-                          <Plus className="text-muted-foreground h-5 w-5" />
-                        </div>
-                        <p className="text-muted-foreground text-center text-sm">
-                          {t("allTicketsPage.noTicketsInColumn")}
-                        </p>
-                      </div>
+                      <KanbanEmptyColumn
+                        message={t("allTicketsPage.noTicketsInColumn")}
+                        showAddHint
+                      />
                     ) : (
                       columnTickets.map((ticket) => (
                         <TicketCard
@@ -225,14 +208,10 @@ export function AllTicketsKanban({
                     )}
 
                     {/* Add Ticket Button */}
-                    <button
-                      type="button"
+                    <KanbanAddTicketButton
+                      label={t("allTicketsPage.addTicket")}
                       onClick={() => onCreateTicket(column.id)}
-                      className="hover:border-primary hover:text-primary hover:bg-primary/10 dark:hover:bg-accent dark:hover:text-foreground text-foreground mt-2 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border py-2.5 text-sm transition-all duration-200"
-                    >
-                      <Plus className="h-4 w-4" />
-                      {t("allTicketsPage.addTicket")}
-                    </button>
+                    />
                   </DroppableColumn>
                 </SortableContext>
               </div>

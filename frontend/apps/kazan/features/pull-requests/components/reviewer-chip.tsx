@@ -12,9 +12,9 @@ interface ReviewerChipProps {
 }
 
 /**
- * One chosen reviewer of a share. An approval turns the chip green with a
- * tick at its bottom-right corner; screen readers hear "Approved", so the
- * state does not rest on colour alone.
+ * One chosen reviewer of a share, as a square outline chip. An approval gives
+ * the chip a primary edge and a tick at its bottom-right corner; screen
+ * readers hear "Approved", so the state does not rest on colour alone.
  */
 export function ReviewerChip({ reviewer, className }: ReviewerChipProps) {
   const t = useTranslations("pullRequests.card");
@@ -26,9 +26,9 @@ export function ReviewerChip({ reviewer, className }: ReviewerChipProps) {
   return (
     <span
       className={cn(
-        "relative inline-flex max-w-48 items-center rounded-full border px-2 py-0.5 text-[11px] font-medium",
+        "relative inline-flex max-w-48 items-center rounded-none border px-2 py-0.5 text-[11px] font-medium",
         approved
-          ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+          ? "border-primary/50 bg-primary/5 text-primary"
           : "border-border bg-background text-foreground",
         className,
       )}
@@ -38,7 +38,7 @@ export function ReviewerChip({ reviewer, className }: ReviewerChipProps) {
         <>
           <span
             aria-hidden
-            className="ring-background absolute -right-1 -bottom-1 flex size-3.5 items-center justify-center rounded-full bg-emerald-600 text-white ring-2"
+            className="ring-background bg-primary text-primary-foreground absolute -right-1 -bottom-1 flex size-3.5 items-center justify-center rounded-none ring-2"
           >
             <Check className="size-2.5" strokeWidth={3} />
           </span>

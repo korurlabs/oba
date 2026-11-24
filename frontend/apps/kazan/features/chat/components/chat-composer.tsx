@@ -156,8 +156,10 @@ const ChatText = Node.create({
   },
 });
 
-const USER_CHIP_CLASS = "bg-primary/15 text-primary rounded px-1 py-px font-medium";
-const TICKET_CHIP_CLASS = "border-primary/30 bg-primary/5 text-primary rounded border px-1 py-px text-[13px]";
+// Square outline chips, the same as the posted message renders them, so the
+// draft shows the mention and the ticket reference as they will appear.
+const USER_CHIP_CLASS = "border-primary/25 text-primary rounded-none border px-1 py-px font-medium";
+const TICKET_CHIP_CLASS = "border-primary/30 bg-primary/5 text-primary rounded-none border px-1 py-px text-[13px]";
 
 /**
  * Member and ticket chips. `@` chips are sent as `<@userId>`, `<@everyone>`
@@ -592,7 +594,7 @@ export function ChatComposer({ typingUserIds, ...props }: ChatComposerProps) {
       {canWrite ? (
         <ChatComposerEditor {...props} />
       ) : (
-        <p className="border-border bg-muted/40 text-muted-foreground rounded-lg border px-3 py-2.5 text-sm">
+        <p className="border-border bg-muted/40 text-muted-foreground rounded-none border px-3 py-2.5 text-sm">
           {t("guest")}
         </p>
       )}
@@ -949,7 +951,7 @@ function ChatComposerEditor({
 
       <div
         className={cn(
-          "border-border bg-muted/30 relative flex flex-col rounded-lg border transition-colors",
+          "border-border bg-muted/30 relative flex flex-col rounded-none border transition-colors",
           dragDepth > 0 && "border-primary",
           visibleErrors.length > 0 && "border-destructive",
         )}
@@ -1013,7 +1015,7 @@ function ChatComposerEditor({
         </div>
 
         {dragDepth > 0 && (
-          <div className="bg-background/90 text-primary pointer-events-none absolute inset-0 flex items-center justify-center gap-2 rounded-lg text-sm font-medium">
+          <div className="bg-background/90 text-primary pointer-events-none absolute inset-0 flex items-center justify-center gap-2 rounded-none text-sm font-medium">
             <Upload className="size-4" aria-hidden />
             {t("dropFiles")}
           </div>

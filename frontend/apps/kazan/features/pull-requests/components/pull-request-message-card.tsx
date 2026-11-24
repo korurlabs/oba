@@ -7,7 +7,6 @@ import { Check, Copy, ExternalLink, GitBranch, Pencil, Trash2, Undo2 } from "luc
 import type { ApiResponse } from "@oba/shared/schema";
 import { Link } from "@oba/shared/libs/i18n/navigation";
 import { cn } from "@oba/ui/lib/utils";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useChatCopy } from "@/features/chat/hooks/use-chat-copy";
 import { patchChatMessage, useChatOrganizationId } from "@/features/chat/hooks/use-chat-messages";
@@ -22,16 +21,21 @@ import { pullRequestShareEditPath } from "./pull-request-share-paths";
 import { RelatedTicketRow } from "./related-ticket-row";
 import { ReviewerChip } from "./reviewer-chip";
 
-/** The team's status colours: Draft grey, Open blue, In Review amber, Merged purple, Discuss red. */
+/**
+ * The team's statuses as outline chips, told apart by their text. Only two
+ * carry an accent: Merged in primary, as the outcome the channel works
+ * towards, and Discuss in red, because it asks the team to talk before the
+ * pull request moves on. Draft is muted, as work not yet asked to be read.
+ */
 const STATUS_CLASSES: Record<PullRequestShareStatus, string> = {
-  [PullRequestShareStatus.DRAFT]: "border-border bg-muted text-muted-foreground",
-  [PullRequestShareStatus.OPEN]: "border-blue-500/40 bg-blue-500/10 text-blue-700 dark:text-blue-400",
-  [PullRequestShareStatus.IN_REVIEW]: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400",
-  [PullRequestShareStatus.MERGED]: "border-purple-500/40 bg-purple-500/10 text-purple-700 dark:text-purple-400",
-  [PullRequestShareStatus.DISCUSS]: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-400",
+  [PullRequestShareStatus.DRAFT]: "text-muted-foreground",
+  [PullRequestShareStatus.OPEN]: "",
+  [PullRequestShareStatus.IN_REVIEW]: "",
+  [PullRequestShareStatus.MERGED]: "border-primary/50 text-primary",
+  [PullRequestShareStatus.DISCUSS]: "border-red-600/40 text-red-700 dark:border-red-400/50 dark:text-red-400",
 };
 
-/** The status the team set on a share, as text and colour. */
+/** The status the team set on a share, as a labelled chip. */
 export function PullRequestShareStatusBadge({
   status,
   className,
@@ -40,14 +44,7 @@ export function PullRequestShareStatusBadge({
   className?: string;
 }) {
   const t = useTranslations("pullRequests.statuses");
-  return (
-    <Badge
-      variant="outline"
-      className={cn("px-1.5 py-0 text-[11px] font-medium whitespace-nowrap", STATUS_CLASSES[status], className)}
-    >
-      {t(status)}
-    </Badge>
-  );
+  return <span className={cn("kazan-grid-chip", STATUS_CLASSES[status], className)}>{t(status)}</span>;
 }
 
 interface PullRequestShareContentProps {
@@ -83,67 +80,69 @@ export function PullRequestShareContent({
   const actionClass = "h-7 gap-1.5 px-2 text-xs";
 
   return (
-    <div role="group" aria-label={t("label", { name: authorName })} className="space-y-2.5">
-      <div className="space-y-1">
-        <p className="text-foreground font-medium break-words">
-          <ShareTicketKey share={share} />
-          {share.title}
-        </p>
-        <div className="text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-          <span className="break-all">
-            {share.repositoryFullName} #{share.number}
-          </span>
-          <span>{t("byGithubAuthor", { login: share.githubAuthorLogin })}</span>
-          <a
-            href={share.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary inline-flex items-center gap-1 font-medium hover:underline"
-          >
-            {t("openInGithub")}
-            <ExternalLink className="h-3 w-3" aria-hidden />
-          </a>
-        </div>
-        <p className="text-muted-foreground flex min-w-0 items-center gap-1 text-xs">
-          <GitBranch className="h-3 w-3 shrink-0" aria-hidden />
-          <span className="break-all">
-            {share.headRef} -&gt; {share.baseRef}
-          </span>
-        </p>
-      </div>
-
-      <div className="flex flex-wrap items-start gap-2">
-        <span className="text-muted-foreground text-xs font-medium">{t("status")}</span>
-        <PullRequestShareStatusBadge status={share.status} />
-        {share.note && <span className="text-foreground min-w-0 break-words whitespace-pre-wrap">{share.note}</span>}
-      </div>
-
-      {share.relatedTickets.length > 0 && (
+    <div role="group" aria-label={t("label", { name: authorName })} className="space-y-3">
+      <div className="kazan-grid-frame space-y-2.5">
         <div className="space-y-1">
-          <span className="text-muted-foreground text-xs font-medium">{t("relatedTickets")}</span>
-          <ul className="space-y-1" aria-label={t("relatedTickets")}>
-            {share.relatedTickets.map((ticket) => (
-              <li key={ticket.ticketId}>
-                <RelatedTicketRow ticket={ticket} />
-              </li>
-            ))}
-          </ul>
+          <p className="text-foreground font-medium break-words">
+            <ShareTicketKey share={share} />
+            {share.title}
+          </p>
+          <div className="text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+            <span className="break-all">
+              {share.repositoryFullName} #{share.number}
+            </span>
+            <span>{t("byGithubAuthor", { login: share.githubAuthorLogin })}</span>
+            <a
+              href={share.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary inline-flex items-center gap-1 font-medium hover:underline"
+            >
+              {t("openInGithub")}
+              <ExternalLink className="h-3 w-3" aria-hidden />
+            </a>
+          </div>
+          <p className="text-muted-foreground flex min-w-0 items-center gap-1 text-xs">
+            <GitBranch className="h-3 w-3 shrink-0" aria-hidden />
+            <span className="break-all">
+              {share.headRef} -&gt; {share.baseRef}
+            </span>
+          </p>
         </div>
-      )}
 
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-muted-foreground text-xs font-medium">{t("reviewers")}</span>
-        {share.reviewers.length > 0 ? (
-          <ul className="flex flex-wrap items-center gap-2" aria-label={t("reviewers")}>
-            {share.reviewers.map((reviewer) => (
-              <li key={reviewer.userId}>
-                <ReviewerChip reviewer={reviewer} />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <span className="text-muted-foreground text-xs">{t("noReviewers")}</span>
+        <div className="kazan-grid-divider flex flex-wrap items-start gap-2">
+          <span className="kazan-grid-label inline-flex items-center gap-1 pt-0.5">{t("status")}</span>
+          <PullRequestShareStatusBadge status={share.status} />
+          {share.note && <span className="text-foreground min-w-0 break-words whitespace-pre-wrap">{share.note}</span>}
+        </div>
+
+        {share.relatedTickets.length > 0 && (
+          <div className="kazan-grid-divider space-y-1">
+            <span className="kazan-grid-label flex items-center gap-1">{t("relatedTickets")}</span>
+            <ul className="space-y-1" aria-label={t("relatedTickets")}>
+              {share.relatedTickets.map((ticket) => (
+                <li key={ticket.ticketId}>
+                  <RelatedTicketRow ticket={ticket} />
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
+
+        <div className="kazan-grid-divider flex flex-wrap items-center gap-2">
+          <span className="kazan-grid-label inline-flex items-center gap-1">{t("reviewers")}</span>
+          {share.reviewers.length > 0 ? (
+            <ul className="flex flex-wrap items-center gap-2" aria-label={t("reviewers")}>
+              {share.reviewers.map((reviewer) => (
+                <li key={reviewer.userId}>
+                  <ReviewerChip reviewer={reviewer} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <span className="text-muted-foreground text-xs">{t("noReviewers")}</span>
+          )}
+        </div>
       </div>
 
       <div className="border-border/60 flex flex-wrap items-center gap-1 border-t pt-2">
@@ -167,7 +166,7 @@ export function PullRequestShareContent({
             <Button
               variant="outline"
               size="sm"
-              className={cn(actionClass, "border-emerald-500/50 text-emerald-700 dark:text-emerald-400")}
+              className={cn(actionClass, "border-primary/50 text-primary hover:text-primary")}
               disabled={approval.isPending}
               onClick={() => approval.approve(share.id)}
             >

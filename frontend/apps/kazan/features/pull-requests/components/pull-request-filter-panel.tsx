@@ -179,7 +179,7 @@ function PullRequestFilterContent({
               >
                 <span className="font-medium">{category.label}</span>
                 {category.count > 0 && (
-                  <span className="bg-primary/15 text-primary flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-semibold">
+                  <span className="kazan-grid-number h-5 w-auto min-w-5 px-1">
                     {category.count}
                   </span>
                 )}

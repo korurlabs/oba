@@ -25,44 +25,20 @@ import { sortByPriority } from "@/features/tickets/lib/ticket-priority-order";
 // Column definitions
 // ---------------------------------------------------------------------------
 
+/**
+ * The status columns in board order. A column is told apart by its label and
+ * its position, not by a colour.
+ */
 export interface KanbanColumn {
   id: TicketStatus;
-  colorClass: string;
-  borderClass: string;
-  countClass: string;
 }
 
 export const KANBAN_COLUMNS: KanbanColumn[] = [
-  {
-    id: TicketStatus.TODO,
-    colorClass: "bg-muted/50",
-    borderClass: "border-l-4 border-l-gray-300",
-    countClass: "bg-muted text-foreground",
-  },
-  {
-    id: TicketStatus.IN_PROGRESS,
-    colorClass: "bg-muted/50",
-    borderClass: "border-l-4 border-l-blue-400",
-    countClass: "bg-muted text-foreground",
-  },
-  {
-    id: TicketStatus.WAITING_FOR_THIRD_PARTY,
-    colorClass: "bg-muted/50",
-    borderClass: "border-l-4 border-l-amber-400",
-    countClass: "bg-muted text-foreground",
-  },
-  {
-    id: TicketStatus.IN_REVIEW,
-    colorClass: "bg-muted/50",
-    borderClass: "border-l-4 border-l-purple-400",
-    countClass: "bg-muted text-foreground",
-  },
-  {
-    id: TicketStatus.DONE,
-    colorClass: "bg-muted/50",
-    borderClass: "border-l-4 border-l-green-400",
-    countClass: "bg-muted text-foreground",
-  },
+  { id: TicketStatus.TODO },
+  { id: TicketStatus.IN_PROGRESS },
+  { id: TicketStatus.WAITING_FOR_THIRD_PARTY },
+  { id: TicketStatus.IN_REVIEW },
+  { id: TicketStatus.DONE },
 ];
 
 /**
@@ -301,8 +277,8 @@ export function DroppableColumn({ id, children, isOver }: DroppableColumnProps) 
     <div
       ref={setNodeRef}
       className={cn(
-        "flex flex-1 flex-col gap-3 rounded-lg border-2 border-dashed border-transparent p-0 transition-colors",
-        isOver && "border-primary bg-primary/10 dark:border-border dark:bg-muted",
+        "flex flex-1 flex-col gap-3 rounded-none border border-dashed border-transparent p-0 transition-colors",
+        isOver && "border-primary bg-primary/5 dark:border-border dark:bg-muted",
       )}
     >
       {children}
