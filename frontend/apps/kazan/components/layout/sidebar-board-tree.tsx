@@ -672,7 +672,7 @@ export function SidebarBoardTree() {
     );
   }
 
-  // Collapsed icon rail: the rows the open branches show, flat, as dots
+  // Collapsed icon rail: the rows the open branches show, flat, as board icons
   if (collapsed) {
     const rows = [
       ...flattenVisibleRows(pinnedBoards, getPinnedChildren, isExpanded, PINNED_CONTAINER_ID),
