@@ -350,18 +350,18 @@ Web search results can be wrong: check each candidate before you pick it.
 
 ```sh
 oba otak mail-template list --lang nl --search intro
-oba otak mail-template push mails/first-contact.md --lang en
-oba otak mail-template push mails/first-contact.md --id <mailTemplateId>   # update; language and name stay unless given
-oba otak mail-template pull <mailTemplateId> -o work/
+oba otak mail-template upload mails/first-contact.md --lang en
+oba otak mail-template upload mails/first-contact.md --id <mailTemplateId>   # update; language and name stay unless given
+oba otak mail-template download <mailTemplateId> -o work/
 ```
 
 A mail template is a reusable mail of the organization, which a MAIL outreach copies into its own mail. It is a `.md` file: the subject on the first line, a blank line, then the body as plain text. Blank lines after the subject and trailing white space are dropped; Windows line endings and a byte order mark are accepted. Any other extension is refused before any call.
 
 - `list` prints `NAME  LANGUAGE  SUBJECT  UPDATED  ID`, every cell on one line and `-` for an empty value, or `No mail templates.`. `--lang` narrows to one language, `--search` to the names that contain the text, case ignored. The ids are what `outreach create --type mail --template` takes.
-- `push` without `--id` needs `--lang`; the name defaults to the file name without extension unless `--name` gives one. It sends `POST /otak/mail-templates` and prints `Created mail template <id> (<name>, <LANGUAGE>)`. With `--id` it reads the stored mail template only when `--lang` or `--name` is missing, takes subject and body from the file and sends the full `PUT /otak/mail-templates/{id}`. The name is unique per language in the organization. Outreaches already copied from a mail template keep their own mail when it changes.
-- `pull` writes `<name>.md` into `-o` (default the current directory) in the form `push` reads; an existing file is not overwritten without `--force`.
+- `upload` without `--id` needs `--lang`; the name defaults to the file name without extension unless `--name` gives one. It sends `POST /otak/mail-templates` and prints `Created mail template <id> (<name>, <LANGUAGE>)`. With `--id` it reads the stored mail template only when `--lang` or `--name` is missing, takes subject and body from the file and sends the full `PUT /otak/mail-templates/{id}`. The name is unique per language in the organization. Outreaches already copied from a mail template keep their own mail when it changes.
+- `download` writes `<name>.md` into `-o` (default the current directory) in the form `upload` reads; an existing file is not overwritten without `--force`.
 
-`--lang` is `nl`, `tr`, `en`, or `us` for English, case ignored. Writes need the ADMIN role; a member can list and pull.
+`--lang` is `nl`, `tr`, `en`, or `us` for English, case ignored. Writes need the ADMIN role; a member can list and download.
 
 ## Otak outreaches
 
@@ -583,7 +583,7 @@ The packages are grouped as in the Oba backend: `dojo` is the technical foundati
 | `internal/dojo/config/` | API URL, issuer and client id resolution, `config.json` and the current organization |
 | `internal/dojo/client/` | the API client: the `CustomResponse` envelope, `APIError`, refresh and retry, paged lists, exit codes, multipart uploads with a Content-Type per part, and downloads from signed URLs without the token |
 | `internal/dojo/pdf/` | inlining local images as data URIs and rendering HTML to PDF with `weasyprint` |
-| `internal/dojo/docfile/` | the file forms the document, template, mail-template and outreach commands share: the MAIL file, the language and type values, the extension check, loading and rendering an HTML file, and writing a download or pull |
+| `internal/dojo/docfile/` | the file forms the document, template, mail-template and outreach commands share: the MAIL file, the language and type values, the extension check, loading and rendering an HTML file, and writing a download |
 | `internal/dojo/attachment/` | the attachments of any storage parent that Otak and Kazan share: reading and checking local files, list, table, find, upload and delete |
 | `internal/dojo/apidocs/` | reading the request schemas from `/v3/api-docs`, the key check and the field help |
 | `internal/dojo/guardrail/` | `Sanitize` and `CleanJSON`: remove terminal controls from text the CLI did not write; `OneLine` and `PersonName` for table cells |

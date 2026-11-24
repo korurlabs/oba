@@ -10,7 +10,7 @@ import (
 	"unicode"
 )
 
-// File is one file a pull writes: its extension and content.
+// File is one file a download writes: its extension and content.
 type File struct {
 	Ext  string
 	Data []byte
@@ -18,7 +18,7 @@ type File struct {
 
 // WriteFiles writes the files of one mail template into dir as <name><ext>, name made
 // safe for a file name (fallback when nothing of it is left), and returns the paths written.
-// Nothing is written when one of the files exists and overwrite is false, so that a pull never
+// Nothing is written when one of the files exists and overwrite is false, so that a download never
 // replaces a library source file by accident.
 func WriteFiles(dir, name, fallback string, files []File, overwrite bool) ([]string, error) {
 	if dir == "" {
