@@ -57,6 +57,8 @@ interface SprintKanbanProps {
   canEdit?: boolean;
   isLoading?: boolean;
   canCreateTickets?: boolean;
+  /** While a search is active: show only the sub-tickets on a card that match or lead to a match, expanded. */
+  showSearchMatches?: boolean;
 }
 
 export function SprintKanban({
@@ -71,6 +73,7 @@ export function SprintKanban({
   onRequestCreateSubTicket,
   canEdit = true,
   isLoading = false,
+  showSearchMatches = false,
   canCreateTickets = true,
 }: SprintKanbanProps) {
   const t = useTranslations();
@@ -232,6 +235,7 @@ export function SprintKanban({
                           onSubTicketClick={onSubTicketClick}
                           onRequestCreateSubTicket={onRequestCreateSubTicket}
                           canEdit={canEdit}
+                          showSearchMatches={showSearchMatches}
                         />
                       ))
                     )}

@@ -31,10 +31,12 @@ import com.korur.oba.dojo.dto.QuerySortRequest;
 public class TicketQueryRequest extends QuerySortRequest {
 
     /**
-     * Search keyword to match against ticket title or key.
+     * Search keyword to match against ticket title, description or key. A listed ticket
+     * also matches when a sub-ticket nested under it does.
      * Null or blank means no search filter.
      */
-    @Schema(description = "Search keyword to match against ticket title or key")
+    @Schema(description = "Search keyword to match against ticket title, description or key; "
+            + "a listed ticket also matches when a sub-ticket nested under it does")
     private String search;
 
     /**

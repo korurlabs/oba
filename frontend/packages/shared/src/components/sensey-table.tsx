@@ -152,6 +152,26 @@ export interface SenseyTableProps<TData> {
   hierarchyKey?: keyof TData & string;
   /** Whether hierarchy rows are expanded by default (default: false) */
   defaultExpanded?: boolean;
+  /**
+   * Expands every hierarchy row when it turns true, e.g. while a search is
+   * active so a matching child row is in view. The reader can still collapse
+   * rows; when it turns false the rows go back to the expansion they had
+   * before. Defaults to false.
+   */
+  expandAll?: boolean;
+  /**
+   * Lets hierarchy child rows be selected on their own (opt-in, default:
+   * false). Selecting a row then never selects its children, and a child's
+   * selection never marks its parent. Without it only top-level rows (and
+   * the children of static rows) are selectable.
+   */
+  selectableSubRows?: boolean;
+  /**
+   * Shows only the hierarchy child rows it returns true for, e.g. the ones on
+   * the way to a search match. The row data is left whole. Keep it stable
+   * (module-level or memoized): a new function rebuilds the rows.
+   */
+  subRowFilter?: (row: TData) => boolean;
   /** Controlled row selection state (record of rowId → boolean) */
   rowSelection?: RowSelectionState;
   /** Called when row selection changes */
@@ -1175,6 +1195,9 @@ export function SenseyTable<TData>({
   virtualized: virtualizedProp,
   hierarchyKey,
   defaultExpanded = false,
+  expandAll = false,
+  selectableSubRows = false,
+  subRowFilter,
   rowSelection: externalRowSelection,
   onRowSelectionChange,
   getRowId: getRowIdProp,
@@ -1187,7 +1210,20 @@ export function SenseyTable<TData>({
   tableRef,
 }: SenseyTableProps<TData>) {
   // Expanding state for hierarchy
-  const [expanded, setExpanded] = useState<ExpandedState>(defaultExpanded ? true : {});
+  const [expanded, setExpanded] = useState<ExpandedState>(
+    defaultExpanded || expandAll ? true : {}
+  );
+  // `expandAll` turning on expands every row and remembers the expansion it
+  // replaced; turning off restores it. Adjusted during render, so the first
+  // frame after the change already shows the new expansion.
+  const [expandAllState, setExpandAllState] = useState<{
+    on: boolean;
+    before: ExpandedState;
+  }>({ on: expandAll, before: defaultExpanded ? true : {} });
+  if (expandAllState.on !== expandAll) {
+    setExpandAllState({ on: expandAll, before: expandAll ? expanded : expandAllState.before });
+    setExpanded(expandAll ? true : expandAllState.before);
+  }
 
   // Sorting state: use external if provided, otherwise manage internally
   const [internalSorting, setInternalSorting] = useState<SortingState>([]);
@@ -1268,9 +1304,12 @@ export function SenseyTable<TData>({
     if (!hierarchyKey) return undefined;
     return (row: TData) => {
       const children = row[hierarchyKey];
-      return (Array.isArray(children) ? children : undefined) as TData[] | undefined;
+      if (!Array.isArray(children)) return undefined;
+      if (!subRowFilter) return children as TData[];
+      const shown = (children as TData[]).filter(subRowFilter);
+      return shown.length > 0 ? shown : undefined;
     };
-  }, [hierarchyKey]);
+  }, [hierarchyKey, subRowFilter]);
 
   // Set of column IDs whose `size` was explicitly set by the consumer. Used to
   // skip TanStack's merged-in `defaultColumn.size = 150` so untouched columns
@@ -1374,10 +1413,15 @@ export function SenseyTable<TData>({
     onExpandedChange: hierarchyKey ? setExpanded : undefined,
     enableRowSelection: (row) => {
       if (!enableSelection) return false;
-      // Same rule as drag and drop: sub/child rows and static rows are excluded.
+      // Same rule as drag and drop: sub/child rows and static rows are excluded,
+      // unless the consumer lets child rows be selected on their own.
+      if (hierarchyKey && selectableSubRows) return !isStaticRow(row);
       if (hierarchyKey) return isOwnRow(row);
       return !isRowStatic?.(row.original);
     },
+    // A child row selected on its own is its own choice: selecting the parent
+    // must not select it too.
+    ...(selectableSubRows ? { enableSubRowSelection: false } : {}),
     getRowId: getRowIdProp,
     getSubRows,
     getCoreRowModel: getCoreRowModel(),

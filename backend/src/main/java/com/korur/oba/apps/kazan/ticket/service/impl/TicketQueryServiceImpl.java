@@ -71,6 +71,7 @@ import com.korur.oba.apps.kazan.ticket.mapper.TicketMapper;
 import com.korur.oba.apps.kazan.ticket.repository.TicketAssigneeRepository;
 import com.korur.oba.apps.kazan.ticket.repository.TicketRepository;
 import com.korur.oba.apps.kazan.ticket.service.TicketQueryService;
+import com.korur.oba.apps.kazan.ticket.specification.TicketSearchText;
 import com.korur.oba.apps.kazan.ticket.specification.TicketSpecification;
 import com.korur.oba.apps.kazan.ticket.validator.TicketValidator;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
@@ -179,7 +180,11 @@ public class TicketQueryServiceImpl implements TicketQueryService {
         final Specification<Ticket> spec = TicketSpecification.filterBy(boardIds,
                 backlogIds, queryRequest);
         List<Ticket> tickets = ticketRepository.findAll(spec, queryRequest.toSort());
-        return tickets.stream().map(ticketMapper::toListResponse).toList();
+        TicketSearchText search = TicketSearchText.of(queryRequest.getSearch());
+        if (search == null) {
+            return tickets.stream().map(ticketMapper::toListResponse).toList();
+        }
+        return tickets.stream().map(ticket -> ticketMapper.toListResponse(ticket, search)).toList();
     }
 
     @Override
@@ -204,7 +209,11 @@ public class TicketQueryServiceImpl implements TicketQueryService {
         // Build specification and query tickets.
         final Specification<Ticket> spec = TicketSpecification.filterByBoards(effectiveBoardIds, queryRequest);
         List<Ticket> tickets = ticketRepository.findAll(spec, queryRequest.toSort());
-        return tickets.stream().map(ticketMapper::toAllTicketListResponse).toList();
+        TicketSearchText search = TicketSearchText.of(queryRequest.getSearch());
+        if (search == null) {
+            return tickets.stream().map(ticketMapper::toAllTicketListResponse).toList();
+        }
+        return tickets.stream().map(ticket -> ticketMapper.toAllTicketListResponse(ticket, search)).toList();
     }
 
     @Override

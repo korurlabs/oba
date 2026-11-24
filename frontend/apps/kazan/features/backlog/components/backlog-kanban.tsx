@@ -53,6 +53,8 @@ interface BacklogKanbanProps {
   canEdit?: boolean;
   isLoading?: boolean;
   canCreateTickets?: boolean;
+  /** While a search is active: show only the sub-tickets on a card that match or lead to a match, expanded. */
+  showSearchMatches?: boolean;
 }
 
 export function BacklogKanban({
@@ -64,6 +66,7 @@ export function BacklogKanban({
   onRequestCreateSubTicket,
   canEdit = true,
   isLoading = false,
+  showSearchMatches = false,
   canCreateTickets = true,
 }: BacklogKanbanProps) {
   const t = useTranslations();
@@ -132,6 +135,7 @@ export function BacklogKanban({
                 onSubTicketClick={onSubTicketClick}
                 onRequestCreateSubTicket={onRequestCreateSubTicket}
                 canEdit={canEdit}
+                showSearchMatches={showSearchMatches}
               />
             ))
           )}

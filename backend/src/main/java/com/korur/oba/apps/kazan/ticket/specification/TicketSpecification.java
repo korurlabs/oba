@@ -4,6 +4,9 @@ package com.korur.oba.apps.kazan.ticket.specification;
 import org.springframework.data.jpa.domain.Specification;
 
 // 2. Third-party
+import jakarta.persistence.criteria.CommonAbstractCriteria;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
@@ -40,6 +43,12 @@ import com.korur.oba.apps.kazan.ticket.enums.TicketType;
  * chaining.
  */
 public class TicketSpecification {
+
+    /**
+     * How many levels of sub-tickets a keyword search looks through below a listed ticket.
+     * The board only creates one level, but older data and the API can hold deeper chains.
+     */
+    private static final int SEARCH_SUB_TICKET_DEPTH = 3;
 
     private TicketSpecification() {
         throw new UnsupportedOperationException("Utility class");
@@ -191,18 +200,82 @@ public class TicketSpecification {
     }
 
     /**
-     * Case-insensitive keyword search across ticket title, description, and key.
-     * Returns no-op if {@code keyword} is null or blank.
+     * Case-insensitive keyword search across ticket title, description, and key; the
+     * keyword is literal ({@link TicketSearchText}). Returns no-op if {@code keyword} is
+     * null or blank.
+     *
+     * A listed ticket also matches when one of the sub-tickets nested under it in the list
+     * matches, so a sub-ticket can be found by searching even though the list holds only
+     * its root. A sub-ticket counts as nested when it, and every ticket between it and the
+     * listed one, is on one of the boards and in the same sprint (sprint list), in one of the
+     * backlogs and no sprint (backlog list), or anywhere (all-tickets list). The match is an
+     * EXISTS subquery per level, so a ticket with several matching sub-tickets is listed once.
+     *
+     * With a milestone filter every ticket is listed on its own row, sub-tickets included, so
+     * the search matches each row by its own text only.
+     *
+     * @param keyword     the search text; null or blank matches every ticket
+     * @param boardIds    the boards a nested sub-ticket must be on
+     * @param milestoneId the milestone filter; when set, sub-tickets are not searched through
+     * @param sprintId    the sprint of a sprint list; null otherwise
+     * @param backlogIds  the backlogs of a backlog list; null or empty otherwise
      */
-    private static Specification<Ticket> searchSpecification(String keyword) {
-        if (keyword == null || keyword.isBlank()) {
+    private static Specification<Ticket> searchSpecification(String keyword, List<UUID> boardIds,
+                                                             UUID milestoneId, UUID sprintId,
+                                                             List<UUID> backlogIds) {
+        TicketSearchText search = TicketSearchText.of(keyword);
+        if (search == null) {
             return noOp();
         }
-        String pattern = "%" + keyword.toLowerCase() + "%";
-        return (root, query, cb) -> cb.or(
-                cb.like(cb.lower(root.get("title")), pattern),
-                cb.like(cb.lower(root.get("description")), pattern),
-                cb.like(cb.lower(root.get("key")), pattern));
+        String pattern = search.likePattern();
+        int depth = milestoneId != null ? 0 : SEARCH_SUB_TICKET_DEPTH;
+        return (root, query, cb) -> matchesSelfOrSubTicket(root, query, cb, pattern, depth,
+                boardIds, sprintId, backlogIds);
+    }
+
+    /**
+     * Matches a ticket whose title, description or key matches the {@link TicketSearchText}
+     * pattern, or one with a nested sub-ticket, down to {@code depth} levels, that does.
+     */
+    private static Predicate matchesSelfOrSubTicket(From<?, Ticket> ticket, CommonAbstractCriteria owner,
+                                                    CriteriaBuilder cb, String pattern, int depth,
+                                                    List<UUID> boardIds, UUID sprintId,
+                                                    List<UUID> backlogIds) {
+        Predicate self = cb.or(
+                cb.like(cb.lower(ticket.get("title")), pattern, TicketSearchText.LIKE_ESCAPE),
+                cb.like(cb.lower(ticket.get("description")), pattern, TicketSearchText.LIKE_ESCAPE),
+                cb.like(cb.lower(ticket.get("key")), pattern, TicketSearchText.LIKE_ESCAPE));
+        if (depth == 0 || boardIds == null || boardIds.isEmpty()) {
+            return self;
+        }
+        Subquery<UUID> subTicketIds = owner.subquery(UUID.class);
+        Root<Ticket> subTicket = subTicketIds.from(Ticket.class);
+        subTicketIds.select(subTicket.get("id"))
+                .where(cb.equal(subTicket.get("parentTicket").get("id"), ticket.get("id")),
+                        subTicket.get("board").get("id").in(boardIds),
+                        nestedPlacement(subTicket, cb, sprintId, backlogIds),
+                        matchesSelfOrSubTicket(subTicket, subTicketIds, cb, pattern, depth - 1,
+                                boardIds, sprintId, backlogIds));
+        return cb.or(self, cb.exists(subTicketIds));
+    }
+
+    /**
+     * The placement a sub-ticket needs to sit under its parent in the list: the list's sprint,
+     * or no sprint and one of the list's backlogs. Any placement nests in the all-tickets list.
+     */
+    private static Predicate nestedPlacement(Root<Ticket> subTicket, CriteriaBuilder cb, UUID sprintId,
+                                             List<UUID> backlogIds) {
+        if (sprintId != null) {
+            return cb.equal(subTicket.get("sprint").get("id"), sprintId);
+        }
+        if (backlogIds != null && !backlogIds.isEmpty()) {
+            // A left join, as in byListRoots: a path to the sprint would join it inner and
+            // drop every sub-ticket without one.
+            Join<Ticket, Sprint> subTicketSprint = subTicket.join("sprint", JoinType.LEFT);
+            return cb.and(cb.isNull(subTicketSprint.get("id")),
+                    subTicket.get("backlog").get("id").in(backlogIds));
+        }
+        return cb.conjunction();
     }
 
     /**
@@ -384,7 +457,7 @@ public class TicketSpecification {
                 .and(byLabelIds(request.getLabelIds()))
                 .and(byMilestoneId(request.getMilestoneId()))
                 .and(byOnlyParentTickets(request.getMilestoneId()))
-                .and(searchSpecification(request.getSearch()))
+                .and(searchSpecification(request.getSearch(), boardIds, request.getMilestoneId(), null, null))
                 .and(byDueDateRange(request.getDueDateStart(), request.getDueDateEnd()));
     }
 
@@ -481,7 +554,8 @@ public class TicketSpecification {
                 .and(byLabelIds(request.getLabelIds()))
                 .and(byMilestoneId(request.getMilestoneId()))
                 .and(byListRoots(request.getMilestoneId(), request.getSprintId(), backlogIds))
-                .and(searchSpecification(request.getSearch()))
+                .and(searchSpecification(request.getSearch(), boardIds, request.getMilestoneId(),
+                        request.getSprintId(), backlogIds))
                 .and(byDueDateRange(request.getDueDateStart(), request.getDueDateEnd()));
     }
 }

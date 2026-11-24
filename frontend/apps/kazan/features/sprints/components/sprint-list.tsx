@@ -12,6 +12,7 @@ import { useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import type { VisibilityState } from "@tanstack/react-table";
 import { type TicketListResponse } from "@/features/tickets/schemas";
+import { isOnSearchPath } from "@/features/tickets/lib/search-match";
 import type { SubTicketMoveChoice } from "@/features/tickets/components/sub-ticket-choice";
 import { useUpdateTicketOrder } from "@/features/tickets/hooks/use-tickets";
 import {
@@ -82,6 +83,12 @@ interface SprintListProps {
   isDropTarget?: boolean;
   /** Row to tint, the one that just arrived from another table. */
   highlightedRowId?: string | null;
+  /**
+   * While a search is active: show only the sub-tickets that match the search
+   * or lead to one that does, expanded. A ticket can be listed because one of
+   * its sub-tickets matched.
+   */
+  showSearchMatches?: boolean;
 }
 
 // ── Main Component ───────────────────────────────────────────────────
@@ -112,6 +119,7 @@ export function SprintList({
   canReorder = true,
   isDropTarget = false,
   highlightedRowId = null,
+  showSearchMatches = false,
 }: SprintListProps) {
   const t = useTranslations();
 
@@ -202,6 +210,8 @@ export function SprintList({
         isLoading={isLoading}
         emptyMessage={emptyMessage}
         hierarchyKey={currentSprintId ? "sprintSubTickets" : "subTickets"}
+        expandAll={showSearchMatches}
+        subRowFilter={showSearchMatches ? isOnSearchPath : undefined}
         onRowClick={onTicketClick}
         virtualized={true}
         columnVisibility={columnVisibility}

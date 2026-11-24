@@ -69,6 +69,7 @@ import com.korur.oba.apps.kazan.ticket.mapper.TicketMapper;
 import com.korur.oba.apps.kazan.ticket.entity.TicketAssignee;
 import com.korur.oba.apps.kazan.ticket.repository.TicketAssigneeRepository;
 import com.korur.oba.apps.kazan.ticket.repository.TicketRepository;
+import com.korur.oba.apps.kazan.ticket.specification.TicketSearchText;
 import com.korur.oba.apps.kazan.ticket.specification.TicketSpecification;
 import com.korur.oba.apps.kazan.ticket.validator.TicketValidator;
 import com.korur.oba.dojo.exception.enums.ExceptionNotFoundError;
@@ -266,6 +267,37 @@ class TicketQueryServiceImplUnitTest {
     }
 
     @Nested
+    class ListTicketsSearch {
+
+        @Test
+        void search_mapsWithTheSearchSoSubTicketsCarryTheirMatch() {
+            // Arrange
+            UUID boardId = UUID.randomUUID();
+            User user = User.builder().build();
+            user.setId(UUID.randomUUID());
+            Board board = Board.builder().id(boardId).build();
+            Ticket ticket = Ticket.builder().key("KAGI-1").title("CSV import").board(board).build();
+            TicketListResponse mapped = mock(TicketListResponse.class);
+
+            TicketQueryRequest queryRequest = new TicketQueryRequest();
+            queryRequest.setSprintId(UUID.randomUUID());
+            queryRequest.setSearch("NUL");
+
+            when(boardAccessService.verifyBoardAccess(organizationId, boardId, user.getId(), BoardMemberRole.VIEWER))
+                    .thenReturn(board);
+            when(ticketRepository.findAll(any(Specification.class), any(Sort.class))).thenReturn(List.of(ticket));
+            when(ticketMapper.toListResponse(eq(ticket), any(TicketSearchText.class))).thenReturn(mapped);
+
+            // Act
+            List<TicketListResponse> result = ticketQueryServiceImpl.listTickets(user, organizationId, boardId, queryRequest);
+
+            // Assert
+            assertEquals(List.of(mapped), result);
+            verify(ticketMapper, never()).toListResponse(ticket);
+        }
+    }
+
+    @Nested
     class ListAllTickets {
 
         @Test
@@ -284,6 +316,29 @@ class TicketQueryServiceImplUnitTest {
             assertTrue(result.isEmpty());
             verify(boardMemberQueryService).getMemberBoardIds(userId, organizationId);
             verifyNoInteractions(ticketRepository);
+        }
+
+        @Test
+        void search_mapsWithTheSearchSoSubTicketsCarryTheirMatch() {
+            // Arrange
+            UUID userId = UUID.randomUUID();
+            UUID memberBoardId = UUID.randomUUID();
+            Ticket ticket = Ticket.builder().key("KAGI-1").title("CSV import").build();
+            AllTicketListResponse mapped = mock(AllTicketListResponse.class);
+
+            AllTicketQueryRequest queryRequest = new AllTicketQueryRequest();
+            queryRequest.setSearch("NUL");
+
+            when(boardMemberQueryService.getMemberBoardIds(userId, organizationId)).thenReturn(List.of(memberBoardId));
+            when(ticketRepository.findAll(any(Specification.class), any(Sort.class))).thenReturn(List.of(ticket));
+            when(ticketMapper.toAllTicketListResponse(eq(ticket), any(TicketSearchText.class))).thenReturn(mapped);
+
+            // Act
+            List<AllTicketListResponse> result = ticketQueryServiceImpl.listAllTickets(userId, organizationId, queryRequest);
+
+            // Assert
+            assertEquals(List.of(mapped), result);
+            verify(ticketMapper, never()).toAllTicketListResponse(ticket);
         }
 
         @Test

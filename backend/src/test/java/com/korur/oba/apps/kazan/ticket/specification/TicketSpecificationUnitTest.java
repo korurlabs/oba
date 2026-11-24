@@ -8,7 +8,9 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -300,6 +302,58 @@ class TicketSpecificationUnitTest {
             verify(root.get("board").get("id")).in(List.of(boardId));
             verify(root.get("type")).in(List.of(TicketType.INCIDENT));
             verify(root.get("createdBy").get("id")).in(List.of(creatorId));
+        }
+    }
+
+    @Nested
+    class SearchThroughSubTickets {
+
+        @Test
+        void search_matchesSubTicketsThroughAnExistsSubqueryAndNeverJoinsTheTicketRoot() {
+            AllTicketQueryRequest request = new AllTicketQueryRequest();
+            request.setSearch("nul");
+
+            apply(TicketSpecification.filterByBoards(List.of(UUID.randomUUID()), request));
+
+            verify(query).subquery(UUID.class);
+            verify(subquery).from(Ticket.class);
+            verify(cb).exists(subquery);
+            verify(root, never()).join(anyString());
+            verify(query, never()).distinct(true);
+        }
+
+        @Test
+        void search_withMilestone_matchesOnlyTheRowItselfAndBuildsNoSubquery() {
+            AllTicketQueryRequest request = new AllTicketQueryRequest();
+            request.setSearch("nul");
+            request.setMilestoneId(UUID.randomUUID());
+
+            apply(TicketSpecification.filterByBoards(List.of(UUID.randomUUID()), request));
+
+            verify(query, never()).subquery(UUID.class);
+        }
+
+        @Test
+        void search_matchesTheTextLiterallyWithAnEscapedLikePattern() {
+            TicketQueryRequest request = new TicketQueryRequest();
+            request.setSearch("50%_Off");
+            request.setSprintId(UUID.randomUUID());
+
+            apply(TicketSpecification.filterBy(List.of(UUID.randomUUID()), null, request));
+
+            verify(cb, atLeastOnce()).like(any(), eq("%50\\%\\_off%"), eq('\\'));
+            verify(cb, never()).like(any(), anyString());
+        }
+
+        @Test
+        void blankSearch_buildsNoSubquery() {
+            TicketQueryRequest request = new TicketQueryRequest();
+            request.setSearch("  ");
+            request.setSprintId(UUID.randomUUID());
+
+            apply(TicketSpecification.filterBy(List.of(UUID.randomUUID()), null, request));
+
+            verify(query, never()).subquery(UUID.class);
         }
     }
 }

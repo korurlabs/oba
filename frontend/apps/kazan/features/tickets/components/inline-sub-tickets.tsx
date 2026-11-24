@@ -9,7 +9,13 @@ import { useTranslations } from 'next-intl';
 import { Check, ChevronDown, Plus } from 'lucide-react';
 
 interface InlineSubTicketsProps {
+  /** Every sub-ticket; the progress bar counts them all. */
   subTickets: TicketListResponse[];
+  /**
+   * The sub-tickets the expanded list shows, e.g. only the search matches.
+   * Defaults to `subTickets`.
+   */
+  shownSubTickets?: TicketListResponse[];
   isExpanded: boolean;
   onToggleExpand: (e: React.MouseEvent<HTMLButtonElement>) => void;
   onToggleComplete: (id: string, completed: boolean) => void;
@@ -28,6 +34,7 @@ interface InlineSubTicketsProps {
 
 export function InlineSubTickets({
   subTickets,
+  shownSubTickets = subTickets,
   isExpanded,
   onToggleExpand,
   onToggleComplete,
@@ -45,8 +52,8 @@ export function InlineSubTickets({
   const total = subTickets.length;
 
   // Determine which tickets to show
-  const visibleTickets = showAll ? subTickets : subTickets.slice(0, maxVisible);
-  const hiddenCount = subTickets.length - maxVisible;
+  const visibleTickets = showAll ? shownSubTickets : shownSubTickets.slice(0, maxVisible);
+  const hiddenCount = shownSubTickets.length - maxVisible;
 
   if (total === 0) return null;
 

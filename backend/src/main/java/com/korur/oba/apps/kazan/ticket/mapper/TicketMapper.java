@@ -4,13 +4,17 @@ package com.korur.oba.apps.kazan.ticket.mapper;
 
 // 2. Third-party
 import org.mapstruct.BeanMapping;
+import org.mapstruct.Context;
 import org.mapstruct.InjectionStrategy;
+import org.mapstruct.IterableMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.Named;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 // 3. Java SDK
+import java.util.List;
 
 // 4. Internal
 import com.korur.oba.apps.kazan.board.dto.response.BoardListResponse;
@@ -28,6 +32,7 @@ import com.korur.oba.apps.kazan.ticket.dto.response.TicketMilestoneResponse;
 import com.korur.oba.apps.kazan.ticket.dto.response.TicketParentResponse;
 import com.korur.oba.apps.kazan.ticket.dto.response.TicketSubTicketPlacementResponse;
 import com.korur.oba.apps.kazan.ticket.entity.Ticket;
+import com.korur.oba.apps.kazan.ticket.specification.TicketSearchText;
 import com.korur.oba.connect.azure.service.BlobUrlRewriterMapper;
 import com.korur.oba.shrine.identity.mapper.UserMapper;
 
@@ -81,7 +86,26 @@ public interface TicketMapper {
      */
     @Mapping(source = "parentTicket.id", target = "parentTicketId")
     @Mapping(source = "ticketLabels", target = "labels")
+    @Mapping(target = "searchMatch", ignore = true)
     TicketListResponse toListResponse(Ticket ticket);
+
+    /**
+     * Maps a ticket of a searched list, marking it and each of its sub-tickets, at any depth,
+     * with whether its own text contains the search.
+     */
+    @Named("searched")
+    @Mapping(source = "parentTicket.id", target = "parentTicketId")
+    @Mapping(source = "ticketLabels", target = "labels")
+    @Mapping(target = "subTickets", qualifiedByName = "searchedList")
+    @Mapping(target = "searchMatch", expression = "java(search.matches(ticket))")
+    TicketListResponse toListResponse(Ticket ticket, @Context TicketSearchText search);
+
+    /**
+     * Maps the sub-tickets of a searched list.
+     */
+    @Named("searchedList")
+    @IterableMapping(qualifiedByName = "searched")
+    List<TicketListResponse> toListResponses(List<Ticket> tickets, @Context TicketSearchText search);
 
     /**
      * Maps the parent of a listed sub-ticket, with the status and placement of each of
@@ -100,6 +124,15 @@ public interface TicketMapper {
     @Mapping(source = "parentTicket.id", target = "parentTicketId")
     @Mapping(source = "ticketLabels", target = "labels")
     AllTicketListResponse toAllTicketListResponse(Ticket ticket);
+
+    /**
+     * Maps a ticket of a searched all-ticket list, marking each of its sub-tickets with
+     * whether its own text contains the search.
+     */
+    @Mapping(source = "parentTicket.id", target = "parentTicketId")
+    @Mapping(source = "ticketLabels", target = "labels")
+    @Mapping(target = "subTickets", qualifiedByName = "searchedList")
+    AllTicketListResponse toAllTicketListResponse(Ticket ticket, @Context TicketSearchText search);
 
     /**
      * Maps the open work counts to the home page summary.

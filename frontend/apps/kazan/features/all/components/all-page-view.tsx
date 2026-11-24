@@ -135,6 +135,7 @@ export function AllPageView({ boardId }: AllPageViewProps) {
                     )}
 
                     <SprintList
+                      showSearchMatches={!!page.filters.search}
                       boardId={boardId}
                       tickets={dnd.sprintTickets}
                       onTicketClick={page.handleTicketClick}
@@ -198,6 +199,7 @@ export function AllPageView({ boardId }: AllPageViewProps) {
                   )}
 
                   <BacklogList
+                    showSearchMatches={!!page.filters.search}
                     boardId={boardId}
                     tickets={dnd.backlogTickets}
                     onTicketClick={page.handleTicketClick}

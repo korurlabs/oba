@@ -11,6 +11,7 @@ import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import type { VisibilityState } from "@tanstack/react-table";
 import type { TicketListResponse } from "@/features/tickets/schemas";
+import { isOnSearchPath } from "@/features/tickets/lib/search-match";
 import { TicketStatusSummary } from "@/features/tickets/components/ticket-status-summary";
 import { SenseyTable } from "@oba/shared/components/sensey-table";
 import { useAllTicketColumns } from "../hooks/use-all-ticket-columns";
@@ -28,6 +29,12 @@ interface AllTicketsListProps {
   onColumnVisibilityChange: (visibility: VisibilityState) => void;
   columnOrder: string[];
   onColumnOrderChange: (order: string[]) => void;
+  /**
+   * While a search is active: show only the sub-tickets that match the search
+   * or lead to one that does, expanded. A ticket can be listed because one of
+   * its sub-tickets matched.
+   */
+  showSearchMatches?: boolean;
 }
 
 // ── Main Component ───────────────────────────────────────────────────
@@ -42,6 +49,7 @@ export function AllTicketsList({
   onColumnVisibilityChange,
   columnOrder,
   onColumnOrderChange,
+  showSearchMatches = false,
 }: AllTicketsListProps) {
   const t = useTranslations();
   const columns = useAllTicketColumns({ onCopyLink });
@@ -70,6 +78,8 @@ export function AllTicketsList({
         isLoading={isLoading}
         emptyMessage={emptyMessage}
         hierarchyKey="subTickets"
+        expandAll={showSearchMatches}
+        subRowFilter={showSearchMatches ? isOnSearchPath : undefined}
         onRowClick={onTicketClick}
         virtualized={true}
         columnVisibility={columnVisibility}
