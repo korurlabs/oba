@@ -1069,7 +1069,6 @@
   },
   "selectOrganization": "Select organization",
   "organizationSwitchFailed": "Could not switch organization. Please try again.",
-  "personalWorkspace": "Personal",
   "yourOrganizations": "Your organizations",
   "createOrganization": "Create organization",
   "organization": {

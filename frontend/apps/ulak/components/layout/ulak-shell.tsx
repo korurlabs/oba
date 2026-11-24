@@ -79,7 +79,7 @@ export function UlakShell({
         homeLabel={appName}
         actions={
           <>
-            <OrganizationSelector withPersonal={false} managedOnly />
+            <OrganizationSelector managedOnly />
             <AppSwitcher currentAppId="ulak" />
             <ProfileDropdown
               hrefs={accountHrefs()}

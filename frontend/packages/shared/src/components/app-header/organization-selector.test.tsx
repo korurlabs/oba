@@ -6,7 +6,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 // A static render cannot open the menu or click a row, so the Select is
 // replaced by a passthrough that keeps the `onValueChange` the selector
 // registers; a test calls it the way Radix does when a row is chosen. The
-// session, the current user and both mutations are recorders. The query
+// session, the current user and the save are recorders. The query
 // client is real: one observer stands for an organization-scoped query of the
 // page, and its fetches record the organization the API client would send.
 // Copies, not the namespaces: mock.module rewrites a loaded module in place, so the
@@ -19,11 +19,6 @@ const actualSonner = { ...(await import("sonner")) };
 const actualNavigation = { ...(await import("../../libs/i18n/navigation")) };
 const actualGetMe = { ...(await import("../../features/users/hooks/use-get-me")) };
 const actualUpdateMe = { ...(await import("../../features/users/hooks/use-update-me")) };
-const actualClear = {
-  ...(await import("../../features/users/hooks/use-clear-default-organization")),
-};
-
-const PERSONAL_VALUE = "__personal__";
 
 type MeOrganization = {
   id: string;
@@ -42,9 +37,7 @@ let onValueChange: (value: string) => Promise<void>;
 let selectValue: string | undefined;
 let meOrganizations: MeOrganization[];
 let defaultOrganizationId: string | null;
-let clearResult: () => Promise<unknown>;
 let updateResult: () => Promise<unknown>;
-const cleared: number[] = [];
 const updatedMe: unknown[] = [];
 const sessionUpdates: unknown[] = [];
 const errorToasts: string[] = [];
@@ -89,7 +82,10 @@ mock.module("@oba/ui/components/select", () => ({
       {props.children}
     </div>
   ),
-  SelectValue: passthrough,
+  // Like Radix, the placeholder takes the children's place while the value is empty.
+  SelectValue: (props: { children?: ReactNode; placeholder?: ReactNode }) => (
+    <div data-slot="value">{selectValue === "" ? props.placeholder : props.children}</div>
+  ),
 }));
 mock.module("next-intl", () => ({
   ...actualIntl,
@@ -144,15 +140,6 @@ mock.module("../../features/users/hooks/use-update-me", () => ({
     },
   }),
 }));
-mock.module("../../features/users/hooks/use-clear-default-organization", () => ({
-  ...actualClear,
-  useClearDefaultOrganization: () => ({
-    mutateAsync: async () => {
-      cleared.push(1);
-      return clearResult();
-    },
-  }),
-}));
 
 afterAll(() => {
   mock.module("@oba/ui/components/select", () => actualSelect);
@@ -163,7 +150,6 @@ afterAll(() => {
   mock.module("../../libs/i18n/navigation", () => actualNavigation);
   mock.module("../../features/users/hooks/use-get-me", () => actualGetMe);
   mock.module("../../features/users/hooks/use-update-me", () => actualUpdateMe);
-  mock.module("../../features/users/hooks/use-clear-default-organization", () => actualClear);
 });
 
 const { OrganizationSelector } = await import("./organization-selector");
@@ -224,9 +210,8 @@ beforeEach(async () => {
   requestOrganization = "org-1";
   meOrganizations = DEFAULT_ORGANIZATIONS;
   selectValue = undefined;
-  clearResult = async () => ({ success: true, data: { defaultOrganizationId: null } });
   updateResult = async () => ({ success: true });
-  for (const list of [cleared, updatedMe, sessionUpdates, errorToasts, fetches]) {
+  for (const list of [updatedMe, sessionUpdates, errorToasts, fetches]) {
     list.length = 0;
   }
   await mountPageQuery();
@@ -238,54 +223,24 @@ afterEach(() => {
 });
 
 describe("OrganizationSelector", () => {
-  test("Personal clears the default organization and stores null in the session", async () => {
-    renderSelector();
-
-    await onValueChange(PERSONAL_VALUE);
-
-    expect(cleared).toHaveLength(1);
-    expect(updatedMe).toHaveLength(0);
-    expect(sessionUpdates).toEqual([{ user: { id: "u1", defaultOrganizationId: null } }]);
-    expect(pageQueryState()?.isInvalidated).toBe(true);
-    expect(errorToasts).toHaveLength(0);
-  });
-
   test("an organization is saved as the default and stored in the session", async () => {
     renderSelector();
 
     await onValueChange("org-2");
 
     expect(updatedMe).toEqual([{ defaultOrganizationId: "org-2" }]);
-    expect(cleared).toHaveLength(0);
     expect(sessionUpdates).toEqual([{ user: { id: "u1", defaultOrganizationId: "org-2" } }]);
     expect(pageQueryState()?.isInvalidated).toBe(true);
+    expect(errorToasts).toHaveLength(0);
   });
 
-  test("Personal sends nothing when no default organization is set", async () => {
-    defaultOrganizationId = null;
-    const html = renderSelector();
-
-    await onValueChange(PERSONAL_VALUE);
-
-    expect(html).toContain("personalWorkspace");
-    expect(cleared).toHaveLength(0);
-    expect(updatedMe).toHaveLength(0);
-    expect(sessionUpdates).toHaveLength(0);
-  });
-
-  test("a switch to Personal sends no organization-scoped request", async () => {
+  test("choosing the current organization sends nothing", async () => {
     renderSelector();
 
-    await onValueChange(PERSONAL_VALUE);
-    // The old page is still mounted when the handler ends.
-    expect(fetches).toEqual([]);
+    await onValueChange("org-1");
 
-    // Personal has no organization, so the gate disables the page query.
-    await renderNewSession(false);
-
-    expect(fetches).toEqual([]);
-    expect(pageQueryState()?.data).toBe("boards of org-1");
-    expect(pageQueryState()?.isInvalidated).toBe(true);
+    expect(updatedMe).toHaveLength(0);
+    expect(sessionUpdates).toHaveLength(0);
   });
 
   test("a switch between two organizations refetches the page for the new one", async () => {
@@ -302,34 +257,37 @@ describe("OrganizationSelector", () => {
     expect(pageQueryState()?.isInvalidated).toBe(false);
   });
 
-  test("a refused clear shows the switch error and keeps the session", async () => {
-    clearResult = async () => {
-      throw new Error("DELETE /users/me/default-organization was rejected");
+  test("a refused save shows the switch error and keeps the session", async () => {
+    updateResult = async () => {
+      throw new Error("PUT /users/me was rejected");
     };
-    const originalConsoleError = console.error;
-    console.error = () => undefined;
-    try {
-      renderSelector();
-      await onValueChange(PERSONAL_VALUE);
-    } finally {
-      console.error = originalConsoleError;
-    }
+    renderSelector();
 
-    expect(cleared).toHaveLength(1);
+    await withoutConsoleError(() => onValueChange("org-2"));
+
+    expect(updatedMe).toHaveLength(1);
     expect(errorToasts).toEqual(["organizationSwitchFailed"]);
     expect(sessionUpdates).toHaveLength(0);
     expect(pageQueryState()?.isInvalidated).toBe(false);
     expect(fetches).toHaveLength(0);
   });
 
-  test("without Personal the menu has no Personal row and an empty default asks for a choice", () => {
-    defaultOrganizationId = null;
-
-    const html = renderSelector({ withPersonal: false });
+  test("the menu lists only organizations, with no Personal row", () => {
+    const html = renderSelector();
 
     expect(rowValues(html)).toEqual(["org-1", "org-2"]);
     expect(html).not.toContain("personalWorkspace");
+  });
+
+  test("with no organization chosen no row is marked and the trigger asks for a choice", () => {
+    defaultOrganizationId = null;
+
+    const html = renderSelector();
+
+    expect(selectValue).toBe("");
+    expect(html).not.toContain('data-state="checked"');
     expect(html).toContain('title="selectOrganization"');
+    expect(html).toMatch(/<div data-slot="value">.*selectOrganization.*<\/div>/);
   });
 
   test("managedOnly lists only the ACTIVE organizations the user owns or administers", () => {
@@ -340,7 +298,7 @@ describe("OrganizationSelector", () => {
       { id: "org-4", name: "Alar", role: "ADMIN", organizationStatus: "ACTIVE" },
     ];
 
-    const html = renderSelector({ withPersonal: false, managedOnly: true });
+    const html = renderSelector({ managedOnly: true });
 
     expect(rowValues(html)).toEqual(["org-1", "org-4"]);
   });
@@ -353,7 +311,6 @@ describe("OrganizationSelector", () => {
 
     test("shows the host's organization and lists the host's organizations", () => {
       const html = renderSelector({
-        withPersonal: false,
         controlled: {
           organizationId: "kaya-2",
           organizations: hostOrganizations,
@@ -373,7 +330,6 @@ describe("OrganizationSelector", () => {
         return { success: true };
       };
       renderSelector({
-        withPersonal: false,
         controlled: {
           organizationId: "kaya-1",
           organizations: hostOrganizations,
@@ -395,7 +351,6 @@ describe("OrganizationSelector", () => {
       };
       const switched: string[] = [];
       renderSelector({
-        withPersonal: false,
         controlled: {
           organizationId: "kaya-1",
           organizations: hostOrganizations,

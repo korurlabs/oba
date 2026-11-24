@@ -49,7 +49,6 @@ function KayaOrganizationSelector() {
 
   return (
     <OrganizationSelector
-      withPersonal={false}
       controlled={{
         organizationId: organization.organizationId,
         organizations,

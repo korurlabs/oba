@@ -13,15 +13,14 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import { usePathname, useRouter } from "@oba/shared/libs/i18n/navigation";
+import { useRouter } from "@oba/shared/libs/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { Building2, ChevronsUpDown, Loader2, Plus, User as UserIcon } from "lucide-react";
+import { Building2, ChevronsUpDown, Loader2, Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useGetMe } from "@oba/shared/features/users/hooks/use-get-me";
 import type { GrantedApp } from "@oba/shared/features/users/schema";
 import { useUpdateMe } from "@oba/shared/features/users/hooks/use-update-me";
-import { useClearDefaultOrganization } from "@oba/shared/features/users/hooks/use-clear-default-organization";
 import {
   OPS_GRID_ACCENT,
   OPS_GRID_CURRENT,
@@ -38,11 +37,6 @@ import { markAllOrganizationQueriesStale } from "../../hooks/use-invalidate-org-
 import { ACCOUNT_LINKS } from "../../constants/apps";
 import { organizationsWithApp } from "../../features/organizations/lib/app-access";
 import { managedOrganizations } from "../../features/organizations/lib/managed-organizations";
-
-// Sentinel for the "Personal" entry. The Radix Select won't accept an
-// empty string as a value, so the personal mode has an explicit token here,
-// which stands for "no default organization" on the user.
-const PERSONAL_VALUE = "__personal__";
 
 /*
  * The header ("default") variant in the look of the Korur website's language
@@ -87,8 +81,8 @@ export interface OrganizationSelectorProps {
   /**
    * Public path of a logo the "sidebar" variant shows for an organization in
    * place of the generic building icon. It sits on a white tile so a colored
-   * line mark stays legible on both the light and the dark sidebar. Personal
-   * mode and the switching spinner keep their own icons.
+   * line mark stays legible on both the light and the dark sidebar. With no
+   * organization chosen, and while switching, the trigger keeps its own icon.
    */
   organizationLogoSrc?: string;
   /**
@@ -111,11 +105,6 @@ export interface OrganizationSelectorProps {
    * it, the menu offers every organization of the user.
    */
   app?: GrantedApp;
-  /**
-   * Whether the menu offers "Personal" (no default organization). Defaults to
-   * true; an app that works only inside an organization passes false.
-   */
-  withPersonal?: boolean;
   /**
    * Offer only the organizations the user manages (OWNER or ADMIN of an ACTIVE
    * organization) instead of every organization or those granting `app`.
@@ -144,18 +133,15 @@ export function OrganizationSelector({
   createOrganizationHref = ACCOUNT_LINKS.newOrganization,
   onNavigate,
   app,
-  withPersonal = true,
   managedOnly = false,
   controlled,
   className,
 }: OrganizationSelectorProps = {}) {
   const queryClient = useQueryClient();
   const router = useRouter();
-  const pathname = usePathname();
-  const { data: session, status, update } = useSession();
+  const { data: session, update } = useSession();
   const { data: meResponse, isFetching } = useGetMe();
   const { mutateAsync: updateMe } = useUpdateMe();
-  const { mutateAsync: clearDefaultOrganization } = useClearDefaultOrganization();
   const [isSwitching, setIsSwitching] = useState(false);
   // Controlled, because the "Create organization" row is not a SelectItem:
   // nothing closes the dropdown for it, and with a soft navigation the open
@@ -177,22 +163,15 @@ export function OrganizationSelector({
   const isSyncing = controlled ? isSwitching : isFetching || isSwitching;
   const isGrid = variant === "default";
 
-  // Personal mode is active under a /personal route, or when the session
-  // carries no default organization. The trigger label and icon follow the
-  // same value the menu marks as selected, so the two cannot disagree in an
-  // app that has no /personal route.
-  // Without a Personal entry the same token means "no organization chosen":
-  // no row is marked and the trigger asks for a choice.
-  const isPersonalRoute = withPersonal && (pathname?.includes("/personal") ?? false);
+  // The API serves no request without an organization, so there is no mode
+  // without one. With no organization chosen the Select gets the empty value
+  // Radix reads as "nothing selected": no row is marked and the trigger asks
+  // for a choice.
   const currentOrganizationId = controlled
     ? controlled.organizationId
     : session?.user?.defaultOrganizationId || null;
-  const selectedValue = isPersonalRoute ? PERSONAL_VALUE : currentOrganizationId || PERSONAL_VALUE;
-  // Until the session has arrived there is no default organization to read,
-  // which would otherwise look like personal mode for a moment.
-  const isSessionPending = !controlled && status === "loading" && !session;
-  const isPersonal = withPersonal && !isSessionPending && selectedValue === PERSONAL_VALUE;
-  const showOrganizationLogo = Boolean(organizationLogoSrc) && !isSyncing && !isPersonal;
+  const showOrganizationLogo =
+    Boolean(organizationLogoSrc) && Boolean(currentOrganizationId) && !isSyncing;
 
   const handleCreateOrganization = () => {
     setOpen(false);
@@ -227,28 +206,20 @@ export function OrganizationSelector({
     }
   };
 
-  const handleValueChange = async (value: string) => {
+  const handleValueChange = async (nextOrganizationId: string) => {
     if (controlled) {
-      await handleControlledValueChange(controlled, value);
+      await handleControlledValueChange(controlled, nextOrganizationId);
       return;
     }
-    // The default organization is null for personal, the org UUID otherwise.
-    const nextOrganizationId = value === PERSONAL_VALUE ? null : value;
-    if (nextOrganizationId === (session?.user?.defaultOrganizationId || null)) {
+    if (nextOrganizationId === session?.user?.defaultOrganizationId) {
       // Same value already persisted — nothing to do.
       return;
     }
 
     setIsSwitching(true);
     try {
-      // Both mutations reject when the API refuses the change. Personal has
-      // its own endpoint, because `PUT /users/me` keeps the current default
-      // for an absent or empty value.
-      if (nextOrganizationId === null) {
-        await clearDefaultOrganization();
-      } else {
-        await updateMe({ defaultOrganizationId: nextOrganizationId });
-      }
+      // The mutation rejects when the API refuses the change.
+      await updateMe({ defaultOrganizationId: nextOrganizationId });
       await update({
         user: {
           ...session?.user,
@@ -270,17 +241,29 @@ export function OrganizationSelector({
     }
   };
 
-  // Display label for the trigger: "Personal" when in personal mode,
-  // otherwise the resolved org name (or the placeholder when nothing
-  // matches yet).
-  const triggerLabel = isPersonal
-    ? t("personalWorkspace")
-    : (organizations.find((org) => org.id === currentOrganizationId)?.name ??
-      t("selectOrganization"));
+  // The selected organization's name, or the request to choose one while
+  // none is chosen or its name is not loaded yet.
+  const triggerLabel =
+    organizations.find((org) => org.id === currentOrganizationId)?.name ?? t("selectOrganization");
+
+  // Radix shows the placeholder in place of the children while the value is
+  // empty, so both carry the same content and the trigger keeps its icon and
+  // label with no organization chosen.
+  const gridTriggerContent = (
+    <span className="flex min-w-0 items-center gap-2">
+      {isSyncing ? (
+        <Loader2 className={cn("size-4 shrink-0 animate-spin", OPS_GRID_ACCENT)} />
+      ) : (
+        <Building2 className={cn("size-4 shrink-0", OPS_GRID_ACCENT)} />
+      )}
+      {/* Below `sm` the trigger is the icon alone; its aria-label names it. */}
+      <span className="hidden max-w-56 truncate sm:block">{triggerLabel}</span>
+    </span>
+  );
 
   return (
     <Select
-      value={selectedValue}
+      value={currentOrganizationId ?? ""}
       onValueChange={handleValueChange}
       disabled={isSyncing}
       open={open}
@@ -322,8 +305,6 @@ export function OrganizationSelector({
               />
             ) : isSyncing ? (
               <Loader2 className="size-4 animate-spin" />
-            ) : isPersonal ? (
-              <UserIcon className="size-4" />
             ) : (
               <Building2 className="size-4" />
             )}
@@ -346,18 +327,8 @@ export function OrganizationSelector({
           aria-label={t("selectOrganization")}
           title={triggerLabel}
         >
-          <SelectValue aria-label={t("selectOrganization")}>
-            <span className="flex min-w-0 items-center gap-2">
-              {isSyncing ? (
-                <Loader2 className={cn("size-4 shrink-0 animate-spin", OPS_GRID_ACCENT)} />
-              ) : isPersonal ? (
-                <UserIcon className={cn("size-4 shrink-0", OPS_GRID_ACCENT)} />
-              ) : (
-                <Building2 className={cn("size-4 shrink-0", OPS_GRID_ACCENT)} />
-              )}
-              {/* Below `sm` the trigger is the icon alone; its aria-label names it. */}
-              <span className="hidden max-w-56 truncate sm:block">{triggerLabel}</span>
-            </span>
+          <SelectValue aria-label={t("selectOrganization")} placeholder={gridTriggerContent}>
+            {gridTriggerContent}
           </SelectValue>
         </SelectTrigger>
       )}
@@ -366,18 +337,6 @@ export function OrganizationSelector({
         align={isGrid ? "end" : undefined}
         sideOffset={isGrid ? 8 : undefined}
       >
-        {/* Personal entry stays at the top so it's always one click away. */}
-        {withPersonal && (
-          <>
-            <SelectItem value={PERSONAL_VALUE} className={isGrid ? GRID_SELECTABLE_ROW : undefined}>
-              <div className="flex items-center gap-2">
-                <UserIcon className={isGrid ? cn("size-4", OPS_GRID_ACCENT) : "h-4 w-4"} />
-                {t("personalWorkspace")}
-              </div>
-            </SelectItem>
-            {!isGrid && <SelectSeparator />}
-          </>
-        )}
         {selectableOrganizations.length > 0 && (
           <SelectGroup>
             <SelectLabel className={isGrid ? OPS_GRID_HEADING : "text-muted-foreground text-xs"}>

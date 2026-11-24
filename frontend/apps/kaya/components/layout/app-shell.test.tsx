@@ -30,9 +30,6 @@ const actualSonner = { ...(await import("sonner")) };
 const actualNavigation = { ...(await import("@oba/shared/libs/i18n/navigation")) };
 const actualGetMe = { ...(await import("@oba/shared/features/users/hooks/use-get-me")) };
 const actualUpdateMe = { ...(await import("@oba/shared/features/users/hooks/use-update-me")) };
-const actualClear = {
-  ...(await import("@oba/shared/features/users/hooks/use-clear-default-organization")),
-};
 const actualSwitcher = { ...(await import("@oba/shared/components/app-header/app-switcher")) };
 const actualProfile = { ...(await import("@oba/shared/components/app-header/profile-dropdown")) };
 const actualNext = { ...(await import("next/navigation")) };
@@ -118,10 +115,6 @@ mock.module("@oba/shared/features/users/hooks/use-update-me", () => ({
     },
   }),
 }));
-mock.module("@oba/shared/features/users/hooks/use-clear-default-organization", () => ({
-  ...actualClear,
-  useClearDefaultOrganization: () => ({ mutateAsync: async () => ({}) }),
-}));
 mock.module("@oba/shared/components/app-header/app-switcher", () => ({
   ...actualSwitcher,
   AppSwitcher: () => null,
@@ -166,7 +159,6 @@ afterAll(() => {
   mock.module("@oba/shared/libs/i18n/navigation", () => actualNavigation);
   mock.module("@oba/shared/features/users/hooks/use-get-me", () => actualGetMe);
   mock.module("@oba/shared/features/users/hooks/use-update-me", () => actualUpdateMe);
-  mock.module("@oba/shared/features/users/hooks/use-clear-default-organization", () => actualClear);
   mock.module("@oba/shared/components/app-header/app-switcher", () => actualSwitcher);
   mock.module("@oba/shared/components/app-header/profile-dropdown", () => actualProfile);
   mock.module("@/lib/identity/identity-context", () => actualIdentity);
@@ -210,7 +202,7 @@ beforeEach(() => {
 });
 
 describe("Kaya header", () => {
-  test("the selector lists the memberships without a Personal row and marks the current one", () => {
+  test("the selector lists the memberships and marks the current one", () => {
     const html = render();
     expect(rowValues(html)).toEqual(["org-1", "org-2"]);
     expect(html).toContain('data-value="org-1" data-state="checked"');
