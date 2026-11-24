@@ -2,7 +2,7 @@ import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import type { UserMeResponse } from "@/lib/identity/schemas";
-import { ACCOUNT_LINKS, ADMIN_LINKS } from "@oba/shared/constants/apps";
+import { ACCOUNT_LINKS, ULAK_LINKS } from "@oba/shared/constants/apps";
 
 // The menu reads the user from the identity context. The dropdown mounts its
 // content only while open, so it is replaced by a passthrough and the test sees
@@ -59,19 +59,19 @@ beforeEach(() => {
 });
 
 describe("UserMenu organization link", () => {
-  test("links the organization settings of Admin for a user who manages an organization", () => {
+  test("links the organization settings of Ulak for a user who manages an organization", () => {
     me = meWith(true);
 
     const html = renderToStaticMarkup(<UserMenu />);
 
-    expect(html).toContain(`href="${ADMIN_LINKS.organizations}"`);
+    expect(html).toContain(`href="${ULAK_LINKS.organizations}"`);
     expect(html).toContain("Organization");
   });
 
   test("hides the organization link from a user who manages none", () => {
     const html = renderToStaticMarkup(<UserMenu />);
 
-    expect(html).not.toContain(ADMIN_LINKS.organizations);
+    expect(html).not.toContain(ULAK_LINKS.organizations);
     expect(html).not.toContain(">Organization<");
   });
 

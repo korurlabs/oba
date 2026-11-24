@@ -78,7 +78,7 @@ async function SignInFailed({ error, signInUrl }: { error: string; signInUrl: st
  * - Failed sign-in, no usable session -> one automatic sign-in, then the
  *   "Signing in failed" screen (see retrySignInOnce)
  * - Auth error or no session -> /api/auth/login (keeps callbackUrl)
- * - Onboarding required -> Admin's /onboarding (keeps callbackUrl)
+ * - Onboarding required -> Account's /onboarding (keeps callbackUrl)
  * - Active + callbackUrl -> callbackUrl
  * - Active, no callbackUrl -> /home
  */

@@ -24,7 +24,7 @@ mock.module("@/lib/env", () => ({
     keycloakIssuer: "https://auth.test/realms/sensey",
     keycloakClientId: "kazan-mobile",
     accountUrl: "https://account.test",
-    adminUrl: "https://admin.test",
+    ulakUrl: "https://ulak.test",
     kazanWebUrl: "https://kazan.test",
   },
 }));
@@ -73,12 +73,12 @@ beforeEach(() => {
 });
 
 describe("browser URLs", () => {
-  it("builds Account, Admin, Keycloak account and Kazan web URLs", () => {
+  it("builds Account, Ulak, Keycloak account and Kazan web URLs", () => {
     expect(platformPageUrl("onboarding")).toBe("https://account.test/onboarding");
     expect(platformPageUrl("invitations")).toBe("https://account.test/invitations");
     expect(platformPageUrl("newOrganization")).toBe("https://account.test/organizations/new");
     expect(platformPageUrl("profile")).toBe("https://account.test/");
-    expect(platformPageUrl("organizations")).toBe("https://admin.test/");
+    expect(platformPageUrl("organizations")).toBe("https://ulak.test/");
     expect(keycloakAccountUrl("deviceActivity")).toBe(
       "https://auth.test/realms/sensey/account/account-security/device-activity"
     );
@@ -89,7 +89,7 @@ describe("browser URLs", () => {
   it("opens an Oba web page in the in-app browser", async () => {
     await openPlatformPage("invitations");
     await openPlatformPage("organizations");
-    expect(opened).toEqual(["https://account.test/invitations", "https://admin.test/"]);
+    expect(opened).toEqual(["https://account.test/invitations", "https://ulak.test/"]);
     expect(listeners.size).toBe(0);
   });
 });

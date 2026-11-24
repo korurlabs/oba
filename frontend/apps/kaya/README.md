@@ -11,7 +11,7 @@ client `oba`), and every page reads the Oba API under `/kaya/...` with the
 user's bearer token and the chosen organization in `X-Organization-ID`. Users,
 organizations and members belong to the Oba platform: Kaya reads them from
 `/users/me` and `/organizations/{id}/members` and manages none of them; the
-organization pages are in Admin (`ADMIN_URL`, read at run time). The `kaya` CLI records the sessions and sends
+organization pages are in Ulak (`ULAK_URL`, read at run time). The `kaya` CLI records the sessions and sends
 them to that API. The interface is in English and has no dark mode.
 
 ## Development

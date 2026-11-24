@@ -55,8 +55,8 @@ export const organizationRoleSchema = z.enum(["OWNER", "ADMIN", "MEMBER", "GUEST
 export const organizationStatusSchema = z.enum(["ACTIVE", "DISABLED"]);
 
 /**
- * The apps an owner or admin can grant to a member or a group. Admin and
- * Account are not grantable: Admin is gated by the organization role, and
+ * The apps an owner or admin can grant to a member or a group. Ulak and
+ * Account are not grantable: Ulak is gated by the organization role, and
  * Account is open to every user.
  */
 export const grantedAppSchema = z.enum(["KAZAN", "KAYA", "KALKAN", "OTAK"]);
