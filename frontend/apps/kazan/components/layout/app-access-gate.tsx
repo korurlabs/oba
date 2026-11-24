@@ -12,9 +12,7 @@ import { isKazanShut, useKazanAccess } from "./use-kazan-access";
 
 /**
  * The dashboard pages that work without an organization: they read and write
- * only the user's own preferences, never a board, ticket or chat. `/profile`
- * and `/settings` need no entry: their pages redirect to the account app on
- * the server, before anything renders.
+ * only the user's own preferences, never a board, ticket or chat.
  */
 const ORGANIZATION_FREE_PATHS: readonly string[] = ["/settings/columns"];
 

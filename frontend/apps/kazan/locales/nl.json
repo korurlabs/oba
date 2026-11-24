@@ -18,6 +18,8 @@
     "settings": "Instellingen",
     "actions": "Acties",
     "profile": "Profiel",
+    "darkMode": "Donkere modus",
+    "soon": "Binnenkort",
     "logOut": "Uitloggen",
     "back": "Terug",
     "change": "Wijzigen",
@@ -670,7 +672,7 @@
     "comingSoon": "Deze functie is nog niet beschikbaar. Gastuitnodigingen worden in een toekomstige update ondersteund."
   },
   "home": {
-    "title": "Operatieveld",
+    "title": "Veld",
     "boardsError": "Je borden konden niet worden geladen.",
     "retry": "Opnieuw proberen",
     "opensInNewTab": "(opent in een nieuw tabblad)",
@@ -990,7 +992,7 @@
     }
   },
   "sidebar": {
-    "home": "Operatieveld",
+    "home": "Veld",
     "downloads": "CLI downloaden",
     "navigation": "Navigatie",
     "resizeSidebar": "Zijbalk vergroten of verkleinen",
@@ -1017,13 +1019,9 @@
       "unpin": "Losmaken"
     },
     "language": "Taal",
-    "general": "Algemeen",
-    "organizations": "Organisaties",
     "organization": "Organisatie",
     "newOrganization": "Nieuwe organisatie",
-    "profile": "Profiel",
     "settings": "Instellingen",
-    "invitations": "Mijn uitnodigingen",
     "alerts": "Meldingen",
     "updatesUnread": "{count} ongelezen",
     "updatesUnreadMentions": "{count} ongelezen, {mentions, plural, one {# melding} other {# meldingen}}",

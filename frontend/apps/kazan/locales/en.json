@@ -18,6 +18,8 @@
     "settings": "Settings",
     "actions": "Actions",
     "profile": "Profile",
+    "darkMode": "Dark mode",
+    "soon": "Soon",
     "logOut": "Log out",
     "back": "Back",
     "change": "Change",
@@ -670,7 +672,7 @@
     "comingSoon": "This feature is not yet available. Guest invitations will be supported in a future update."
   },
   "home": {
-    "title": "Operation Field",
+    "title": "Field",
     "boardsError": "Your boards could not be loaded.",
     "retry": "Try again",
     "opensInNewTab": "(opens in a new tab)",
@@ -990,7 +992,7 @@
     }
   },
   "sidebar": {
-    "home": "Operation Field",
+    "home": "Field",
     "downloads": "Download CLI",
     "navigation": "Navigation",
     "resizeSidebar": "Resize sidebar",
@@ -1017,13 +1019,9 @@
       "unpin": "Unpin"
     },
     "language": "Language",
-    "general": "General",
-    "organizations": "Organizations",
     "organization": "Organization",
     "newOrganization": "New Organization",
-    "profile": "Profile",
     "settings": "Settings",
-    "invitations": "My Invitations",
     "alerts": "Alerts",
     "updatesUnread": "{count} unread",
     "updatesUnreadMentions": "{count} unread, {mentions, plural, one {# notification} other {# notifications}}",

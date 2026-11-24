@@ -18,6 +18,8 @@
     "settings": "Ayarlar",
     "actions": "İşlemler",
     "profile": "Profil",
+    "darkMode": "Karanlık mod",
+    "soon": "Yakında",
     "logOut": "Çıkış Yap",
     "back": "Geri",
     "change": "Değiştir",
@@ -670,7 +672,7 @@
     "comingSoon": "Bu özellik henüz mevcut değil. Misafir davetleri gelecek bir güncellemede desteklenecektir."
   },
   "home": {
-    "title": "Operasyon Alanı",
+    "title": "Saha",
     "boardsError": "Panolarınız yüklenemedi.",
     "retry": "Tekrar dene",
     "opensInNewTab": "(yeni sekmede açılır)",
@@ -990,7 +992,7 @@
     }
   },
   "sidebar": {
-    "home": "Operasyon Alanı",
+    "home": "Saha",
     "downloads": "CLI indir",
     "navigation": "Gezinme",
     "resizeSidebar": "Kenar çubuğunu yeniden boyutlandır",
@@ -1017,13 +1019,9 @@
       "unpin": "Sabitlemeyi kaldır"
     },
     "language": "Dil",
-    "general": "Genel",
-    "organizations": "Organizasyonlar",
     "organization": "Organizasyon",
     "newOrganization": "Yeni Organizasyon",
-    "profile": "Profil",
     "settings": "Ayarlar",
-    "invitations": "Davetiyelerim",
     "alerts": "Uyarılar",
     "updatesUnread": "{count} okunmamış",
     "updatesUnreadMentions": "{count} okunmamış, {mentions, plural, one {# bildirim} other {# bildirim}}",

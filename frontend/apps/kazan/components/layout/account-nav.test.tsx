@@ -4,20 +4,11 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { NextIntlClientProvider } from "next-intl";
 import en from "@/locales/en.json";
 
-// The user and the router are stand-ins; the tab row, the role check, the
-// icons and the messages are real.
+// The router is a stand-in; the tab row, the icons and the messages are real.
 let pathname: string;
-let role: "OWNER" | "MEMBER";
 
-const actualMe = { ...(await import("@oba/shared/features/users/hooks/use-get-me")) };
 const actualNavigation = { ...(await import("@oba/shared/libs/i18n/navigation")) };
 
-mock.module("@oba/shared/features/users/hooks/use-get-me", () => ({
-  ...actualMe,
-  useGetMe: () => ({
-    data: { data: { organizations: [{ id: "org-1", role, organizationStatus: "ACTIVE" }] } },
-  }),
-}));
 mock.module("@oba/shared/libs/i18n/navigation", () => ({
   ...actualNavigation,
   usePathname: () => pathname,
@@ -29,7 +20,6 @@ mock.module("@oba/shared/libs/i18n/navigation", () => ({
 }));
 
 afterAll(() => {
-  mock.module("@oba/shared/features/users/hooks/use-get-me", () => actualMe);
   mock.module("@oba/shared/libs/i18n/navigation", () => actualNavigation);
 });
 
@@ -55,22 +45,19 @@ function tabs(html: string): Array<[string, string, boolean]> {
 
 beforeEach(() => {
   pathname = "/settings/columns";
-  role = "MEMBER";
 });
 
 describe("AccountNav", () => {
-  test("ends with the Download CLI tab to /downloads", () => {
-    const rows = tabs(markup());
-    expect(rows.at(-1)?.[0]).toBe("/downloads");
-    expect(rows.at(-1)?.[1]).toBe(en.sidebar.downloads);
+  test("shows only Kazan's tabs: Table columns, Alerts, then Download CLI", () => {
+    expect(tabs(markup()).map((row) => [row[0], row[1]])).toEqual([
+      ["/settings/columns", en.sidebar.tableColumns],
+      ["/settings/alerts", en.sidebar.alerts],
+      ["/downloads", en.sidebar.downloads],
+    ]);
   });
 
-  test("keeps Download CLI last also for a manager, after Organizations and Alerts", () => {
-    role = "OWNER";
-    const labels = tabs(markup()).map((row) => row[1]);
-    expect(labels.at(-1)).toBe(en.sidebar.downloads);
-    expect(labels).toContain(en.sidebar.organizations);
-    expect(labels.indexOf(en.sidebar.alerts)).toBeLessThan(labels.indexOf(en.sidebar.downloads));
+  test("links to no other Oba app", () => {
+    expect(tabs(markup()).every((row) => row[0].startsWith("/"))).toBe(true);
   });
 
   test("never marks Download CLI active, not even on its own page", () => {
@@ -85,11 +72,5 @@ describe("AccountNav", () => {
     const active = tabs(markup()).filter((row) => row[2]);
     expect(active.map((row) => row[0])).toEqual(["/settings/alerts"]);
     expect(active[0]?.[1]).toBe(en.sidebar.alerts);
-  });
-
-  test("hides Organizations from a member and shows it to a manager", () => {
-    expect(tabs(markup()).map((row) => row[1])).not.toContain(en.sidebar.organizations);
-    role = "OWNER";
-    expect(tabs(markup()).map((row) => row[1])).toContain(en.sidebar.organizations);
   });
 });
