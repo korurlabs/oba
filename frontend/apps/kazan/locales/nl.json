@@ -206,9 +206,7 @@
       "IN_PROGRESS": "In Uitvoering",
       "WAITING_FOR_THIRD_PARTY": "Wacht op derde partij",
       "IN_REVIEW": "In Review",
-      "DONE": "Klaar",
-      "filterBy": "Filter op {status}",
-      "filterByWithCount": "Filter op {status} ({count})"
+      "DONE": "Klaar"
     },
     "missionRank": {
       "XS": "XS",
@@ -636,7 +634,6 @@
   },
   "all": {
     "title": "Alles",
-    "sprintSection": "Sprint",
     "addToSprint": "Toevoegen aan Sprint",
     "addToBacklog": "Toevoegen aan Backlog",
     "dnd": {

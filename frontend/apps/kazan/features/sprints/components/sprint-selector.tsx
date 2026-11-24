@@ -55,18 +55,17 @@ export function SprintSelector({
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
+        {/*
+          The trigger reads as the strip's heading, the sprint name in mono
+          caps; its state follows beside it as a readout (SprintContext).
+        */}
         <Button
-          variant="outline"
-          className="border-border bg-card text-foreground hover:border-border hover:bg-card h-8 min-w-[200px] justify-between rounded-lg border py-3 pr-2 pl-3 text-sm"
+          variant="ghost"
+          className="text-korur-blue-strong hover:bg-primary/5 h-8 max-w-[260px] gap-1.5 px-2 font-mono text-xs font-semibold tracking-[0.14em] uppercase"
         >
           <span className="truncate">
             {currentSprint ? (
-              <>
-                <span className="font-semibold">{currentSprint.name}</span>
-                {currentSprint.status === "ACTIVE" && (
-                  <span className="text-primary ml-2 text-xs">{t("active")}</span>
-                )}
-              </>
+              currentSprint.name
             ) : (
               <span className="text-muted-foreground">{t("selectSprint")}</span>
             )}

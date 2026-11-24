@@ -206,9 +206,7 @@
       "IN_PROGRESS": "Devam Ediyor",
       "WAITING_FOR_THIRD_PARTY": "Üçüncü taraf bekleniyor",
       "IN_REVIEW": "İncelemede",
-      "DONE": "Tamamlandı",
-      "filterBy": "{status} ile filtrele",
-      "filterByWithCount": "{status} ile filtrele ({count})"
+      "DONE": "Tamamlandı"
     },
     "missionRank": {
       "XS": "XS",
@@ -636,7 +634,6 @@
   },
   "all": {
     "title": "Tümü",
-    "sprintSection": "Sprint",
     "addToSprint": "Sprint'e Ekle",
     "addToBacklog": "Backlog'a Ekle",
     "dnd": {

@@ -14,7 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Settings, UserPlus, ChevronRight, Home } from "lucide-react";
+import { Settings, UserPlus } from "lucide-react";
 import { BoardSettingsDialog } from "@/features/boards/components/board-settings-dialog";
 import { InviteGuestDialog } from "@/features/boards/components/invite-guest-dialog";
 import { useCachedBoard } from "@/features/boards/hooks/use-boards";
@@ -22,6 +22,7 @@ import { DEFAULT_BOARD_COLOR } from "@/features/boards/lib/board-colors";
 import {
   BOARD_FIXED_SEGMENTS,
   BOARD_TAB,
+  BOARD_TAB_ORDER,
   boardPath,
   type BoardTab,
 } from "@/features/boards/lib/board-route";
@@ -31,6 +32,7 @@ import {
   useTicketFilterParams,
 } from "@/features/tickets/hooks/use-ticket-filter-params";
 import { useBoardRoleContext } from "@/features/boards/providers/board-role-provider";
+import { BoardBarSlotTarget } from "./board-bar-slot";
 
 interface BoardTabsProps {
   boardId: string;
@@ -92,108 +94,93 @@ export function BoardTabs({ boardId }: BoardTabsProps) {
     color: board?.color ?? DEFAULT_BOARD_COLOR,
   };
 
-  const tabs: Tab[] = [
-    {
-      id: BOARD_TAB.all,
-      label: t("all.title"),
-      href: `${getBoardHref({ id: boardId, slug: boardSlug }, BOARD_TAB.all)}${tabQuery}`,
-    },
-    {
-      id: BOARD_TAB.sprint,
-      label: t("sprint.title"),
-      href: `${getBoardHref({ id: boardId, slug: boardSlug }, BOARD_TAB.sprint)}${tabQuery}`,
-    },
-    {
-      id: BOARD_TAB.backlog,
-      label: t("backlog.title"),
-      href: `${getBoardHref({ id: boardId, slug: boardSlug }, BOARD_TAB.backlog)}${tabQuery}`,
-    },
-    {
-      id: BOARD_TAB.roadmap,
-      label: t("roadmap.title"),
-      href: getBoardHref({ id: boardId, slug: boardSlug }, BOARD_TAB.roadmap),
-    },
-  ];
+  const tabLabels: Record<BoardTab, string> = {
+    [BOARD_TAB.sprint]: t("sprint.title"),
+    [BOARD_TAB.backlog]: t("backlog.title"),
+    [BOARD_TAB.roadmap]: t("roadmap.title"),
+    [BOARD_TAB.all]: t("all.title"),
+  };
+
+  // The roadmap reads no ticket filters, so its link carries none.
+  const tabs: Tab[] = BOARD_TAB_ORDER.map((id) => {
+    const path = getBoardHref({ id: boardId, slug: boardSlug }, id);
+    return {
+      id,
+      label: tabLabels[id],
+      href: id === BOARD_TAB.roadmap ? path : `${path}${tabQuery}`,
+    };
+  });
 
   const activeTab = activeTabOf(pathname, boardSlug);
 
   return (
     <div className="border-border bg-card border-b">
       {/*
-        Below `md` the breadcrumb, the actions and the tabs do not fit one
-        row: the two wrapper divs become `contents`, so their children are
-        items of this row, and the tabs wrap to a row of their own that
-        scrolls sideways. From `md` up all of them share one row.
+        One bar: the board name and its tabs on the left, the view controls of
+        the page and the board settings on the right. When the row is too
+        narrow, the right group wraps under the tabs and the tabs scroll
+        sideways.
       */}
-      <div className="flex items-center justify-between px-6 max-md:flex-wrap max-md:justify-start max-md:gap-x-3 max-md:pt-2">
-        {/* Left side: Breadcrumb + Tabs */}
-        <div className="flex items-center gap-3 max-md:contents">
-          <div className="flex items-center gap-6 max-md:contents">
-            {/* Breadcrumb */}
-            <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm max-md:min-w-0">
-              <Link
-                href="/home"
-                className="text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors"
-              >
-                <Home className="h-3.5 w-3.5" />
-              </Link>
-              <ChevronRight className="h-3.5 w-3.5" />
-              <span className="text-foreground max-w-[150px] truncate font-medium">
-                {isLoading ? <Skeleton className="inline-block h-4 w-24" /> : boardData.name}
-              </span>
-            </nav>
+      <div className="flex flex-wrap items-center gap-x-6 px-4 lg:px-6">
+        <div className="flex min-w-0 items-center gap-6">
+          <h1 className="kazan-grid-heading max-w-[180px] shrink-0">
+            {isLoading ? (
+              <Skeleton className="inline-block h-4 w-24" />
+            ) : (
+              <span className="truncate">{boardData.name}</span>
+            )}
+          </h1>
 
-            {/* Divider */}
-            <div className="bg-border h-5 w-px max-md:hidden" />
+          {/*
+            The tab row scrolls when it does not fit, and that clip would cut
+            the focus ring, which sits 4px outside a tab: `p-1` gives the ring
+            room inside the clip and `-m-1` takes that room back out of the
+            layout.
+          */}
+          <nav
+            className="-m-1 flex min-w-0 gap-5 overflow-x-auto p-1"
+            aria-label="Board navigation tabs"
+          >
+            {tabs.map((tab) => {
+              const isActive = tab.id === activeTab;
 
-            {/*
-              Tabs. Below `md` this row scrolls, and its clip would cut the
-              focus ring, which sits 4px outside a tab: `p-1` gives the ring
-              room inside the clip and `-m-1` takes that room back out of the
-              layout.
-            */}
-            <nav
-              className="flex gap-6 max-md:order-last max-md:-m-1 max-md:basis-full max-md:overflow-x-auto max-md:p-1"
-              aria-label="Board navigation tabs"
-            >
-              {tabs.map((tab) => {
-                const isActive = tab.id === activeTab;
+              return (
+                <Link
+                  key={tab.id}
+                  href={
+                    tab.href as
+                      | `/${string}/board/${string}/all`
+                      | `/${string}/board/${string}/sprint`
+                      | `/${string}/board/${string}/backlog`
+                      | `/${string}/board/${string}/roadmap`
+                  }
+                  className={cn(
+                    "relative shrink-0 py-3 font-mono text-[11px] font-semibold tracking-[0.14em] whitespace-nowrap uppercase transition-colors",
+                    "focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
+                    isActive
+                      ? "text-korur-blue-strong"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                  aria-current={isActive ? "page" : undefined}
+                >
+                  {tab.label}
 
-                return (
-                  <Link
-                    key={tab.id}
-                    href={
-                      tab.href as
-                        | `/${string}/board/${string}/all`
-                        | `/${string}/board/${string}/sprint`
-                        | `/${string}/board/${string}/backlog`
-                        | `/${string}/board/${string}/roadmap`
-                    }
-                    className={cn(
-                      "relative py-3 text-sm font-medium transition-colors max-md:shrink-0 max-md:whitespace-nowrap",
-                      "focus-visible:ring-primary focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
-                      isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-                    )}
-                    aria-current={isActive ? "page" : undefined}
-                  >
-                    {tab.label}
-
-                    {/* Active indicator */}
-                    {isActive && (
-                      <span
-                        className="bg-primary absolute right-0 bottom-0 left-0 h-0.5"
-                        aria-hidden="true"
-                      />
-                    )}
-                  </Link>
-                );
-              })}
-            </nav>
-          </div>
+                  {/* Active indicator */}
+                  {isActive && (
+                    <span
+                      className="bg-primary absolute right-0 bottom-0 left-0 h-0.5"
+                      aria-hidden="true"
+                    />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* Right side: Actions */}
-        <div className="flex items-center gap-1.5 max-md:ml-auto">
+        {/* Right side: the page's view controls, then the board actions */}
+        <div className="ml-auto flex items-center gap-2 py-1.5">
+          <BoardBarSlotTarget className="flex flex-wrap items-center justify-end gap-2" />
           {/* Board actions menu -- gear opens settings + invite guest */}
           {canManage && (
             <>

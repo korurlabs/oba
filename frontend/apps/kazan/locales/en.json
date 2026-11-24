@@ -230,9 +230,7 @@
       "IN_PROGRESS": "In Progress",
       "WAITING_FOR_THIRD_PARTY": "Waiting for 3rd party",
       "IN_REVIEW": "In Review",
-      "DONE": "Done",
-      "filterBy": "Filter by {status}",
-      "filterByWithCount": "Filter by {status} ({count})"
+      "DONE": "Done"
     },
     "missionRank": {
       "XS": "XS",
@@ -636,7 +634,6 @@
   },
   "all": {
     "title": "All",
-    "sprintSection": "Sprint",
     "addToSprint": "Add to Sprint",
     "addToBacklog": "Add to Backlog",
     "dnd": {

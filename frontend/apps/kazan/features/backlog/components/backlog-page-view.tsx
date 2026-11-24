@@ -59,11 +59,9 @@ export function BacklogPageView({ boardId }: BacklogPageViewProps) {
             </Button>
           </div>
         ) : page.viewMode === "list" ? (
-          // `pt-4` matches the gap the Sprint tab's deleted search row used to
-          // open above the table, and the `pt-4` the All tab already carries.
-          // Padding on an `h-full` box, so it eats into the 100% height rather
-          // than adding to it -- BacklogList still scrolls inside the shell.
-          <div className="flex h-full flex-col pt-4">
+          // The backlog strip above already leaves the gap over the header
+          // row; BacklogList scrolls inside the shell.
+          <div className="flex h-full flex-col">
             <BacklogList
               search={page.filters.search}
               boardId={boardId}

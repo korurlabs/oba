@@ -1,36 +1,27 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import type { TicketStatus, TicketListResponse } from "@/features/tickets/schemas";
 import { TicketSectionHeader } from "@/features/tickets/components/ticket-section-header";
 import { SprintStatus, type SprintListResponse } from "../schemas";
 
 interface SprintSectionHeaderProps {
   /** The currently selected sprint. Drives the completed-sprint add guard. */
   currentSprint: SprintListResponse;
-  /** Tickets rendered by the sprint table (parent tickets only). */
-  tickets: TicketListResponse[];
-  /** Currently selected statuses (the shared `statuses` URL filter). */
-  selectedStatuses?: TicketStatus[];
-  /** Toggles one status in the shared `statuses` URL filter. */
-  onStatusToggle?: (status: TicketStatus) => void;
+  /** The sprint selector with the sprint's state, which leads the strip. */
+  sprintContext: ReactNode;
   /** Optional Add-to-Sprint click handler. When omitted the button is hidden. */
   onAddTicket?: () => void;
 }
 
 /**
- * Caption strip for the sprint table inside the All tab.
- *
- * The sprint selector, its date range and the days-left badge used to live
- * here; they now sit in AllToolbar next to the search and filter controls,
- * which removes a whole band of chrome above the table. What is left is the
- * section title, the status chips and the Add-to-Sprint action.
+ * Caption strip for the sprint table inside the All tab: which sprint the
+ * table shows and its state on the left, Add to Sprint on the right. A
+ * completed sprint takes no new tickets, so it shows no add action.
  */
 export function SprintSectionHeader({
   currentSprint,
-  tickets,
-  selectedStatuses,
-  onStatusToggle,
+  sprintContext,
   onAddTicket,
 }: SprintSectionHeaderProps) {
   const t = useTranslations();
@@ -39,10 +30,7 @@ export function SprintSectionHeader({
 
   return (
     <TicketSectionHeader
-      title={t("all.sprintSection")}
-      tickets={tickets}
-      selectedStatuses={selectedStatuses}
-      onStatusToggle={onStatusToggle}
+      leading={sprintContext}
       onAddTicket={canAddTicket ? onAddTicket : undefined}
       addLabel={t("all.addToSprint")}
     />

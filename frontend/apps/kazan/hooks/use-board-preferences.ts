@@ -6,7 +6,7 @@ import { useGetMe } from "@oba/shared/features/users/hooks/use-get-me";
 import { useUpdateMe } from "@oba/shared/features/users/hooks/use-update-me";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { BOARD_TAB, boardPath, type BoardTab } from "@/features/boards/lib/board-route";
+import { BOARD_DEFAULT_TAB, boardPath, type BoardTab } from "@/features/boards/lib/board-route";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -498,7 +498,7 @@ export function useBoardPreferences(boardId: string) {
  */
 export function useBoardHref() {
   return useCallback(
-    (board: { id: string; slug: string }, tab: BoardTab = BOARD_TAB.all): string =>
+    (board: { id: string; slug: string }, tab: BoardTab = BOARD_DEFAULT_TAB): string =>
       boardPath(board.slug, tab),
     [],
   );

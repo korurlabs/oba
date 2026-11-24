@@ -18,13 +18,31 @@ import type { BoardListResponse } from "../schemas";
 
 /** The tabs of a board page, each a fixed segment after the board slug. */
 export const BOARD_TAB = {
-  all: "all",
   sprint: "sprint",
   backlog: "backlog",
   roadmap: "roadmap",
+  all: "all",
 } as const;
 
 export type BoardTab = (typeof BOARD_TAB)[keyof typeof BOARD_TAB];
+
+/**
+ * The order in which a board lists its tabs. The work of the current sprint
+ * comes first, then what waits for a sprint and the plan over time; All, the
+ * sprint and the backlog on one page, comes last.
+ */
+export const BOARD_TAB_ORDER: readonly BoardTab[] = [
+  BOARD_TAB.sprint,
+  BOARD_TAB.backlog,
+  BOARD_TAB.roadmap,
+  BOARD_TAB.all,
+];
+
+/**
+ * The tab a board opens on when a link names no tab (the board URL itself,
+ * the sidebar, the board cards). It is the first tab, the current sprint.
+ */
+export const BOARD_DEFAULT_TAB: BoardTab = BOARD_TAB.sprint;
 
 /** The segment of the ticket page, `/board/<slug>/ticket/<KEY>`. */
 export const BOARD_TICKET_SEGMENT = "ticket";
@@ -41,8 +59,7 @@ export const BOARD_FIXED_SEGMENTS: ReadonlySet<string> = new Set<string>([
   BOARD_TICKET_SEGMENT,
 ]);
 
-const UUID_SHAPE =
-  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+const UUID_SHAPE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
 
 /**
  * True for a UUID-shaped route value. The server never gives a board,
@@ -85,10 +102,10 @@ export const findBoardRoute = cache(
   async (routeValue: string): Promise<BoardRouteResolution | null> => {
     const legacy = isUuid(routeValue);
     const board = await findBoard(() =>
-      legacy ? getBoard(routeValue) : getBoardBySlug(routeValue),
+      legacy ? getBoard(routeValue) : getBoardBySlug(routeValue)
     );
     return board ? { board, legacy } : null;
-  },
+  }
 );
 
 /**
@@ -108,7 +125,7 @@ export async function resolveBoardRoute(routeValue: string): Promise<BoardRouteR
  * of a misleading not-found page.
  */
 async function findBoard(
-  load: () => Promise<ApiResponse<BoardListResponse>>,
+  load: () => Promise<ApiResponse<BoardListResponse>>
 ): Promise<BoardListResponse | null> {
   try {
     const response = await load();
