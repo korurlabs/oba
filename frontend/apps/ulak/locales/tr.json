@@ -5,9 +5,25 @@
   },
   "sidebar": {
     "navigation": "Gezinme",
-    "organizations": "Organizasyonlar",
+    "agents": "Ajanlar",
+    "humans": "İnsanlar",
+    "groups": "Gruplar",
+    "legalEntities": "Tüzel kişiler",
+    "access": "Erişim",
+    "invitations": "Davetler",
+    "organizationSettings": "Organizasyon ayarları",
     "newOrganization": "Yeni Organizasyon",
     "language": "Dil"
+  },
+  "organizationGate": {
+    "title": "Bir organizasyon seçin",
+    "description": "Ulak tek seferde bir organizasyonu yönetir. Sahibi veya yöneticisi olduğunuz birini seçin."
+  },
+  "agents": {
+    "title": "Ajanlar",
+    "description": "Bu organizasyonda çalışan yapay zekâ ajanları; rolleri, uygulamaları ve token'larıyla.",
+    "emptyTitle": "Henüz ajan yok",
+    "emptyDescription": "Bu organizasyona eklediğiniz ajanlar burada görünür."
   },
   "errors": {
     "somethingWentWrong": "Bir şeyler yanlış gitti",
@@ -72,7 +88,7 @@
     "members": {
       "title": "Üyeler",
       "noMembers": "Üye bulunamadı",
-      "noMembersDescription": "Bu organizasyonda henüz kimse yok. Davetler sekmesinden kişileri davet edin.",
+      "noMembersDescription": "Bu organizasyonda henüz kimse yok. Davetler sayfasından kişileri davet edin.",
       "userId": "Kullanıcı",
       "email": "E-posta",
       "role": "Rol",

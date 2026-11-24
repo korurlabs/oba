@@ -34,9 +34,10 @@ import {
  * Form to create a new organization. Rendered by the thin
  * /organizations/new page.
  * On success `useCreateOrganization` refetches the cached queries and opens
- * the new organization in Ulak. The active organization does not change.
+ * Ulak. The new organization becomes the user's default, so every app,
+ * Ulak included, opens on it.
  * The back link leads to the profile, which lists the user's organizations:
- * a user without an admin role has no organization list in Ulak.
+ * Ulak shows only the organization in the header, and only to its managers.
  *
  * There is no session-loading branch on purpose: the dashboard layout already
  * guarantees a session, and next-auth reports "loading" during every session

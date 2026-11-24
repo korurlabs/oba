@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { redirect as nextRedirect } from "next/navigation";
 import { makeQueryClient } from "@oba/shared/providers/query-client";
 import { auth, sanitizeCallbackUrl, signOut } from "@oba/shared/libs/auth";
@@ -14,8 +13,6 @@ import { prefetchMe } from "@oba/shared/features/users/api/prefetch-me";
 import { USERS_KEYS, type usersApi } from "@oba/shared/features/users/hooks/use-get-me";
 import { canManageOrganizations } from "@oba/shared/features/organizations/lib/managed-organizations";
 import { accountOnboardingUrl, appUrl } from "@oba/shared/constants/apps";
-import { UlakShell } from "@/components/layout/ulak-shell";
-import { OrganizationTable } from "@/features/organizations/components/organization-table";
 
 export const dynamic = "force-dynamic";
 
@@ -35,11 +32,7 @@ export async function generateMetadata({
     const t = await getTranslations("errors.signInFailed");
     return { title: t("title") };
   }
-  const t = await getTranslations("organization");
-  return {
-    title: t("listTitle"),
-    description: t("listDescription"),
-  };
+  return {};
 }
 
 /**
@@ -55,7 +48,7 @@ function redirectToLogin(callbackUrl?: string): never {
 /**
  * Sends a user who still has to onboard to the account onboarding page,
  * keeping the validated callbackUrl so account can return the user to it.
- * Without one, account returns the user to the organization list.
+ * Without one, account returns the user to `/`, which sends them on.
  */
 function redirectToOnboarding(callbackUrl = "/"): never {
   nextRedirect(accountOnboardingUrl(callbackUrl, appUrl("ulak")));
@@ -77,7 +70,7 @@ async function SignInFailed({ error, signInUrl }: { error: string; signInUrl: st
 }
 
 /**
- * Organizations List Page and sign-in gateway
+ * Sign-in gateway
  *
  * `/` is public in the proxy, which sends every session error here with the
  * original page as callbackUrl, so this page routes the user on. Auth.js
@@ -89,15 +82,10 @@ async function SignInFailed({ error, signInUrl }: { error: string; signInUrl: st
  * - active with a callbackUrl -> callbackUrl
  * - active with an `error` -> `/`, so the error leaves the URL
  * - active, manages no active organization -> /no-access
- * - active, no callbackUrl -> the organizations the user manages
- *
- * The list server-prefetches the current-user ("me") query, which the table
- * reads, so it renders with data in the first HTML payload (see
- * server-prefetch-convention). The query is hydrated around the shell, which
- * reads it too: hydrated below it, the data would reach the client only in an
- * effect, and server and client would render different first frames.
+ * - active, no callbackUrl -> `/humans`, the members of the organization in
+ *   the header
  */
-export default async function OrganizationsPage({
+export default async function GatewayPage({
   params,
   searchParams,
 }: {
@@ -139,27 +127,21 @@ export default async function OrganizationsPage({
   if (callbackUrl) {
     nextRedirect(callbackUrl);
   }
-  // A signed-in user who opened a failed sign-in's `?error=` URL sees the
-  // list under its clean URL, so a reload or a shared link carries no error.
+  // A signed-in user who opened a failed sign-in's `?error=` URL lands on a
+  // clean URL, so a reload or a shared link carries no error.
   if (error) {
     redirect({ href: { pathname: "/", query: {} }, locale });
   }
 
   const queryClient = makeQueryClient();
-  // Best-effort: on a failed prefetch the client fetches through useGetMe.
-  await prefetchMe(queryClient, session.accessToken, "organizations-page");
-  // Only a prefetched user decides here. After a failed prefetch the list
-  // renders, and UlakAccessGate decides once the client has the user.
+  // Best-effort: only a prefetched user decides here. After a failed prefetch
+  // the user goes on to `/humans`, where the dashboard layout and
+  // UlakAccessGate decide.
+  await prefetchMe(queryClient, session.accessToken, "gateway-page");
   const me = queryClient.getQueryData<Awaited<ReturnType<typeof usersApi.getMe>>>(USERS_KEYS.me);
   if (me?.data && !canManageOrganizations(me.data)) {
     redirect({ href: "/no-access", locale });
   }
 
-  return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
-      <UlakShell>
-        <OrganizationTable />
-      </UlakShell>
-    </HydrationBoundary>
-  );
+  return redirect({ href: "/humans", locale });
 }

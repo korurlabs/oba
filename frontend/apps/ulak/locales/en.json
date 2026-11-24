@@ -5,9 +5,25 @@
   },
   "sidebar": {
     "navigation": "Navigation",
-    "organizations": "Organizations",
+    "agents": "Agents",
+    "humans": "Humans",
+    "groups": "Groups",
+    "legalEntities": "Legal entities",
+    "access": "Access",
+    "invitations": "Invitations",
+    "organizationSettings": "Organization settings",
     "newOrganization": "New Organization",
     "language": "Language"
+  },
+  "organizationGate": {
+    "title": "Choose an organization",
+    "description": "Ulak manages one organization at a time. Choose one you own or administer."
+  },
+  "agents": {
+    "title": "Agents",
+    "description": "The AI agents that work in this organization, with their roles, apps and tokens.",
+    "emptyTitle": "No agents yet",
+    "emptyDescription": "Agents you add to this organization will appear here."
   },
   "errors": {
     "somethingWentWrong": "Something went wrong",
@@ -72,7 +88,7 @@
     "members": {
       "title": "Members",
       "noMembers": "No members found",
-      "noMembersDescription": "Nobody belongs to this organization yet. Invite people from the Invitations tab.",
+      "noMembersDescription": "Nobody belongs to this organization yet. Invite people on the Invitations page.",
       "userId": "User",
       "email": "Email",
       "role": "Role",
