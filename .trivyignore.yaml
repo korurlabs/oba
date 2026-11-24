@@ -1,17 +1,77 @@
-# Vulnerabilities that Oba's Trivy scans accept for a limited time.
+# Findings that Oba's Trivy scans accept, each with the reason it is accepted.
 #
 # release.yml and trivy.yml pass this file to Trivy, which loads a YAML ignore
-# file only when it is named. Each entry covers one id in the packages its purls
-# name, and Trivy drops it from 00:00 UTC on its expired_at date, after which the
-# finding fails the release scan again. An entry belongs here only when Oba
-# cannot reach the vulnerable code and no usable fixed version exists yet.
-# Format: https://trivy.dev/docs/v0.76/guide/configuration/filtering/
+# file only when it is named. Every entry carries a statement that says why the
+# finding does not apply. The file holds three kinds of entry:
 #
-# The three Spring Framework advisories below are fixed in open source only in
-# Spring Framework 7.0.9, which needs Spring Boot 4. The 6.2 line that Spring
-# Boot 3.5 uses has no open-source fix.
+# - misconfigurations: a Helm chart or Dockerfile check whose advice conflicts
+#   with a deliberate design choice. The entry names the files it covers, so the
+#   same check still reports anywhere else. A misconfiguration the chart can fix
+#   with a better default is fixed there instead.
+# - secrets: a published, non-secret value that matches a secret pattern, such
+#   as a local emulator's documented development key. The entry names the files.
+# - vulnerabilities: an advisory Oba cannot reach, or one whose fixed version
+#   Oba cannot use yet. Each entry covers one id in the packages its purls name
+#   and has an expired_at date. Trivy drops it from 00:00 UTC on that date, after
+#   which the finding fails the scans again and the decision is made anew.
+#
+# Format: https://trivy.dev/docs/v0.76/guide/configuration/filtering/
+
+misconfigurations:
+  # KSV-0011: CPU not limited.
+  - id: KSV-0011
+    paths:
+      - charts/oba/templates/deployment.yaml
+    statement: >-
+      No CPU limit by design. A CPU limit throttles the JVM and Node.js under
+      load through CFS quotas while the node has idle CPU. Every component
+      sets a CPU request and a memory request and limit, and a chart user can
+      add a CPU limit through the component's resources value.
+
+  # KSV-0110: workload in the default namespace.
+  - id: KSV-0110
+    paths:
+      - charts/oba/templates/deployment.yaml
+    statement: >-
+      Trivy renders the chart into the default namespace. The templates set
+      no namespace, so Helm installs every resource into the release
+      namespace the user chooses.
+
+  # KSV-0125: image from an untrusted registry.
+  - id: KSV-0125
+    paths:
+      - charts/oba/templates/deployment.yaml
+    statement: >-
+      ghcr.io is the registry the project publishes its images to. Every
+      component's image.repository is a value a chart user can point at a
+      mirror or private registry.
+
+  # DS-0026: no HEALTHCHECK instruction.
+  - id: DS-0026
+    paths:
+      - backend/Dockerfile
+      - frontend/Dockerfile
+    statement: >-
+      The images are built to run on Kubernetes, which ignores a Dockerfile
+      HEALTHCHECK. The Helm chart defines liveness and readiness probes for
+      every component.
+
+secrets:
+  - id: azure-storage-account-key
+    paths:
+      - backend/src/main/resources/application.properties
+      - backend/src/main/resources/podman/azurite/init/create-containers.sh
+    statement: >-
+      The well-known development account key of the Azurite storage emulator,
+      published in Microsoft's documentation. It is the default for local
+      development only and grants no access to any real storage account; a
+      deployment supplies its own connection string.
 
 vulnerabilities:
+  # The three Spring Framework advisories below are fixed in open source only
+  # in Spring Framework 7.0.9, which needs Spring Boot 4. The 6.2 line that
+  # Spring Boot 3.5 uses has no open-source fix.
+
   # https://spring.io/security/cve-2026-47884
   - id: CVE-2026-47884
     purls:
@@ -42,3 +102,29 @@ vulnerabilities:
       Needs WebFlux functional endpoints. Oba defines no RouterFunction; its
       API is served by annotated Spring MVC controllers. The fix is the move
       to Spring Boot 4.
+
+  # decode-uri-component 0.2.2 reaches the lock file only through
+  # query-string 7, a dependency of expo-router in the kazan-mobile app. The
+  # fixed 0.5 line is published as an ES module only, which query-string 7
+  # cannot require(). No server image ships the package.
+  - id: CVE-2026-118664
+    purls:
+      - pkg:npm/decode-uri-component
+    expired_at: 2027-03-31
+    statement: >-
+      Only the mobile app bundles the package, where it decodes query strings
+      of the app's own navigation on the user's device; no server decodes
+      input with it. The fixed version cannot be loaded by query-string 7.
+      Revisit when expo-router moves to a query-string that uses the fixed
+      version.
+
+  - id: CVE-2026-45822
+    purls:
+      - pkg:npm/decode-uri-component
+    expired_at: 2027-03-31
+    statement: >-
+      Only the mobile app bundles the package, where it decodes query strings
+      of the app's own navigation on the user's device; no server decodes
+      input with it. The fixed version cannot be loaded by query-string 7.
+      Revisit when expo-router moves to a query-string that uses the fixed
+      version.

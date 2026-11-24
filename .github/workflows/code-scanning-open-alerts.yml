@@ -1,0 +1,63 @@
+name: Code scanning open alerts
+
+# Fails while any code scanning alert of the repository is open, and lists each
+# one by number, rule and path.
+#
+# The main branch ruleset stops a pull request that adds an alert, but an alert
+# can also open on main without one: the weekly CodeQL run picks up a query
+# GitHub added, or the weekly Trivy run matches a dependency against an advisory
+# published since it merged. Nothing on a pull request reports those. This
+# check runs after both weekly scans and fails so that the failed run reaches
+# the maintainers through GitHub's notifications for scheduled workflows.
+#
+# The check reads alerts only. Resolve each one in code, in the scanner's
+# configuration (.github/codeql/codeql-config.yml, .trivyignore.yaml) with its
+# reason, or by dismissing it with its reason under the Security tab.
+#
+# Schedule: CodeQL runs on Monday at 04:17 UTC and Trivy at 04:37 UTC; this
+# check runs at 06:17 UTC, after both have uploaded their results.
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  open-alerts:
+    name: open-alerts
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      # Reads the code scanning alerts.
+      security-events: read
+    steps:
+      - name: Fail when a code scanning alert is open
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          alerts="$(gh api --paginate "repos/$REPO/code-scanning/alerts?state=open&per_page=100" \
+            --jq '.[] | "#\(.number)\t\(.tool.name)\t\(.rule.id)\t\(.most_recent_instance.location.path)"')"
+          if [ -z "$alerts" ]; then
+            echo "No open code scanning alerts."
+            echo "No open code scanning alerts." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          count="$(printf '%s\n' "$alerts" | wc -l)"
+          {
+            echo "## $count open code scanning alerts"
+            echo
+            echo '| Alert | Tool | Rule | Path |'
+            echo '|---|---|---|---|'
+            printf '%s\n' "$alerts" | awk -F '\t' '{ printf "| %s | %s | `%s` | `%s` |\n", $1, $2, $3, $4 }'
+          } >> "$GITHUB_STEP_SUMMARY"
+          printf '%s\n' "$alerts"
+          echo "::error::$count code scanning alerts are open. Each one is listed above and in the job summary."
+          exit 1
