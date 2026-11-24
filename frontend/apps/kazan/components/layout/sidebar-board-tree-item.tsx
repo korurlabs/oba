@@ -140,7 +140,7 @@ export function SidebarBoardTreeItem({
         {...dragListeners}
         {...(isDropTarget ? { [TREE_ROW_ATTRIBUTE]: board.id } : {})}
         className={cn(
-          "group/row relative mx-1 flex min-h-9 items-center gap-1 rounded-md pr-1 pl-2 text-sm transition-colors select-none [-webkit-touch-callout:none]",
+          "group/row relative mx-1 flex min-h-11 items-center gap-1 rounded-md pr-1 pl-2 text-[15px] transition-colors select-none [-webkit-touch-callout:none]",
           !isActive && "hover:bg-muted",
           isActive && "bg-primary/10 text-primary font-medium",
           !isActive && "text-foreground",

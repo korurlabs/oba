@@ -670,7 +670,7 @@
     "comingSoon": "Bu özellik henüz mevcut değil. Misafir davetleri gelecek bir güncellemede desteklenecektir."
   },
   "home": {
-    "title": "Ana sayfa",
+    "title": "Operasyon Alanı",
     "boardsError": "Panolarınız yüklenemedi.",
     "retry": "Tekrar dene",
     "opensInNewTab": "(yeni sekmede açılır)",
@@ -990,7 +990,7 @@
     }
   },
   "sidebar": {
-    "home": "Ana sayfa",
+    "home": "Operasyon Alanı",
     "downloads": "CLI indir",
     "navigation": "Gezinme",
     "resizeSidebar": "Kenar çubuğunu yeniden boyutlandır",
@@ -1001,6 +1001,8 @@
     "pinned": "Sabitlenmiş",
     "tickets": "Biletler",
     "incidents": "Olaylar",
+    "vulnerabilities": "Zafiyetler",
+    "disasterRecovery": "Felaket Kurtarma",
     "chats": "Sohbetler",
     "dailyUpdates": "Güncellemeler",
     "pullRequests": "PR",
@@ -1404,9 +1406,20 @@
       "region": "Acil olaylar"
     }
   },
+  "vulnerabilities": {
+    "title": "Zafiyetler",
+    "description": "Sistemlerinizde bulunan güvenlik açıkları; önem dereceleri, sahipleri ve düzeltme durumlarıyla.",
+    "emptyTitle": "Henüz zafiyet yok",
+    "emptyDescription": "Takip ettiğiniz zafiyetler burada görünecek."
+  },
+  "disasterRecovery": {
+    "title": "Felaket Kurtarma",
+    "description": "Bir kesintiden sonra işinizin sürmesini sağlayan kurtarma planları, yedekler ve geri yükleme testleri.",
+    "emptyTitle": "Henüz kurtarma planı yok",
+    "emptyDescription": "Kurtarma planları ve geri yükleme testleri burada görünecek."
+  },
   "metadata": {
-    "description": "Notion ve Jira'nın sadeliğinden ilham alan modern proje yönetim aracı",
-    "dashboard": "Kontrol Paneli"
+    "description": "Notion ve Jira'nın sadeliğinden ilham alan modern proje yönetim aracı"
   },
   "chat": {
     "channel": {

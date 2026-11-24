@@ -670,7 +670,7 @@
     "comingSoon": "Deze functie is nog niet beschikbaar. Gastuitnodigingen worden in een toekomstige update ondersteund."
   },
   "home": {
-    "title": "Home",
+    "title": "Operatieveld",
     "boardsError": "Je borden konden niet worden geladen.",
     "retry": "Opnieuw proberen",
     "opensInNewTab": "(opent in een nieuw tabblad)",
@@ -990,7 +990,7 @@
     }
   },
   "sidebar": {
-    "home": "Home",
+    "home": "Operatieveld",
     "downloads": "CLI downloaden",
     "navigation": "Navigatie",
     "resizeSidebar": "Zijbalk vergroten of verkleinen",
@@ -1001,6 +1001,8 @@
     "pinned": "Vastgepind",
     "tickets": "Tickets",
     "incidents": "Incidenten",
+    "vulnerabilities": "Kwetsbaarheden",
+    "disasterRecovery": "Disaster recovery",
     "chats": "Chats",
     "dailyUpdates": "Updates",
     "pullRequests": "PR",
@@ -1404,9 +1406,20 @@
       "region": "Urgente incidenten"
     }
   },
+  "vulnerabilities": {
+    "title": "Kwetsbaarheden",
+    "description": "De zwakke plekken in je systemen, met hun ernst, eigenaar en herstelstatus.",
+    "emptyTitle": "Nog geen kwetsbaarheden",
+    "emptyDescription": "Kwetsbaarheden die je bijhoudt verschijnen hier."
+  },
+  "disasterRecovery": {
+    "title": "Disaster recovery",
+    "description": "De herstelplannen, back-ups en hersteltests die je werk draaiende houden na een storing.",
+    "emptyTitle": "Nog geen herstelplannen",
+    "emptyDescription": "Herstelplannen en hersteltests verschijnen hier."
+  },
   "metadata": {
-    "description": "Moderne projectmanagementtool, geïnspireerd door de eenvoud van Notion en Jira",
-    "dashboard": "Dashboard"
+    "description": "Moderne projectmanagementtool, geïnspireerd door de eenvoud van Notion en Jira"
   },
   "chat": {
     "channel": {

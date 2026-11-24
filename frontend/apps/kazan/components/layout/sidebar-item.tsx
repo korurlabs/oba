@@ -3,6 +3,7 @@
 import type { LucideIcon } from "lucide-react";
 import { Link } from "@oba/shared/libs/i18n/navigation";
 import { usePathname } from "@oba/shared/libs/i18n/navigation";
+import { SKY_NAV_ROW_CLASS } from "@oba/ui/sky/app-shell";
 import {
   SidebarMenuBadge,
   SidebarMenuButton,
@@ -16,16 +17,17 @@ import { useSidebarContext } from "./sidebar-context";
 export const BADGE_MAX = 99;
 
 /**
- * The height, gap and padding of the sky menu's own links, so Kazan's rows
- * line up with the Settings link in the menu's foot.
+ * The size of the sky menu's own links (height, gap, padding, icon and label
+ * size), so Kazan's rows line up with the Settings link in the menu's foot and
+ * with the menus of the other apps.
  */
-export const SIDEBAR_ROW_CLASS = "h-9 gap-3 px-3";
+export const SIDEBAR_ROW_CLASS = SKY_NAV_ROW_CLASS;
 
 /**
- * Centres a row's badge, "+" or chevron on the taller row; the primitives
+ * Centres a row's 20px badge, "+" or chevron on the 44px row; the primitives
  * place them for the default row height.
  */
-export const SIDEBAR_ROW_TRAILING_CLASS = "peer-data-[size=default]/menu-button:top-2";
+export const SIDEBAR_ROW_TRAILING_CLASS = "peer-data-[size=default]/menu-button:top-3";
 
 interface SidebarItemProps {
   href: string;

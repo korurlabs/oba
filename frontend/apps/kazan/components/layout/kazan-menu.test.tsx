@@ -147,6 +147,8 @@ describe("KazanMenu", () => {
       sidebar.home,
       sidebar.tickets,
       sidebar.incidents,
+      sidebar.vulnerabilities,
+      sidebar.disasterRecovery,
       sidebar.dailyUpdates,
       sidebar.pullRequests,
       sidebar.chats,
@@ -157,11 +159,25 @@ describe("KazanMenu", () => {
     expect([...positions].sort((a, b) => a - b)).toEqual(positions);
   });
 
-  test("links Home, Incidents and Chats to their pages", () => {
+  test("links Operation Field, Incidents, Vulnerabilities, Disaster Recovery and Chats to their pages", () => {
     const html = markup();
     expect(html).toContain('href="/home"');
+    expect(html).toContain(`<span>${sidebar.home}</span>`);
+    expect(sidebar.home).toBe("Operation Field");
     expect(html).toContain('href="/incidents"');
+    expect(html).toContain('href="/vulnerabilities"');
+    expect(html).toContain('href="/disaster-recovery"');
     expect(html).toContain('href="/chats"');
+  });
+
+  test("draws every row at the sky menu's 44px row height", () => {
+    channels = [channel("DAILY_UPDATES"), channel("PULL_REQUESTS")];
+    const rows = markup().match(/<(?:a|button)[^>]*data-sidebar="menu-button"[^>]*>/g) ?? [];
+    expect(rows).toHaveLength(9);
+    for (const row of rows) {
+      expect(row).toContain("h-11");
+      expect(row).not.toContain("h-9");
+    }
   });
 
   test("links Tickets to the tickets assigned to the signed-in user", () => {

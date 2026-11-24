@@ -670,7 +670,7 @@
     "comingSoon": "This feature is not yet available. Guest invitations will be supported in a future update."
   },
   "home": {
-    "title": "Home",
+    "title": "Operation Field",
     "boardsError": "Your boards could not be loaded.",
     "retry": "Try again",
     "opensInNewTab": "(opens in a new tab)",
@@ -990,7 +990,7 @@
     }
   },
   "sidebar": {
-    "home": "Home",
+    "home": "Operation Field",
     "downloads": "Download CLI",
     "navigation": "Navigation",
     "resizeSidebar": "Resize sidebar",
@@ -1001,6 +1001,8 @@
     "pinned": "Pinned",
     "tickets": "Tickets",
     "incidents": "Incidents",
+    "vulnerabilities": "Vulnerabilities",
+    "disasterRecovery": "Disaster Recovery",
     "chats": "Chats",
     "dailyUpdates": "Updates",
     "pullRequests": "PR",
@@ -1404,9 +1406,20 @@
       "region": "Urgent incidents"
     }
   },
+  "vulnerabilities": {
+    "title": "Vulnerabilities",
+    "description": "The security weaknesses found in your systems, with their severity, owner and fix status.",
+    "emptyTitle": "No vulnerabilities yet",
+    "emptyDescription": "Vulnerabilities you track will appear here."
+  },
+  "disasterRecovery": {
+    "title": "Disaster Recovery",
+    "description": "The recovery plans, backups and restore tests that keep your work running after an outage.",
+    "emptyTitle": "No recovery plans yet",
+    "emptyDescription": "Recovery plans and restore tests will appear here."
+  },
   "metadata": {
-    "description": "Modern project management tool inspired by Notion and Jira simplicity",
-    "dashboard": "Dashboard"
+    "description": "Modern project management tool inspired by Notion and Jira simplicity"
   },
   "chat": {
     "channel": {

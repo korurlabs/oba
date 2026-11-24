@@ -1,7 +1,15 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { GitPullRequest, House, Newspaper, Siren, Ticket } from "lucide-react";
+import {
+  GitPullRequest,
+  House,
+  LifeBuoy,
+  Newspaper,
+  ShieldAlert,
+  Siren,
+  Ticket,
+} from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -46,6 +54,8 @@ export function KazanMenu() {
             icon={Ticket}
           />
           <SidebarItem href="/incidents" label={t("incidents")} icon={Siren} />
+          <SidebarItem href="/vulnerabilities" label={t("vulnerabilities")} icon={ShieldAlert} />
+          <SidebarItem href="/disaster-recovery" label={t("disasterRecovery")} icon={LifeBuoy} />
           <ChatChannelNavItem
             purpose={ChatChannelPurpose.DAILY_UPDATES}
             label={t("dailyUpdates")}
