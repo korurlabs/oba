@@ -77,8 +77,8 @@ mock.module("@oba/ui/components/select", () => ({
   ),
   SelectLabel: passthrough,
   SelectSeparator: () => null,
-  SelectTrigger: (props: { children?: ReactNode; title?: string }) => (
-    <div data-slot="trigger" title={props.title}>
+  SelectTrigger: (props: { children?: ReactNode; title?: string; className?: string }) => (
+    <div data-slot="trigger" title={props.title} className={props.className}>
       {props.children}
     </div>
   ),
@@ -397,6 +397,16 @@ describe("OrganizationSelector", () => {
     expect(row?.[1]).toBe(longName);
     expect(row?.[0]).toContain("whitespace-normal");
     expect(row?.[0]).toContain("break-words");
+  });
+
+  test("the trigger shrinks and cuts its name so the top bar's other actions stay in view", () => {
+    const html = renderSelector();
+
+    const trigger = html.match(/<div data-slot="trigger"[^>]*class="([^"]*)"/);
+    const classes = trigger?.[1].split(" ") ?? [];
+    expect(classes).toContain("min-w-0");
+    expect(classes).toContain("*:data-[slot=select-value]:min-w-0");
+    expect(html).toMatch(/<span class="[^"]*\btruncate\b[^"]*">Korur<\/span>/);
   });
 
   test("the current row is checked and carries the tint, rail and weight", () => {

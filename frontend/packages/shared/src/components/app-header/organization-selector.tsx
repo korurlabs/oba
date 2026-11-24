@@ -42,9 +42,13 @@ import { managedOrganizations } from "../../features/organizations/lib/managed-o
  * marked by a tint, a rail on its start edge and a heavier weight, so it never
  * depends on colour alone. Long names wrap in their row and are cut only in
  * the trigger, which carries the full name as its `title`.
+ *
+ * The trigger may shrink (`min-w-0` on it and on its value) so a long name, or
+ * a narrow window where the name shows, cuts the name short instead of pushing
+ * the app switcher and the account menu out of the top bar.
  */
 const GRID_TRIGGER =
-  "h-8 max-h-8 !min-h-8 gap-2 rounded-lg border-0 bg-transparent px-2.5 text-sm font-medium shadow-none hover:bg-muted data-[state=open]:bg-muted dark:bg-transparent dark:hover:bg-muted [&>svg:last-child]:size-3.5";
+  "h-8 max-h-8 !min-h-8 min-w-0 gap-2 *:data-[slot=select-value]:min-w-0 rounded-lg border-0 bg-transparent px-2.5 text-sm font-medium shadow-none hover:bg-muted data-[state=open]:bg-muted dark:bg-transparent dark:hover:bg-muted [&>svg:last-child]:size-3.5";
 const GRID_PANEL = cn(
   OPS_GRID_SURFACE,
   OPS_GRID_SHADOW,
