@@ -1205,7 +1205,6 @@
   "downloads": {
     "title": "Download Kazan CLI",
     "description": "Manage Kazan boards, tickets and sprints from your terminal. Install on macOS or Linux, with amd64 and arm64 support.",
-    "openKazan": "Open Kazan",
     "homebrew": {
       "title": "Homebrew",
       "description": "Install on macOS or Linux using the Korur tap."

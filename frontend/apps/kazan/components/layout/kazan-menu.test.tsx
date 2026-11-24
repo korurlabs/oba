@@ -178,7 +178,7 @@ describe("KazanMenu", () => {
   test("has no Download CLI row and no Settings row", () => {
     const html = markup();
     expect(html).not.toContain(sidebar.downloads);
-    expect(html).not.toContain("/downloads");
+    expect(html).not.toContain("/settings/cli");
     expect(html).not.toContain(`<span>${sidebar.settings}</span>`);
   });
 

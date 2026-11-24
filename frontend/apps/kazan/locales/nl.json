@@ -1205,7 +1205,6 @@
   "downloads": {
     "title": "Kazan CLI downloaden",
     "description": "Beheer Kazan-borden, tickets en sprints vanuit je terminal. Installeer op macOS of Linux, met ondersteuning voor amd64 en arm64.",
-    "openKazan": "Kazan openen",
     "homebrew": {
       "title": "Homebrew",
       "description": "Installeer op macOS of Linux via de Korur-tap."

@@ -52,7 +52,7 @@ describe("AccountNav", () => {
     expect(tabs(markup()).map((row) => [row[0], row[1]])).toEqual([
       ["/settings/columns", en.sidebar.tableColumns],
       ["/settings/alerts", en.sidebar.alerts],
-      ["/downloads", en.sidebar.downloads],
+      ["/settings/cli", en.sidebar.downloads],
     ]);
   });
 
@@ -60,11 +60,11 @@ describe("AccountNav", () => {
     expect(tabs(markup()).every((row) => row[0].startsWith("/"))).toBe(true);
   });
 
-  test("never marks Download CLI active, not even on its own page", () => {
-    pathname = "/downloads";
-    const rows = tabs(markup());
-    expect(rows.find((row) => row[0] === "/downloads")?.[2]).toBe(false);
-    expect(rows.some((row) => row[2])).toBe(false);
+  test("marks Download CLI active on its own page and nothing else", () => {
+    pathname = "/settings/cli";
+    const active = tabs(markup()).filter((row) => row[2]);
+    expect(active.map((row) => row[0])).toEqual(["/settings/cli"]);
+    expect(active[0]?.[1]).toBe(en.sidebar.downloads);
   });
 
   test("marks the settings tab of the page in view and nothing else", () => {

@@ -16,22 +16,20 @@ interface AccountTab {
 
 /**
  * Kazan's own settings screens. `id` doubles as the label key in the
- * `sidebar` namespace. Download CLI comes last: the downloads page sits
- * outside the settings screens, so its tab is never active. The profile,
- * invitations and general settings live in the account app and the
- * organizations in Ulak; the profile menu and the app switcher reach them, so
- * this row does not repeat them.
+ * `sidebar` namespace. The profile, invitations and general settings live in
+ * the account app and the organizations in Ulak; the profile menu and the app
+ * switcher reach them, so this row does not repeat them.
  */
 const ACCOUNT_TABS: readonly AccountTab[] = [
   { id: "tableColumns", href: "/settings/columns", icon: Columns3 },
   { id: "alerts", href: "/settings/alerts", icon: Siren },
-  { id: "downloads", href: "/downloads", icon: Download },
+  { id: "downloads", href: "/settings/cli", icon: Download },
 ];
 
 /**
  * Navigation row shared by the Kazan settings screens (table columns,
- * alerts), with the CLI downloads beside them. Rendered by the `(account)`
- * layout, so it stays on screen when one of those pages throws.
+ * alerts, Download CLI). Rendered by the `(account)` layout, so it stays on
+ * screen when one of those pages throws.
  *
  * Modelled on `board-tabs.tsx`: a row of links whose active tab comes from the
  * pathname. The row scrolls horizontally when the tabs do not fit the width.
@@ -40,13 +38,11 @@ export function AccountNav() {
   const t = useTranslations("sidebar");
   const pathname = usePathname();
 
-  const isTabActive = (tab: AccountTab): boolean => tab.id !== "downloads" && pathname === tab.href;
-
   return (
     <div className="border-border bg-card shrink-0 border-b">
       <nav className="flex gap-6 overflow-x-auto px-6" aria-label={t("settings")}>
         {ACCOUNT_TABS.map((tab) => {
-          const isActive = isTabActive(tab);
+          const isActive = pathname === tab.href;
           const Icon = tab.icon;
 
           return (

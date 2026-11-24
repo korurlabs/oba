@@ -1205,7 +1205,6 @@
   "downloads": {
     "title": "Kazan CLI indir",
     "description": "Kazan panolarını, iş kayıtlarını ve sprintleri terminalinizden yönetin. amd64 ve arm64 desteğiyle macOS veya Linux üzerine kurun.",
-    "openKazan": "Kazan’ı aç",
     "homebrew": {
       "title": "Homebrew",
       "description": "Korur tap üzerinden macOS veya Linux üzerine kurun."
