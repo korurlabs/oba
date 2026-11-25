@@ -26,6 +26,7 @@ let pathname: string;
 let access: Access;
 let channels: Channel[] | undefined;
 let meId: string | undefined;
+let meRole: string | undefined;
 
 const actualMe = { ...(await import("@oba/shared/features/users/hooks/use-get-me")) };
 const actualNavigation = { ...(await import("@oba/shared/libs/i18n/navigation")) };
@@ -41,7 +42,15 @@ const actualDialog = { ...(await import("@/features/boards/components/create-boa
 
 mock.module("@oba/shared/features/users/hooks/use-get-me", () => ({
   ...actualMe,
-  useGetMe: () => ({ data: { data: { id: meId, organizations: [] } } }),
+  useGetMe: () => ({
+    data: {
+      data: {
+        id: meId,
+        defaultOrganizationId: "org-1",
+        organizations: meRole ? [{ id: "org-1", name: "Org", role: meRole }] : [],
+      },
+    },
+  }),
 }));
 mock.module("@oba/shared/libs/i18n/navigation", () => ({
   ...actualNavigation,
@@ -134,6 +143,7 @@ beforeEach(() => {
   access = { status: "open" };
   channels = [];
   meId = "me-1";
+  meRole = undefined;
 });
 
 afterEach(cleanup);
@@ -211,6 +221,28 @@ describe("KazanMenu", () => {
     const html = markup();
     const active = html.indexOf('data-active="true"');
     expect(html.slice(active, html.indexOf("</a>", active))).toContain(sidebar.tickets);
+  });
+
+  describe("the Cyberscore row", () => {
+    for (const role of ["OWNER", "ADMIN", "MEMBER"]) {
+      test(`shows for a ${role} of the organization`, () => {
+        meRole = role;
+        expect(markup()).toContain('href="/cyberscore"');
+      });
+    }
+
+    test("is left out for a GUEST, whom the API refuses the cyberscore", () => {
+      meRole = "GUEST";
+      const html = markup();
+      expect(html).not.toContain('href="/cyberscore"');
+      expect(html).not.toContain(`<span>${sidebar.cyberscore}</span>`);
+      expect(html).toContain('href="/incidents"');
+    });
+
+    test("shows while the role in the organization is not known", () => {
+      meRole = undefined;
+      expect(markup()).toContain('href="/cyberscore"');
+    });
   });
 
   describe("the Updates and PR rows", () => {

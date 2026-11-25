@@ -1455,6 +1455,10 @@
     "emptyTitle": "No cyberscore yet",
     "emptyDescription": "Add checks and record their outcomes, and your cyberscore and how it changes appear here.",
     "loadError": "Could not load the cyberscore.",
+    "noAccess": {
+      "title": "The cyberscore is for organization members",
+      "description": "You are a guest in {organization}, and guests do not see the cyberscore. An owner or admin of the organization can make you a member in Ulak."
+    },
     "viewChecks": "View all checks",
     "gauge": {
       "title": "Current score",

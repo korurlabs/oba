@@ -1455,6 +1455,10 @@
     "emptyTitle": "Nog geen cyberscore",
     "emptyDescription": "Voeg controles toe en leg hun uitkomst vast, dan verschijnen je cyberscore en hoe die verandert hier.",
     "loadError": "De cyberscore kon niet worden geladen.",
+    "noAccess": {
+      "title": "De cyberscore is voor leden van de organisatie",
+      "description": "Je bent gast in {organization}, en gasten zien de cyberscore niet. Een eigenaar of beheerder van de organisatie kan je in Ulak lid maken."
+    },
     "viewChecks": "Alle controles bekijken",
     "gauge": {
       "title": "Huidige score",

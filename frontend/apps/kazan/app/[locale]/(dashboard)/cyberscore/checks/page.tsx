@@ -9,6 +9,8 @@ import { listChecks } from "@/features/cyberscore/api";
 import { CHECK_KEYS } from "@/features/cyberscore/hooks/query-keys";
 import { CheckStatusSchema } from "@/features/cyberscore/schemas";
 import { CheckList } from "@/features/cyberscore/components/check-list";
+import { CyberscoreAccessGate } from "@/features/cyberscore/components/cyberscore-access-gate";
+import { isCyberscoreClosedOnServer } from "@/features/cyberscore/lib/cyberscore-access-server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("cyberscore");
@@ -29,7 +31,9 @@ interface ChecksPageProps {
  * which decides whether the write controls show, and the check list under
  * the status filter in the URL, so the table renders with data in the first
  * HTML payload. An unknown status lists every check, as the client's filter
- * parser reads it. The dashboard layout already gates auth.
+ * parser reads it. The dashboard layout already gates auth; a guest of the
+ * organization, whom the API refuses the cyberscore, gets the gate's
+ * no-access state instead.
  */
 export default async function ChecksPage({ searchParams }: ChecksPageProps) {
   const queryClient = makeQueryClient();
@@ -40,8 +44,9 @@ export default async function ChecksPage({ searchParams }: ChecksPageProps) {
 
   // Best-effort as well: on a failure the client fetches through useChecks.
   // Skipped without Kazan in the organization: the API would refuse it, and
-  // the no-access panel takes the place of the page.
-  if (!(await isKazanClosedOnServer())) {
+  // the no-access panel takes the place of the page. Skipped for a guest as
+  // well, for the same reason.
+  if (!(await isKazanClosedOnServer()) && !(await isCyberscoreClosedOnServer())) {
     const parsed = CheckStatusSchema.safeParse((await searchParams).status);
     const status = parsed.success ? parsed.data : undefined;
     try {
@@ -57,7 +62,9 @@ export default async function ChecksPage({ searchParams }: ChecksPageProps) {
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <CheckList />
+      <CyberscoreAccessGate>
+        <CheckList />
+      </CyberscoreAccessGate>
     </HydrationBoundary>
   );
 }

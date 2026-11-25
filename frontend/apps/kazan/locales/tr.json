@@ -1455,6 +1455,10 @@
     "emptyTitle": "Henüz cyberscore yok",
     "emptyDescription": "Kontroller ekleyip sonuçlarını kaydettiğinizde cyberscore'unuz ve değişimi burada görünecek.",
     "loadError": "Cyberscore yüklenemedi.",
+    "noAccess": {
+      "title": "Cyberscore kuruluş üyeleri içindir",
+      "description": "{organization} kuruluşunda misafirsiniz ve misafirler cyberscore'u göremez. Kuruluşun sahibi veya yöneticisi sizi Ulak'tan üye yapabilir."
+    },
     "viewChecks": "Tüm kontrolleri görüntüle",
     "gauge": {
       "title": "Güncel puan",
