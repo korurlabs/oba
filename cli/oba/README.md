@@ -457,7 +457,7 @@ Every page gets one outcome, printed as one line per page and a count line:
 | `conflict` | the page was edited in Kalkan since the last upload (`KLK_STA_004`) or another write raced it (`GEN_STA_001`); `--force` overwrites |
 | `denied` | a 403, or a 404 for a page that is missing or hidden from you |
 | `failed` | any other error |
-| `skipped` | not reached: below a page that was not written (`PARENT_NOT_WRITTEN`, `not uploaded: <path> above it was not written`), or after the run stopped |
+| `skipped` | not reached: below a page that was denied or failed (`PARENT_NOT_WRITTEN`, `not uploaded: <path> above it was not written`), or after the run stopped |
 
 The run goes on past a conflict, a denial or a failure. A refused sign-in (a 401, or a stored session that could not be refreshed) stops it, and the pages it has not reached are `skipped`. `--dry-run` sends only `dryRun=true` writes and reads, never a file. `--json` prints `{"counts":{...},"pages":[{"path","outcome","version","error"}]}` on stdout on every run, failed or not, with `error` as `{"code","message"}`. Each error prints once on stderr, as `Error: <path>: <message> (<code>)` for a page or `Error: <message> (<code>)` for the run; a skipped page adds nothing there, since its own line or `error` names the cause.
 

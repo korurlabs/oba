@@ -28,9 +28,10 @@ not read. Every file name must be a slug, and a path at most 10 slugs deep.
 
 Each page is reported as created, updated, unchanged, conflict, denied, failed or skipped. A page
 edited in Kalkan since the last upload is a conflict and is not written unless --force is given;
-the pages below a page that was not written are skipped, and the other pages are written. A
-refused sign-in ends the run. --dry-run reports the outcome of every page without writing or
-uploading anything. With --json, prints {"counts":{...},"pages":[...]} also when the run fails.
+the pages below a page that was denied or failed are skipped, and the other pages are written,
+also those below a conflict, since that page exists in Kalkan. A refused sign-in ends the run.
+--dry-run reports the outcome of every page without writing or uploading anything. With --json,
+prints {"counts":{...},"pages":[...]} also when the run fails.
 
 Exit status: 0 when every page was created, updated or unchanged; else the first of 1 (a
 failure), 3 (access denied), 2 (a page not found or hidden from you) and 4 (a conflict) that
