@@ -23,12 +23,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
+import com.korur.oba.apps.kazan.cyberscore.dto.derived.CyberscoreTrendPoint;
 import com.korur.oba.apps.kazan.cyberscore.entity.Cyberscore;
 import com.korur.oba.apps.kazan.cyberscore.entity.CyberscoreSnapshot;
 import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreLevel;
 import com.korur.oba.apps.kazan.cyberscore.repository.CyberscoreRepository;
 import com.korur.oba.apps.kazan.cyberscore.repository.CyberscoreSnapshotRepository;
-import com.korur.oba.apps.kazan.cyberscore.service.CyberscoreTrendPoint;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.dojo.time.BusinessCalendar;
 

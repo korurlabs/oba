@@ -8,10 +8,10 @@ package com.korur.oba.apps.kazan.cyberscore.service;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.kazan.cyberscore.dto.request.CheckOutcomeRequest;
-import com.korur.oba.apps.kazan.cyberscore.dto.request.CheckRequest;
-import com.korur.oba.apps.kazan.cyberscore.dto.request.CheckStatusRequest;
-import com.korur.oba.apps.kazan.cyberscore.dto.response.CheckResponse;
+import com.korur.oba.apps.kazan.cyberscore.dto.request.CyberscoreCheckOutcomeRequest;
+import com.korur.oba.apps.kazan.cyberscore.dto.request.CyberscoreCheckRequest;
+import com.korur.oba.apps.kazan.cyberscore.dto.request.CyberscoreCheckStatusRequest;
+import com.korur.oba.apps.kazan.cyberscore.dto.response.CyberscoreCheckResponse;
 import com.korur.oba.shrine.identity.entity.User;
 
 /**
@@ -23,7 +23,7 @@ import com.korur.oba.shrine.identity.entity.User;
  * recalculates the organization's cyberscore in the same transaction; a change
  * of name, texts, sort order or status does not.
  */
-public interface CheckService {
+public interface CyberscoreCheckService {
 
     /**
      * Creates a check and recalculates the score.
@@ -33,7 +33,7 @@ public interface CheckService {
      * @param request        the check fields
      * @return the created check
      */
-    CheckResponse createCheck(User user, UUID organizationId, CheckRequest request);
+    CyberscoreCheckResponse createCheck(User user, UUID organizationId, CyberscoreCheckRequest request);
 
     /**
      * Replaces the fields of a check, and recalculates the score when weight,
@@ -45,7 +45,7 @@ public interface CheckService {
      * @param request        the check fields
      * @return the updated check
      */
-    CheckResponse updateCheck(User user, UUID organizationId, UUID checkId, CheckRequest request);
+    CyberscoreCheckResponse updateCheck(User user, UUID organizationId, UUID checkId, CyberscoreCheckRequest request);
 
     /**
      * Records a check's current outcome, sets the status it implies and
@@ -57,7 +57,8 @@ public interface CheckService {
      * @param request        the new outcome
      * @return the updated check
      */
-    CheckResponse setCheckOutcome(User user, UUID organizationId, UUID checkId, CheckOutcomeRequest request);
+    CyberscoreCheckResponse setCheckOutcome(User user, UUID organizationId, UUID checkId,
+                                            CyberscoreCheckOutcomeRequest request);
 
     /**
      * Sets a check's workflow status; the score does not change.
@@ -68,7 +69,8 @@ public interface CheckService {
      * @param request        the new status
      * @return the updated check
      */
-    CheckResponse setCheckStatus(User user, UUID organizationId, UUID checkId, CheckStatusRequest request);
+    CyberscoreCheckResponse setCheckStatus(User user, UUID organizationId, UUID checkId,
+                                           CyberscoreCheckStatusRequest request);
 
     /**
      * Deletes a check and recalculates the score.

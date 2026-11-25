@@ -29,15 +29,15 @@ import java.util.List;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.kazan.cyberscore.constant.controller.CheckControllerLogConstant;
-import com.korur.oba.apps.kazan.cyberscore.constant.controller.CheckControllerResponseConstant;
-import com.korur.oba.apps.kazan.cyberscore.dto.request.CheckOutcomeRequest;
-import com.korur.oba.apps.kazan.cyberscore.dto.request.CheckQueryRequest;
-import com.korur.oba.apps.kazan.cyberscore.dto.request.CheckRequest;
-import com.korur.oba.apps.kazan.cyberscore.dto.request.CheckStatusRequest;
-import com.korur.oba.apps.kazan.cyberscore.dto.response.CheckResponse;
-import com.korur.oba.apps.kazan.cyberscore.service.CheckQueryService;
-import com.korur.oba.apps.kazan.cyberscore.service.CheckService;
+import com.korur.oba.apps.kazan.cyberscore.constant.controller.CyberscoreCheckControllerLogConstant;
+import com.korur.oba.apps.kazan.cyberscore.constant.controller.CyberscoreCheckControllerResponseConstant;
+import com.korur.oba.apps.kazan.cyberscore.dto.request.CyberscoreCheckOutcomeRequest;
+import com.korur.oba.apps.kazan.cyberscore.dto.request.CyberscoreCheckQueryRequest;
+import com.korur.oba.apps.kazan.cyberscore.dto.request.CyberscoreCheckRequest;
+import com.korur.oba.apps.kazan.cyberscore.dto.request.CyberscoreCheckStatusRequest;
+import com.korur.oba.apps.kazan.cyberscore.dto.response.CyberscoreCheckResponse;
+import com.korur.oba.apps.kazan.cyberscore.service.CyberscoreCheckQueryService;
+import com.korur.oba.apps.kazan.cyberscore.service.CyberscoreCheckService;
 import com.korur.oba.dojo.constant.CommonConstant;
 import com.korur.oba.dojo.dto.CustomResponse;
 import com.korur.oba.dojo.logging.enums.LogLayer;
@@ -51,47 +51,49 @@ import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 
 /**
  * REST controller for the checks an organization's cyberscore is computed
- * from. Every member, guests included, may read them; only organization admins
- * may change them.
+ * from. Members and above may read them, guests may not; only organization
+ * admins may change them.
  */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/kazan/cyberscore/checks")
 @Tag(name = "Cyberscore checks", description = "Security checks that make up the organization's cyberscore")
-public class CheckController {
+public class CyberscoreCheckController {
 
-    private static final LogPrefix LOG_PREFIX = LogPrefix.fromClass(CheckController.class);
+    private static final LogPrefix LOG_PREFIX = LogPrefix.fromClass(CyberscoreCheckController.class);
 
-    private final CheckService checkService;
-    private final CheckQueryService checkQueryService;
+    private final CyberscoreCheckService checkService;
+    private final CyberscoreCheckQueryService checkQueryService;
     private final LoggingService loggingService;
 
     /**
      * Lists the checks in display order, optionally of one status.
      */
     @GetMapping
-    @RequiredUserAccess(OrganizationMemberRole.GUEST)
+    @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "List checks", description = "Every check of the organization, by category (uncategorized "
             + "last), sort order and name; optionally of one status")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successful operation"),
-            @ApiResponse(responseCode = "400", description = "Missing or malformed X-Organization-ID header, "
-                    + "or unknown status"),
-            @ApiResponse(responseCode = "403", description = "Not a member of the organization, or membership or "
-                    + "organization disabled (ORG_SEC_001, ORG_SEC_005)"),
+            @ApiResponse(responseCode = "400", description = "Missing or malformed X-Organization-ID header"),
+            @ApiResponse(responseCode = "403", description = "A guest of the organization (ORG_SEC_003), not a "
+                    + "member of it, or membership or organization disabled (ORG_SEC_001, ORG_SEC_005)"),
+            @ApiResponse(responseCode = "422", description = "Unknown status (GEN_VAL_001)"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<CustomResponse<List<CheckResponse>>> listChecks(
+    public ResponseEntity<CustomResponse<List<CyberscoreCheckResponse>>> listChecks(
             @Parameter(hidden = true) @GetUser User user,
             @RequestHeader(CommonConstant.HEADER_ORGANIZATION_ID) UUID organizationId,
-            @Valid @ModelAttribute @ParameterObject CheckQueryRequest query) {
-        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, CheckControllerLogConstant.CHECK_LIST_REQUEST);
+            @Valid @ModelAttribute @ParameterObject CyberscoreCheckQueryRequest query) {
+        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
+                CyberscoreCheckControllerLogConstant.CHECK_LIST_REQUEST);
 
-        List<CheckResponse> response = checkQueryService.listChecks(organizationId, query);
+        List<CyberscoreCheckResponse> response = checkQueryService.listChecks(organizationId, query);
 
-        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, CheckControllerLogConstant.CHECK_LIST_COMPLETED);
+        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
+                CyberscoreCheckControllerLogConstant.CHECK_LIST_COMPLETED);
 
-        return ResponseUtil.ok(CheckControllerResponseConstant.RESPONSE_CHECK_LIST_RETRIEVED, response);
+        return ResponseUtil.ok(CyberscoreCheckControllerResponseConstant.RESPONSE_CHECK_LIST_RETRIEVED, response);
     }
 
     /**
@@ -111,17 +113,19 @@ public class CheckController {
             @ApiResponse(responseCode = "422", description = "Invalid request (GEN_VAL_001)"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<CustomResponse<CheckResponse>> createCheck(
+    public ResponseEntity<CustomResponse<CyberscoreCheckResponse>> createCheck(
             @Parameter(hidden = true) @GetUser User user,
             @RequestHeader(CommonConstant.HEADER_ORGANIZATION_ID) UUID organizationId,
-            @RequestBody @Valid CheckRequest request) {
-        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, CheckControllerLogConstant.CHECK_CREATE_REQUEST);
+            @RequestBody @Valid CyberscoreCheckRequest request) {
+        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
+                CyberscoreCheckControllerLogConstant.CHECK_CREATE_REQUEST);
 
-        CheckResponse response = checkService.createCheck(user, organizationId, request);
+        CyberscoreCheckResponse response = checkService.createCheck(user, organizationId, request);
 
-        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, CheckControllerLogConstant.CHECK_CREATE_COMPLETED);
+        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
+                CyberscoreCheckControllerLogConstant.CHECK_CREATE_COMPLETED);
 
-        return ResponseUtil.created(CheckControllerResponseConstant.RESPONSE_CHECK_CREATED, response);
+        return ResponseUtil.created(CyberscoreCheckControllerResponseConstant.RESPONSE_CHECK_CREATED, response);
     }
 
     /**
@@ -143,18 +147,20 @@ public class CheckController {
             @ApiResponse(responseCode = "422", description = "Invalid request (GEN_VAL_001)"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<CustomResponse<CheckResponse>> updateCheck(
+    public ResponseEntity<CustomResponse<CyberscoreCheckResponse>> updateCheck(
             @Parameter(hidden = true) @GetUser User user,
             @RequestHeader(CommonConstant.HEADER_ORGANIZATION_ID) UUID organizationId,
             @PathVariable UUID checkId,
-            @RequestBody @Valid CheckRequest request) {
-        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, CheckControllerLogConstant.CHECK_UPDATE_REQUEST);
+            @RequestBody @Valid CyberscoreCheckRequest request) {
+        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
+                CyberscoreCheckControllerLogConstant.CHECK_UPDATE_REQUEST);
 
-        CheckResponse response = checkService.updateCheck(user, organizationId, checkId, request);
+        CyberscoreCheckResponse response = checkService.updateCheck(user, organizationId, checkId, request);
 
-        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, CheckControllerLogConstant.CHECK_UPDATE_COMPLETED);
+        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
+                CyberscoreCheckControllerLogConstant.CHECK_UPDATE_COMPLETED);
 
-        return ResponseUtil.ok(CheckControllerResponseConstant.RESPONSE_CHECK_UPDATED, response);
+        return ResponseUtil.ok(CyberscoreCheckControllerResponseConstant.RESPONSE_CHECK_UPDATED, response);
     }
 
     /**
@@ -174,18 +180,20 @@ public class CheckController {
             @ApiResponse(responseCode = "422", description = "Invalid request (GEN_VAL_001)"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<CustomResponse<CheckResponse>> setCheckOutcome(
+    public ResponseEntity<CustomResponse<CyberscoreCheckResponse>> setCheckOutcome(
             @Parameter(hidden = true) @GetUser User user,
             @RequestHeader(CommonConstant.HEADER_ORGANIZATION_ID) UUID organizationId,
             @PathVariable UUID checkId,
-            @RequestBody @Valid CheckOutcomeRequest request) {
-        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, CheckControllerLogConstant.CHECK_OUTCOME_REQUEST);
+            @RequestBody @Valid CyberscoreCheckOutcomeRequest request) {
+        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
+                CyberscoreCheckControllerLogConstant.CHECK_OUTCOME_REQUEST);
 
-        CheckResponse response = checkService.setCheckOutcome(user, organizationId, checkId, request);
+        CyberscoreCheckResponse response = checkService.setCheckOutcome(user, organizationId, checkId, request);
 
-        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, CheckControllerLogConstant.CHECK_OUTCOME_COMPLETED);
+        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
+                CyberscoreCheckControllerLogConstant.CHECK_OUTCOME_COMPLETED);
 
-        return ResponseUtil.ok(CheckControllerResponseConstant.RESPONSE_CHECK_OUTCOME_UPDATED, response);
+        return ResponseUtil.ok(CyberscoreCheckControllerResponseConstant.RESPONSE_CHECK_OUTCOME_UPDATED, response);
     }
 
     /**
@@ -205,18 +213,20 @@ public class CheckController {
             @ApiResponse(responseCode = "422", description = "Invalid request (GEN_VAL_001)"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<CustomResponse<CheckResponse>> setCheckStatus(
+    public ResponseEntity<CustomResponse<CyberscoreCheckResponse>> setCheckStatus(
             @Parameter(hidden = true) @GetUser User user,
             @RequestHeader(CommonConstant.HEADER_ORGANIZATION_ID) UUID organizationId,
             @PathVariable UUID checkId,
-            @RequestBody @Valid CheckStatusRequest request) {
-        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, CheckControllerLogConstant.CHECK_STATUS_REQUEST);
+            @RequestBody @Valid CyberscoreCheckStatusRequest request) {
+        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
+                CyberscoreCheckControllerLogConstant.CHECK_STATUS_REQUEST);
 
-        CheckResponse response = checkService.setCheckStatus(user, organizationId, checkId, request);
+        CyberscoreCheckResponse response = checkService.setCheckStatus(user, organizationId, checkId, request);
 
-        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, CheckControllerLogConstant.CHECK_STATUS_COMPLETED);
+        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
+                CyberscoreCheckControllerLogConstant.CHECK_STATUS_COMPLETED);
 
-        return ResponseUtil.ok(CheckControllerResponseConstant.RESPONSE_CHECK_STATUS_UPDATED, response);
+        return ResponseUtil.ok(CyberscoreCheckControllerResponseConstant.RESPONSE_CHECK_STATUS_UPDATED, response);
     }
 
     /**
@@ -239,12 +249,14 @@ public class CheckController {
             @Parameter(hidden = true) @GetUser User user,
             @RequestHeader(CommonConstant.HEADER_ORGANIZATION_ID) UUID organizationId,
             @PathVariable UUID checkId) {
-        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, CheckControllerLogConstant.CHECK_DELETE_REQUEST);
+        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
+                CyberscoreCheckControllerLogConstant.CHECK_DELETE_REQUEST);
 
         checkService.deleteCheck(user, organizationId, checkId);
 
-        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, CheckControllerLogConstant.CHECK_DELETE_COMPLETED);
+        loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER,
+                CyberscoreCheckControllerLogConstant.CHECK_DELETE_COMPLETED);
 
-        return ResponseUtil.ok(CheckControllerResponseConstant.RESPONSE_CHECK_DELETED);
+        return ResponseUtil.ok(CyberscoreCheckControllerResponseConstant.RESPONSE_CHECK_DELETED);
     }
 }

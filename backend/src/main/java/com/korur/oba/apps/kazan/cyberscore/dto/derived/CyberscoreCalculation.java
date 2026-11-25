@@ -1,4 +1,4 @@
-package com.korur.oba.apps.kazan.cyberscore.service;
+package com.korur.oba.apps.kazan.cyberscore.dto.derived;
 
 // 1. Framework-level
 
@@ -11,7 +11,8 @@ import java.util.Map;
 import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreLevel;
 
 /**
- * Result of scoring a set of checks with {@link CyberscoreCalculateService}.
+ * Result of scoring a set of checks with
+ * {@link com.korur.oba.apps.kazan.cyberscore.service.CyberscoreCalculateService}.
  *
  * @param scorable            whether at least one check had an outcome that counts
  * @param scorePercentage     weighted score from 0 to 100; 0 when not scorable

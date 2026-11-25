@@ -13,11 +13,12 @@ import java.util.Map;
 import java.util.OptionalDouble;
 
 // 4. Internal
-import com.korur.oba.apps.kazan.cyberscore.entity.Check;
-import com.korur.oba.apps.kazan.cyberscore.enums.CheckCategory;
+import com.korur.oba.apps.kazan.cyberscore.dto.derived.CyberscoreCalculation;
+import com.korur.oba.apps.kazan.cyberscore.dto.derived.CyberscoreWeightTally;
+import com.korur.oba.apps.kazan.cyberscore.entity.CyberscoreCheck;
+import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreCheckCategory;
 import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreLevel;
 import com.korur.oba.apps.kazan.cyberscore.service.CyberscoreCalculateService;
-import com.korur.oba.apps.kazan.cyberscore.service.CyberscoreCalculation;
 
 /**
  * Implements the weighted cyberscore formula.
@@ -30,11 +31,11 @@ import com.korur.oba.apps.kazan.cyberscore.service.CyberscoreCalculation;
 public class CyberscoreCalculateServiceImpl implements CyberscoreCalculateService {
 
     @Override
-    public CyberscoreCalculation calculate(List<Check> checks) {
-        ScoreAccumulator overall = new ScoreAccumulator();
-        Map<CheckCategory, ScoreAccumulator> byCategory = new EnumMap<>(CheckCategory.class);
+    public CyberscoreCalculation calculate(List<CyberscoreCheck> checks) {
+        CyberscoreWeightTally overall = CyberscoreWeightTally.EMPTY;
+        Map<CyberscoreCheckCategory, CyberscoreWeightTally> byCategory = new EnumMap<>(CyberscoreCheckCategory.class);
 
-        for (Check check : checks) {
+        for (CyberscoreCheck check : checks) {
             OptionalDouble factor = check.getOutcome().scoreFactor();
             if (factor.isEmpty()) {
                 continue;
@@ -42,44 +43,29 @@ public class CyberscoreCalculateServiceImpl implements CyberscoreCalculateServic
             double outcomeFactor = factor.getAsDouble();
             int weight = check.getWeight();
 
-            overall.add(weight, outcomeFactor);
-            CheckCategory category = check.getCategory();
+            overall = overall.add(weight, outcomeFactor);
+            CyberscoreCheckCategory category = check.getCategory();
             if (category != null) {
-                byCategory.computeIfAbsent(category, key -> new ScoreAccumulator()).add(weight, outcomeFactor);
+                CyberscoreWeightTally categoryTally = byCategory.get(category);
+                if (categoryTally == null) {
+                    categoryTally = CyberscoreWeightTally.EMPTY;
+                }
+                byCategory.put(category, categoryTally.add(weight, outcomeFactor));
             }
         }
 
-        boolean scorable = overall.possibleWeight > 0;
+        boolean scorable = overall.hasWeight();
         int scorePercentage = scorable ? overall.toPercentage() : 0;
-        CyberscoreLevel scoreLevel = scorable ? CyberscoreLevel.fromPercentage(scorePercentage) : CyberscoreLevel.UNKNOWN;
+        CyberscoreLevel scoreLevel = scorable
+                ? CyberscoreLevel.fromPercentage(scorePercentage)
+                : CyberscoreLevel.UNKNOWN;
 
         // The enum map iterates in declaration order, which is the display order of the categories.
         Map<String, Integer> breakdownByCategory = new LinkedHashMap<>();
-        for (Map.Entry<CheckCategory, ScoreAccumulator> entry : byCategory.entrySet()) {
+        for (Map.Entry<CyberscoreCheckCategory, CyberscoreWeightTally> entry : byCategory.entrySet()) {
             breakdownByCategory.put(entry.getKey().name(), entry.getValue().toPercentage());
         }
 
         return new CyberscoreCalculation(scorable, scorePercentage, scoreLevel, breakdownByCategory);
-    }
-
-    /**
-     * Accumulates the achieved and the achievable weight of a set of checks.
-     */
-    private static final class ScoreAccumulator {
-
-        private double achievedWeight = 0.0;
-        private int possibleWeight = 0;
-
-        private void add(int weight, double outcomeFactor) {
-            this.possibleWeight += weight;
-            this.achievedWeight += weight * outcomeFactor;
-        }
-
-        private int toPercentage() {
-            if (possibleWeight == 0) {
-                return 0;
-            }
-            return (int) Math.round(achievedWeight / possibleWeight * 100.0);
-        }
     }
 }

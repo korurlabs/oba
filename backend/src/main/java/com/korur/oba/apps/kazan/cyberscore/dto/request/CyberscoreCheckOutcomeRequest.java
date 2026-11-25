@@ -10,18 +10,18 @@ import jakarta.validation.constraints.NotNull;
 // 3. Java SDK
 
 // 4. Internal
-import com.korur.oba.apps.kazan.cyberscore.constant.CheckConstant;
-import com.korur.oba.apps.kazan.cyberscore.enums.CheckOutcome;
+import com.korur.oba.apps.kazan.cyberscore.constant.CyberscoreCheckConstant;
+import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreCheckOutcome;
 
 /**
  * Request payload to record a check's current outcome. The status follows from
  * the outcome.
  */
 @Schema(description = "Check outcome request")
-public record CheckOutcomeRequest(
+public record CyberscoreCheckOutcomeRequest(
 
         @Schema(description = "Current outcome", requiredMode = Schema.RequiredMode.REQUIRED, example = "PARTIAL")
-        @NotNull(message = CheckConstant.OUTCOME_REQUIRED_MESSAGE)
-        CheckOutcome outcome
+        @NotNull(message = CyberscoreCheckConstant.OUTCOME_REQUIRED_MESSAGE)
+        CyberscoreCheckOutcome outcome
 ) {
 }

@@ -8,6 +8,9 @@ package com.korur.oba.apps.kazan.cyberscore.service;
 import java.util.List;
 import java.util.UUID;
 
+// 4. Internal
+import com.korur.oba.apps.kazan.cyberscore.dto.derived.CyberscoreTrendPoint;
+
 /**
  * Builds the day-by-day cyberscore trend of an organization from its snapshots.
  */

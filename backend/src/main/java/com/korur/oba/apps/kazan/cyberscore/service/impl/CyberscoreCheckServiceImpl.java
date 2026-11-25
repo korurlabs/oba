@@ -16,23 +16,23 @@ import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
-import static com.korur.oba.apps.kazan.cyberscore.constant.service.CheckServiceLogConstant.*;
+import static com.korur.oba.apps.kazan.cyberscore.constant.service.CyberscoreCheckServiceLogConstant.*;
 
-import com.korur.oba.apps.kazan.cyberscore.constant.CheckConstant;
-import com.korur.oba.apps.kazan.cyberscore.constant.CheckExceptionLogConstant;
-import com.korur.oba.apps.kazan.cyberscore.dto.request.CheckOutcomeRequest;
-import com.korur.oba.apps.kazan.cyberscore.dto.request.CheckRequest;
-import com.korur.oba.apps.kazan.cyberscore.dto.request.CheckStatusRequest;
-import com.korur.oba.apps.kazan.cyberscore.dto.response.CheckResponse;
-import com.korur.oba.apps.kazan.cyberscore.entity.Check;
-import com.korur.oba.apps.kazan.cyberscore.enums.CheckOutcome;
-import com.korur.oba.apps.kazan.cyberscore.enums.CheckStatus;
+import com.korur.oba.apps.kazan.cyberscore.constant.CyberscoreCheckConstant;
+import com.korur.oba.apps.kazan.cyberscore.constant.CyberscoreCheckExceptionLogConstant;
+import com.korur.oba.apps.kazan.cyberscore.dto.request.CyberscoreCheckOutcomeRequest;
+import com.korur.oba.apps.kazan.cyberscore.dto.request.CyberscoreCheckRequest;
+import com.korur.oba.apps.kazan.cyberscore.dto.request.CyberscoreCheckStatusRequest;
+import com.korur.oba.apps.kazan.cyberscore.dto.response.CyberscoreCheckResponse;
+import com.korur.oba.apps.kazan.cyberscore.entity.CyberscoreCheck;
+import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreCheckOutcome;
+import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreCheckStatus;
 import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreSnapshotEventType;
-import com.korur.oba.apps.kazan.cyberscore.mapper.CheckMapper;
-import com.korur.oba.apps.kazan.cyberscore.repository.CheckRepository;
-import com.korur.oba.apps.kazan.cyberscore.service.CheckService;
+import com.korur.oba.apps.kazan.cyberscore.mapper.CyberscoreCheckMapper;
+import com.korur.oba.apps.kazan.cyberscore.repository.CyberscoreCheckRepository;
+import com.korur.oba.apps.kazan.cyberscore.service.CyberscoreCheckService;
 import com.korur.oba.apps.kazan.cyberscore.service.CyberscoreService;
-import com.korur.oba.apps.kazan.cyberscore.validator.CheckValidator;
+import com.korur.oba.apps.kazan.cyberscore.validator.CyberscoreCheckValidator;
 import com.korur.oba.apps.kazan.exception.ExceptionDomainKazanError;
 import com.korur.oba.dojo.exception.internal.business.ConflictException;
 import com.korur.oba.dojo.logging.enums.LogLayer;
@@ -59,26 +59,28 @@ import com.korur.oba.shrine.identity.entity.User;
  */
 @Service
 @RequiredArgsConstructor
-public class CheckServiceImpl implements CheckService {
+public class CyberscoreCheckServiceImpl implements CyberscoreCheckService {
 
-    private static final LogPrefix LOG_PREFIX = LogPrefix.fromClass(CheckServiceImpl.class);
+    private static final LogPrefix LOG_PREFIX = LogPrefix.fromClass(CyberscoreCheckServiceImpl.class);
 
-    private final CheckRepository checkRepository;
-    private final CheckMapper checkMapper;
-    private final CheckValidator checkValidator;
+    private final CyberscoreCheckRepository checkRepository;
+    private final CyberscoreCheckMapper checkMapper;
+    private final CyberscoreCheckValidator checkValidator;
     private final CyberscoreService cyberscoreService;
     private final LoggingService loggingService;
 
     @Override
     @Transactional
-    public CheckResponse createCheck(User user, UUID organizationId, CheckRequest request) {
+    public CyberscoreCheckResponse createCheck(User user, UUID organizationId, CyberscoreCheckRequest request) {
         cyberscoreService.lockScore(organizationId);
         checkValidator.ensureNameIsUnique(organizationId, request.name());
 
-        CheckOutcome outcome = request.outcome() != null ? request.outcome() : CheckOutcome.TODO;
-        CheckStatus status = request.status() != null ? request.status() : deriveStatus(outcome);
+        CyberscoreCheckOutcome outcome = request.outcome() != null ? request.outcome() : CyberscoreCheckOutcome.TODO;
+        CyberscoreCheckStatus status = request.status() != null
+                ? request.status()
+                : CyberscoreCheckStatus.fromOutcome(outcome);
 
-        Check check = checkMapper.toEntity(request);
+        CyberscoreCheck check = checkMapper.toEntity(request);
         check.setOrganizationId(organizationId);
         check.setOutcome(outcome);
         check.setStatus(status);
@@ -94,18 +96,19 @@ public class CheckServiceImpl implements CheckService {
 
     @Override
     @Transactional
-    public CheckResponse updateCheck(User user, UUID organizationId, UUID checkId, CheckRequest request) {
+    public CyberscoreCheckResponse updateCheck(User user, UUID organizationId, UUID checkId,
+            CyberscoreCheckRequest request) {
         cyberscoreService.lockScore(organizationId);
-        Check check = checkValidator.ensureCheckExists(organizationId, checkId);
+        CyberscoreCheck check = checkValidator.ensureCheckExists(organizationId, checkId);
         checkValidator.ensureNameIsUnique(organizationId, request.name(), checkId);
 
         // A missing outcome keeps the current one, so an edit of the texts alone
         // cannot reset a recorded outcome.
-        CheckOutcome outcome = request.outcome() != null ? request.outcome() : check.getOutcome();
+        CyberscoreCheckOutcome outcome = request.outcome() != null ? request.outcome() : check.getOutcome();
         boolean outcomeChanged = outcome != check.getOutcome();
         boolean weightOrCategoryChanged = !Objects.equals(request.weight(), check.getWeight())
                 || request.category() != check.getCategory();
-        CheckStatus status = resolveStatus(request.status(), outcome, outcomeChanged, check.getStatus());
+        CyberscoreCheckStatus status = resolveStatus(request.status(), outcome, outcomeChanged, check.getStatus());
 
         checkMapper.updateEntity(check, request);
         check.setOutcome(outcome);
@@ -125,14 +128,15 @@ public class CheckServiceImpl implements CheckService {
 
     @Override
     @Transactional
-    public CheckResponse setCheckOutcome(User user, UUID organizationId, UUID checkId, CheckOutcomeRequest request) {
+    public CyberscoreCheckResponse setCheckOutcome(User user, UUID organizationId, UUID checkId,
+            CyberscoreCheckOutcomeRequest request) {
         cyberscoreService.lockScore(organizationId);
-        Check check = checkValidator.ensureCheckExists(organizationId, checkId);
+        CyberscoreCheck check = checkValidator.ensureCheckExists(organizationId, checkId);
 
         boolean outcomeChanged = request.outcome() != check.getOutcome();
         // Recording an outcome always sets the status it implies, also when the
         // outcome stays the same, so the list shows the check as handled.
-        CheckStatus status = deriveStatus(request.outcome());
+        CyberscoreCheckStatus status = CyberscoreCheckStatus.fromOutcome(request.outcome());
 
         check.setOutcome(request.outcome());
         check.setStatus(status);
@@ -151,11 +155,12 @@ public class CheckServiceImpl implements CheckService {
 
     @Override
     @Transactional
-    public CheckResponse setCheckStatus(User user, UUID organizationId, UUID checkId, CheckStatusRequest request) {
+    public CyberscoreCheckResponse setCheckStatus(User user, UUID organizationId, UUID checkId,
+            CyberscoreCheckStatusRequest request) {
         // No recalculation follows, but the lock still orders this write after a
         // concurrent scoring change, whose outcome it would otherwise overwrite.
         cyberscoreService.lockScore(organizationId);
-        Check check = checkValidator.ensureCheckExists(organizationId, checkId);
+        CyberscoreCheck check = checkValidator.ensureCheckExists(organizationId, checkId);
 
         check.setStatus(request.status());
         check = checkRepository.saveAndFlush(check);
@@ -170,7 +175,7 @@ public class CheckServiceImpl implements CheckService {
     @Transactional
     public void deleteCheck(User user, UUID organizationId, UUID checkId) {
         cyberscoreService.lockScore(organizationId);
-        Check check = checkValidator.ensureCheckExists(organizationId, checkId);
+        CyberscoreCheck check = checkValidator.ensureCheckExists(organizationId, checkId);
 
         checkRepository.delete(check);
         checkRepository.flush();
@@ -181,27 +186,16 @@ public class CheckServiceImpl implements CheckService {
     }
 
     /**
-     * The status a check gets with an outcome: TODO has not been started,
-     * NOT_APPLICABLE stays not applicable, and any answered outcome is done.
-     */
-    private static CheckStatus deriveStatus(CheckOutcome outcome) {
-        return switch (outcome) {
-            case TODO -> CheckStatus.NOT_STARTED;
-            case NOT_APPLICABLE -> CheckStatus.NOT_APPLICABLE;
-            case PASS, PARTIAL, FAIL, NO_LICENSE -> CheckStatus.DONE;
-        };
-    }
-
-    /**
      * The status of an edited check: the one the request names wins, a changed
      * outcome derives a new one, and otherwise the current status stays.
      */
-    private static CheckStatus resolveStatus(CheckStatus requested, CheckOutcome outcome, boolean outcomeChanged,
-                                             CheckStatus current) {
+    private static CyberscoreCheckStatus resolveStatus(CyberscoreCheckStatus requested,
+                                                       CyberscoreCheckOutcome outcome, boolean outcomeChanged,
+                                                       CyberscoreCheckStatus current) {
         if (requested != null) {
             return requested;
         }
-        return outcomeChanged ? deriveStatus(outcome) : current;
+        return outcomeChanged ? CyberscoreCheckStatus.fromOutcome(outcome) : current;
     }
 
     /**
@@ -227,17 +221,17 @@ public class CheckServiceImpl implements CheckService {
      *
      * @throws ConflictException STA_CHECK_NAME_DUPLICATE when the name constraint refuses the write
      */
-    private Check saveCheck(Check check, UUID organizationId) {
+    private CyberscoreCheck saveCheck(CyberscoreCheck check, UUID organizationId) {
         try {
             return checkRepository.saveAndFlush(check);
         } catch (DataIntegrityViolationException exception) {
             if (!isNameConflict(exception)) {
                 throw exception;
             }
-            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, CheckExceptionLogConstant.CHECK_NAME_RACE_LOST,
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, CyberscoreCheckExceptionLogConstant.CHECK_NAME_RACE_LOST,
                     check.getName(), organizationId, exception.getMostSpecificCause().getMessage());
             throw new ConflictException(ExceptionDomainKazanError.STA_CHECK_NAME_DUPLICATE,
-                    Map.of(CheckConstant.FIELD_NAME, check.getName()));
+                    Map.of(CyberscoreCheckConstant.FIELD_NAME, check.getName()));
         }
     }
 
@@ -249,7 +243,7 @@ public class CheckServiceImpl implements CheckService {
         Throwable cause = exception;
         while (cause != null) {
             if (cause instanceof ConstraintViolationException violation) {
-                return CheckConstant.NAME_UNIQUE_CONSTRAINT.equalsIgnoreCase(violation.getConstraintName());
+                return CyberscoreCheckConstant.NAME_UNIQUE_CONSTRAINT.equalsIgnoreCase(violation.getConstraintName());
             }
             cause = cause.getCause();
         }

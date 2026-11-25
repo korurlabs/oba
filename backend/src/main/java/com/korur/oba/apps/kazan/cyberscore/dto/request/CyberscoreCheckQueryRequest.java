@@ -11,7 +11,7 @@ import lombok.Setter;
 // 3. Java SDK
 
 // 4. Internal
-import com.korur.oba.apps.kazan.cyberscore.enums.CheckStatus;
+import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreCheckStatus;
 
 /**
  * Query parameters for listing the checks of an organization.
@@ -19,11 +19,11 @@ import com.korur.oba.apps.kazan.cyberscore.enums.CheckStatus;
 @Getter
 @Setter
 @NoArgsConstructor
-public class CheckQueryRequest {
+public class CyberscoreCheckQueryRequest {
 
     /**
      * Filter by workflow status. Null means all statuses.
      */
     @Schema(description = "Filter by workflow status", nullable = true, example = "IN_PROGRESS")
-    private CheckStatus status;
+    private CyberscoreCheckStatus status;
 }

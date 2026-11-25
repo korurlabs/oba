@@ -1,4 +1,4 @@
-package com.korur.oba.apps.kazan.cyberscore.service;
+package com.korur.oba.apps.kazan.cyberscore.dto.derived;
 
 // 1. Framework-level
 
@@ -12,7 +12,7 @@ import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreLevel;
 
 /**
  * Score an organization held at the end of one business day, built by
- * {@link CyberscoreTrendService}.
+ * {@link com.korur.oba.apps.kazan.cyberscore.service.CyberscoreTrendService}.
  *
  * @param date            business day
  * @param scorePercentage score percentage of that day

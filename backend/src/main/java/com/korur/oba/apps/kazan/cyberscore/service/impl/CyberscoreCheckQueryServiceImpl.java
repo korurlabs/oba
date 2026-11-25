@@ -12,12 +12,12 @@ import java.util.List;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.kazan.cyberscore.dto.request.CheckQueryRequest;
-import com.korur.oba.apps.kazan.cyberscore.dto.response.CheckResponse;
-import com.korur.oba.apps.kazan.cyberscore.entity.Check;
-import com.korur.oba.apps.kazan.cyberscore.mapper.CheckMapper;
-import com.korur.oba.apps.kazan.cyberscore.repository.CheckRepository;
-import com.korur.oba.apps.kazan.cyberscore.service.CheckQueryService;
+import com.korur.oba.apps.kazan.cyberscore.dto.request.CyberscoreCheckQueryRequest;
+import com.korur.oba.apps.kazan.cyberscore.dto.response.CyberscoreCheckResponse;
+import com.korur.oba.apps.kazan.cyberscore.entity.CyberscoreCheck;
+import com.korur.oba.apps.kazan.cyberscore.mapper.CyberscoreCheckMapper;
+import com.korur.oba.apps.kazan.cyberscore.repository.CyberscoreCheckRepository;
+import com.korur.oba.apps.kazan.cyberscore.service.CyberscoreCheckQueryService;
 
 /**
  * Implementation of check read operations.
@@ -28,14 +28,14 @@ import com.korur.oba.apps.kazan.cyberscore.service.CheckQueryService;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class CheckQueryServiceImpl implements CheckQueryService {
+public class CyberscoreCheckQueryServiceImpl implements CyberscoreCheckQueryService {
 
-    private final CheckRepository checkRepository;
-    private final CheckMapper checkMapper;
+    private final CyberscoreCheckRepository checkRepository;
+    private final CyberscoreCheckMapper checkMapper;
 
     @Override
-    public List<CheckResponse> listChecks(UUID organizationId, CheckQueryRequest query) {
-        List<Check> checks = query.getStatus() == null
+    public List<CyberscoreCheckResponse> listChecks(UUID organizationId, CyberscoreCheckQueryRequest query) {
+        List<CyberscoreCheck> checks = query.getStatus() == null
                 ? checkRepository.findByOrganizationIdOrderByCategoryAscSortOrderAscNameAsc(organizationId)
                 : checkRepository.findByOrganizationIdAndStatusOrderByCategoryAscSortOrderAscNameAsc(
                         organizationId, query.getStatus());

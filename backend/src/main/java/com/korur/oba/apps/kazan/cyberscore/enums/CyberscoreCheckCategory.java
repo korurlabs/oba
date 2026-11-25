@@ -5,9 +5,9 @@ package com.korur.oba.apps.kazan.cyberscore.enums;
  * cyberscan from the top of the stack down.
  *
  * The declaration order is the display order. Mapped to the PostgreSQL enum
- * kazan_check_category_enum, whose values must stay in the same order.
+ * kazan_cyberscore_check_category_enum, whose values must stay in the same order.
  */
-public enum CheckCategory {
+public enum CyberscoreCheckCategory {
 
     // Identity.
     IDENTITY,

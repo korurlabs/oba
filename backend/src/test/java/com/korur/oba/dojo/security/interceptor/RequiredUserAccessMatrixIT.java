@@ -460,24 +460,24 @@ class RequiredUserAccessMatrixIT extends AbstractTenantIT {
     }
 
     @Test
-    void cyberscoreControllers_joinTheMatrixWithGuestReadsAndAdminWrites() {
+    void cyberscoreControllers_joinTheMatrixWithMemberReadsAndAdminWrites() {
         Map<String, OrganizationMemberRole> pinned = new java.util.HashMap<>();
         for (Target target : annotatedHandlers()) {
             String controller = target.handler().getBeanType().getSimpleName();
-            if (controller.equals("CyberscoreController") || controller.equals("CheckController")) {
+            if (controller.equals("CyberscoreController") || controller.equals("CyberscoreCheckController")) {
                 pinned.put(controller + "#" + target.handler().getMethod().getName(), target.required());
             }
         }
 
         assertTrue(pinned.equals(Map.ofEntries(
-                Map.entry("CyberscoreController#getCyberscore", OrganizationMemberRole.GUEST),
-                Map.entry("CyberscoreController#getCyberscoreTrend", OrganizationMemberRole.GUEST),
-                Map.entry("CheckController#listChecks", OrganizationMemberRole.GUEST),
-                Map.entry("CheckController#createCheck", OrganizationMemberRole.ADMIN),
-                Map.entry("CheckController#updateCheck", OrganizationMemberRole.ADMIN),
-                Map.entry("CheckController#setCheckOutcome", OrganizationMemberRole.ADMIN),
-                Map.entry("CheckController#setCheckStatus", OrganizationMemberRole.ADMIN),
-                Map.entry("CheckController#deleteCheck", OrganizationMemberRole.ADMIN))),
+                Map.entry("CyberscoreController#getCyberscore", OrganizationMemberRole.MEMBER),
+                Map.entry("CyberscoreController#getCyberscoreTrend", OrganizationMemberRole.MEMBER),
+                Map.entry("CyberscoreCheckController#listChecks", OrganizationMemberRole.MEMBER),
+                Map.entry("CyberscoreCheckController#createCheck", OrganizationMemberRole.ADMIN),
+                Map.entry("CyberscoreCheckController#updateCheck", OrganizationMemberRole.ADMIN),
+                Map.entry("CyberscoreCheckController#setCheckOutcome", OrganizationMemberRole.ADMIN),
+                Map.entry("CyberscoreCheckController#setCheckStatus", OrganizationMemberRole.ADMIN),
+                Map.entry("CyberscoreCheckController#deleteCheck", OrganizationMemberRole.ADMIN))),
                 "The cyberscore handlers in the matrix differ from the expected roles: " + pinned);
     }
 }

@@ -11,7 +11,7 @@ import java.util.OptionalDouble;
  * Scored answer of a check, the only check value besides weight and category
  * that feeds the cyberscore.
  */
-public enum CheckOutcome {
+public enum CyberscoreCheckOutcome {
 
     // The check has not been performed yet.
     TODO,

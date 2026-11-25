@@ -4,9 +4,9 @@ package com.korur.oba.apps.kazan.cyberscore.constant.service;
  * Log message constants for check service operations.
  * Kept final with a private constructor to prevent instantiation or extension.
  */
-public final class CheckServiceLogConstant {
+public final class CyberscoreCheckServiceLogConstant {
 
-    private CheckServiceLogConstant() {
+    private CyberscoreCheckServiceLogConstant() {
         // Private constructor to prevent instantiation
     }
 

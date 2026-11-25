@@ -10,17 +10,17 @@ import jakarta.validation.constraints.NotNull;
 // 3. Java SDK
 
 // 4. Internal
-import com.korur.oba.apps.kazan.cyberscore.constant.CheckConstant;
-import com.korur.oba.apps.kazan.cyberscore.enums.CheckStatus;
+import com.korur.oba.apps.kazan.cyberscore.constant.CyberscoreCheckConstant;
+import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreCheckStatus;
 
 /**
  * Request payload to set a check's workflow status, which never affects the score.
  */
 @Schema(description = "Check status request")
-public record CheckStatusRequest(
+public record CyberscoreCheckStatusRequest(
 
         @Schema(description = "Workflow status", requiredMode = Schema.RequiredMode.REQUIRED, example = "IN_PROGRESS")
-        @NotNull(message = CheckConstant.STATUS_REQUIRED_MESSAGE)
-        CheckStatus status
+        @NotNull(message = CyberscoreCheckConstant.STATUS_REQUIRED_MESSAGE)
+        CyberscoreCheckStatus status
 ) {
 }

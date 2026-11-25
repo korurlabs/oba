@@ -20,12 +20,12 @@ import java.util.UUID;
 import static com.korur.oba.apps.kazan.cyberscore.constant.service.CyberscoreServiceLogConstant.*;
 
 import com.korur.oba.apps.kazan.cyberscore.constant.CyberscoreConstant;
+import com.korur.oba.apps.kazan.cyberscore.dto.derived.CyberscoreTrendPoint;
 import com.korur.oba.apps.kazan.cyberscore.entity.Cyberscore;
 import com.korur.oba.apps.kazan.cyberscore.entity.CyberscoreSnapshot;
 import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreLevel;
 import com.korur.oba.apps.kazan.cyberscore.repository.CyberscoreRepository;
 import com.korur.oba.apps.kazan.cyberscore.repository.CyberscoreSnapshotRepository;
-import com.korur.oba.apps.kazan.cyberscore.service.CyberscoreTrendPoint;
 import com.korur.oba.apps.kazan.cyberscore.service.CyberscoreTrendService;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;

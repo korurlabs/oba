@@ -32,19 +32,19 @@ import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.kazan.cyberscore.dto.request.CheckOutcomeRequest;
-import com.korur.oba.apps.kazan.cyberscore.dto.request.CheckRequest;
-import com.korur.oba.apps.kazan.cyberscore.dto.request.CheckStatusRequest;
-import com.korur.oba.apps.kazan.cyberscore.dto.response.CheckResponse;
-import com.korur.oba.apps.kazan.cyberscore.entity.Check;
-import com.korur.oba.apps.kazan.cyberscore.enums.CheckCategory;
-import com.korur.oba.apps.kazan.cyberscore.enums.CheckOutcome;
-import com.korur.oba.apps.kazan.cyberscore.enums.CheckStatus;
+import com.korur.oba.apps.kazan.cyberscore.dto.request.CyberscoreCheckOutcomeRequest;
+import com.korur.oba.apps.kazan.cyberscore.dto.request.CyberscoreCheckRequest;
+import com.korur.oba.apps.kazan.cyberscore.dto.request.CyberscoreCheckStatusRequest;
+import com.korur.oba.apps.kazan.cyberscore.dto.response.CyberscoreCheckResponse;
+import com.korur.oba.apps.kazan.cyberscore.entity.CyberscoreCheck;
+import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreCheckCategory;
+import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreCheckOutcome;
+import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreCheckStatus;
 import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreSnapshotEventType;
-import com.korur.oba.apps.kazan.cyberscore.mapper.CheckMapper;
-import com.korur.oba.apps.kazan.cyberscore.repository.CheckRepository;
+import com.korur.oba.apps.kazan.cyberscore.mapper.CyberscoreCheckMapper;
+import com.korur.oba.apps.kazan.cyberscore.repository.CyberscoreCheckRepository;
 import com.korur.oba.apps.kazan.cyberscore.service.CyberscoreService;
-import com.korur.oba.apps.kazan.cyberscore.validator.CheckValidator;
+import com.korur.oba.apps.kazan.cyberscore.validator.CyberscoreCheckValidator;
 import com.korur.oba.apps.kazan.exception.ExceptionDomainKazanError;
 import com.korur.oba.dojo.exception.internal.business.ConflictException;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
@@ -52,14 +52,14 @@ import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.shrine.identity.entity.User;
 
 @ExtendWith(MockitoExtension.class)
-class CheckServiceImplUnitTest {
+class CyberscoreCheckServiceImplUnitTest {
 
     private final UUID organizationId = UUID.randomUUID();
     private final UUID checkId = UUID.randomUUID();
     private final UUID userId = UUID.randomUUID();
 
     @Mock
-    private CheckRepository checkRepository;
+    private CyberscoreCheckRepository checkRepository;
 
     @Mock
     private CyberscoreService cyberscoreService;
@@ -67,30 +67,30 @@ class CheckServiceImplUnitTest {
     @Mock
     private LoggingService loggingService;
 
-    private CheckServiceImpl service;
+    private CyberscoreCheckServiceImpl service;
     private User user;
 
     @BeforeEach
     void setUp() {
         // The real mapper and validator run over the mocked repository, so mapping rules and error codes are the production ones.
-        CheckValidator validator = new CheckValidator(checkRepository, loggingService);
-        service = new CheckServiceImpl(checkRepository, Mappers.getMapper(CheckMapper.class), validator,
+        CyberscoreCheckValidator validator = new CyberscoreCheckValidator(checkRepository, loggingService);
+        service = new CyberscoreCheckServiceImpl(checkRepository, Mappers.getMapper(CyberscoreCheckMapper.class), validator,
                 cyberscoreService, loggingService);
         user = User.builder().id(userId).build();
-        lenient().when(checkRepository.saveAndFlush(any(Check.class))).thenAnswer(call -> call.getArgument(0));
+        lenient().when(checkRepository.saveAndFlush(any(CyberscoreCheck.class))).thenAnswer(call -> call.getArgument(0));
     }
 
-    private static CheckRequest request(String name, int weight, CheckCategory category, CheckOutcome outcome,
-                                        CheckStatus status) {
-        return new CheckRequest(name, "description", "expected", weight, null, category, outcome, status);
+    private static CyberscoreCheckRequest request(String name, int weight, CyberscoreCheckCategory category, CyberscoreCheckOutcome outcome,
+                                        CyberscoreCheckStatus status) {
+        return new CyberscoreCheckRequest(name, "description", "expected", weight, null, category, outcome, status);
     }
 
-    private Check stored(int weight, CheckCategory category, CheckOutcome outcome, CheckStatus status) {
-        return Check.builder().id(checkId).organizationId(organizationId).name("name").description("d")
+    private CyberscoreCheck stored(int weight, CyberscoreCheckCategory category, CyberscoreCheckOutcome outcome, CyberscoreCheckStatus status) {
+        return CyberscoreCheck.builder().id(checkId).organizationId(organizationId).name("name").description("d")
                 .expected("e").weight(weight).sortOrder(3).category(category).outcome(outcome).status(status).build();
     }
 
-    private void givenStored(Check check) {
+    private void givenStored(CyberscoreCheck check) {
         when(checkRepository.findByIdAndOrganizationId(checkId, organizationId)).thenReturn(Optional.of(check));
     }
 
@@ -99,15 +99,15 @@ class CheckServiceImplUnitTest {
 
         @Test
         void noOutcomeAndNoStatus_startsAsTodoNotStartedAndRecalculates() {
-            CheckResponse response = service.createCheck(user, organizationId,
-                    request("n", 5, CheckCategory.DEVICES, null, null));
+            CyberscoreCheckResponse response = service.createCheck(user, organizationId,
+                    request("n", 5, CyberscoreCheckCategory.DEVICES, null, null));
 
-            assertThat(response.outcome()).isEqualTo(CheckOutcome.TODO);
-            assertThat(response.status()).isEqualTo(CheckStatus.NOT_STARTED);
+            assertThat(response.outcome()).isEqualTo(CyberscoreCheckOutcome.TODO);
+            assertThat(response.status()).isEqualTo(CyberscoreCheckStatus.NOT_STARTED);
             assertThat(response.sortOrder()).isZero();
             InOrder order = inOrder(cyberscoreService, checkRepository);
             order.verify(cyberscoreService).lockScore(organizationId);
-            order.verify(checkRepository).saveAndFlush(any(Check.class));
+            order.verify(checkRepository).saveAndFlush(any(CyberscoreCheck.class));
             order.verify(cyberscoreService).recalculate(organizationId, CyberscoreSnapshotEventType.CHECK_CREATED, userId);
         }
 
@@ -121,18 +121,18 @@ class CheckServiceImplUnitTest {
 
         @Test
         void outcomeInTheBody_derivesTheStatusFromIt() {
-            CheckResponse response = service.createCheck(user, organizationId,
-                    request("n", 5, null, CheckOutcome.PASS, null));
+            CyberscoreCheckResponse response = service.createCheck(user, organizationId,
+                    request("n", 5, null, CyberscoreCheckOutcome.PASS, null));
 
-            assertThat(response.status()).isEqualTo(CheckStatus.DONE);
+            assertThat(response.status()).isEqualTo(CyberscoreCheckStatus.DONE);
         }
 
         @Test
         void statusInTheBody_winsOverTheDerivedOne() {
-            CheckResponse response = service.createCheck(user, organizationId,
-                    request("n", 5, null, CheckOutcome.PASS, CheckStatus.IN_PROGRESS));
+            CyberscoreCheckResponse response = service.createCheck(user, organizationId,
+                    request("n", 5, null, CyberscoreCheckOutcome.PASS, CyberscoreCheckStatus.IN_PROGRESS));
 
-            assertThat(response.status()).isEqualTo(CheckStatus.IN_PROGRESS);
+            assertThat(response.status()).isEqualTo(CyberscoreCheckStatus.IN_PROGRESS);
         }
 
         @Test
@@ -149,7 +149,7 @@ class CheckServiceImplUnitTest {
 
         @Test
         void nameRaceLostOnTheUniqueConstraint_throwsConflict() {
-            when(checkRepository.saveAndFlush(any(Check.class))).thenThrow(raceOn("checks_organization_id_name_uk"));
+            when(checkRepository.saveAndFlush(any(CyberscoreCheck.class))).thenThrow(raceOn("cyberscore_checks_organization_id_name_uk"));
 
             assertThatThrownBy(() -> service.createCheck(user, organizationId, request("n", 5, null, null, null)))
                     .isInstanceOfSatisfying(ConflictException.class, exception -> assertThat(exception.getErrorCode())
@@ -160,8 +160,8 @@ class CheckServiceImplUnitTest {
 
         @Test
         void otherIntegrityFailure_isRethrownUnchanged() {
-            DataIntegrityViolationException other = raceOn("checks_weight_range_ck");
-            when(checkRepository.saveAndFlush(any(Check.class))).thenThrow(other);
+            DataIntegrityViolationException other = raceOn("cyberscore_checks_weight_range_ck");
+            when(checkRepository.saveAndFlush(any(CyberscoreCheck.class))).thenThrow(other);
 
             assertThatThrownBy(() -> service.createCheck(user, organizationId, request("n", 5, null, null, null)))
                     .isSameAs(other);
@@ -190,51 +190,51 @@ class CheckServiceImplUnitTest {
 
         @Test
         void textOnlyEdit_keepsOutcomeAndStatusAndDoesNotRecalculate() {
-            givenStored(stored(5, CheckCategory.DEVICES, CheckOutcome.PASS, CheckStatus.IN_PROGRESS));
+            givenStored(stored(5, CyberscoreCheckCategory.DEVICES, CyberscoreCheckOutcome.PASS, CyberscoreCheckStatus.IN_PROGRESS));
 
-            CheckResponse response = service.updateCheck(user, organizationId, checkId,
-                    request("renamed", 5, CheckCategory.DEVICES, null, null));
+            CyberscoreCheckResponse response = service.updateCheck(user, organizationId, checkId,
+                    request("renamed", 5, CyberscoreCheckCategory.DEVICES, null, null));
 
             assertThat(response.name()).isEqualTo("renamed");
-            assertThat(response.outcome()).isEqualTo(CheckOutcome.PASS);
-            assertThat(response.status()).isEqualTo(CheckStatus.IN_PROGRESS);
+            assertThat(response.outcome()).isEqualTo(CyberscoreCheckOutcome.PASS);
+            assertThat(response.status()).isEqualTo(CyberscoreCheckStatus.IN_PROGRESS);
             verify(cyberscoreService).lockScore(organizationId);
             verify(cyberscoreService, never()).recalculate(any(), any(), any());
         }
 
         @Test
         void statusOnlyEditThroughTheBody_doesNotRecalculate() {
-            givenStored(stored(5, null, CheckOutcome.TODO, CheckStatus.NOT_STARTED));
+            givenStored(stored(5, null, CyberscoreCheckOutcome.TODO, CyberscoreCheckStatus.NOT_STARTED));
 
-            CheckResponse response = service.updateCheck(user, organizationId, checkId,
-                    request("name", 5, null, CheckOutcome.TODO, CheckStatus.IN_PROGRESS));
+            CyberscoreCheckResponse response = service.updateCheck(user, organizationId, checkId,
+                    request("name", 5, null, CyberscoreCheckOutcome.TODO, CyberscoreCheckStatus.IN_PROGRESS));
 
-            assertThat(response.status()).isEqualTo(CheckStatus.IN_PROGRESS);
+            assertThat(response.status()).isEqualTo(CyberscoreCheckStatus.IN_PROGRESS);
             verify(cyberscoreService, never()).recalculate(any(), any(), any());
         }
 
         @Test
         void sortOrderOnlyEdit_doesNotRecalculate() {
-            givenStored(stored(5, null, CheckOutcome.TODO, CheckStatus.NOT_STARTED));
+            givenStored(stored(5, null, CyberscoreCheckOutcome.TODO, CyberscoreCheckStatus.NOT_STARTED));
 
             service.updateCheck(user, organizationId, checkId,
-                    new CheckRequest("name", "d", "e", 5, 9, null, null, null));
+                    new CyberscoreCheckRequest("name", "d", "e", 5, 9, null, null, null));
 
             verify(cyberscoreService, never()).recalculate(any(), any(), any());
         }
 
         @Test
         void weightChange_recalculatesAsUpdated() {
-            givenStored(stored(5, CheckCategory.DEVICES, CheckOutcome.PASS, CheckStatus.DONE));
+            givenStored(stored(5, CyberscoreCheckCategory.DEVICES, CyberscoreCheckOutcome.PASS, CyberscoreCheckStatus.DONE));
 
-            service.updateCheck(user, organizationId, checkId, request("name", 9, CheckCategory.DEVICES, null, null));
+            service.updateCheck(user, organizationId, checkId, request("name", 9, CyberscoreCheckCategory.DEVICES, null, null));
 
             verify(cyberscoreService).recalculate(organizationId, CyberscoreSnapshotEventType.CHECK_UPDATED, userId);
         }
 
         @Test
         void categoryChange_recalculatesAsUpdated() {
-            givenStored(stored(5, CheckCategory.DEVICES, CheckOutcome.PASS, CheckStatus.DONE));
+            givenStored(stored(5, CyberscoreCheckCategory.DEVICES, CyberscoreCheckOutcome.PASS, CyberscoreCheckStatus.DONE));
 
             service.updateCheck(user, organizationId, checkId, request("name", 5, null, null, null));
 
@@ -243,21 +243,21 @@ class CheckServiceImplUnitTest {
 
         @Test
         void outcomeOnlyChange_recalculatesAsOutcomeChangedAndDerivesTheStatus() {
-            givenStored(stored(5, CheckCategory.DEVICES, CheckOutcome.TODO, CheckStatus.NOT_STARTED));
+            givenStored(stored(5, CyberscoreCheckCategory.DEVICES, CyberscoreCheckOutcome.TODO, CyberscoreCheckStatus.NOT_STARTED));
 
-            CheckResponse response = service.updateCheck(user, organizationId, checkId,
-                    request("name", 5, CheckCategory.DEVICES, CheckOutcome.FAIL, null));
+            CyberscoreCheckResponse response = service.updateCheck(user, organizationId, checkId,
+                    request("name", 5, CyberscoreCheckCategory.DEVICES, CyberscoreCheckOutcome.FAIL, null));
 
-            assertThat(response.status()).isEqualTo(CheckStatus.DONE);
+            assertThat(response.status()).isEqualTo(CyberscoreCheckStatus.DONE);
             verify(cyberscoreService).recalculate(organizationId, CyberscoreSnapshotEventType.CHECK_OUTCOME_CHANGED, userId);
         }
 
         @Test
         void weightAndOutcomeChangeTogether_recalculatesOnceAsUpdated() {
-            givenStored(stored(5, CheckCategory.DEVICES, CheckOutcome.TODO, CheckStatus.NOT_STARTED));
+            givenStored(stored(5, CyberscoreCheckCategory.DEVICES, CyberscoreCheckOutcome.TODO, CyberscoreCheckStatus.NOT_STARTED));
 
             service.updateCheck(user, organizationId, checkId,
-                    request("name", 8, CheckCategory.DEVICES, CheckOutcome.PASS, null));
+                    request("name", 8, CyberscoreCheckCategory.DEVICES, CyberscoreCheckOutcome.PASS, null));
 
             verify(cyberscoreService).recalculate(organizationId, CyberscoreSnapshotEventType.CHECK_UPDATED, userId);
             verify(cyberscoreService, org.mockito.Mockito.times(1)).recalculate(any(), any(), any());
@@ -265,18 +265,18 @@ class CheckServiceImplUnitTest {
 
         @Test
         void outcomeChangeWithStatusInTheBody_bodyStatusWins() {
-            givenStored(stored(5, null, CheckOutcome.TODO, CheckStatus.NOT_STARTED));
+            givenStored(stored(5, null, CyberscoreCheckOutcome.TODO, CyberscoreCheckStatus.NOT_STARTED));
 
-            CheckResponse response = service.updateCheck(user, organizationId, checkId,
-                    request("name", 5, null, CheckOutcome.PASS, CheckStatus.IN_PROGRESS));
+            CyberscoreCheckResponse response = service.updateCheck(user, organizationId, checkId,
+                    request("name", 5, null, CyberscoreCheckOutcome.PASS, CyberscoreCheckStatus.IN_PROGRESS));
 
-            assertThat(response.status()).isEqualTo(CheckStatus.IN_PROGRESS);
+            assertThat(response.status()).isEqualTo(CyberscoreCheckStatus.IN_PROGRESS);
             verify(cyberscoreService).recalculate(organizationId, CyberscoreSnapshotEventType.CHECK_OUTCOME_CHANGED, userId);
         }
 
         @Test
         void renameToNameOfAnotherCheck_throwsConflict() {
-            givenStored(stored(5, null, CheckOutcome.TODO, CheckStatus.NOT_STARTED));
+            givenStored(stored(5, null, CyberscoreCheckOutcome.TODO, CyberscoreCheckStatus.NOT_STARTED));
             when(checkRepository.existsByOrganizationIdAndNameAndIdNot(organizationId, "taken", checkId)).thenReturn(true);
 
             assertThatThrownBy(() -> service.updateCheck(user, organizationId, checkId,
@@ -292,12 +292,12 @@ class CheckServiceImplUnitTest {
         @ParameterizedTest
         @CsvSource({"TODO,NOT_STARTED", "NOT_APPLICABLE,NOT_APPLICABLE", "PASS,DONE", "PARTIAL,DONE", "FAIL,DONE",
                 "NO_LICENSE,DONE"})
-        void changedOutcome_derivesTheStatusAndRecalculates(CheckOutcome outcome, CheckStatus expected) {
-            CheckOutcome current = outcome == CheckOutcome.FAIL ? CheckOutcome.PASS : CheckOutcome.FAIL;
-            givenStored(stored(5, null, current, CheckStatus.IN_PROGRESS));
+        void changedOutcome_derivesTheStatusAndRecalculates(CyberscoreCheckOutcome outcome, CyberscoreCheckStatus expected) {
+            CyberscoreCheckOutcome current = outcome == CyberscoreCheckOutcome.FAIL ? CyberscoreCheckOutcome.PASS : CyberscoreCheckOutcome.FAIL;
+            givenStored(stored(5, null, current, CyberscoreCheckStatus.IN_PROGRESS));
 
-            CheckResponse response = service.setCheckOutcome(user, organizationId, checkId,
-                    new CheckOutcomeRequest(outcome));
+            CyberscoreCheckResponse response = service.setCheckOutcome(user, organizationId, checkId,
+                    new CyberscoreCheckOutcomeRequest(outcome));
 
             assertThat(response.outcome()).isEqualTo(outcome);
             assertThat(response.status()).isEqualTo(expected);
@@ -306,12 +306,12 @@ class CheckServiceImplUnitTest {
 
         @Test
         void sameOutcome_setsTheDerivedStatusWithoutRecalculating() {
-            givenStored(stored(5, null, CheckOutcome.PASS, CheckStatus.IN_PROGRESS));
+            givenStored(stored(5, null, CyberscoreCheckOutcome.PASS, CyberscoreCheckStatus.IN_PROGRESS));
 
-            CheckResponse response = service.setCheckOutcome(user, organizationId, checkId,
-                    new CheckOutcomeRequest(CheckOutcome.PASS));
+            CyberscoreCheckResponse response = service.setCheckOutcome(user, organizationId, checkId,
+                    new CyberscoreCheckOutcomeRequest(CyberscoreCheckOutcome.PASS));
 
-            assertThat(response.status()).isEqualTo(CheckStatus.DONE);
+            assertThat(response.status()).isEqualTo(CyberscoreCheckStatus.DONE);
             verify(cyberscoreService, never()).recalculate(any(), any(), any());
         }
 
@@ -320,7 +320,7 @@ class CheckServiceImplUnitTest {
             when(checkRepository.findByIdAndOrganizationId(checkId, organizationId)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> service.setCheckOutcome(user, organizationId, checkId,
-                    new CheckOutcomeRequest(CheckOutcome.PASS))).isInstanceOf(NotFoundException.class);
+                    new CyberscoreCheckOutcomeRequest(CyberscoreCheckOutcome.PASS))).isInstanceOf(NotFoundException.class);
         }
     }
 
@@ -329,13 +329,13 @@ class CheckServiceImplUnitTest {
 
         @Test
         void validStatus_setsItWithoutRecalculatingButStillLocks() {
-            givenStored(stored(5, null, CheckOutcome.PASS, CheckStatus.DONE));
+            givenStored(stored(5, null, CyberscoreCheckOutcome.PASS, CyberscoreCheckStatus.DONE));
 
-            CheckResponse response = service.setCheckStatus(user, organizationId, checkId,
-                    new CheckStatusRequest(CheckStatus.IN_PROGRESS));
+            CyberscoreCheckResponse response = service.setCheckStatus(user, organizationId, checkId,
+                    new CyberscoreCheckStatusRequest(CyberscoreCheckStatus.IN_PROGRESS));
 
-            assertThat(response.status()).isEqualTo(CheckStatus.IN_PROGRESS);
-            assertThat(response.outcome()).isEqualTo(CheckOutcome.PASS);
+            assertThat(response.status()).isEqualTo(CyberscoreCheckStatus.IN_PROGRESS);
+            assertThat(response.outcome()).isEqualTo(CyberscoreCheckOutcome.PASS);
             verify(cyberscoreService).lockScore(organizationId);
             verify(cyberscoreService, never()).recalculate(any(), any(), any());
         }
@@ -345,7 +345,7 @@ class CheckServiceImplUnitTest {
             when(checkRepository.findByIdAndOrganizationId(checkId, organizationId)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> service.setCheckStatus(user, organizationId, checkId,
-                    new CheckStatusRequest(CheckStatus.DONE))).isInstanceOf(NotFoundException.class);
+                    new CyberscoreCheckStatusRequest(CyberscoreCheckStatus.DONE))).isInstanceOf(NotFoundException.class);
         }
     }
 
@@ -354,7 +354,7 @@ class CheckServiceImplUnitTest {
 
         @Test
         void existingCheck_deletesFlushesThenRecalculatesAsDeleted() {
-            Check check = stored(5, null, CheckOutcome.PASS, CheckStatus.DONE);
+            CyberscoreCheck check = stored(5, null, CyberscoreCheckOutcome.PASS, CyberscoreCheckStatus.DONE);
             givenStored(check);
 
             service.deleteCheck(user, organizationId, checkId);
@@ -373,7 +373,7 @@ class CheckServiceImplUnitTest {
             assertThatThrownBy(() -> service.deleteCheck(user, organizationId, checkId))
                     .isInstanceOf(NotFoundException.class);
 
-            verify(checkRepository, never()).delete(any(Check.class));
+            verify(checkRepository, never()).delete(any(CyberscoreCheck.class));
             verify(cyberscoreService, never()).recalculate(any(), eq(CyberscoreSnapshotEventType.CHECK_DELETED), any());
         }
     }

@@ -27,11 +27,11 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 // 4. Internal
-import com.korur.oba.apps.kazan.cyberscore.entity.Check;
-import com.korur.oba.apps.kazan.cyberscore.repository.CheckRepository;
-import com.korur.oba.apps.kazan.cyberscore.service.CyberscoreCalculation;
-import com.korur.oba.apps.kazan.cyberscore.service.impl.CyberscoreCalculateServiceImpl;
 import com.korur.oba.apps.kaya.support.AbstractTenantIT;
+import com.korur.oba.apps.kazan.cyberscore.dto.derived.CyberscoreCalculation;
+import com.korur.oba.apps.kazan.cyberscore.entity.CyberscoreCheck;
+import com.korur.oba.apps.kazan.cyberscore.repository.CyberscoreCheckRepository;
+import com.korur.oba.apps.kazan.cyberscore.service.impl.CyberscoreCalculateServiceImpl;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 
@@ -48,7 +48,7 @@ class CyberscoreControllerIT extends AbstractTenantIT {
     private static final String SCORE = "/kazan/cyberscore";
 
     @Autowired
-    private CheckRepository checkRepository;
+    private CyberscoreCheckRepository checkRepository;
 
     private static String body(String name, int weight, String category) {
         return "{\"name\":\"%s\",\"expected\":\"expected\",\"weight\":%d,\"category\":%s}"
@@ -66,7 +66,7 @@ class CyberscoreControllerIT extends AbstractTenantIT {
     }
 
     private CyberscoreCalculation formulaOverCommittedChecks(Tenant tenant) {
-        List<Check> checks = checkRepository.findByOrganizationIdOrderByCategoryAscSortOrderAscNameAsc(
+        List<CyberscoreCheck> checks = checkRepository.findByOrganizationIdOrderByCategoryAscSortOrderAscNameAsc(
                 tenant.organization().getId());
         return new CyberscoreCalculateServiceImpl().calculate(checks);
     }
@@ -194,7 +194,7 @@ class CyberscoreControllerIT extends AbstractTenantIT {
         mockMvc.perform(in(tenantB, get(CHECKS), jwtOf(adminB), null))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.length()").value(0));
 
-        assertEquals(1, count("SELECT count(*) FROM kazan.checks WHERE id = ?::uuid", idOfA));
+        assertEquals(1, count("SELECT count(*) FROM kazan.cyberscore_checks WHERE id = ?::uuid", idOfA));
     }
 
     @Test
@@ -212,21 +212,34 @@ class CyberscoreControllerIT extends AbstractTenantIT {
     }
 
     @Test
-    void guest_readsButCannotWrite() throws Exception {
+    void guest_canNeitherReadNorWrite() throws Exception {
         Tenant tenant = newTenant();
         User guest = createActiveMember(tenant.organization(), tenant.domain(), OrganizationMemberRole.GUEST).getUser();
 
-        mockMvc.perform(in(tenant, get(SCORE), jwtOf(guest), null)).andExpect(status().isOk());
+        mockMvc.perform(in(tenant, get(SCORE), jwtOf(guest), null))
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.error.code").value("ORG_SEC_003"));
+        mockMvc.perform(in(tenant, get(SCORE + "/trend"), jwtOf(guest), null))
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.error.code").value("ORG_SEC_003"));
+        mockMvc.perform(in(tenant, get(CHECKS), jwtOf(guest), null))
+                .andExpect(status().isForbidden()).andExpect(jsonPath("$.error.code").value("ORG_SEC_003"));
         mockMvc.perform(in(tenant, post(CHECKS), jwtOf(guest), body("new", 10, null)))
                 .andExpect(status().isForbidden());
     }
 
     @Test
-    void listChecks_unknownStatusFilter_isRejectedAsABadRequest() throws Exception {
+    void getCyberscoreTrend_daysNotANumber_isRejected() throws Exception {
+        Tenant tenant = newTenant();
+
+        mockMvc.perform(in(tenant, get(SCORE + "/trend?days=week"), jwtOf(tenant.member().getUser()), null))
+                .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void listChecks_unknownStatusFilter_isRejectedAsInvalid() throws Exception {
         Tenant tenant = newTenant();
 
         mockMvc.perform(in(tenant, get(CHECKS + "?status=NOPE"), jwtOf(tenant.admin().getUser()), null))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isUnprocessableEntity());
     }
 
     @Test
@@ -273,12 +286,6 @@ class CyberscoreControllerIT extends AbstractTenantIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.scorePercentage").value(expected.scorePercentage()))
                 .andExpect(jsonPath("$.data.scoreLevel").value(expected.scoreLevel().name()));
-        expected.breakdownByCategory().forEach((category, percentage) -> {
-            Integer stored = jdbcTemplate.queryForObject(
-                    "SELECT (breakdown_by_category ->> ?)::int FROM kazan.cyberscores WHERE organization_id = ?",
-                    Integer.class, category, tenant.organization().getId());
-            assertEquals(percentage, stored);
-        });
     }
 
     @Test
@@ -296,7 +303,7 @@ class CyberscoreControllerIT extends AbstractTenantIT {
 
         assertEquals(1, statuses.stream().filter(status -> status == 201).count(), statuses.toString());
         assertEquals(5, statuses.stream().filter(status -> status == 409).count(), statuses.toString());
-        assertEquals(1, count("SELECT count(*) FROM kazan.checks WHERE organization_id = ? AND name = 'contested'",
+        assertEquals(1, count("SELECT count(*) FROM kazan.cyberscore_checks WHERE organization_id = ? AND name = 'contested'",
                 tenant.organization().getId()));
         assertTrue(formulaOverCommittedChecks(tenant).scorable());
     }

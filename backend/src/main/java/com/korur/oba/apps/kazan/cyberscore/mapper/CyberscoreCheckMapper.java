@@ -12,10 +12,10 @@ import org.mapstruct.MappingTarget;
 import java.util.List;
 
 // 4. Internal
-import com.korur.oba.apps.kazan.cyberscore.constant.CheckConstant;
-import com.korur.oba.apps.kazan.cyberscore.dto.request.CheckRequest;
-import com.korur.oba.apps.kazan.cyberscore.dto.response.CheckResponse;
-import com.korur.oba.apps.kazan.cyberscore.entity.Check;
+import com.korur.oba.apps.kazan.cyberscore.constant.CyberscoreCheckConstant;
+import com.korur.oba.apps.kazan.cyberscore.dto.request.CyberscoreCheckRequest;
+import com.korur.oba.apps.kazan.cyberscore.dto.response.CyberscoreCheckResponse;
+import com.korur.oba.apps.kazan.cyberscore.entity.CyberscoreCheck;
 
 /**
  * Maps check requests to entities and checks to their response DTOs.
@@ -25,7 +25,7 @@ import com.korur.oba.apps.kazan.cyberscore.entity.Check;
  * header, never from a body.
  */
 @Mapper(componentModel = "spring", injectionStrategy = InjectionStrategy.CONSTRUCTOR)
-public interface CheckMapper {
+public interface CyberscoreCheckMapper {
 
     /**
      * Maps a create request to a new check.
@@ -36,8 +36,8 @@ public interface CheckMapper {
     @Mapping(target = "organizationId", ignore = true)
     @Mapping(target = "outcome", ignore = true)
     @Mapping(target = "status", ignore = true)
-    @Mapping(target = "sortOrder", defaultValue = CheckConstant.DEFAULT_SORT_ORDER)
-    Check toEntity(CheckRequest request);
+    @Mapping(target = "sortOrder", defaultValue = CyberscoreCheckConstant.DEFAULT_SORT_ORDER)
+    CyberscoreCheck toEntity(CyberscoreCheckRequest request);
 
     /**
      * Replaces the descriptive and scoring fields of a check. A null description
@@ -49,16 +49,16 @@ public interface CheckMapper {
     @Mapping(target = "organizationId", ignore = true)
     @Mapping(target = "outcome", ignore = true)
     @Mapping(target = "status", ignore = true)
-    @Mapping(target = "sortOrder", defaultValue = CheckConstant.DEFAULT_SORT_ORDER)
-    void updateEntity(@MappingTarget Check check, CheckRequest request);
+    @Mapping(target = "sortOrder", defaultValue = CyberscoreCheckConstant.DEFAULT_SORT_ORDER)
+    void updateEntity(@MappingTarget CyberscoreCheck check, CyberscoreCheckRequest request);
 
     /**
      * Maps a check to its response.
      */
-    CheckResponse toResponse(Check check);
+    CyberscoreCheckResponse toResponse(CyberscoreCheck check);
 
     /**
      * Maps checks to their responses, keeping their order.
      */
-    List<CheckResponse> toResponses(List<Check> checks);
+    List<CyberscoreCheckResponse> toResponses(List<CyberscoreCheck> checks);
 }

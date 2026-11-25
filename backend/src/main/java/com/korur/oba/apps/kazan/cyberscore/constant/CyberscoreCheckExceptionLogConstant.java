@@ -4,9 +4,9 @@ package com.korur.oba.apps.kazan.cyberscore.constant;
  * Log message constants for check exception paths.
  * Kept final with a private constructor to prevent instantiation or extension.
  */
-public final class CheckExceptionLogConstant {
+public final class CyberscoreCheckExceptionLogConstant {
 
-    private CheckExceptionLogConstant() {
+    private CyberscoreCheckExceptionLogConstant() {
         // Private constructor to prevent instantiation
     }
 

@@ -8,7 +8,8 @@ package com.korur.oba.apps.kazan.cyberscore.service;
 import java.util.List;
 
 // 4. Internal
-import com.korur.oba.apps.kazan.cyberscore.entity.Check;
+import com.korur.oba.apps.kazan.cyberscore.dto.derived.CyberscoreCalculation;
+import com.korur.oba.apps.kazan.cyberscore.entity.CyberscoreCheck;
 
 /**
  * Computes a cyberscore from checks. Pure: it reads and writes nothing.
@@ -24,5 +25,5 @@ public interface CyberscoreCalculateService {
      * @param checks the checks of one organization
      * @return the score, UNKNOWN with 0 when no check is scorable
      */
-    CyberscoreCalculation calculate(List<Check> checks);
+    CyberscoreCalculation calculate(List<CyberscoreCheck> checks);
 }

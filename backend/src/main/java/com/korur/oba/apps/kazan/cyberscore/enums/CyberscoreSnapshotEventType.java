@@ -1,7 +1,7 @@
 package com.korur.oba.apps.kazan.cyberscore.enums;
 
 /**
- * Check change that caused a cyberscore snapshot.
+ * Kind of check change that caused a cyberscore snapshot.
  */
 public enum CyberscoreSnapshotEventType {
 

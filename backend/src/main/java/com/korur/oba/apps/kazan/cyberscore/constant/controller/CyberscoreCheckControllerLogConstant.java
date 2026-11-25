@@ -4,9 +4,9 @@ package com.korur.oba.apps.kazan.cyberscore.constant.controller;
  * Log message constants for check controller operations.
  * Kept final with a private constructor to prevent instantiation or extension.
  */
-public final class CheckControllerLogConstant {
+public final class CyberscoreCheckControllerLogConstant {
 
-    private CheckControllerLogConstant() {
+    private CyberscoreCheckControllerLogConstant() {
         // Private constructor to prevent instantiation
     }
 

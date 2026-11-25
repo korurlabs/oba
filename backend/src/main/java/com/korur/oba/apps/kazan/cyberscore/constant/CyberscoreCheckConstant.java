@@ -2,12 +2,12 @@ package com.korur.oba.apps.kazan.cyberscore.constant;
 
 /**
  * Field names, limits and validation messages of the cyberscore checks.
- * The limits repeat the column lengths and check constraints of kazan.checks.
+ * The limits repeat the column lengths and check constraints of kazan.cyberscore_checks.
  * Kept final with a private constructor to prevent instantiation or extension.
  */
-public final class CheckConstant {
+public final class CyberscoreCheckConstant {
 
-    private CheckConstant() {
+    private CyberscoreCheckConstant() {
         // Private constructor to prevent instantiation
     }
 
@@ -25,7 +25,7 @@ public final class CheckConstant {
      * Unique constraint on organization and name, which backs the name check
      * against a concurrent write.
      */
-    public static final String NAME_UNIQUE_CONSTRAINT = "checks_organization_id_name_uk";
+    public static final String NAME_UNIQUE_CONSTRAINT = "cyberscore_checks_organization_id_name_uk";
 
     /**
      * Longest check name.

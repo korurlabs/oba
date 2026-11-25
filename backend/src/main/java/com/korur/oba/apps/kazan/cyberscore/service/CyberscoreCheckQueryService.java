@@ -9,13 +9,13 @@ import java.util.List;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.kazan.cyberscore.dto.request.CheckQueryRequest;
-import com.korur.oba.apps.kazan.cyberscore.dto.response.CheckResponse;
+import com.korur.oba.apps.kazan.cyberscore.dto.request.CyberscoreCheckQueryRequest;
+import com.korur.oba.apps.kazan.cyberscore.dto.response.CyberscoreCheckResponse;
 
 /**
  * Read service of an organization's checks.
  */
-public interface CheckQueryService {
+public interface CyberscoreCheckQueryService {
 
     /**
      * Lists the organization's checks in display order: category in declaration
@@ -26,5 +26,5 @@ public interface CheckQueryService {
      * @param query          the optional status filter
      * @return the matching checks
      */
-    List<CheckResponse> listChecks(UUID organizationId, CheckQueryRequest query);
+    List<CyberscoreCheckResponse> listChecks(UUID organizationId, CyberscoreCheckQueryRequest query);
 }

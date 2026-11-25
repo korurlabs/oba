@@ -4,9 +4,9 @@ package com.korur.oba.apps.kazan.cyberscore.constant.controller;
  * Response message constants for check controller operations.
  * Kept final with a private constructor to prevent instantiation or extension.
  */
-public final class CheckControllerResponseConstant {
+public final class CyberscoreCheckControllerResponseConstant {
 
-    private CheckControllerResponseConstant() {
+    private CyberscoreCheckControllerResponseConstant() {
         // Private constructor to prevent instantiation
     }
 

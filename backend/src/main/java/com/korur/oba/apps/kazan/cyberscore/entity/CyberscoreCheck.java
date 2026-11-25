@@ -21,9 +21,9 @@ import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.kazan.cyberscore.enums.CheckCategory;
-import com.korur.oba.apps.kazan.cyberscore.enums.CheckOutcome;
-import com.korur.oba.apps.kazan.cyberscore.enums.CheckStatus;
+import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreCheckCategory;
+import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreCheckOutcome;
+import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreCheckStatus;
 import com.korur.oba.dojo.entity.BaseEntity;
 
 /**
@@ -36,13 +36,13 @@ import com.korur.oba.dojo.entity.BaseEntity;
  * history in {@link CyberscoreSnapshot} keeps no link to a check.
  */
 @Entity
-@Table(name = "checks", schema = "kazan")
+@Table(name = "cyberscore_checks", schema = "kazan")
 @SuperBuilder
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Check extends BaseEntity {
+public class CyberscoreCheck extends BaseEntity {
 
     // -------------Atts-----------//
 
@@ -78,17 +78,17 @@ public class Check extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(name = "category", nullable = true)
-    private CheckCategory category;
+    private CyberscoreCheckCategory category;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
     @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(name = "outcome", nullable = false)
-    private CheckOutcome outcome = CheckOutcome.TODO;
+    private CyberscoreCheckOutcome outcome = CyberscoreCheckOutcome.TODO;
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
     @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(name = "status", nullable = false)
-    private CheckStatus status = CheckStatus.NOT_STARTED;
+    private CyberscoreCheckStatus status = CyberscoreCheckStatus.NOT_STARTED;
 }

@@ -10,15 +10,22 @@ import lombok.RequiredArgsConstructor;
 // 3. Java SDK
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
+import com.korur.oba.apps.kazan.cyberscore.constant.CyberscoreConstant;
+import com.korur.oba.apps.kazan.cyberscore.dto.derived.CyberscoreCalculation;
+import com.korur.oba.apps.kazan.cyberscore.dto.request.CyberscoreTrendQueryRequest;
 import com.korur.oba.apps.kazan.cyberscore.dto.response.CyberscoreResponse;
 import com.korur.oba.apps.kazan.cyberscore.dto.response.CyberscoreTrendPointResponse;
+import com.korur.oba.apps.kazan.cyberscore.entity.Cyberscore;
+import com.korur.oba.apps.kazan.cyberscore.entity.CyberscoreCheck;
 import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreLevel;
 import com.korur.oba.apps.kazan.cyberscore.mapper.CyberscoreMapper;
-import com.korur.oba.apps.kazan.cyberscore.repository.CheckRepository;
+import com.korur.oba.apps.kazan.cyberscore.repository.CyberscoreCheckRepository;
 import com.korur.oba.apps.kazan.cyberscore.repository.CyberscoreRepository;
+import com.korur.oba.apps.kazan.cyberscore.service.CyberscoreCalculateService;
 import com.korur.oba.apps.kazan.cyberscore.service.CyberscoreQueryService;
 import com.korur.oba.apps.kazan.cyberscore.service.CyberscoreTrendService;
 
@@ -35,30 +42,45 @@ import com.korur.oba.apps.kazan.cyberscore.service.CyberscoreTrendService;
 public class CyberscoreQueryServiceImpl implements CyberscoreQueryService {
 
     private final CyberscoreRepository cyberscoreRepository;
-    private final CheckRepository checkRepository;
+    private final CyberscoreCheckRepository checkRepository;
+    private final CyberscoreCalculateService cyberscoreCalculateService;
     private final CyberscoreTrendService cyberscoreTrendService;
     private final CyberscoreMapper cyberscoreMapper;
 
     @Override
     public CyberscoreResponse getCurrent(UUID organizationId) {
+        Optional<Cyberscore> row = cyberscoreRepository.findByOrganizationId(organizationId);
         // The row appears with the first scoring change, so an organization
         // without it has no check yet and gets the not-yet-scored shape.
-        return cyberscoreRepository.findByOrganizationId(organizationId)
-                .map(cyberscore -> cyberscoreMapper.toResponse(cyberscore, countScorableChecks(organizationId)))
-                .orElseGet(() -> new CyberscoreResponse(0, CyberscoreLevel.UNKNOWN, Map.of(), 0, null));
+        if (row.isEmpty()) {
+            return new CyberscoreResponse(0, CyberscoreLevel.UNKNOWN, Map.of(), 0, null);
+        }
+
+        // The percentage per category is computed from the checks on every read
+        // instead of being stored, so it always matches them.
+        List<CyberscoreCheck> checks =
+                checkRepository.findByOrganizationIdOrderByCategoryAscSortOrderAscNameAsc(organizationId);
+        CyberscoreCalculation calculation = cyberscoreCalculateService.calculate(checks);
+
+        return cyberscoreMapper.toResponse(row.get(), calculation, countScorableChecks(checks));
     }
 
     @Override
-    public List<CyberscoreTrendPointResponse> getTrend(UUID organizationId, int days) {
+    public List<CyberscoreTrendPointResponse> getTrend(UUID organizationId, CyberscoreTrendQueryRequest query) {
+        int days = query.getDays() != null ? query.getDays() : CyberscoreConstant.DEFAULT_TREND_DAYS;
         return cyberscoreMapper.toTrendPointResponses(cyberscoreTrendService.buildTrend(organizationId, days));
     }
 
     /**
-     * Counts the organization's checks whose outcome takes part in the score.
+     * Counts the checks whose outcome takes part in the score.
      */
-    private int countScorableChecks(UUID organizationId) {
-        return (int) checkRepository.findByOrganizationIdOrderByCategoryAscSortOrderAscNameAsc(organizationId).stream()
-                .filter(check -> check.getOutcome().scoreFactor().isPresent())
-                .count();
+    private static int countScorableChecks(List<CyberscoreCheck> checks) {
+        int scorable = 0;
+        for (CyberscoreCheck check : checks) {
+            if (check.getOutcome().scoreFactor().isPresent()) {
+                scorable++;
+            }
+        }
+        return scorable;
     }
 }

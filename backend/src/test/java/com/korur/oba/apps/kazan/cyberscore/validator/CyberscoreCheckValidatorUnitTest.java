@@ -18,34 +18,34 @@ import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.kazan.cyberscore.entity.Check;
-import com.korur.oba.apps.kazan.cyberscore.repository.CheckRepository;
+import com.korur.oba.apps.kazan.cyberscore.entity.CyberscoreCheck;
+import com.korur.oba.apps.kazan.cyberscore.repository.CyberscoreCheckRepository;
 import com.korur.oba.apps.kazan.exception.ExceptionDomainKazanError;
 import com.korur.oba.dojo.exception.internal.business.ConflictException;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
 import com.korur.oba.dojo.logging.service.LoggingService;
 
 @ExtendWith(MockitoExtension.class)
-class CheckValidatorUnitTest {
+class CyberscoreCheckValidatorUnitTest {
 
     private final UUID organizationId = UUID.randomUUID();
     private final UUID checkId = UUID.randomUUID();
 
     @Mock
-    private CheckRepository checkRepository;
+    private CyberscoreCheckRepository checkRepository;
 
     @Mock
     private LoggingService loggingService;
 
     @InjectMocks
-    private CheckValidator validator;
+    private CyberscoreCheckValidator validator;
 
     @Nested
     class EnsureCheckExists {
 
         @Test
         void checkOfTheOrganization_returnsIt() {
-            Check check = Check.builder().name("a").build();
+            CyberscoreCheck check = CyberscoreCheck.builder().name("a").build();
             when(checkRepository.findByIdAndOrganizationId(checkId, organizationId)).thenReturn(Optional.of(check));
 
             assertThat(validator.ensureCheckExists(organizationId, checkId)).isSameAs(check);

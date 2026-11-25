@@ -11,10 +11,10 @@ import java.util.Map;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.kazan.cyberscore.constant.CheckConstant;
-import com.korur.oba.apps.kazan.cyberscore.constant.CheckExceptionLogConstant;
-import com.korur.oba.apps.kazan.cyberscore.entity.Check;
-import com.korur.oba.apps.kazan.cyberscore.repository.CheckRepository;
+import com.korur.oba.apps.kazan.cyberscore.constant.CyberscoreCheckConstant;
+import com.korur.oba.apps.kazan.cyberscore.constant.CyberscoreCheckExceptionLogConstant;
+import com.korur.oba.apps.kazan.cyberscore.entity.CyberscoreCheck;
+import com.korur.oba.apps.kazan.cyberscore.repository.CyberscoreCheckRepository;
 import com.korur.oba.apps.kazan.exception.ExceptionDomainKazanError;
 import com.korur.oba.dojo.exception.internal.business.ConflictException;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
@@ -27,11 +27,11 @@ import com.korur.oba.dojo.logging.service.LoggingService;
  */
 @Component
 @RequiredArgsConstructor
-public class CheckValidator {
+public class CyberscoreCheckValidator {
 
-    private static final LogPrefix LOG_PREFIX = LogPrefix.fromClass(CheckValidator.class);
+    private static final LogPrefix LOG_PREFIX = LogPrefix.fromClass(CyberscoreCheckValidator.class);
 
-    private final CheckRepository checkRepository;
+    private final CyberscoreCheckRepository checkRepository;
     private final LoggingService loggingService;
 
     /**
@@ -43,13 +43,13 @@ public class CheckValidator {
      * @return the check
      * @throws NotFoundException if the organization has no check with the ID
      */
-    public Check ensureCheckExists(UUID organizationId, UUID checkId) {
+    public CyberscoreCheck ensureCheckExists(UUID organizationId, UUID checkId) {
         return checkRepository.findByIdAndOrganizationId(checkId, organizationId)
                 .orElseThrow(() -> {
                     loggingService.error(LOG_PREFIX, LogLayer.VALIDATOR,
-                            CheckExceptionLogConstant.CHECK_NOT_FOUND, checkId, organizationId);
+                            CyberscoreCheckExceptionLogConstant.CHECK_NOT_FOUND, checkId, organizationId);
                     return new NotFoundException(ExceptionDomainKazanError.NOT_CHECK_FOUND,
-                            Map.of(CheckConstant.FIELD_CHECK_ID, checkId));
+                            Map.of(CyberscoreCheckConstant.FIELD_CHECK_ID, checkId));
                 });
     }
 
@@ -87,8 +87,8 @@ public class CheckValidator {
      */
     private ConflictException nameTaken(UUID organizationId, String name) {
         loggingService.error(LOG_PREFIX, LogLayer.VALIDATOR,
-                CheckExceptionLogConstant.CHECK_NAME_DUPLICATE, name, organizationId);
+                CyberscoreCheckExceptionLogConstant.CHECK_NAME_DUPLICATE, name, organizationId);
         return new ConflictException(ExceptionDomainKazanError.STA_CHECK_NAME_DUPLICATE,
-                Map.of(CheckConstant.FIELD_NAME, name));
+                Map.of(CyberscoreCheckConstant.FIELD_NAME, name));
     }
 }

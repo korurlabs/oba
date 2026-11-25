@@ -13,11 +13,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.kazan.cyberscore.entity.Check;
-import com.korur.oba.apps.kazan.cyberscore.enums.CheckStatus;
+import com.korur.oba.apps.kazan.cyberscore.entity.CyberscoreCheck;
+import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreCheckStatus;
 
 /**
- * Repository interface for {@link Check} entity database operations.
+ * Repository interface for {@link CyberscoreCheck} entity database operations.
  *
  * Every lookup takes the organization of the request, so a check of another
  * organization reads as absent. The list queries sort in the database:
@@ -25,7 +25,8 @@ import com.korur.oba.apps.kazan.cyberscore.enums.CheckStatus;
  * ascending sort puts null, the uncategorized checks, last.
  */
 @Repository
-public interface CheckRepository extends JpaRepository<Check, UUID>, JpaSpecificationExecutor<Check> {
+public interface CyberscoreCheckRepository
+        extends JpaRepository<CyberscoreCheck, UUID>, JpaSpecificationExecutor<CyberscoreCheck> {
 
     /**
      * Finds a check of the organization by ID.
@@ -34,7 +35,7 @@ public interface CheckRepository extends JpaRepository<Check, UUID>, JpaSpecific
      * @param organizationId ID of the organization of the request
      * @return the check, or empty when the organization has no such check
      */
-    Optional<Check> findByIdAndOrganizationId(UUID id, UUID organizationId);
+    Optional<CyberscoreCheck> findByIdAndOrganizationId(UUID id, UUID organizationId);
 
     /**
      * Finds all checks of the organization in display order: category, sort
@@ -43,7 +44,7 @@ public interface CheckRepository extends JpaRepository<Check, UUID>, JpaSpecific
      * @param organizationId ID of the organization
      * @return the organization's checks
      */
-    List<Check> findByOrganizationIdOrderByCategoryAscSortOrderAscNameAsc(UUID organizationId);
+    List<CyberscoreCheck> findByOrganizationIdOrderByCategoryAscSortOrderAscNameAsc(UUID organizationId);
 
     /**
      * Finds the checks of the organization with the given status, in display order.
@@ -52,8 +53,8 @@ public interface CheckRepository extends JpaRepository<Check, UUID>, JpaSpecific
      * @param status         workflow status to filter by
      * @return the matching checks
      */
-    List<Check> findByOrganizationIdAndStatusOrderByCategoryAscSortOrderAscNameAsc(
-            UUID organizationId, CheckStatus status);
+    List<CyberscoreCheck> findByOrganizationIdAndStatusOrderByCategoryAscSortOrderAscNameAsc(
+            UUID organizationId, CyberscoreCheckStatus status);
 
     /**
      * Checks whether the organization already has a check with this name.
