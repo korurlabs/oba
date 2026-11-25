@@ -147,7 +147,7 @@ func Create(c *client.Client, r *Resolver, p PreparedCreate, warn io.Writer) (Cr
 	}
 	created, raw, err := c.CreateTicket(boardID, req)
 	if err != nil {
-		return Created{}, fmt.Errorf("failed to create ticket: %w", err)
+		return Created{}, fmt.Errorf("failed to create ticket: %w", explainAgentReviewer(err))
 	}
 	result := Created{Ticket: created, Raw: raw}
 	if len(p.files) == 0 {

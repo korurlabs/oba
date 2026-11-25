@@ -154,7 +154,7 @@ func Update(c *client.Client, r *Resolver, ref string, p PreparedUpdate) (client
 	}
 	updated, err := c.UpdateTicket(target.BoardID, target.ID, req)
 	if err != nil {
-		return client.Ticket{}, fmt.Errorf("failed to update ticket: %w", err)
+		return client.Ticket{}, fmt.Errorf("failed to update ticket: %w", explainAgentReviewer(err))
 	}
 	return updated, nil
 }

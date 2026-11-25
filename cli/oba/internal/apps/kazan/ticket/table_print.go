@@ -91,6 +91,12 @@ func shorten(text string, width int) string {
 	return string(runes[:width-3]) + "..."
 }
 
+// personName is the user's name, followed by "(agent)" for an agent, so that an agent assignee
+// is not taken for a person.
 func personName(p client.TicketPerson) string {
-	return cell(p.FirstName + " " + p.LastName)
+	name := cell(p.FirstName + " " + p.LastName)
+	if p.IsAgent() {
+		return name + " (agent)"
+	}
+	return name
 }

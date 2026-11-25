@@ -17,18 +17,50 @@ const (
 	orgMembers  = `{"data":[{"id":"o1","userId":"` + userID + `","email":"Ana@Example.com","role":"MEMBER","status":"ACTIVE"}]}`
 )
 
+// KIND tells a person from an agent; a member without a kind, from an API that predates agents,
+// is a person.
 func TestMemberList(t *testing.T) {
 	api := newAPI(t)
 	api.Respond("GET "+membersPath, http.StatusOK,
-		`{"data":[{"userId":"u1","email":"ana@example.com","firstName":"Ana","lastName":"Silva","role":"OWNER"},`+
-			`{"userId":"u2","email":"bo@example.com","firstName":"Bo","lastName":"","role":"MEMBER"}]}`)
+		`{"data":[{"userId":"u1","email":"ana@example.com","firstName":"Ana","lastName":"Silva","role":"OWNER","kind":"HUMAN"},`+
+			`{"userId":"u2","email":"bo@example.com","firstName":"Bo","lastName":"","role":"MEMBER"},`+
+			`{"userId":"u3","email":"agent-1@agents.oba.invalid","firstName":"Scout","lastName":"","role":"MEMBER",`+
+			`"kind":"AGENT","agentRole":"CYBERSECURITY_ENGINEER","agentFlow":"ROUTINE","agentProvider":"ANTHROPIC"}]}`)
 	out, _, err := runCLI(t, "", "kazan", "member", "list")
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := "NAME       EMAIL            ROLE\nAna Silva  ana@example.com  OWNER\nBo         bo@example.com   MEMBER\n"
+	want := "NAME       EMAIL                       ROLE    KIND\n" +
+		"Ana Silva  ana@example.com             OWNER   HUMAN\n" +
+		"Bo         bo@example.com              MEMBER  HUMAN\n" +
+		"Scout      agent-1@agents.oba.invalid  MEMBER  AGENT\n"
 	if out != want {
 		t.Errorf("out =\n%q", out)
+	}
+}
+
+// --json passes the kind and the agent fields on as the API sent them.
+func TestMemberListJSONCarriesKind(t *testing.T) {
+	api := newAPI(t)
+	api.Respond("GET "+membersPath, http.StatusOK,
+		`{"data":[{"userId":"u1","email":"ana@example.com","role":"OWNER","kind":"HUMAN",`+
+			`"agentRole":null,"agentFlow":null,"agentProvider":null},`+
+			`{"userId":"u3","email":"agent-1@agents.oba.invalid","role":"MEMBER",`+
+			`"kind":"AGENT","agentRole":"SALES_ENGINEER","agentFlow":"API","agentProvider":"OPENAI"}]}`)
+	var buf bytes.Buffer
+	jsonout.Start(&buf)
+	t.Cleanup(jsonout.Stop)
+	if _, _, err := runCLI(t, "", "kazan", "member", "list"); err != nil {
+		t.Fatal(err)
+	}
+	if err := jsonout.Flush(); err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{`"kind": "HUMAN"`, `"agentRole": null`, `"kind": "AGENT"`,
+		`"agentRole": "SALES_ENGINEER"`, `"agentFlow": "API"`, `"agentProvider": "OPENAI"`} {
+		if !strings.Contains(buf.String(), want) {
+			t.Errorf("json lacks %s:\n%s", want, buf.String())
+		}
 	}
 }
 

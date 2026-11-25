@@ -15,14 +15,16 @@ func List(c *client.Client, boardID string) ([]client.BoardMember, error) {
 	return c.ListBoardMembers(boardID)
 }
 
-// PrintList writes the members as a NAME, EMAIL, ROLE table. Names are typed by users, so every
-// cell is put on one line with terminal controls removed.
+// PrintList writes the members as a NAME, EMAIL, ROLE, KIND table, where KIND tells a person
+// (HUMAN) from an agent (AGENT). Names are typed by users, so every cell is put on one line with
+// terminal controls removed.
 func PrintList(out io.Writer, members []client.BoardMember) error {
 	w := tabwriter.NewWriter(out, 0, 0, 2, ' ', 0)
-	_, _ = fmt.Fprintln(w, "NAME\tEMAIL\tROLE")
+	_, _ = fmt.Fprintln(w, "NAME\tEMAIL\tROLE\tKIND")
 	for _, m := range members {
 		name := strings.TrimSpace(guardrail.OneLine(m.FirstName) + " " + guardrail.OneLine(m.LastName))
-		_, _ = fmt.Fprintf(w, "%s\t%s\t%s\n", name, guardrail.OneLine(m.Email), guardrail.OneLine(m.Role))
+		_, _ = fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", name, guardrail.OneLine(m.Email), guardrail.OneLine(m.Role),
+			guardrail.OneLine(m.KindOrHuman()))
 	}
 	return w.Flush()
 }

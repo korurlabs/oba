@@ -295,6 +295,90 @@ func TestUpdateSendsOnlyGivenFields(t *testing.T) {
 	}
 }
 
+const (
+	idAgent = "0e000000-0000-4000-8000-000000000001"
+	// agentReviewerRefused is the API's refusal of an agent named as a ticket reviewer.
+	agentReviewerRefused = `{"error":{"code":"AGT_VAL_001","message":"This action does not apply to an agent.",` +
+		`"errorValues":{"action":"TICKET_REVIEWER","userId":"` + idAgent + `"}}}`
+	// agentAssignee is an assignee of kind AGENT.
+	agentAssignee = `{"id":"m9","userId":"` + idAgent + `","email":"agent-1@agents.oba.invalid","firstName":"Scout",` +
+		`"lastName":"","kind":"AGENT","agentRole":"CYBERSECURITY_ENGINEER","agentFlow":"ROUTINE","agentProvider":"ANTHROPIC"}`
+)
+
+// withAgentAssignee is ticketJSON with the agent as its only assignee.
+func withAgentAssignee(id, key, title string) string {
+	return strings.Replace(ticketJSON(id, key, title, idOps, "OPS"),
+		`"assignees":[{"id":"m1","userId":"u1","email":"a@b.c","firstName":"Ada","lastName":"Lovelace"}]`,
+		`"assignees":[`+agentAssignee+`]`, 1)
+}
+
+func TestUpdateWithAgentReviewerSaysWhatToDo(t *testing.T) {
+	api := newTicketAPI(t)
+	api.Respond("PUT /kazan/boards/"+idOps+"/tickets/"+idT42, http.StatusUnprocessableEntity, agentReviewerRefused)
+	_, _, err := runCLI(t, "", "kazan", "ticket", "update", "OPS-42", "--reviewer", idAgent)
+	if err == nil {
+		t.Fatal("update with an agent reviewer succeeded")
+	}
+	for _, part := range []string{"failed to update ticket", "user " + idAgent + " is an agent",
+		"Name a person with --reviewer", "AGT_VAL_001"} {
+		if !strings.Contains(err.Error(), part) {
+			t.Errorf("err lacks %q: %v", part, err)
+		}
+	}
+	if code := client.ExitCode(err); code != 1 {
+		t.Errorf("exit code = %d", code)
+	}
+}
+
+func TestCreateWithAgentReviewerSaysWhatToDo(t *testing.T) {
+	api := newTicketAPI(t)
+	api.Respond("POST /kazan/boards/"+idOps+"/tickets", http.StatusUnprocessableEntity, agentReviewerRefused)
+	_, _, err := runCLI(t, "", "kazan", "ticket", "create", "--title", "Scan", "--type", "task",
+		"--priority", "high", "--status", "todo", "--mission-rank", "s", "--sprint", "sprint", "--reviewer", idAgent)
+	if err == nil || !strings.Contains(err.Error(), "failed to create ticket: user "+idAgent+" is an agent") {
+		t.Fatalf("err = %v", err)
+	}
+}
+
+func TestGetMarksAnAgentAssignee(t *testing.T) {
+	api := newTicketAPI(t)
+	api.Respond("GET /kazan/boards/"+idOps+"/tickets/"+idT42, http.StatusOK,
+		`{"data":`+withAgentAssignee(idT42, "OPS-42", "Login crash")+`}`)
+	out, _, err := runCLI(t, "", "kazan", "ticket", "get", "OPS-42")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out, "Assignees: Scout (agent)") {
+		t.Errorf("out =\n%s", out)
+	}
+}
+
+// --json passes the assignee's kind and agent fields on as the API sent them.
+func TestListMarksAnAgentAssigneeAndKeepsItsKindInJSON(t *testing.T) {
+	api := newTicketAPI(t)
+	api.Respond("GET /kazan/boards/"+idOps+"/tickets", http.StatusOK,
+		`{"data":[`+withAgentAssignee(idT42, "OPS-42", "Login crash")+`]}`)
+	out, _, err := runCLI(t, "", "kazan", "ticket", "list")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out, "Scout (agent)") {
+		t.Errorf("out =\n%s", out)
+	}
+
+	buf := withJSON(t)
+	if _, _, err := runCLI(t, "", "kazan", "ticket", "list"); err != nil {
+		t.Fatal(err)
+	}
+	got := flush(t, buf)
+	for _, want := range []string{`"kind": "AGENT"`, `"agentRole": "CYBERSECURITY_ENGINEER"`,
+		`"agentFlow": "ROUTINE"`, `"agentProvider": "ANTHROPIC"`} {
+		if !strings.Contains(got, want) {
+			t.Errorf("json lacks %s:\n%s", want, got)
+		}
+	}
+}
+
 func TestUpdateRefusesParentOfAnotherBoard(t *testing.T) {
 	api := newTicketAPI(t)
 	_, _, err := runCLI(t, "", "kazan", "ticket", "update", "OPS-42", "--parent", "KAGI-7")
