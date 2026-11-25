@@ -7,8 +7,10 @@
 // replays in order after an outage; Kaya stores each seq once. A 403 KAY_SEC_007 (no user holds
 // the session's git email yet), a 429, a 5xx and a network error back off from 2 s to 5 min and
 // keep the session queued. A 401 stops the sender until the token changes. A session whose batch
-// Kaya refuses for its content (400, 409, 413, 422) is parked until the token changes. One
-// sender runs per machine: it holds sender.lock. It exits after ten idle minutes.
+// Kaya refuses for its content (400, 409, 413, 422) is parked until the token changes; one parked
+// after the machine name refusal of an older Kaya release (KAY_VAL_005) is also sent once more by
+// another oba version. One sender runs per machine: it holds sender.lock. It exits after ten idle
+// minutes.
 //
 // The token is only ever put in the Authorization header: it is never logged, never written to
 // disk, and never sent over plain http except to a loopback address. state.json keeps a one-way
@@ -54,6 +56,13 @@ const (
 	tokenEnv       = "KAYA_RECORDER_TOKEN"
 	senderEnv      = "KAYA_SENDER"
 	codeUnknownGit = "KAY_SEC_007"
+	// codeMachineName is the refusal of older Kaya releases for a batch whose machine name differs
+	// from the name of the token's machine. The name is the host name the hook recorded, which
+	// macOS changes with the network, so a new token would not have fixed it; later Kaya releases
+	// take the name as a label. A session parked on this code is therefore sent once more by each
+	// oba version other than the one that parked it, and a second refusal parks it again under the
+	// running version, so it is never retried in a loop.
+	codeMachineName = "KAY_VAL_005"
 )
 
 var (
@@ -76,6 +85,10 @@ type Config struct {
 	Token func(ctx context.Context) (string, error)
 	// Once sends one round and returns.
 	Once bool
+	// Version is the running oba's version, which a park records. Without it no park after a
+	// machine name refusal is sent once more, since the sender cannot tell whether it already
+	// tried.
+	Version string
 
 	Client   func(apiURL, token string) Poster
 	Resolver *seed.RemoteResolver
@@ -99,6 +112,7 @@ type run struct {
 	stateDir string
 	token    string
 	tokenFP  string
+	version  string
 	client   Poster
 	resolver *seed.RemoteResolver
 	now      func() time.Time
@@ -152,7 +166,7 @@ func Run(ctx context.Context, cfg Config) error {
 		return err
 	}
 
-	s := &run{stateDir: stateDir, now: cfg.Now, hostname: cfg.Hostname, resolver: cfg.Resolver, reported: map[string]bool{}, unresolvedHosts: map[string]bool{}}
+	s := &run{stateDir: stateDir, version: cfg.Version, now: cfg.Now, hostname: cfg.Hostname, resolver: cfg.Resolver, reported: map[string]bool{}, unresolvedHosts: map[string]bool{}}
 	if s.now == nil {
 		s.now = time.Now
 	}
@@ -295,10 +309,14 @@ func (s *run) sendRound(ctx context.Context) (int, error) {
 func (s *run) sendSession(ctx context.Context, dir, sessionID string) (bool, error) {
 	cur := s.readCursor(dir)
 	if cur.Parked != nil {
-		if cur.Parked.TokenFingerprint == s.tokenFP {
+		switch {
+		case cur.Parked.TokenFingerprint != s.tokenFP:
+			s.log("%s: the token changed, the parked session is sent again", sessionID)
+		case s.retriesMachineNamePark(cur.Parked):
+			s.log("%s: parked after %s by %s, oba %s sends it again", sessionID, codeMachineName, parkedBy(cur.Parked), s.version)
+		default:
 			return false, nil
 		}
-		s.log("%s: the token changed, the parked session is sent again", sessionID)
 		cur.Parked = nil
 	}
 	b, what, reason := s.buildBatch(dir, sessionID, cur)
@@ -337,7 +355,7 @@ func (s *run) sendSession(ctx context.Context, dir, sessionID string) (bool, err
 		if apiErr.Code != "" {
 			code = &apiErr.Code
 		}
-		cur.Parked = &parked{Status: apiErr.Status, Code: code, At: iso(s.now()), TokenFingerprint: s.tokenFP}
+		cur.Parked = &parked{Status: apiErr.Status, Code: code, At: iso(s.now()), TokenFingerprint: s.tokenFP, ObaVersion: s.version}
 		return false, writeCursor(dir, cur)
 	case apiErr.Status == 403 && apiErr.Code == codeUnknownGit:
 		// No user of the organization holds the session's git email yet. The batch stays queued
@@ -346,6 +364,21 @@ func (s *run) sendSession(ctx context.Context, dir, sessionID string) (bool, err
 		return false, &retryError{reason: fmt.Sprintf("Kaya answered %s: no Kaya user holds the git author email %q", answer, email)}
 	}
 	return false, &retryError{reason: "Kaya answered " + answer}
+}
+
+// retriesMachineNamePark reports whether this oba sends a park after a machine name refusal once
+// more: another version parked it, or one that did not record its version. The park this oba
+// writes on a second refusal holds its own version, which ends the retries until the next one.
+func (s *run) retriesMachineNamePark(p *parked) bool {
+	return s.version != "" && p.Code != nil && *p.Code == codeMachineName && p.ObaVersion != s.version
+}
+
+// parkedBy names the oba that parked a session in the log.
+func parkedBy(p *parked) string {
+	if p.ObaVersion == "" {
+		return "an oba that did not record its version"
+	}
+	return "oba " + p.ObaVersion
 }
 
 // acknowledge stores what Kaya took: the seq it holds, the handoffs and plans sent, and removes

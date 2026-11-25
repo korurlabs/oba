@@ -21,7 +21,14 @@ import (
 // Kagi first.
 const senderTokenTimeout = 30 * time.Second
 
+// localBuildVersion is the version a build reports when none was set at build time, as main
+// defaults it.
+const localBuildVersion = "dev"
+
 var senderOnce bool
+
+// senderRun is the send loop, which a test replaces to see the configuration the command passes.
+var senderRun = sender.Run
 
 // NewCmd builds the oba kaya sender command.
 func NewCmd() *cobra.Command {
@@ -35,14 +42,15 @@ func NewCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			ctx, stop := signal.NotifyContext(cmd.Context(), syscall.SIGINT, syscall.SIGTERM)
 			defer stop()
-			err := sender.Run(ctx, sender.Config{
+			err := senderRun(ctx, sender.Config{
 				APIURL: machine.APIURL(),
 				Token: func(ctx context.Context) (string, error) {
 					tokenCtx, cancel := context.WithTimeout(ctx, senderTokenTimeout)
 					defer cancel()
 					return machine.Token(tokenCtx)
 				},
-				Once: senderOnce,
+				Once:    senderOnce,
+				Version: runningVersion(cmd),
 			})
 			if err == nil {
 				return nil
@@ -57,4 +65,15 @@ func NewCmd() *cobra.Command {
 
 	senderCmd.Flags().BoolVar(&senderOnce, "once", false, "send one round and exit")
 	return senderCmd
+}
+
+// runningVersion is the version of this oba, which the sender records in a park. Each other version
+// sends a park after a machine name refusal once more, and a sender without a version never does,
+// so a build whose version was set empty counts as a local build: it sends such a park once and
+// waits after a second refusal, like any version.
+func runningVersion(cmd *cobra.Command) string {
+	if version := cmd.Root().Version; version != "" {
+		return version
+	}
+	return localBuildVersion
 }

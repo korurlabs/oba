@@ -123,16 +123,37 @@ func (c *fakeClock) Sleep(_ context.Context, d time.Duration) error {
 	return nil
 }
 
+// flowVersion is the version of the oba that runs the flow's sender.
+const flowVersion = "0.6.0 (abc1234, 2026-11-25T09:00:00Z)"
+
 func flowConfig(clock *fakeClock, poster Poster) Config {
 	return Config{
 		APIURL:   "https://kaya.example.com",
 		Token:    func(context.Context) (string, error) { return tokenA, nil },
+		Version:  flowVersion,
 		Client:   func(string, string) Poster { return poster },
 		Resolver: flowResolver(),
 		Sleep:    clock.Sleep,
 		Now:      clock.Now,
 		Hostname: func() (string, error) { return "flow-host", nil },
 	}
+}
+
+// parkSession writes the cursor of a session parked under token, as the parking oba left it: code
+// "" is a refusal without a code, and version "" a park of an oba that did not record its version.
+func parkSession(t *testing.T, dir string, status int, code, token, version string) {
+	t.Helper()
+	codeJSON := "null"
+	if code != "" {
+		codeJSON = fmt.Sprintf("%q", code)
+	}
+	versionJSON := ""
+	if version != "" {
+		versionJSON = fmt.Sprintf(`,"obaVersion":%q`, version)
+	}
+	writeFile(t, filepath.Join(dir, cursorFile), fmt.Sprintf(
+		`{"acknowledgedSeq":0,"handoffs":{},"plans":{},"parked":{"status":%d,"code":%s,"at":"2026-11-20T09:00:00Z","tokenFingerprint":%q%s}}`,
+		status, codeJSON, fingerprint(token), versionJSON))
 }
 
 func seconds(values ...int) []time.Duration {
@@ -236,7 +257,7 @@ func TestParkingStatusesWaitForANewToken(t *testing.T) {
 		t.Run(fmt.Sprint(status), func(t *testing.T) {
 			state := flowEnv(t)
 			dir := queueSession(t, state, flowSession, 1, false)
-			poster := &scriptedPoster{answers: []error{&client.APIError{Status: status, Code: "KAY_VAL_005"}}}
+			poster := &scriptedPoster{answers: []error{&client.APIError{Status: status}}}
 			clock := &fakeClock{now: time.Unix(1_800_000_000, 0)}
 			cfg := flowConfig(clock, poster)
 			cfg.Once = true
@@ -246,8 +267,8 @@ func TestParkingStatusesWaitForANewToken(t *testing.T) {
 			if poster.calls != 1 {
 				t.Fatalf("calls = %d, want 1", poster.calls)
 			}
-			if cur := (&run{}).readCursor(dir); cur.Parked == nil || cur.Parked.Status != status {
-				t.Fatalf("cursor = %+v, want parked with %d", cur, status)
+			if cur := (&run{}).readCursor(dir); cur.Parked == nil || cur.Parked.Status != status || cur.Parked.ObaVersion != flowVersion {
+				t.Fatalf("cursor = %+v, want parked with %d by oba %s", cur, status, flowVersion)
 			}
 			// The same token leaves the session parked, a new one sends it again.
 			if err := Run(context.Background(), cfg); err != nil {
@@ -268,6 +289,184 @@ func TestParkingStatusesWaitForANewToken(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAMachineNameParkOfAnotherObaIsSentAgainWithTheSameToken(t *testing.T) {
+	for name, parkedBy := range map[string]string{"no version recorded": "", "an older version": "0.5.0 (0123abc, 2026-11-01T09:00:00Z)"} {
+		t.Run(name, func(t *testing.T) {
+			state := flowEnv(t)
+			dir := queueSession(t, state, flowSession, 2, false)
+			parkSession(t, dir, 409, codeMachineName, tokenA, parkedBy)
+			poster := &scriptedPoster{answers: []error{nil}}
+			cfg := flowConfig(&fakeClock{now: time.Unix(1_800_000_000, 0)}, poster)
+			cfg.Once = true
+			if err := Run(context.Background(), cfg); err != nil {
+				t.Fatal(err)
+			}
+			if poster.calls != 1 {
+				t.Fatalf("calls = %d, want the parked session sent once", poster.calls)
+			}
+			if cur := (&run{}).readCursor(dir); cur.Parked != nil || cur.AcknowledgedSeq != 2 {
+				t.Errorf("cursor = %+v, want seq 2 acknowledged and the park gone", cur)
+			}
+			// The name goes out as the hook recorded it: Kaya takes it as a label.
+			if !strings.Contains(string(poster.bodies[0]), `"machineName":"flow-host"`) {
+				t.Errorf("batch does not carry the recorded machine name:\n%s", poster.bodies[0])
+			}
+			if !strings.Contains(logText(t, state), "parked after KAY_VAL_005 by ") {
+				t.Errorf("log does not say why the parked session is sent again:\n%s", logText(t, state))
+			}
+		})
+	}
+}
+
+func TestAMachineNameParkStaysParkedUnderTheObaThatParkedIt(t *testing.T) {
+	for name, versions := range map[string]struct{ parked, running string }{
+		"same version":            {flowVersion, flowVersion},
+		"running version unknown": {"", ""},
+	} {
+		t.Run(name, func(t *testing.T) {
+			state := flowEnv(t)
+			dir := queueSession(t, state, flowSession, 1, false)
+			parkSession(t, dir, 409, codeMachineName, tokenA, versions.parked)
+			poster := &scriptedPoster{answers: []error{nil}}
+			cfg := flowConfig(&fakeClock{now: time.Unix(1_800_000_000, 0)}, poster)
+			cfg.Once = true
+			cfg.Version = versions.running
+			if err := Run(context.Background(), cfg); err != nil {
+				t.Fatal(err)
+			}
+			if poster.calls != 0 {
+				t.Errorf("calls = %d, want the session kept parked", poster.calls)
+			}
+			if cur := (&run{}).readCursor(dir); cur.Parked == nil || cur.Parked.ObaVersion != versions.parked {
+				t.Errorf("cursor = %+v, want the park unchanged", cur)
+			}
+		})
+	}
+}
+
+func TestASecondMachineNameRefusalParksAgainWithoutALoop(t *testing.T) {
+	state := flowEnv(t)
+	dir := queueSession(t, state, flowSession, 1, false)
+	parkSession(t, dir, 409, codeMachineName, tokenA, "")
+	poster := &scriptedPoster{answers: []error{&client.APIError{Status: 409, Code: codeMachineName}}}
+	// Three rounds of the loop: the first sends the session once more, the other two find it parked.
+	clock := &fakeClock{now: time.Unix(1_800_000_000, 0), limit: 3}
+	if err := Run(context.Background(), flowConfig(clock, poster)); !errors.Is(err, errStopLoop) {
+		t.Fatalf("Run = %v", err)
+	}
+	if poster.calls != 1 {
+		t.Fatalf("calls = %d over three rounds, want the one retry", poster.calls)
+	}
+	if !equalDurations(clock.sleeps, seconds(2, 2, 2)) {
+		t.Errorf("sleeps = %v, want the 2 s round pause without a back-off", clock.sleeps)
+	}
+	cur := (&run{}).readCursor(dir)
+	if cur.Parked == nil || cur.Parked.Status != 409 || cur.Parked.Code == nil || *cur.Parked.Code != codeMachineName || cur.Parked.ObaVersion != flowVersion {
+		t.Fatalf("cursor = %+v, want parked again on 409 %s by oba %s", cur, codeMachineName, flowVersion)
+	}
+	// The next oba version sends it once more, with the same token.
+	cfg := flowConfig(&fakeClock{now: time.Unix(1_800_000_000, 0)}, poster)
+	cfg.Once = true
+	cfg.Version = "0.6.1 (def5678, 2026-12-01T09:00:00Z)"
+	for range 2 {
+		if err := Run(context.Background(), cfg); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if poster.calls != 2 {
+		t.Errorf("calls = %d after two runs of the next version, want 2", poster.calls)
+	}
+	if cur := (&run{}).readCursor(dir); cur.Parked == nil || cur.Parked.ObaVersion != cfg.Version {
+		t.Errorf("cursor = %+v, want parked by oba %s", cur, cfg.Version)
+	}
+}
+
+// Every local build reports the version "dev", so local builds count as one version: the first
+// sends a machine name park of a release once more, and after a second refusal they all wait. The
+// park then holds "dev", so a release still sends it once more.
+func TestALocalBuildSendsAMachineNameParkOnceAndThenWaits(t *testing.T) {
+	state := flowEnv(t)
+	dir := queueSession(t, state, flowSession, 1, false)
+	parkSession(t, dir, 409, codeMachineName, tokenA, flowVersion)
+	poster := &scriptedPoster{answers: []error{&client.APIError{Status: 409, Code: codeMachineName}, nil}}
+	cfg := flowConfig(&fakeClock{now: time.Unix(1_800_000_000, 0)}, poster)
+	cfg.Once = true
+	cfg.Version = "dev"
+	for range 3 {
+		if err := Run(context.Background(), cfg); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if poster.calls != 1 {
+		t.Fatalf("calls = %d over three runs of a local build, want the one retry", poster.calls)
+	}
+	if cur := (&run{}).readCursor(dir); cur.Parked == nil || cur.Parked.ObaVersion != "dev" {
+		t.Fatalf("cursor = %+v, want parked by oba dev", cur)
+	}
+	cfg.Version = flowVersion
+	if err := Run(context.Background(), cfg); err != nil {
+		t.Fatal(err)
+	}
+	if poster.calls != 2 {
+		t.Errorf("calls = %d after the release ran, want 2", poster.calls)
+	}
+	if cur := (&run{}).readCursor(dir); cur.Parked != nil || cur.AcknowledgedSeq != 1 {
+		t.Errorf("cursor = %+v, want seq 1 acknowledged and the park gone", cur)
+	}
+}
+
+func TestAParkOnAnotherRefusalWaitsForANewTokenUnderANewerOba(t *testing.T) {
+	for _, refusal := range []struct {
+		status int
+		code   string
+	}{{400, "KAY_VAL_002"}, {413, ""}, {422, "KAY_VAL_001"}} {
+		t.Run(fmt.Sprint(refusal.status), func(t *testing.T) {
+			state := flowEnv(t)
+			dir := queueSession(t, state, flowSession, 1, false)
+			parkSession(t, dir, refusal.status, refusal.code, tokenA, "")
+			poster := &scriptedPoster{answers: []error{nil}}
+			cfg := flowConfig(&fakeClock{now: time.Unix(1_800_000_000, 0)}, poster)
+			cfg.Once = true
+			if err := Run(context.Background(), cfg); err != nil {
+				t.Fatal(err)
+			}
+			if poster.calls != 0 {
+				t.Fatalf("calls = %d, want the session kept parked under a newer oba", poster.calls)
+			}
+			cfg.Token = func(context.Context) (string, error) { return tokenB, nil }
+			if err := Run(context.Background(), cfg); err != nil {
+				t.Fatal(err)
+			}
+			if poster.calls != 1 {
+				t.Errorf("calls = %d after the token changed, want 1", poster.calls)
+			}
+		})
+	}
+	// A refused token stops the sender before any park is looked at, a machine name park included.
+	t.Run("refused token", func(t *testing.T) {
+		state := flowEnv(t)
+		dir := queueSession(t, state, flowSession, 1, false)
+		parkSession(t, dir, 409, codeMachineName, tokenA, "")
+		writeFile(t, filepath.Join(state, capture.StateFile), fmt.Sprintf(`{"token":%q,"refusedFingerprint":%q}`, tokenRefused, fingerprint(tokenA)))
+		poster := &scriptedPoster{answers: []error{nil}}
+		cfg := flowConfig(&fakeClock{now: time.Unix(1_800_000_000, 0)}, poster)
+		cfg.Once = true
+		if err := Run(context.Background(), cfg); err != nil {
+			t.Fatal(err)
+		}
+		if poster.calls != 0 {
+			t.Fatalf("calls = %d, want nothing sent with the refused token", poster.calls)
+		}
+		cfg.Token = func(context.Context) (string, error) { return tokenB, nil }
+		if err := Run(context.Background(), cfg); err != nil {
+			t.Fatal(err)
+		}
+		if poster.calls != 1 {
+			t.Errorf("calls = %d after the token changed, want 1", poster.calls)
+		}
+	})
 }
 
 func TestUnauthorizedStopsUntilTheTokenChanges(t *testing.T) {
