@@ -43,8 +43,8 @@ public interface AgentService {
     AgentResponse updateStatus(User actor, UUID organizationId, UUID agentId, AgentStatusUpdateRequest request);
 
     /**
-     * Deletes an agent: revokes its token, removes its grants and group rows, and soft-deletes its user
-     * and membership.
+     * Deletes an agent: revokes its token, removes its routine, its grants and group rows, and
+     * soft-deletes its user and membership.
      */
     void deleteAgent(User actor, UUID organizationId, UUID agentId);
 

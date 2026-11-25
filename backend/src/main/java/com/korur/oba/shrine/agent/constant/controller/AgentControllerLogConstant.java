@@ -25,4 +25,8 @@ public final class AgentControllerLogConstant {
     public static final String AGENT_TOKEN_ISSUE_REQUEST_COMPLETED = "Agent token issue request completed: organizationId={}, agentId={}";
     public static final String AGENT_TOKEN_REVOKE_REQUEST = "Agent token revoke request: organizationId={}, agentId={}";
     public static final String AGENT_TOKEN_REVOKE_REQUEST_COMPLETED = "Agent token revoke request completed: organizationId={}, agentId={}";
+    public static final String AGENT_ROUTINE_SET_REQUEST = "Agent routine set request: organizationId={}, agentId={}";
+    public static final String AGENT_ROUTINE_SET_REQUEST_COMPLETED = "Agent routine set request completed: organizationId={}, agentId={}";
+    public static final String AGENT_ROUTINE_REMOVE_REQUEST = "Agent routine remove request: organizationId={}, agentId={}";
+    public static final String AGENT_ROUTINE_REMOVE_REQUEST_COMPLETED = "Agent routine remove request completed: organizationId={}, agentId={}";
 }

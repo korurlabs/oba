@@ -17,4 +17,6 @@ public final class AgentControllerResponseConstant {
     public static final String RESPONSE_AGENT_DELETED = "Agent deleted successfully";
     public static final String RESPONSE_AGENT_TOKEN_ISSUED = "Agent token issued successfully";
     public static final String RESPONSE_AGENT_TOKEN_REVOKED = "Agent token revoked successfully";
+    public static final String RESPONSE_AGENT_ROUTINE_SET = "Agent routine set successfully";
+    public static final String RESPONSE_AGENT_ROUTINE_REMOVED = "Agent routine removed successfully";
 }

@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.UUID;
 
 // 4. Internal
+import com.korur.oba.connect.routine.core.enums.RoutineFireStatus;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.dojo.security.token.entity.ApiToken;
@@ -29,6 +30,8 @@ import com.korur.oba.shrine.agent.dto.response.AgentOptionsResponse;
 import com.korur.oba.shrine.agent.dto.response.AgentResponse;
 import com.korur.oba.shrine.agent.helper.AgentFlowHelper;
 import com.korur.oba.shrine.agent.mapper.AgentMapperImpl;
+import com.korur.oba.shrine.agent.routine.entity.AgentRoutine;
+import com.korur.oba.shrine.agent.routine.service.AgentRoutineQueryService;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.identity.entity.embedded.UserAgentDetail;
 import com.korur.oba.shrine.identity.entity.embedded.UserProfile;
@@ -40,6 +43,7 @@ import com.korur.oba.shrine.identity.enums.UserStatus;
 import com.korur.oba.shrine.identity.service.UserQueryService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -56,6 +60,8 @@ class AgentQueryServiceImplUnitTest {
     @Mock
     private AppAccessQueryService appAccessQueryService;
     @Mock
+    private AgentRoutineQueryService agentRoutineQueryService;
+    @Mock
     private LoggingService loggingService;
 
     private AgentQueryServiceImpl agentQueryService;
@@ -65,7 +71,7 @@ class AgentQueryServiceImplUnitTest {
     @BeforeEach
     void setUp() {
         agentQueryService = new AgentQueryServiceImpl(userQueryService, apiTokenQueryService, appAccessQueryService,
-                new AgentFlowHelper(), new AgentMapperImpl(), loggingService);
+                agentRoutineQueryService, new AgentFlowHelper(), new AgentMapperImpl(), loggingService);
         actor = User.builder().id(UUID.randomUUID()).email("admin@example.com").build();
         organizationId = UUID.randomUUID();
     }
@@ -142,11 +148,39 @@ class AgentQueryServiceImplUnitTest {
     }
 
     @Test
+    void getAgent_withRoutine_mapsRoutineFieldsWithoutSecret() {
+        User agent = agent("Alpha", AgentFlow.ROUTINE, AgentProvider.ANTHROPIC);
+        AgentRoutine routine = AgentRoutine.builder()
+                .id(UUID.randomUUID())
+                .organizationId(organizationId)
+                .userId(agent.getId())
+                .routineId("trig_01AbCdEf")
+                .routineSecretEncrypted("encrypted-value")
+                .routineSecretPrefix("sk-ant-oat01")
+                .lastFiredAt(Instant.parse("2026-11-24T10:00:00Z"))
+                .lastFireStatus(RoutineFireStatus.FIRED)
+                .lastHttpStatus(200)
+                .lastSessionUrl("https://claude.ai/code/session_01")
+                .build();
+        when(userQueryService.findAgent(organizationId, agent.getId())).thenReturn(Optional.of(agent));
+        when(agentRoutineQueryService.findAll(organizationId, Set.of(agent.getId()))).thenReturn(List.of(routine));
+
+        AgentResponse response = agentQueryService.getAgent(actor, organizationId, agent.getId());
+
+        assertEquals("trig_01AbCdEf", response.routineId());
+        assertEquals("sk-ant-oat01", response.routineSecretPrefix());
+        assertEquals(routine.getLastFiredAt(), response.lastFiredAt());
+        assertEquals(RoutineFireStatus.FIRED, response.lastFireStatus());
+        assertEquals("https://claude.ai/code/session_01", response.lastSessionUrl());
+        assertFalse(response.toString().contains("encrypted-value"));
+    }
+
+    @Test
     void listAgents_noAgents_returnsEmptyWithoutLookups() {
         when(userQueryService.getAgentsOfOrganization(organizationId)).thenReturn(List.of());
 
         assertTrue(agentQueryService.listAgents(actor, organizationId).isEmpty());
-        verifyNoInteractions(apiTokenQueryService, appAccessQueryService);
+        verifyNoInteractions(apiTokenQueryService, appAccessQueryService, agentRoutineQueryService);
     }
 
     private User agent(String name, AgentFlow flow, AgentProvider provider) {

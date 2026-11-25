@@ -49,6 +49,7 @@ import com.korur.oba.shrine.agent.dto.response.AgentTokenCreatedResponse;
 import com.korur.oba.shrine.agent.helper.AgentFlowHelper;
 import com.korur.oba.shrine.agent.mapper.AgentMapper;
 import com.korur.oba.shrine.agent.mapper.AgentMapperImpl;
+import com.korur.oba.shrine.agent.routine.service.AgentRoutineService;
 import com.korur.oba.shrine.agent.service.AgentQueryService;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.identity.entity.embedded.UserAgentDetail;
@@ -104,6 +105,8 @@ class AgentServiceImplUnitTest {
     @Mock
     private ApiTokenService apiTokenService;
     @Mock
+    private AgentRoutineService agentRoutineService;
+    @Mock
     private AuditLogMapper auditLogMapper;
     @Mock
     private AuditService auditService;
@@ -121,7 +124,7 @@ class AgentServiceImplUnitTest {
     void setUp() {
         agentService = new AgentServiceImpl(userService, userQueryService, agentQueryService, organizationMemberService,
                 organizationMemberQueryService, appAccessService, appAccessQueryService, apiTokenService,
-                new AgentFlowHelper(), agentMapper, auditLogMapper, auditService, loggingService);
+                agentRoutineService, new AgentFlowHelper(), agentMapper, auditLogMapper, auditService, loggingService);
         actor = User.builder().id(UUID.randomUUID()).email("admin@example.com").build();
         organizationId = UUID.randomUUID();
         organization = Organization.builder().id(organizationId).build();
@@ -326,6 +329,7 @@ class AgentServiceImplUnitTest {
 
         agentService.deleteAgent(actor, organizationId, agent.getId());
 
+        verify(agentRoutineService).remove(actor, organizationId, agent.getId());
         verify(appAccessService).removeMemberAccess(actor, organizationId, agent.getId());
         verify(userService).deleteAgentUser(agent);
         @SuppressWarnings("unchecked")

@@ -41,18 +41,20 @@ import com.korur.oba.shrine.agent.dto.request.AgentUpdateRequest;
 import com.korur.oba.shrine.agent.dto.response.AgentOptionsResponse;
 import com.korur.oba.shrine.agent.dto.response.AgentResponse;
 import com.korur.oba.shrine.agent.dto.response.AgentTokenCreatedResponse;
+import com.korur.oba.shrine.agent.routine.dto.request.AgentRoutineSetRequest;
+import com.korur.oba.shrine.agent.routine.service.AgentRoutineService;
 import com.korur.oba.shrine.agent.service.AgentQueryService;
 import com.korur.oba.shrine.agent.service.AgentService;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 
 /**
- * REST controller for the agents of an organization and their API tokens.
+ * REST controller for the agents of an organization, their API tokens and their routines.
  *
  * An agent acts in the organization as a member with its own grants, so registering, changing and
- * deleting one, and issuing its token, is for an OWNER or ADMIN only. Each handler states that role
- * with {@link RequiredUserAccess}; the services look every agent up within the organization, so an id
- * of a person or of another organization's agent answers 404 AGT_NOT_001.
+ * deleting one, issuing its token and setting its routine, is for an OWNER or ADMIN only. Each handler
+ * states that role with {@link RequiredUserAccess}; the services look every agent up within the
+ * organization, so an id of a person or of another organization's agent answers 404 AGT_NOT_001.
  */
 @RestController
 @RequiredArgsConstructor
@@ -64,6 +66,7 @@ public class AgentController {
 
     private final AgentService agentService;
     private final AgentQueryService agentQueryService;
+    private final AgentRoutineService agentRoutineService;
     private final LoggingService loggingService;
 
     /**
@@ -334,5 +337,75 @@ public class AgentController {
                 organizationId, agentId);
 
         return ResponseUtil.ok(AgentControllerResponseConstant.RESPONSE_AGENT_TOKEN_REVOKED);
+    }
+
+    /**
+     * Sets the routine Oba fires when a ticket is assigned to a ROUTINE agent; the secret is stored
+     * encrypted and the response shows only its prefix.
+     */
+    @PutMapping("/{agentId}/routine")
+    @RequiredUserAccess(OrganizationMemberRole.ADMIN)
+    @Operation(summary = "Set an agent routine")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successful operation"),
+            @ApiResponse(responseCode = "400", description = "Malformed request body"),
+            @ApiResponse(responseCode = "403", description = "Not an active OWNER or ADMIN of an active organization"),
+            @ApiResponse(responseCode = "404", description = "Agent not found in the organization (AGT_NOT_001)"),
+            @ApiResponse(responseCode = "422", description = "Invalid request fields, a routine id not in the provider's format (AGT_VAL_002), or an agent on the API flow (AGT_VAL_003)"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<CustomResponse<AgentResponse>> setAgentRoutine(
+            @Parameter(hidden = true) @GetUser User user,
+            @PathVariable UUID organizationId,
+            @PathVariable UUID agentId,
+            @RequestBody @Valid AgentRoutineSetRequest request) {
+        loggingService.observe(
+                LOG_PREFIX,
+                LogLayer.CONTROLLER,
+                AgentControllerLogConstant.AGENT_ROUTINE_SET_REQUEST,
+                organizationId, agentId);
+
+        AgentResponse response = agentRoutineService.set(user, organizationId, agentId, request);
+
+        loggingService.observe(
+                LOG_PREFIX,
+                LogLayer.CONTROLLER,
+                AgentControllerLogConstant.AGENT_ROUTINE_SET_REQUEST_COMPLETED,
+                organizationId, agentId);
+
+        return ResponseUtil.ok(AgentControllerResponseConstant.RESPONSE_AGENT_ROUTINE_SET, response);
+    }
+
+    /**
+     * Removes the agent's routine, so an assignment fires nothing; an agent without one is left unchanged.
+     */
+    @DeleteMapping("/{agentId}/routine")
+    @RequiredUserAccess(OrganizationMemberRole.ADMIN)
+    @Operation(summary = "Remove an agent routine")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successful operation"),
+            @ApiResponse(responseCode = "403", description = "Not an active OWNER or ADMIN of an active organization"),
+            @ApiResponse(responseCode = "404", description = "Agent not found in the organization (AGT_NOT_001)"),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    public ResponseEntity<CustomResponse<Void>> removeAgentRoutine(
+            @Parameter(hidden = true) @GetUser User user,
+            @PathVariable UUID organizationId,
+            @PathVariable UUID agentId) {
+        loggingService.observe(
+                LOG_PREFIX,
+                LogLayer.CONTROLLER,
+                AgentControllerLogConstant.AGENT_ROUTINE_REMOVE_REQUEST,
+                organizationId, agentId);
+
+        agentRoutineService.remove(user, organizationId, agentId);
+
+        loggingService.observe(
+                LOG_PREFIX,
+                LogLayer.CONTROLLER,
+                AgentControllerLogConstant.AGENT_ROUTINE_REMOVE_REQUEST_COMPLETED,
+                organizationId, agentId);
+
+        return ResponseUtil.ok(AgentControllerResponseConstant.RESPONSE_AGENT_ROUTINE_REMOVED);
     }
 }

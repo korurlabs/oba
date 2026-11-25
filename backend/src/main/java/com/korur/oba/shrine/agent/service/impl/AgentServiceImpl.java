@@ -48,6 +48,7 @@ import com.korur.oba.shrine.agent.dto.response.AgentTokenCreatedResponse;
 import com.korur.oba.shrine.agent.exception.ExceptionDomainAgentError;
 import com.korur.oba.shrine.agent.helper.AgentFlowHelper;
 import com.korur.oba.shrine.agent.mapper.AgentMapper;
+import com.korur.oba.shrine.agent.routine.service.AgentRoutineService;
 import com.korur.oba.shrine.agent.service.AgentQueryService;
 import com.korur.oba.shrine.agent.service.AgentService;
 import com.korur.oba.shrine.identity.entity.User;
@@ -85,6 +86,7 @@ public class AgentServiceImpl implements AgentService {
     private final AppAccessService appAccessService;
     private final AppAccessQueryService appAccessQueryService;
     private final ApiTokenService apiTokenService;
+    private final AgentRoutineService agentRoutineService;
     private final AgentFlowHelper agentFlowHelper;
     private final AgentMapper agentMapper;
     private final AuditLogMapper auditLogMapper;
@@ -200,6 +202,9 @@ public class AgentServiceImpl implements AgentService {
         User agent = agentQueryService.getAgentEntity(organizationId, agentId);
 
         Optional<ApiToken> revoked = apiTokenService.revoke(ApiTokenKind.AGENT, agentId);
+        // The database removes the routine only with a hard delete of the user; a soft-deleted agent must
+        // not keep a secret that can still be fired.
+        agentRoutineService.remove(actor, organizationId, agentId);
         appAccessService.removeMemberAccess(actor, organizationId, agentId);
         userService.deleteAgentUser(agent);
 

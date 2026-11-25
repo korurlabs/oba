@@ -8,13 +8,15 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 
 // 3. Java SDK
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 // 4. Internal
@@ -37,15 +39,18 @@ import com.korur.oba.shrine.agent.dto.response.AgentResponse;
 import com.korur.oba.shrine.agent.exception.ExceptionDomainAgentError;
 import com.korur.oba.shrine.agent.helper.AgentFlowHelper;
 import com.korur.oba.shrine.agent.mapper.AgentMapper;
+import com.korur.oba.shrine.agent.routine.entity.AgentRoutine;
+import com.korur.oba.shrine.agent.routine.service.AgentRoutineQueryService;
 import com.korur.oba.shrine.agent.service.AgentQueryService;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.identity.enums.AgentFlow;
 import com.korur.oba.shrine.identity.service.UserQueryService;
 
 /**
- * Reads agents through the identity query service, their live tokens through the token store and their
- * apps from the organization's USER grants. Every lookup is scoped to the organization, so an id of a
- * person or of another organization's agent answers the same 404 as an unknown id.
+ * Reads agents through the identity query service, their live tokens through the token store, their
+ * routines from the routine store and their apps from the organization's USER grants. Every lookup is
+ * scoped to the organization, so an id of a person or of another organization's agent answers the same
+ * 404 as an unknown id.
  */
 @Service
 @RequiredArgsConstructor
@@ -57,6 +62,7 @@ public class AgentQueryServiceImpl implements AgentQueryService {
     private final UserQueryService userQueryService;
     private final ApiTokenQueryService apiTokenQueryService;
     private final AppAccessQueryService appAccessQueryService;
+    private final AgentRoutineQueryService agentRoutineQueryService;
     private final AgentFlowHelper agentFlowHelper;
     private final AgentMapper agentMapper;
     private final LoggingService loggingService;
@@ -95,14 +101,29 @@ public class AgentQueryServiceImpl implements AgentQueryService {
         if (agents.isEmpty()) {
             return List.of();
         }
-        Set<UUID> agentIds = agents.stream().map(User::getId).collect(Collectors.toSet());
-        Map<UUID, ApiToken> tokens = apiTokenQueryService.findLive(ApiTokenKind.AGENT, agentIds).stream()
-                .collect(Collectors.toMap(ApiToken::getSubjectId, Function.identity()));
+        Set<UUID> agentIds = new HashSet<>();
+        for (User agent : agents) {
+            agentIds.add(agent.getId());
+        }
+        Map<UUID, ApiToken> tokens = new HashMap<>();
+        for (ApiToken token : apiTokenQueryService.findLive(ApiTokenKind.AGENT, agentIds)) {
+            tokens.put(token.getSubjectId(), token);
+        }
+        Map<UUID, AgentRoutine> routines = new HashMap<>();
+        for (AgentRoutine routine : agentRoutineQueryService.findAll(organizationId, agentIds)) {
+            routines.put(routine.getUserId(), routine);
+        }
         Map<UUID, List<App>> apps = appsByAgent(actor, organizationId, agentIds);
-        return agents.stream()
-                .map(agent -> agentMapper.toResponse(agent, apps.getOrDefault(agent.getId(), List.of()),
-                        tokens.get(agent.getId())))
-                .toList();
+        List<AgentResponse> responses = new ArrayList<>();
+        for (User agent : agents) {
+            List<App> agentApps = apps.get(agent.getId());
+            if (agentApps == null) {
+                agentApps = List.of();
+            }
+            responses.add(agentMapper.toResponse(agent, agentApps, tokens.get(agent.getId()),
+                    routines.get(agent.getId())));
+        }
+        return responses;
     }
 
     /**
