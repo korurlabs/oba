@@ -34,6 +34,9 @@ const actualLegal = { ...(await import("./organization-legal-entities-tab")) };
 const actualAccess = { ...(await import("./organization-access-tab")) };
 const actualInvitations = { ...(await import("./organization-invitations-tab")) };
 const actualDetail = { ...(await import("./organization-detail-form")) };
+const actualAgents = {
+  ...(await import("@/features/agents/components/organization-agents-tab")),
+};
 
 function body(name: string) {
   return function Body(props: { canEdit?: boolean; currentUserRole?: string }) {
@@ -74,6 +77,10 @@ mock.module("./organization-detail-form", () => ({
   ...actualDetail,
   OrganizationDetailForm: body("settings"),
 }));
+mock.module("@/features/agents/components/organization-agents-tab", () => ({
+  ...actualAgents,
+  AgentsTab: body("agents"),
+}));
 
 afterAll(() => {
   mock.module("@/hooks/use-organization-id", () => actualId);
@@ -85,11 +92,13 @@ afterAll(() => {
   mock.module("./organization-access-tab", () => actualAccess);
   mock.module("./organization-invitations-tab", () => actualInvitations);
   mock.module("./organization-detail-form", () => actualDetail);
+  mock.module("@/features/agents/components/organization-agents-tab", () => actualAgents);
 });
 
 const { CurrentOrganizationPage } = await import("./current-organization-page");
 
 const SECTIONS: Array<{ section: OrganizationSection; title: string }> = [
+  { section: "agents", title: en.sidebar.agents },
   { section: "humans", title: en.sidebar.humans },
   { section: "groups", title: en.sidebar.groups },
   { section: "legalEntities", title: en.sidebar.legalEntities },
@@ -133,7 +142,7 @@ describe("CurrentOrganizationPage sections", () => {
     });
   }
 
-  for (const section of ["groups", "access"] as const) {
+  for (const section of ["agents", "groups", "access"] as const) {
     test(`${section} answers not found for a MEMBER and a GUEST, without its body`, () => {
       for (const role of ["MEMBER", "GUEST"] as const) {
         me = asRole(role);

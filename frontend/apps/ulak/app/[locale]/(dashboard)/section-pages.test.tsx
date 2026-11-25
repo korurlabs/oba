@@ -30,6 +30,7 @@ afterAll(() => {
 });
 
 const PAGES: Array<{ route: string; section: OrganizationSection; title: string }> = [
+  { route: "agents", section: "agents", title: "agents" },
   { route: "humans", section: "humans", title: "humans" },
   { route: "groups", section: "groups", title: "groups" },
   { route: "legal-entities", section: "legalEntities", title: "legalEntities" },
