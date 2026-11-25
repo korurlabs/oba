@@ -22,5 +22,6 @@ public final class IngestTextSanitizerLogConstant {
             + "bytes holds U+0000, so it is a binary file and is not stored";
     public static final String NUL_REPLACED = "Replaced U+0000 with U+FFFD in the text of the batch of session {} "
             + "from machine {}";
-    public static final String BATCH_REBUILD_FAILED = "Could not rebuild the batch of session {} after replacing U+0000";
+    public static final String RECORD_READ_FAILED = "Could not read component {} of request record {} to replace U+0000";
+    public static final String RECORD_COPY_FAILED = "Could not copy request record {} to replace U+0000";
 }

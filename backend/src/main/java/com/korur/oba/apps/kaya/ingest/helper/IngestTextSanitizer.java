@@ -4,19 +4,17 @@ package com.korur.oba.apps.kaya.ingest.helper;
 import org.springframework.stereotype.Component;
 
 // 2. Third-party
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.RequiredArgsConstructor;
 
 // 3. Java SDK
+import java.lang.reflect.RecordComponent;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -32,11 +30,11 @@ import com.korur.oba.apps.kaya.ingest.dto.request.IngestPlanRequest;
 import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
 
 /**
- * Makes the text of a recorder batch storable before any other step reads the batch. PostgreSQL
- * holds no U+0000 in text, varchar or jsonb and refuses the whole statement that carries one, so a
- * single such character anywhere in a batch failed the batch, and the recorder sent it again on
- * every retry. The batch is accepted rather than refused, because a refused batch would stop the
- * session from recording just the same.
+ * Makes the text of a recorder batch storable before any step stores it. PostgreSQL holds no
+ * U+0000 in text, varchar or jsonb and refuses the whole statement that carries one, so a single
+ * such character anywhere in a batch failed the batch, and the recorder sent it again on every
+ * retry. The batch is accepted rather than refused, because a refused batch would stop the session
+ * from recording just the same.
  *
  * A handoff or plan snapshot whose content holds U+0000 is a binary file the recorder read as
  * text, such as an image in a handoff folder. It is left out with a warning that names the
@@ -47,9 +45,15 @@ import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
  * In every other text U+0000 becomes U+FFFD, the replacement character, which keeps the event or
  * field and shows where the character was. That covers the summary, the machine and account
  * fields, and the keys and values of the recorder's free-form events, which are stored as jsonb.
- * The replacement runs over the JSON form of the batch, which holds every text of the request
- * whatever record, list or map it sits in, so a field that a later change adds is covered too. A
- * batch without U+0000, the usual case, is returned unchanged.
+ * The walk reads every component of every record, every list element and every map key and value
+ * of the batch, so a field that a later change adds is covered too, as long as the request types
+ * stay records, lists, maps and strings.
+ *
+ * The walk copies nothing that holds no U+0000. A batch without U+0000, the usual case, is read
+ * once and returned as received. In a batch with U+0000 only the changed strings and the records,
+ * lists and maps that hold them are new, and everything else is shared with the received batch. A
+ * batch is up to 8 MiB of JSON, and a copy of all of it would multiply the memory one request
+ * needs.
  */
 @Component
 @RequiredArgsConstructor
@@ -57,7 +61,6 @@ public class IngestTextSanitizer {
 
     private static final LogPrefix LOG_PREFIX = LogPrefix.fromClass(IngestTextSanitizer.class);
 
-    private final ObjectMapper objectMapper;
     private final LoggingService loggingService;
 
     /**
@@ -70,21 +73,12 @@ public class IngestTextSanitizer {
      */
     public IngestBatchRequest sanitize(MachinePrincipal principal, IngestBatchRequest request) {
         IngestBatchRequest textOnly = withoutBinarySnapshots(principal, request);
-        JsonNode received = objectMapper.valueToTree(textOnly);
-        JsonNode storable = storable(received);
-        if (storable == received) {
-            return textOnly;
+        IngestBatchRequest storable = (IngestBatchRequest) storable(textOnly);
+        if (storable != textOnly) {
+            loggingService.info(LOG_PREFIX, LogLayer.HELPER, IngestTextSanitizerLogConstant.NUL_REPLACED,
+                    request.sessionId(), principal.machineId());
         }
-        loggingService.info(LOG_PREFIX, LogLayer.HELPER, IngestTextSanitizerLogConstant.NUL_REPLACED,
-                request.sessionId(), principal.machineId());
-        try {
-            return objectMapper.treeToValue(storable, IngestBatchRequest.class);
-        } catch (JsonProcessingException e) {
-            // The tree was written from a batch, so this means the mapper cannot read what it wrote.
-            loggingService.error(LOG_PREFIX, LogLayer.HELPER, IngestTextSanitizerLogConstant.BATCH_REBUILD_FAILED, e,
-                    request.sessionId());
-            throw new IllegalStateException(IngestTextSanitizerLogConstant.BATCH_REBUILD_FAILED, e);
-        }
+        return storable;
     }
 
     /**
@@ -125,37 +119,149 @@ public class IngestTextSanitizer {
     }
 
     /**
-     * The node with U+0000 replaced in every text and field name it holds; the node itself when it
-     * holds none.
+     * The value with U+FFFD for U+0000 in every text it holds, map keys included; the value itself
+     * when it holds none. Numbers, booleans, times and enums hold no text and are returned as they
+     * are.
      */
-    private JsonNode storable(JsonNode node) {
-        if (node.isTextual()) {
-            String text = node.textValue();
-            String storableText = storableText(text);
-            return storableText == text ? node : TextNode.valueOf(storableText);
+    private Object storable(Object value) {
+        if (value instanceof String text) {
+            return storableText(text);
         }
-        if (node.isArray()) {
-            ArrayNode copy = objectMapper.createArrayNode();
-            boolean changed = false;
-            for (JsonNode element : node) {
-                JsonNode storableElement = storable(element);
-                changed |= storableElement != element;
+        if (value instanceof Record record) {
+            return storableRecord(record);
+        }
+        if (value instanceof List<?> list) {
+            return storableList(list);
+        }
+        if (value instanceof Map<?, ?> map) {
+            return storableMap(map);
+        }
+        return value;
+    }
+
+    /**
+     * The record rebuilt with its storable components once one of them changed; the record itself
+     * otherwise.
+     */
+    private Record storableRecord(Record record) {
+        RecordComponent[] components = record.getClass().getRecordComponents();
+        Object[] values = null;
+        for (int index = 0; index < components.length; index++) {
+            Object value = componentValue(record, components[index]);
+            Object storableValue = storable(value);
+            if (values == null && storableValue != value) {
+                values = new Object[components.length];
+                for (int earlier = 0; earlier < index; earlier++) {
+                    values[earlier] = componentValue(record, components[earlier]);
+                }
+            }
+            if (values != null) {
+                values[index] = storableValue;
+            }
+        }
+        return values == null ? record : newRecord(record, components, values);
+    }
+
+    /**
+     * The list with its storable elements, in their order, once one of them changed; the list
+     * itself otherwise.
+     */
+    private List<?> storableList(List<?> list) {
+        List<Object> copy = null;
+        int index = 0;
+        for (Object element : list) {
+            Object storableElement = storable(element);
+            if (copy == null && storableElement != element) {
+                copy = new ArrayList<>(list.size());
+                copy.addAll(list.subList(0, index));
+            }
+            if (copy != null) {
                 copy.add(storableElement);
             }
-            return changed ? copy : node;
+            index++;
         }
-        if (node.isObject()) {
-            ObjectNode copy = objectMapper.createObjectNode();
-            boolean changed = false;
-            for (Map.Entry<String, JsonNode> field : node.properties()) {
-                String name = storableText(field.getKey());
-                JsonNode value = storable(field.getValue());
-                changed |= name != field.getKey() || value != field.getValue();
-                copy.set(name, value);
+        return copy == null ? list : copy;
+    }
+
+    /**
+     * The map with its storable keys and values, in their order, once one of them changed; the map
+     * itself otherwise. A key that becomes equal to another key keeps the later value, as a JSON
+     * object that names a key twice does.
+     */
+    private Map<?, ?> storableMap(Map<?, ?> map) {
+        StorableEntries entries = new StorableEntries(map);
+        map.forEach(entries);
+        return entries.copy == null ? map : entries.copy;
+    }
+
+    /**
+     * Takes the entries of one map in their order and starts a copy at the first entry that
+     * changed. The map is read with forEach because a LinkedHashMap, the type the mapper reads an
+     * event object into, answers entrySet with a view that it keeps for as long as the map lives;
+     * for a batch of many small objects those views alone would add a large share to the memory
+     * of the parsed batch.
+     */
+    private final class StorableEntries implements BiConsumer<Object, Object> {
+
+        private final Map<?, ?> map;
+        private Map<Object, Object> copy;
+        private int index;
+
+        private StorableEntries(Map<?, ?> map) {
+            this.map = map;
+        }
+
+        @Override
+        public void accept(Object key, Object value) {
+            Object storableKey = storable(key);
+            Object storableValue = storable(value);
+            if (copy == null && (storableKey != key || storableValue != value)) {
+                copy = firstEntries(map, index);
             }
-            return changed ? copy : node;
+            if (copy != null) {
+                copy.put(storableKey, storableValue);
+            }
+            index++;
         }
-        return node;
+    }
+
+    /**
+     * A new map that holds the first count entries of the map, in their order, with room for all.
+     */
+    private static Map<Object, Object> firstEntries(Map<?, ?> map, int count) {
+        Map<Object, Object> first = LinkedHashMap.newLinkedHashMap(map.size());
+        Iterator<? extends Map.Entry<?, ?>> entries = map.entrySet().iterator();
+        for (int index = 0; index < count; index++) {
+            Map.Entry<?, ?> entry = entries.next();
+            first.put(entry.getKey(), entry.getValue());
+        }
+        return first;
+    }
+
+    private Object componentValue(Record record, RecordComponent component) {
+        try {
+            return component.getAccessor().invoke(record);
+        } catch (ReflectiveOperationException e) {
+            // The request types are public records, whose public accessors only return a field.
+            loggingService.error(LOG_PREFIX, LogLayer.HELPER, IngestTextSanitizerLogConstant.RECORD_READ_FAILED, e,
+                    component.getName(), record.getClass().getSimpleName());
+            throw new IllegalStateException(IngestTextSanitizerLogConstant.RECORD_READ_FAILED, e);
+        }
+    }
+
+    private Record newRecord(Record record, RecordComponent[] components, Object[] values) {
+        Class<?>[] types = new Class<?>[components.length];
+        for (int index = 0; index < components.length; index++) {
+            types[index] = components[index].getType();
+        }
+        try {
+            return (Record) record.getClass().getDeclaredConstructor(types).newInstance(values);
+        } catch (ReflectiveOperationException e) {
+            // The request types are public records, whose public canonical constructors only assign fields.
+            loggingService.error(LOG_PREFIX, LogLayer.HELPER, IngestTextSanitizerLogConstant.RECORD_COPY_FAILED, e,
+                    record.getClass().getSimpleName());
+            throw new IllegalStateException(IngestTextSanitizerLogConstant.RECORD_COPY_FAILED, e);
+        }
     }
 
     /**

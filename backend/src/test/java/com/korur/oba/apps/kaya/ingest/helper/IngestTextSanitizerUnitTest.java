@@ -7,17 +7,20 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 // 2. Third-party
-import com.fasterxml.jackson.databind.SerializationFeature;
 
 // 3. Java SDK
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.RecordComponent;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 // 4. Internal
@@ -66,10 +69,7 @@ class IngestTextSanitizerUnitTest {
 
     @BeforeEach
     void setUp() {
-        // Mirrors the Spring Boot default mapper the REST API binds request bodies with.
-        sanitizer = new IngestTextSanitizer(Jackson2ObjectMapperBuilder.json()
-                .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                .build(), loggingService);
+        sanitizer = new IngestTextSanitizer(loggingService);
         principal = new MachinePrincipal(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
                 "laptop");
     }
@@ -196,6 +196,82 @@ class IngestTextSanitizerUnitTest {
             assertEquals(new IngestMachineRequest("lap\uFFFDtop", "2.3\uFFFD.1",
                     new IngestAccountRequest("ada@example.com", "Exa\uFFFDmple", null, null, null, null)),
                     sanitized.machine());
+        }
+
+        @Test
+        void nulInOneEvent_copiesOnlyWhatHoldsItAndSharesTheRestWithTheReceivedBatch() {
+            Map<String, Object> quiet = event("git status");
+            Map<String, Object> response = Map.of("lines", List.of("on branch main", "nothing to commit"));
+            Map<String, Object> loud = event("printf 'a\u0000b'");
+            loud.put("tool_response", response);
+            IngestBatchRequest request = batch(summary("Export the board", List.of("export")), List.of(quiet, loud),
+                    List.of(new IngestHandoffRequest("export/backend.md", NOTE_CONTENT, CAPTURED_AT)), null);
+
+            IngestBatchRequest sanitized = sanitizer.sanitize(principal, request);
+
+            Map<String, Object> storedLoud = sanitized.events().get(1);
+            assertEquals(Map.of("command", "printf 'a\uFFFDb'"), storedLoud.get("tool_input"));
+            assertEquals(List.copyOf(loud.keySet()), List.copyOf(storedLoud.keySet()));
+            assertSame(quiet, sanitized.events().get(0));
+            assertSame(response, storedLoud.get("tool_response"));
+            assertSame(request.summary(), sanitized.summary());
+            assertSame(request.machine(), sanitized.machine());
+            assertSame(request.repository(), sanitized.repository());
+            assertSame(request.handoffs(), sanitized.handoffs());
+            assertSame(request.usage(), sanitized.usage());
+            assertEquals(Map.of("command", "printf 'a\u0000b'"), loud.get("tool_input"));
+        }
+    }
+
+    @Nested
+    class Coverage {
+
+        // Types that hold no text, which the walk returns as they are.
+        private static final Set<Class<?>> TEXTLESS_TYPES = Set.of(Instant.class, Boolean.class, Integer.class,
+                Long.class, BigDecimal.class);
+
+        /**
+         * The walk reads records, lists, maps and strings. A field of another type that holds text,
+         * such as a class that is no record, would reach PostgreSQL with its U+0000 and fail the batch,
+         * so such a type fails this test instead. Object is the type of event values, which the
+         * mapper reads as maps, lists, strings, numbers and booleans.
+         */
+        @Test
+        void everyTypeTheBatchHolds_isOneTheWalkReadsOrOneWithoutText() {
+            List<String> unread = new ArrayList<>();
+
+            collectUnread(IngestBatchRequest.class, "batch", unread);
+
+            assertEquals(List.of(), unread);
+        }
+
+        private void collectUnread(Type type, String path, List<String> unread) {
+            if (type instanceof ParameterizedType parameterized) {
+                Type raw = parameterized.getRawType();
+                if (raw != List.class && raw != Map.class) {
+                    unread.add(path + ": " + type.getTypeName());
+                    return;
+                }
+                for (Type argument : parameterized.getActualTypeArguments()) {
+                    collectUnread(argument, path + "[]", unread);
+                }
+                return;
+            }
+            if (!(type instanceof Class<?> javaClass)) {
+                unread.add(path + ": " + type.getTypeName());
+                return;
+            }
+            if (javaClass.isRecord()) {
+                for (RecordComponent component : javaClass.getRecordComponents()) {
+                    collectUnread(component.getGenericType(), path + "." + component.getName(), unread);
+                }
+                return;
+            }
+            boolean read = javaClass == String.class || javaClass == Object.class;
+            boolean textless = javaClass.isPrimitive() || javaClass.isEnum() || TEXTLESS_TYPES.contains(javaClass);
+            if (!read && !textless) {
+                unread.add(path + ": " + javaClass.getName());
+            }
         }
     }
 }

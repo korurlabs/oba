@@ -7,10 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 // 2. Third-party
-import com.fasterxml.jackson.databind.SerializationFeature;
 
 // 3. Java SDK
 import java.time.Clock;
@@ -22,12 +20,15 @@ import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
+import com.korur.oba.dojo.exception.internal.business.TooManyRequestsException;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.apps.kaya.account.service.AccountService;
 import com.korur.oba.apps.kaya.identity.service.UserGitEmailQueryService;
+import com.korur.oba.apps.kaya.ingest.constant.helper.IngestTextSanitizerLogConstant;
 import com.korur.oba.apps.kaya.ingest.constant.service.IngestServiceLogConstant;
 import com.korur.oba.apps.kaya.ingest.dto.request.IngestBatchRequest;
+import com.korur.oba.apps.kaya.ingest.dto.request.IngestHandoffRequest;
 import com.korur.oba.apps.kaya.ingest.dto.request.IngestMachineRequest;
 import com.korur.oba.apps.kaya.ingest.dto.request.IngestRepositoryRequest;
 import com.korur.oba.apps.kaya.ingest.dto.request.IngestSummaryRequest;
@@ -44,6 +45,7 @@ import com.korur.oba.apps.kaya.session.entity.Session;
 import com.korur.oba.apps.kaya.session.service.SessionIngestService;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -88,9 +90,7 @@ class IngestServiceImplUnitTest {
     @BeforeEach
     void setUp() {
         // The real sanitizer: a batch without U+0000 passes it unchanged, as the stubs below expect.
-        IngestTextSanitizer ingestTextSanitizer = new IngestTextSanitizer(Jackson2ObjectMapperBuilder.json()
-                .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                .build(), loggingService);
+        IngestTextSanitizer ingestTextSanitizer = new IngestTextSanitizer(loggingService);
         service = new IngestServiceImpl(ingestRateLimiter, ingestTextSanitizer, repositoryService, machineService, accountService,
                 userGitEmailQueryService, sessionIngestService, planIngestService, ingestMapper,
                 Clock.fixed(NOW, ZoneOffset.UTC), loggingService);
@@ -178,6 +178,25 @@ class IngestServiceImplUnitTest {
 
             assertSame(expected, response);
             verifyNoInteractions(userGitEmailQueryService);
+        }
+    }
+
+    @Nested
+    class RateLimit {
+
+        @Test
+        void batchOverTheTokensBudget_isRefusedBeforeItsTextIsSanitizedOrStored() {
+            IngestBatchRequest received = batch(null);
+            IngestBatchRequest request = new IngestBatchRequest(SESSION_ID, received.repository(), received.machine(),
+                    received.summary(), received.events(),
+                    List.of(new IngestHandoffRequest("export/screen.png", "\uFFFDPNG\u0000\u0000", NOW)), null, null);
+            when(ingestRateLimiter.tryCharge(principal.tokenId())).thenReturn(false);
+
+            assertThrows(TooManyRequestsException.class, () -> service.ingestBatch(principal, request));
+
+            verify(loggingService, never()).warn(any(), any(), eq(IngestTextSanitizerLogConstant.HANDOFF_SKIPPED),
+                    any(Object[].class));
+            verifyNoInteractions(repositoryService, machineService, sessionIngestService, planIngestService);
         }
     }
 }

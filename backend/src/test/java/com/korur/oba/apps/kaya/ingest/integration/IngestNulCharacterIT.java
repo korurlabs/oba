@@ -32,6 +32,9 @@ class IngestNulCharacterIT extends AbstractIngestIT {
     // The start of an image file as the recorder reads it: bytes that are no UTF-8 arrive as U+FFFD,
     // and the zero bytes arrive as U+0000.
     private static final String IMAGE_CONTENT = "\uFFFDPNG\r\n\u001A\n\u0000\u0000\u0000\rIHDR\u0000\u0000\u0001";
+    // An image as an older recorder sends it: cut at 200000 code points, of which the characters outside
+    // the Basic Multilingual Plane count twice in Java, so it is longer than the 200000-character limit.
+    private static final String LONG_IMAGE_CONTENT = IMAGE_CONTENT + "\uD83D\uDE00".repeat(100) + "x".repeat(200_000);
     private static final String NOTE_CONTENT = "# Export\n\n**Status:** PARTIAL\n";
     private static final String CAPTURED_AT = "2026-10-20T09:10:00Z";
 
@@ -52,6 +55,13 @@ class IngestNulCharacterIT extends AbstractIngestIT {
         plan.put("content", content);
         plan.put("capturedAt", CAPTURED_AT);
         return plan;
+    }
+
+    private List<Map<String, Object>> handoffsOf(String sessionId) {
+        return jdbcTemplate.queryForList("""
+                SELECT h.path, h.content FROM kaya.session_handoff_snapshots h
+                JOIN kaya.sessions c ON c.id = h.session_id WHERE c.session_id = ?
+                """, sessionId);
     }
 
     private Map<String, Object> sessionRowOf(String sessionId) {
@@ -80,11 +90,28 @@ class IngestNulCharacterIT extends AbstractIngestIT {
 
             assertEquals(3L, eventCount(session));
             assertEquals("Export the board", sessionRowOf(session).get("title"));
-            List<Map<String, Object>> handoffs = jdbcTemplate.queryForList("""
-                    SELECT h.path, h.content FROM kaya.session_handoff_snapshots h
-                    JOIN kaya.sessions c ON c.id = h.session_id WHERE c.session_id = ?
-                    """, session);
-            assertEquals(List.of(Map.of("path", "export/backend.md", "content", NOTE_CONTENT)), handoffs);
+            assertEquals(List.of(Map.of("path", "export/backend.md", "content", NOTE_CONTENT)), handoffsOf(session));
+        }
+
+        @Test
+        void batch_withBinarySnapshotsOverTheTextLimit_isAcceptedAndLeavesThemOut() throws Exception {
+            Machine machine = newMachine();
+            String session = sessionId();
+            Map<String, Object> batch = batch(machine, session, remote(), events(1, 2));
+            batch.put("handoffs", List.of(snapshot("export/screen.png", LONG_IMAGE_CONTENT),
+                    snapshot("export/backend.md", NOTE_CONTENT)));
+            batch.put("plans", List.of(plan("SPEC", "FILE", "docs/plans/export-diagram.md", LONG_IMAGE_CONTENT)));
+
+            send(machine.token(), batch)
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.acknowledgedSeq").value(2));
+
+            assertEquals(2L, eventCount(session));
+            assertEquals(List.of(Map.of("path", "export/backend.md", "content", NOTE_CONTENT)), handoffsOf(session));
+            assertEquals(0L, jdbcTemplate.queryForObject("""
+                    SELECT count(*) FROM kaya.plans p
+                    JOIN kaya.sessions c ON c.repository_id = p.repository_id WHERE c.session_id = ?
+                    """, Long.class, session));
         }
 
         @Test

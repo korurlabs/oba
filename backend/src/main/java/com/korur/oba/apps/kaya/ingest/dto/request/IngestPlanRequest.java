@@ -36,11 +36,11 @@ public record IngestPlanRequest(
         @Size(max = IngestConstant.PLAN_PATH_MAX_LENGTH, message = IngestConstant.PLAN_PATH_SIZE_MESSAGE)
         String path,
 
-        @Schema(description = "The markdown of the plan", requiredMode = Schema.RequiredMode.REQUIRED,
+        @Schema(description = "The markdown of the plan, 1 to 200000 characters. Content that holds U+0000 is a "
+                + "binary file: it is accepted at any length and not stored", requiredMode = Schema.RequiredMode.REQUIRED,
                 example = "# Kaya plans\n\n## 1. Summary\n")
         @NotNull(message = IngestConstant.PLAN_CONTENT_REQUIRED_MESSAGE)
-        @Size(min = IngestConstant.PLAN_CONTENT_MIN_LENGTH, max = IngestConstant.PLAN_CONTENT_MAX_LENGTH,
-                message = IngestConstant.PLAN_CONTENT_SIZE_MESSAGE)
+        @Size(min = IngestConstant.PLAN_CONTENT_MIN_LENGTH, message = IngestConstant.PLAN_CONTENT_SIZE_MESSAGE)
         String content,
 
         @Schema(description = "When the recorder captured the plan", requiredMode = Schema.RequiredMode.REQUIRED,
@@ -75,6 +75,18 @@ public record IngestPlanRequest(
             }
         }
         return true;
+    }
+
+    /**
+     * Text content is stored, so it is held to the stored limit. Content that holds U+0000 is a
+     * binary file, which is never stored, so it passes at any length, for the reason
+     * {@link IngestHandoffRequest#isContentWithinLimit()} gives.
+     */
+    @Schema(hidden = true)
+    @AssertTrue(message = IngestConstant.PLAN_CONTENT_SIZE_MESSAGE)
+    public boolean isContentWithinLimit() {
+        return content == null || content.length() <= IngestConstant.PLAN_CONTENT_MAX_LENGTH
+                || content.indexOf(IngestConstant.NUL) >= 0;
     }
 
     /**

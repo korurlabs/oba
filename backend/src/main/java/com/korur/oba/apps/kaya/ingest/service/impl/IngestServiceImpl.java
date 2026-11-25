@@ -70,23 +70,28 @@ public class IngestServiceImpl implements IngestService {
                 principal.machineId(), received.events() == null ? 0 : received.events().size(),
                 received.handoffs() == null ? 0 : received.handoffs().size(),
                 received.plans() == null ? 0 : received.plans().size(), received.usage() != null);
-        IngestBatchRequest request = ingestTextSanitizer.sanitize(principal, received);
-        List<Map<String, Object>> events = request.events() == null ? List.of() : request.events();
-        String sessionId = request.sessionId();
+        List<Map<String, Object>> receivedEvents = received.events() == null ? List.of() : received.events();
+        String sessionId = received.sessionId();
 
-        logDifferentMachineName(principal, request);
-        if (events.isEmpty() && request.usage() == null) {
+        logDifferentMachineName(principal, received);
+        if (receivedEvents.isEmpty() && received.usage() == null) {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, IngestServiceLogConstant.BATCH_EMPTY, sessionId, principal.machineId());
             throw new BadRequestException(ExceptionDomainKayaError.VAL_BATCH_EMPTY,
                     Map.of(IngestConstant.FIELD_SESSION_ID, sessionId));
         }
-        validateEvents(principal, sessionId, events);
+        validateEvents(principal, sessionId, receivedEvents);
         if (!ingestRateLimiter.tryCharge(principal.tokenId())) {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, IngestServiceLogConstant.RATE_LIMITED,
                     sessionId, principal.tokenId(), IngestConstant.BATCHES_PER_MINUTE);
             throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
                     Map.of(IngestConstant.FIELD_LIMIT, IngestConstant.BATCHES_PER_MINUTE));
         }
+        // The text is made storable only within the token's budget, because that walk costs time and memory in
+        // proportion to the batch. The checks above store nothing, and the sanitizer cannot change their outcome:
+        // it keeps every event and the usage, its U+FFFD for U+0000 leaves every checked value as valid or invalid
+        // as it was, and it turns no other key into seq, at, event or agent_id.
+        IngestBatchRequest request = ingestTextSanitizer.sanitize(principal, received);
+        List<Map<String, Object>> events = request.events() == null ? List.of() : request.events();
 
         UUID conflictUserId = identityConflict(principal, sessionId, gitEmailHolder(principal, sessionId,
                 request.summary().gitAuthorEmail()));

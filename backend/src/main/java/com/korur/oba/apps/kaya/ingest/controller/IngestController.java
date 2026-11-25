@@ -54,8 +54,8 @@ public class IngestController {
     @Operation(summary = "Send a recorder batch",
             description = "Bearer machine token. Events with a seq Kaya already holds are skipped, so a batch "
                     + "may be sent again after a lost acknowledgement. A batch needs events or usage. A handoff or plan "
-                    + "whose content holds U+0000 is a binary file and is not stored; U+0000 in any other text is stored "
-                    + "as U+FFFD")
+                    + "whose content holds U+0000 is a binary file and is not stored, whatever its length; U+0000 in any "
+                    + "other text is stored as U+FFFD")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Batch applied; acknowledgedSeq is the highest seq up to "
                     + "which every seq from 1 is held"),
