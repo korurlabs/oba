@@ -17,6 +17,7 @@ const (
 	fieldSearch      = "search"
 	fieldHasContacts = "hasContacts"
 	fieldEventID     = "eventId"
+	fieldCampaignID  = "campaignId"
 
 	// typeLead and typeCustomer are the relation types that have a pipeline stage; a supplier
 	// has none, so a stage filter never applies to it.
@@ -29,14 +30,15 @@ const (
 
 // ListQuery narrows a relation list. An empty Type lists every type the API knows; Stages
 // narrow leads and customers; Search is a part of the name, case ignored; HasContacts, when
-// set, keeps only the relations with (true) or without (false) a contact; EventID keeps only the
-// relations linked to that event.
+// set, keeps only the relations with (true) or without (false) a contact; EventID and CampaignID
+// keep only the relations linked to that event or campaign.
 type ListQuery struct {
 	Type        string
 	Stages      []string
 	Search      string
 	HasContacts *bool
 	EventID     string
+	CampaignID  string
 }
 
 // ListItem is the part of one GET /otak/relations item (RelationListResponse) that the relation
@@ -93,6 +95,7 @@ func List(c *client.Client, q ListQuery) ([]ListItem, error) {
 	}
 	search := strings.TrimSpace(q.Search)
 	eventID := strings.TrimSpace(q.EventID)
+	campaignID := strings.TrimSpace(q.CampaignID)
 
 	var all []ListItem
 	for _, relationType := range series {
@@ -105,6 +108,9 @@ func List(c *client.Client, q ListQuery) ([]ListItem, error) {
 		}
 		if eventID != "" {
 			query.Set(fieldEventID, eventID)
+		}
+		if campaignID != "" {
+			query.Set(fieldCampaignID, campaignID)
 		}
 		if q.HasContacts != nil {
 			query.Set(fieldHasContacts, strconv.FormatBool(*q.HasContacts))

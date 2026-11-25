@@ -16,7 +16,8 @@ const defaultMailLanguage = "NL"
 // CreateInput is one create. Type is mail, whatsapp or call, case ignored. A MAIL takes exactly
 // one of TemplateID (a mail template id) and MailFile; Language applies to a MailFile only and
 // is defaultMailLanguage when empty. DocumentTemplateIDs are document templates whose PDF the API
-// copies onto the new mail as attachments. A WHATSAPP or CALL takes none of them.
+// copies onto the new mail as attachments. A WHATSAPP or CALL takes none of them. CampaignID,
+// any type, links the outreach to a campaign; empty for none.
 type CreateInput struct {
 	RelationID          string
 	ContactID           string
@@ -26,6 +27,7 @@ type CreateInput struct {
 	MailFile            string
 	Language            string
 	DocumentTemplateIDs []string
+	CampaignID          string
 }
 
 // Create stores a DRAFT outreach. The flags are checked against the type, and the mail file is
@@ -41,6 +43,9 @@ func Create(c *client.Client, in CreateInput) (client.Outreach, error) {
 		Title:               in.Title,
 		Type:                outreachType,
 		DocumentTemplateIDs: documentTemplateIDs(in.DocumentTemplateIDs),
+	}
+	if campaignID := strings.TrimSpace(in.CampaignID); campaignID != "" {
+		req.CampaignID = &campaignID
 	}
 	if outreachType != client.OutreachTypeMail {
 		if err := refuseMailFlags(outreachType, in, req.DocumentTemplateIDs); err != nil {

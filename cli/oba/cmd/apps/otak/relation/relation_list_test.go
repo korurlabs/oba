@@ -289,3 +289,19 @@ func TestRelationListForbiddenExitsThree(t *testing.T) {
 		t.Fatalf("err = %v, exit = %d", err, client.ExitCode(err))
 	}
 }
+
+func TestRelationListCampaignSent(t *testing.T) {
+	const campaignID = "cccccccc-cccc-4ccc-8ccc-cccccccccccc"
+	e := newListEnv(t, nil)
+	if _, _, err := runCLI(t, "", "otak", "relation", "list", "--campaign", " "+campaignID+" "); err != nil {
+		t.Fatal(err)
+	}
+	if len(e.queries) == 0 {
+		t.Fatal("no list call")
+	}
+	for _, q := range e.queries {
+		if got := q.Get("campaignId"); got != campaignID {
+			t.Errorf("%s campaignId = %q", q.Get("type"), got)
+		}
+	}
+}

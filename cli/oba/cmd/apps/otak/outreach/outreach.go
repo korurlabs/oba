@@ -17,7 +17,7 @@ const (
 	outreachListHelp = `Lists the outreaches of the current organization, newest first: TITLE, TYPE (MAIL, WHATSAPP
 or CALL), STATUS (DRAFT, SENT or FAILED), CONTACT, SENT TO, SENT AT, SENDER, ID. SENT TO is the
 mail address of a MAIL and the phone of a WHATSAPP or CALL; SENT is "done" for those two.
---relation narrows to one relation and --status to one status.`
+--relation narrows to one relation, --status to one status and --campaign to one campaign.`
 	outreachCreateHelp = `Prepares one reach-out to one contact of a relation and stores it as a DRAFT. Nothing is
 sent. --type is the channel: mail, whatsapp or call.
 
@@ -31,6 +31,8 @@ comes from exactly one of:
 --attach copies the PDF of a document template onto the new mail as an attachment; repeat it
 or give a comma list. 'oba document template list' lists the ids. Add other files after create
 with 'oba otak attachment add --outreach <outreachId> --file <path>'.
+
+--campaign links the outreach to a campaign ('oba otak campaign list'), on any channel.
 
 A WHATSAPP or CALL happens outside Oba and takes none of these flags; record it as done with
 'oba otak outreach complete <outreachId>'. 'oba otak contact list <relationId>' lists the
@@ -54,18 +56,19 @@ func NewCmd() *cobra.Command {
 		Short: "Prepare, list and complete reach-outs to the contacts of a relation",
 	}
 
-	var listRelation, listStatus string
+	var listRelation, listStatus, listCampaign string
 	listCmd := &cobra.Command{
 		Use:   "list",
 		Short: "List the outreaches",
 		Long:  outreachListHelp,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			return runOutreachList(cmd, strings.TrimSpace(listRelation), listStatus)
+			return runOutreachList(cmd, strings.TrimSpace(listRelation), listStatus, strings.TrimSpace(listCampaign))
 		},
 	}
 	listCmd.Flags().StringVar(&listRelation, "relation", "", "only outreaches of this relation")
 	listCmd.Flags().StringVar(&listStatus, "status", "", "only outreaches with this status: DRAFT, SENT or FAILED")
+	listCmd.Flags().StringVar(&listCampaign, "campaign", "", "only outreaches linked to this campaign")
 
 	var create outreach.CreateInput
 	createCmd := &cobra.Command{
@@ -91,6 +94,7 @@ func NewCmd() *cobra.Command {
 	createCmd.Flags().StringVar(&create.Language, "lang", "", "the language of --mail-file: nl, tr, en or us (English)")
 	createCmd.Flags().StringSliceVar(&create.DocumentTemplateIDs, "attach", nil,
 		"a document template whose PDF to attach; repeat it or give a comma list (MAIL only)")
+	createCmd.Flags().StringVar(&create.CampaignID, "campaign", "", "the campaign to link the outreach to")
 	for _, name := range []string{"relation", "contact", "title", "type"} {
 		_ = createCmd.MarkFlagRequired(name)
 	}
@@ -109,12 +113,12 @@ func NewCmd() *cobra.Command {
 	return cmd
 }
 
-func runOutreachList(cmd *cobra.Command, relationID, status string) error {
+func runOutreachList(cmd *cobra.Command, relationID, status, campaignID string) error {
 	c, err := session.OrganizationClient()
 	if err != nil {
 		return err
 	}
-	outreaches, err := outreach.List(c, relationID, status)
+	outreaches, err := outreach.List(c, relationID, status, campaignID)
 	if err != nil {
 		return err
 	}

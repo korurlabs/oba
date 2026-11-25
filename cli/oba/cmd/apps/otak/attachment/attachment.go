@@ -1,5 +1,5 @@
-// Package attachment builds oba otak attachment: list, add and delete the attachments of the
-// mail of an outreach or of a relation.
+// Package attachment builds oba otak attachment: list, add, download and delete the attachments
+// of the mail of an outreach, of a relation or of a campaign.
 package attachment
 
 import (
@@ -19,21 +19,23 @@ import (
 )
 
 const (
-	attachmentHelp = `Lists, adds and deletes the attachments of the mail of a MAIL outreach (--outreach) or of a
-relation (--relation); pass exactly one of the two. The attachments of a mail go along when the
-outreach is sent from the Otak web app; once it is SENT they can no longer change (OTK_STA_011).
-Changing the attachments of a mail needs the ADMIN role; a relation's, the MEMBER role.`
+	attachmentHelp = `Lists, adds, downloads and deletes the attachments of the mail of a MAIL outreach (--outreach),
+of a relation (--relation) or of a campaign (--campaign, its images); pass exactly one of the
+three. The attachments of a mail go along when the outreach is sent from the Otak web app; once
+it is SENT they can no longer change (OTK_STA_011). Changing the attachments of a mail needs the
+ADMIN role; a relation's or a campaign's, the MEMBER role.`
 	attachmentListHelp = `Lists the attachments in upload order: NAME, SIZE (bytes), TYPE, CREATED, ID.
 
   oba otak attachment list --outreach <outreachId>
-  oba otak attachment list --relation <relationId>`
+  oba otak attachment list --relation <relationId>
+  oba otak attachment list --campaign <campaignId>`
 	attachmentAddHelp = `Adds local files as attachments: --file <path>, repeated for more files, sent in one upload of
-at most 12 MB together. The same content twice on one mail or relation is refused (STG_VAL_005).
+at most 12 MB together. The same content twice on one parent is refused (STG_VAL_005).
 A document's PDF goes onto a mail with 'oba document attach-to-mail'.
 
   oba otak attachment add --outreach <outreachId> --file voorstel.pdf --file prijzen.xlsx`
 	attachmentDeleteHelp = `Deletes one attachment after asking for confirmation; without a terminal to ask on, pass
---yes. The id must be an attachment of the given outreach or relation.
+--yes. The id must be an attachment of the given outreach, relation or campaign.
 
   oba otak attachment delete --outreach <outreachId> --id <attachmentId>`
 )
@@ -41,33 +43,36 @@ A document's PDF goes onto a mail with 'oba document attach-to-mail'.
 // stdinIsTerminal is a variable so that tests can stand in for a terminal.
 var stdinIsTerminal = terminal.StdinIsTerminal
 
-// targetFlags are the --outreach and --relation flags every subcommand takes.
+// targetFlags are the --outreach, --relation and --campaign flags every subcommand takes.
 type targetFlags struct {
 	outreach string
 	relation string
+	campaign string
 }
 
 func (f *targetFlags) register(cmd *cobra.Command) {
 	cmd.Flags().StringVar(&f.outreach, "outreach", "", "the MAIL outreach whose mail holds the attachments")
 	cmd.Flags().StringVar(&f.relation, "relation", "", "the relation that holds the attachments")
+	cmd.Flags().StringVar(&f.campaign, "campaign", "", "the campaign that holds the attachments, its images")
 }
 
 func (f *targetFlags) resolve(c *client.Client) (attachment.Target, error) {
-	return attachment.ResolveTarget(c, strings.TrimSpace(f.outreach), strings.TrimSpace(f.relation))
+	return attachment.ResolveTarget(c, strings.TrimSpace(f.outreach), strings.TrimSpace(f.relation),
+		strings.TrimSpace(f.campaign))
 }
 
 // NewCmd builds oba otak attachment with its subcommands.
 func NewCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "attachment",
-		Short: "List, add and delete the attachments of an outreach's mail or a relation",
+		Short: "List, add, download and delete the attachments of an outreach's mail, a relation or a campaign",
 		Long:  attachmentHelp,
 	}
 
 	var listTarget targetFlags
 	listCmd := &cobra.Command{
 		Use:   "list",
-		Short: "List the attachments of an outreach's mail or a relation",
+		Short: "List the attachments of an outreach's mail, a relation or a campaign",
 		Long:  attachmentListHelp,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
@@ -95,7 +100,7 @@ func NewCmd() *cobra.Command {
 	var deleteYes bool
 	deleteCmd := &cobra.Command{
 		Use:   "delete",
-		Short: "Delete an attachment of an outreach's mail or a relation",
+		Short: "Delete an attachment of an outreach's mail, a relation or a campaign",
 		Long:  attachmentDeleteHelp,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
@@ -107,7 +112,7 @@ func NewCmd() *cobra.Command {
 	deleteCmd.Flags().BoolVarP(&deleteYes, "yes", "y", false, "delete without asking for confirmation")
 	_ = deleteCmd.MarkFlagRequired("id")
 
-	cmd.AddCommand(listCmd, addCmd, deleteCmd)
+	cmd.AddCommand(listCmd, addCmd, newDownloadCmd(), deleteCmd)
 	return cmd
 }
 
