@@ -11,7 +11,7 @@ import java.util.UUID;
 
 /**
  * The caller of a machine token path: a live token of an ACTIVE machine. Ingest attributes every
- * session of the batch to the token's user and checks the batch's machine name against the machine.
+ * session of the batch to the token's user and machine, whatever machine name the batch reports.
  *
  * @param organizationId the organization of the machine
  * @param userId         the user of the machine and its token
