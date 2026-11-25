@@ -8,9 +8,11 @@
 --
 -- The enum types are created in the public schema with an otak_ prefix, as in
 -- V1_2_100. The language reuses shrine_document_language_enum of V1_2_130.
--- published_at is an instant (TIMESTAMP WITH TIME ZONE): the moment the post
--- went live. A campaign has no schedule yet, only the statuses DRAFT, PUBLISHED
--- and ARCHIVED.
+-- planned_at and published_at are instants (TIMESTAMP WITH TIME ZONE): the
+-- moment the post is planned to go live and the moment it went live. A
+-- SCHEDULED campaign must have planned_at (campaigns_scheduled_ck), and a DRAFT
+-- or SCHEDULED campaign has not been published, so published_at stays empty
+-- (campaigns_published_ck).
 --
 -- The new relation source value is only added here, never used in this file, so
 -- it may share the transaction with the other statements.
@@ -40,8 +42,9 @@
 --   campaigns_organization_id_lower_name_uk is unique per organization on the
 --     lower-case name, which enforces the name rule, serves the name search,
 --     and serves the organization foreign key and its cascade.
---   campaigns_organization_id_status_updated_at_idx serves the list tabs per
---     status, newest first, for one organization.
+--   campaigns_organization_id_status_planned_at_idx serves the list tabs per
+--     status and the upcoming scheduled campaigns, ordered by planned date, for
+--     one organization.
 --   campaigns_event_id_idx, campaigns_icp_id_idx and
 --   campaigns_owner_user_id_idx serve the foreign keys, the filters by event,
 --     ICP and owner, and the clearing of the link on delete.
@@ -56,7 +59,7 @@
 -- =====================================================
 
 CREATE TYPE otak_campaign_channel_enum AS ENUM ('LINKEDIN', 'X', 'NEWSLETTER');
-CREATE TYPE otak_campaign_status_enum AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED');
+CREATE TYPE otak_campaign_status_enum AS ENUM ('DRAFT', 'SCHEDULED', 'PUBLISHED', 'ARCHIVED');
 
 ALTER TYPE otak_relation_source_enum ADD VALUE IF NOT EXISTS 'CAMPAIGN';
 
@@ -69,6 +72,7 @@ CREATE TABLE otak.campaigns (
     name VARCHAR(200) NOT NULL,
     channel otak_campaign_channel_enum NOT NULL,
     status otak_campaign_status_enum NOT NULL DEFAULT 'DRAFT',
+    planned_at TIMESTAMP WITH TIME ZONE,
     published_at TIMESTAMP WITH TIME ZONE,
     post_url VARCHAR(500),
     owner_user_id UUID,
@@ -79,6 +83,8 @@ CREATE TABLE otak.campaigns (
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT campaigns_pk PRIMARY KEY (id),
     CONSTRAINT campaigns_id_organization_id_uk UNIQUE (id, organization_id),
+    CONSTRAINT campaigns_scheduled_ck CHECK ((status <> 'SCHEDULED' OR planned_at IS NOT NULL)),
+    CONSTRAINT campaigns_published_ck CHECK ((status NOT IN ('DRAFT', 'SCHEDULED') OR published_at IS NULL)),
     CONSTRAINT campaigns_organization_id_fk FOREIGN KEY (organization_id) REFERENCES shrine.organizations(id) ON DELETE CASCADE,
     CONSTRAINT campaigns_event_id_organization_id_fk FOREIGN KEY (event_id, organization_id) REFERENCES otak.events(id, organization_id) ON DELETE SET NULL (event_id),
     CONSTRAINT campaigns_icp_id_organization_id_fk FOREIGN KEY (icp_id, organization_id) REFERENCES otak.icps(id, organization_id) ON DELETE SET NULL (icp_id),
@@ -102,7 +108,7 @@ CREATE TABLE otak.campaign_contents (
 -- =====================================================
 
 CREATE UNIQUE INDEX campaigns_organization_id_lower_name_uk ON otak.campaigns USING btree (organization_id, lower((name)::text));
-CREATE INDEX campaigns_organization_id_status_updated_at_idx ON otak.campaigns USING btree (organization_id, status, updated_at DESC);
+CREATE INDEX campaigns_organization_id_status_planned_at_idx ON otak.campaigns USING btree (organization_id, status, planned_at);
 CREATE INDEX campaigns_event_id_idx ON otak.campaigns USING btree (event_id);
 CREATE INDEX campaigns_icp_id_idx ON otak.campaigns USING btree (icp_id);
 CREATE INDEX campaigns_owner_user_id_idx ON otak.campaigns USING btree (owner_user_id);
