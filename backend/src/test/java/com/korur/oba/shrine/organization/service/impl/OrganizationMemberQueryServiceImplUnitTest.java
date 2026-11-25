@@ -12,8 +12,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -30,6 +32,7 @@ import java.util.UUID;
 
 // 4. Internal
 import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.shrine.identity.enums.UserKind;
 import com.korur.oba.shrine.organization.dto.response.OrganizationMemberResponse;
 import com.korur.oba.shrine.organization.entity.Organization;
 import com.korur.oba.shrine.organization.entity.OrganizationMember;
@@ -80,7 +83,7 @@ class OrganizationMemberQueryServiceImplUnitTest {
             member.setId(memberId);
 
             OrganizationMemberResponse expectedResponse = new OrganizationMemberResponse(
-                    memberId, userId, "user@example.com", null, null, OrganizationMemberRole.MEMBER, OrganizationMemberStatus.ACTIVE);
+                    memberId, userId, "user@example.com", null, null, OrganizationMemberRole.MEMBER, OrganizationMemberStatus.ACTIVE, UserKind.HUMAN, null, null, null);
 
             when(organizationMemberRepository.findByOrganization_Id(organizationId)).thenReturn(List.of(member));
             when(organizationMemberMapper.toResponse(member)).thenReturn(expectedResponse);
@@ -93,6 +96,39 @@ class OrganizationMemberQueryServiceImplUnitTest {
             assertNotNull(result);
             assertEquals(1, result.size());
             assertEquals(memberId, result.getFirst().id());
+        }
+
+        @Test
+        void agentAmongMembers_isLeftOutAndPeopleKeepMembershipIdOrder() {
+            // Arrange
+            UUID organizationId = UUID.randomUUID();
+            User person = caller(UUID.randomUUID());
+            User agent = caller(UUID.randomUUID());
+            agent.setKind(UserKind.AGENT);
+            OrganizationMember later = OrganizationMember.builder().user(person).build();
+            later.setId(UUID.fromString("00000000-0000-0000-0000-000000000002"));
+            OrganizationMember earlier = OrganizationMember.builder().user(person).build();
+            earlier.setId(UUID.fromString("00000000-0000-0000-0000-000000000001"));
+            OrganizationMember agentMember = OrganizationMember.builder().user(agent).build();
+            agentMember.setId(UUID.fromString("00000000-0000-0000-0000-000000000000"));
+            OrganizationMemberResponse earlierResponse = new OrganizationMemberResponse(earlier.getId(),
+                    person.getId(), "a@example.com", null, null, OrganizationMemberRole.MEMBER,
+                    OrganizationMemberStatus.ACTIVE, UserKind.HUMAN, null, null, null);
+            OrganizationMemberResponse laterResponse = new OrganizationMemberResponse(later.getId(),
+                    person.getId(), "b@example.com", null, null, OrganizationMemberRole.MEMBER,
+                    OrganizationMemberStatus.ACTIVE, UserKind.HUMAN, null, null, null);
+            when(organizationMemberRepository.findByOrganization_Id(organizationId))
+                    .thenReturn(List.of(later, agentMember, earlier));
+            when(organizationMemberMapper.toResponse(earlier)).thenReturn(earlierResponse);
+            when(organizationMemberMapper.toResponse(later)).thenReturn(laterResponse);
+
+            // Act
+            List<OrganizationMemberResponse> result =
+                    organizationMemberQueryServiceImpl.listOrganizationMembers(person, organizationId);
+
+            // Assert
+            assertEquals(List.of(earlierResponse, laterResponse), result);
+            verify(organizationMemberMapper, never()).toResponse(agentMember);
         }
 
         @Test
@@ -204,6 +240,42 @@ class OrganizationMemberQueryServiceImplUnitTest {
         void noRoles_findsNobodyWithoutAQuery() {
             // Act
             Set<UUID> userIds = organizationMemberQueryServiceImpl.findActiveUserIdsByRoles(UUID.randomUUID(),
+                    Set.of());
+
+            // Assert
+            assertTrue(userIds.isEmpty());
+            verifyNoInteractions(organizationMemberRepository);
+        }
+    }
+
+    @Nested
+    class FindActiveHumanUserIdsByRoles {
+
+        @Test
+        void roles_queriesThePeopleOnlyByRoleNames() {
+            // Arrange
+            UUID organizationId = UUID.randomUUID();
+            UUID personId = UUID.randomUUID();
+            when(organizationMemberRepository.findActiveHumanUserIdsByRoles(eq(organizationId), anyCollection()))
+                    .thenReturn(List.of(personId));
+
+            // Act
+            Set<UUID> userIds = organizationMemberQueryServiceImpl.findActiveHumanUserIdsByRoles(organizationId,
+                    EnumSet.of(OrganizationMemberRole.MEMBER, OrganizationMemberRole.GUEST));
+
+            // Assert
+            assertEquals(Set.of(personId), userIds);
+            @SuppressWarnings("unchecked")
+            ArgumentCaptor<Collection<String>> roles = ArgumentCaptor.forClass(Collection.class);
+            verify(organizationMemberRepository).findActiveHumanUserIdsByRoles(eq(organizationId), roles.capture());
+            assertEquals(Set.of("MEMBER", "GUEST"), new HashSet<>(roles.getValue()));
+            verify(organizationMemberRepository, never()).findActiveUserIdsByRoles(any(), anyCollection());
+        }
+
+        @Test
+        void noRoles_findsNobodyWithoutAQuery() {
+            // Act
+            Set<UUID> userIds = organizationMemberQueryServiceImpl.findActiveHumanUserIdsByRoles(UUID.randomUUID(),
                     Set.of());
 
             // Assert

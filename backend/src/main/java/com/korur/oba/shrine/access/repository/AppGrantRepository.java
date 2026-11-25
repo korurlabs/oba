@@ -22,6 +22,10 @@ import com.korur.oba.shrine.access.enums.OrganizationGroupType;
 
 /**
  * Repository for the app grants of organizations. Derived queries skip deleted grants.
+ *
+ * A grant to the {@link OrganizationGroupType#EVERYONE} group never reaches a user of kind AGENT: an
+ * agent opens only the apps it was granted one by one, so a grant meant for every person does not
+ * widen what an agent's token can reach.
  */
 @Repository
 public interface AppGrantRepository extends SoftDeleteRepository<AppGrant, UUID> {
@@ -82,7 +86,8 @@ public interface AppGrantRepository extends SoftDeleteRepository<AppGrant, UUID>
 
     /**
      * Tells whether an organization grants an app to a user through a grant that is not deleted: to the
-     * user directly, to the organization's {@link OrganizationGroupType#EVERYONE} group, or to a custom
+     * user directly, to the organization's {@link OrganizationGroupType#EVERYONE} group unless the user is
+     * an agent, or to a custom
      * group of the organization in which the user has a member row. This is only the grant part of the
      * access rule; the caller checks the membership status, the organization status and the role first.
      *
@@ -118,7 +123,11 @@ public interface AppGrantRepository extends SoftDeleteRepository<AppGrant, UUID>
                   AND CAST(ag.app AS VARCHAR) = :app
                   AND ag.deleted = false
                   AND (ag.user_id = :userId
-                       OR g.type = 'EVERYONE'
+                       OR (g.type = 'EVERYONE'
+                           AND NOT EXISTS (SELECT 1
+                                           FROM shrine.users u
+                                           WHERE u.id = :userId
+                                             AND u.kind = 'AGENT'))
                        OR (g.type = 'CUSTOM'
                            AND EXISTS (SELECT 1
                                        FROM shrine.organization_group_members gm
@@ -169,7 +178,11 @@ public interface AppGrantRepository extends SoftDeleteRepository<AppGrant, UUID>
                          AND CAST(ag.app AS VARCHAR) = :app
                          AND ag.deleted = false
                          AND (ag.user_id = om.user_id
-                              OR g.type = 'EVERYONE'
+                              OR (g.type = 'EVERYONE'
+                                  AND NOT EXISTS (SELECT 1
+                                                  FROM shrine.users u
+                                                  WHERE u.id = om.user_id
+                                                    AND u.kind = 'AGENT'))
                               OR (g.type = 'CUSTOM'
                                   AND EXISTS (SELECT 1
                                               FROM shrine.organization_group_members gm
@@ -203,7 +216,11 @@ public interface AppGrantRepository extends SoftDeleteRepository<AppGrant, UUID>
             WHERE ag.organization_id IN (:organizationIds)
               AND ag.deleted = false
               AND (ag.user_id = :userId
-                   OR g.type = 'EVERYONE'
+                   OR (g.type = 'EVERYONE'
+                       AND NOT EXISTS (SELECT 1
+                                       FROM shrine.users u
+                                       WHERE u.id = :userId
+                                         AND u.kind = 'AGENT'))
                    OR (g.type = 'CUSTOM'
                        AND EXISTS (SELECT 1
                                    FROM shrine.organization_group_members gm

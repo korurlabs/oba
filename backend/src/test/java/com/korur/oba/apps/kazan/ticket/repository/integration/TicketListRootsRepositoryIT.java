@@ -66,6 +66,7 @@ import com.korur.oba.apps.kazan.ticket.specification.TicketSpecification;
 import com.korur.oba.apps.kazan.ticket.validator.TicketValidator;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.shrine.access.validator.AppAccessValidator;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.identity.service.UserQueryService;
 import com.korur.oba.support.ObaIntegrationTest;
@@ -677,6 +678,7 @@ class TicketListRootsRepositoryIT extends ObaIntegrationTest {
                     mock(BoardQueryService.class),
                     mock(BoardValidator.class),
                     mock(AppAccessValidator.class),
+                    mock(AgentValidator.class),
                     mock(SprintService.class),
                     sprintValidator,
                     mock(BacklogValidator.class),

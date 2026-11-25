@@ -6,6 +6,8 @@ import org.springframework.data.domain.Page;
 // 2. Third-party
 
 // 3. Java SDK
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
@@ -75,4 +77,32 @@ public interface UserQueryService {
      * @throws org.springframework.transaction.IllegalTransactionStateException without a caller transaction
      */
     User getUserEntityForUpdate(UUID userId);
+
+    /**
+     * Lists the live agents of an organization, ordered by name ignoring case.
+     *
+     * @param organizationId the organization
+     * @return the agent users of the organization, disabled ones included
+     */
+    List<User> getAgentsOfOrganization(UUID organizationId);
+
+    /**
+     * Finds an agent of an organization. A person's id or the id of another organization's agent finds
+     * nothing, so a caller cannot tell them from an unknown id.
+     *
+     * @param organizationId the organization the agent belongs to
+     * @param userId         the agent's user id
+     * @return the agent user, or empty
+     */
+    Optional<User> findAgent(UUID organizationId, UUID userId);
+
+    /**
+     * Checks whether another live agent of the organization has the name, ignoring case.
+     *
+     * @param organizationId the organization
+     * @param name           the agent name
+     * @param excludeUserId  the agent being renamed, or null on create
+     * @return true if the name is taken
+     */
+    boolean existsAgentName(UUID organizationId, String name, UUID excludeUserId);
 }

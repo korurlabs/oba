@@ -45,7 +45,11 @@ import com.korur.oba.dojo.exception.internal.business.NotFoundException;
 import com.korur.oba.shrine.access.enums.App;
 import com.korur.oba.shrine.access.service.AppAccessQueryService;
 import com.korur.oba.shrine.identity.entity.User;
-import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberSummaryProjection;
+import com.korur.oba.shrine.identity.enums.AgentFlow;
+import com.korur.oba.shrine.identity.enums.AgentProvider;
+import com.korur.oba.shrine.identity.enums.AgentRole;
+import com.korur.oba.shrine.identity.enums.UserKind;
+import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberKindSummaryProjection;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 import com.korur.oba.shrine.organization.service.OrganizationMemberQueryService;
 
@@ -117,7 +121,7 @@ class BoardMemberQueryServiceImplUnitTest {
             member.setId(memberId);
 
             BoardMemberResponse expectedResponse = new BoardMemberResponse(
-                    memberId, null, null, null, null, BoardMemberRole.MEMBER, null, true);
+                    memberId, null, null, null, null, BoardMemberRole.MEMBER, null, true, UserKind.HUMAN, null, null, null);
 
             when(boardAccessService.verifyBoardAccess(organizationId, boardId, user.getId(), BoardMemberRole.VIEWER)).thenReturn(board);
             when(organizationMemberQueryService.findActiveUserIdsByRoles(eq(organizationId), any()))
@@ -151,7 +155,7 @@ class BoardMemberQueryServiceImplUnitTest {
             BoardMember departedMembership = BoardMember.builder().board(board).user(departed)
                     .role(BoardMemberRole.MEMBER).build();
             BoardMemberResponse readerResponse = new BoardMemberResponse(
-                    UUID.randomUUID(), null, null, null, null, BoardMemberRole.ADMIN, null, true);
+                    UUID.randomUUID(), null, null, null, null, BoardMemberRole.ADMIN, null, true, UserKind.HUMAN, null, null, null);
             when(boardAccessService.verifyBoardAccess(organizationId, boardId, reader.getId(),
                     BoardMemberRole.VIEWER)).thenReturn(board);
             when(organizationMemberQueryService.findActiveUserIdsByRoles(eq(organizationId), any()))
@@ -185,9 +189,9 @@ class BoardMemberQueryServiceImplUnitTest {
             BoardMember withoutKazanMembership = BoardMember.builder().board(board).user(withoutKazan)
                     .role(BoardMemberRole.MEMBER).build();
             BoardMemberResponse readerResponse = new BoardMemberResponse(
-                    UUID.randomUUID(), reader.getId(), null, null, null, BoardMemberRole.ADMIN, null, true);
+                    UUID.randomUUID(), reader.getId(), null, null, null, BoardMemberRole.ADMIN, null, true, UserKind.HUMAN, null, null, null);
             BoardMemberResponse withoutKazanResponse = new BoardMemberResponse(
-                    UUID.randomUUID(), withoutKazan.getId(), null, null, null, BoardMemberRole.MEMBER, null, false);
+                    UUID.randomUUID(), withoutKazan.getId(), null, null, null, BoardMemberRole.MEMBER, null, false, UserKind.HUMAN, null, null, null);
             when(boardAccessService.verifyBoardAccess(organizationId, boardId, reader.getId(),
                     BoardMemberRole.VIEWER)).thenReturn(board);
             when(organizationMemberQueryService.findActiveUserIdsByRoles(eq(organizationId), any()))
@@ -210,8 +214,8 @@ class BoardMemberQueryServiceImplUnitTest {
     @Nested
     class ListMemberCandidates {
 
-        private OrganizationMemberSummaryProjection summary(UUID userId) {
-            OrganizationMemberSummaryProjection summary = mock(OrganizationMemberSummaryProjection.class);
+        private OrganizationMemberKindSummaryProjection summary(UUID userId) {
+            OrganizationMemberKindSummaryProjection summary = mock(OrganizationMemberKindSummaryProjection.class);
             when(summary.getUserId()).thenReturn(userId);
             return summary;
         }
@@ -226,16 +230,16 @@ class BoardMemberQueryServiceImplUnitTest {
             board.setId(boardId);
             UUID zoeId = UUID.randomUUID();
             UUID adaId = UUID.randomUUID();
-            OrganizationMemberSummaryProjection zoe = summary(zoeId);
-            OrganizationMemberSummaryProjection ada = summary(adaId);
+            OrganizationMemberKindSummaryProjection zoe = summary(zoeId);
+            OrganizationMemberKindSummaryProjection ada = summary(adaId);
             BoardMemberCandidateResponse zoeResponse = new BoardMemberCandidateResponse(
-                    zoeId, "zoe@example.com", "Zoe", "Last", OrganizationMemberRole.MEMBER, true);
+                    zoeId, "zoe@example.com", "Zoe", "Last", OrganizationMemberRole.MEMBER, true, UserKind.HUMAN, null, null, null);
             BoardMemberCandidateResponse adaResponse = new BoardMemberCandidateResponse(
-                    adaId, "ada@example.com", "ada", "Last", OrganizationMemberRole.GUEST, false);
+                    adaId, "ada@example.com", "ada", "Last", OrganizationMemberRole.GUEST, false, UserKind.HUMAN, null, null, null);
             when(boardAccessService.verifyBoardAccess(organizationId, boardId, admin.getId(), BoardMemberRole.ADMIN))
                     .thenReturn(board);
             when(clock.instant()).thenReturn(Instant.parse("2026-11-11T10:00:00Z"));
-            when(organizationMemberQueryService.listActiveMemberSummaries(organizationId,
+            when(organizationMemberQueryService.listActiveMemberKindSummaries(organizationId,
                     Instant.parse("2026-11-11T10:00:00Z"))).thenReturn(List.of(zoe, ada));
             when(appAccessQueryService.findUserIdsWithAppAccess(organizationId, App.KAZAN, List.of(zoeId, adaId)))
                     .thenReturn(Set.of(zoeId));
@@ -248,6 +252,37 @@ class BoardMemberQueryServiceImplUnitTest {
 
             // Assert
             assertEquals(List.of(adaResponse, zoeResponse), result);
+        }
+
+        @Test
+        void agentInOrganization_isOfferedWithItsKindFromTheKindSummaries() {
+            // Arrange
+            UUID boardId = UUID.randomUUID();
+            User admin = User.builder().build();
+            admin.setId(UUID.randomUUID());
+            Board board = Board.builder().organizationId(organizationId).name("Board").prefix("B").build();
+            board.setId(boardId);
+            UUID agentId = UUID.randomUUID();
+            OrganizationMemberKindSummaryProjection agent = summary(agentId);
+            BoardMemberCandidateResponse agentResponse = new BoardMemberCandidateResponse(agentId,
+                    "agent@agents.oba.invalid", "Reviewer", null, OrganizationMemberRole.MEMBER, true,
+                    UserKind.AGENT, AgentRole.CYBERSECURITY_ENGINEER, AgentFlow.ROUTINE, AgentProvider.ANTHROPIC);
+            when(boardAccessService.verifyBoardAccess(organizationId, boardId, admin.getId(), BoardMemberRole.ADMIN))
+                    .thenReturn(board);
+            when(clock.instant()).thenReturn(Instant.parse("2026-11-11T10:00:00Z"));
+            when(organizationMemberQueryService.listActiveMemberKindSummaries(organizationId,
+                    Instant.parse("2026-11-11T10:00:00Z"))).thenReturn(List.of(agent));
+            when(appAccessQueryService.findUserIdsWithAppAccess(organizationId, App.KAZAN, List.of(agentId)))
+                    .thenReturn(Set.of(agentId));
+            when(boardMemberMapper.toCandidateResponse(agent, true)).thenReturn(agentResponse);
+
+            // Act
+            List<BoardMemberCandidateResponse> result =
+                    boardMemberQueryServiceImpl.listMemberCandidates(admin, organizationId, boardId);
+
+            // Assert
+            assertEquals(List.of(agentResponse), result);
+            verify(organizationMemberQueryService, never()).listActiveMemberSummaries(any(), any());
         }
 
         @Test

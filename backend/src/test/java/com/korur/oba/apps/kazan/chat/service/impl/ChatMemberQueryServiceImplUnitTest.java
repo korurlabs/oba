@@ -32,7 +32,7 @@ import com.korur.oba.connect.realtime.service.RealtimeSessionRegistry;
 import com.korur.oba.shrine.access.enums.App;
 import com.korur.oba.shrine.access.service.AppAccessQueryService;
 import com.korur.oba.shrine.identity.entity.User;
-import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberSummaryProjection;
+import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberKindSummaryProjection;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 import com.korur.oba.shrine.organization.service.OrganizationMemberQueryService;
 
@@ -71,7 +71,7 @@ class ChatMemberQueryServiceImplUnitTest {
     @Test
     void noSearch_listsEveryMemberOnlineFirstThenByNameWithKazanAccess() {
         // Arrange
-        when(organizationMemberQueryService.listActiveMemberSummaries(any(UUID.class), any(Instant.class)))
+        when(organizationMemberQueryService.listActiveMemberKindSummaries(any(UUID.class), any(Instant.class)))
                 .thenReturn(List.of(grace, ada, alan));
         when(realtimeSessionRegistry.onlineUserIds(organizationId)).thenReturn(Set.of(grace.getUserId()));
         when(appAccessQueryService.findUserIdsWithAppAccess(organizationId, App.KAZAN,
@@ -89,13 +89,13 @@ class ChatMemberQueryServiceImplUnitTest {
                         OrganizationMemberRole.OWNER, false, true),
                 new ChatMemberResponse(alan.getUserId(), "Alan", "Turing", "turing@example.com",
                         OrganizationMemberRole.GUEST, false, false));
-        verify(organizationMemberQueryService).listActiveMemberSummaries(any(UUID.class), any(Instant.class));
+        verify(organizationMemberQueryService).listActiveMemberKindSummaries(any(UUID.class), any(Instant.class));
     }
 
     @Test
     void search_matchesNamesFullNameAndEmailIgnoringCaseAndPadding() {
         // Arrange
-        when(organizationMemberQueryService.listActiveMemberSummaries(any(UUID.class), any(Instant.class)))
+        when(organizationMemberQueryService.listActiveMemberKindSummaries(any(UUID.class), any(Instant.class)))
                 .thenReturn(List.of(grace, ada, alan));
         when(realtimeSessionRegistry.onlineUserIds(organizationId)).thenReturn(Set.of());
 
@@ -115,7 +115,7 @@ class ChatMemberQueryServiceImplUnitTest {
     @Test
     void blankSearch_listsEveryone() {
         // Arrange
-        when(organizationMemberQueryService.listActiveMemberSummaries(any(UUID.class), any(Instant.class)))
+        when(organizationMemberQueryService.listActiveMemberKindSummaries(any(UUID.class), any(Instant.class)))
                 .thenReturn(List.of(grace, ada));
         when(realtimeSessionRegistry.onlineUserIds(organizationId)).thenReturn(Set.of());
 
@@ -131,7 +131,7 @@ class ChatMemberQueryServiceImplUnitTest {
     void memberWithoutName_sortsFirstAmongTheOfflineAndDoesNotFail() {
         // Arrange
         MemberRow nameless = new MemberRow(UUID.randomUUID(), "new@example.com", null, null, "MEMBER");
-        when(organizationMemberQueryService.listActiveMemberSummaries(any(UUID.class), any(Instant.class)))
+        when(organizationMemberQueryService.listActiveMemberKindSummaries(any(UUID.class), any(Instant.class)))
                 .thenReturn(List.of(ada, nameless));
         when(realtimeSessionRegistry.onlineUserIds(organizationId)).thenReturn(Set.of());
 
@@ -147,7 +147,7 @@ class ChatMemberQueryServiceImplUnitTest {
     void memberWithoutName_isMappedWithNullNamesAndItsRole() {
         // Arrange
         MemberRow nameless = new MemberRow(UUID.randomUUID(), "new@example.com", null, null, "ADMIN");
-        when(organizationMemberQueryService.listActiveMemberSummaries(any(UUID.class), any(Instant.class)))
+        when(organizationMemberQueryService.listActiveMemberKindSummaries(any(UUID.class), any(Instant.class)))
                 .thenReturn(List.of(nameless));
         when(realtimeSessionRegistry.onlineUserIds(organizationId)).thenReturn(Set.of(nameless.getUserId()));
 
@@ -167,7 +167,7 @@ class ChatMemberQueryServiceImplUnitTest {
                 .thenReturn(channel);
         when(chatChannelMemberRepository.findUserIdsByChannelId(channel.getId()))
                 .thenReturn(List.of(ada.getUserId(), grace.getUserId()));
-        when(organizationMemberQueryService.listActiveMemberSummaries(any(UUID.class), any(Instant.class)))
+        when(organizationMemberQueryService.listActiveMemberKindSummaries(any(UUID.class), any(Instant.class)))
                 .thenReturn(List.of(grace, ada, alan));
         when(realtimeSessionRegistry.onlineUserIds(organizationId)).thenReturn(Set.of());
 
@@ -186,7 +186,7 @@ class ChatMemberQueryServiceImplUnitTest {
         when(chatChannelQueryService.verifyChannelAccess(organizationId, reader.getId(), channel.getId()))
                 .thenReturn(channel);
         when(chatMessageRepository.findAuthorIdsByChannelId(channel.getId())).thenReturn(List.of(alan.getUserId()));
-        when(organizationMemberQueryService.listActiveMemberSummaries(any(UUID.class), any(Instant.class)))
+        when(organizationMemberQueryService.listActiveMemberKindSummaries(any(UUID.class), any(Instant.class)))
                 .thenReturn(List.of(grace, ada, alan));
         when(realtimeSessionRegistry.onlineUserIds(organizationId)).thenReturn(Set.of());
 
@@ -195,6 +195,25 @@ class ChatMemberQueryServiceImplUnitTest {
 
         // Assert
         assertThat(members).extracting(ChatMemberResponse::userId).containsExactly(alan.getUserId());
+    }
+
+    @Test
+    void agentMember_isLeftOutOfTheListAndTheAccessRead() {
+        // Arrange
+        MemberRow agent = new MemberRow(UUID.randomUUID(), "agent@agents.oba.invalid", "Scout", "Agent", "MEMBER",
+                "AGENT", "CYBERSECURITY_ENGINEER", "ROUTINE", "ANTHROPIC");
+        when(organizationMemberQueryService.listActiveMemberKindSummaries(any(UUID.class), any(Instant.class)))
+                .thenReturn(List.of(agent, ada));
+        when(realtimeSessionRegistry.onlineUserIds(organizationId)).thenReturn(Set.of(agent.getUserId()));
+        when(appAccessQueryService.findUserIdsWithAppAccess(organizationId, App.KAZAN, List.of(ada.getUserId())))
+                .thenReturn(Set.of(ada.getUserId()));
+
+        // Act
+        List<ChatMemberResponse> members = service.listMembers(reader, organizationId, null, null, false);
+
+        // Assert
+        assertThat(members).extracting(ChatMemberResponse::userId).containsExactly(ada.getUserId());
+        verify(appAccessQueryService).findUserIdsWithAppAccess(organizationId, App.KAZAN, List.of(ada.getUserId()));
     }
 
     private ChatChannel channel(ChatChannelVisibility visibility) {
@@ -208,6 +227,11 @@ class ChatMemberQueryServiceImplUnitTest {
     }
 
     private record MemberRow(UUID getUserId, String getEmail, String getFirstName, String getLastName,
-                             String getRole) implements OrganizationMemberSummaryProjection {
+                             String getRole, String getKind, String getAgentRole, String getAgentFlow,
+                             String getAgentProvider) implements OrganizationMemberKindSummaryProjection {
+
+        private MemberRow(UUID userId, String email, String firstName, String lastName, String role) {
+            this(userId, email, firstName, lastName, role, "HUMAN", null, null, null);
+        }
     }
 }

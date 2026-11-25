@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,6 +29,7 @@ import com.korur.oba.shrine.access.dto.response.OrganizationGroupMemberResponse;
 import com.korur.oba.shrine.access.dto.response.OrganizationGroupResponse;
 import com.korur.oba.shrine.access.entity.AppGrant;
 import com.korur.oba.shrine.access.entity.OrganizationGroup;
+import com.korur.oba.shrine.access.entity.OrganizationGroupMember;
 import com.korur.oba.shrine.access.enums.App;
 import com.korur.oba.shrine.access.enums.OrganizationGroupType;
 import com.korur.oba.shrine.access.exception.ExceptionDomainAccessError;
@@ -134,14 +136,17 @@ public class OrganizationGroupQueryServiceImpl implements OrganizationGroupQuery
 
     @Override
     public Set<UUID> findGroupUserIds(OrganizationGroup group) {
+        // An Everyone grant never reaches an agent, so the group's users are the people only, as the
+        // grant queries count them.
         if (group.getType() == OrganizationGroupType.EVERYONE) {
-            return organizationMemberQueryService.findActiveUserIdsByRoles(
+            return organizationMemberQueryService.findActiveHumanUserIdsByRoles(
                     group.getOrganization().getId(), AccessConstant.GRANT_DEPENDENT_ROLES);
         }
-        return organizationGroupMemberRepository.findByGroup_Id(group.getId())
-                .stream()
-                .map(groupMember -> groupMember.getUser().getId())
-                .collect(Collectors.toSet());
+        Set<UUID> userIds = new HashSet<>();
+        for (OrganizationGroupMember groupMember : organizationGroupMemberRepository.findByGroup_Id(group.getId())) {
+            userIds.add(groupMember.getUser().getId());
+        }
+        return userIds;
     }
 
     /**

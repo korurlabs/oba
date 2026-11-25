@@ -73,7 +73,7 @@ public interface OrganizationGroupService {
 
     /**
      * Adds members of the organization to a custom group. A user who is already in the group is not added
-     * again.
+     * again. An agent is refused, because its app access is set on the agent itself.
      *
      * @param actor          the user who adds the members
      * @param organizationId the organization identifier
@@ -85,6 +85,8 @@ public interface OrganizationGroupService {
      *         organization
      * @throws com.korur.oba.dojo.exception.internal.business.ConflictException APP_STA_001 for the Everyone
      *         group
+     * @throws com.korur.oba.dojo.exception.internal.business.ValidationException AGT_VAL_001 when a user is
+     *         an agent; no row is written
      */
     List<OrganizationGroupMemberResponse> addMembers(User actor, UUID organizationId, UUID groupId,
                                                      OrganizationGroupMemberAddRequest request);

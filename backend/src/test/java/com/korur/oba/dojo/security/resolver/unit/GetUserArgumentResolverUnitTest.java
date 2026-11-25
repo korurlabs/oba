@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 // 3. Java SDK
 import java.lang.reflect.Method;
 import java.util.Optional;
+import java.util.UUID;
 
 // 4. Internal
 import com.korur.oba.dojo.exception.enums.ExceptionSecurityError;
@@ -35,6 +36,9 @@ import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.dojo.security.annotation.GetUser;
 import com.korur.oba.dojo.security.constant.SecurityConstant;
 import com.korur.oba.dojo.security.resolver.GetUserArgumentResolver;
+import com.korur.oba.dojo.security.token.authentication.ApiTokenAuthentication;
+import com.korur.oba.dojo.security.token.dto.ApiTokenPrincipal;
+import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.identity.enums.UserStatus;
 import com.korur.oba.shrine.identity.repository.UserRepository;
@@ -199,5 +203,56 @@ class GetUserArgumentResolverUnitTest {
         // Act & Assert
         assertThrows(NotFoundException.class,
                 () -> resolver.resolveArgument(requireActiveParameter, null, webRequest, null));
+    }
+
+    @Test
+    void resolveArgument_apiTokenCaller_loadsTheTokenUserByIdAndCachesIt() {
+        // Arrange
+        UUID userId = UUID.randomUUID();
+        User user = User.builder().id(userId).status(UserStatus.ACTIVE).build();
+        SecurityContextHolder.getContext().setAuthentication(new ApiTokenAuthentication(ApiTokenKind.AGENT,
+                new TokenPrincipal(UUID.randomUUID(), userId, UUID.randomUUID())));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
+        // Act
+        User result = resolver.resolveArgument(requireActiveParameter, null, webRequest, null);
+
+        // Assert
+        assertSame(user, result);
+        verify(userRepository, never()).findByKeycloakId(any());
+        verify(webRequest).setAttribute(USER_CACHE_KEY, user, RequestAttributes.SCOPE_REQUEST);
+    }
+
+    @Test
+    void resolveArgument_apiTokenCallerWhoseUserIsDisabled_throwsForbiddenException() {
+        // Arrange
+        UUID userId = UUID.randomUUID();
+        SecurityContextHolder.getContext().setAuthentication(new ApiTokenAuthentication(ApiTokenKind.AGENT,
+                new TokenPrincipal(UUID.randomUUID(), userId, UUID.randomUUID())));
+        when(userRepository.findById(userId))
+                .thenReturn(Optional.of(User.builder().id(userId).status(UserStatus.DISABLED).build()));
+
+        // Act
+        ForbiddenException exception = assertThrows(ForbiddenException.class,
+                () -> resolver.resolveArgument(requireActiveParameter, null, webRequest, null));
+
+        // Assert
+        assertEquals(ExceptionSecurityError.FORBIDDEN.getCode(), exception.getErrorCode());
+    }
+
+    @Test
+    void resolveArgument_apiTokenCallerWhoseUserIsGone_throwsNotFoundException() {
+        // Arrange
+        UUID userId = UUID.randomUUID();
+        SecurityContextHolder.getContext().setAuthentication(new ApiTokenAuthentication(ApiTokenKind.AGENT,
+                new TokenPrincipal(UUID.randomUUID(), userId, UUID.randomUUID())));
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThrows(NotFoundException.class,
+                () -> resolver.resolveArgument(requireActiveParameter, null, webRequest, null));
+    }
+
+    private record TokenPrincipal(UUID tokenId, UUID userId, UUID organizationId) implements ApiTokenPrincipal {
     }
 }

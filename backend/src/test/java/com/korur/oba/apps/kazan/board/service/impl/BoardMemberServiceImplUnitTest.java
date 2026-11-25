@@ -1,9 +1,12 @@
 package com.korur.oba.apps.kazan.board.service.impl;
 
 // 1. Framework-level
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -15,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -43,7 +47,9 @@ import com.korur.oba.shrine.access.enums.App;
 import com.korur.oba.shrine.access.exception.ExceptionDomainAccessError;
 import com.korur.oba.shrine.access.service.AppAccessQueryService;
 import com.korur.oba.shrine.access.validator.AppAccessValidator;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
 import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.shrine.identity.enums.UserKind;
 import com.korur.oba.shrine.identity.service.UserQueryService;
 
 @ExtendWith(MockitoExtension.class)
@@ -74,6 +80,9 @@ class BoardMemberServiceImplUnitTest {
 
     @Mock
     private LoggingService loggingService;
+
+    @Mock
+    private AgentValidator agentValidator;
 
     @InjectMocks
     private BoardMemberServiceImpl boardMemberServiceImpl;
@@ -113,7 +122,7 @@ class BoardMemberServiceImplUnitTest {
 
             BoardMemberAddRequest request = new BoardMemberAddRequest(targetUserId, BoardMemberRole.MEMBER);
 
-            BoardMemberResponse expectedResponse = new BoardMemberResponse(restoredMemberId, null, null, null, null, BoardMemberRole.MEMBER, null, true);
+            BoardMemberResponse expectedResponse = new BoardMemberResponse(restoredMemberId, null, null, null, null, BoardMemberRole.MEMBER, null, true, UserKind.HUMAN, null, null, null);
 
             when(boardAccessService.verifyBoardAccess(organizationId, boardId, requestingUser.getId(), BoardMemberRole.ADMIN)).thenReturn(board);
             when(boardMemberRepository.existsByBoard_IdAndUser_Id(boardId, targetUserId)).thenReturn(false);
@@ -158,7 +167,7 @@ class BoardMemberServiceImplUnitTest {
 
             BoardMemberAddRequest request = new BoardMemberAddRequest(targetUserId, BoardMemberRole.MEMBER);
 
-            BoardMemberResponse expectedResponse = new BoardMemberResponse(newMember.getId(), null, null, null, null, BoardMemberRole.MEMBER, null, true);
+            BoardMemberResponse expectedResponse = new BoardMemberResponse(newMember.getId(), null, null, null, null, BoardMemberRole.MEMBER, null, true, UserKind.HUMAN, null, null, null);
 
             when(boardAccessService.verifyBoardAccess(organizationId, boardId, requestingUser.getId(), BoardMemberRole.ADMIN)).thenReturn(board);
             when(boardMemberRepository.existsByBoard_IdAndUser_Id(boardId, targetUserId)).thenReturn(false);
@@ -266,7 +275,7 @@ class BoardMemberServiceImplUnitTest {
             BoardMember member = BoardMember.builder().board(board).user(targetUser)
                     .role(BoardMemberRole.MEMBER).build();
             BoardMemberResponse expectedResponse = new BoardMemberResponse(
-                    UUID.randomUUID(), targetUserId, null, null, null, BoardMemberRole.ADMIN, null, false);
+                    UUID.randomUUID(), targetUserId, null, null, null, BoardMemberRole.ADMIN, null, false, UserKind.HUMAN, null, null, null);
             when(boardAccessService.verifyBoardAccess(organizationId, boardId, requestingUser.getId(),
                     BoardMemberRole.ADMIN)).thenReturn(board);
             when(boardValidator.ensureBoardMemberExists(boardId, targetUserId)).thenReturn(member);
@@ -281,6 +290,75 @@ class BoardMemberServiceImplUnitTest {
             // Assert
             assertThat(result).isEqualTo(expectedResponse);
             assertThat(member.getRole()).isEqualTo(BoardMemberRole.ADMIN);
+        }
+    }
+
+    @Nested
+    class AgentRefusals {
+
+        private UUID boardId;
+        private Board board;
+        private User admin;
+        private User agent;
+        private UserQueryService agentUserQueryService;
+        private BoardMemberServiceImpl boardMemberServiceImpl;
+
+        @BeforeEach
+        void setUpBoard() {
+            // Real validator: which users an agent refusal applies to is behaviour under test.
+            agentUserQueryService = mock(UserQueryService.class);
+            boardMemberServiceImpl = new BoardMemberServiceImpl(boardMemberRepository, boardAccessService,
+                    boardMemberMapper, boardValidator, userQueryService, appAccessQueryService, appAccessValidator,
+                    new AgentValidator(agentUserQueryService, new LoggingService()), loggingService);
+            boardId = UUID.randomUUID();
+            board = Board.builder().organizationId(organizationId).name("Board").prefix("B").build();
+            board.setId(boardId);
+            admin = User.builder().id(UUID.randomUUID()).build();
+            agent = User.builder().id(UUID.randomUUID()).kind(UserKind.AGENT).build();
+            when(boardAccessService.verifyBoardAccess(organizationId, boardId, admin.getId(), BoardMemberRole.ADMIN))
+                    .thenReturn(board);
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = BoardMemberRole.class, names = {"OWNER", "ADMIN"})
+        void addMember_agentAboveMember_throwsAgentTargetRefusedAndAddsNothing(BoardMemberRole role) {
+            when(agentUserQueryService.getUserEntitiesByIds(List.of(agent.getId()))).thenReturn(List.of(agent));
+
+            assertThatThrownBy(() -> boardMemberServiceImpl.addMember(admin, organizationId, boardId,
+                    new BoardMemberAddRequest(agent.getId(), role)))
+                    .isInstanceOfSatisfying(ValidationException.class, (ValidationException exception) ->
+                            assertThat(exception.getErrorCode()).isEqualTo("AGT_VAL_001"));
+            verify(boardMemberRepository, never()).save(any(BoardMember.class));
+            verify(boardMemberRepository, never()).restoreById(any());
+        }
+
+        @Test
+        void addMember_agentAsMember_addsMember() {
+            when(boardMemberRepository.existsByBoard_IdAndUser_Id(boardId, agent.getId())).thenReturn(false);
+            when(boardMemberRepository.findDeletedByBoardIdAndUserId(boardId, agent.getId())).thenReturn(Optional.empty());
+            when(userQueryService.getUserEntityById(agent.getId())).thenReturn(agent);
+            BoardMember mapped = BoardMember.builder().role(BoardMemberRole.MEMBER).build();
+            BoardMemberAddRequest request = new BoardMemberAddRequest(agent.getId(), BoardMemberRole.MEMBER);
+            when(boardMemberMapper.toEntity(request)).thenReturn(mapped);
+            when(boardMemberRepository.save(mapped)).thenReturn(mapped);
+
+            boardMemberServiceImpl.addMember(admin, organizationId, boardId, request);
+
+            verify(boardMemberRepository).save(mapped);
+            verify(agentUserQueryService, never()).getUserEntitiesByIds(any());
+        }
+
+        @Test
+        void updateMemberRole_agentToAdmin_throwsAgentTargetRefusedAndKeepsRole() {
+            BoardMember member = BoardMember.builder().board(board).user(agent).role(BoardMemberRole.MEMBER).build();
+            when(boardValidator.ensureBoardMemberExists(boardId, agent.getId())).thenReturn(member);
+
+            assertThatThrownBy(() -> boardMemberServiceImpl.updateMemberRole(admin, organizationId, boardId,
+                    agent.getId(), new BoardMemberUpdateRequest(BoardMemberRole.ADMIN)))
+                    .isInstanceOfSatisfying(ValidationException.class, (ValidationException exception) ->
+                            assertThat(exception.getErrorCode()).isEqualTo("AGT_VAL_001"));
+            assertThat(member.getRole()).isEqualTo(BoardMemberRole.MEMBER);
+            verify(boardMemberRepository, never()).save(any(BoardMember.class));
         }
     }
 }

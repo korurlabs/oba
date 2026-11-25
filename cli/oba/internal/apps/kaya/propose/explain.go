@@ -22,9 +22,13 @@ const (
 	codeNotFound        = "KAY_NF_001"
 	codeArchived        = "KAY_VAL_002"
 	codeBodyTooLarge    = "KAY_VAL_012"
-	codeMembership      = "KAY_SEC_002"
 	codeTokenRefused    = "KAY_SEC_003" // #nosec G101 -- an error code, not a credential
+	codeNotMember       = "ORG_SEC_001"
+	codeRoleTooLow      = "ORG_SEC_003"
+	codeOrgDisabled     = "ORG_SEC_005"
 	codeForbidden       = "GEN_SEC_002"
+	codeOtherOrg        = "GEN_SEC_005"
+	codeNoAppAccess     = "APP_SEC_001"
 	codeFieldInvalid    = "GEN_VAL_001"
 	codeBadRequest      = "GEN_API_001"
 	keepEditsAndResync  = "Keep a copy of your edits: `oba kaya sync` (or `oba kaya refresh` while a session of this checkout runs) puts the delivered files back. Then apply them to the newer release and propose again."
@@ -99,25 +103,24 @@ func Explain(err error, release int) error {
 		refusal.Lines = valueLines(values)
 	case apiErr.Code == codeArchived:
 		refusal.Summary = "The repository is archived in Kaya; it takes no config change."
-	case apiErr.Code == codeForbidden && values["userStatus"] != nil:
-		refusal.Summary = "The Kaya user behind your machine token is not active" + valueSuffix(values, "userStatus", " (%s)") + ", and only an active user proposes."
+	case apiErr.Code == codeForbidden && values["status"] != nil:
+		refusal.Summary = "The Kaya user behind your machine token is not active" + valueSuffix(values, "status", " (%s)") + ", and only an active user proposes."
 		refusal.Hint = "Ask an ADMIN of Kaya to enable your user."
-	case apiErr.Code == codeForbidden && values["organizationId"] != nil:
-		refusal.Summary = "The user behind your machine token is not a member of this organization in Kaya."
-		refusal.Hint = "Ask an ADMIN of the organization to add you."
-	case apiErr.Code == codeMembership && values["memberStatus"] != nil:
-		refusal.Summary = "Your membership of this organization is disabled" + valueSuffix(values, "memberStatus", " (%s)") + "."
-		refusal.Hint = "Ask an ADMIN of the organization to enable it."
-	case apiErr.Code == codeMembership && values["organizationStatus"] != nil:
-		refusal.Summary = "The organization is not active in Kaya" + valueSuffix(values, "organizationStatus", " (%s)") + ", so it takes no proposal."
+	case apiErr.Code == codeOtherOrg:
+		refusal.Summary = "The request named another organization" + valueSuffix(values, "OrganizationId", " (%s)") + " than the one your machine token belongs to, and a machine token acts only in its own organization."
+		refusal.Hint = "Propose with the machine token of that organization, or register this machine in it and store the new token."
+	case apiErr.Code == codeNotMember:
+		refusal.Summary = "The user behind your machine token is not a member of this organization in Kaya, or its membership is not active."
+		refusal.Hint = "Ask an ADMIN of the organization to add you, or to enable your membership."
+	case apiErr.Code == codeRoleTooLow:
+		refusal.Summary = "The user behind your machine token is a GUEST of this organization, and only a MEMBER or above proposes."
+		refusal.Hint = "Ask an ADMIN of the organization to give you the MEMBER role."
+	case apiErr.Code == codeOrgDisabled:
+		refusal.Summary = "The organization is disabled, so it takes no proposal."
 		refusal.Hint = "Ask an OWNER of the organization to reactivate it."
-	case apiErr.Code == codeMembership && values["emailDomain"] != nil:
-		refusal.Summary = "The organization no longer owns the email domain of your Kaya user" + valueSuffix(values, "emailDomain", " (%s)") + ", so your membership does not count."
-		refusal.Hint = "Ask an OWNER of the organization to add the domain back, or sign in to Kaya with an address of a domain it owns."
-	case apiErr.Code == codeMembership:
-		refusal.Summary = "Your membership of this organization is not active."
-		refusal.Lines = valueLines(values)
-		refusal.Hint = "Ask an ADMIN of the organization to enable it."
+	case apiErr.Code == codeNoAppAccess:
+		refusal.Summary = "The user behind your machine token is a member of this organization but has no access to Kaya, and only a user with Kaya access proposes."
+		refusal.Hint = "Ask an ADMIN of the organization to grant you Kaya in the Ulak web app."
 	case apiErr.Code == codeTokenRefused || apiErr.Status == http.StatusUnauthorized:
 		refusal.Summary = "Kaya refused the machine token (KAYA_RECORDER_TOKEN): it is unknown, revoked or expired, or its machine is retired."
 		refusal.Hint = "Register the machine again in Kaya and store the new token."

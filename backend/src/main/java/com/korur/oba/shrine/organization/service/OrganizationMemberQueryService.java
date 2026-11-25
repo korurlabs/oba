@@ -13,6 +13,7 @@ import java.util.UUID;
 
 // 4. Internal
 import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberKindSummaryProjection;
 import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberSummaryProjection;
 import com.korur.oba.shrine.organization.dto.response.OrganizationMemberResponse;
 import com.korur.oba.shrine.organization.entity.OrganizationMember;
@@ -24,7 +25,8 @@ import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 public interface OrganizationMemberQueryService {
 
     /**
-     * Lists the members of an organization with their role and status.
+     * Lists the people of an organization with their role and status. Agents are left out: they are
+     * managed and listed through the agents of the organization, not as members.
      * The member list identifies the people of a tenant, so only an active
      * member of that organization, of any role, may read it; callers check that
      * through {@link com.korur.oba.dojo.security.annotation.RequiredUserAccess}
@@ -32,7 +34,7 @@ public interface OrganizationMemberQueryService {
      *
      * @param user           the authenticated user requesting the list
      * @param organizationId the organization identifier
-     * @return list of organization member response DTOs
+     * @return the members of kind HUMAN, in membership id order
      */
     List<OrganizationMemberResponse> listOrganizationMembers(User user, UUID organizationId);
 
@@ -73,6 +75,20 @@ public interface OrganizationMemberQueryService {
      * @return one summary per member, in no particular order; empty when none match
      */
     List<OrganizationMemberSummaryProjection> listActiveMemberSummaries(UUID organizationId, Instant joinedBefore);
+
+    /**
+     * Lists the same members as {@link #listActiveMemberSummaries}, agents included, with whether each
+     * is a person or an agent and, for an agent, its role, flow and provider. One query.
+     *
+     * Performs no access check. Used by other domains that offer members to pick from and badge the
+     * agents among them, such as the people a board admin may add to a board.
+     *
+     * @param organizationId the organization identifier
+     * @param joinedBefore   memberships created at or after this instant are left out
+     * @return one summary per member, in no particular order; empty when none match
+     */
+    List<OrganizationMemberKindSummaryProjection> listActiveMemberKindSummaries(UUID organizationId,
+                                                                               Instant joinedBefore);
 
     /**
      * Resolves the organization that content created without an organization header
@@ -119,6 +135,18 @@ public interface OrganizationMemberQueryService {
      * @return the user IDs, in no particular order; empty when none match
      */
     Set<UUID> findActiveUserIdsByRoles(UUID organizationId, Set<OrganizationMemberRole> roles);
+
+    /**
+     * Finds the same users as {@link #findActiveUserIdsByRoles} without agents. One query.
+     *
+     * Performs no access check. Used for the members of an organization's Everyone group, which never
+     * includes an agent.
+     *
+     * @param organizationId the organization identifier
+     * @param roles          the roles; an empty set finds nobody
+     * @return the user IDs of kind HUMAN, in no particular order; empty when none match
+     */
+    Set<UUID> findActiveHumanUserIdsByRoles(UUID organizationId, Set<OrganizationMemberRole> roles);
 
     /**
      * Refuses when the user is the only active owner of any organization in which

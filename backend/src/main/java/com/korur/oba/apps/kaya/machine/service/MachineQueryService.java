@@ -8,9 +8,11 @@ package com.korur.oba.apps.kaya.machine.service;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
+import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
 import com.korur.oba.apps.kaya.machine.dto.request.MachineQueryRequest;
 import com.korur.oba.apps.kaya.machine.dto.response.MachineAccountSummaryResponse;
 import com.korur.oba.apps.kaya.machine.dto.response.MachineResponse;
@@ -69,4 +71,15 @@ public interface MachineQueryService {
      * @return the machine name per machine id; an id of another organization or an unknown id has no entry
      */
     Map<UUID, String> getMachineNames(UUID organizationId, Collection<UUID> machineIds);
+
+    /**
+     * Builds the caller of a live machine token, for the token chain. A token outlives the retirement of
+     * its machine only as a row: a machine that is no longer ACTIVE may not record or read anything.
+     *
+     * @param organizationId the organization of the token
+     * @param machineId      the machine the token was issued to
+     * @param tokenId        the token that authenticated the request
+     * @return the principal, or empty when the organization has no such machine or it is not ACTIVE
+     */
+    Optional<MachinePrincipal> findActivePrincipal(UUID organizationId, UUID machineId, UUID tokenId);
 }

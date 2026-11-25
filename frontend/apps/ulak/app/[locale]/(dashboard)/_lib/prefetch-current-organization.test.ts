@@ -9,6 +9,7 @@ import {
   MEMBER_KEYS,
   ORGANIZATION_KEYS,
 } from "@/features/organizations/hooks/query-keys";
+import { AGENT_KEYS } from "@/features/agents/hooks/query-keys";
 
 // The session and the API calls are stand-ins: each call records that it ran and
 // answers with a marker. The query keys are the real ones the client hooks use,
@@ -19,6 +20,7 @@ let failing: Set<string>;
 
 const actualAuth = { ...(await import("@oba/shared/libs/auth")) };
 const actualApi = { ...(await import("@/features/organizations/api")) };
+const actualAgentsApi = { ...(await import("@/features/agents/api")) };
 
 function answer(name: string) {
   return async (organizationId: string) => {
@@ -42,16 +44,22 @@ mock.module("@/features/organizations/api", () => ({
   listMemberAppAccess: answer("memberAccess"),
   listInvitations: answer("invitations"),
 }));
+mock.module("@/features/agents/api", () => ({
+  ...actualAgentsApi,
+  listAgents: answer("agents"),
+}));
 
 afterAll(() => {
   mock.module("@oba/shared/libs/auth", () => actualAuth);
   mock.module("@/features/organizations/api", () => actualApi);
+  mock.module("@/features/agents/api", () => actualAgentsApi);
 });
 
 const { prefetchCurrentOrganization } = await import("./prefetch-current-organization");
 
 /** The keys each section's view reads on mount, besides the organization. */
 const SECTION_KEYS: Record<OrganizationSection, readonly (readonly unknown[])[]> = {
+  agents: [AGENT_KEYS.list("org-1")],
   humans: [MEMBER_KEYS.list("org-1")],
   groups: [GROUP_KEYS.list("org-1")],
   legalEntities: [LEGAL_ENTITY_KEYS.list("org-1")],
@@ -106,6 +114,11 @@ describe("prefetchCurrentOrganization", () => {
   test("the access section asks for the grants and the members' access", async () => {
     await prefetchCurrentOrganization(new QueryClient(), "access");
     expect(calls.sort()).toEqual(["grants:org-1", "memberAccess:org-1", "organization:org-1"]);
+  });
+
+  test("the agents section asks for the organization's agents", async () => {
+    await prefetchCurrentOrganization(new QueryClient(), "agents");
+    expect(calls.sort()).toEqual(["agents:org-1", "organization:org-1"]);
   });
 
   test("fetches nothing without a default organization", async () => {

@@ -9,15 +9,18 @@ import lombok.RequiredArgsConstructor;
 
 // 3. Java SDK
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 // 4. Internal
 import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.shrine.identity.enums.UserKind;
+import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberKindSummaryProjection;
 import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberSummaryProjection;
 import com.korur.oba.shrine.organization.dto.response.OrganizationMemberResponse;
 import com.korur.oba.shrine.organization.entity.OrganizationMember;
@@ -40,18 +43,31 @@ import com.korur.oba.shrine.organization.validator.OrganizationValidator;
 @Transactional(readOnly = true)
 public class OrganizationMemberQueryServiceImpl implements OrganizationMemberQueryService {
 
+    // Members by membership id, so the list keeps the same order on every call.
+    private static final Comparator<OrganizationMember> MEMBER_ID_ORDER =
+            Comparator.comparing(OrganizationMember::getId);
+
     private final OrganizationMemberRepository organizationMemberRepository;
     private final OrganizationMemberMapper organizationMemberMapper;
     private final OrganizationValidator organizationValidator;
 
     @Override
     public List<OrganizationMemberResponse> listOrganizationMembers(User user, UUID organizationId) {
-        // Map each membership to a response DTO.
-        return organizationMemberRepository.findByOrganization_Id(organizationId)
-                .stream()
-                .sorted((a, b) -> a.getId().compareTo(b.getId()))
-                .map(organizationMemberMapper::toResponse)
-                .collect(Collectors.toList());
+        // Agents are listed through the agents of the organization, so the people list leaves them out.
+        List<OrganizationMember> people = new ArrayList<>();
+        for (OrganizationMember member : organizationMemberRepository.findByOrganization_Id(organizationId)) {
+            if (member.getUser().getKind() == UserKind.AGENT) {
+                continue;
+            }
+            people.add(member);
+        }
+        people.sort(MEMBER_ID_ORDER);
+
+        List<OrganizationMemberResponse> responses = new ArrayList<>();
+        for (OrganizationMember member : people) {
+            responses.add(organizationMemberMapper.toResponse(member));
+        }
+        return responses;
     }
 
     @Override
@@ -85,6 +101,12 @@ public class OrganizationMemberQueryServiceImpl implements OrganizationMemberQue
     @Override
     public List<OrganizationMemberSummaryProjection> listActiveMemberSummaries(UUID organizationId,
                                                                                Instant joinedBefore) {
+        return new ArrayList<>(organizationMemberRepository.findActiveMemberSummaries(organizationId, joinedBefore));
+    }
+
+    @Override
+    public List<OrganizationMemberKindSummaryProjection> listActiveMemberKindSummaries(UUID organizationId,
+                                                                                      Instant joinedBefore) {
         return organizationMemberRepository.findActiveMemberSummaries(organizationId, joinedBefore);
     }
 
@@ -107,6 +129,18 @@ public class OrganizationMemberQueryServiceImpl implements OrganizationMemberQue
                 .map(OrganizationMemberRole::name)
                 .toList();
         return new HashSet<>(organizationMemberRepository.findActiveUserIdsByRoles(organizationId, roleNames));
+    }
+
+    @Override
+    public Set<UUID> findActiveHumanUserIdsByRoles(UUID organizationId, Set<OrganizationMemberRole> roles) {
+        if (roles.isEmpty()) {
+            return Set.of();
+        }
+        List<String> roleNames = new ArrayList<>();
+        for (OrganizationMemberRole role : roles) {
+            roleNames.add(role.name());
+        }
+        return new HashSet<>(organizationMemberRepository.findActiveHumanUserIdsByRoles(organizationId, roleNames));
     }
 
     @Override

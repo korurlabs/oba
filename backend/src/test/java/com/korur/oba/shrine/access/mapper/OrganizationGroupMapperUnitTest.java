@@ -22,6 +22,7 @@ import com.korur.oba.shrine.access.entity.OrganizationGroupMember;
 import com.korur.oba.shrine.access.enums.App;
 import com.korur.oba.shrine.access.enums.OrganizationGroupType;
 import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.shrine.identity.enums.UserKind;
 import com.korur.oba.shrine.organization.dto.response.OrganizationMemberResponse;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberStatus;
@@ -129,7 +130,7 @@ class OrganizationGroupMapperUnitTest {
             UUID userId = UUID.randomUUID();
             OrganizationMemberResponse member = new OrganizationMemberResponse(UUID.randomUUID(), userId,
                     "ada@example.com", " Ada ", "Lovelace", OrganizationMemberRole.ADMIN,
-                    OrganizationMemberStatus.ACTIVE);
+                    OrganizationMemberStatus.ACTIVE, UserKind.HUMAN, null, null, null);
 
             OrganizationGroupMemberResponse response = organizationGroupMapper.toMemberResponse(member);
 
@@ -141,7 +142,7 @@ class OrganizationGroupMapperUnitTest {
         @Test
         void toMemberResponse_memberWithoutName_fallsBackToEmail() {
             OrganizationMemberResponse member = new OrganizationMemberResponse(UUID.randomUUID(), UUID.randomUUID(),
-                    "ada@example.com", " ", null, OrganizationMemberRole.MEMBER, OrganizationMemberStatus.ACTIVE);
+                    "ada@example.com", " ", null, OrganizationMemberRole.MEMBER, OrganizationMemberStatus.ACTIVE, UserKind.HUMAN, null, null, null);
 
             assertEquals("ada@example.com", organizationGroupMapper.toMemberResponse(member).fullName());
         }

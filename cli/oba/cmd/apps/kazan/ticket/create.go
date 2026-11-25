@@ -47,7 +47,7 @@ func newCreateCmd() *cobra.Command {
 	f.StringVar(&in.Status, "status", "", "status (required): "+strings.Join(ticket.Statuses, ", "))
 	f.StringVar(&in.MissionRank, "mission-rank", "", "mission rank (required): "+strings.Join(ticket.MissionRanks, ", "))
 	f.StringVar(&in.Description, "description", "", "ticket description")
-	f.StringVar(&in.Assignee, "assignee", "", "assignee emails or user ids (comma separated)")
+	f.StringVar(&in.Assignee, "assignee", "", "assignee emails, user ids or agent names (comma separated)")
 	f.StringVar(&in.Reviewer, "reviewer", "", "reviewer emails or user ids (comma separated)")
 	f.StringVar(&in.Label, "label", "", "label ids (comma separated)")
 	f.StringVar(&in.Project, "project", "", "project id")

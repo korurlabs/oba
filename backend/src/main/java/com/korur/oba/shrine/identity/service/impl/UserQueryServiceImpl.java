@@ -12,6 +12,8 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 
 // 3. Java SDK
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -22,6 +24,7 @@ import com.korur.oba.dojo.exception.internal.business.NotFoundException;
 import com.korur.oba.shrine.identity.dto.UserQueryRequest;
 import com.korur.oba.shrine.identity.dto.response.UserListResponse;
 import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.shrine.identity.enums.UserKind;
 import com.korur.oba.shrine.identity.exception.ExceptionDomainIdentityError;
 import com.korur.oba.shrine.identity.mapper.UserMapper;
 import com.korur.oba.shrine.identity.repository.UserRepository;
@@ -33,6 +36,10 @@ import com.korur.oba.shrine.organization.service.OrganizationMemberQueryService;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UserQueryServiceImpl implements UserQueryService {
+
+    // An agent's name is its first name.
+    private static final Comparator<User> AGENT_NAME_ORDER = Comparator.comparing(
+            (User user) -> user.getProfile().getFirstName(), String.CASE_INSENSITIVE_ORDER);
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
@@ -77,5 +84,23 @@ public class UserQueryServiceImpl implements UserQueryService {
         // reading it again under the lock gives the state the lock now protects.
         entityManager.refresh(user);
         return user;
+    }
+
+    @Override
+    public List<User> getAgentsOfOrganization(UUID organizationId) {
+        List<User> agents = new ArrayList<>(
+                userRepository.findAllByKindAndAgentDetailOrganizationId(UserKind.AGENT, organizationId));
+        agents.sort(AGENT_NAME_ORDER);
+        return agents;
+    }
+
+    @Override
+    public Optional<User> findAgent(UUID organizationId, UUID userId) {
+        return userRepository.findByIdAndKindAndAgentDetailOrganizationId(userId, UserKind.AGENT, organizationId);
+    }
+
+    @Override
+    public boolean existsAgentName(UUID organizationId, String name, UUID excludeUserId) {
+        return userRepository.existsAgentName(organizationId, name, excludeUserId);
     }
 }

@@ -1,6 +1,7 @@
 package com.korur.oba.dojo.security.constant;
 
 // 1. Framework-level
+import org.springframework.http.HttpMethod;
 
 // 2. Third-party
 
@@ -8,6 +9,7 @@ package com.korur.oba.dojo.security.constant;
 import java.util.List;
 
 // 4. Internal
+import com.korur.oba.dojo.security.token.dto.ApiTokenEndpoint;
 
 public class SecurityConstant {
 
@@ -49,6 +51,50 @@ public class SecurityConstant {
         // An author's daily updates span organizations; the service checks any organization it is given
         "/kazan/updates/**"
     };
+
+    // --- Alertmanager webhook chain ---
+    // The webhook runs on its own chain, authenticated by a static bearer token of one organization, not a
+    // JWT. The path lives under /kazan, the app whose boards the alerts become incident tickets on.
+    public static final String ALERTMANAGER_WEBHOOK_PATH_PATTERN = "/kazan/integrations/alertmanager/**";
+    // Granted only to a caller with the configured token, and required by the webhook chain
+    public static final String AUTHORITY_INTEGRATION_ALERTMANAGER = "INTEGRATION_ALERTMANAGER";
+
+    // Paths whose own security chain authenticates the caller with a credential that is neither a JWT
+    // nor an API token, and checks what it may do. Only there does the RequiredUserAccess check let such
+    // an authentication through; anywhere else it is refused.
+    public static final String[] INTEGRATION_CHAIN_PATHS = {
+        ALERTMANAGER_WEBHOOK_PATH_PATTERN
+    };
+
+    // --- API token chain ---
+    public static final String AUTHORIZATION_BEARER_PREFIX = "Bearer ";
+
+    // --- Kaya machine tokens ---
+    // Paths the recorder calls with a machine token to record sessions; the only machine paths open to a
+    // token whose user has no Kaya app
+    public static final String KAYA_MACHINE_TOKEN_INGEST_PATH = "/kaya/ingest/**";
+    // Paths the CLI calls with a machine token to read and change agent config; each needs the Kaya app
+    public static final String KAYA_MACHINE_TOKEN_DELIVERY_PATH = "/kaya/delivery/**";
+    // Paths only a machine token may call; any other credential sent there is refused
+    public static final List<String> KAYA_MACHINE_TOKEN_PATHS = List.of(
+            KAYA_MACHINE_TOKEN_INGEST_PATH,
+            KAYA_MACHINE_TOKEN_DELIVERY_PATH);
+    // Ingest records sessions and serves no config, so it stays open to every live token of an ACTIVE
+    // machine without the membership and app checks
+    public static final List<ApiTokenEndpoint> KAYA_MACHINE_TOKEN_EXEMPT_ENDPOINTS = List.of(
+            new ApiTokenEndpoint(HttpMethod.POST, KAYA_MACHINE_TOKEN_INGEST_PATH));
+    // A batch holds at most 500 events and 50 handoffs, and a delivery proposal may carry one file of
+    // 5 MiB, which is about 7 MB as base64; 8 MiB bounds what one request may make the server buffer
+    // before the token's user is even known to be within the rate limit.
+    public static final int KAYA_MACHINE_TOKEN_MAX_BODY_BYTES = 8 * 1024 * 1024;
+
+    // --- Agent tokens ---
+    // An agent may call every path its membership role and app grants allow, so it reserves none. The
+    // only handler without RequiredUserAccess it may call is reading its own user; changing or deleting
+    // that user stays a person's action.
+    public static final String AGENT_TOKEN_CURRENT_USER_PATH = "/users/me";
+    public static final List<ApiTokenEndpoint> AGENT_TOKEN_EXEMPT_ENDPOINTS = List.of(
+            new ApiTokenEndpoint(HttpMethod.GET, AGENT_TOKEN_CURRENT_USER_PATH));
 
     // Handlers of this package are guarded by the RequiredUserAccess check; framework handlers such
     // as SpringDoc and the error page are not

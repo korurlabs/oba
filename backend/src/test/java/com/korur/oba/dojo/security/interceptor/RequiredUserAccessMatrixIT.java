@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 // 2. Third-party
@@ -21,6 +22,7 @@ import com.jayway.jsonpath.Option;
 // 3. Java SDK
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,6 +34,8 @@ import java.util.regex.Pattern;
 import com.korur.oba.apps.kaya.support.AbstractTenantIT;
 import com.korur.oba.dojo.security.annotation.RequiredUserAccess;
 import com.korur.oba.dojo.security.constant.SecurityConstant;
+import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
+import com.korur.oba.dojo.security.token.service.ApiTokenService;
 import com.korur.oba.shrine.access.enums.App;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.organization.entity.Organization;
@@ -49,6 +53,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * call must answer 403 with the code of the failed step; an allowed call must not be refused by the
  * interceptor. The handlers are read from the running application, so a handler added later joins
  * the matrix without a test change, and a changed annotation value fails here.
+ *
+ * A handler on a path the Kaya machine token reserves takes no JWT, so it is called with a machine
+ * token of the same user in the same organization. A token acts only in its own organization, so the
+ * unknown-organization and path-mismatch cases do not apply to it.
  */
 class RequiredUserAccessMatrixIT extends AbstractTenantIT {
 
@@ -62,12 +70,19 @@ class RequiredUserAccessMatrixIT extends AbstractTenantIT {
      */
     private static final Map<String, App> APP_CHECKED_BY_THE_SERVICE = Map.of(
             "DocumentController#listDocuments", App.OTAK);
+    private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
     private static final Configuration NULL_WHEN_MISSING =
             Configuration.defaultConfiguration().addOptions(Option.DEFAULT_PATH_LEAF_TO_NULL);
 
     @Autowired
     @Qualifier("requestMappingHandlerMapping")
     private RequestMappingHandlerMapping handlerMapping;
+
+    @Autowired
+    private ApiTokenService apiTokenService;
+
+    /** Machine tokens issued in this test, keyed by user id and organization id. */
+    private final Map<String, String> machineTokens = new HashMap<>();
 
     /** One annotated handler: its mapping, required role and a path template. */
     private record Target(HandlerMethod handler, RequestMappingInfo info, OrganizationMemberRole required) {
@@ -79,6 +94,11 @@ class RequiredUserAccessMatrixIT extends AbstractTenantIT {
         HttpMethod method() {
             Set<org.springframework.web.bind.annotation.RequestMethod> methods = info.getMethodsCondition().getMethods();
             return methods.isEmpty() ? HttpMethod.GET : HttpMethod.valueOf(methods.iterator().next().name());
+        }
+
+        boolean takesTheMachineToken() {
+            return SecurityConstant.KAYA_MACHINE_TOKEN_PATHS.stream()
+                    .anyMatch(pattern -> PATH_MATCHER.match(pattern, template()));
         }
 
         boolean namesTheOrganizationInThePath() {
@@ -141,8 +161,12 @@ class RequiredUserAccessMatrixIT extends AbstractTenantIT {
             matcher.appendReplacement(uri, value);
         }
         matcher.appendTail(uri);
-        MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.request(target.method(), uri.toString())
-                .with(jwtOf(caller));
+        MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.request(target.method(), uri.toString());
+        if (target.takesTheMachineToken()) {
+            builder.header("Authorization", "Bearer " + machineTokenOf(caller, organizationId));
+        } else {
+            builder.with(jwtOf(caller));
+        }
         if (headerOrganization != null) {
             builder.header("X-Organization-ID", headerOrganization);
         }
@@ -151,6 +175,20 @@ class RequiredUserAccessMatrixIT extends AbstractTenantIT {
         MediaType contentType = target.info().getConsumesCondition().getConsumableMediaTypes().stream()
                 .findFirst().orElse(MediaType.APPLICATION_JSON);
         return builder.contentType(contentType).content("{}");
+    }
+
+    /**
+     * Registers an ACTIVE machine of the caller in the organization and issues its token, without the
+     * access checks of the machine API, so callers that the matrix expects to be refused hold one too.
+     */
+    private String machineTokenOf(User caller, String organizationId) {
+        return machineTokens.computeIfAbsent(caller.getId() + "/" + organizationId, key -> {
+            UUID machineId = jdbcTemplate.queryForObject(
+                    "INSERT INTO kaya.machines (organization_id, user_id, machine_name) VALUES (?::uuid, ?, ?) RETURNING id",
+                    UUID.class, organizationId, caller.getId(), "matrix-" + uniqueSuffix());
+            return apiTokenService.issue(ApiTokenKind.KAYA_MACHINE, machineId, caller, UUID.fromString(organizationId))
+                    .plaintext();
+        });
     }
 
     private Result call(Target target, Tenant tenant, User caller) throws Exception {
@@ -272,6 +310,9 @@ class RequiredUserAccessMatrixIT extends AbstractTenantIT {
         String unknownOrganizationId = UUID.randomUUID().toString();
 
         for (Target target : annotatedHandlers()) {
+            if (target.takesTheMachineToken()) {
+                continue;
+            }
             Result result = call(target, unknownOrganizationId, tenant.owner().getUser());
             if (!result.is(403, "ORG_SEC_001")) {
                 failures.add("owner of another organization on " + target.label() + " answered " + result);
@@ -324,7 +365,7 @@ class RequiredUserAccessMatrixIT extends AbstractTenantIT {
         int checked = 0;
 
         for (Target target : annotatedHandlers()) {
-            if (!target.namesTheOrganizationInThePath()) {
+            if (!target.namesTheOrganizationInThePath() || target.takesTheMachineToken()) {
                 continue;
             }
             checked++;

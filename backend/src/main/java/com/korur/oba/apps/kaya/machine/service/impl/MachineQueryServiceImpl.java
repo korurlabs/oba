@@ -12,8 +12,10 @@ import lombok.RequiredArgsConstructor;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -23,16 +25,16 @@ import com.korur.oba.dojo.constant.CommonConstant;
 import com.korur.oba.apps.kaya.core.exception.enums.ExceptionDomainKayaError;
 import com.korur.oba.apps.kaya.machine.constant.MachineConstant;
 import com.korur.oba.apps.kaya.machine.constant.service.MachineServiceLogConstant;
+import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
 import com.korur.oba.apps.kaya.machine.dto.request.MachineQueryRequest;
 import com.korur.oba.apps.kaya.machine.dto.response.MachineAccountSummaryResponse;
 import com.korur.oba.apps.kaya.machine.dto.response.MachineResponse;
 import com.korur.oba.apps.kaya.machine.dto.response.MachineUserSummaryResponse;
 import com.korur.oba.apps.kaya.machine.dto.response.embedded.MachineUsageResponse;
 import com.korur.oba.apps.kaya.machine.entity.Machine;
-import com.korur.oba.apps.kaya.machine.entity.MachineToken;
+import com.korur.oba.apps.kaya.machine.enums.MachineStatus;
 import com.korur.oba.apps.kaya.machine.mapper.MachineMapper;
 import com.korur.oba.apps.kaya.machine.repository.MachineRepository;
-import com.korur.oba.apps.kaya.machine.repository.MachineTokenRepository;
 import com.korur.oba.apps.kaya.machine.service.MachineQueryService;
 import com.korur.oba.apps.kaya.machine.service.MachineUsageQueryService;
 import com.korur.oba.apps.kaya.machine.specification.MachineSpecification;
@@ -42,6 +44,9 @@ import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.apps.kaya.session.dto.response.SessionCountSummaryResponse;
 import com.korur.oba.apps.kaya.session.service.SessionCountQueryService;
+import com.korur.oba.dojo.security.token.entity.ApiToken;
+import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
+import com.korur.oba.dojo.security.token.service.ApiTokenQueryService;
 
 @Service
 @RequiredArgsConstructor
@@ -51,7 +56,7 @@ public class MachineQueryServiceImpl implements MachineQueryService {
     private static final LogPrefix LOG_PREFIX = LogPrefix.fromClass(MachineQueryServiceImpl.class);
 
     private final MachineRepository machineRepository;
-    private final MachineTokenRepository machineTokenRepository;
+    private final ApiTokenQueryService apiTokenQueryService;
     private final MachineUsageQueryService machineUsageQueryService;
     private final SessionCountQueryService sessionCountQueryService;
     private final MachineMapper machineMapper;
@@ -71,10 +76,12 @@ public class MachineQueryServiceImpl implements MachineQueryService {
 
         // The live tokens of the whole list come in one query instead of one per machine.
         List<UUID> machineIds = machines.stream().map(Machine::getId).toList();
-        Map<UUID, MachineToken> tokensByMachine = machineIds.isEmpty()
-                ? Map.of()
-                : machineTokenRepository.findByMachine_IdInAndRevokedAtIsNull(machineIds).stream()
-                        .collect(Collectors.toMap(token -> token.getMachine().getId(), Function.identity()));
+        Map<UUID, ApiToken> tokensByMachine = new HashMap<>();
+        if (!machineIds.isEmpty()) {
+            for (ApiToken token : apiTokenQueryService.findLive(ApiTokenKind.KAYA_MACHINE, machineIds)) {
+                tokensByMachine.put(token.getSubjectId(), token);
+            }
+        }
 
         Map<UUID, MachineUsageResponse> usageByMachine = machineUsageQueryService.usageFor(organizationId, machines, Instant.now(clock));
         Map<UUID, SessionCountSummaryResponse> sessionsByMachine = sessionCountQueryService.countByMachines(organizationId, machineIds);
@@ -95,7 +102,12 @@ public class MachineQueryServiceImpl implements MachineQueryService {
             return new NotFoundException(ExceptionDomainKayaError.NOT_RESOURCE_FOUND,
                     Map.of(MachineConstant.FIELD_MACHINE_ID, machineId.toString()));
         });
-        return machineMapper.toResponse(machine, machineTokenRepository.findByMachine_IdAndRevokedAtIsNull(machineId).orElse(null),
+        List<ApiToken> liveTokens = apiTokenQueryService.findLive(ApiTokenKind.KAYA_MACHINE, List.of(machineId));
+        ApiToken liveToken = null;
+        if (!liveTokens.isEmpty()) {
+            liveToken = liveTokens.get(0);
+        }
+        return machineMapper.toResponse(machine, liveToken,
                 machineUsageQueryService.usageFor(machine, Instant.now(clock)),
                 sessionCountQueryService.countByMachines(organizationId, List.of(machineId)).get(machineId));
     }
@@ -128,5 +140,14 @@ public class MachineQueryServiceImpl implements MachineQueryService {
         return machineRepository.findAllById(machineIds).stream()
                 .filter(machine -> machine.getOrganizationId().equals(organizationId))
                 .collect(Collectors.toMap(Machine::getId, Machine::getMachineName));
+    }
+
+    @Override
+    public Optional<MachinePrincipal> findActivePrincipal(UUID organizationId, UUID machineId, UUID tokenId) {
+        Optional<Machine> found = machineRepository.findByIdAndOrganizationId(machineId, organizationId);
+        if (found.isEmpty() || found.get().getStatus() != MachineStatus.ACTIVE) {
+            return Optional.empty();
+        }
+        return Optional.of(machineMapper.toPrincipal(found.get(), tokenId));
     }
 }

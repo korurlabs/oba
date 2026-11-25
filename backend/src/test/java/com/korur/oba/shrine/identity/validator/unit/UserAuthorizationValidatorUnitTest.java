@@ -370,4 +370,65 @@ class UserAuthorizationValidatorUnitTest {
             verify(appAccessQueryService).hasAppAccess(member, App.KAYA);
         }
     }
+
+    @Nested
+    class EnsureUserExistsById {
+
+        @Test
+        void existingUser_returnsIt() {
+            User user = User.builder().id(UUID.randomUUID()).build();
+            when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
+
+            assertSame(user, validator.ensureUserExistsById(user.getId(), PATH));
+        }
+
+        @Test
+        void missingUser_throwsForbidden() {
+            UUID userId = UUID.randomUUID();
+            when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+            ForbiddenException exception = assertThrows(ForbiddenException.class,
+                    () -> validator.ensureUserExistsById(userId, PATH));
+
+            assertEquals("GEN_SEC_002", exception.getErrorCode());
+        }
+    }
+
+    @Nested
+    class EnsureApiTokenOrganizationId {
+
+        private final UUID tokenOrganizationId = UUID.randomUUID();
+
+        @Test
+        void noOrganizationNamed_returnsTheTokensOrganization() {
+            assertEquals(tokenOrganizationId,
+                    validator.ensureApiTokenOrganizationId(null, " ", tokenOrganizationId, PATH));
+        }
+
+        @Test
+        void tokensOrganizationInTheHeader_returnsIt() {
+            assertEquals(tokenOrganizationId, validator.ensureApiTokenOrganizationId(
+                    null, tokenOrganizationId.toString(), tokenOrganizationId, PATH));
+        }
+
+        @Test
+        void anotherOrganizationInThePath_throwsTokenOrganizationMismatch() {
+            UUID other = UUID.randomUUID();
+
+            ForbiddenException exception = assertThrows(ForbiddenException.class,
+                    () -> validator.ensureApiTokenOrganizationId(other.toString(), null, tokenOrganizationId, PATH));
+
+            assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
+            assertEquals("GEN_SEC_005", exception.getErrorCode());
+            assertEquals(other, exception.getErrorValues().get(OrganizationConstant.FIELD_ORGANIZATION_ID));
+        }
+
+        @Test
+        void malformedHeader_throwsBadRequestBeforeTheComparison() {
+            BadRequestException exception = assertThrows(BadRequestException.class,
+                    () -> validator.ensureApiTokenOrganizationId(null, "not-a-uuid", tokenOrganizationId, PATH));
+
+            assertEquals("ORG_API_001", exception.getErrorCode());
+        }
+    }
 }

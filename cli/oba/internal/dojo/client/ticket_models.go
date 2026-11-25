@@ -1,12 +1,14 @@
 package client
 
-// TicketPerson is a person on a ticket: an assignee, a reviewer or its creator.
+// TicketPerson is a user on a ticket: an assignee, a reviewer or its creator. An assignee may be
+// an agent; the API sends the kind fields on assignees only, so they are empty on the others.
 type TicketPerson struct {
 	ID        string `json:"id"`
 	UserID    string `json:"userId"`
 	Email     string `json:"email"`
 	FirstName string `json:"firstName"`
 	LastName  string `json:"lastName"`
+	UserKindFields
 }
 
 // TicketSystemActor is the system actor, such as Alertmanager, that created a ticket without a

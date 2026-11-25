@@ -121,7 +121,7 @@ func Create(c *client.Client, r *Resolver, p PreparedCreate, warn io.Writer) (Cr
 	if err != nil {
 		return Created{}, err
 	}
-	if req.AssigneeIDs, err = peopleIDs(r.Client(), "assignee", p.in.Assignee); err != nil {
+	if req.AssigneeIDs, err = assigneeIDs(r.Client(), boardID, p.in.Assignee); err != nil {
 		return Created{}, err
 	}
 	if req.ReviewerIDs, err = peopleIDs(r.Client(), "reviewer", p.in.Reviewer); err != nil {
@@ -147,7 +147,7 @@ func Create(c *client.Client, r *Resolver, p PreparedCreate, warn io.Writer) (Cr
 	}
 	created, raw, err := c.CreateTicket(boardID, req)
 	if err != nil {
-		return Created{}, fmt.Errorf("failed to create ticket: %w", err)
+		return Created{}, fmt.Errorf("failed to create ticket: %w", explainAgentReviewer(err))
 	}
 	result := Created{Ticket: created, Raw: raw}
 	if len(p.files) == 0 {

@@ -17,6 +17,9 @@ public final class UserExceptionLogConstant {
 
     // --- Organization access refusals of UserAuthorizationValidator; never log the raw header value ---
     public static final String ACCESS_DENIED_NOT_PROVISIONED = "Access denied on {}: no user is provisioned for keycloakId={}";
+    public static final String ACCESS_DENIED_USER_NOT_FOUND = "Access denied on {}: no user {} exists for the API token";
+    public static final String ACCESS_DENIED_TOKEN_ORGANIZATION_MISMATCH =
+            "Access denied on {}: the request names organization {}, the API token acts in {}";
     public static final String ACCESS_DENIED_USER_NOT_ACTIVE = "Access denied on {}: user is not active, userId={}, status={}";
     public static final String ACCESS_DENIED_ORGANIZATION_ID_MISSING = "Access denied on {}: the request names no organization";
     public static final String ACCESS_DENIED_HEADER_INVALID = "Access denied on {}: the X-Organization-ID header is not a UUID";

@@ -68,6 +68,7 @@ import com.korur.oba.apps.kazan.ticket.validator.TicketValidator;
 import com.korur.oba.dojo.exception.internal.business.ValidationException;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.shrine.access.validator.AppAccessValidator;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.identity.service.UserQueryService;
 
@@ -149,6 +150,7 @@ class TicketServiceImplUnitMoveTest {
                 mock(BoardQueryService.class),
                 mock(BoardValidator.class),
                 mock(AppAccessValidator.class),
+                mock(AgentValidator.class),
                 sprintService,
                 sprintValidator,
                 backlogValidator,

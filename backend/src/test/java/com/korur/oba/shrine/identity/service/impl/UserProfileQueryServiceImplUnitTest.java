@@ -32,6 +32,9 @@ import java.util.UUID;
 import com.korur.oba.dojo.exception.internal.auth.ForbiddenException;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.dojo.security.token.authentication.ApiTokenAuthentication;
+import com.korur.oba.dojo.security.token.dto.ApiTokenPrincipal;
+import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
 import com.korur.oba.shrine.access.enums.App;
 import com.korur.oba.shrine.access.service.AppAccessQueryService;
 import com.korur.oba.shrine.identity.dto.response.UserDetailResponse;
@@ -143,5 +146,46 @@ class UserProfileQueryServiceImplUnitTest {
             assertSame(response, result);
             verify(userValidator, never()).ensureKeycloakIdNotDeleted(anyString());
         }
+        @Test
+        void apiTokenCaller_returnsTheTokenUsersProfileWithoutTheKeycloakLookup() {
+            // Arrange
+            UUID userId = UUID.randomUUID();
+            User user = User.builder().id(userId).email(EMAIL).status(UserStatus.ACTIVE).build();
+            SecurityContextHolder.getContext().setAuthentication(new ApiTokenAuthentication(ApiTokenKind.AGENT,
+                    new TokenPrincipal(UUID.randomUUID(), userId, UUID.randomUUID())));
+            List<InvitationResponse> invitations = List.of();
+            Map<UUID, List<App>> apps = Map.of();
+            UserDetailResponse response = mock(UserDetailResponse.class);
+            when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+            when(invitationQueryService.listPendingInvitationsByEmail(EMAIL)).thenReturn(invitations);
+            when(appAccessQueryService.listAccessibleAppsByOrganization(user)).thenReturn(apps);
+            when(userMapper.toDetailResponse(user, invitations, apps)).thenReturn(response);
+
+            // Act
+            UserDetailResponse result = userProfileQueryServiceImpl.getCurrentUser();
+
+            // Assert
+            assertSame(response, result);
+            verify(userRepository, never()).findByKeycloakId(anyString());
+        }
+
+        @Test
+        void apiTokenCallerWhoseUserIsGone_throwsNotFound() {
+            // Arrange
+            UUID userId = UUID.randomUUID();
+            SecurityContextHolder.getContext().setAuthentication(new ApiTokenAuthentication(ApiTokenKind.AGENT,
+                    new TokenPrincipal(UUID.randomUUID(), userId, UUID.randomUUID())));
+            when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+            // Act
+            NotFoundException exception = assertThrows(NotFoundException.class,
+                    () -> userProfileQueryServiceImpl.getCurrentUser());
+
+            // Assert
+            assertEquals(ExceptionDomainIdentityError.NOT_USER_FOUND.getCode(), exception.getErrorCode());
+        }
+    }
+
+    private record TokenPrincipal(UUID tokenId, UUID userId, UUID organizationId) implements ApiTokenPrincipal {
     }
 }

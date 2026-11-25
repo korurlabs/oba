@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { EmptyState } from "@oba/ui/sky/page-states";
-import { PageHeader } from "@/components/layout/page-header";
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
+import { makeQueryClient } from "@oba/shared/providers/query-client";
+import { CurrentOrganizationPage } from "@/features/organizations/components/current-organization-page";
+import { prefetchCurrentOrganization } from "../_lib/prefetch-current-organization";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("sidebar");
@@ -9,17 +11,18 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * Agents: the AI agents of the current organization. Oba has no agent
- * identity yet, so the page shows only its heading and an empty state, and
- * sends no request.
+ * Agents: the AI agents of the current organization, their flows, providers,
+ * tokens and routines. The organization is the one chosen in the header; the
+ * dashboard layout gates auth and the shell's organization gate decides
+ * whether the user manages it.
  */
 export default async function AgentsPage() {
-  const t = await getTranslations("agents");
+  const queryClient = makeQueryClient();
+  await prefetchCurrentOrganization(queryClient, "agents");
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader title={t("title")} description={t("description")} />
-      <EmptyState title={t("emptyTitle")} description={t("emptyDescription")} />
-    </div>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <CurrentOrganizationPage section="agents" />
+    </HydrationBoundary>
   );
 }

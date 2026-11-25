@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 // 3. Java SDK
 import java.time.Clock;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -46,7 +47,8 @@ import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.shrine.access.enums.App;
 import com.korur.oba.shrine.access.service.AppAccessQueryService;
-import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberSummaryProjection;
+import com.korur.oba.shrine.identity.enums.UserKind;
+import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberKindSummaryProjection;
 import com.korur.oba.shrine.organization.service.OrganizationMemberQueryService;
 
 /**
@@ -194,36 +196,47 @@ public class RelationQueryServiceImpl implements RelationQueryService {
      * membership held by an ACTIVE account, of any role, each marked with whether it may
      * open Otak in the organization. A member without Otak is still listed with that mark,
      * so the picker can tell it apart; a relation create or update that names such a member
-     * as owner is refused.
+     * as owner is refused. Agents are left out, because the owner of a relation is a person.
      *
      * Steps: read the members with
-     * {@link OrganizationMemberQueryService#listActiveMemberSummaries}, ask which of them may
-     * open Otak with one call to {@link AppAccessQueryService#findUserIdsWithAppAccess}, map
-     * each with {@link RelationMapper#toOwnerCandidateResponse} and sort by
-     * {@link #CANDIDATE_ORDER}. The number of queries is fixed, whatever the number of members.
+     * {@link OrganizationMemberQueryService#listActiveMemberKindSummaries} and drop the agents,
+     * ask which of the rest may open Otak with one call to
+     * {@link AppAccessQueryService#findUserIdsWithAppAccess}, map each with
+     * {@link RelationMapper#toOwnerCandidateResponse} and sort by {@link #CANDIDATE_ORDER}. The
+     * number of queries is fixed, whatever the number of members.
      *
      * Called by
      * {@link com.korur.oba.apps.otak.relation.controller.RelationController#listRelationOwnerCandidates}.
      *
      * @param organizationId the organization of the request
      * @return the candidates by first name, last name and email; empty when the organization
-     *         has no active member
+     *         has no active person among its members
      */
     @Override
     public List<RelationOwnerCandidateResponse> listOwnerCandidates(UUID organizationId) {
         loggingService.debug(LOG_PREFIX, LogLayer.SERVICE, LISTING_OWNER_CANDIDATES, organizationId);
 
         // Members whose membership already exists now; the clock is injected so tests fix "now".
-        List<OrganizationMemberSummaryProjection> candidates =
-                organizationMemberQueryService.listActiveMemberSummaries(organizationId, Instant.now(clock));
+        List<OrganizationMemberKindSummaryProjection> candidates = new ArrayList<>();
+        List<UUID> candidateIds = new ArrayList<>();
+        for (OrganizationMemberKindSummaryProjection member
+                : organizationMemberQueryService.listActiveMemberKindSummaries(organizationId, Instant.now(clock))) {
+            if (UserKind.AGENT.name().equals(member.getKind())) {
+                continue;
+            }
+            candidates.add(member);
+            candidateIds.add(member.getUserId());
+        }
         // One access read for all candidates instead of one per member.
         Set<UUID> otakUserIds = appAccessQueryService.findUserIdsWithAppAccess(organizationId, App.OTAK,
-                candidates.stream().map(OrganizationMemberSummaryProjection::getUserId).toList());
-        return candidates.stream()
-                .map((OrganizationMemberSummaryProjection candidate) -> relationMapper.toOwnerCandidateResponse(
-                        candidate, otakUserIds.contains(candidate.getUserId())))
-                .sorted(CANDIDATE_ORDER)
-                .toList();
+                candidateIds);
+        List<RelationOwnerCandidateResponse> responses = new ArrayList<>();
+        for (OrganizationMemberKindSummaryProjection candidate : candidates) {
+            responses.add(relationMapper.toOwnerCandidateResponse(candidate,
+                    otakUserIds.contains(candidate.getUserId())));
+        }
+        responses.sort(CANDIDATE_ORDER);
+        return responses;
     }
 
     /**

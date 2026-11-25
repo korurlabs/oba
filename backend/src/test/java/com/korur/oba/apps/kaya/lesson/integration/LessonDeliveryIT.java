@@ -453,10 +453,10 @@ class LessonDeliveryIT extends AbstractLessonIT {
 
             machine(fixture.boMachine().token(), get(DELIVERY).param(REMOTE_URL, fixture.remote()))
                     .andExpect(status().isForbidden())
-                    .andExpect(jsonPath(ERROR_CODE).value("GEN_SEC_002"));
+                    .andExpect(jsonPath(ERROR_CODE).value("ORG_SEC_001"));
             addFromCheckout(fixture.boMachine().token(), checkoutLesson(fixture.remote(), "Refused", false))
                     .andExpect(status().isForbidden())
-                    .andExpect(jsonPath(ERROR_CODE).value("GEN_SEC_002"));
+                    .andExpect(jsonPath(ERROR_CODE).value("ORG_SEC_001"));
             machine(fixture.boMachine().token(), get(DELIVERY + "/search").param(REMOTE_URL, fixture.remote()).param("search", "x"))
                     .andExpect(status().isForbidden());
             machine(fixture.boMachine().token(), get(DELIVERY + "/" + id)).andExpect(status().isForbidden());
@@ -474,18 +474,18 @@ class LessonDeliveryIT extends AbstractLessonIT {
             machine(fixture.boMachine().token(), get(DELIVERY).param(REMOTE_URL, fixture.remote()))
                     .andExpect(status().isForbidden())
                     .andExpect(jsonPath(ERROR_CODE).value("GEN_SEC_002"))
-                    .andExpect(jsonPath("$.error.errorValues.userStatus").value("DISABLED"));
+                    .andExpect(jsonPath("$.error.errorValues.status").value("DISABLED"));
         }
 
         @Test
-        void everyCall_membershipDisabled_answers403KagiSec002() throws Exception {
+        void everyCall_membershipDisabled_answers403NotAMember() throws Exception {
             Fixture fixture = newFixture();
             jdbcTemplate.update("UPDATE shrine.organization_members SET status = 'DISABLED'::shrine_organization_member_status_enum "
                     + "WHERE user_id = ?", fixture.bo().user().getId());
 
             machine(fixture.boMachine().token(), get(DELIVERY).param(REMOTE_URL, fixture.remote()))
                     .andExpect(status().isForbidden())
-                    .andExpect(jsonPath(ERROR_CODE).value("KAY_SEC_002"));
+                    .andExpect(jsonPath(ERROR_CODE).value("ORG_SEC_001"));
         }
     }
 }

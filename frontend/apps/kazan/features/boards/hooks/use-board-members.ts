@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueries, useQueryClient } from "@tanstack/rea
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { isMemberWithoutKazanAccessError } from "@/lib/kazan-member-access";
+import { agentRefusalMessageKey } from "@/lib/agent-member";
 import {
   listBoardMembers,
   listBoardMemberCandidates,
@@ -25,11 +26,14 @@ const KEYS = {
 };
 
 /**
- * The toast text of a failed member write: a member without Kazan access
- * gets the translated reason, any other failure the server's message.
+ * The toast text of a failed member write: a member without Kazan access and
+ * an agent refusal (an agent given a role other than MEMBER) get the
+ * translated reason, any other failure the server's message.
  */
 function boardMemberErrorMessage(error: Error, t: (key: string) => string): string {
-  return isMemberWithoutKazanAccessError(error) ? t("memberAccess.refused") : error.message;
+  if (isMemberWithoutKazanAccessError(error)) return t("memberAccess.refused");
+  const agentRefusalKey = agentRefusalMessageKey(error);
+  return agentRefusalKey ? t(agentRefusalKey) : error.message;
 }
 
 export function useBoardMembers(
@@ -129,7 +133,7 @@ export function useUpdateBoardMember() {
       queryClient.invalidateQueries({ queryKey: KEYS.all });
     },
     onError: (error: Error) => {
-      toast.error(error.message);
+      toast.error(boardMemberErrorMessage(error, t));
     },
   });
 }

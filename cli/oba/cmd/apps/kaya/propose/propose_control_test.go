@@ -161,9 +161,12 @@ func TestPropose_everyRefusalCodeIsExplainedAndKeepsTheCheckout(t *testing.T) {
 		{http.StatusConflict, "KAY_CFG_016", nil, "nothing to propose"},
 		{http.StatusUnprocessableEntity, "KAY_CFG_019", map[string]any{"owners": map[string]any{"o1": []any{"AGENTS.md"}}}, "owner o1: oba kaya propose --reason <why> AGENTS.md"},
 		{http.StatusNotFound, "KAY_NF_001", map[string]any{"repositoryId": "repo-1", "release": 1}, "knows no release 1"},
-		{http.StatusForbidden, "GEN_SEC_002", map[string]any{"organizationId": "org-1"}, "not a member of this organization"},
-		{http.StatusForbidden, "GEN_SEC_002", map[string]any{"userStatus": "DISABLED"}, "is not active (DISABLED)"},
-		{http.StatusForbidden, "KAY_SEC_002", map[string]any{"organizationId": "org-1", "emailDomain": "old.example"}, "email domain of your Kaya user (old.example)"},
+		{http.StatusForbidden, "ORG_SEC_001", map[string]any{"OrganizationId": "org-1"}, "not a member of this organization"},
+		{http.StatusForbidden, "GEN_SEC_002", map[string]any{"status": "DISABLED"}, "is not active (DISABLED)"},
+		{http.StatusForbidden, "ORG_SEC_003", map[string]any{"OrganizationId": "org-1"}, "is a GUEST of this organization"},
+		{http.StatusForbidden, "ORG_SEC_005", map[string]any{"OrganizationId": "org-1"}, "organization is disabled"},
+		{http.StatusForbidden, "GEN_SEC_005", map[string]any{"OrganizationId": "org-2"}, "named another organization (org-2)"},
+		{http.StatusForbidden, "APP_SEC_001", map[string]any{"OrganizationId": "org-1", "App": "KAYA"}, "grant you Kaya in the Ulak web app"},
 		{http.StatusUnauthorized, "KAY_SEC_003", nil, "refused the machine token"},
 	}
 	for _, c := range cases {

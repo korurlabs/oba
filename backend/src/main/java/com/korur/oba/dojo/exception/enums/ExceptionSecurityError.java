@@ -10,7 +10,8 @@ public enum ExceptionSecurityError implements ExceptionError {
     UNAUTHORIZED("GEN_AUT_001", "Authorization failed.", ExceptionCategory.AUT),
     FORBIDDEN("GEN_SEC_002", "Access forbidden.", ExceptionCategory.SEC),
     INCORRECT_ROLE("GEN_SEC_003", "User does not have the required role.", ExceptionCategory.SEC),
-    HANDLER_UNANNOTATED("GEN_SEC_004", "Endpoint declares no access rule.", ExceptionCategory.SEC);
+    HANDLER_UNANNOTATED("GEN_SEC_004", "Endpoint declares no access rule.", ExceptionCategory.SEC),
+    API_TOKEN_ORGANIZATION_MISMATCH("GEN_SEC_005", "The API token may not act in this organization.", ExceptionCategory.SEC);
 
     private final String code;
     private final String message;

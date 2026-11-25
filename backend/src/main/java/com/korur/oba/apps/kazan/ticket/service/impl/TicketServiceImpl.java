@@ -57,6 +57,7 @@ import com.korur.oba.apps.kazan.ticket.entity.TicketAssignee;
 import com.korur.oba.apps.kazan.ticket.entity.TicketLabel;
 import com.korur.oba.apps.kazan.ticket.entity.TicketReviewer;
 import com.korur.oba.apps.kazan.ticket.event.IncidentOpenedEvent;
+import com.korur.oba.apps.kazan.ticket.event.TicketAssigneesAddedEvent;
 import com.korur.oba.apps.kazan.ticket.enums.IncidentOutcome;
 import com.korur.oba.apps.kazan.ticket.enums.MissionRank;
 import com.korur.oba.apps.kazan.ticket.enums.TicketPriority;
@@ -80,6 +81,8 @@ import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.shrine.access.enums.App;
 import com.korur.oba.shrine.access.validator.AppAccessValidator;
+import com.korur.oba.shrine.agent.constant.AgentConstant;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.identity.service.UserQueryService;
 
@@ -107,6 +110,7 @@ public class TicketServiceImpl implements TicketService {
     private final BoardQueryService boardQueryService;
     private final BoardValidator boardValidator;
     private final AppAccessValidator appAccessValidator;
+    private final AgentValidator agentValidator;
     private final SprintService sprintService;
     private final SprintValidator sprintValidator;
     private final BacklogValidator backlogValidator;
@@ -131,6 +135,11 @@ public class TicketServiceImpl implements TicketService {
         // Validate board exists and user has contribute access.
         Board board = boardAccessService.verifyBoardAccess(
                 organizationId, boardId, user.getId(), BoardMemberRole.MEMBER);
+
+        // DONE stays a person's decision, so an agent never creates a closed ticket.
+        if (request.status() == TicketStatus.DONE) {
+            agentValidator.ensureCallerIsNotAgent(user, AgentConstant.ACTION_TICKET_DONE);
+        }
 
         // Auto-generate the ticket key from board prefix + atomic counter.
         long nextNumber = boardRepository.incrementAndGetTicketCounter(boardId);
@@ -237,6 +246,8 @@ public class TicketServiceImpl implements TicketService {
             for (UUID reviewerId : request.reviewerIds()) {
                 boardValidator.ensureUserIsOrganizationMember(organizationId, reviewerId);
             }
+            // An agent reviewer would never review: no run starts for a review yet.
+            agentValidator.ensureNoAgentAmong(request.reviewerIds(), AgentConstant.ACTION_TICKET_REVIEWER);
             appAccessValidator.ensureUsersHaveAppAccess(organizationId, App.KAZAN, request.reviewerIds());
             for (UUID reviewerId : request.reviewerIds()) {
                 User reviewerUser = userQueryService.getUserEntityById(reviewerId);
@@ -255,6 +266,10 @@ public class TicketServiceImpl implements TicketService {
 
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE,
                 TicketServiceLogConstant.TICKET_CREATED, ticket.getId());
+
+        if (request.assigneeIds() != null && !request.assigneeIds().isEmpty()) {
+            publishAssigneesAdded(ticket, organizationId, request.assigneeIds());
+        }
 
         if (isUrgentOpenIncident(ticket.getType(), ticket.getStatus(), ticket.getPriority())) {
             publishIncidentOpened(ticket, organizationId, user.getId());
@@ -279,6 +294,11 @@ public class TicketServiceImpl implements TicketService {
                 ticket.getType(), ticket.getStatus(), ticket.getPriority());
         TicketPriority previousPriority = ticket.getPriority();
         TicketStatus previousStatus = ticket.getStatus();
+
+        // DONE stays a person's decision. A ticket already DONE can still be edited by an agent.
+        if (request.status() == TicketStatus.DONE && previousStatus != TicketStatus.DONE) {
+            agentValidator.ensureCallerIsNotAgent(user, AgentConstant.ACTION_TICKET_DONE);
+        }
 
         ticketMapper.updateEntity(ticket, request);
 
@@ -315,8 +335,8 @@ public class TicketServiceImpl implements TicketService {
             ticket = ticketRepository.saveAndFlush(ticket);
         }
 
+        List<UUID> addedAssigneeIds = new ArrayList<>();
         if (request.assigneeIds() != null) {
-            List<UUID> addedAssigneeIds = new ArrayList<>();
             for (UUID assigneeId : request.assigneeIds()) {
                 if (!currentAssigneeIds.contains(assigneeId)) {
                     boardValidator.ensureUserIsOrganizationMember(organizationId, assigneeId);
@@ -342,6 +362,8 @@ public class TicketServiceImpl implements TicketService {
                     addedReviewerIds.add(reviewerId);
                 }
             }
+            // An agent reviewer would never review: no run starts for a review yet.
+            agentValidator.ensureNoAgentAmong(addedReviewerIds, AgentConstant.ACTION_TICKET_REVIEWER);
             appAccessValidator.ensureUsersHaveAppAccess(organizationId, App.KAZAN, addedReviewerIds);
             for (UUID reviewerId : request.reviewerIds()) {
                 User reviewerUser = userQueryService.getUserEntityById(reviewerId);
@@ -406,6 +428,10 @@ public class TicketServiceImpl implements TicketService {
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE,
                 TicketServiceLogConstant.TICKET_UPDATED, ticket.getId());
 
+        if (!addedAssigneeIds.isEmpty()) {
+            publishAssigneesAdded(ticket, organizationId, addedAssigneeIds);
+        }
+
         // The board members are alerted when the update makes the ticket an urgent open incident
         // (by its type, a raised priority or a reopen) or raises an urgent one from P2 to P1. Any
         // other edit of an incident they were already alerted to stays quiet.
@@ -420,6 +446,9 @@ public class TicketServiceImpl implements TicketService {
     @Override
     @Transactional
     public void deleteTicket(User user, UUID organizationId, UUID boardId, UUID ticketId) {
+        // An agent never removes work, so a steered run cannot erase a ticket.
+        agentValidator.ensureCallerIsNotAgent(user, AgentConstant.ACTION_TICKET_DELETE);
+
         // Validate board exists and user has contribute access.
         boardAccessService.verifyBoardAccess(organizationId, boardId, user.getId(), BoardMemberRole.MEMBER);
 
@@ -597,6 +626,21 @@ public class TicketServiceImpl implements TicketService {
         return type == TicketType.INCIDENT
                 && status != TicketStatus.DONE
                 && (priority == TicketPriority.P1 || priority == TicketPriority.P2);
+    }
+
+    /**
+     * Announces the assignees a change added, so an agent among them starts on the ticket after the
+     * commit. A user named twice is announced once.
+     */
+    private void publishAssigneesAdded(Ticket ticket, UUID organizationId, List<UUID> addedUserIds) {
+        List<UUID> distinctIds = new ArrayList<>();
+        for (UUID userId : addedUserIds) {
+            if (!distinctIds.contains(userId)) {
+                distinctIds.add(userId);
+            }
+        }
+        applicationEventPublisher.publishEvent(new TicketAssigneesAddedEvent(
+                organizationId, ticket.getId(), ticket.getKey(), distinctIds));
     }
 
     /**

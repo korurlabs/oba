@@ -22,6 +22,8 @@ public final class UserServiceLogConstant {
     public static final String USER_UPDATED = "User updated with database ID: {}";
     public static final String USER_DISABLED = "User disabled with database ID: {}";
     public static final String USER_GET_CURRENT_USER_START = "Starting to retrieve current user from JWT";
+    public static final String USER_GET_CURRENT_API_TOKEN_USER_NOT_FOUND =
+            "No user {} for the API token {} of the current request";
     public static final String USER_CREATED_FROM_JWT = "User created from JWT with keycloakId={}";
     public static final String USER_ACTIVATED = "User activated after onboarding with database ID: {}";
     public static final String USER_DEFAULT_ORG_SET = "Default organization set for user: {} to organization: {}";

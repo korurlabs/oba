@@ -54,15 +54,19 @@ import {
   checkAttachmentExists,
 } from "@oba/shared/features/attachments";
 import { useQueryClient } from "@tanstack/react-query";
+import type { UserKindFields } from "@oba/shared/features/users/schema";
 
 // ── Interfaces ────────────────────────────────────────────────────────
 
 /**
  * A board member the assignee and reviewer pickers offer. `kazanAccess` is
  * false for a member who cannot open Kazan in the organization: the server
- * refuses to add them to a ticket, so the pickers show them disabled.
+ * refuses to add them to a ticket, so the pickers show them disabled. The
+ * kind fields mark an agent, which the assignee picker badges and the
+ * reviewer picker leaves out.
  */
-export type TicketPickerUser = TicketUser & { kazanAccess: boolean };
+export type TicketPickerUser = TicketUser &
+  Pick<UserKindFields, "kind" | "agentRole" | "agentProvider"> & { kazanAccess: boolean };
 
 export interface UseTicketFormProps {
   open: boolean;
@@ -620,6 +624,9 @@ export function useTicketForm({
         lastName: m.lastName,
         name: `${m.firstName} ${m.lastName}`,
         kazanAccess: hasKazanAccess(m),
+        kind: m.kind,
+        agentRole: m.agentRole,
+        agentProvider: m.agentProvider,
       })),
     [boardMembersResponse?.data],
   );

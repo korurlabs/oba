@@ -19,8 +19,9 @@ import java.util.UUID;
 // 4. Internal
 import com.korur.oba.dojo.exception.internal.auth.UnauthorizedException;
 import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
-import com.korur.oba.apps.kaya.machine.service.MachineTokenQueryService;
 import com.korur.oba.apps.kaya.support.AbstractTenantIT;
+import com.korur.oba.dojo.security.token.handler.KayaMachineTokenKindHandler;
+import com.korur.oba.dojo.security.token.service.ApiTokenQueryService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -36,7 +37,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class MachineControllerIT extends AbstractTenantIT {
 
     @Autowired
-    private MachineTokenQueryService machineTokenQueryService;
+    private ApiTokenQueryService apiTokenQueryService;
+
+    @Autowired
+    private KayaMachineTokenKindHandler kayaMachineTokenKindHandler;
 
     private MvcResult createMachine(Tenant tenant, Person person, String machineName) throws Exception {
         return mockMvc.perform(in(tenant, post("/kaya/machines"), person.jwt(), "{\"machineName\":\"" + machineName + "\"}"))
@@ -48,10 +52,15 @@ class MachineControllerIT extends AbstractTenantIT {
         return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));
     }
 
+    /**
+     * Authenticates a token as the token chain does: a live token, then an ACTIVE machine.
+     */
+    private MachinePrincipal authenticate(String token) {
+        return (MachinePrincipal) kayaMachineTokenKindHandler.resolvePrincipal(apiTokenQueryService.authenticate(token));
+    }
+
     private void assertTokenRefused(String token) {
-        UnauthorizedException exception = assertThrows(UnauthorizedException.class,
-                () -> machineTokenQueryService.authenticate(token));
-        assertEquals("KAY_SEC_003", exception.getErrorCode());
+        assertThrows(UnauthorizedException.class, () -> authenticate(token));
     }
 
     @Nested
@@ -72,10 +81,10 @@ class MachineControllerIT extends AbstractTenantIT {
             assertEquals(ada.userId(), read(created, "$.data.machine.userId"));
             assertEquals("ACTIVE", read(created, "$.data.machine.status"));
             assertEquals(sha256Hex(token), jdbcTemplate.queryForObject(
-                    "SELECT token_hash FROM kaya.machine_tokens WHERE machine_id = ?::uuid", String.class, machineId));
+                    "SELECT token_hash FROM dojo.api_tokens WHERE subject_id = ?::uuid", String.class, machineId));
             assertEquals(0L, count("""
-                    SELECT count(*) FROM kaya.machine_tokens
-                    WHERE machine_id = ?::uuid AND (token_hash = ? OR token_prefix = ?)
+                    SELECT count(*) FROM dojo.api_tokens
+                    WHERE subject_id = ?::uuid AND (token_hash = ? OR token_prefix = ?)
                     """, machineId, token, token));
             assertEquals(0L, count("""
                     SELECT count(*) FROM kaya.user_audit_entries WHERE user_id = ?::uuid AND details::text LIKE ?
@@ -94,7 +103,7 @@ class MachineControllerIT extends AbstractTenantIT {
 
             MvcResult created = createMachine(tenant, ada, "laptop");
 
-            MachinePrincipal principal = machineTokenQueryService.authenticate(read(created, "$.data.token"));
+            MachinePrincipal principal = authenticate(read(created, "$.data.token"));
             assertEquals(read(created, "$.data.machine.id"), principal.machineId().toString());
             assertEquals(ada.user().getId(), principal.userId());
             assertEquals(tenant.id(), principal.organizationId().toString());
@@ -131,7 +140,7 @@ class MachineControllerIT extends AbstractTenantIT {
                     .andExpect(jsonPath("$.error.errorValues.machineId").value(read(first, "$.data.machine.id")));
 
             assertEquals(1L, count("SELECT count(*) FROM kaya.machines WHERE user_id = ?::uuid", ada.userId()));
-            assertEquals(1L, count("SELECT count(*) FROM kaya.machine_tokens WHERE user_id = ?::uuid", ada.userId()));
+            assertEquals(1L, count("SELECT count(*) FROM dojo.api_tokens WHERE kind = 'KAYA_MACHINE' AND user_id = ?::uuid", ada.userId()));
             assertEquals(1L, auditCount(ada.userId(), "MACHINE_CREATED"));
         }
 
@@ -149,7 +158,7 @@ class MachineControllerIT extends AbstractTenantIT {
             assertEquals(machineId, read(again, "$.data.machine.id"));
             assertEquals("ACTIVE", read(again, "$.data.machine.status"));
             assertNotEquals(read(first, "$.data.token"), read(again, "$.data.token"));
-            assertEquals(machineId, machineTokenQueryService.authenticate(read(again, "$.data.token")).machineId().toString());
+            assertEquals(machineId, authenticate(read(again, "$.data.token")).machineId().toString());
             assertEquals(1L, count("""
                     SELECT count(*) FROM kaya.user_audit_entries
                     WHERE user_id = ?::uuid AND action = 'MACHINE_CREATED' AND details ->> 'reactivated' = 'true'
@@ -246,7 +255,7 @@ class MachineControllerIT extends AbstractTenantIT {
             Tenant tenant = newTenant();
             Person ada = signIn(tenant, "ada");
             MvcResult created = createMachine(tenant, ada, "laptop");
-            jdbcTemplate.update("UPDATE kaya.machine_tokens SET expires_at = now() - interval '1 second' WHERE machine_id = ?::uuid",
+            jdbcTemplate.update("UPDATE dojo.api_tokens SET expires_at = now() - interval '1 second' WHERE subject_id = ?::uuid",
                     read(created, "$.data.machine.id"));
 
             assertTokenRefused(read(created, "$.data.token"));
@@ -284,11 +293,11 @@ class MachineControllerIT extends AbstractTenantIT {
             assertNotEquals(oldToken, newToken);
             assertEquals(newToken.substring(0, 12), read(rotated, "$.data.tokenPrefix"));
             assertTokenRefused(oldToken);
-            assertEquals(machineId, machineTokenQueryService.authenticate(newToken).machineId().toString());
-            assertEquals(1L, count("SELECT count(*) FROM kaya.machine_tokens WHERE machine_id = ?::uuid AND revoked_at IS NULL", machineId));
-            assertEquals(2L, count("SELECT count(*) FROM kaya.machine_tokens WHERE machine_id = ?::uuid", machineId));
+            assertEquals(machineId, authenticate(newToken).machineId().toString());
+            assertEquals(1L, count("SELECT count(*) FROM dojo.api_tokens WHERE subject_id = ?::uuid AND revoked_at IS NULL", machineId));
+            assertEquals(2L, count("SELECT count(*) FROM dojo.api_tokens WHERE subject_id = ?::uuid", machineId));
             assertEquals(sha256Hex(newToken), jdbcTemplate.queryForObject(
-                    "SELECT token_hash FROM kaya.machine_tokens WHERE id = ?::uuid", String.class, read(rotated, "$.data.tokenId")));
+                    "SELECT token_hash FROM dojo.api_tokens WHERE id = ?::uuid", String.class, read(rotated, "$.data.tokenId")));
             assertEquals(1L, count("""
                     SELECT count(*) FROM kaya.user_audit_entries
                     WHERE user_id = ?::uuid AND action = 'TOKEN_ROTATED' AND details ->> 'tokenId' = ?
@@ -327,7 +336,7 @@ class MachineControllerIT extends AbstractTenantIT {
             mockMvc.perform(in(tenant, post("/kaya/machines/" + machineId + "/token"), bob.jwt(), null))
                     .andExpect(status().isForbidden());
 
-            assertEquals(machineId, machineTokenQueryService.authenticate(read(created, "$.data.token")).machineId().toString());
+            assertEquals(machineId, authenticate(read(created, "$.data.token")).machineId().toString());
             assertEquals(0L, auditCount(ada.userId(), "TOKEN_ROTATED"));
         }
 
@@ -393,7 +402,7 @@ class MachineControllerIT extends AbstractTenantIT {
                             jwtOf(tenant.member().getUser()), null))
                     .andExpect(status().isForbidden());
 
-            machineTokenQueryService.authenticate(read(created, "$.data.token"));
+            authenticate(read(created, "$.data.token"));
         }
 
         @Test

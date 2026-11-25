@@ -49,6 +49,7 @@ import com.korur.oba.shrine.access.service.AppAccessRevocationService;
 import com.korur.oba.shrine.access.service.OrganizationGroupQueryService;
 import com.korur.oba.shrine.access.service.OrganizationGroupService;
 import com.korur.oba.shrine.access.validator.OrganizationGroupValidator;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.organization.constant.OrganizationConstant;
 import com.korur.oba.shrine.organization.entity.Organization;
@@ -80,6 +81,7 @@ public class OrganizationGroupServiceImpl implements OrganizationGroupService {
     private final AppAccessQueryService appAccessQueryService;
     private final OrganizationValidator organizationValidator;
     private final OrganizationGroupValidator organizationGroupValidator;
+    private final AgentValidator agentValidator;
     private final AppAccessRevocationService appAccessRevocationService;
     private final AccessHelper accessHelper;
     private final AuditLogMapper auditLogMapper;
@@ -181,11 +183,14 @@ public class OrganizationGroupServiceImpl implements OrganizationGroupService {
         OrganizationGroup group = organizationGroupQueryService.getGroupEntity(organizationId, groupId);
         organizationGroupValidator.ensureCustomGroup(organizationId, group);
 
-        // Every user is checked before any row is written, so one stranger refuses the whole request.
-        List<User> users = new LinkedHashSet<>(request.userIds())
-                .stream()
-                .map(userId -> organizationValidator.ensureMemberExists(organizationId, userId).getUser())
-                .toList();
+        // Every user is checked before any row is written, so one stranger or one agent refuses the whole
+        // request. An agent's app access is set on the agent itself, so a group never carries it.
+        List<User> users = new ArrayList<>();
+        for (UUID userId : new LinkedHashSet<>(request.userIds())) {
+            User user = organizationValidator.ensureMemberExists(organizationId, userId).getUser();
+            agentValidator.ensureTargetIsNotAgent(user, AccessConstant.AGENT_ACTION_GROUP_MEMBER_ADD);
+            users.add(user);
+        }
 
         List<OrganizationGroupMember> newRows = new ArrayList<>();
         for (User user : users) {

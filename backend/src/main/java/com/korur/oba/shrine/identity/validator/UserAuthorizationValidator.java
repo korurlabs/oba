@@ -83,6 +83,58 @@ public class UserAuthorizationValidator {
     }
 
     /**
+     * Ensures the user an API token acts as still exists and returns it. A soft-deleted user is not
+     * found, so a token outliving its user is refused here.
+     *
+     * @param userId      the user id of the token's principal
+     * @param requestPath the request path, for the log line
+     * @return the user
+     * @throws ForbiddenException if no user has this id
+     */
+    public User ensureUserExistsById(UUID userId, String requestPath) {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            loggingService.warn(LOG_PREFIX, LogLayer.VALIDATOR,
+                    UserExceptionLogConstant.ACCESS_DENIED_USER_NOT_FOUND, requestPath, userId);
+            throw new ForbiddenException(ExceptionSecurityError.FORBIDDEN);
+        }
+        return user.get();
+    }
+
+    /**
+     * Ensures the request of an API token acts in the token's organization and returns its id.
+     *
+     * A token belongs to one organization, so a request that names none acts in the token's. One that
+     * names an organization passes {@link #ensureOrganizationIdIsValid} first and must then name the
+     * token's, so a token can never reach another organization's data, not even one its user belongs to.
+     *
+     * @param pathOrganizationId   the raw organizationId path variable, or null when the path has none
+     * @param headerOrganizationId the raw X-Organization-ID header, or null when it was not sent
+     * @param tokenOrganizationId  the organization of the token
+     * @param requestPath          the request path, for the log line
+     * @return the organization id of the request, always the token's
+     * @throws BadRequestException if an id is not a UUID, or the path and the header differ
+     * @throws ForbiddenException  GEN_SEC_005 if the request names another organization than the token's
+     */
+    public UUID ensureApiTokenOrganizationId(String pathOrganizationId, String headerOrganizationId,
+            UUID tokenOrganizationId, String requestPath) {
+        boolean pathPresent = pathOrganizationId != null && !pathOrganizationId.isBlank();
+        boolean headerPresent = headerOrganizationId != null && !headerOrganizationId.isBlank();
+        if (!pathPresent && !headerPresent) {
+            return tokenOrganizationId;
+        }
+        UUID requestedId = ensureOrganizationIdIsValid(pathOrganizationId, headerOrganizationId, requestPath);
+        if (!requestedId.equals(tokenOrganizationId)) {
+            loggingService.warn(LOG_PREFIX, LogLayer.VALIDATOR,
+                    UserExceptionLogConstant.ACCESS_DENIED_TOKEN_ORGANIZATION_MISMATCH,
+                    requestPath, requestedId, tokenOrganizationId);
+            throw new ForbiddenException(ExceptionSecurityError.API_TOKEN_ORGANIZATION_MISMATCH,
+                    Map.of(OrganizationConstant.FIELD_ORGANIZATION_ID, requestedId));
+        }
+        return requestedId;
+    }
+
+    /**
      * Ensures the user is ACTIVE; a disabled or onboarding account has no organization access.
      *
      * @param user        the user of the request

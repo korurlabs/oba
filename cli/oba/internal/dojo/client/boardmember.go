@@ -7,7 +7,8 @@ import (
 )
 
 // BoardMember is one member of a board as GET /kazan/boards/{boardId}/members lists it
-// (BoardMemberResponse). The member calls address a member by UserID.
+// (BoardMemberResponse). The member calls address a member by UserID. A board member is a person
+// or an agent, told apart by Kind; the agent fields are set for an agent only.
 type BoardMember struct {
 	ID        string `json:"id"`
 	UserID    string `json:"userId"`
@@ -16,6 +17,7 @@ type BoardMember struct {
 	LastName  string `json:"lastName"`
 	Role      string `json:"role"`
 	CreatedAt string `json:"createdAt"`
+	UserKindFields
 }
 
 // boardMemberRoleRequest is the BoardMemberUpdateRequest body.

@@ -45,16 +45,8 @@ public final class MachineServiceLogConstant {
     public static final String REVOKING_ALL = "Revoking every token and retiring every machine of user {} in organization {}";
     public static final String ALL_REVOKED = "Revoked {} tokens and retired {} machines of user {} in organization {}";
 
-    // --- Token authentication ---
-    public static final String TOKEN_MALFORMED = "Refused: the presented machine token has not the token format";
-    public static final String TOKEN_UNKNOWN = "Refused: no machine token has the presented hash";
-    public static final String TOKEN_REVOKED_REFUSED = "Refused: machine token {} of machine {} was revoked at {}";
-    public static final String TOKEN_EXPIRED = "Refused: machine token {} of machine {} expired at {}";
-    public static final String TOKEN_MACHINE_RETIRED = "Refused: machine token {} belongs to retired machine {}";
-
     // --- Recorder contact ---
     public static final String MACHINE_SEEN = "Machine {} reported Claude Code {} and account {}";
-    public static final String TOKEN_USED = "Marked machine token {} as used";
     public static final String RECORDING_USAGE = "Recording the usage snapshot of machine {} captured at {} from session {}";
     public static final String USAGE_RECORDED = "Stored the usage snapshot of machine {} captured at {}";
     public static final String USAGE_OLDER_KEPT = "Kept the newer usage snapshot of machine {}; the one captured at {} is older";

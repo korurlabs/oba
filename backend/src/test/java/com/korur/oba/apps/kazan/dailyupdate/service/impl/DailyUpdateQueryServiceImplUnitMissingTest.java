@@ -55,7 +55,7 @@ import com.korur.oba.dojo.time.BusinessCalendar;
 import com.korur.oba.shrine.access.enums.App;
 import com.korur.oba.shrine.access.service.AppAccessQueryService;
 import com.korur.oba.shrine.identity.entity.User;
-import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberSummaryProjection;
+import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberKindSummaryProjection;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 import com.korur.oba.shrine.organization.exception.ExceptionDomainOrganizationError;
 import com.korur.oba.shrine.organization.service.OrganizationAccessService;
@@ -98,8 +98,8 @@ class DailyUpdateQueryServiceImplUnitMissingTest {
     private UUID organizationId;
     private Instant now;
 
-    private record Summary(UUID userId, String email, String firstName, String lastName, String role)
-            implements OrganizationMemberSummaryProjection {
+    private record Summary(UUID userId, String email, String firstName, String lastName, String role, String kind)
+            implements OrganizationMemberKindSummaryProjection {
         @Override
         public UUID getUserId() {
             return userId;
@@ -123,6 +123,26 @@ class DailyUpdateQueryServiceImplUnitMissingTest {
         @Override
         public String getRole() {
             return role;
+        }
+
+        @Override
+        public String getKind() {
+            return kind;
+        }
+
+        @Override
+        public String getAgentRole() {
+            return null;
+        }
+
+        @Override
+        public String getAgentFlow() {
+            return null;
+        }
+
+        @Override
+        public String getAgentProvider() {
+            return null;
         }
     }
 
@@ -178,11 +198,16 @@ class DailyUpdateQueryServiceImplUnitMissingTest {
     }
 
     private static Summary member(String firstName, String lastName, String email, OrganizationMemberRole role) {
-        return new Summary(UUID.randomUUID(), email, firstName, lastName, role.name());
+        return new Summary(UUID.randomUUID(), email, firstName, lastName, role.name(), "HUMAN");
+    }
+
+    private static Summary agent(String firstName, String email) {
+        return new Summary(UUID.randomUUID(), email, firstName, "Agent", OrganizationMemberRole.MEMBER.name(),
+                "AGENT");
     }
 
     private void givenMembers(Summary... members) {
-        when(organizationMemberQueryService.listActiveMemberSummaries(organizationId, DEADLINE))
+        when(organizationMemberQueryService.listActiveMemberKindSummaries(organizationId, DEADLINE))
                 .thenReturn(List.of(members));
     }
 
@@ -206,7 +231,7 @@ class DailyUpdateQueryServiceImplUnitMissingTest {
             order.verify(organizationAccessService)
                     .verifyOrganizationAccess(organizationId, admin.getId(), OrganizationMemberRole.ADMIN,
                             App.KAZAN);
-            order.verify(organizationMemberQueryService).listActiveMemberSummaries(organizationId, DEADLINE);
+            order.verify(organizationMemberQueryService).listActiveMemberKindSummaries(organizationId, DEADLINE);
             order.verify(dailyUpdateRepository)
                     .findFirstPostsByAuthors(anyCollection(), any(Instant.class), any(Instant.class));
         }
@@ -276,7 +301,7 @@ class DailyUpdateQueryServiceImplUnitMissingTest {
             assertThat(response.date()).isEqualTo(FRIDAY);
             assertThat(response.workday()).isTrue();
             assertThat(response.deadline()).isEqualTo(DEADLINE);
-            verify(organizationMemberQueryService).listActiveMemberSummaries(organizationId, DEADLINE);
+            verify(organizationMemberQueryService).listActiveMemberKindSummaries(organizationId, DEADLINE);
         }
 
         @Test
@@ -331,6 +356,26 @@ class DailyUpdateQueryServiceImplUnitMissingTest {
         }
 
         @Test
+        void agent_isNeitherListedNorCountedNorQueried() {
+            Summary regular = member("Mia", "M", "mia@example.com", OrganizationMemberRole.MEMBER);
+            Summary scout = agent("Scout", "scout@agents.oba.invalid");
+            givenMembers(regular, scout);
+            givenFirstPosts();
+
+            DailyUpdateMissingResponse response = service.getMissingDailyUpdates(admin, request(FRIDAY));
+
+            assertThat(response.expectedCount()).isEqualTo(1);
+            assertThat(response.members()).extracting(DailyUpdateMissingMemberResponse::userId)
+                    .containsExactly(regular.userId());
+            @SuppressWarnings("unchecked")
+            ArgumentCaptor<Collection<UUID>> authors = ArgumentCaptor.forClass(Collection.class);
+            verify(dailyUpdateRepository).findFirstPostsByAuthors(authors.capture(), any(Instant.class),
+                    any(Instant.class));
+            assertThat(authors.getValue()).containsExactly(regular.userId());
+            verify(appAccessQueryService, never()).hasAppAccess(organizationId, scout.userId(), App.KAZAN);
+        }
+
+        @Test
         void memberWithoutKazan_isNeitherListedNorCountedNorQueried() {
             Summary owner = member("Olga", "O", "olga@example.com", OrganizationMemberRole.OWNER);
             Summary withoutKazan = member("Nik", "N", "nik@example.com", OrganizationMemberRole.MEMBER);
@@ -373,7 +418,7 @@ class DailyUpdateQueryServiceImplUnitMissingTest {
 
             service.getMissingDailyUpdates(admin, request(FRIDAY));
 
-            verify(organizationMemberQueryService).listActiveMemberSummaries(organizationId, DEADLINE);
+            verify(organizationMemberQueryService).listActiveMemberKindSummaries(organizationId, DEADLINE);
         }
 
         @Test
@@ -525,7 +570,7 @@ class DailyUpdateQueryServiceImplUnitMissingTest {
             verify(organizationAccessService, times(1))
                     .verifyOrganizationAccess(organizationId, admin.getId(), OrganizationMemberRole.ADMIN,
                             App.KAZAN);
-            verify(organizationMemberQueryService, times(1)).listActiveMemberSummaries(organizationId, DEADLINE);
+            verify(organizationMemberQueryService, times(1)).listActiveMemberKindSummaries(organizationId, DEADLINE);
             verify(dailyUpdateRepository, times(1))
                     .findFirstPostsByAuthors(anyCollection(), any(Instant.class), any(Instant.class));
             verify(dailyUpdateRepository, never()).findAll(any(org.springframework.data.jpa.domain.Specification.class),

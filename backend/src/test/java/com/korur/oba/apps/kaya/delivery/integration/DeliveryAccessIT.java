@@ -126,14 +126,14 @@ class DeliveryAccessIT extends AbstractVersionIT {
 
         @Test
         void revokedToken_everyEndpointAnswers401() throws Exception {
-            jdbcTemplate.update("UPDATE kaya.machine_tokens SET revoked_at = now() WHERE machine_id = ?::uuid", machineId);
+            jdbcTemplate.update("UPDATE dojo.api_tokens SET revoked_at = now() WHERE subject_id = ?::uuid", machineId);
 
             assertAllRefused(request -> withToken(request, token));
         }
 
         @Test
         void expiredToken_everyEndpointAnswers401() throws Exception {
-            jdbcTemplate.update("UPDATE kaya.machine_tokens SET expires_at = now() - interval '1 second' WHERE machine_id = ?::uuid",
+            jdbcTemplate.update("UPDATE dojo.api_tokens SET expires_at = now() - interval '1 second' WHERE subject_id = ?::uuid",
                     machineId);
 
             assertAllRefused(request -> withToken(request, token));
@@ -147,19 +147,28 @@ class DeliveryAccessIT extends AbstractVersionIT {
         }
 
         @Test
-        void organizationHeader_isNotNeededAndNotTrusted() throws Exception {
+        void organizationHeader_isNotNeeded() throws Exception {
+            release(pack);
+
+            mockMvc.perform(withToken(get("/kaya/delivery/current").param("remoteUrl", remote), token))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.repositoryId").value(repository.getId().toString()));
+            mockMvc.perform(withToken(get("/kaya/delivery/repositories"), token).header("X-Organization-ID", tenant.id()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.organizationId").value(tenant.id()))
+                    .andExpect(jsonPath("$.data.repositories[0].remoteUrl").value(repository.getRemoteUrl()))
+                    .andExpect(jsonPath("$.data.repositories.length()").value(1));
+        }
+
+        @Test
+        void organizationHeaderOfAnotherOrganization_answers403TokenOrganizationMismatch() throws Exception {
             release(pack);
             String other = tenantlessOrganizationId();
 
             mockMvc.perform(withToken(get("/kaya/delivery/current").param("remoteUrl", remote), token)
                             .header("X-Organization-ID", other))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.repositoryId").value(repository.getId().toString()));
-            mockMvc.perform(withToken(get("/kaya/delivery/repositories"), token).header("X-Organization-ID", other))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data.organizationId").value(tenant.id()))
-                    .andExpect(jsonPath("$.data.repositories[0].remoteUrl").value(repository.getRemoteUrl()))
-                    .andExpect(jsonPath("$.data.repositories.length()").value(1));
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.error.code").value("GEN_SEC_005"));
         }
 
         private String tenantlessOrganizationId() {

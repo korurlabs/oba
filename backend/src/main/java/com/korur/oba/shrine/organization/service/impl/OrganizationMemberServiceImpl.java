@@ -26,8 +26,12 @@ import com.korur.oba.shrine.access.enums.App;
 import com.korur.oba.shrine.access.service.AppAccessQueryService;
 import com.korur.oba.shrine.access.service.AppAccessRevocationService;
 import com.korur.oba.shrine.access.service.AppAccessService;
+import com.korur.oba.shrine.agent.constant.AgentConstant;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
+import com.korur.oba.shrine.identity.constant.UserConstant;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.identity.enums.UserStatus;
+import com.korur.oba.shrine.identity.exception.ExceptionDomainIdentityError;
 import com.korur.oba.shrine.identity.repository.UserRepository;
 import com.korur.oba.shrine.organization.constant.service.OrganizationMemberServiceLogConstant;
 import com.korur.oba.shrine.organization.dto.request.OrganizationMemberRoleUpdateRequest;
@@ -50,6 +54,9 @@ import com.korur.oba.shrine.organization.validator.OrganizationValidator;
  * realtime sessions, is torn down once the change commits. A role change keeps the organization
  * but can take apps away, through the app's minimum role or the owner's grant-free access, so it
  * publishes {@link com.korur.oba.shrine.access.event.AppAccessRevokedEvent} for each app the member lost.
+ *
+ * An agent's membership is managed on the Agents page, so remove, restore, status and role refuse an
+ * agent target, and an agent cannot leave on its own; see {@link AgentValidator}.
  */
 @Service
 @RequiredArgsConstructor
@@ -66,6 +73,7 @@ public class OrganizationMemberServiceImpl implements OrganizationMemberService 
     private final AppAccessRevocationService appAccessRevocationService;
     private final AuditLogMapper auditLogMapper;
     private final AuditService auditService;
+    private final AgentValidator agentValidator;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final LoggingService loggingService;
 
@@ -73,6 +81,7 @@ public class OrganizationMemberServiceImpl implements OrganizationMemberService 
     @Transactional
     public void removeMember(User actor, UUID organizationId, UUID userId) {
         OrganizationMember member = organizationValidator.ensureMemberExists(organizationId, userId);
+        agentValidator.ensureTargetIsNotAgent(member.getUser(), AgentConstant.ACTION_MEMBER_REMOVE);
         OrganizationMember actorMember = organizationValidator.ensureMemberExists(organizationId, actor.getId());
         organizationValidator.ensureAdminCannotModifyOwner(actorMember.getRole(), member);
 
@@ -109,6 +118,17 @@ public class OrganizationMemberServiceImpl implements OrganizationMemberService 
                 .orElseThrow(() -> new NotFoundException(
                         ExceptionDomainOrganizationError.NOT_DELETED_MEMBER_FOUND,
                         Map.of("organizationId", organizationId, "userId", userId)));
+        // The user of a deleted agent is deleted with it and loads as null. Without a user the agent
+        // check cannot see the agent, and the membership would come back active for no one.
+        User memberUser = deletedMember.getUser();
+        if (memberUser == null) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE,
+                    OrganizationMemberServiceLogConstant.ORG_MEMBER_RESTORE_USER_MISSING,
+                    organizationId, userId);
+            throw new NotFoundException(ExceptionDomainIdentityError.NOT_USER_FOUND,
+                    Map.of(UserConstant.FIELD_USER_DATABASE_ID, userId));
+        }
+        agentValidator.ensureTargetIsNotAgent(memberUser, AgentConstant.ACTION_MEMBER_RESTORE);
 
         OrganizationMember actorMember = organizationValidator.ensureMemberExists(organizationId, actor.getId());
         organizationValidator.ensureAdminCannotModifyOwner(actorMember.getRole(), deletedMember);
@@ -130,6 +150,7 @@ public class OrganizationMemberServiceImpl implements OrganizationMemberService 
     @Transactional
     public void updateMemberStatus(User actor, UUID organizationId, UUID userId, OrganizationMemberStatus newStatus) {
         OrganizationMember member = organizationValidator.ensureMemberExists(organizationId, userId);
+        agentValidator.ensureTargetIsNotAgent(member.getUser(), AgentConstant.ACTION_MEMBER_STATUS);
         OrganizationMember actorMember = organizationValidator.ensureMemberExists(organizationId, actor.getId());
         organizationValidator.ensureAdminCannotModifyOwner(actorMember.getRole(), member);
 
@@ -178,6 +199,7 @@ public class OrganizationMemberServiceImpl implements OrganizationMemberService 
     @Override
     @Transactional
     public void leaveOrganization(User user, UUID organizationId) {
+        agentValidator.ensureCallerIsNotAgent(user, AgentConstant.ACTION_ORGANIZATION_LEAVE);
         OrganizationMember member = organizationValidator.ensureMemberExists(organizationId, user.getId());
 
         // Prevent sole owner from leaving.
@@ -216,6 +238,7 @@ public class OrganizationMemberServiceImpl implements OrganizationMemberService 
         organizationValidator.ensureNotSelfRoleUpdate(user.getId(), userId);
 
         OrganizationMember member = organizationValidator.ensureMemberExists(organizationId, userId);
+        agentValidator.ensureTargetIsNotAgent(member.getUser(), AgentConstant.ACTION_MEMBER_ROLE);
         OrganizationMember actorMember = organizationValidator.ensureMemberExists(organizationId, user.getId());
         organizationValidator.ensureAdminCannotModifyOwner(actorMember.getRole(), member);
 

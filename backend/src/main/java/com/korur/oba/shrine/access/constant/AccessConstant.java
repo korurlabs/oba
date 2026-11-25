@@ -40,6 +40,10 @@ public final class AccessConstant {
     // Most users one request may add to a group, so one call cannot load an unbounded member list.
     public static final int MAX_GROUP_MEMBERS_PER_REQUEST = 100;
 
+    // Action named in the AGT_VAL_001 refusal of an agent added to a custom group: an agent's apps are set
+    // on the agent itself, so no group may carry access to it.
+    public static final String AGENT_ACTION_GROUP_MEMBER_ADD = "GROUP_MEMBER_ADD";
+
     // Field key used in error payloads for the app.
     public static final String FIELD_APP = "App";
     // Field key used in error payloads for the group id.

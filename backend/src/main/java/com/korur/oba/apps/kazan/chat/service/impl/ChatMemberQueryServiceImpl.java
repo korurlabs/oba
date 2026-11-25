@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 
 // 3. Java SDK
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -30,6 +31,8 @@ import com.korur.oba.connect.realtime.service.RealtimeSessionRegistry;
 import com.korur.oba.shrine.access.enums.App;
 import com.korur.oba.shrine.access.service.AppAccessQueryService;
 import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.shrine.identity.enums.UserKind;
+import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberKindSummaryProjection;
 import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberSummaryProjection;
 import com.korur.oba.shrine.organization.service.OrganizationMemberQueryService;
 
@@ -39,7 +42,8 @@ import com.korur.oba.shrine.organization.service.OrganizationMemberQueryService;
  * The members come from one projection query of the organization domain,
  * which already keeps only ACTIVE memberships held by ACTIVE accounts, the
  * same set a mention is checked against, so the list never offers a user the
- * server would refuse. Online state is the realtime registry's in-memory
+ * server would refuse. Agents are left out, so the list holds only the
+ * people of the organization. Online state is the realtime registry's in-memory
  * snapshot and costs no query. An organization has few enough members that
  * the search and the ordering run in memory. With a channel the list narrows
  * after the channel check: to the member list of a private channel, or to
@@ -78,19 +82,31 @@ public class ChatMemberQueryServiceImpl implements ChatMemberQueryService {
 
         String needle = normalize(search);
         Set<UUID> online = realtimeSessionRegistry.onlineUserIds(organizationId);
-        List<OrganizationMemberSummaryProjection> members = organizationMemberQueryService
-                .listActiveMemberSummaries(organizationId, Instant.now())
-                .stream()
-                .filter(member -> allowed == null || allowed.contains(member.getUserId()))
-                .filter(member -> needle.isEmpty() || matches(member, needle))
-                .toList();
+        List<OrganizationMemberKindSummaryProjection> members = new ArrayList<>();
+        List<UUID> memberIds = new ArrayList<>();
+        for (OrganizationMemberKindSummaryProjection member
+                : organizationMemberQueryService.listActiveMemberKindSummaries(organizationId, Instant.now())) {
+            if (UserKind.AGENT.name().equals(member.getKind())) {
+                continue;
+            }
+            if (allowed != null && !allowed.contains(member.getUserId())) {
+                continue;
+            }
+            if (!needle.isEmpty() && !matches(member, needle)) {
+                continue;
+            }
+            members.add(member);
+            memberIds.add(member.getUserId());
+        }
         Set<UUID> kazanUserIds = appAccessQueryService.findUserIdsWithAppAccess(organizationId, App.KAZAN,
-                members.stream().map(OrganizationMemberSummaryProjection::getUserId).toList());
-        return members.stream()
-                .map(member -> chatMessageMapper.toMemberResponse(member, online.contains(member.getUserId()),
-                        kazanUserIds.contains(member.getUserId())))
-                .sorted(MEMBER_ORDER)
-                .toList();
+                memberIds);
+        List<ChatMemberResponse> responses = new ArrayList<>();
+        for (OrganizationMemberKindSummaryProjection member : members) {
+            responses.add(chatMessageMapper.toMemberResponse(member, online.contains(member.getUserId()),
+                    kazanUserIds.contains(member.getUserId())));
+        }
+        responses.sort(MEMBER_ORDER);
+        return responses;
     }
 
     /**

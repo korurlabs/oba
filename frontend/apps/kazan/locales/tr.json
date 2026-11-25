@@ -985,6 +985,22 @@
         "dependencyRemoved": "Bağımlılık kaldırıldı"
       }
     },
+    "agents": {
+      "badge": "Ajan",
+      "roles": {
+        "CYBERSECURITY_ENGINEER": "Siber güvenlik mühendisi",
+        "SALES_ENGINEER": "Satış mühendisi"
+      },
+      "memberRoleOnly": "Bir ajan panoya yalnızca Üye rolüyle eklenebilir.",
+      "refusals": {
+        "boardRole": "Bir ajanın panodaki rolü yalnızca Üye olabilir.",
+        "ticketReviewer": "Bir ajan henüz bilet inceleyemez. İnceleyici olarak bir kişi seçin.",
+        "ticketDone": "Bir ajan bileti Tamamlandı durumuna getiremez. Bileti bir kişi kapatır.",
+        "ticketDelete": "Bir ajan bilet silemez.",
+        "targetRefused": "Bu değişiklik bir ajan için geçerli değil. Ajanları Ulak'taki Ajanlar sayfasından yönetin.",
+        "actionRefused": "Bir ajan bunu yapamaz."
+      }
+    },
     "memberAccess": {
       "noAccess": "Kazan erişimi yok",
       "noAccessHint": "Kazan erişimi yok. Kuruluşun sahibi veya yöneticisi Kazan erişimini Ulak'tan verebilir.",

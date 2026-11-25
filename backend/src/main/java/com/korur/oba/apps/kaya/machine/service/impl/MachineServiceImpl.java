@@ -29,6 +29,8 @@ import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.apps.kaya.account.entity.Account;
+import com.korur.oba.shrine.agent.constant.AgentConstant;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.apps.kaya.identity.entity.UserAuditEntry;
 import com.korur.oba.apps.kaya.identity.enums.UserAuditAction;
@@ -47,16 +49,17 @@ import com.korur.oba.apps.kaya.machine.dto.response.MachineCreatedResponse;
 import com.korur.oba.apps.kaya.machine.dto.response.MachineResponse;
 import com.korur.oba.apps.kaya.machine.dto.response.MachineTokenCreatedResponse;
 import com.korur.oba.apps.kaya.machine.entity.Machine;
-import com.korur.oba.apps.kaya.machine.entity.MachineToken;
 import com.korur.oba.apps.kaya.machine.enums.MachineStatus;
-import com.korur.oba.apps.kaya.machine.helper.MachineTokenHelper;
 import com.korur.oba.apps.kaya.machine.mapper.MachineMapper;
 import com.korur.oba.apps.kaya.machine.repository.MachineRepository;
-import com.korur.oba.apps.kaya.machine.repository.MachineTokenRepository;
 import com.korur.oba.apps.kaya.machine.repository.MachineUsageSnapshotRepository;
 import com.korur.oba.apps.kaya.machine.service.MachineQueryService;
 import com.korur.oba.apps.kaya.machine.service.MachineService;
 import com.korur.oba.apps.kaya.machine.service.MachineUsageQueryService;
+import com.korur.oba.dojo.security.token.dto.IssuedApiToken;
+import com.korur.oba.dojo.security.token.entity.ApiToken;
+import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
+import com.korur.oba.dojo.security.token.service.ApiTokenService;
 
 @Service
 @RequiredArgsConstructor
@@ -65,14 +68,14 @@ public class MachineServiceImpl implements MachineService {
     private static final LogPrefix LOG_PREFIX = LogPrefix.fromClass(MachineServiceImpl.class);
 
     private final MachineRepository machineRepository;
-    private final MachineTokenRepository machineTokenRepository;
     private final MachineQueryService machineQueryService;
     private final MachineUsageQueryService machineUsageQueryService;
     private final MachineUsageSnapshotRepository machineUsageSnapshotRepository;
     private final KayaUserQueryService kayaUserQueryService;
     private final UserAuditRecorder userAuditRecorder;
     private final UserAccessHelper userAccessHelper;
-    private final MachineTokenHelper machineTokenHelper;
+    private final ApiTokenService apiTokenService;
+    private final AgentValidator agentValidator;
     private final MachineMapper machineMapper;
     private final Clock clock;
     private final LoggingService loggingService;
@@ -80,12 +83,16 @@ public class MachineServiceImpl implements MachineService {
     @Override
     @Transactional
     public MachineCreatedResponse createMachine(User actor, UUID organizationId, MachineCreateRequest request) {
+        // An agent never mints a credential, and a Kaya machine token is one: an agent may not
+        // register a machine, and no machine is registered for an agent.
+        agentValidator.ensureCallerIsNotAgent(actor, AgentConstant.ACTION_KAYA_MACHINE_CREATE);
         // The user row lock serialises this with a revoke all of the same user, so a machine created
         // at that moment is either retired by it or created after it.
         User user = lockUser(actor, organizationId, request.userId());
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.CREATING_MACHINE,
                 actor.getId(), user.getId(), organizationId);
         userAccessHelper.requireAdminOrSelf(actor, organizationId, user.getId());
+        agentValidator.ensureTargetIsNotAgent(user, AgentConstant.ACTION_KAYA_MACHINE_CREATE);
 
         Optional<Machine> existing = machineRepository.findByOrganizationIdAndUser_IdAndMachineName(
                 organizationId, user.getId(), request.machineName());
@@ -110,14 +117,13 @@ public class MachineServiceImpl implements MachineService {
                     .build());
         }
 
-        Optional<MachineToken> revoked = revokeLiveToken(machine);
-        String plaintext = machineTokenHelper.generate();
-        MachineToken token = insertToken(machine, plaintext);
+        IssuedApiToken issued = issueToken(machine);
+        ApiToken token = issued.token();
 
         Map<String, Object> details = tokenDetails(machine, token);
         details.put(MachineConstant.FIELD_MACHINE_NAME, machine.getMachineName());
         details.put(MachineConstant.FIELD_REACTIVATED, reactivated);
-        revoked.ifPresent(old -> details.put(MachineConstant.FIELD_REVOKED_TOKEN_ID, old.getId().toString()));
+        putRevokedTokenId(details, issued.revokedTokenId());
         recordByUser(organizationId, user, actor, UserAuditAction.MACHINE_CREATED, details);
 
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE,
@@ -126,12 +132,14 @@ public class MachineServiceImpl implements MachineService {
         // A new machine has recorded no session yet.
         MachineResponse response = machineMapper.toResponse(machine, token, machineUsageQueryService.usageFor(machine, Instant.now(clock)),
                 null);
-        return machineMapper.toCreatedResponse(response, plaintext);
+        return machineMapper.toCreatedResponse(response, issued.plaintext());
     }
 
     @Override
     @Transactional
     public MachineTokenCreatedResponse rotateToken(User actor, UUID organizationId, UUID machineId) {
+        // An agent never mints a credential.
+        agentValidator.ensureCallerIsNotAgent(actor, AgentConstant.ACTION_KAYA_TOKEN_ROTATE);
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.ROTATING_TOKEN,
                 actor.getId(), machineId, organizationId);
 
@@ -144,18 +152,17 @@ public class MachineServiceImpl implements MachineService {
                     Map.of(MachineConstant.FIELD_MACHINE_ID, machineId.toString()));
         }
 
-        Optional<MachineToken> revoked = revokeLiveToken(machine);
-        String plaintext = machineTokenHelper.generate();
-        MachineToken token = insertToken(machine, plaintext);
+        IssuedApiToken issued = issueToken(machine);
+        ApiToken token = issued.token();
 
         Map<String, Object> details = tokenDetails(machine, token);
-        revoked.ifPresent(old -> details.put(MachineConstant.FIELD_REVOKED_TOKEN_ID, old.getId().toString()));
+        putRevokedTokenId(details, issued.revokedTokenId());
         recordByUser(organizationId, user, actor,
-                revoked.isPresent() ? UserAuditAction.TOKEN_ROTATED : UserAuditAction.TOKEN_ISSUED, details);
+                issued.revokedTokenId() != null ? UserAuditAction.TOKEN_ROTATED : UserAuditAction.TOKEN_ISSUED, details);
 
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.TOKEN_ROTATED,
-                token.getId(), machineId, organizationId, revoked.map(MachineToken::getId).orElse(null));
-        return machineMapper.toTokenCreatedResponse(token, plaintext);
+                token.getId(), machineId, organizationId, issued.revokedTokenId());
+        return machineMapper.toTokenCreatedResponse(token, issued.plaintext());
     }
 
     @Override
@@ -168,7 +175,7 @@ public class MachineServiceImpl implements MachineService {
         User user = machine.getUser();
         userAccessHelper.requireAdminOrSelf(actor, organizationId, user.getId());
 
-        Optional<MachineToken> revoked = revokeLiveToken(machine);
+        Optional<ApiToken> revoked = apiTokenService.revoke(ApiTokenKind.KAYA_MACHINE, machine.getId());
         if (revoked.isEmpty()) {
             loggingService.info(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.NO_TOKEN_TO_REVOKE, machineId, organizationId);
             return;
@@ -194,16 +201,20 @@ public class MachineServiceImpl implements MachineService {
 
         machine.setStatus(request.status());
         machineRepository.saveAndFlush(machine);
-        Optional<MachineToken> revoked = revokeLiveToken(machine);
+        Optional<ApiToken> revoked = apiTokenService.revoke(ApiTokenKind.KAYA_MACHINE, machine.getId());
+        UUID revokedTokenId = null;
+        if (revoked.isPresent()) {
+            revokedTokenId = revoked.get().getId();
+        }
 
         Map<String, Object> details = new HashMap<>();
         details.put(MachineConstant.FIELD_MACHINE_ID, machineId.toString());
         details.put(MachineConstant.FIELD_MACHINE_NAME, machine.getMachineName());
-        revoked.ifPresent(old -> details.put(MachineConstant.FIELD_REVOKED_TOKEN_ID, old.getId().toString()));
+        putRevokedTokenId(details, revokedTokenId);
         recordByUser(organizationId, user, actor, UserAuditAction.MACHINE_RETIRED, details);
 
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.MACHINE_RETIRED,
-                machineId, organizationId, revoked.map(MachineToken::getId).orElse(null));
+                machineId, organizationId, revokedTokenId);
         return machineQueryService.getMachine(organizationId, machineId);
     }
 
@@ -236,16 +247,6 @@ public class MachineServiceImpl implements MachineService {
         loggingService.debug(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.MACHINE_SEEN,
                 machine.getId(), claudeCodeVersion, account == null ? null : account.getId());
         return machineRepository.saveAndFlush(machine);
-    }
-
-    @Override
-    @Transactional
-    public void markTokenUsed(UUID tokenId) {
-        Instant now = Instant.now(clock);
-        int updated = machineTokenRepository.markUsed(tokenId, now, now.minusSeconds(MachineConstant.SEEN_REFRESH_SECONDS));
-        if (updated > 0) {
-            loggingService.debug(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.TOKEN_USED, tokenId);
-        }
     }
 
     @Override
@@ -331,28 +332,22 @@ public class MachineServiceImpl implements MachineService {
                         MachineConstant.FIELD_USER_ID, user.getId().toString()));
     }
 
-    private Optional<MachineToken> revokeLiveToken(Machine machine) {
-        Optional<MachineToken> live = machineTokenRepository.findByMachine_IdAndRevokedAtIsNull(machine.getId());
-        live.ifPresent(token -> {
-            token.setRevokedAt(Instant.now(clock));
-            // Flushed now, so the partial unique index sees no live token when the next one is inserted.
-            machineTokenRepository.saveAndFlush(token);
-        });
-        return live;
+    /**
+     * Issues the machine's token as its user, valid only in the machine's organization, and revokes the
+     * live one in the same transaction.
+     */
+    private IssuedApiToken issueToken(Machine machine) {
+        return apiTokenService.issue(ApiTokenKind.KAYA_MACHINE, machine.getId(), machine.getUser(),
+                machine.getOrganizationId());
     }
 
-    private MachineToken insertToken(Machine machine, String plaintext) {
-        Instant now = Instant.now(clock);
-        return machineTokenRepository.saveAndFlush(MachineToken.builder()
-                .machine(machine)
-                .user(machine.getUser())
-                .tokenPrefix(machineTokenHelper.displayPrefix(plaintext))
-                .tokenHash(machineTokenHelper.hash(plaintext))
-                .expiresAt(now.plus(Duration.ofDays(MachineConstant.TOKEN_VALIDITY_DAYS)))
-                .build());
+    private static void putRevokedTokenId(Map<String, Object> details, UUID revokedTokenId) {
+        if (revokedTokenId != null) {
+            details.put(MachineConstant.FIELD_REVOKED_TOKEN_ID, revokedTokenId.toString());
+        }
     }
 
-    private Map<String, Object> tokenDetails(Machine machine, MachineToken token) {
+    private Map<String, Object> tokenDetails(Machine machine, ApiToken token) {
         Map<String, Object> details = new HashMap<>();
         details.put(MachineConstant.FIELD_MACHINE_ID, machine.getId().toString());
         details.put(MachineConstant.FIELD_TOKEN_ID, token.getId().toString());

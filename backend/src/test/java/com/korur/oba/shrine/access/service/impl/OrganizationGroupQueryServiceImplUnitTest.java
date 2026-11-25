@@ -17,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -43,6 +44,7 @@ import com.korur.oba.shrine.access.repository.AppGrantRepository;
 import com.korur.oba.shrine.access.repository.OrganizationGroupMemberRepository;
 import com.korur.oba.shrine.access.repository.OrganizationGroupRepository;
 import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.shrine.identity.enums.UserKind;
 import com.korur.oba.shrine.organization.dto.response.OrganizationMemberResponse;
 import com.korur.oba.shrine.organization.entity.Organization;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
@@ -88,7 +90,7 @@ class OrganizationGroupQueryServiceImplUnitTest {
     private static OrganizationMemberResponse memberResponse(UUID userId, String firstName, String email,
                                                              OrganizationMemberRole role,
                                                              OrganizationMemberStatus status) {
-        return new OrganizationMemberResponse(UUID.randomUUID(), userId, email, firstName, "Doe", role, status);
+        return new OrganizationMemberResponse(UUID.randomUUID(), userId, email, firstName, "Doe", role, status, UserKind.HUMAN, null, null, null);
     }
 
     private static User actor() {
@@ -249,19 +251,20 @@ class OrganizationGroupQueryServiceImplUnitTest {
     class FindGroupUserIds {
 
         @Test
-        void everyoneGroup_returnsActiveMembersBelowOwner() {
+        void everyoneGroup_returnsActivePeopleBelowOwnerWithoutAgents() {
             // Arrange
             Organization organization = organization();
             Set<UUID> ids = Set.of(UUID.randomUUID());
             ArgumentCaptor<Set<OrganizationMemberRole>> roles = ArgumentCaptor.forClass(Set.class);
-            when(organizationMemberQueryService.findActiveUserIdsByRoles(any(), anySet())).thenReturn(ids);
+            when(organizationMemberQueryService.findActiveHumanUserIdsByRoles(any(), anySet())).thenReturn(ids);
 
             // Act
             Set<UUID> result = organizationGroupQueryServiceImpl.findGroupUserIds(
                     group(organization, "Everyone", OrganizationGroupType.EVERYONE));
 
             // Assert
-            verify(organizationMemberQueryService).findActiveUserIdsByRoles(any(), roles.capture());
+            verify(organizationMemberQueryService).findActiveHumanUserIdsByRoles(any(), roles.capture());
+            verify(organizationMemberQueryService, never()).findActiveUserIdsByRoles(any(), anySet());
             assertEquals(ids, result);
             assertEquals(Set.of(OrganizationMemberRole.ADMIN, OrganizationMemberRole.MEMBER,
                     OrganizationMemberRole.GUEST), roles.getValue());

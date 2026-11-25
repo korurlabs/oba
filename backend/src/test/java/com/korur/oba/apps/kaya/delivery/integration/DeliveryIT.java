@@ -157,8 +157,8 @@ class DeliveryIT extends AbstractVersionIT {
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.error.code").value("KAY_SEC_003"));
             jdbcTemplate.update("""
-                    UPDATE kaya.machine_tokens SET revoked_at = now()
-                    WHERE machine_id IN (SELECT id FROM kaya.machines WHERE organization_id = ?)
+                    UPDATE dojo.api_tokens SET revoked_at = now()
+                    WHERE subject_id IN (SELECT id FROM kaya.machines WHERE organization_id = ?)
                     """, tenant.organization().getId());
 
             repositories(token)

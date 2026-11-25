@@ -9,7 +9,6 @@ import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 // 3. Java SDK
@@ -23,6 +22,8 @@ import com.korur.oba.shrine.identity.dto.request.UserSelfUpdateRequest;
 import com.korur.oba.shrine.identity.dto.response.UserDetailResponse;
 import com.korur.oba.shrine.identity.dto.response.UserListResponse;
 import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.shrine.identity.enums.AgentRole;
+import com.korur.oba.shrine.identity.enums.UserStatus;
 import com.korur.oba.shrine.invitation.dto.response.InvitationResponse;
 
 @Mapper(componentModel = "spring", uses = {
@@ -39,6 +40,22 @@ public interface UserMapper {
     @Mapping(target = "defaultOrganization", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntity(@MappingTarget User user, UserSelfUpdateRequest request);
+
+    /**
+     * Applies the changed name, role and status of an agent user. A null argument leaves that value
+     * unchanged, and nothing else of the user is touched: flow, provider and organization of an agent
+     * never change.
+     *
+     * @param agent  the agent user, changed in place
+     * @param name   the new name, kept as the profile's first name, or null
+     * @param role   the new role, or null
+     * @param status the new status, or null
+     */
+    @BeanMapping(ignoreByDefault = true, nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "profile.firstName", source = "name")
+    @Mapping(target = "agentDetail.role", source = "role")
+    @Mapping(target = "status", source = "status")
+    void updateAgent(@MappingTarget User agent, String name, AgentRole role, UserStatus status);
 
     @Mapping(source = "profile", target = "profile", qualifiedByName = "toProfileDetail")
     @Mapping(target = "userStatus", source = "status")

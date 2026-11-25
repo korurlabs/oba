@@ -29,7 +29,11 @@ import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.dojo.security.annotation.GetUser;
 import com.korur.oba.dojo.security.constant.SecurityConstant;
+import com.korur.oba.dojo.security.constant.SecurityLogConstant;
+import com.korur.oba.dojo.security.token.authentication.ApiTokenAuthentication;
+import com.korur.oba.dojo.security.token.dto.ApiTokenPrincipal;
 import com.korur.oba.shrine.identity.constant.UserConstant;
+import com.korur.oba.shrine.identity.constant.UserExceptionLogConstant;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.identity.enums.UserStatus;
 import com.korur.oba.shrine.identity.repository.UserRepository;
@@ -137,6 +141,11 @@ public class GetUserArgumentResolver implements HandlerMethodArgumentResolver {
         // Extract authentication from SecurityContext
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
+        // A token caller has no Keycloak subject; the token names its user directly.
+        if (authentication instanceof ApiTokenAuthentication tokenAuthentication) {
+            return resolveApiTokenUser(tokenAuthentication, requireActive, webRequest);
+        }
+
         if (authentication == null || !(authentication instanceof JwtAuthenticationToken)) {
             loggingService.debug(LOG_PREFIX, LogLayer.FILTER,
                     "No valid JWT authentication found in SecurityContext");
@@ -210,6 +219,45 @@ public class GetUserArgumentResolver implements HandlerMethodArgumentResolver {
         loggingService.debug(LOG_PREFIX, LogLayer.FILTER,
                 "User cached in request scope for keycloakId: {}", keycloakId);
 
+        return user;
+    }
+
+    /**
+     * Resolves the user an API token acts as, by the user id of its principal.
+     *
+     * Reached on an endpoint the token kind may call without RequiredUserAccess, such as GET /users/me;
+     * an annotated endpoint has already stored the user on the request.
+     *
+     * @param tokenAuthentication the authentication set by the API token chain
+     * @param requireActive       whether a user that is not ACTIVE is refused
+     * @param webRequest          the request, which caches the user
+     * @return the user
+     * @throws NotFoundException  if the user no longer exists
+     * @throws ForbiddenException if the user is not ACTIVE and requireActive is true
+     */
+    private User resolveApiTokenUser(
+            ApiTokenAuthentication tokenAuthentication, boolean requireActive, NativeWebRequest webRequest) {
+        ApiTokenPrincipal principal = tokenAuthentication.getPrincipal();
+        User user = userRepository.findById(principal.userId())
+                .orElseThrow(() -> {
+                    loggingService.warn(LOG_PREFIX, LogLayer.FILTER, SecurityLogConstant.API_TOKEN_USER_NOT_FOUND,
+                            principal.userId(), tokenAuthentication.getKind(), principal.tokenId());
+                    return new NotFoundException(
+                            ExceptionDomainIdentityError.NOT_USER_FOUND,
+                            Map.of(UserConstant.FIELD_USER_DATABASE_ID, principal.userId()));
+                });
+
+        if (requireActive && user.getStatus() != UserStatus.ACTIVE) {
+            loggingService.warn(LOG_PREFIX, LogLayer.FILTER, UserExceptionLogConstant.USER_STATUS_NOT_ACTIVE,
+                    user.getId());
+            throw new ForbiddenException(
+                    ExceptionSecurityError.FORBIDDEN,
+                    Map.of(UserConstant.FIELD_USER_STATUS, user.getStatus().name()));
+        }
+
+        webRequest.setAttribute(SecurityConstant.REQUEST_ATTRIBUTE_CURRENT_USER, user, RequestAttributes.SCOPE_REQUEST);
+        loggingService.debug(LOG_PREFIX, LogLayer.FILTER, SecurityLogConstant.RESOLVED_API_TOKEN_USER,
+                user.getId(), tokenAuthentication.getKind(), principal.tokenId());
         return user;
     }
 }

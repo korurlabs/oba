@@ -14,12 +14,14 @@ import { InvitationsTab } from "@/features/organizations/components/organization
 import { LegalEntitiesTab } from "@/features/organizations/components/organization-legal-entities-tab";
 import { GroupsTab } from "@/features/organizations/components/organization-groups-tab";
 import { AccessTab } from "@/features/organizations/components/organization-access-tab";
+import { AgentsTab } from "@/features/agents/components/organization-agents-tab";
 import { OrganizationLoadError } from "@/features/organizations/components/organization-load-error";
 import { PageHeader } from "@/components/layout/page-header";
 import { useOrganizationId } from "@/hooks/use-organization-id";
 
 /** The Ulak pages that administer one part of the current organization. */
 export type OrganizationSection =
+  | "agents"
   | "humans"
   | "groups"
   | "legalEntities"
@@ -29,6 +31,7 @@ export type OrganizationSection =
 
 /** Menu label of each section, under the `sidebar` messages. */
 const SECTION_TITLE_KEYS = {
+  agents: "agents",
   humans: "humans",
   groups: "groups",
   legalEntities: "legalEntities",
@@ -41,7 +44,7 @@ const SECTION_TITLE_KEYS = {
  * One section of the organization chosen in the header, under a heading with
  * the page's name and the organization's name.
  *
- * OWNER and ADMIN get edit controls. Groups and Access answer not found to
+ * OWNER and ADMIN get edit controls. Agents, Groups and Access answer not found to
  * anyone else, and Legal entities to a GUEST, because the API lets only those
  * roles read them. The role comes from the current-user ("me") query: while it
  * loads the skeleton shows, and when no user could be loaded an error with a
@@ -90,7 +93,7 @@ export function CurrentOrganizationPage({ section }: { section: OrganizationSect
 
   const isHidden =
     !hasNoUser &&
-    (((section === "groups" || section === "access") && !canEdit) ||
+    (((section === "agents" || section === "groups" || section === "access") && !canEdit) ||
       (section === "legalEntities" && !canReadLegalEntities));
 
   return (
@@ -134,6 +137,8 @@ function SectionBody({
   organization: OrganizationDetail;
 }) {
   switch (section) {
+    case "agents":
+      return <AgentsTab organizationId={organizationId} />;
     case "humans":
       return <MembersTab organizationId={organizationId} canEdit={canEdit} />;
     case "groups":

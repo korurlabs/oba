@@ -55,6 +55,8 @@ import com.korur.oba.dojo.time.BusinessCalendar;
 import com.korur.oba.shrine.access.enums.App;
 import com.korur.oba.shrine.access.service.AppAccessQueryService;
 import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.shrine.identity.enums.UserKind;
+import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberKindSummaryProjection;
 import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberSummaryProjection;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 import com.korur.oba.shrine.organization.service.OrganizationAccessService;
@@ -231,36 +233,46 @@ public class DailyUpdateQueryServiceImpl implements DailyUpdateQueryService {
 
         // Memberships created at or after the deadline are left out, so a
         // member who joins during the day is not counted as late that day.
+        // Agents post no daily updates, so an agent is never expected.
         // A member who cannot open Kazan in the organization is not expected
         // either: the nudge refuses that member, so the report must not list
-        // a member the admin cannot reach. The role filter runs first, so
-        // the access read is made only for members of an expected role.
-        List<OrganizationMemberSummaryProjection> expectedMembers = organizationMemberQueryService
-                .listActiveMemberSummaries(organizationId, day.deadline())
-                .stream()
-                .filter(member -> DailyUpdateConstant.EXPECTED_POSTER_ROLES.contains(
-                        OrganizationMemberRole.valueOf(member.getRole())))
-                .filter(member -> appAccessQueryService.hasAppAccess(organizationId, member.getUserId(),
-                        App.KAZAN))
-                .toList();
+        // a member the admin cannot reach. The kind and role filters run
+        // first, so the access read is made only for people of an expected role.
+        List<OrganizationMemberSummaryProjection> expectedMembers = new ArrayList<>();
+        List<UUID> expectedUserIds = new ArrayList<>();
+        for (OrganizationMemberKindSummaryProjection member
+                : organizationMemberQueryService.listActiveMemberKindSummaries(organizationId, day.deadline())) {
+            if (UserKind.AGENT.name().equals(member.getKind())) {
+                continue;
+            }
+            if (!DailyUpdateConstant.EXPECTED_POSTER_ROLES.contains(OrganizationMemberRole.valueOf(member.getRole()))) {
+                continue;
+            }
+            if (!appAccessQueryService.hasAppAccess(organizationId, member.getUserId(), App.KAZAN)) {
+                continue;
+            }
+            expectedMembers.add(member);
+            expectedUserIds.add(member.getUserId());
+        }
         if (expectedMembers.isEmpty()) {
             return dailyUpdateMapper.toMissingResponse(organizationId, day, 0, List.of());
         }
 
         Map<UUID, Instant> firstPostedAtByAuthor = new HashMap<>();
         List<DailyUpdateFirstPostProjection> firstPosts = dailyUpdateRepository.findFirstPostsByAuthors(
-                expectedMembers.stream().map(OrganizationMemberSummaryProjection::getUserId).toList(),
-                day.dayStart(), day.dayEnd());
+                expectedUserIds, day.dayStart(), day.dayEnd());
         for (DailyUpdateFirstPostProjection firstPost : firstPosts) {
             firstPostedAtByAuthor.put(firstPost.getAuthorId(), firstPost.getFirstPostedAt());
         }
 
-        List<DailyUpdateMissingMemberResponse> members = expectedMembers.stream()
-                .filter(member -> isMissingOrLate(firstPostedAtByAuthor.get(member.getUserId()), day.deadline()))
-                .map(member -> dailyUpdateMapper.toMissingMemberResponse(
-                        member, firstPostedAtByAuthor.get(member.getUserId())))
-                .sorted(MISSING_MEMBER_ORDER)
-                .toList();
+        List<DailyUpdateMissingMemberResponse> members = new ArrayList<>();
+        for (OrganizationMemberSummaryProjection member : expectedMembers) {
+            Instant firstPostedAt = firstPostedAtByAuthor.get(member.getUserId());
+            if (isMissingOrLate(firstPostedAt, day.deadline())) {
+                members.add(dailyUpdateMapper.toMissingMemberResponse(member, firstPostedAt));
+            }
+        }
+        members.sort(MISSING_MEMBER_ORDER);
         return dailyUpdateMapper.toMissingResponse(organizationId, day, expectedMembers.size(), members);
     }
 
