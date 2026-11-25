@@ -1,6 +1,9 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { Bot } from "lucide-react";
+import { useTranslations } from "next-intl";
+import type { AgentRole, UserKind } from "@oba/shared/features/users/schema";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -11,6 +14,9 @@ interface UserAvatarUser {
   email?: string;
   avatar?: string | null;
   image?: string | null;
+  /** An agent shows a bot instead of initials, and its role in the tooltip. */
+  kind?: UserKind | null;
+  agentRole?: AgentRole | null;
 }
 
 interface UserAvatarProps {
@@ -59,6 +65,13 @@ const textClasses = {
   sm: "text-[10px]",
   md: "text-xs",
   lg: "text-sm",
+} as const;
+
+const iconClasses = {
+  xs: "h-3 w-3",
+  sm: "h-3.5 w-3.5",
+  md: "h-4 w-4",
+  lg: "h-5 w-5",
 } as const;
 
 const nameTextClasses = {
@@ -115,25 +128,36 @@ export function UserAvatar({
   nameClassName,
   className,
 }: UserAvatarProps) {
+  const t = useTranslations("kazan.agents");
   const imageUrl = user.avatar ?? user.image ?? null;
+  const isAgent = user.kind === "AGENT";
+  // An agent is marked wherever it is shown, so work assigned to it is never
+  // read as assigned to a colleague.
+  const agentLabel = isAgent
+    ? [t("badge"), user.agentRole ? t(`roles.${user.agentRole}`) : null].filter(Boolean).join(" · ")
+    : null;
 
   const avatar = (
     <Avatar className={cn(sizeClasses[size], "rounded-full")} aria-hidden={showName || undefined}>
-      {imageUrl && <AvatarImage src={imageUrl} />}
+      {imageUrl && !isAgent && <AvatarImage src={imageUrl} />}
       <AvatarFallback
         className={cn(
           "bg-korur-blue-light text-korur-blue-strong rounded-full font-semibold",
+          isAgent && "border-primary/50 border border-dashed",
           textClasses[size]
         )}
       >
-        {getInitials(user)}
+        {isAgent ? <Bot className={iconClasses[size]} aria-hidden /> : getInitials(user)}
       </AvatarFallback>
     </Avatar>
   );
 
   if (showName) {
     return (
-      <span className={cn("inline-flex max-w-full min-w-0 items-center gap-1.5 align-middle", className)}>
+      <span
+        className={cn("inline-flex max-w-full min-w-0 items-center gap-1.5 align-middle", className)}
+        title={agentLabel ?? undefined}
+      >
         {avatar}
         <span className={cn("text-foreground truncate font-medium", nameTextClasses[size], nameClassName)}>
           {name ?? getDisplayName(user)}
@@ -150,6 +174,7 @@ export function UserAvatar({
         </TooltipTrigger>
         <TooltipContent>
           <p>{getDisplayName(user)}</p>
+          {agentLabel && <p className="opacity-80">{agentLabel}</p>}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

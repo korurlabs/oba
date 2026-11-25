@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { organizationRoleSchema } from "@oba/shared/features/users/schema";
+import { organizationRoleSchema, userKindFieldsSchema } from "@oba/shared/features/users/schema";
 import {
   TicketRelocationActionSchema,
   type TicketRelocationAction,
@@ -198,6 +198,8 @@ export const boardMemberResponseSchema = z.object({
   createdAt: z.string(),
   /** True when the member can open Kazan in the board's organization; a missing flag means no access. */
   kazanAccess: z.boolean().optional(),
+  /** A board member may be an agent, which works the tickets assigned to it. */
+  ...userKindFieldsSchema.shape,
 });
 
 /**
@@ -213,6 +215,8 @@ export const boardMemberCandidateResponseSchema = z.object({
   role: organizationRoleSchema,
   /** True when the member can open Kazan in the organization; a missing flag means no access. */
   kazanAccess: z.boolean().optional(),
+  /** Agents are offered too; a board admin adds one with the board role MEMBER only. */
+  ...userKindFieldsSchema.shape,
 });
 
 // ── Inferred Types ──────────────────────────────────────────────────

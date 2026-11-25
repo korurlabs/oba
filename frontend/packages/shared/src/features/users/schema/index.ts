@@ -50,6 +50,32 @@ export const userProfileSchema = z.object({
   userGender: userGenderSchema.nullable(),
 });
 
+/**
+ * Whether a user is a person or an agent. An agent is a user an organization
+ * admin registers in Ulak; it works the tickets it is assigned to.
+ */
+export const userKindSchema = z.enum(["HUMAN", "AGENT"]);
+
+/** The job an agent is registered for. */
+export const agentRoleSchema = z.enum(["CYBERSECURITY_ENGINEER", "SALES_ENGINEER"]);
+
+/** Who runs an agent: a vendor routine Oba fires, or Oba itself through a model API. */
+export const agentFlowSchema = z.enum(["ROUTINE", "API"]);
+
+/** The vendor behind an agent. */
+export const agentProviderSchema = z.enum(["ANTHROPIC", "OPENAI", "XAI", "DEEPSEEK"]);
+
+/**
+ * The kind fields the member, board member, candidate and ticket assignee
+ * responses carry. The three agent fields are null for a person.
+ */
+export const userKindFieldsSchema = z.object({
+  kind: userKindSchema,
+  agentRole: agentRoleSchema.nullable(),
+  agentFlow: agentFlowSchema.nullable(),
+  agentProvider: agentProviderSchema.nullable(),
+});
+
 export const organizationRoleSchema = z.enum(["OWNER", "ADMIN", "MEMBER", "GUEST"]);
 
 export const organizationStatusSchema = z.enum(["ACTIVE", "DISABLED"]);
@@ -148,5 +174,14 @@ export const GrantedApp = grantedAppSchema.enum;
 export type UserOrganization = z.infer<typeof userOrganizationSchema>;
 export type UserUpdate = z.infer<typeof userUpdateSchema>;
 export type UserMe = z.infer<typeof userMeSchema>;
+export type UserKind = z.infer<typeof userKindSchema>;
+export const UserKind = userKindSchema.enum;
+export type AgentRole = z.infer<typeof agentRoleSchema>;
+export const AgentRole = agentRoleSchema.enum;
+export type AgentFlow = z.infer<typeof agentFlowSchema>;
+export const AgentFlow = agentFlowSchema.enum;
+export type AgentProvider = z.infer<typeof agentProviderSchema>;
+export const AgentProvider = agentProviderSchema.enum;
+export type UserKindFields = z.infer<typeof userKindFieldsSchema>;
 export type InvitationStatus = z.infer<typeof invitationStatusSchema>;
 export type InvitationResponse = z.infer<typeof invitationResponseSchema>;

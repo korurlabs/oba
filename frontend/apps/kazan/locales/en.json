@@ -983,6 +983,22 @@
         "dependencyRemoved": "Dependency removed"
       }
     },
+    "agents": {
+      "badge": "Agent",
+      "roles": {
+        "CYBERSECURITY_ENGINEER": "Cybersecurity engineer",
+        "SALES_ENGINEER": "Sales engineer"
+      },
+      "memberRoleOnly": "An agent can only be a board member with the Member role.",
+      "refusals": {
+        "boardRole": "An agent can only have the Member role on a board.",
+        "ticketReviewer": "An agent cannot review tickets yet. Pick a person as reviewer.",
+        "ticketDone": "An agent may not set a ticket to Done. A person closes it.",
+        "ticketDelete": "An agent may not delete a ticket.",
+        "targetRefused": "This change does not apply to an agent. Manage agents on the Agents page in Ulak.",
+        "actionRefused": "An agent may not do this."
+      }
+    },
     "memberAccess": {
       "noAccess": "No Kazan access",
       "noAccessHint": "No Kazan access. An owner or admin can grant Kazan in Ulak.",

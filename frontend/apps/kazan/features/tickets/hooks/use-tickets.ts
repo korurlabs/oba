@@ -27,6 +27,7 @@ import type {
   TicketBulkMoveRequest,
 } from "../schemas";
 import type { TicketFilterParams } from "./use-ticket-filter-params";
+import { agentRefusalMessageKey } from "@/lib/agent-member";
 import { isMemberWithoutKazanAccessError } from "@/lib/kazan-member-access";
 import { isApiError } from "@oba/shared/api/axios";
 import { isMissionRankRejected } from "../lib/ticket-errors";
@@ -125,8 +126,9 @@ export const INCIDENT_CLOSE_REQUIRES_RCA_CODE = "KAZ_VAL_063";
 /**
  * The toast text for a failed ticket write: the translated status rule for
  * {@link TICKET_BACKLOG_STATUS_CODE} and {@link INCIDENT_CLOSE_REQUIRES_RCA_CODE},
- * the translated reason for an assignee or reviewer without Kazan access,
- * else the server message.
+ * the translated reason for an assignee or reviewer without Kazan access
+ * and for an agent refusal (an agent as reviewer, an agent closing or
+ * deleting a ticket), else the server message.
  */
 export function ticketErrorMessage(error: Error, t: (key: string) => string): string {
   if (isApiError(error, TICKET_BACKLOG_STATUS_CODE)) {
@@ -138,6 +140,8 @@ export function ticketErrorMessage(error: Error, t: (key: string) => string): st
   if (isMemberWithoutKazanAccessError(error)) {
     return t("memberAccess.refused");
   }
+  const agentRefusalKey = agentRefusalMessageKey(error);
+  if (agentRefusalKey) return t(agentRefusalKey);
   return error.message;
 }
 
@@ -254,7 +258,7 @@ export function useDeleteTicket(options?: {
       await invalidateRelatedQueries(queryClient, { excludeKeys: [detailKey] });
     },
     onError: (error: Error) => {
-      toast.error(error.message);
+      toast.error(ticketErrorMessage(error, t));
     },
   });
 }

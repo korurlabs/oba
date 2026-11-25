@@ -43,6 +43,8 @@ import {
   parseAttachmentIds,
 } from "@oba/shared/features/attachments";
 import { UserAvatar } from "@/components/ui/user-avatar";
+import { AgentBadge } from "@/components/shared/agent-badge";
+import { isAgent } from "@/lib/agent-member";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SubTicketList } from "./sub-ticket-list";
 import { TicketFormSkeleton } from "./ticket-form-skeleton";
@@ -386,19 +388,27 @@ export function TicketFormFields({
   const assigneeIds = watch("assigneeIds");
   const reviewerIds = watch("reviewerIds");
   const userOptionsFor = useCallback(
-    (selectedIds: string[] | undefined): SelectOption[] => {
+    (users: TicketPickerUser[], selectedIds: string[] | undefined): SelectOption[] => {
       const selected = new Set(selectedIds ?? []);
-      return availableUsers.map((u) => ({
+      return users.map((u) => ({
         value: u.id,
         label: [u.firstName, u.lastName].filter(Boolean).join(" ") || u.email || u.id,
         disabled: !u.kazanAccess && !selected.has(u.id),
         meta: { user: u },
       }));
     },
-    [availableUsers]
+    []
   );
-  const assigneeOptions = useMemo(() => userOptionsFor(assigneeIds), [userOptionsFor, assigneeIds]);
-  const reviewerOptions = useMemo(() => userOptionsFor(reviewerIds), [userOptionsFor, reviewerIds]);
+  const assigneeOptions = useMemo(
+    () => userOptionsFor(availableUsers, assigneeIds),
+    [userOptionsFor, availableUsers, assigneeIds]
+  );
+  // The server refuses an agent as reviewer, so the reviewer picker offers
+  // people only.
+  const reviewerOptions = useMemo(
+    () => userOptionsFor(availableUsers.filter((u) => !isAgent(u)), reviewerIds),
+    [userOptionsFor, availableUsers, reviewerIds]
+  );
 
   const renderUserOption = useCallback(
     (option: SelectOption) => {
@@ -416,6 +426,19 @@ export function TicketFormFields({
           nameClassName="text-inherit text-[length:inherit] font-[weight:inherit]"
         />
       );
+      if (isAgent(user)) {
+        return (
+          <span className="flex min-w-0 items-center gap-2">
+            {avatar}
+            <AgentBadge agentRole={user.agentRole} agentProvider={user.agentProvider} />
+            {!user.kazanAccess && (
+              <span className="text-muted-foreground shrink-0 text-xs" title={t("kazan.memberAccess.noAccessHint")}>
+                ({t("kazan.memberAccess.noAccess")})
+              </span>
+            )}
+          </span>
+        );
+      }
       if (user.kazanAccess) return avatar;
       return (
         <span className="flex min-w-0 items-center gap-2" title={t("kazan.memberAccess.noAccessHint")}>
