@@ -17,13 +17,12 @@ import { Button } from "@oba/ui/sky/button";
 import { SelectField, TextField, type SelectOption } from "@oba/shared/features/form";
 import { isApiError } from "@oba/shared/api/axios";
 import { GrantedAppSchema } from "@oba/shared/features/organizations/schemas";
+import { agentRoleSchema, type AgentProvider } from "@oba/shared/features/users/schema";
 import { useAppName } from "@/features/organizations/components/app-badges";
 import {
   agentFormSchema,
-  AgentRoleSchema,
   type Agent,
   type AgentFormValues,
-  type AgentProvider,
 } from "../schemas";
 import { toAgentCreateRequest, toAgentUpdateRequest } from "../lib/agent-request";
 import { useAgentOptions, useCreateAgent, useUpdateAgent } from "../hooks/use-agents";
@@ -124,7 +123,7 @@ export function AgentFormDialog({
   }, [agent, flowOffers, flow, t]);
 
   const roleOptions = useMemo<SelectOption[]>(
-    () => AgentRoleSchema.options.map((role) => ({ value: role, label: t(`roles.${role}`) })),
+    () => agentRoleSchema.options.map((role) => ({ value: role, label: t(`roles.${role}`) })),
     [t]
   );
 

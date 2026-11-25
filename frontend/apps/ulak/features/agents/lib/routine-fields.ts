@@ -1,4 +1,4 @@
-import type { AgentProvider } from "../schemas";
+import type { AgentProvider } from "@oba/shared/features/users/schema";
 
 /**
  * How a provider names the two values that fire its routine, as message keys

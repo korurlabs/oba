@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { instantSchema } from "@oba/shared/lib/date-schemas";
 import { GrantedAppSchema } from "@oba/shared/features/organizations/schemas";
+import {
+  agentFlowSchema,
+  agentProviderSchema,
+  agentRoleSchema,
+} from "@oba/shared/features/users/schema";
 
 /**
  * Agents: AI agents an organization registers as users of kind AGENT. They
@@ -10,18 +15,7 @@ import { GrantedAppSchema } from "@oba/shared/features/organizations/schemas";
 
 // ── Enum Schemas ────────────────────────────────────────────────────
 
-/** Who runs the agent: the vendor hosts it (ROUTINE) or Oba calls a model itself (API). */
-export const AgentFlowSchema = z.enum(["ROUTINE", "API"]);
-export type AgentFlow = z.infer<typeof AgentFlowSchema>;
-export const AgentFlow = AgentFlowSchema.enum;
-
-export const AgentProviderSchema = z.enum(["ANTHROPIC", "OPENAI", "XAI", "DEEPSEEK"]);
-export type AgentProvider = z.infer<typeof AgentProviderSchema>;
-export const AgentProvider = AgentProviderSchema.enum;
-
-export const AgentRoleSchema = z.enum(["CYBERSECURITY_ENGINEER", "SALES_ENGINEER"]);
-export type AgentRole = z.infer<typeof AgentRoleSchema>;
-export const AgentRole = AgentRoleSchema.enum;
+// Flow, provider and role are the user-level agent enums in the shared users schema.
 
 /** Status of the agent's user. An agent is created ACTIVE; PENDING_ONBOARDING belongs to people. */
 export const AgentStatusSchema = z.enum(["PENDING_ONBOARDING", "ACTIVE", "DISABLED"]);
@@ -51,9 +45,9 @@ export const AGENT_LIMITS = {
 /** Body of POST /organizations/{organizationId}/agents. */
 export const agentCreateRequestSchema = z.object({
   name: z.string(),
-  flow: AgentFlowSchema,
-  provider: AgentProviderSchema,
-  role: AgentRoleSchema,
+  flow: agentFlowSchema,
+  provider: agentProviderSchema,
+  role: agentRoleSchema,
   apps: z.array(GrantedAppSchema),
 });
 
@@ -83,9 +77,9 @@ export const agentFormSchema = (t: (key: string) => string) =>
       .trim()
       .min(1, t("form.nameRequired"))
       .max(AGENT_LIMITS.name, t("form.nameMaxLength")),
-    flow: z.enum(AgentFlowSchema.options, { error: t("form.flowRequired") }),
-    provider: z.enum(AgentProviderSchema.options, { error: t("form.providerRequired") }),
-    role: z.enum(AgentRoleSchema.options, { error: t("form.roleRequired") }),
+    flow: z.enum(agentFlowSchema.options, { error: t("form.flowRequired") }),
+    provider: z.enum(agentProviderSchema.options, { error: t("form.providerRequired") }),
+    role: z.enum(agentRoleSchema.options, { error: t("form.roleRequired") }),
     apps: z.array(z.enum(GrantedAppSchema.options)).min(1, t("form.appsRequired")),
   });
 
@@ -123,9 +117,9 @@ export const agentRoutineFormSchema = (t: (key: string) => string, idPattern: Re
 export const agentSchema = z.object({
   id: z.guid(),
   name: z.string(),
-  flow: AgentFlowSchema,
-  provider: AgentProviderSchema,
-  role: AgentRoleSchema,
+  flow: agentFlowSchema,
+  provider: agentProviderSchema,
+  role: agentRoleSchema,
   apps: z.array(z.string()),
   status: AgentStatusSchema,
   tokenPrefix: z.string().nullable(),
@@ -142,8 +136,8 @@ export const agentSchema = z.object({
 export const agentOptionsSchema = z.object({
   flows: z.array(
     z.object({
-      flow: AgentFlowSchema,
-      providers: z.array(AgentProviderSchema),
+      flow: agentFlowSchema,
+      providers: z.array(agentProviderSchema),
     })
   ),
 });
