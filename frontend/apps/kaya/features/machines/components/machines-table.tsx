@@ -3,20 +3,14 @@
 import Link from "next/link";
 
 import { Badge } from "@oba/ui/sky/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@oba/ui/sky/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@oba/ui/sky/table";
 import { ageText } from "@/lib/format-time";
 
 import type { MachineResponse } from "../schemas";
+import { accountPlanText } from "./machine-account";
 import { MachineActions } from "./machine-actions";
-import { accountSubscriptionText, NOT_REPORTED } from "./machine-text";
-import { MachineUsage } from "./machine-usage";
+import { NOT_REPORTED } from "./machine-text";
+import { MachineUsageCompact } from "./machine-usage";
 
 function Missing() {
   return <span className="text-muted-foreground">{NOT_REPORTED}</span>;
@@ -28,9 +22,11 @@ export type MachinesTableProps = {
 };
 
 /**
- * One row per machine: name, user, Claude Code version, account,
- * subscription, usage, last seen, sessions and status, with the actions the
- * viewer may take. Values the machine never sent read "Not reported".
+ * One row per machine: name with its Claude Code version, user, account with
+ * its subscription, usage, last seen, sessions and status, with the actions
+ * the viewer may take in a row menu. Every cell holds at most two short lines,
+ * so rows keep one height; a long name, email or subscription is cut and shown
+ * whole on hover.
  */
 export function MachinesTable({ machines, now }: MachinesTableProps) {
   return (
@@ -39,39 +35,68 @@ export function MachinesTable({ machines, now }: MachinesTableProps) {
         <TableRow>
           <TableHead>Name</TableHead>
           <TableHead>User</TableHead>
-          <TableHead>Claude Code</TableHead>
           <TableHead>Account</TableHead>
-          <TableHead>Subscription</TableHead>
           <TableHead>Usage</TableHead>
           <TableHead>Last seen</TableHead>
           <TableHead className="text-right">Sessions</TableHead>
           <TableHead>Status</TableHead>
-          <TableHead>
+          <TableHead className="w-10">
             <span className="sr-only">Actions</span>
           </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {machines.map((machine: MachineResponse) => {
-          const subscription = accountSubscriptionText(machine.account);
+          const email = machine.account?.accountEmail;
+          const plan = accountPlanText(machine.account);
           return (
-            <TableRow key={machine.id} className="align-top">
-              <TableCell className="font-medium">
-                <Link href={`/machines/${machine.id}`} className="hover:underline">
-                  {machine.machineName}
-                </Link>
-              </TableCell>
-              <TableCell>{machine.userDisplayName ?? machine.userId}</TableCell>
-              <TableCell>{machine.claudeCodeVersion ?? <Missing />}</TableCell>
-              <TableCell>{machine.account?.accountEmail ?? <Missing />}</TableCell>
-              <TableCell className="whitespace-normal">{subscription ?? <Missing />}</TableCell>
+            <TableRow key={machine.id} className="h-13">
               <TableCell>
-                <MachineUsage usage={machine.usage} now={now} className="w-56" />
+                <div className="flex max-w-56 flex-col">
+                  <Link
+                    href={`/machines/${machine.id}`}
+                    className="truncate font-medium hover:underline"
+                    title={machine.machineName}
+                  >
+                    {machine.machineName}
+                  </Link>
+                  {machine.claudeCodeVersion && (
+                    <span className="text-muted-foreground truncate text-xs">
+                      Claude Code {machine.claudeCodeVersion}
+                    </span>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell className="whitespace-nowrap">
+                {machine.userDisplayName ?? machine.userId}
+              </TableCell>
+              <TableCell>
+                {machine.account ? (
+                  <div className="flex max-w-64 flex-col">
+                    {email ? (
+                      <span className="truncate" title={email}>
+                        {email}
+                      </span>
+                    ) : (
+                      <Missing />
+                    )}
+                    {plan !== null && (
+                      <span className="text-muted-foreground truncate text-xs" title={plan}>
+                        {plan}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <Missing />
+                )}
+              </TableCell>
+              <TableCell>
+                <MachineUsageCompact usage={machine.usage} now={now} />
               </TableCell>
               <TableCell className="whitespace-nowrap">
                 {ageText(machine.lastSeenAt, now)}
               </TableCell>
-              <TableCell className="text-right tabular-nums">
+              <TableCell className="text-right whitespace-nowrap tabular-nums">
                 <Link href={`/?machineId=${machine.id}`} className="hover:underline">
                   {machine.sessionCount}
                 </Link>
@@ -81,8 +106,8 @@ export function MachinesTable({ machines, now }: MachinesTableProps) {
                   {machine.status === "ACTIVE" ? "Active" : "Retired"}
                 </Badge>
               </TableCell>
-              <TableCell>
-                <MachineActions machine={machine} size="xs" />
+              <TableCell className="text-right">
+                <MachineActions machine={machine} layout="menu" />
               </TableCell>
             </TableRow>
           );
