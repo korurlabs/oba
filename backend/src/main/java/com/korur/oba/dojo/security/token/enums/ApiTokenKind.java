@@ -6,7 +6,6 @@ package com.korur.oba.dojo.security.token.enums;
 
 // 3. Java SDK
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.Optional;
 
 // 4. Internal
@@ -53,8 +52,11 @@ public enum ApiTokenKind {
         if (token == null) {
             return Optional.empty();
         }
-        return Arrays.stream(values())
-                .filter(kind -> token.startsWith(kind.prefix))
-                .findFirst();
+        for (ApiTokenKind kind : values()) {
+            if (token.startsWith(kind.prefix)) {
+                return Optional.of(kind);
+            }
+        }
+        return Optional.empty();
     }
 }

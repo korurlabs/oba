@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -75,10 +76,12 @@ public class MachineQueryServiceImpl implements MachineQueryService {
 
         // The live tokens of the whole list come in one query instead of one per machine.
         List<UUID> machineIds = machines.stream().map(Machine::getId).toList();
-        Map<UUID, ApiToken> tokensByMachine = machineIds.isEmpty()
-                ? Map.of()
-                : apiTokenQueryService.findLive(ApiTokenKind.KAYA_MACHINE, machineIds).stream()
-                        .collect(Collectors.toMap(ApiToken::getSubjectId, Function.identity()));
+        Map<UUID, ApiToken> tokensByMachine = new HashMap<>();
+        if (!machineIds.isEmpty()) {
+            for (ApiToken token : apiTokenQueryService.findLive(ApiTokenKind.KAYA_MACHINE, machineIds)) {
+                tokensByMachine.put(token.getSubjectId(), token);
+            }
+        }
 
         Map<UUID, MachineUsageResponse> usageByMachine = machineUsageQueryService.usageFor(organizationId, machines, Instant.now(clock));
         Map<UUID, SessionCountSummaryResponse> sessionsByMachine = sessionCountQueryService.countByMachines(organizationId, machineIds);
@@ -99,7 +102,12 @@ public class MachineQueryServiceImpl implements MachineQueryService {
             return new NotFoundException(ExceptionDomainKayaError.NOT_RESOURCE_FOUND,
                     Map.of(MachineConstant.FIELD_MACHINE_ID, machineId.toString()));
         });
-        return machineMapper.toResponse(machine, apiTokenQueryService.findLive(ApiTokenKind.KAYA_MACHINE, List.of(machineId)).stream().findFirst().orElse(null),
+        List<ApiToken> liveTokens = apiTokenQueryService.findLive(ApiTokenKind.KAYA_MACHINE, List.of(machineId));
+        ApiToken liveToken = null;
+        if (!liveTokens.isEmpty()) {
+            liveToken = liveTokens.get(0);
+        }
+        return machineMapper.toResponse(machine, liveToken,
                 machineUsageQueryService.usageFor(machine, Instant.now(clock)),
                 sessionCountQueryService.countByMachines(organizationId, List.of(machineId)).get(machineId));
     }
@@ -136,8 +144,10 @@ public class MachineQueryServiceImpl implements MachineQueryService {
 
     @Override
     public Optional<MachinePrincipal> findActivePrincipal(UUID organizationId, UUID machineId, UUID tokenId) {
-        return machineRepository.findByIdAndOrganizationId(machineId, organizationId)
-                .filter(machine -> machine.getStatus() == MachineStatus.ACTIVE)
-                .map(machine -> machineMapper.toPrincipal(machine, tokenId));
+        Optional<Machine> found = machineRepository.findByIdAndOrganizationId(machineId, organizationId);
+        if (found.isEmpty() || found.get().getStatus() != MachineStatus.ACTIVE) {
+            return Optional.empty();
+        }
+        return Optional.of(machineMapper.toPrincipal(found.get(), tokenId));
     }
 }

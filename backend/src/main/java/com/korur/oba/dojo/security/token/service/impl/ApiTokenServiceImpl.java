@@ -57,7 +57,10 @@ public class ApiTokenServiceImpl implements ApiTokenService {
                 .expiresAt(now.plus(kind.getValidity()))
                 .build());
 
-        UUID revokedTokenId = revoked.map(ApiToken::getId).orElse(null);
+        UUID revokedTokenId = null;
+        if (revoked.isPresent()) {
+            revokedTokenId = revoked.get().getId();
+        }
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, ApiTokenServiceLogConstant.TOKEN_ISSUED,
                 kind, token.getId(), subjectId, owner.getId(), organizationId, revokedTokenId);
         return new IssuedApiToken(token, plaintext, revokedTokenId);
@@ -100,11 +103,12 @@ public class ApiTokenServiceImpl implements ApiTokenService {
 
     private Optional<ApiToken> revokeLive(ApiTokenKind kind, UUID subjectId, Instant now) {
         Optional<ApiToken> live = apiTokenRepository.findByKindAndSubjectIdAndRevokedAtIsNull(kind, subjectId);
-        live.ifPresent(token -> {
+        if (live.isPresent()) {
+            ApiToken token = live.get();
             token.setRevokedAt(now);
             // Flushed now, so the partial unique index sees no live token when the next one is inserted.
             apiTokenRepository.saveAndFlush(token);
-        });
+        }
         return live;
     }
 }

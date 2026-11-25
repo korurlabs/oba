@@ -15,6 +15,7 @@ import java.util.Optional;
 
 // 4. Internal
 import com.korur.oba.dojo.security.token.constant.ApiTokenConstant;
+import com.korur.oba.dojo.security.token.dto.ApiTokenEndpoint;
 import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
 import com.korur.oba.dojo.security.token.handler.ApiTokenKindHandler;
 
@@ -38,14 +39,15 @@ public class ApiTokenKindRegistry {
      * @throws IllegalStateException when two handlers name the same kind
      */
     public ApiTokenKindRegistry(ObjectProvider<ApiTokenKindHandler> handlerProvider) {
-        handlerProvider.orderedStream().forEach(handler -> {
-            ApiTokenKindHandler previous = handlers.putIfAbsent(handler.kind(), handler);
+        for (ApiTokenKindHandler handler : handlerProvider.orderedStream().toList()) {
+            ApiTokenKindHandler previous = handlers.get(handler.kind());
             if (previous != null) {
                 throw new IllegalStateException(ApiTokenConstant.DUPLICATE_KIND_HANDLER
                         + handler.kind() + ": " + previous.getClass().getName() + ", "
                         + handler.getClass().getName());
             }
-        });
+            handlers.put(handler.kind(), handler);
+        }
     }
 
     /**
@@ -70,7 +72,11 @@ public class ApiTokenKindRegistry {
      * @return the handler, or empty when the value carries no prefix of an accepted kind
      */
     public Optional<ApiTokenKindHandler> findByToken(String bearerToken) {
-        return ApiTokenKind.fromToken(bearerToken).flatMap(this::findByKind);
+        Optional<ApiTokenKind> kind = ApiTokenKind.fromToken(bearerToken);
+        if (kind.isEmpty()) {
+            return Optional.empty();
+        }
+        return findByKind(kind.get());
     }
 
     /**
@@ -80,10 +86,14 @@ public class ApiTokenKindRegistry {
      * @return the handler of the kind, or empty when no kind reserves the path
      */
     public Optional<ApiTokenKindHandler> findByReservedPath(String path) {
-        return handlers.values().stream()
-                .filter(handler -> handler.reservedPaths().stream()
-                        .anyMatch(pattern -> PATH_MATCHER.match(pattern, path)))
-                .findFirst();
+        for (ApiTokenKindHandler handler : handlers.values()) {
+            for (String pattern : handler.reservedPaths()) {
+                if (PATH_MATCHER.match(pattern, path)) {
+                    return Optional.of(handler);
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     /**
@@ -95,10 +105,15 @@ public class ApiTokenKindRegistry {
      * @return true when the kind lists the method and path among its exempt endpoints
      */
     public boolean isExemptEndpoint(ApiTokenKind kind, String method, String path) {
-        return findByKind(kind)
-                .map(handler -> handler.exemptEndpoints().stream()
-                        .anyMatch(endpoint -> endpoint.method().matches(method)
-                                && PATH_MATCHER.match(endpoint.pathPattern(), path)))
-                .orElse(false);
+        ApiTokenKindHandler handler = handlers.get(kind);
+        if (handler == null) {
+            return false;
+        }
+        for (ApiTokenEndpoint endpoint : handler.exemptEndpoints()) {
+            if (endpoint.method().matches(method) && PATH_MATCHER.match(endpoint.pathPattern(), path)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -107,9 +107,11 @@ public class ApiTokenAuthenticationFilter extends OncePerRequestFilter {
         if (tokenHandler.isEmpty()) {
             loggingService.warn(LOG_PREFIX, LogLayer.FILTER, SecurityLogConstant.API_TOKEN_MISSING,
                     request.getMethod(), path);
-            writeError(request, response, HttpStatus.UNAUTHORIZED, pathHandler
-                    .<ExceptionError>map(ApiTokenKindHandler::invalidTokenError)
-                    .orElse(ExceptionSecurityError.UNAUTHORIZED), null);
+            ExceptionError error = ExceptionSecurityError.UNAUTHORIZED;
+            if (pathHandler.isPresent()) {
+                error = pathHandler.get().invalidTokenError();
+            }
+            writeError(request, response, HttpStatus.UNAUTHORIZED, error, null);
             return;
         }
 

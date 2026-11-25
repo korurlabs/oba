@@ -12,6 +12,7 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 
 // 3. Java SDK
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -87,10 +88,10 @@ public class UserQueryServiceImpl implements UserQueryService {
 
     @Override
     public List<User> getAgentsOfOrganization(UUID organizationId) {
-        return userRepository.findAllByKindAndAgentDetailOrganizationId(UserKind.AGENT, organizationId)
-                .stream()
-                .sorted(AGENT_NAME_ORDER)
-                .toList();
+        List<User> agents = new ArrayList<>(
+                userRepository.findAllByKindAndAgentDetailOrganizationId(UserKind.AGENT, organizationId));
+        agents.sort(AGENT_NAME_ORDER);
+        return agents;
     }
 
     @Override

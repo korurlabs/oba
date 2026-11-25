@@ -78,7 +78,12 @@ public class ApiTokenHelper {
                 || token.length() != kind.getPrefix().length() + ApiTokenConstant.TOKEN_BODY_LENGTH) {
             return false;
         }
-        return token.substring(kind.getPrefix().length()).chars().allMatch(ApiTokenHelper::isBase64UrlCharacter);
+        for (int index = kind.getPrefix().length(); index < token.length(); index++) {
+            if (!isBase64UrlCharacter(token.charAt(index))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static boolean isBase64UrlCharacter(int character) {

@@ -202,15 +202,19 @@ public class MachineServiceImpl implements MachineService {
         machine.setStatus(request.status());
         machineRepository.saveAndFlush(machine);
         Optional<ApiToken> revoked = apiTokenService.revoke(ApiTokenKind.KAYA_MACHINE, machine.getId());
+        UUID revokedTokenId = null;
+        if (revoked.isPresent()) {
+            revokedTokenId = revoked.get().getId();
+        }
 
         Map<String, Object> details = new HashMap<>();
         details.put(MachineConstant.FIELD_MACHINE_ID, machineId.toString());
         details.put(MachineConstant.FIELD_MACHINE_NAME, machine.getMachineName());
-        revoked.ifPresent(old -> details.put(MachineConstant.FIELD_REVOKED_TOKEN_ID, old.getId().toString()));
+        putRevokedTokenId(details, revokedTokenId);
         recordByUser(organizationId, user, actor, UserAuditAction.MACHINE_RETIRED, details);
 
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.MACHINE_RETIRED,
-                machineId, organizationId, revoked.map(ApiToken::getId).orElse(null));
+                machineId, organizationId, revokedTokenId);
         return machineQueryService.getMachine(organizationId, machineId);
     }
 

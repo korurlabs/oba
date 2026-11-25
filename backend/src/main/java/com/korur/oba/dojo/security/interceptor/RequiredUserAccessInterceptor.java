@@ -123,8 +123,10 @@ public class RequiredUserAccessInterceptor implements HandlerInterceptor {
         if (jwtAuthentication == null && tokenAuthentication == null) {
             boolean anonymous = authentication == null || authentication instanceof AnonymousAuthenticationToken;
             String[] allowedPaths = anonymous ? SecurityConstant.PUBLIC_PATHS : SecurityConstant.INTEGRATION_CHAIN_PATHS;
-            if (Arrays.stream(allowedPaths).anyMatch(pattern -> PATH_MATCHER.match(pattern, path))) {
-                return true;
+            for (String pattern : allowedPaths) {
+                if (PATH_MATCHER.match(pattern, path)) {
+                    return true;
+                }
             }
             loggingService.error(LOG_PREFIX, LogLayer.HANDLER, SecurityLogConstant.ACCESS_DENIED_AUTHENTICATION_UNSUPPORTED,
                     handlerMethod, path, authentication == null ? null : authentication.getClass().getName());

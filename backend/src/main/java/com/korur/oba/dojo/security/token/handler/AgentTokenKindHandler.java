@@ -86,13 +86,14 @@ public class AgentTokenKindHandler implements ApiTokenKindHandler {
         UUID organizationId = token.getOrganizationId();
         UUID agentId = token.getSubjectId();
 
-        Optional<User> found = token.getUserId().equals(agentId)
-                ? userQueryService.getUserEntitiesByIds(List.of(agentId)).stream().findFirst()
-                : Optional.empty();
+        List<User> found = List.of();
+        if (token.getUserId().equals(agentId)) {
+            found = userQueryService.getUserEntitiesByIds(List.of(agentId));
+        }
         if (found.isEmpty()) {
             throw refuse(token, AgentTokenKindHandlerLogConstant.REASON_USER_MISSING);
         }
-        User agent = found.get();
+        User agent = found.get(0);
         if (agent.getKind() != UserKind.AGENT || agent.getAgentDetail() == null
                 || !organizationId.equals(agent.getAgentDetail().getOrganizationId())) {
             throw refuse(token, AgentTokenKindHandlerLogConstant.REASON_NOT_AGENT);
