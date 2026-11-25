@@ -6,8 +6,21 @@ import { Pencil, Trash2 } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useDateFormat } from "@oba/shared/i18n/use-date-format";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { CheckOutcomeSelect, CheckStatusSelect } from "../components/check-row-selects";
-import type { Check, CheckOutcome, CheckStatus } from "../schemas";
+import {
+  CheckOutcome as CheckOutcomeValue,
+  type Check,
+  type CheckOutcome,
+  type CheckStatus,
+} from "../schemas";
+
+/**
+ * A failed check is the one value a reader must not miss, so its chip takes
+ * the red outline Kazan gives a bug; every other outcome and status stays a
+ * calm neutral chip.
+ */
+const FAIL_CHIP_CLASS = "border-red-600/40 text-red-700 dark:border-red-400/50 dark:text-red-400";
 
 interface CheckColumnsOptions {
   canManage: boolean;
@@ -21,8 +34,8 @@ interface CheckColumnsOptions {
 
 /**
  * Columns of the check list. Outcome and status are selects for an
- * organization admin and plain labels for every other reader, who may not
- * change them.
+ * organization admin and read-only chips for every other reader, who may not
+ * change them. Figures and dates are set in mono, as on Kazan's other lists.
  */
 export function useCheckColumns({
   canManage,
@@ -68,7 +81,7 @@ export function useCheckColumns({
         accessorKey: "weight",
         header: t("checks.columns.weight"),
         cell: ({ row }) => (
-          <span className="text-foreground text-sm tabular-nums">{row.original.weight}</span>
+          <span className="kazan-grid-number h-5 w-auto min-w-5 px-1">{row.original.weight}</span>
         ),
       },
       {
@@ -84,7 +97,12 @@ export function useCheckColumns({
               onChange={(outcome) => onOutcomeChange(row.original, outcome)}
             />
           ) : (
-            <span className="text-foreground text-sm whitespace-nowrap">
+            <span
+              className={cn(
+                "kazan-grid-chip",
+                row.original.outcome === CheckOutcomeValue.FAIL && FAIL_CHIP_CLASS
+              )}
+            >
               {t(`outcomes.${row.original.outcome}`)}
             </span>
           ),
@@ -102,9 +120,7 @@ export function useCheckColumns({
               onChange={(status) => onStatusChange(row.original, status)}
             />
           ) : (
-            <span className="text-foreground text-sm whitespace-nowrap">
-              {t(`statuses.${row.original.status}`)}
-            </span>
+            <span className="kazan-grid-chip">{t(`statuses.${row.original.status}`)}</span>
           ),
       },
       {
@@ -112,7 +128,7 @@ export function useCheckColumns({
         accessorKey: "updatedAt",
         header: t("checks.columns.updatedAt"),
         cell: ({ row }) => (
-          <span className="text-muted-foreground text-sm whitespace-nowrap">
+          <span className="text-muted-foreground font-mono text-xs whitespace-nowrap tabular-nums">
             {dates.formatDate(row.original.updatedAt)}
           </span>
         ),

@@ -3,11 +3,12 @@
 import { useCallback, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { parseAsStringEnum, useQueryStates } from "nuqs";
-import { ArrowLeft, Info, Plus } from "lucide-react";
+import { ArrowLeft, Info, ListChecks, Plus } from "lucide-react";
 import { SenseyTable } from "@oba/shared/components/sensey-table";
 import { useGetMe } from "@oba/shared/features/users/hooks/use-get-me";
 import { Link } from "@oba/shared/libs/i18n/navigation";
 import { Button } from "@/components/ui/button";
+import { InlineAlert } from "@/components/ui/inline-alert";
 import { PageHeader } from "@/components/ui/page-header";
 import {
   Select,
@@ -28,6 +29,7 @@ import {
 } from "../schemas";
 import { CheckDeleteDialog } from "./check-delete-dialog";
 import { CheckDialog } from "./check-dialog";
+import { CyberscoreLoadError } from "./cyberscore-load-error";
 
 /**
  * URL key of the status filter; no value lists every check. The checks page
@@ -112,13 +114,12 @@ export function CheckList() {
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
-      <Link
-        href="/cyberscore"
-        className="text-muted-foreground hover:text-foreground flex w-fit items-center gap-1.5 text-sm"
-      >
-        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-        {t("checks.back")}
-      </Link>
+      <Button variant="ghost" size="sm" className="-ml-2 gap-1.5 self-start" asChild>
+        <Link href="/cyberscore">
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          {t("checks.back")}
+        </Link>
+      </Button>
 
       <PageHeader title={t("checks.title")} description={t("checks.description")}>
         <div className="flex items-center gap-2">
@@ -145,35 +146,33 @@ export function CheckList() {
       </PageHeader>
 
       {!canManage && (
-        <div className="text-muted-foreground flex items-center gap-2 text-sm">
-          <Info className="h-4 w-4 shrink-0" aria-hidden="true" />
-          {t("checks.readOnly")}
-        </div>
+        <InlineAlert
+          variant="info"
+          icon={<Info aria-hidden="true" />}
+          description={t("checks.readOnly")}
+        />
       )}
 
       {isError ? (
-        <div
-          className="border-destructive/40 border-l-destructive bg-card border border-l-2 p-4"
-          role="alert"
-        >
-          <p className="text-foreground text-sm font-medium">{tErrors("somethingWentWrong")}</p>
-          <Button
-            variant="outline"
-            className="mt-3"
-            disabled={isFetching}
-            onClick={() => void refetch()}
-          >
-            {tErrors("tryAgain")}
-          </Button>
-        </div>
+        <CyberscoreLoadError
+          message={tErrors("somethingWentWrong")}
+          isRetrying={isFetching}
+          onRetry={() => void refetch()}
+        />
       ) : (
         <SenseyTable<Check>
           columns={columns}
           data={checks}
           isLoading={isPending}
           emptyMessage={
-            <div className="flex flex-col items-center gap-1 py-6 text-center">
-              <span className="text-foreground text-sm font-medium">{t("checks.empty")}</span>
+            <div className="flex flex-col items-center gap-2 py-8 text-center">
+              <span
+                aria-hidden
+                className="border-primary/40 text-primary mb-2 flex size-12 items-center justify-center border border-dashed"
+              >
+                <ListChecks className="size-6" />
+              </span>
+              <span className="text-foreground text-sm font-semibold">{t("checks.empty")}</span>
               {canManage && !status && (
                 <span className="text-muted-foreground text-sm">
                   {t("checks.emptyDescription")}

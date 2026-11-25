@@ -1,7 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { AlertCircle, ListChecks, RotateCw, ShieldCheck } from "lucide-react";
+import { useId, type ReactNode } from "react";
+import { ListChecks, ShieldCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@oba/shared/libs/i18n/navigation";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { useCyberscore, useCyberscoreTrend } from "../hooks/use-cyberscore";
 import { CyberscoreLevel } from "../schemas";
 import { CyberscoreBreakdown } from "./cyberscore-breakdown";
 import { CyberscoreGauge } from "./cyberscore-gauge";
+import { CyberscoreLoadError } from "./cyberscore-load-error";
 import { CyberscoreTrend } from "./cyberscore-trend";
 
 const PANEL_CLASS = "kazan-grid-frame bg-card text-card-foreground flex flex-col gap-4 p-4 sm:p-5";
@@ -20,6 +21,7 @@ const PANEL_CLASS = "kazan-grid-frame bg-card text-card-foreground flex flex-col
 /** The route of the check list, which the overview links to. */
 const CHECKS_HREF = "/cyberscore/checks";
 
+/** One instrument of the overview: a grid frame whose heading leads with Korur's bow and arrow. */
 function Panel({
   title,
   description,
@@ -31,10 +33,13 @@ function Panel({
   className?: string;
   children: ReactNode;
 }) {
+  const headingId = useId();
   return (
-    <section className={cn(PANEL_CLASS, className)}>
-      <div className="flex flex-col gap-1">
-        <h2 className="text-foreground text-base font-semibold">{title}</h2>
+    <section aria-labelledby={headingId} className={cn(PANEL_CLASS, className)}>
+      <div className="flex flex-col gap-1.5">
+        <h2 id={headingId} className="kazan-grid-heading">
+          {title}
+        </h2>
         <p className="text-muted-foreground text-sm">{description}</p>
       </div>
       {children}
@@ -42,27 +47,24 @@ function Panel({
   );
 }
 
-function LoadError({ onRetry, isRetrying }: { onRetry: () => void; isRetrying: boolean }) {
-  const t = useTranslations("cyberscore");
-  const tErrors = useTranslations("errors");
+/** Empty frames in the panels' layout while the score loads, so the page does not jump. */
+function OverviewSkeleton() {
   return (
-    <div
-      role="alert"
-      className="border-destructive/40 bg-destructive/5 text-card-foreground flex items-center gap-4 border p-4 sm:p-5"
-    >
-      <AlertCircle aria-hidden className="text-destructive size-5 shrink-0" />
-      <p className="text-muted-foreground flex-1 text-sm">{t("loadError")}</p>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="gap-2"
-        disabled={isRetrying}
-        onClick={onRetry}
-      >
-        <RotateCw aria-hidden className={cn("size-4", isRetrying && "animate-spin")} />
-        {tErrors("tryAgain")}
-      </Button>
+    <div aria-busy className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+      <div className={PANEL_CLASS}>
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="mx-auto h-36 w-full max-w-64" />
+      </div>
+      <div className={PANEL_CLASS}>
+        <Skeleton className="h-4 w-40" />
+        {Array.from({ length: 4 }, (_, index) => (
+          <Skeleton key={index} className="h-8 w-full" />
+        ))}
+      </div>
+      <div className={cn(PANEL_CLASS, "lg:col-span-2")}>
+        <Skeleton className="h-4 w-36" />
+        <Skeleton className="h-44 w-full" />
+      </div>
     </div>
   );
 }
@@ -85,17 +87,15 @@ export function CyberscoreOverview() {
 
   let body: ReactNode;
   if (scoreQuery.isPending) {
-    body = (
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
-        <Skeleton className="h-64 rounded-none" />
-        <Skeleton className="h-64 rounded-none" />
-        <Skeleton className="h-56 rounded-none lg:col-span-2" />
-      </div>
-    );
+    body = <OverviewSkeleton />;
   } else if (scoreQuery.isError || !score) {
     // A response without data is a failure too: the server always sends a score.
     body = (
-      <LoadError onRetry={() => void scoreQuery.refetch()} isRetrying={scoreQuery.isFetching} />
+      <CyberscoreLoadError
+        message={t("loadError")}
+        onRetry={() => void scoreQuery.refetch()}
+        isRetrying={scoreQuery.isFetching}
+      />
     );
   } else if (score.scoreLevel === CyberscoreLevel.UNKNOWN) {
     body = (
@@ -123,9 +123,10 @@ export function CyberscoreOverview() {
           className="lg:col-span-2"
         >
           {trendQuery.isPending ? (
-            <Skeleton className="h-44 rounded-none" />
+            <Skeleton aria-busy className="h-44 w-full" />
           ) : trendQuery.isError || !trendPoints ? (
-            <LoadError
+            <CyberscoreLoadError
+              message={t("loadError")}
               onRetry={() => void trendQuery.refetch()}
               isRetrying={trendQuery.isFetching}
             />

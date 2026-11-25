@@ -4,7 +4,6 @@ import { useEffect, useMemo } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import { ShieldCheck } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -116,10 +115,8 @@ export function CheckDialog({ check, open, onOpenChange }: CheckDialogProps) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[640px]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <ShieldCheck className="text-primary h-5 w-5" />
-            {isEdit ? t("checks.edit") : t("checks.add")}
-          </DialogTitle>
+          {/* No icon: the title then leads with Kazan's bow and arrow, as the other form dialogs. */}
+          <DialogTitle>{isEdit ? t("checks.edit") : t("checks.add")}</DialogTitle>
           <DialogDescription>{t("checks.description")}</DialogDescription>
         </DialogHeader>
 

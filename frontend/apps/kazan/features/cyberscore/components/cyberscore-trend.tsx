@@ -22,7 +22,9 @@ interface CyberscoreTrendProps {
 
 /**
  * The score over the trend window as an inline SVG line on a fixed 0 to 100
- * axis, so a small change does not look like a large one. Hover or the arrow
+ * axis, so a small change does not look like a large one. The axis is drawn
+ * as the survey grid: hairlines in the grid's blue, the middle one dashed,
+ * and mono figures. Hover or the arrow
  * keys move a crosshair that snaps to a day and shows its score and level,
  * and a visually hidden table gives screen readers every day.
  *
@@ -98,7 +100,7 @@ function TrendChart({ points }: CyberscoreTrendProps) {
           tabIndex={0}
           width={width}
           height={HEIGHT}
-          className="focus-visible:ring-ring block rounded-md outline-none focus-visible:ring-2"
+          className="focus-visible:ring-ring block outline-none focus-visible:ring-2"
           onPointerMove={handlePointerMove}
           onPointerLeave={() => setActiveIndex(null)}
           onBlur={() => setActiveIndex(null)}
@@ -111,15 +113,16 @@ function TrendChart({ points }: CyberscoreTrendProps) {
                 x2={width - MARGIN.right}
                 y1={geometry.y(value)}
                 y2={geometry.y(value)}
-                className="stroke-border"
+                className="stroke-primary/25"
                 strokeWidth={1}
+                strokeDasharray={value === 0 || value === 100 ? undefined : "4 4"}
               />
               <text
                 x={MARGIN.left - 6}
                 y={geometry.y(value)}
                 textAnchor="end"
                 dominantBaseline="middle"
-                className="fill-muted-foreground text-[10px] tabular-nums"
+                className="fill-muted-foreground font-mono text-[10px] tabular-nums"
               >
                 {value}%
               </text>
@@ -132,7 +135,7 @@ function TrendChart({ points }: CyberscoreTrendProps) {
               x={geometry.x(index)}
               y={HEIGHT - 6}
               textAnchor={index === 0 ? "start" : "end"}
-              className="fill-muted-foreground text-[10px]"
+              className="fill-muted-foreground font-mono text-[10px] tracking-[0.08em] uppercase"
             >
               {formatDay(points[index]!.date)}
             </text>
@@ -179,7 +182,9 @@ function TrendChart({ points }: CyberscoreTrendProps) {
               width: TOOLTIP_WIDTH,
             }}
           >
-            <p className="text-foreground font-medium">{formatDay(active.date)}</p>
+            <p className="text-foreground font-mono text-[11px] font-semibold tracking-[0.08em] uppercase">
+              {formatDay(active.date)}
+            </p>
             <p className="flex items-center gap-1.5">
               <span
                 className={cn("size-2 shrink-0", SCORE_LEVEL_FILL_CLASSES[active.scoreLevel])}
@@ -187,7 +192,7 @@ function TrendChart({ points }: CyberscoreTrendProps) {
               <span className="text-muted-foreground truncate">
                 {t(`levels.${active.scoreLevel}`)}
               </span>
-              <span className="text-foreground ml-auto tabular-nums">
+              <span className="text-foreground ml-auto font-mono tabular-nums">
                 {clampPercentage(active.scorePercentage)}%
               </span>
             </p>
