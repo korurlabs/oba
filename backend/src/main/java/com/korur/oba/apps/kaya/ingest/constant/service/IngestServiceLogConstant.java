@@ -17,7 +17,7 @@ public final class IngestServiceLogConstant {
     }
 
     public static final String INGESTING_BATCH = "Ingesting batch of session {} from machine {}: {} events, {} handoffs, {} plans, usage {}";
-    public static final String MACHINE_NAME_MISMATCH = "Refused batch of session {}: machine name {} is not {} of machine {}";
+    public static final String MACHINE_NAME_DIFFERENT = "Batch of session {} from machine {} reports another machine name: registered {}, reported {}";
     public static final String BATCH_EMPTY = "Refused batch of session {} from machine {}: no events and no usage";
     public static final String EVENT_INVALID = "Refused batch of session {} from machine {}: event {} has an invalid {}";
     public static final String RATE_LIMITED = "Refused batch of session {}: token {} sent more than {} batches in a minute";

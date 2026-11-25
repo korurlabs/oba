@@ -15,8 +15,9 @@ import com.korur.oba.apps.kaya.machine.constant.MachineConstant;
 
 @Schema(description = "A machine to register")
 public record MachineCreateRequest(
-        @Schema(description = "Hostname of the machine, exactly as the recorder reports it", requiredMode = Schema.RequiredMode.REQUIRED,
-                example = "ada-macbook")
+        @Schema(description = "Display label of the machine, such as its host name; unique among the user's machines. "
+                + "The machine token, not this name, identifies the machine when it sends batches",
+                requiredMode = Schema.RequiredMode.REQUIRED, example = "ada-macbook")
         @NotBlank(message = MachineConstant.MACHINE_NAME_REQUIRED_MESSAGE)
         @Size(max = MachineConstant.MACHINE_NAME_MAX_LENGTH, message = MachineConstant.MACHINE_NAME_SIZE_MESSAGE)
         String machineName,

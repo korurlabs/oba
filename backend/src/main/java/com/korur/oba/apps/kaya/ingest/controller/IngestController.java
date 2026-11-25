@@ -63,8 +63,7 @@ public class IngestController {
                     + "or machine retired"),
             @ApiResponse(responseCode = "403", description = "KAY_SEC_007: no user of the organization holds the "
                     + "git email of the batch; nothing is stored"),
-            @ApiResponse(responseCode = "409", description = "KAY_VAL_001: session of another user; KAY_VAL_005: "
-                    + "machine name is not the token's machine"),
+            @ApiResponse(responseCode = "409", description = "KAY_VAL_001: session of another user"),
             @ApiResponse(responseCode = "413", description = "KAY_VAL_012: body over 8 MiB"),
             @ApiResponse(responseCode = "422", description = "KAY_VAL_002: repository archived; GEN_VAL_001: a field "
                     + "is invalid"),

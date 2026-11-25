@@ -17,17 +17,17 @@ import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
 public interface IngestService {
 
     /**
-     * Applies one recorder batch in one transaction: checks the machine name and the token's
-     * budget, resolves the user of the git email, connects the repository, records the machine as
-     * seen, learns the Claude account, stores the usage snapshot and applies the batch to the
-     * session. A batch with usage but no events for a session Kaya has not recorded yet creates no
-     * session.
+     * Applies one recorder batch in one transaction: checks the token's budget, resolves the user
+     * of the git email, connects the repository, records the machine as seen, learns the Claude
+     * account, stores the usage snapshot and applies the batch to the session. The batch belongs to
+     * the token's machine whatever machine name it reports. A batch with usage but no events for a
+     * session Kaya has not recorded yet creates no session.
      *
      * @param principal the authenticated machine token
      * @param request   the batch
      * @return the session and the highest seq Kaya holds for it
-     * @throws com.korur.oba.dojo.exception.internal.business.ConflictException KAY_VAL_005 when the
-     *         machine name is not the token's machine; KAY_VAL_001 when the session belongs to another user
+     * @throws com.korur.oba.dojo.exception.internal.business.ConflictException KAY_VAL_001 when the
+     *         session belongs to another user
      * @throws com.korur.oba.dojo.exception.internal.auth.ForbiddenException KAY_SEC_007 when no
      *         user of the organization holds the reported git email; nothing is stored
      * @throws com.korur.oba.dojo.exception.internal.business.TooManyRequestsException KAY_SEC_004

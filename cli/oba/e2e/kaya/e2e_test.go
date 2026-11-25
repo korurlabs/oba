@@ -864,8 +864,8 @@ func TestConfigChainOnTheLocalStack(t *testing.T) {
 			} `json:"machine"`
 			Token string `json:"token"`
 		}
-		// The capture reports the machine's hostname and Kaya refuses a batch whose machine name is
-		// not the token's machine (KAY_VAL_005), so the machine carries the hostname.
+		// The machine is registered under the hostname, the name the capture reports, so its label
+		// matches its batches; a later run of this test on the same host finds it by that name.
 		machine, err := os.Hostname()
 		if err != nil {
 			t.Fatalf("read the hostname: %v", err)

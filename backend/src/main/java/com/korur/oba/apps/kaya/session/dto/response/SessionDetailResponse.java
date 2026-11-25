@@ -40,7 +40,7 @@ public record SessionDetailResponse(
         @Schema(description = "Machine id")
         UUID machineId,
 
-        @Schema(description = "Hostname of the machine", example = "ada-macbook")
+        @Schema(description = "Display label of the machine", example = "ada-macbook")
         String machineName,
 
         @Schema(description = "Another user holding a git email the session reported; the wall shows \"Identity of <name>\"",

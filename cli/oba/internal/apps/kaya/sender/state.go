@@ -43,12 +43,15 @@ func fingerprint(token string) string {
 }
 
 // parked marks a session whose batch Kaya refused for its content. It is skipped until the token
-// changes, because a new token is the developer's sign that something was fixed.
+// changes, because a new token is the developer's sign that something was fixed. A park after a
+// machine name refusal is the one exception, see codeMachineName. ObaVersion is the version of
+// the oba that parked the session; a park written by an oba that did not keep it has none.
 type parked struct {
 	Status           int     `json:"status"`
 	Code             *string `json:"code"`
 	At               string  `json:"at"`
 	TokenFingerprint string  `json:"tokenFingerprint"`
+	ObaVersion       string  `json:"obaVersion,omitempty"`
 }
 
 // cursor is what Kaya acknowledged of a session: the highest seq it holds and the modification
