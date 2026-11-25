@@ -32,7 +32,7 @@ public enum ExceptionDomainKayaError implements ExceptionDomainError {
     // ── Validation (KAY_VAL) ─────────────────────────────────────────────────
     VAL_SESSION_OWNED_BY_OTHER_USER("KAY_VAL_001", "This session belongs to another user.", ExceptionCategory.STA),
     VAL_REPOSITORY_ARCHIVED("KAY_VAL_002", "The repository is archived.", ExceptionCategory.VAL),
-    VAL_MACHINE_NAME_MISMATCH("KAY_VAL_005", "The machine name does not match the machine of this token.", ExceptionCategory.STA),
+    // KAY_VAL_005 is retired: it refused a batch whose machine name was not the token's machine; the token alone identifies the machine.
     VAL_MACHINE_NAME_DUPLICATE("KAY_VAL_006", "The user already has a machine with this machine name.", ExceptionCategory.STA),
     // KAY_VAL_007 is retired: it refused merging two people, which no longer exists.
     VAL_USAGE_OUT_OF_RANGE("KAY_VAL_009", "The usage values are out of range.", ExceptionCategory.API),

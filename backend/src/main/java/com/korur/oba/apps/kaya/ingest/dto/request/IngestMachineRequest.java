@@ -15,7 +15,8 @@ import com.korur.oba.apps.kaya.ingest.constant.IngestConstant;
 
 @Schema(description = "The machine that sends the batch")
 public record IngestMachineRequest(
-        @Schema(description = "Hostname of the machine; must be the machine name of the token",
+        @Schema(description = "Display label of the machine, such as its host name. It may differ from the "
+                + "registered machine name: the token alone identifies the machine",
                 requiredMode = Schema.RequiredMode.REQUIRED, example = "ada-macbook")
         @NotBlank(message = IngestConstant.MACHINE_NAME_REQUIRED_MESSAGE)
         @Size(max = IngestConstant.MACHINE_NAME_MAX_LENGTH, message = IngestConstant.MACHINE_NAME_SIZE_MESSAGE)
