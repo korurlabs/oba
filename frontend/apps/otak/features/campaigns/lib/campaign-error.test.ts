@@ -11,13 +11,15 @@ function apiError(code: string | undefined, errorValues: Record<string, unknown>
 describe("campaignErrorText", () => {
   test.each([
     ["OTK_NOT_012", "t:errors.notFound"],
+    ["OTK_NOT_013", "t:errors.contentNotFound"],
+    ["LGE_NOT_001", "t:errors.legalEntityNotFound"],
     ["OTK_NOT_009", "t:errors.eventNotFound"],
     ["OTK_NOT_004", "t:errors.icpNotFound"],
     ["OTK_STA_015", "t:errors.nameTaken"],
     ["OTK_STA_001", "t:errors.ownerNotMember"],
     ["APP_VAL_002", "t:errors.ownerWithoutOtakAccess"],
     ["OTK_VAL_016", "t:errors.statusDates"],
-    ["OTK_VAL_017", "t:errors.languageRepeated"],
+    ["OTK_VAL_017", "t:errors.dateRange"],
     ["STG_VAL_005", "t:errors.imageDuplicate"],
     ["ORG_SEC_003", "t:errors.forbidden"],
     ["GEN_VAL_001", "t:errors.validation"],
@@ -42,6 +44,8 @@ describe("campaignFieldErrors", () => {
     ["OTK_NOT_009", "eventId", "t:errors.eventNotFound"],
     ["OTK_NOT_004", "icpId", "t:errors.icpNotFound"],
     ["OTK_VAL_016", "status", "t:errors.statusDates"],
+    ["OTK_VAL_017", "endDate", "t:errors.dateRange"],
+    ["LGE_NOT_001", "legalEntityId", "t:errors.legalEntityNotFound"],
   ])("%s is shown on the %s field", (code, field, text) => {
     expect(campaignFieldErrors(apiError(code), t)).toEqual({ [field]: text });
   });

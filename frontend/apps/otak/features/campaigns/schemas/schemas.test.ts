@@ -1,221 +1,254 @@
 import { describe, expect, test } from "bun:test";
 import {
+  campaignContentRequestSchema,
+  campaignContentSchema,
+  campaignContentToFormValues,
   campaignDetailSchema,
   campaignRequestSchema,
   campaignStatusDatesIssue,
   campaignToFormValues,
-  canMarkCampaignPublished,
+  canMarkContentPublished,
+  createCampaignContentFormSchema,
   createCampaignFormSchema,
+  emptyCampaignContentFormValues,
   emptyCampaignFormValues,
   instantToLocalInput,
+  isCampaignDateRangeValid,
   localInputToInstant,
+  toCampaignContentRequest,
   toCampaignRequest,
   toMarkPublishedRequest,
+  type CampaignContent,
+  type CampaignContentFormValues,
   type CampaignDetail,
   type CampaignFormValues,
 } from ".";
 
 const NOW = new Date("2026-11-25T12:00:00Z");
-const schema = createCampaignFormSchema(
+const campaignForm = createCampaignFormSchema((key: string) => key);
+const contentForm = createCampaignContentFormSchema(
   (key: string) => key,
   () => NOW
 );
 
-function errorsOf(values: CampaignFormValues): Record<string, string> {
+function errorsOf(
+  schema: typeof campaignForm | typeof contentForm,
+  values: CampaignFormValues | CampaignContentFormValues
+): Record<string, string> {
   const result = schema.safeParse(values);
   if (result.success) return {};
-  return Object.fromEntries(
-    result.error.issues.map((issue) => [String(issue.path[0]), issue.message])
-  );
+  const errors: Record<string, string> = {};
+  for (const issue of result.error.issues) {
+    errors[String(issue.path[0])] = issue.message;
+  }
+  return errors;
 }
 
-const valid: CampaignFormValues = {
-  ...emptyCampaignFormValues(),
-  name: "Security check launch",
-  channel: "LINKEDIN",
-};
-
 // Field for field the CampaignDetailResponse of the API.
-const detail: CampaignDetail = {
+const campaign: CampaignDetail = {
   id: "c-1",
-  name: "Security check launch",
-  channel: "LINKEDIN",
-  status: "SCHEDULED",
-  plannedAt: "2026-12-01T09:00:00Z",
-  publishedAt: null,
-  languages: ["NL", "EN"],
+  name: "De wacht",
+  description: "Post about the night watch",
+  startDate: "2026-12-01",
+  endDate: "2026-12-31",
   owner: { id: "u-1", name: "Jan de Vries" },
   eventId: "e-1",
   icpId: null,
+  contentCount: 2,
   createdAt: "2026-11-20T09:00:00Z",
   updatedAt: "2026-11-21T09:00:00Z",
-  postUrl: null,
-  contents: [
-    { language: "NL", text: "Hallo", updatedAt: "2026-11-21T09:00:00Z" },
-    { language: "EN", text: "Hello", updatedAt: "2026-11-21T09:00:00Z" },
-  ],
 };
 
-describe("campaignStatusDatesIssue", () => {
-  test("a scheduled campaign needs a planned moment", () => {
-    expect(campaignStatusDatesIssue("SCHEDULED", null, null, NOW)).toBe("plannedAtRequired");
-    expect(campaignStatusDatesIssue("SCHEDULED", "2026-12-01T09:00:00Z", null, NOW)).toBeNull();
-  });
+// Field for field the CampaignContentResponse of the API.
+const content: CampaignContent = {
+  id: "cc-1",
+  campaignId: "c-1",
+  legalEntityId: "le-1",
+  legalEntityShortName: "Korur B.V.",
+  channel: "LINKEDIN",
+  language: "NL",
+  text: "Hallo",
+  status: "SCHEDULED",
+  plannedAt: "2026-12-01T09:00:00Z",
+  publishedAt: null,
+  postUrl: null,
+  createdAt: "2026-11-20T09:00:00Z",
+  updatedAt: "2026-11-21T09:00:00Z",
+};
 
-  test("a draft or scheduled campaign takes no published moment", () => {
-    const past = "2026-11-01T09:00:00Z";
-    expect(campaignStatusDatesIssue("DRAFT", null, past, NOW)).toBe("publishedAtNotAllowed");
-    expect(campaignStatusDatesIssue("SCHEDULED", past, past, NOW)).toBe("publishedAtNotAllowed");
-  });
-
-  test("a published moment is not in the future", () => {
-    expect(campaignStatusDatesIssue("PUBLISHED", null, "2026-11-25T12:00:01Z", NOW)).toBe(
-      "publishedAtInFuture"
-    );
-    expect(campaignStatusDatesIssue("PUBLISHED", null, "2026-11-25T12:00:00Z", NOW)).toBeNull();
-    expect(campaignStatusDatesIssue("ARCHIVED", null, "2026-11-01T09:00:00Z", NOW)).toBeNull();
-  });
-
-  test("a published campaign without a moment is left to the server's now", () => {
-    expect(campaignStatusDatesIssue("PUBLISHED", null, null, NOW)).toBeNull();
-  });
-});
-
-describe("date and time inputs", () => {
-  test("an instant round-trips through the local input to the minute", () => {
-    const local = instantToLocalInput("2026-12-01T09:00:00Z");
-    expect(local).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/);
-    expect(localInputToInstant(local)).toBe("2026-12-01T09:00:00.000Z");
-  });
-
-  test("an empty or malformed input is no moment", () => {
-    expect(instantToLocalInput(null)).toBe("");
-    expect(localInputToInstant("")).toBeNull();
-    expect(localInputToInstant("2026-12-01")).toBeNull();
-    expect(localInputToInstant("not a date")).toBeNull();
+describe("response schemas", () => {
+  test("parse the API's campaign and content", () => {
+    expect(campaignDetailSchema.parse(campaign)).toEqual(campaign);
+    expect(campaignContentSchema.parse(content)).toEqual(content);
   });
 });
 
-describe("campaign form schema", () => {
-  test("a named draft on a channel is valid", () => {
-    expect(errorsOf(valid)).toEqual({});
-  });
-
-  test("the name and the channel are required, the name at most 200 characters", () => {
-    expect(errorsOf({ ...valid, name: "  " }).name).toBe("errors.nameRequired");
-    expect(errorsOf({ ...valid, name: "n".repeat(201) }).name).toBe("errors.nameMax");
-    expect(errorsOf({ ...valid, channel: "" }).channel).toBe("errors.channelRequired");
-  });
-
-  test("the post address is http or https and at most 500 characters", () => {
-    expect(errorsOf({ ...valid, postUrl: "ftp://x.example" }).postUrl).toBe(
-      "errors.postUrlInvalid"
-    );
-    const long = `https://x.example/${"p".repeat(490)}`;
-    expect(errorsOf({ ...valid, postUrl: long }).postUrl).toBe("errors.postUrlMax");
-    expect(errorsOf({ ...valid, postUrl: "https://www.linkedin.com/posts/1" })).toEqual({});
-  });
-
-  test("the status rules are shown on the moment they concern", () => {
-    expect(errorsOf({ ...valid, status: "SCHEDULED" }).plannedAt).toBe("errors.plannedAtRequired");
-    expect(errorsOf({ ...valid, publishedAt: "2026-11-01T09:00" }).publishedAt).toBe(
-      "errors.publishedAtNotAllowed"
-    );
-    const future = instantToLocalInput("2026-11-26T12:00:00Z");
-    expect(errorsOf({ ...valid, status: "PUBLISHED", publishedAt: future }).publishedAt).toBe(
-      "errors.publishedAtInFuture"
-    );
-  });
-
-  test("a malformed moment is refused", () => {
-    expect(errorsOf({ ...valid, plannedAt: "tomorrow" }).plannedAt).toBe("errors.dateTimeInvalid");
+describe("isCampaignDateRangeValid", () => {
+  test("an end before the start is refused; a missing day never is", () => {
+    expect(isCampaignDateRangeValid("2026-12-02", "2026-12-01")).toBe(false);
+    expect(isCampaignDateRangeValid("2026-12-01", "2026-12-01")).toBe(true);
+    expect(isCampaignDateRangeValid(null, "2026-12-01")).toBe(true);
+    expect(isCampaignDateRangeValid("2026-12-01", null)).toBe(true);
   });
 });
 
-describe("toCampaignRequest", () => {
-  test("empty fields are sent as null and blank texts are left out", () => {
-    const values: CampaignFormValues = {
-      ...valid,
-      status: "PUBLISHED",
-      texts: { NL: "Hallo", TR: "   ", EN: " Hello " },
-    };
-    expect(toCampaignRequest(values, "LINKEDIN")).toEqual({
-      name: "Security check launch",
-      channel: "LINKEDIN",
-      status: "PUBLISHED",
-      plannedAt: null,
-      publishedAt: null,
-      postUrl: null,
+describe("campaign form", () => {
+  const valid: CampaignFormValues = { ...emptyCampaignFormValues(), name: "De wacht" };
+
+  test("needs a name and nothing else", () => {
+    expect(errorsOf(campaignForm, valid)).toEqual({});
+    expect(errorsOf(campaignForm, { ...valid, name: "  " })).toEqual({
+      name: "errors.nameRequired",
+    });
+  });
+
+  test("takes a long name and description, as the server has no cap", () => {
+    const long = "x".repeat(5000);
+    expect(errorsOf(campaignForm, { ...valid, name: long, description: long })).toEqual({});
+  });
+
+  test("refuses an end day before the start day on the end day", () => {
+    expect(
+      errorsOf(campaignForm, { ...valid, startDate: "2026-12-02", endDate: "2026-12-01" })
+    ).toEqual({ endDate: "errors.dateRange" });
+  });
+
+  test("maps to the request with nulls for empty fields and back", () => {
+    expect(toCampaignRequest(valid)).toEqual({
+      name: "De wacht",
+      description: null,
+      startDate: null,
+      endDate: null,
       ownerUserId: null,
       eventId: null,
       icpId: null,
-      contents: [
-        { language: "NL", text: "Hallo" },
-        { language: "EN", text: " Hello " },
-      ],
     });
-  });
-
-  test("a published status without a moment sends null, never the browser's now", () => {
-    const request = toCampaignRequest({ ...valid, status: "PUBLISHED" }, "LINKEDIN");
-    expect(request.publishedAt).toBeNull();
-  });
-
-  test("a stored campaign maps to the form and back unchanged", () => {
-    const parsed = campaignDetailSchema.parse(detail);
-    const request = toCampaignRequest(campaignToFormValues(parsed), "LINKEDIN");
-    expect(request).toMatchObject({
-      status: "SCHEDULED",
-      plannedAt: "2026-12-01T09:00:00.000Z",
-      ownerUserId: "u-1",
-      eventId: "e-1",
-      contents: [
-        { language: "NL", text: "Hallo" },
-        { language: "EN", text: "Hello" },
-      ],
-    });
-  });
-});
-
-describe("mark as published", () => {
-  test("only a draft or scheduled campaign can be marked", () => {
-    expect(canMarkCampaignPublished({ status: "DRAFT" })).toBe(true);
-    expect(canMarkCampaignPublished({ status: "SCHEDULED" })).toBe(true);
-    expect(canMarkCampaignPublished({ status: "PUBLISHED" })).toBe(false);
-    expect(canMarkCampaignPublished({ status: "ARCHIVED" })).toBe(false);
-  });
-
-  test("the request keeps every field and sends no published moment", () => {
-    const request = toMarkPublishedRequest(detail);
+    const values = campaignToFormValues(campaign);
+    const request = toCampaignRequest(values);
     expect(request).toEqual({
-      name: detail.name,
-      channel: "LINKEDIN",
-      status: "PUBLISHED",
-      plannedAt: "2026-12-01T09:00:00Z",
-      publishedAt: null,
-      postUrl: null,
+      name: "De wacht",
+      description: "Post about the night watch",
+      startDate: "2026-12-01",
+      endDate: "2026-12-31",
       ownerUserId: "u-1",
       eventId: "e-1",
       icpId: null,
-      contents: [
-        { language: "NL", text: "Hallo" },
-        { language: "EN", text: "Hello" },
-      ],
     });
     expect(campaignRequestSchema.safeParse(request).success).toBe(true);
   });
 });
 
-describe("campaign request schema", () => {
-  test("a text per language at most once", () => {
-    const request = toMarkPublishedRequest(detail);
-    const repeated = {
-      ...request,
-      contents: [
-        { language: "NL", text: "a" },
-        { language: "NL", text: "b" },
-      ],
-    };
-    expect(campaignRequestSchema.safeParse(repeated).success).toBe(false);
+describe("campaignStatusDatesIssue", () => {
+  test("a scheduled content needs a planned moment", () => {
+    expect(campaignStatusDatesIssue("SCHEDULED", null, null, NOW)).toBe("plannedAtRequired");
+  });
+
+  test("a draft or scheduled content takes no published moment", () => {
+    expect(campaignStatusDatesIssue("DRAFT", null, "2026-11-24T09:00:00Z", NOW)).toBe(
+      "publishedAtNotAllowed"
+    );
+  });
+
+  test("a published moment is not in the future; a past one is kept", () => {
+    expect(campaignStatusDatesIssue("PUBLISHED", null, "2026-11-26T09:00:00Z", NOW)).toBe(
+      "publishedAtInFuture"
+    );
+    expect(campaignStatusDatesIssue("PUBLISHED", null, "2026-11-24T09:00:00Z", NOW)).toBeNull();
+    expect(campaignStatusDatesIssue("PUBLISHED", null, null, NOW)).toBeNull();
+  });
+});
+
+describe("content form", () => {
+  const valid: CampaignContentFormValues = {
+    ...emptyCampaignContentFormValues("le-1"),
+    channel: "LINKEDIN",
+    language: "NL",
+    text: "Hallo",
+  };
+
+  test("needs a legal entity, channel, language and a text that is not blank", () => {
+    expect(errorsOf(contentForm, valid)).toEqual({});
+    expect(errorsOf(contentForm, emptyCampaignContentFormValues(""))).toEqual({
+      legalEntityId: "errors.legalEntityRequired",
+      channel: "errors.channelRequired",
+      language: "errors.languageRequired",
+      text: "errors.textRequired",
+    });
+  });
+
+  test("takes a text and post address of any length", () => {
+    const longText = "x".repeat(10000);
+    const longUrl = `https://example.com/${"p".repeat(2000)}`;
+    expect(errorsOf(contentForm, { ...valid, text: longText, postUrl: longUrl })).toEqual({});
+  });
+
+  test("refuses a post address that is not a web address", () => {
+    expect(errorsOf(contentForm, { ...valid, postUrl: "linkedin" })).toEqual({
+      postUrl: "errors.postUrlInvalid",
+    });
+  });
+
+  test("shows a status rule on the moment it is about", () => {
+    expect(errorsOf(contentForm, { ...valid, status: "SCHEDULED" })).toEqual({
+      plannedAt: "errors.plannedAtRequired",
+    });
+    expect(
+      errorsOf(contentForm, {
+        ...valid,
+        status: "PUBLISHED",
+        publishedAt: instantToLocalInput("2026-11-26T09:00:00Z"),
+      })
+    ).toEqual({ publishedAt: "errors.publishedAtInFuture" });
+  });
+
+  test("maps a stored content to the form and back unchanged", () => {
+    const values = campaignContentToFormValues(content);
+    const request = toCampaignContentRequest(values, "LINKEDIN", "NL");
+    expect(request).toEqual({
+      legalEntityId: "le-1",
+      channel: "LINKEDIN",
+      language: "NL",
+      text: "Hallo",
+      status: "SCHEDULED",
+      plannedAt: "2026-12-01T09:00:00.000Z",
+      publishedAt: null,
+      postUrl: null,
+    });
+    expect(campaignContentRequestSchema.safeParse(request).success).toBe(true);
+  });
+});
+
+describe("mark as published", () => {
+  test("only a draft or scheduled content can be marked", () => {
+    expect(canMarkContentPublished({ status: "DRAFT" })).toBe(true);
+    expect(canMarkContentPublished({ status: "SCHEDULED" })).toBe(true);
+    expect(canMarkContentPublished({ status: "PUBLISHED" })).toBe(false);
+    expect(canMarkContentPublished({ status: "ARCHIVED" })).toBe(false);
+  });
+
+  test("sends PUBLISHED with no published moment, so the server sets now", () => {
+    expect(toMarkPublishedRequest(content)).toEqual({
+      legalEntityId: "le-1",
+      channel: "LINKEDIN",
+      language: "NL",
+      text: "Hallo",
+      status: "PUBLISHED",
+      plannedAt: "2026-12-01T09:00:00Z",
+      publishedAt: null,
+      postUrl: null,
+    });
+  });
+});
+
+describe("datetime-local inputs", () => {
+  test("round-trip an instant through the viewer's zone", () => {
+    const instant = "2026-12-01T09:00:00.000Z";
+    expect(localInputToInstant(instantToLocalInput(instant))).toBe(instant);
+  });
+
+  test("an empty or broken input gives null, and null gives an empty input", () => {
+    expect(localInputToInstant("")).toBeNull();
+    expect(localInputToInstant("2026-12-01")).toBeNull();
+    expect(instantToLocalInput(null)).toBe("");
   });
 });
