@@ -1451,7 +1451,134 @@
     "title": "Cyberscore",
     "description": "Sistemlerinizin ve uygulamalarınızın durumundan oluşan güvenlik duruşu puanınız.",
     "emptyTitle": "Henüz cyberscore yok",
-    "emptyDescription": "Cyberscore'unuz ve değişimi burada görünecek."
+    "emptyDescription": "Kontroller ekleyip sonuçlarını kaydettiğinizde cyberscore'unuz ve değişimi burada görünecek.",
+    "loadError": "Cyberscore yüklenemedi.",
+    "viewChecks": "Kontrolleri görüntüle",
+    "gauge": {
+      "title": "Güncel puan",
+      "description": "Puana sayılan sonucu olan tüm kontroller üzerinden ağırlıklı olarak hesaplanır.",
+      "ariaLabel": "Güncel cyberscore yüzde {score}, {level}",
+      "lastCalculated": "Son hesaplama {date}",
+      "notCalculated": "Henüz hesaplanmadı",
+      "scorableChecks": "{count, plural, other {Puana sayılan # kontrol}}"
+    },
+    "breakdown": {
+      "title": "Kategoriye göre puan",
+      "description": "Puana sayılan en az bir kontrolü olan her kategorinin puanı.",
+      "category": "Kategori",
+      "score": "Puan",
+      "level": "Risk düzeyi",
+      "scoreAria": "{category} puanı yüzde {score}",
+      "empty": "Henüz puana sayılan kontrolü olan bir kategori yok."
+    },
+    "trend": {
+      "title": "30 günlük eğilim",
+      "description": "Cyberscore'unuzun son 30 gündeki değişimi.",
+      "seriesLabel": "Cyberscore",
+      "tableCaption": "Günlük cyberscore",
+      "date": "Tarih",
+      "score": "Puan",
+      "level": "Risk düzeyi",
+      "empty": "Eğilim göstermek için henüz yeterli geçmiş yok."
+    },
+    "levels": {
+      "UNKNOWN": "Henüz puanlanmadı",
+      "CRITICAL": "Kritik risk",
+      "HIGH": "Yüksek risk",
+      "MEDIUM": "Orta risk",
+      "LOW": "Düşük risk",
+      "MINIMAL": "Asgari risk"
+    },
+    "categories": {
+      "NETWORK_OFFICE": "Ağ ve ofis",
+      "CLOUDFLARE_DNS": "Cloudflare ve DNS",
+      "MICROSOFT_365": "Microsoft 365",
+      "SHAREPOINT_ONEDRIVE": "SharePoint ve OneDrive",
+      "PASSWORDS_RBAC": "Parolalar ve erişim denetimi",
+      "ACCOUNTING_SOFTWARE": "Muhasebe yazılımı",
+      "DEVICES": "Cihazlar ve dizüstü bilgisayarlar",
+      "STORAGE_BACKUPS_RETENTION": "Depolama, yedekleme ve saklama",
+      "GDPR_AVG": "GDPR",
+      "NONE": "Kategorisiz"
+    },
+    "outcomes": {
+      "TODO": "Yapılacak",
+      "PASS": "Başarılı",
+      "PARTIAL": "Kısmi",
+      "FAIL": "Başarısız",
+      "NO_LICENSE": "Lisans yok",
+      "NOT_APPLICABLE": "Uygulanamaz"
+    },
+    "statuses": {
+      "NOT_STARTED": "Başlanmadı",
+      "IN_PROGRESS": "Devam ediyor",
+      "DONE": "Tamamlandı",
+      "NOT_APPLICABLE": "Uygulanamaz"
+    },
+    "checks": {
+      "title": "Kontroller",
+      "description": "Cyberscore'unuzu oluşturan kontroller, ağırlıkları ve güncel sonuçlarıyla.",
+      "back": "Cyberscore'a dön",
+      "empty": "Henüz kontrol yok",
+      "emptyDescription": "Cyberscore'unuzu oluşturmaya başlamak için bir kontrol ekleyin.",
+      "readOnly": "Kontrolleri yalnızca organizasyon yöneticileri değiştirebilir.",
+      "add": "Kontrol ekle",
+      "edit": "Kontrolü düzenle",
+      "delete": "Sil",
+      "deleteTitle": "Kontrol silinsin mi?",
+      "deleteConfirm": "{name} silinecek ve cyberscore yeniden hesaplanacak.",
+      "columns": {
+        "name": "Kontrol",
+        "category": "Kategori",
+        "weight": "Ağırlık",
+        "outcome": "Sonuç",
+        "status": "Durum",
+        "updatedAt": "Güncellendi",
+        "actions": "İşlemler"
+      },
+      "filter": {
+        "status": "Durum",
+        "allStatuses": "Tüm durumlar"
+      },
+      "fields": {
+        "name": "Ad",
+        "description": "Açıklama",
+        "expected": "Beklenen durum",
+        "expectedHint": "Başarılı bir kontrolün nasıl göründüğü.",
+        "weight": "Ağırlık",
+        "weightHint": "1 ile 100 arası. Ağırlığı yüksek kontrol puana daha çok etki eder.",
+        "sortOrder": "Sıra",
+        "sortOrderHint": "0 ile 9999 arası. Kategori içinde küçük sayılar önce gelir.",
+        "category": "Kategori",
+        "categoryPlaceholder": "Bir kategori seçin",
+        "outcome": "Sonuç",
+        "outcomePlaceholder": "Bir sonuç seçin",
+        "status": "Durum",
+        "statusHint": "Sonuca göre doldurulur. Değiştirebilirsiniz; durum puanı etkilemez."
+      }
+    },
+    "errors": {
+      "nameRequired": "Bir ad girin.",
+      "nameTooLong": "En fazla 255 karakter kullanın.",
+      "descriptionTooLong": "En fazla 5000 karakter kullanın.",
+      "expectedRequired": "Beklenen durumu girin.",
+      "expectedTooLong": "En fazla 5000 karakter kullanın.",
+      "weightRange": "1 ile 100 arasında bir tam sayı girin.",
+      "sortOrderRange": "0 ile 9999 arasında bir tam sayı girin.",
+      "duplicateName": "Bu organizasyonda bu adla bir kontrol zaten var.",
+      "notFound": "Bu kontrol artık yok.",
+      "notAllowed": "Kontrolleri yalnızca organizasyon yöneticileri değiştirebilir.",
+      "invalid": "Bazı alanlar geçersiz. Kontrol edip yeniden deneyin."
+    },
+    "toast": {
+      "created": "Kontrol eklendi",
+      "updated": "Kontrol kaydedildi",
+      "outcomeUpdated": "Sonuç kaydedildi",
+      "statusUpdated": "Durum kaydedildi",
+      "deleted": "Kontrol silindi",
+      "saveError": "Kontrol kaydedilemedi.",
+      "deleteError": "Kontrol silinemedi."
+    }
   },
   "metadata": {
     "description": "Notion ve Jira'nın sadeliğinden ilham alan modern proje yönetim aracı"
