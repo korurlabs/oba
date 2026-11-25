@@ -108,14 +108,15 @@ public class IngestServiceImpl implements IngestService {
      * Logs a batch whose machine name is not the registered name of the token's machine, and never
      * refuses it. The token alone identifies the machine, and the batch is attributed to that
      * machine. The name is only a display label: the recorder reports the host name, and host names
-     * are neither unique nor stable, since macOS changes them with the network.
+     * are neither unique nor stable, since macOS changes them with the network. A difference is
+     * therefore normal, so it is logged at debug level and not as a warning on every batch.
      */
     private void logDifferentMachineName(MachinePrincipal principal, IngestBatchRequest request) {
         String machineName = request.machine().machineName();
         if (machineName.equals(principal.machineName())) {
             return;
         }
-        loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, IngestServiceLogConstant.MACHINE_NAME_DIFFERENT,
+        loggingService.debug(LOG_PREFIX, LogLayer.SERVICE, IngestServiceLogConstant.MACHINE_NAME_DIFFERENT,
                 request.sessionId(), principal.machineId(), principal.machineName(), machineName);
     }
 

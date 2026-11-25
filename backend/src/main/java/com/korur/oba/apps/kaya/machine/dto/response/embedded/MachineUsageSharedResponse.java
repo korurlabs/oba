@@ -15,7 +15,7 @@ public record MachineUsageSharedResponse(
         @Schema(description = "Machine id")
         UUID machineId,
 
-        @Schema(description = "Hostname of the machine", example = "ada-desktop")
+        @Schema(description = "Display label of the machine", example = "ada-desktop")
         String machineName
 ) {
 }

@@ -15,7 +15,7 @@ public record SessionFilterMachineResponse(
         @Schema(description = "Machine id")
         UUID id,
 
-        @Schema(description = "Hostname of the machine", example = "ada-macbook")
+        @Schema(description = "Display label of the machine", example = "ada-macbook")
         String machineName,
 
         @Schema(description = "User of the machine's sessions")
