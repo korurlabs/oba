@@ -1,5 +1,5 @@
 -- Oba Database Schema - Shrine Add Agent Detail To Users
--- V1_2_135__Shrine_Add_Agent_Detail_To_Users.sql
+-- V1_2_137__Shrine_Add_Agent_Detail_To_Users.sql
 --
 -- An agent is a shrine.users row of kind AGENT; there is no agent table. This
 -- migration adds users.kind (HUMAN for every existing row) and the agent

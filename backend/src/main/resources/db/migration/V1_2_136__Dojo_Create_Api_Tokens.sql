@@ -1,5 +1,5 @@
 -- Oba Database Schema - Dojo Create Api Tokens
--- V1_2_134__Dojo_Create_Api_Tokens.sql
+-- V1_2_136__Dojo_Create_Api_Tokens.sql
 --
 -- Creates dojo.api_tokens, the one table of opaque API tokens that a machine
 -- or an agent presents as a bearer credential, and copies every row of
