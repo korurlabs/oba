@@ -81,6 +81,11 @@ public final class LessonConstant {
     public static final long DELIVERY_RATE_WINDOW_SECONDS = 60;
     // Windows of tokens idle for a while are dropped once the table holds this many.
     public static final int DELIVERY_RATE_TABLE_PRUNE_SIZE = 10_000;
+    // The time limit of one lesson read, a page of the list or a search, counted from the start of its
+    // transaction. A healthy read takes milliseconds, even over thousands of lessons; one that runs for
+    // seconds waits on a lock or on a database under strain. Ending it frees its connection of the small
+    // pool every request shares, and the CLI at a session start has stopped waiting by then anyway.
+    public static final int DELIVERY_READ_TIMEOUT_SECONDS = 5;
     public static final String FIELD_ETAG = "etag";
     // A CLI stores the ETag next to the file it wrote and sends it back in If-None-Match, so an ETag
     // must name exactly what that file holds; the form prefix says what one digest stands for. The

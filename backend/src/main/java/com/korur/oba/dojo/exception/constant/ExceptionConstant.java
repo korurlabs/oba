@@ -34,6 +34,7 @@ public final class ExceptionConstant {
     public static final String MSG_MISSING_HEADER = "A required request header is missing. Please include it and try again.";
     public static final String MSG_METHOD_NOT_ALLOWED = "The HTTP method is not supported for this endpoint. Please check the allowed methods.";
     public static final String MSG_CONCURRENT_UPDATE = "This record was changed by another request at the same time. Please reload it and try again.";
+    public static final String MSG_DATABASE_TIMEOUT = "The data could not be read in time. Please try again in a moment.";
 
     // Client-facing error detail values (inside errorValues maps)
     public static final String MSG_INVALID_ENUM_VALUE = "The provided enum value is not a valid option for this field.";

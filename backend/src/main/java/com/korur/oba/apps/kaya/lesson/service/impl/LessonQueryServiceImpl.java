@@ -152,9 +152,14 @@ public class LessonQueryServiceImpl implements LessonQueryService {
      * a page with the ETag of another state; REPEATABLE READ keeps the snapshot of the first
      * statement for the whole transaction. A transaction that only reads never fails its
      * serialization check in PostgreSQL, so nothing has to be retried.
+     *
+     * Both statements pass over every applicable lesson, so the transaction ends at
+     * {@link LessonConstant#DELIVERY_READ_TIMEOUT_SECONDS}: a read stuck on a lock or on a slow
+     * database then answers 503 instead of holding a pooled connection.
      */
     @Override
-    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ,
+            timeout = LessonConstant.DELIVERY_READ_TIMEOUT_SECONDS)
     public LessonDelivery listForCheckout(MachinePrincipal principal, LessonDeliveryQueryRequest request) {
         UUID organizationId = principal.organizationId();
         Instant seenAt = parseSince(principal, request.getSince());
@@ -191,7 +196,12 @@ public class LessonQueryServiceImpl implements LessonQueryService {
         return lessonMapper.toDelivery(new PageImpl<>(lessons, pageable, state.getTotal()), etag);
     }
 
+    /**
+     * A search matches the title and text of every applicable lesson, so it ends at the same time
+     * limit as a page of the list.
+     */
     @Override
+    @Transactional(readOnly = true, timeout = LessonConstant.DELIVERY_READ_TIMEOUT_SECONDS)
     public List<LessonDeliverySearchResponse> searchForCheckout(MachinePrincipal principal, String remoteUrl, String search) {
         UUID organizationId = principal.organizationId();
         chargeRead(principal);

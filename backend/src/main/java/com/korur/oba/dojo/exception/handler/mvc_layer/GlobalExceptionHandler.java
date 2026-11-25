@@ -5,10 +5,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.core.MethodParameter;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.dao.QueryTimeoutException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.transaction.TransactionTimedOutException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -45,6 +47,7 @@ import com.korur.oba.dojo.exception.enums.ExceptionApiError;
 import com.korur.oba.dojo.exception.enums.ExceptionInternalError;
 import com.korur.oba.dojo.exception.enums.ExceptionNotFoundError;
 import com.korur.oba.dojo.exception.enums.ExceptionStateError;
+import com.korur.oba.dojo.exception.enums.ExceptionUpstreamError;
 import com.korur.oba.dojo.exception.enums.ExceptionValidationError;
 import com.korur.oba.dojo.exception.internal.infrastructure.ApplicationException;
 import com.korur.oba.dojo.exception.internal.infrastructure.ErrorResponse;
@@ -129,7 +132,11 @@ import com.korur.oba.dojo.util.ResponseUtil;
  * - OptimisticLockingFailureException, OptimisticLockException: 409, when another transaction
  *   saved a versioned entity after this request read it.
  *
- * <h3>5. Generic / Fallback</h3>
+ * 5. Time limit of database work
+ * - QueryTimeoutException, TransactionTimedOutException: 503 GEN_UPS_004, when the work ran past
+ *   the timeout of its transaction.
+ *
+ * <h3>6. Generic / Fallback</h3>
  * <table>
  *   <tr><th>Exception</th><th>Status</th><th>When</th></tr>
  *   <tr>
@@ -519,6 +526,30 @@ public class GlobalExceptionHandler {
         return asJson(ResponseUtil.error(HttpStatus.CONFLICT, ExceptionConstant.MSG_CONCURRENT_UPDATE, new ErrorResponse(
                 ExceptionStateError.CONFLICT.getCode(),
                 ExceptionStateError.CONFLICT.getMessage(),
+                Map.of()
+        )));
+    }
+
+    // ========= TIME LIMIT OF DATABASE WORK ========= //
+
+    /**
+     * Handles database work that ran past the timeout of its transaction, see
+     * {@link org.springframework.transaction.annotation.Transactional#timeout()}. The database cancels
+     * the statement that runs at the limit, which Spring reports as {@link QueryTimeoutException};
+     * a statement that would start after it is refused before it reaches the database with
+     * {@link TransactionTimedOutException}. The database, not the request, was slow, so the client
+     * is told to try again later instead of getting the 500 of a bug. It is logged at error level
+     * with the exception: a timeout means a lock or a database under strain that someone should see.
+     *
+     * @param ex the timeout
+     * @return 503 SERVICE UNAVAILABLE with GEN_UPS_004 and no details exposed
+     */
+    @ExceptionHandler({QueryTimeoutException.class, TransactionTimedOutException.class})
+    public ResponseEntity<CustomResponse<Void>> handleDatabaseTimeout(Exception ex) {
+        loggingService.error(LOG_PREFIX, LogLayer.HANDLER, ExceptionHandlerLogConstant.LOG_DATABASE_TIMEOUT, ex, ex.getMessage());
+        return asJson(ResponseUtil.error(HttpStatus.SERVICE_UNAVAILABLE, ExceptionConstant.MSG_DATABASE_TIMEOUT, new ErrorResponse(
+                ExceptionUpstreamError.DATABASE_TIMEOUT.getCode(),
+                ExceptionUpstreamError.DATABASE_TIMEOUT.getMessage(),
                 Map.of()
         )));
     }

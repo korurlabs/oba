@@ -105,7 +105,9 @@ public class LessonDeliveryController {
                     + "from page 2 on"),
             @ApiResponse(responseCode = "429", description = "KAY_SEC_004: more than 600 lesson reads (pages, 304s "
                     + "and searches) of the token in a minute"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "500", description = "Internal server error"),
+            @ApiResponse(responseCode = "503", description = "GEN_UPS_004: the read ran past its time limit of 5 "
+                    + "seconds; try again later")
     })
     public ResponseEntity<CustomResponse<List<LessonDeliveryResponse>>> getLessons(
             @Parameter(hidden = true) @AuthenticationPrincipal MachinePrincipal principal,
@@ -170,7 +172,9 @@ public class LessonDeliveryController {
                     + "or search missing or too long"),
             @ApiResponse(responseCode = "429", description = "KAY_SEC_004: more than 600 lesson reads (pages, 304s "
                     + "and searches) of the token in a minute"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "500", description = "Internal server error"),
+            @ApiResponse(responseCode = "503", description = "GEN_UPS_004: the read ran past its time limit of 5 "
+                    + "seconds; try again later")
     })
     public ResponseEntity<CustomResponse<List<LessonDeliverySearchResponse>>> searchLessons(
             @Parameter(hidden = true) @AuthenticationPrincipal MachinePrincipal principal,

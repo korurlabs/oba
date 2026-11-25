@@ -7,7 +7,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.MethodParameter;
+import org.springframework.dao.QueryTimeoutException;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.format.support.DefaultFormattingConversionService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -15,8 +18,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.TransactionTimedOutException;
 import org.springframework.web.bind.ServletRequestDataBinder;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.ServletWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
 
 // 2. Third-party
 import jakarta.validation.ConstraintViolation;
@@ -32,6 +42,10 @@ import java.util.stream.Collectors;
 
 // 4. Internal
 import com.korur.oba.dojo.dto.CustomResponse;
+import com.korur.oba.dojo.exception.constant.ExceptionHandlerLogConstant;
+import com.korur.oba.dojo.exception.handler.mvc_layer.GlobalExceptionHandler;
+import com.korur.oba.dojo.logging.enums.LogLayer;
+import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.apps.kaya.identity.service.KayaUserQueryService;
 import com.korur.oba.apps.kaya.identity.service.OrganizationAccessQueryService;
@@ -57,7 +71,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * The conditional answer of the lesson list, from the query string through the real binding, query
@@ -270,6 +288,66 @@ class LessonDeliveryControllerUnitTest {
             assertTrue(invalidFields(bind(weakPaged)).isEmpty());
             assertEquals(Set.of(ETAG), invalidFields(bind(weakUnpaged)));
             assertEquals(Set.of(ETAG), invalidFields(bind(weakUnquoted)));
+        }
+    }
+
+    /**
+     * A read that runs past its time limit, dispatched through a standalone MockMvc with the real
+     * exception handler, so the answer is the one the API serves.
+     */
+    @Nested
+    class ReadTimeLimit {
+
+        private static final String READ_TIMED_OUT = "GEN_UPS_004";
+
+        private MockMvc mockMvc;
+
+        @BeforeEach
+        void setUpMockMvc() {
+            HandlerMethodArgumentResolver principalResolver = new HandlerMethodArgumentResolver() {
+                @Override
+                public boolean supportsParameter(MethodParameter parameter) {
+                    return parameter.getParameterType().equals(MachinePrincipal.class);
+                }
+
+                @Override
+                public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer container,
+                                              NativeWebRequest request, WebDataBinderFactory binderFactory) {
+                    return principal;
+                }
+            };
+            mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                    .setCustomArgumentResolvers(principalResolver)
+                    .setControllerAdvice(new GlobalExceptionHandler(loggingService))
+                    .build();
+        }
+
+        @Test
+        void listCancelledAtTheLimit_answers503InsteadOf500() throws Exception {
+            // Arrange: the database cancels the statement, which the repository reports as a query timeout.
+            when(repositoryQueryService.getRepositories(principal.organizationId())).thenReturn(List.of());
+            when(lessonRepository.findDeliveryState(principal.organizationId(), null))
+                    .thenThrow(new QueryTimeoutException("canceling statement due to user request"));
+
+            // Act and assert
+            mockMvc.perform(get(DELIVERY).param(REMOTE_URL, REMOTE).param(PAGE, "1"))
+                    .andExpect(status().isServiceUnavailable())
+                    .andExpect(jsonPath("$.error.code").value(READ_TIMED_OUT));
+            verify(loggingService).error(any(LogPrefix.class), eq(LogLayer.HANDLER),
+                    eq(ExceptionHandlerLogConstant.LOG_DATABASE_TIMEOUT), any(QueryTimeoutException.class), any());
+        }
+
+        @Test
+        void searchStartedAfterTheLimit_answers503InsteadOf500() throws Exception {
+            // Arrange: a statement that would start after the limit is refused before it reaches the database.
+            when(repositoryQueryService.getRepositories(principal.organizationId())).thenReturn(List.of());
+            when(lessonRepository.findAll(any(Specification.class), any(Pageable.class)))
+                    .thenThrow(new TransactionTimedOutException("Transaction timed out"));
+
+            // Act and assert
+            mockMvc.perform(get(DELIVERY + "/search").param(REMOTE_URL, REMOTE).param("search", "flyway"))
+                    .andExpect(status().isServiceUnavailable())
+                    .andExpect(jsonPath("$.error.code").value(READ_TIMED_OUT));
         }
     }
 }

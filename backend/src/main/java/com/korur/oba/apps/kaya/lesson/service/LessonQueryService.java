@@ -112,6 +112,9 @@ public interface LessonQueryService {
      * @throws com.korur.oba.dojo.exception.internal.business.TooManyRequestsException KAY_SEC_004
      *         when the token made more lesson reads in a minute than
      *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_READS_PER_MINUTE}
+     * @throws org.springframework.dao.QueryTimeoutException when the read runs past
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_READ_TIMEOUT_SECONDS},
+     *         answered 503 GEN_UPS_004
      */
     LessonDelivery listForCheckout(MachinePrincipal principal, LessonDeliveryQueryRequest request);
 
@@ -129,6 +132,9 @@ public interface LessonQueryService {
      *         when the token made more lesson reads in a minute than
      *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_READS_PER_MINUTE};
      *         a search counts as a read like a page of the list
+     * @throws org.springframework.dao.QueryTimeoutException when the search runs past
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_READ_TIMEOUT_SECONDS},
+     *         answered 503 GEN_UPS_004
      */
     List<LessonDeliverySearchResponse> searchForCheckout(MachinePrincipal principal, String remoteUrl, String search);
 

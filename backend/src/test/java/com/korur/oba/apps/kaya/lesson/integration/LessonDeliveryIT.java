@@ -12,7 +12,11 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import com.jayway.jsonpath.JsonPath;
 
 // 3. Java SDK
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -22,6 +26,7 @@ import java.util.stream.Collectors;
 
 // 4. Internal
 import com.korur.oba.apps.kaya.delivery.helper.DeliveryEtagHelper;
+import com.korur.oba.apps.kaya.lesson.constant.LessonConstant;
 
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.containsString;
@@ -716,6 +721,67 @@ class LessonDeliveryIT extends AbstractLessonIT {
             machine(fixture.boMachine().token(), pageOf(fixture, 1, null))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.length()").value(1));
+        }
+    }
+
+    @Nested
+    class ReadTimeLimit {
+
+        private static final String READ_TIMED_OUT = "GEN_UPS_004";
+        // The limit plus the time the database takes to cancel the statement and the request to end.
+        private static final Duration ANSWERED_WITHIN = Duration.ofSeconds(LessonConstant.DELIVERY_READ_TIMEOUT_SECONDS + 3);
+
+        /**
+         * Takes an ACCESS EXCLUSIVE lock on the lessons, which even a read waits for, as a long
+         * migration or a stuck transaction holds it. The session ends itself after 20 seconds idle,
+         * so a read without a time limit makes the test fail instead of hang.
+         */
+        private Connection lockLessons() throws SQLException {
+            Connection lock = jdbcTemplate.getDataSource().getConnection();
+            lock.setAutoCommit(false);
+            try (Statement statement = lock.createStatement()) {
+                statement.execute("SET idle_in_transaction_session_timeout = '20s'");
+                statement.execute("LOCK TABLE kaya.lessons IN ACCESS EXCLUSIVE MODE");
+            }
+            return lock;
+        }
+
+        private Duration answerWhileLocked(String token, MockHttpServletRequestBuilder request) throws Exception {
+            try (Connection lock = lockLessons()) {
+                long started = System.nanoTime();
+                try {
+                    machine(token, request)
+                            .andExpect(status().isServiceUnavailable())
+                            .andExpect(jsonPath(ERROR_CODE).value(READ_TIMED_OUT));
+                    return Duration.ofNanos(System.nanoTime() - started);
+                } finally {
+                    lock.rollback();
+                }
+            }
+        }
+
+        @Test
+        void getLessons_lessonsLockedPastTheLimit_answers503InTimeAndReadsAgainOnceFree() throws Exception {
+            Fixture fixture = newFixture();
+            insertBulk(fixture, 3, 1);
+
+            Duration waited = answerWhileLocked(fixture.adaMachine().token(), pageOf(fixture, 1, null));
+
+            assertTrue(waited.compareTo(ANSWERED_WITHIN) < 0, "The read ended after " + waited);
+            machine(fixture.adaMachine().token(), pageOf(fixture, 1, null))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(3));
+        }
+
+        @Test
+        void searchLessons_lessonsLockedPastTheLimit_answers503InTime() throws Exception {
+            Fixture fixture = newFixture();
+            insertBulk(fixture, 3, 1);
+
+            Duration waited = answerWhileLocked(fixture.adaMachine().token(),
+                    get(DELIVERY + "/search").param(REMOTE_URL, fixture.remote()).param("search", "bulk"));
+
+            assertTrue(waited.compareTo(ANSWERED_WITHIN) < 0, "The search ended after " + waited);
         }
     }
 

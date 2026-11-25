@@ -12,10 +12,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 // 2. Third-party
 
 // 3. Java SDK
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -344,6 +347,30 @@ class LessonQueryServiceImplUnitTest {
             // The earlier form was the bare 64 hex digest: even the same digest no longer matches.
             assertFalse(LessonEtagHelper.matches("\"" + state.getDigest() + "\"", paged));
             assertFalse(LessonEtagHelper.matches("\"" + state.getDigest() + "\"", unpaged));
+        }
+    }
+
+    @Nested
+    class ReadTimeLimit {
+
+        @Test
+        void listAndSearch_endAtTheReadTimeLimit() throws NoSuchMethodException {
+            Transactional list = transactionOf(LessonQueryServiceImpl.class.getMethod("listForCheckout",
+                    MachinePrincipal.class, LessonDeliveryQueryRequest.class));
+            Transactional search = transactionOf(LessonQueryServiceImpl.class.getMethod("searchForCheckout",
+                    MachinePrincipal.class, String.class, String.class));
+
+            assertEquals(LessonConstant.DELIVERY_READ_TIMEOUT_SECONDS, list.timeout());
+            assertEquals(LessonConstant.DELIVERY_READ_TIMEOUT_SECONDS, search.timeout());
+            // The list keeps the one snapshot that pairs a page with its ETag.
+            assertEquals(Isolation.REPEATABLE_READ, list.isolation());
+            assertTrue(list.readOnly() && search.readOnly());
+        }
+
+        private static Transactional transactionOf(Method method) {
+            Transactional transactional = method.getAnnotation(Transactional.class);
+            assertTrue(transactional != null, method.getName() + " has a transaction of its own");
+            return transactional;
         }
     }
 }

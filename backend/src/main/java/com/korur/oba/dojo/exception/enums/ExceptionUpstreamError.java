@@ -10,7 +10,8 @@ public enum ExceptionUpstreamError implements ExceptionError {
     BAD_GATEWAY("GEN_UPS_001", "Bad gateway error."),
     GATEWAY_TIMEOUT("GEN_UPS_002", "The gateway has timed out."),
     UNREACHABLE("GEN_UPS_003",
-            "A required upstream dependency could not be reached. This indicates network, DNS, or service availability issues.");
+            "A required upstream dependency could not be reached. This indicates network, DNS, or service availability issues."),
+    DATABASE_TIMEOUT("GEN_UPS_004", "The database did not answer within the time limit of the request. Try again later.");
 
     private final String code;
     private final String message;
