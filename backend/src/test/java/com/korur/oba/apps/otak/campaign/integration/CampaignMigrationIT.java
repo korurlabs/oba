@@ -17,7 +17,7 @@ import com.korur.oba.apps.kaya.support.AbstractTenantIT;
 /**
  * The campaign schema refuses rows the application must never write: a scheduled campaign
  * without a planned date, a draft or scheduled campaign with a published date, a duplicate
- * name inside one organization, an unknown channel or status, a text over 20000 characters, a
+ * name inside one organization, an unknown channel or status, a
  * second text in one language, and a relation linked to the campaign of another organization;
  * and deleting a campaign keeps the relations that pointed at it and removes its texts.
  * The tests use SQL only, so they hold independently of the campaign entity.
@@ -126,14 +126,6 @@ class CampaignMigrationIT extends AbstractTenantIT {
 
         assertEquals(1L, count("SELECT count(*) FROM otak.campaigns WHERE organization_id = ?",
                 tenantB.organization().getId()));
-    }
-
-    @Test
-    void insertContent_textOver20000Characters_isRejectedByTheCheckConstraint() {
-        UUID id = draft(tenantA, "Long " + uniqueSuffix());
-
-        content(id, "NL", "x".repeat(20000));
-        assertThrows(DataIntegrityViolationException.class, () -> content(id, "EN", "x".repeat(20001)));
     }
 
     @Test

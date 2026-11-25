@@ -9,11 +9,10 @@ import lombok.RequiredArgsConstructor;
 // 3. Java SDK
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 // 4. Internal
 import com.korur.oba.apps.otak.campaign.dto.response.CampaignOwnerResponse;
@@ -42,16 +41,21 @@ public class CampaignOwnerHelper {
      * @return the display name per owner user id; empty when no campaign has an owner
      */
     public Map<UUID, String> ownerNames(Collection<Campaign> campaigns) {
-        List<UUID> ownerIds = campaigns.stream()
-                .map(Campaign::getOwnerUserId)
-                .filter(Objects::nonNull)
-                .distinct()
-                .collect(Collectors.toCollection(ArrayList::new));
+        List<UUID> ownerIds = new ArrayList<>();
+        for (Campaign campaign : campaigns) {
+            UUID ownerUserId = campaign.getOwnerUserId();
+            if (ownerUserId != null && !ownerIds.contains(ownerUserId)) {
+                ownerIds.add(ownerUserId);
+            }
+        }
         if (ownerIds.isEmpty()) {
             return Map.of();
         }
-        return userQueryService.getUserEntitiesByIds(ownerIds).stream()
-                .collect(Collectors.toMap(User::getId, CampaignOwnerHelper::displayNameOf));
+        Map<UUID, String> ownerNames = new HashMap<>();
+        for (User user : userQueryService.getUserEntitiesByIds(ownerIds)) {
+            ownerNames.put(user.getId(), displayNameOf(user));
+        }
+        return ownerNames;
     }
 
     /**

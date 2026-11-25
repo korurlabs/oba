@@ -243,10 +243,14 @@ public class CampaignServiceImpl implements CampaignService {
      * Maps a campaign and its texts to the detail response, with the owner's name.
      */
     private CampaignDetailResponse toDetailResponse(Campaign campaign, List<CampaignContent> contents) {
+        List<DocumentLanguage> contentLanguages = new ArrayList<>();
+        for (CampaignContent content : contents) {
+            contentLanguages.add(content.getLanguage());
+        }
         return campaignMapper.toDetailResponse(
                 campaign,
                 campaignOwnerHelper.ownerOf(campaign),
-                contents.stream().map(CampaignContent::getLanguage).toList(),
+                contentLanguages,
                 campaignMapper.toContentResponses(contents));
     }
 

@@ -362,7 +362,6 @@ function CampaignTextsFields({ isPending }: { isPending: boolean }) {
                 placeholder={t("form.textPlaceholder")}
                 control={control}
                 rows={10}
-                maxLength={CAMPAIGN_LIMITS.textMax}
                 disabled={isPending}
               />
               <p

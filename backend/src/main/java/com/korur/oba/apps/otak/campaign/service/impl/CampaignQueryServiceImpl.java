@@ -89,12 +89,14 @@ public class CampaignQueryServiceImpl implements CampaignQueryService {
 
         Map<UUID, List<DocumentLanguage>> languages = languagesByCampaign(campaigns);
         Map<UUID, String> ownerNames = campaignOwnerHelper.ownerNames(campaigns);
-        return campaigns.stream()
-                .map((Campaign campaign) -> campaignMapper.toListResponse(
-                        campaign,
-                        campaignOwnerHelper.ownerOf(campaign, ownerNames),
-                        languages.getOrDefault(campaign.getId(), List.of())))
-                .toList();
+        List<CampaignListResponse> responses = new ArrayList<>();
+        for (Campaign campaign : campaigns) {
+            responses.add(campaignMapper.toListResponse(
+                    campaign,
+                    campaignOwnerHelper.ownerOf(campaign, ownerNames),
+                    languages.getOrDefault(campaign.getId(), List.of())));
+        }
+        return responses;
     }
 
     @Override
@@ -103,10 +105,14 @@ public class CampaignQueryServiceImpl implements CampaignQueryService {
 
         Campaign campaign = campaignValidator.ensureCampaignExists(organizationId, campaignId);
         List<CampaignContent> contents = campaignContentRepository.findAllByCampaignIdOrderByLanguageAsc(campaignId);
+        List<DocumentLanguage> contentLanguages = new ArrayList<>();
+        for (CampaignContent content : contents) {
+            contentLanguages.add(content.getLanguage());
+        }
         return campaignMapper.toDetailResponse(
                 campaign,
                 campaignOwnerHelper.ownerOf(campaign),
-                contents.stream().map(CampaignContent::getLanguage).toList(),
+                contentLanguages,
                 campaignMapper.toContentResponses(contents));
     }
 
@@ -125,10 +131,18 @@ public class CampaignQueryServiceImpl implements CampaignQueryService {
      * EN), read in one query for the whole list.
      */
     private Map<UUID, List<DocumentLanguage>> languagesByCampaign(List<Campaign> campaigns) {
-        List<UUID> campaignIds = campaigns.stream().map(Campaign::getId).toList();
+        List<UUID> campaignIds = new ArrayList<>();
+        for (Campaign campaign : campaigns) {
+            campaignIds.add(campaign.getId());
+        }
         Map<UUID, List<DocumentLanguage>> languages = new HashMap<>();
         for (CampaignContentLanguageProjection row : campaignContentRepository.findLanguages(campaignIds)) {
-            languages.computeIfAbsent(row.getCampaignId(), (UUID id) -> new ArrayList<>()).add(row.getLanguage());
+            List<DocumentLanguage> campaignLanguages = languages.get(row.getCampaignId());
+            if (campaignLanguages == null) {
+                campaignLanguages = new ArrayList<>();
+                languages.put(row.getCampaignId(), campaignLanguages);
+            }
+            campaignLanguages.add(row.getLanguage());
         }
         return languages;
     }

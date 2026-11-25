@@ -1453,7 +1453,6 @@
         "dateTimeInvalid": "Enter a valid date and time",
         "postUrlMax": "Post address must be at most 500 characters",
         "postUrlInvalid": "Enter a web address that starts with http:// or https://",
-        "textMax": "A text must be at most 20,000 characters",
         "plannedAtRequired": "A scheduled campaign needs a planned date and time",
         "publishedAtNotAllowed": "A draft or scheduled campaign has no published date; mark it as published or clear the date",
         "publishedAtInFuture": "The published date cannot be in the future; schedule the campaign instead"

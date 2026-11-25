@@ -103,7 +103,7 @@ public class CampaignController {
     @PostMapping
     @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "Create campaign",
-            description = "Creates a campaign of the organization with up to three texts, one per language. Status "
+            description = "Creates a campaign of the organization with at most one text per language. Status "
                     + "defaults to DRAFT; PUBLISHED without publishedAt stores the server's now.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Resource created successfully"),

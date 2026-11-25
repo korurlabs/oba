@@ -116,11 +116,6 @@ describe("campaign form schema", () => {
     expect(errorsOf({ ...valid, postUrl: "https://www.linkedin.com/posts/1" })).toEqual({});
   });
 
-  test("a text is at most 20,000 characters", () => {
-    const texts = { ...valid.texts, EN: "t".repeat(20_001) };
-    expect(errorsOf({ ...valid, texts })).toEqual({ texts: "errors.textMax" });
-  });
-
   test("the status rules are shown on the moment they concern", () => {
     expect(errorsOf({ ...valid, status: "SCHEDULED" }).plannedAt).toBe("errors.plannedAtRequired");
     expect(errorsOf({ ...valid, publishedAt: "2026-11-01T09:00" }).publishedAt).toBe(

@@ -19,11 +19,12 @@ import static org.mockito.Mockito.when;
 // 3. Java SDK
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 // 4. Internal
 import com.korur.oba.apps.otak.campaign.constant.controller.CampaignControllerResponseConstant;
@@ -73,13 +74,17 @@ class CampaignControllerUnitTest {
                 "deleteCampaign", OrganizationMemberRole.ADMIN);
 
         // Act
-        List<Method> handlers = Arrays.stream(CampaignController.class.getDeclaredMethods())
-                .filter(method -> Modifier.isPublic(method.getModifiers()))
-                .toList();
+        List<Method> handlers = new ArrayList<>();
+        Set<String> handlerNames = new HashSet<>();
+        for (Method method : CampaignController.class.getDeclaredMethods()) {
+            if (Modifier.isPublic(method.getModifiers())) {
+                handlers.add(method);
+                handlerNames.add(method.getName());
+            }
+        }
 
         // Assert
-        assertThat(handlers.stream().map(Method::getName).collect(Collectors.toSet()))
-                .isEqualTo(expected.keySet());
+        assertThat(handlerNames).isEqualTo(expected.keySet());
         assertThat(handlers).allSatisfy(method -> {
             assertThat(method.isAnnotationPresent(PreAuthorize.class)).isFalse();
             RequiredUserAccess access = method.getAnnotation(RequiredUserAccess.class);

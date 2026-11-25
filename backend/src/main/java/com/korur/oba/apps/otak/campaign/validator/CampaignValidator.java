@@ -13,6 +13,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -191,9 +192,8 @@ public class CampaignValidator {
         if (ownerUserId == null) {
             return;
         }
-        boolean activeMember = organizationMemberQueryService.findMember(organizationId, ownerUserId)
-                .map((OrganizationMember member) -> member.getStatus() == OrganizationMemberStatus.ACTIVE)
-                .orElse(false);
+        Optional<OrganizationMember> member = organizationMemberQueryService.findMember(organizationId, ownerUserId);
+        boolean activeMember = member.isPresent() && member.get().getStatus() == OrganizationMemberStatus.ACTIVE;
         if (!activeMember) {
             loggingService.warn(LOG_PREFIX, LogLayer.VALIDATOR,
                     CampaignExceptionLogConstant.OWNER_NOT_ORGANIZATION_MEMBER, organizationId, ownerUserId);

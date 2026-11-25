@@ -8,6 +8,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -42,7 +43,12 @@ import com.korur.oba.dojo.entity.BaseEntity;
  * campaign link of its outreaches and relations and keeps them.
  */
 @Entity
-@Table(name = "campaigns", schema = "otak")
+@Table(
+        name = "campaigns",
+        schema = "otak",
+        uniqueConstraints = @UniqueConstraint(
+                name = "campaigns_organization_id_lower_name_uk",
+                columnNames = {"organization_id", "name"}))
 @SuperBuilder
 @Getter
 @Setter

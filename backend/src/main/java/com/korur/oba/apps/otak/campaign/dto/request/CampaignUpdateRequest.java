@@ -36,7 +36,7 @@ import com.korur.oba.dojo.annotation.NullOrNotBlank;
  *
  * Field rules, checked by Bean Validation before the service runs (422 GEN_VAL_001): the
  * name and the channel are required; the post URL is null or a full http or https address,
- * never blank; at most three texts, each with a language and a text that is not blank. The
+ * never blank; each text has a language and a text that is not blank. The
  * moments are instants, sent with Z or an offset and stored in UTC.
  *
  * Rules that need several fields or the stored data are checked in
@@ -123,7 +123,6 @@ public record CampaignUpdateRequest(
 
         @Schema(description = "Texts of the campaign, at most one per language (NL, TR, EN); null for none",
                 nullable = true)
-        @Size(max = CampaignConstant.CONTENTS_MAX_SIZE, message = CampaignConstant.CONTENTS_SIZE_MESSAGE)
         List<@NotNull(message = CampaignConstant.CONTENT_REQUIRED_MESSAGE) @Valid CampaignContentRequest> contents
 ) {
 }

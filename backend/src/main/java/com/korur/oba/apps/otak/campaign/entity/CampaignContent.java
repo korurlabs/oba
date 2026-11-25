@@ -53,7 +53,7 @@ public class CampaignContent extends BaseEntity {
     private UUID campaignId;
 
     /**
-     * The text, plain text of at most 20,000 characters; never blank.
+     * The text, plain text; never blank.
      */
     @Column(name = "text", columnDefinition = "TEXT", nullable = false)
     private String text;

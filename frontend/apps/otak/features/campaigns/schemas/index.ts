@@ -32,7 +32,6 @@ export const CampaignStatus = CampaignStatusSchema.enum;
 export const CAMPAIGN_LIMITS = {
   nameMax: 200,
   postUrlMax: 500,
-  textMax: 20000,
   searchMax: 200,
 } as const;
 
@@ -122,10 +121,7 @@ export function localInputToInstant(value: string): string | null {
 
 export const campaignContentRequestSchema = z.object({
   language: DocumentLanguageSchema,
-  text: z
-    .string()
-    .max(CAMPAIGN_LIMITS.textMax)
-    .refine((text) => text.trim().length > 0),
+  text: z.string().refine((text) => text.trim().length > 0),
 });
 
 /**
@@ -147,7 +143,6 @@ export const campaignRequestSchema = z
     icpId: z.string().nullable(),
     contents: z
       .array(campaignContentRequestSchema)
-      .max(CAMPAIGN_LANGUAGES.length)
       .refine(
         (contents) => new Set(contents.map((content) => content.language)).size === contents.length
       ),
@@ -176,14 +171,12 @@ export const campaignQueryRequestSchema = z.object({
 
 // ── Form Schema ─────────────────────────────────────────────────────
 
-const campaignTextsShape = (t: (key: string) => string) =>
+const campaignTextsShape = () =>
   z.object(
-    Object.fromEntries(
-      CAMPAIGN_LANGUAGES.map((language) => [
-        language,
-        z.string().max(CAMPAIGN_LIMITS.textMax, t("errors.textMax")),
-      ])
-    ) as Record<DocumentLanguage, z.ZodString>
+    Object.fromEntries(CAMPAIGN_LANGUAGES.map((language) => [language, z.string()])) as Record<
+      DocumentLanguage,
+      z.ZodString
+    >
   );
 
 /**
@@ -226,7 +219,7 @@ export const createCampaignFormSchema = (
       ownerUserId: z.string(),
       eventId: z.string(),
       icpId: z.string(),
-      texts: campaignTextsShape(t),
+      texts: campaignTextsShape(),
     })
     .superRefine((values, ctx) => {
       const issue = campaignStatusDatesIssue(

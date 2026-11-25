@@ -1453,7 +1453,6 @@
         "dateTimeInvalid": "Vul een geldige datum en tijd in",
         "postUrlMax": "Postadres mag maximaal 500 tekens zijn",
         "postUrlInvalid": "Vul een webadres in dat begint met http:// of https://",
-        "textMax": "Een tekst mag maximaal 20.000 tekens zijn",
         "plannedAtRequired": "Een ingeplande campagne heeft een geplande datum en tijd nodig",
         "publishedAtNotAllowed": "Een concept of ingeplande campagne heeft geen publicatiedatum; markeer hem als gepubliceerd of wis de datum",
         "publishedAtInFuture": "De publicatiedatum kan niet in de toekomst liggen; plan de campagne in"

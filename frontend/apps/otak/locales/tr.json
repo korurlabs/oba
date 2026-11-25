@@ -1453,7 +1453,6 @@
         "dateTimeInvalid": "Geçerli bir tarih ve saat girin",
         "postUrlMax": "Gönderi adresi en fazla 500 karakter olabilir",
         "postUrlInvalid": "http:// veya https:// ile başlayan bir web adresi girin",
-        "textMax": "Bir metin en fazla 20.000 karakter olabilir",
         "plannedAtRequired": "Planlanmış bir kampanyanın planlanan tarih ve saati olmalıdır",
         "publishedAtNotAllowed": "Taslak veya planlanmış bir kampanyanın yayınlanma tarihi olmaz; yayınlandı olarak işaretleyin veya tarihi temizleyin",
         "publishedAtInFuture": "Yayınlanma tarihi gelecekte olamaz; bunun yerine kampanyayı planlayın"

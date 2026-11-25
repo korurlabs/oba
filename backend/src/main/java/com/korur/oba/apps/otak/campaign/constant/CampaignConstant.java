@@ -30,8 +30,6 @@ public final class CampaignConstant {
 
     public static final int NAME_MAX_LENGTH = 200;
     public static final int POST_URL_MAX_LENGTH = 500;
-    public static final int CONTENT_TEXT_MAX_LENGTH = 20000;
-    public static final int CONTENTS_MAX_SIZE = 3;
     public static final int SEARCH_MAX_LENGTH = 200;
 
     // -------------Validation messages-----------//
@@ -43,11 +41,9 @@ public final class CampaignConstant {
     public static final String POST_URL_BLANK_MESSAGE = "Post URL can not be empty; send null when there is none";
     public static final String POST_URL_SIZE_MESSAGE = "Post URL can not be longer than 500 characters";
     public static final String POST_URL_PATTERN_MESSAGE = "Post URL must be a full http or https address";
-    public static final String CONTENTS_SIZE_MESSAGE = "A campaign has at most 3 texts, one per language";
     public static final String CONTENT_REQUIRED_MESSAGE = "A text entry can not be null";
     public static final String CONTENT_LANGUAGE_REQUIRED_MESSAGE = "Language is required";
     public static final String CONTENT_TEXT_REQUIRED_MESSAGE = "Text is required";
-    public static final String CONTENT_TEXT_SIZE_MESSAGE = "Text can not be longer than 20000 characters";
     public static final String SEARCH_BLANK_MESSAGE = "Search can not be empty; leave it out to list every campaign";
     public static final String SEARCH_SIZE_MESSAGE = "Search can not be longer than 200 characters";
 }

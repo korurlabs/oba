@@ -8,13 +8,14 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 // 2. Third-party
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 
 // 3. Java SDK
+import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 // 4. Internal
 import com.korur.oba.apps.otak.campaign.constant.CampaignConstant;
@@ -38,9 +39,11 @@ class CampaignUpdateRequestValidationUnitTest {
     }
 
     private static Set<String> violated(CampaignUpdateRequest request) {
-        return validator.validate(request).stream()
-                .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
-                .collect(Collectors.toSet());
+        Set<String> violations = new HashSet<>();
+        for (ConstraintViolation<CampaignUpdateRequest> violation : validator.validate(request)) {
+            violations.add(violation.getPropertyPath() + ": " + violation.getMessage());
+        }
+        return violations;
     }
 
     @Test

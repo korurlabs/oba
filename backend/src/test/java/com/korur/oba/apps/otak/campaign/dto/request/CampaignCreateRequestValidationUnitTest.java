@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 // 2. Third-party
+import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
@@ -16,8 +17,8 @@ import jakarta.validation.ValidatorFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 // 4. Internal
 import com.korur.oba.apps.otak.campaign.constant.CampaignConstant;
@@ -50,9 +51,11 @@ class CampaignCreateRequestValidationUnitTest {
     }
 
     private static Set<String> violated(Object request) {
-        return validator.validate(request).stream()
-                .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
-                .collect(Collectors.toSet());
+        Set<String> violations = new HashSet<>();
+        for (ConstraintViolation<Object> violation : validator.validate(request)) {
+            violations.add(violation.getPropertyPath() + ": " + violation.getMessage());
+        }
+        return violations;
     }
 
     @Test
@@ -88,29 +91,11 @@ class CampaignCreateRequestValidationUnitTest {
     }
 
     @Test
-    void fourContents_areRejectedAndThreeAreValid() {
-        CampaignContentRequest nl = new CampaignContentRequest(DocumentLanguage.NL, "Hallo");
-        CampaignContentRequest tr = new CampaignContentRequest(DocumentLanguage.TR, "Merhaba");
-        CampaignContentRequest en = new CampaignContentRequest(DocumentLanguage.EN, "Hello");
-        assertThat(violated(withContents(nl, tr, en, en)))
-                .containsExactly("contents: " + CampaignConstant.CONTENTS_SIZE_MESSAGE);
-        assertThat(violated(withContents(nl, tr, en))).isEmpty();
-    }
-
-    @Test
     void blankTextAndMissingLanguage_areRejected() {
         assertThat(violated(withContents(new CampaignContentRequest(null, " \n "))))
                 .containsExactlyInAnyOrder(
                         "contents[0].language: " + CampaignConstant.CONTENT_LANGUAGE_REQUIRED_MESSAGE,
                         "contents[0].text: " + CampaignConstant.CONTENT_TEXT_REQUIRED_MESSAGE);
-    }
-
-    @Test
-    void textOf20001Characters_isRejectedAnd20000IsValid() {
-        assertThat(violated(withContents(new CampaignContentRequest(DocumentLanguage.EN, "t".repeat(20001)))))
-                .containsExactly("contents[0].text: " + CampaignConstant.CONTENT_TEXT_SIZE_MESSAGE);
-        assertThat(violated(withContents(new CampaignContentRequest(DocumentLanguage.EN, "t".repeat(20000)))))
-                .isEmpty();
     }
 
     @Test

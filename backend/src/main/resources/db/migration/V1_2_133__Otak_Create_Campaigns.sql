@@ -99,7 +99,6 @@ CREATE TABLE otak.campaign_contents (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT campaign_contents_pk PRIMARY KEY (id),
-    CONSTRAINT campaign_contents_text_ck CHECK ((char_length(text) <= 20000)),
     CONSTRAINT campaign_contents_campaign_id_fk FOREIGN KEY (campaign_id) REFERENCES otak.campaigns(id) ON DELETE CASCADE
 );
 
