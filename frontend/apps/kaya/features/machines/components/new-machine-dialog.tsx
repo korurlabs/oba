@@ -128,8 +128,8 @@ export function NewMachineDialog() {
             <DialogHeader>
               <DialogTitle>New machine</DialogTitle>
               <DialogDescription>
-                A machine is one Claude Code installation on one computer. Use the computer&apos;s
-                host name (`hostname`), which the recorder reports with every batch.
+                A machine is one Claude Code installation on one computer. The name is a label you
+                choose to recognize the machine, such as &quot;Work MacBook&quot;.
               </DialogDescription>
             </DialogHeader>
             <Field label="Machine name">
@@ -137,7 +137,7 @@ export function NewMachineDialog() {
                 value={machineName}
                 maxLength={255}
                 autoFocus
-                placeholder="ada-macbook"
+                placeholder="Work MacBook"
                 onChange={(event) => setMachineName(event.target.value)}
               />
             </Field>
