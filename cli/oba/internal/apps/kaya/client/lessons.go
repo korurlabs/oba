@@ -19,6 +19,12 @@ const (
 	// lessonsRestarts bounds how often one read starts again at page 1 because the lessons changed
 	// between its pages; lessons edited faster than that are read by the next call.
 	lessonsRestarts = 2
+	// lessonsMaxPages bounds the pages one read requests, whatever Kaya answers: 100 pages of
+	// LessonsPageSize hold 10,000 lessons, far more than an organization keeps, so a Kaya that
+	// reports more is broken or hostile. Without the bound such a Kaya could keep a read going,
+	// and growing in memory, until the caller gives up. A read past it fails rather than answer
+	// part of the list as if it were all.
+	lessonsMaxPages = 100
 )
 
 // Lesson is one row of the lessons of a checkout: its repository's plus the organization-wide
@@ -101,11 +107,14 @@ func (c *Client) LessonsSince(ctx context.Context, remoteURL, etag, since string
 // lessonPages reads the list page by page until Kaya marks the last one. Page 1 carries etag as
 // If-None-Match, so a 304 skips every page; each later page carries the ETag of page 1, so Kaya
 // refuses it with CodeLessonsChanged instead of mixing two states of the lessons. An answer
-// without paging details, from a Kaya that does not page, is the whole list.
+// without paging details, from a Kaya that does not page, is the whole list. The page count of
+// page 1 bounds the read: a later page may end it sooner, never later, and a count above
+// lessonsMaxPages fails the read before page 2.
 func (c *Client) lessonPages(ctx context.Context, remoteURL, etag, since string) ([]Lesson, string, bool, error) {
 	var (
 		all      []Lesson
 		firstTag string
+		lastPage int
 	)
 	for page := 1; ; page++ {
 		query := url.Values{"remoteUrl": {remoteURL}, "page": {strconv.Itoa(page)}, "amount": {strconv.Itoa(LessonsPageSize)}}
@@ -133,9 +142,15 @@ func (c *Client) lessonPages(ctx context.Context, remoteURL, etag, since string)
 		}
 		if page == 1 {
 			firstTag = resp.Header.Get("ETag")
+			if pagination != nil {
+				if pagination.TotalPages > lessonsMaxPages {
+					return nil, "", false, fmt.Errorf("read the lessons: Kaya reports %d pages of them, more than the %d one read takes", pagination.TotalPages, lessonsMaxPages)
+				}
+				lastPage = pagination.TotalPages
+			}
 		}
 		all = append(all, lessons...)
-		if pagination == nil || pagination.Last || page >= pagination.TotalPages || len(lessons) == 0 {
+		if pagination == nil || pagination.Last || page >= lastPage || page >= pagination.TotalPages || len(lessons) == 0 {
 			return all, firstTag, false, nil
 		}
 	}

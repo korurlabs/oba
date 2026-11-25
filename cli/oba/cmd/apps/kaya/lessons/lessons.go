@@ -3,10 +3,12 @@
 package lessons
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -15,6 +17,11 @@ import (
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/lessons"
 	"github.com/korurlabs/oba-cli/internal/dojo/jsonout"
 )
+
+// listTimeout bounds the read of a list typed by hand, every page and restart together: it waits
+// longer for Kaya than a session start does, but a Kaya that keeps answering never holds it
+// without end.
+const listTimeout = 60 * time.Second
 
 type lessonsOptions struct {
 	title    string
@@ -163,11 +170,13 @@ func runLessonsList(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
+	ctx, cancel := context.WithTimeout(cmd.Context(), listTimeout)
+	defer cancel()
 	var rows []client.Lesson
 	if searching {
-		rows, err = api.SearchLessons(cmd.Context(), remote, topic)
+		rows, err = api.SearchLessons(ctx, remote, topic)
 	} else {
-		rows, err = api.Lessons(cmd.Context(), remote)
+		rows, err = api.Lessons(ctx, remote)
 	}
 	if err != nil {
 		return err
