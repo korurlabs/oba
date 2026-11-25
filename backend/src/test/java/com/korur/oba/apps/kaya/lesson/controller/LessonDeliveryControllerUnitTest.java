@@ -254,5 +254,22 @@ class LessonDeliveryControllerUnitTest {
             assertEquals(Set.of(ETAG), invalidFields(bind(unpagedForm)));
             assertTrue(invalidFields(bind(pagedForm)).isEmpty());
         }
+
+        @Test
+        void weakEtagOfThePagedForm_passesWhereTheWeakUnpagedFormIsRefused() {
+            // Arrange: a proxy that compresses the answer sends the ETag header as W/"...".
+            String digest = stateOf(rows(LESSONS)).getDigest();
+            MockHttpServletRequest weakPaged = query("2");
+            weakPaged.setParameter(ETAG, "W/\"v2-" + digest + "\"");
+            MockHttpServletRequest weakUnpaged = query("2");
+            weakUnpaged.setParameter(ETAG, "W/\"v2u-" + digest + "\"");
+            MockHttpServletRequest weakUnquoted = query("2");
+            weakUnquoted.setParameter(ETAG, "W/v2-" + digest);
+
+            // Act and assert
+            assertTrue(invalidFields(bind(weakPaged)).isEmpty());
+            assertEquals(Set.of(ETAG), invalidFields(bind(weakUnpaged)));
+            assertEquals(Set.of(ETAG), invalidFields(bind(weakUnquoted)));
+        }
     }
 }

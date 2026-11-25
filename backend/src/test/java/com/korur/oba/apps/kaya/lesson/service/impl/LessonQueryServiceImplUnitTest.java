@@ -185,6 +185,22 @@ class LessonQueryServiceImplUnitTest {
         }
 
         @Test
+        void laterPageWithTheWeakEtagOfPage1_returnsTheRestUntilTheLessonsChange() {
+            // A proxy that compresses page 1 hands the CLI the ETag as W/"v2-...".
+            List<LessonDeliveryProjection> lessons = rows(LESSONS);
+            givenLessons(lessons);
+            String weak = "W/\"" + service.listForCheckout(principal, request(1, null, null)).etag() + "\"";
+
+            LessonDelivery second = service.listForCheckout(principal, request(2, null, weak));
+            lessons.add(0, row(LESSONS + 1));
+
+            assertEquals(23, second.lessons().getNumberOfElements());
+            ConflictException exception = assertThrows(ConflictException.class,
+                    () -> service.listForCheckout(principal, request(2, null, weak)));
+            assertEquals("KAY_VAL_017", exception.getErrorCode());
+        }
+
+        @Test
         void pagesOfAnyAmount_togetherHoldEveryLessonOnceInOrder() {
             givenLessons(rows(LESSONS));
             String etag = service.listForCheckout(principal, request(1, 10, null)).etag();
@@ -304,6 +320,17 @@ class LessonQueryServiceImplUnitTest {
             assertTrue(LessonEtagHelper.matches(etag, etag));
             assertTrue(LessonEtagHelper.matches("\"" + etag + "\"", etag));
             assertFalse(LessonEtagHelper.matches("\"" + LessonEtagHelper.pagedEtagOf(stateOf(rows(3))) + "\"", etag));
+        }
+
+        @Test
+        void matches_weak_comparesTheValueButKeepsTheForm() {
+            LessonDeliveryStateProjection state = stateOf(rows(2));
+            String paged = LessonEtagHelper.pagedEtagOf(state);
+
+            assertTrue(LessonEtagHelper.matches("W/\"" + paged + "\"", paged));
+            assertFalse(LessonEtagHelper.matches("W/\"" + LessonEtagHelper.pagedEtagOf(stateOf(rows(3))) + "\"", paged));
+            // The same digest under the unpaged form still names another answer.
+            assertFalse(LessonEtagHelper.matches("W/\"" + LessonEtagHelper.unpagedEtagOf(state) + "\"", paged));
         }
 
         @Test

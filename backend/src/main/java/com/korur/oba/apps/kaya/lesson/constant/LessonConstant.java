@@ -91,9 +91,14 @@ public final class LessonConstant {
     // matches neither.
     public static final String ETAG_PAGED_FORM = "v2-";
     public static final String ETAG_UNPAGED_FORM = "v2u-";
-    // The ETag of page 1, bare or quoted as the ETag header carries it. Only the paged form names the
-    // set that later pages are checked against.
-    public static final String ETAG_PATTERN = ETAG_PAGED_FORM + "[0-9a-f]{64}|\"" + ETAG_PAGED_FORM + "[0-9a-f]{64}\"";
+    // A proxy that compresses the answer, as the one in front of the API does, marks the ETag weak by
+    // putting W/ before the quotes. The digest still names the same lessons, so the weak form is
+    // accepted and compared by its value.
+    public static final String ETAG_WEAK_PREFIX = "W/";
+    // The ETag of page 1: bare, or quoted as the ETag header carries it, weak or not. Only the paged
+    // form names the set that later pages are checked against.
+    public static final String ETAG_PATTERN = ETAG_PAGED_FORM + "[0-9a-f]{64}|(" + ETAG_WEAK_PREFIX + ")?\""
+            + ETAG_PAGED_FORM + "[0-9a-f]{64}\"";
     public static final String ETAG_QUOTE = "\"";
     public static final String ETAG_INVALID_MESSAGE = "etag must be the ETag header of page 1";
     public static final String ETAG_REQUIRED_MESSAGE = "etag is required from page 2 on";

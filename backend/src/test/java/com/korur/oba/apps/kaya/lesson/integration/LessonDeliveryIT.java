@@ -542,6 +542,30 @@ class LessonDeliveryIT extends AbstractLessonIT {
         }
 
         @Test
+        void getLessons_weakEtagOfPage1_isAcceptedUntilTheLessonsChange() throws Exception {
+            Fixture fixture = newFixture();
+            String token = fixture.adaMachine().token();
+            insertBulk(fixture, 3, 1);
+            // A proxy that compresses the answer hands the CLI the ETag header of page 1 as W/"v2-...".
+            String weak = "W/" + pagedEtagOf(okPage(fixture, pageOf(fixture, 1, null)));
+
+            machine(token, pageOf(fixture, 1, null).header(HttpHeaders.IF_NONE_MATCH, weak))
+                    .andExpect(status().isNotModified());
+            machine(token, pageOf(fixture, 2, weak).param(AMOUNT, "2"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(1));
+            machine(token, pageOf(fixture, 2, "W/" + unpagedEtagOf(fixture, token)).param(AMOUNT, "2"))
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.error.errorValues.etag").exists());
+
+            createLesson(fixture, fixture.ada().jwt(), "Added between pages", null);
+
+            machine(token, pageOf(fixture, 2, weak).param(AMOUNT, "2"))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath(ERROR_CODE).value(LESSONS_CHANGED));
+        }
+
+        @Test
         void getLessons_laterPageWithoutEtagOrPagingOutOfRange_returns422() throws Exception {
             Fixture fixture = newFixture();
             String token = fixture.adaMachine().token();

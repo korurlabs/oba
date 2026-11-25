@@ -56,8 +56,9 @@ public class LessonDeliveryQueryRequest {
     @Max(value = LessonConstant.DELIVERY_MAX_AMOUNT, message = LessonConstant.AMOUNT_MAX_MESSAGE)
     private int amount = LessonConstant.DELIVERY_DEFAULT_AMOUNT;
 
-    @Schema(description = "The ETag header of page 1, quoted as received or bare; required from page 2 on. A set "
-            + "that changed since page 1 answers 409 KAY_VAL_017", nullable = true,
+    @Schema(description = "The ETag header of page 1 as received, quoted and possibly weak (W/\"v2-...\", as a "
+            + "compressing proxy sends it), or its bare value; required from page 2 on. A weak ETag is compared by its "
+            + "value. A set that changed since page 1 answers 409 KAY_VAL_017", nullable = true,
             example = "\"v2-9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08\"")
     @Pattern(regexp = LessonConstant.ETAG_PATTERN, message = LessonConstant.ETAG_INVALID_MESSAGE)
     private String etag;

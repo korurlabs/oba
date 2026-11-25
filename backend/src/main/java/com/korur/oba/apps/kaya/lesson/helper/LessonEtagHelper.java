@@ -46,17 +46,23 @@ public final class LessonEtagHelper {
 
     /**
      * Whether the ETag a client sent back names the lessons as they are now. The client may send
-     * the ETag header as it received it, in quotes, or its bare value.
+     * the ETag header as it received it, in quotes, or its bare value. A proxy that compresses the
+     * answer marks the header weak with W/, so the comparison is the weak one of RFC 9110 section
+     * 8.8.3.2: the W/ is dropped and the values are compared. The form prefix stays part of the
+     * value, so a weak unpaged ETag never matches the paged one.
      *
-     * @param sentEtag the ETag the client sent, bare or quoted
+     * @param sentEtag the ETag the client sent, bare, quoted or weak
      * @param etag     the current ETag, unquoted
      * @return true when both name the same state of the lessons
      */
     public static boolean matches(String sentEtag, String etag) {
-        String bare = sentEtag.startsWith(LessonConstant.ETAG_QUOTE) && sentEtag.endsWith(LessonConstant.ETAG_QUOTE)
-                && sentEtag.length() > 1
-                ? sentEtag.substring(1, sentEtag.length() - 1)
+        String strong = sentEtag.startsWith(LessonConstant.ETAG_WEAK_PREFIX)
+                ? sentEtag.substring(LessonConstant.ETAG_WEAK_PREFIX.length())
                 : sentEtag;
+        String bare = strong.startsWith(LessonConstant.ETAG_QUOTE) && strong.endsWith(LessonConstant.ETAG_QUOTE)
+                && strong.length() > 1
+                ? strong.substring(1, strong.length() - 1)
+                : strong;
         return bare.equals(etag);
     }
 }
