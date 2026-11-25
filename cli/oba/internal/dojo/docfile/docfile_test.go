@@ -38,7 +38,7 @@ func TestCheckDocumentFile(t *testing.T) {
 		}
 	}
 	bad := map[string]string{
-		"mail.md": "use 'oba otak mail-template push'",
+		"mail.md": "use 'oba otak mail-template upload'",
 		"nda.pdf": "a document is an .html file, rendered to PDF on upload, not nda.pdf",
 	}
 	for path, want := range bad {

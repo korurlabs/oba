@@ -2,11 +2,11 @@ package session
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sync"
 	"time"
 
+	"github.com/korurlabs/oba-cli/internal/dojo/client"
 	"github.com/korurlabs/oba-cli/internal/dojo/config"
 	"github.com/korurlabs/oba-cli/internal/shrine/auth"
 )
@@ -67,11 +67,11 @@ func (r *refreshingToken) token(context.Context) (string, error) {
 		return r.creds.AccessToken, nil
 	}
 	if r.creds.RefreshToken == "" {
-		return "", errors.New("your session has expired. Run 'oba login'")
+		return "", fmt.Errorf("%w. Run 'oba login'", client.ErrSessionExpired)
 	}
 	resp, err := auth.RefreshTokenDirect(r.endpoints.Issuer, r.endpoints.ClientID, r.creds.RefreshToken)
 	if err != nil {
-		return "", fmt.Errorf("your session has expired and could not be refreshed (%w). Run 'oba login'", err)
+		return "", fmt.Errorf("%w and could not be refreshed (%w). Run 'oba login'", client.ErrSessionExpired, err)
 	}
 	r.creds.AccessToken = resp.AccessToken
 	if resp.RefreshToken != "" {

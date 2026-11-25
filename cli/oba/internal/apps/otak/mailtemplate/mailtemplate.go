@@ -1,4 +1,4 @@
-// Package mailtemplate lists, pushes and pulls the mail templates of the organization: the
+// Package mailtemplate lists, uploads and downloads the mail templates of the organization: the
 // reusable mails a MAIL outreach copies its own mail from. Each is a .md file, the subject on the
 // first line and the body after it.
 package mailtemplate

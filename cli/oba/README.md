@@ -1,6 +1,6 @@
 # Oba CLI
 
-`oba` works with the Oba apps from a terminal. The command path picks the app (`oba otak ...`). This version signs a user in, chooses the organization, lists Otak relations (leads, customers and suppliers) with their ids (`oba otak relation list`), creates, updates and deletes them and their contact persons (`oba otak contact`) from one JSON object on stdin, manages ICPs (also worked out with Claude Code in `oba otak icp brainstorm`) and events (`oba otak event`), finds new leads for an ICP, each with up to two business contacts, with Claude Code, prepares outreaches and manages the attachments of an outreach's mail or a relation (`oba otak outreach`, `attachment`). `oba legal-entity` keeps the companies in whose name the organization issues documents, and `oba document` creates a relation's documents and the organization's document templates from HTML files, renders their PDF locally, and attaches a document's PDF to a mail. `oba kaya` delivers the organization's agent config to Claude Code as signed releases and records its sessions (see Kaya).
+`oba` works with the Oba apps from a terminal. The command path picks the app (`oba otak ...`). This version signs a user in, chooses the organization, lists Otak relations (leads, customers and suppliers) with their ids (`oba otak relation list`), creates, updates and deletes them and their contact persons (`oba otak contact`) from one JSON object on stdin, manages ICPs (also worked out with Claude Code in `oba otak icp brainstorm`) and events (`oba otak event`), finds new leads for an ICP, each with up to two business contacts, with Claude Code, prepares outreaches and manages the attachments of an outreach's mail or a relation (`oba otak outreach`, `attachment`). `oba legal-entity` keeps the companies in whose name the organization issues documents, and `oba document` creates a relation's documents and the organization's document templates from HTML files, renders their PDF locally, and attaches a document's PDF to a mail. `oba kalkan` reads and writes the Kalkan pages of the organization and their attachments, and uploads a directory of Markdown pages (see Kalkan pages). `oba kaya` delivers the organization's agent config to Claude Code as signed releases and records its sessions (see Kaya).
 
 ## Install
 
@@ -132,7 +132,7 @@ Every command takes these flags:
 
 | Flag | Effect |
 |---|---|
-| `--json` | stdout holds only JSON: the `data` of the command's last API call as the API sent it, a list read across several pages or calls as one array, `null` when the command made no call. Tables, messages and prompts go to stderr. `oba otak find`, `contact fill` and `icp brainstorm` print an array of the data of every record they created. A failed command prints no JSON; its exit status (2 for 404, 3 for 403, 1 otherwise) and the error on stderr tell why. |
+| `--json` | stdout holds only JSON: the `data` of the command's last API call as the API sent it, a list read across several pages or calls as one array, `null` when the command made no call. Tables, messages and prompts go to stderr. `oba otak find`, `contact fill` and `icp brainstorm` print an array of the data of every record they created. A failed command prints no JSON, except `oba kalkan upload`, which prints its report on every run; its exit status (2 for 404, 3 for 403, 1 otherwise) and the error on stderr tell why. |
 | `--org <name\|id>` | runs this one command in another of your organizations; the organization chosen with `oba org use` stays stored. An id is sent as it is; a name is matched like `oba org use` matches it. |
 | `--debug` | logs every HTTP request and response (method, URL, headers, status, time) to stderr. The `Authorization` and cookie headers and the signature of signed download URLs are redacted; bodies are not logged. |
 
@@ -353,18 +353,18 @@ Web search results can be wrong: check each candidate before you pick it.
 
 ```sh
 oba otak mail-template list --lang nl --search intro
-oba otak mail-template push mails/first-contact.md --lang en
-oba otak mail-template push mails/first-contact.md --id <mailTemplateId>   # update; language and name stay unless given
-oba otak mail-template pull <mailTemplateId> -o work/
+oba otak mail-template upload mails/first-contact.md --lang en
+oba otak mail-template upload mails/first-contact.md --id <mailTemplateId>   # update; language and name stay unless given
+oba otak mail-template download <mailTemplateId> -o work/
 ```
 
 A mail template is a reusable mail of the organization, which a MAIL outreach copies into its own mail. It is a `.md` file: the subject on the first line, a blank line, then the body as plain text. Blank lines after the subject and trailing white space are dropped; Windows line endings and a byte order mark are accepted. Any other extension is refused before any call.
 
 - `list` prints `NAME  LANGUAGE  SUBJECT  UPDATED  ID`, every cell on one line and `-` for an empty value, or `No mail templates.`. `--lang` narrows to one language, `--search` to the names that contain the text, case ignored. The ids are what `outreach create --type mail --template` takes.
-- `push` without `--id` needs `--lang`; the name defaults to the file name without extension unless `--name` gives one. It sends `POST /otak/mail-templates` and prints `Created mail template <id> (<name>, <LANGUAGE>)`. With `--id` it reads the stored mail template only when `--lang` or `--name` is missing, takes subject and body from the file and sends the full `PUT /otak/mail-templates/{id}`. The name is unique per language in the organization. Outreaches already copied from a mail template keep their own mail when it changes.
-- `pull` writes `<name>.md` into `-o` (default the current directory) in the form `push` reads; an existing file is not overwritten without `--force`.
+- `upload` without `--id` needs `--lang`; the name defaults to the file name without extension unless `--name` gives one. It sends `POST /otak/mail-templates` and prints `Created mail template <id> (<name>, <LANGUAGE>)`. With `--id` it reads the stored mail template only when `--lang` or `--name` is missing, takes subject and body from the file and sends the full `PUT /otak/mail-templates/{id}`. The name is unique per language in the organization. Outreaches already copied from a mail template keep their own mail when it changes.
+- `download` writes `<name>.md` into `-o` (default the current directory) in the form `upload` reads; an existing file is not overwritten without `--force`.
 
-`--lang` is `nl`, `tr`, `en`, or `us` for English, case ignored. Writes need the ADMIN role; a member can list and pull.
+`--lang` is `nl`, `tr`, `en`, or `us` for English, case ignored. Writes need the ADMIN role; a member can list and download.
 
 ## Otak outreaches
 
@@ -402,6 +402,93 @@ Every subcommand takes exactly one of `--outreach`, the own mail of a MAIL outre
 - `delete --id` checks that the id is an attachment of the given outreach or relation, asks for confirmation (without a terminal pass `--yes`) and sends `DELETE /storage/attachments/{id}`.
 
 A mail's attachments change only while its outreach is not SENT (`OTK_STA_011`) and need the ADMIN role; a relation's need the MEMBER role.
+
+## Kalkan pages
+
+```sh
+oba kalkan page list                                   # every page you can see, as a tree
+oba kalkan page list isms/controls                     # that page and the pages below it
+oba kalkan page get isms/policies                      # every translation under a header
+oba kalkan page get isms/policies --lang tr > policies.tr.md   # one body, raw Markdown
+oba kalkan page put engineering/plans --lang en --title "Plans" --file plans.md
+cat notes.md | oba kalkan page put engineering/notes --title Notes --file - --compliance
+oba kalkan page delete engineering/old-plans --yes
+```
+
+Kalkan keeps the docs and ISMS documents of the organization as a tree of Markdown pages in Turkish and English. A page is named by its path: one to ten slugs joined by `/`, each starting with a letter or digit and holding up to 99 letters, digits, `.`, `_` or `-`; surrounding slashes are dropped. An invalid path fails with exit 1 before any call.
+
+- `list` prints the tree with the path, the title (English, else Turkish), `[compliance]` on a compliance document and, on a root page, your level. With a path it prints that subtree; a path you cannot see exits 2. `--json` prints the pages as a flat array, parents first.
+- `get` prints a header with the version, your level and the compliance mark, then every translation under a header of its own. `--lang tr|en` prints only that raw body with a trailing newline. `--json` prints the page detail the API sent.
+- `put` writes one language of one page: it creates the page when the path names none (every parent must exist; a path of one slug creates a root page, which needs the ADMIN role) and otherwise updates that language, keeping the others. `--file -` reads stdin. `--compliance` sets the mark, `--compliance=false` clears it, and leaving it out keeps it. A page edited in Kalkan since the last write is not written (`KLK_STA_004`, exit 1) unless `--force` is given. `--json` prints the outcome the API sent (`CREATED`, `UPDATED` or `UNCHANGED`) with the path and version.
+- `delete` asks `Delete page <path> and every page below it?` (without a terminal pass `--yes`) and soft-deletes the page and its subtree; deleting a root page needs the MANAGE level on it. A cancel prints `Cancelled.`, and `--json` then prints `null`.
+
+The API checks every access: reading needs the VIEW level on the page's root, writing EDIT, a new root page ADMIN. A 403 exits 3 and a page that is missing or hidden from you exits 2.
+
+## Kalkan upload
+
+```sh
+oba kalkan upload docs/plans engineering/plans             # one directory under one page path
+oba kalkan upload docs/plans engineering/plans --dry-run   # the outcome per page, nothing written
+oba kalkan upload                                          # every entry of kalkan.yaml
+```
+
+`upload` writes every Markdown page of `<dir>` under the page path `<target>`, parents first, and uploads the files they link to, once per page. Without arguments it uploads every entry of the `kalkan.yaml` in the current directory, else at the git root; with neither arguments nor a file it fails with exit 1 before any call. `--lang tr|en` (default `en`) is the language of files without a language suffix.
+
+```yaml
+organization: <organization id or name>   # optional; --org wins
+upload:
+  - dir: docs/claude/plans   # relative to kalkan.yaml
+    to: engineering/plans
+    lang: en                 # optional; files without a .tr or .en suffix
+```
+
+An unknown key (`push` included), a missing directory or a file name that is not a slug ends the run with exit 1 before any call. The organization is `--org`, else the `organization` of `kalkan.yaml`, else the current one (`oba org use`).
+
+Layout rules:
+
+- `a/b.md` is page `a/b` in `--lang`; `a/b.tr.md` and `a/b.en.md` set the language.
+- `a/index[.lang].md` or `a/README[.lang].md` is page `a`, and the directory itself is the target page. A directory that holds Markdown but no index file becomes a page titled by its name with an empty body; once that page exists, an upload leaves it as it is.
+- Hidden entries, symbolic links and directories named `handoffs` are not read. A path is at most 10 slugs deep.
+- The title is the front matter `title`, else the first `# ` heading (taken out of the body), else the slug. Front matter `position` and `compliance` are optional and must agree across languages.
+- Links to Markdown files of the directory become page paths (`/engineering/plans/oba/07_KALKAN_DOCS`). Other files linked by a relative path inside the directory are uploaded to every page that links them, once per page, as `<sha256 first 12 hex>-<name>`; the link is set to the attachment URL without its signature, so an unchanged directory gives unchanged pages and a second identical run reports every page `unchanged`.
+
+Every page gets one outcome, printed as one line per page and a count line:
+
+| Outcome | Meaning |
+|---|---|
+| `created`, `updated`, `unchanged` | the page was written, or already held this content |
+| `conflict` | the page was edited in Kalkan since the last upload (`KLK_STA_004`) or another write raced it (`GEN_STA_001`); `--force` overwrites |
+| `denied` | a 403, or a 404 for a page that is missing or hidden from you |
+| `failed` | any other error |
+| `skipped` | not reached: below a page that was denied or failed (`PARENT_NOT_WRITTEN`, `not uploaded: <path> above it was not written`), or after the run stopped |
+
+The run goes on past a conflict, a denial or a failure. A refused sign-in (a 401, or a stored session that could not be refreshed) stops it, and the pages it has not reached are `skipped`. `--dry-run` sends only `dryRun=true` writes and reads, never a file. `--json` prints `{"counts":{...},"pages":[{"path","outcome","version","error"}]}` on stdout on every run, failed or not, with `error` as `{"code","message"}`. Each error prints once on stderr, as `Error: <path>: <message> (<code>)` for a page or `Error: <message> (<code>)` for the run; a skipped page adds nothing there, since its own line or `error` names the cause.
+
+Exit status of an upload:
+
+| Status | Meaning |
+|---|---|
+| 0 | every page was created, updated or unchanged |
+| 1 | a failure: a page failed, a refused sign-in, or invalid input before any call |
+| 3 | a page was denied with a 403 |
+| 2 | a page was missing or hidden from you (a 404) |
+| 4 | a conflict |
+
+With several outcomes, the status is the first of 1, 3, 2 and 4 that occurred.
+
+## Kalkan attachments
+
+```sh
+oba kalkan attachment list --page isms/policies/access-control
+oba kalkan attachment add --page isms/policies/access-control --file policy.pdf --file review.png
+```
+
+Both subcommands need `--page`, the path of the page, checked before any call; an unknown page exits 2. The calls go to `/storage/attachments` with `entityType` `KALKAN_PAGE`.
+
+- `list` prints `NAME  SIZE  TYPE  CREATED  ID` in upload order, or `No attachments.`.
+- `add` takes `--file`, repeatable, and checks every file before any call as `oba otak attachment add` does (at most 12 MB together), then uploads them in one request. The same content twice on one page answers `STG_VAL_005`.
+
+Listing needs the VIEW level on the page's root, adding EDIT. An attachment of a Kalkan page is kept as a record and is never deleted, so there is no `delete`: the API refuses every delete with `KLK_SEC_002`.
 
 ## Kaya
 
@@ -584,9 +671,10 @@ The packages are grouped as in the Oba backend: `dojo` is the technical foundati
 | `main.go` | entry point; the version comes in through `-ldflags "-X main.version=..."` |
 | `cmd/` | the root command; it adds the platform commands and one command group per app, and `oba ulak` |
 | `cmd/shrine/` | the platform commands `login`, `logout`, `org`, `legal-entity` and `document` (with `document template`) |
-| `cmd/apps/<app>/` | `NewCmd()` builds `oba <app>` and adds the commands of each domain (`cmd/apps/otak/`, `cmd/apps/kaya/`) |
-| `cmd/apps/<app>/<domain>/` | the commands of one domain, one file per command; `NewCmd()` builds `oba <app> <domain>` (`cmd/apps/otak/relation/`, `contact/`, `icp/`, `event/`, `find/`, `mailtemplate/`, `outreach/`, `attachment/`; `cmd/apps/ulak/org/`, `member/`, `invite/`; `cmd/apps/kaya/delivery/` (sync, refresh, status, launch, watch, doctor), `hook/`, `githook/`, `statusline/`, `install/`, `seed/`, `pack/`, `propose/`, `lessons/`, `sender/`, `signingkey/`) |
+| `cmd/apps/<app>/` | `NewCmd()` builds `oba <app>` and adds the commands of each domain (`cmd/apps/otak/`, `cmd/apps/kalkan/`, `cmd/apps/kaya/`) |
+| `cmd/apps/<app>/<domain>/` | the commands of one domain, one file per command; `NewCmd()` builds `oba <app> <domain>` (`cmd/apps/otak/relation/`, `contact/`, `icp/`, `event/`, `find/`, `mailtemplate/`, `outreach/`, `attachment/`; `cmd/apps/kalkan/page/`, `upload/`, `attachment/`; `cmd/apps/ulak/org/`, `member/`, `invite/`; `cmd/apps/kaya/delivery/` (sync, refresh, status, launch, watch, doctor), `hook/`, `githook/`, `statusline/`, `install/`, `seed/`, `pack/`, `propose/`, `lessons/`, `sender/`, `signingkey/`) |
 | `internal/apps/<app>/<domain>/` | the logic of one domain of an app (`internal/apps/otak/relation/`, `contact/`, `icp/`, `event/`, `find/`, `mailtemplate/`, `outreach/`, `attachment/`; `internal/apps/ulak/org/`, `member/`, `invite/`, and `role/`, the role check that `invite` and `member` share) |
+| `internal/apps/kalkan/<domain>/` | the logic of Kalkan's domains: `page/` (the tree, a page and its translations, the upsert from a file or stdin, delete), `upload/` (`kalkan.yaml`, reading a directory into pages with their front matter, links and linked files, the run with its outcomes, report and exit status) and `attachment/` (the page an attachment belongs to and the files to add) |
 | `internal/apps/kaya/<domain>/` | the logic of Kaya's domains: `delivery/` (trusted keys, manifests, the blob cache, versions and the switch, sessions, the launcher and the watcher, the outcome texts, the repository list and recognition, the exclude block, the release floors), `hook/`, `githook/` (the global git hooks), `statusline/`, `install/`, `seed/`, `propose/`, `lessons/`, `capture/` (one hook event into the local queue) and `sender/` (the queue to Kaya) |
 | `internal/apps/kaya/client/` | the Kaya API client: every call takes a context, user calls are signed through `internal/shrine/session`, the others with the machine token |
 | `internal/apps/kaya/machine/` | the machine token (`KAYA_RECORDER_TOKEN`, else Kagi), the API URL of the machine calls (`OBA_API_URL`, else production, never the stored session), the https-or-loopback check and a client with the token |
@@ -600,10 +688,10 @@ The packages are grouped as in the Oba backend: `dojo` is the technical foundati
 | `internal/shrine/session/` | the signed-in client for the current organization, the bearer (API URL, organization, refreshing token) of a client of its own such as Kaya's, the current user and its id, the organization name and the API URL |
 | `internal/connect/claude/` | running Claude Code headless and reading its stream-json output; returns the result as JSON |
 | `internal/dojo/config/` | API URL, issuer and client id resolution, `config.json` and the current organization |
-| `internal/dojo/client/` | the API client: the `CustomResponse` envelope, `APIError`, refresh and retry, paged lists, exit codes, multipart uploads with a Content-Type per part, and downloads from signed URLs without the token |
+| `internal/dojo/client/` | the API client: the `CustomResponse` envelope, `APIError`, refresh and retry (`ErrSessionExpired` when a session cannot be refreshed), the Kalkan page calls and path rules, paged lists, exit codes, multipart uploads with a Content-Type per part, and downloads from signed URLs without the token |
 | `internal/dojo/pdf/` | inlining local images as data URIs and rendering HTML to PDF with `weasyprint` |
-| `internal/dojo/docfile/` | the file forms the document, template, mail-template and outreach commands share: the MAIL file, the language and type values, the extension check, loading and rendering an HTML file, and writing a download or pull |
-| `internal/dojo/attachment/` | the attachments of any storage parent that Otak and Kazan share: reading and checking local files, list, table, find, upload and delete |
+| `internal/dojo/docfile/` | the file forms the document, template, mail-template and outreach commands share: the MAIL file, the language and type values, the extension check, loading and rendering an HTML file, and writing a download |
+| `internal/dojo/attachment/` | the attachments of any storage parent that Otak, Kazan and Kalkan share: reading and checking local files, list, table, find, upload and delete |
 | `internal/dojo/apidocs/` | reading the request schemas from `/v3/api-docs`, the key check and the field help |
 | `internal/dojo/guardrail/` | `Sanitize` and `CleanJSON`: remove terminal controls from text the CLI did not write; `OneLine` and `PersonName` for table cells |
 | `internal/dojo/dates/` | typed days (YYYY-MM-DD) and instants turned into the API's date and RFC 3339 values, and instants shown in the viewer's time zone |
@@ -623,4 +711,4 @@ Rules:
 - `internal/connect/claude` knows no app: the caller passes the brief and the JSON Schema and decodes the `json.RawMessage` it gets back.
 - Everything Claude Code returns is built from web pages. `claude.Run` passes its result through `guardrail.CleanJSON`, and its progress lines and error messages through `guardrail.Sanitize`, so that no caller can print escape sequences or bidi controls from a page. `guardrail` imports nothing from `claude` or an app.
 - Tests sit next to the code they test, and a fixture next to the tests that read it; a fixture or helper that several packages share lives in `internal/dojo/clitest`. Test seams (`claudeInstalled`, `runClaude`, `stdinIsTerminal`, `stdoutIsTerminal`) are package-level variables in the package of the command that uses them. Tests never need WeasyPrint: `clitest.StubWeasyPrint` puts a stub `weasyprint` first on `PATH`, and `clitest.NoWeasyPrint` leaves it off.
-- A new app, such as `oba kalkan`, becomes `cmd/apps/kalkan/` with one package per domain under it and `internal/apps/kalkan/<domain>/`, and `cmd/root.go` gains one `AddCommand` line.
+- A new app becomes `cmd/apps/<app>/` with one package per domain under it and `internal/apps/<app>/<domain>/`, and `cmd/root.go` gains one `AddCommand` line, as `oba kalkan` did.

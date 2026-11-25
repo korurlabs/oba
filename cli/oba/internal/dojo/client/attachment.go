@@ -6,12 +6,18 @@ import (
 	"net/url"
 )
 
-// The StorageEntityType values of the Otak parents an attachment can belong to: the own mail of
-// a MAIL outreach and a relation.
+// The StorageEntityType values of the parents an attachment can belong to: in Otak the own mail
+// of a MAIL outreach and a relation, in Kalkan a page.
 const (
-	StorageEntityTypeMail     = "MAIL"
-	StorageEntityTypeRelation = "RELATION"
+	StorageEntityTypeMail       = "MAIL"
+	StorageEntityTypeRelation   = "RELATION"
+	StorageEntityTypeKalkanPage = "KALKAN_PAGE"
 )
+
+// CodeDuplicateContent is an upload whose bytes are already attached to a parent of the same
+// entity type: the API keys its duplicate check on the entity type and the content hash, so for
+// Kalkan the copy may sit on another page.
+const CodeDuplicateContent = "STG_VAL_005"
 
 // The multipart parts of an attachment upload (POST /storage/attachments): one "metadata" part,
 // a JSON array with one entry per file, and one "files" part per file in the same order. The API
