@@ -64,16 +64,22 @@ func TestFindAgentSharedNameListsTheMatches(t *testing.T) {
 	}
 }
 
-func TestNamesPersonTellsAnEmailOrIDFromAName(t *testing.T) {
-	cases := map[string]bool{
-		"a@b.c":                                true,
-		"0e000000-0000-4000-8000-000000000001": true,
-		"Scout":                                false,
-		"Scout Bot":                            false,
+func TestAgentByEmailMatchesAnAgentWithoutRegardToCase(t *testing.T) {
+	scout := boardAgent("u-scout", "Scout", "")
+	scout.Email = "agent-0e000000-0000-4000-8000-000000000002@agents.oba.invalid"
+	members := []client.BoardMember{{UserID: "u-ada", Email: "ada@example.com"}, scout}
+
+	got, ok := agentByEmail(members, "AGENT-0e000000-0000-4000-8000-000000000002@agents.oba.invalid")
+
+	if !ok || got.UserID != "u-scout" {
+		t.Fatalf("got %v, ok %v", got.UserID, ok)
 	}
-	for ref, want := range cases {
-		if got := namesPerson(ref); got != want {
-			t.Errorf("namesPerson(%q) = %v", ref, got)
-		}
+}
+
+func TestAgentByEmailLeavesPeopleToTheOrganizationLookup(t *testing.T) {
+	members := []client.BoardMember{{UserID: "u-ada", Email: "ada@example.com"}}
+
+	if got, ok := agentByEmail(members, "ada@example.com"); ok {
+		t.Fatalf("matched person %v", got.UserID)
 	}
 }

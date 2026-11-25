@@ -11,55 +11,72 @@ import (
 )
 
 // assigneeIDs resolves the comma-separated --assignee of a ticket on board boardID, keeping the
-// order given. An email or a user id names a person or an agent as peopleIDs resolves it. Any
-// other value is the name of an agent among the board's members: an agent's email is a generated
-// address nobody types, and the organization member lookup leaves agents out, so without this an
-// agent could only be named by its user id. An empty list is nil.
+// order given. A user id names a person or an agent as peopleIDs resolves it. An email is first
+// matched against the board's agents and otherwise resolved by peopleIDs as a person's: the
+// organization member lookup leaves agents out, and 'oba kazan member list' shows an agent's email,
+// so a copied agent email has to resolve here. Any other value is the name of an agent among the
+// board's members: an agent's email is a generated address nobody types, so a name is the usual way
+// to name one. An empty list is nil.
 func assigneeIDs(c *client.Client, boardID, csv string) ([]string, error) {
 	refs := userinput.SplitCSV(csv)
 	if len(refs) == 0 {
 		return nil, nil
 	}
-	var people []string
-	for _, ref := range refs {
-		if namesPerson(ref) {
-			people = append(people, ref)
-		}
-	}
-	personIDs, err := peopleIDs(c, "assignee", strings.Join(people, ","))
-	if err != nil {
-		return nil, err
-	}
 	var members []client.BoardMember
-	loaded := false
-	ids := make([]string, 0, len(refs))
-	next := 0
 	for _, ref := range refs {
-		if namesPerson(ref) {
-			ids = append(ids, personIDs[next])
-			next++
+		if userinput.IsID(ref) {
 			continue
 		}
-		if !loaded {
-			if members, err = c.Unrecorded().ListBoardMembers(boardID); err != nil {
-				return nil, fmt.Errorf("--assignee: failed to read the board members to find agent %q: %w",
-					guardrail.OneLine(ref), err)
+		var err error
+		if members, err = c.Unrecorded().ListBoardMembers(boardID); err != nil {
+			return nil, fmt.Errorf("--assignee: failed to read the board members to find agent %q: %w",
+				guardrail.OneLine(ref), err)
+		}
+		break
+	}
+	ids := make([]string, len(refs))
+	var people []string
+	var peopleAt []int
+	for i, ref := range refs {
+		if userinput.IsID(ref) {
+			people = append(people, ref)
+			peopleAt = append(peopleAt, i)
+			continue
+		}
+		if strings.Contains(ref, "@") {
+			if agent, ok := agentByEmail(members, ref); ok {
+				ids[i] = agent.UserID
+				continue
 			}
-			loaded = true
+			people = append(people, ref)
+			peopleAt = append(peopleAt, i)
+			continue
 		}
 		agent, err := findAgent(members, ref)
 		if err != nil {
 			return nil, fmt.Errorf("--assignee: %w", err)
 		}
-		ids = append(ids, agent.UserID)
+		ids[i] = agent.UserID
+	}
+	personIDs, err := peopleIDs(c, "assignee", strings.Join(people, ","))
+	if err != nil {
+		return nil, err
+	}
+	for n, i := range peopleAt {
+		ids[i] = personIDs[n]
 	}
 	return ids, nil
 }
 
-// namesPerson reports whether ref is an email or a user id, which the organization member lookup
-// resolves, rather than the name of an agent.
-func namesPerson(ref string) bool {
-	return userinput.IsID(ref) || strings.Contains(ref, "@")
+// agentByEmail returns the agent among members whose email is email, compared without regard to
+// case. A person's email is not matched here: people resolve through the organization lookup.
+func agentByEmail(members []client.BoardMember, email string) (client.BoardMember, bool) {
+	for _, m := range members {
+		if m.IsAgent() && strings.EqualFold(m.Email, email) {
+			return m, true
+		}
+	}
+	return client.BoardMember{}, false
 }
 
 // findAgent returns the one agent among members whose name is name, compared without regard to

@@ -384,8 +384,8 @@ const (
 	// opsBoardMembers is a person and two agents, one of whose names differs from the other only in case.
 	opsBoardMembers = `{"data":[` +
 		`{"id":"bm1","userId":"u-ada","email":"ada@example.com","firstName":"Ada","lastName":"Lovelace","role":"MEMBER","kind":"HUMAN"},` +
-		`{"id":"bm2","userId":"` + idScout + `","email":"agent-2@agents.oba.invalid","firstName":"Scout","lastName":"","role":"MEMBER","kind":"AGENT"},` +
-		`{"id":"bm3","userId":"` + idAgent + `","email":"agent-1@agents.oba.invalid","firstName":"Ranger","lastName":"","role":"MEMBER","kind":"AGENT"}]}`
+		`{"id":"bm2","userId":"` + idScout + `","email":"agent-` + idScout + `@agents.oba.invalid","firstName":"Scout","lastName":"","role":"MEMBER","kind":"AGENT"},` +
+		`{"id":"bm3","userId":"` + idAgent + `","email":"agent-` + idAgent + `@agents.oba.invalid","firstName":"Ranger","lastName":"","role":"MEMBER","kind":"AGENT"}]}`
 )
 
 func TestUpdateAssignsAnAgentByNameNextToAPerson(t *testing.T) {
@@ -405,21 +405,55 @@ func TestUpdateAssignsAnAgentByNameNextToAPerson(t *testing.T) {
 	}
 }
 
-func TestUpdateAssigneeByEmailReadsNoBoardMembers(t *testing.T) {
+func TestUpdateAssigneeByUserIDReadsNoBoardMembers(t *testing.T) {
 	api := newTicketAPI(t)
-	api.Respond("GET /organizations/"+clitest.OrgIDAcme+"/members", http.StatusOK,
-		`{"data":[{"id":"m1","userId":"u-ada","email":"ada@example.com","role":"MEMBER","status":"ACTIVE"}]}`)
 	api.Respond("PUT /kazan/boards/"+idOps+"/tickets/"+idT42, http.StatusOK, `{"data":`+ticketJSON(idT42, "OPS-42", "Crash", idOps, "OPS")+`}`)
-	if _, _, err := runCLI(t, "", "kazan", "ticket", "update", "OPS-42", "--assignee", "ada@example.com,"+idAgent); err != nil {
+	if _, _, err := runCLI(t, "", "kazan", "ticket", "update", "OPS-42", "--assignee", idAgent); err != nil {
 		t.Fatal(err)
 	}
 	for _, call := range api.Calls() {
 		if strings.Contains(call, "/kazan/boards/"+idOps+"/members") {
-			t.Errorf("an email or id read the board members: %v", api.Calls())
+			t.Errorf("a user id read the board members: %v", api.Calls())
 		}
 	}
 	ids, _ := bodyOf(t, api, "PUT /kazan/boards/"+idOps+"/tickets/"+idT42)["assigneeIds"].([]any)
-	if len(ids) != 2 || ids[0] != "u-ada" || ids[1] != idAgent {
+	if len(ids) != 1 || ids[0] != idAgent {
+		t.Errorf("assigneeIds = %v", ids)
+	}
+}
+
+func TestUpdateAssignsAnAgentByEmailNextToAPerson(t *testing.T) {
+	api := newTicketAPI(t)
+	api.Respond("GET /organizations/"+clitest.OrgIDAcme+"/members", http.StatusOK,
+		`{"data":[{"id":"m1","userId":"u-ada","email":"ada@example.com","role":"MEMBER","status":"ACTIVE"}]}`)
+	api.Respond("GET /kazan/boards/"+idOps+"/members", http.StatusOK, opsBoardMembers)
+	api.Respond("PUT /kazan/boards/"+idOps+"/tickets/"+idT42, http.StatusOK, `{"data":`+withAgentAssignee(idT42, "OPS-42", "Crash")+`}`)
+	_, _, err := runCLI(t, "", "kazan", "ticket", "update", "OPS-42", "--assignee",
+		"AGENT-"+idAgent+"@Agents.Oba.Invalid,ada@example.com")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ids, _ := bodyOf(t, api, "PUT /kazan/boards/"+idOps+"/tickets/"+idT42)["assigneeIds"].([]any)
+	if len(ids) != 2 || ids[0] != idAgent || ids[1] != "u-ada" {
+		t.Errorf("assigneeIds = %v", ids)
+	}
+}
+
+func TestCreateAssignsAnAgentByEmailWithoutTheOrganizationLookup(t *testing.T) {
+	api := newTicketAPI(t)
+	api.Respond("GET /kazan/boards/"+idOps+"/members", http.StatusOK, opsBoardMembers)
+	api.Respond("POST /kazan/boards/"+idOps+"/tickets", http.StatusCreated, `{"data":`+withAgentAssignee(idT43, "OPS-43", "Scan")+`}`)
+	if _, _, err := runCLI(t, "", "kazan", "ticket", "create", "--title", "Scan", "--type", "bug", "--priority", "high",
+		"--status", "todo", "--mission-rank", "s", "--sprint", "sprint", "--assignee", "agent-"+idScout+"@agents.oba.invalid"); err != nil {
+		t.Fatal(err)
+	}
+	for _, call := range api.Calls() {
+		if strings.Contains(call, "/organizations/"+clitest.OrgIDAcme+"/members") {
+			t.Errorf("an agent email went to the organization lookup: %v", api.Calls())
+		}
+	}
+	ids, _ := bodyOf(t, api, "POST /kazan/boards/"+idOps+"/tickets")["assigneeIds"].([]any)
+	if len(ids) != 1 || ids[0] != idScout {
 		t.Errorf("assigneeIds = %v", ids)
 	}
 }
