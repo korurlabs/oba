@@ -1,6 +1,7 @@
 package com.korur.oba.apps.kaya.lesson.helper;
 
 // 1. Framework-level
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 // 3. Java SDK
@@ -49,52 +50,150 @@ class LessonDeliveryRateLimiterUnitTest {
 
     private void chargeBudget(UUID tokenId) {
         for (int charge = 0; charge < LessonConstant.DELIVERY_READS_PER_MINUTE; charge++) {
-            assertTrue(limiter.tryCharge(tokenId), "charge " + (charge + 1));
+            assertTrue(limiter.tryChargeRead(tokenId), "charge " + (charge + 1));
         }
     }
 
-    @Test
-    void tryCharge_withinTheBudget_allowsEveryRead() {
-        chargeBudget(UUID.randomUUID());
+    @Nested
+    class TokenReads {
+
+        @Test
+        void tryChargeRead_withinTheBudget_allowsEveryRead() {
+            chargeBudget(UUID.randomUUID());
+        }
+
+        @Test
+        void tryChargeRead_overTheBudget_refusesTheNextRead() {
+            UUID tokenId = UUID.randomUUID();
+            chargeBudget(tokenId);
+
+            assertFalse(limiter.tryChargeRead(tokenId));
+            assertFalse(limiter.tryChargeRead(tokenId));
+        }
+
+        @Test
+        void tryChargeRead_budgetOfOneToken_doesNotCountForAnother() {
+            UUID busy = UUID.randomUUID();
+            chargeBudget(busy);
+            assertFalse(limiter.tryChargeRead(busy));
+
+            assertTrue(limiter.tryChargeRead(UUID.randomUUID()));
+        }
+
+        @Test
+        void tryChargeRead_justBeforeTheWindowEnds_stillRefuses() {
+            UUID tokenId = UUID.randomUUID();
+            chargeBudget(tokenId);
+
+            clock.advance(Duration.ofSeconds(LessonConstant.DELIVERY_RATE_WINDOW_SECONDS - 1));
+
+            assertFalse(limiter.tryChargeRead(tokenId));
+        }
+
+        @Test
+        void tryChargeRead_afterTheWindowEnds_startsAFreshBudget() {
+            UUID tokenId = UUID.randomUUID();
+            chargeBudget(tokenId);
+            assertFalse(limiter.tryChargeRead(tokenId));
+
+            clock.advance(Duration.ofSeconds(LessonConstant.DELIVERY_RATE_WINDOW_SECONDS));
+
+            chargeBudget(tokenId);
+            assertFalse(limiter.tryChargeRead(tokenId));
+        }
     }
 
-    @Test
-    void tryCharge_overTheBudget_refusesTheNextRead() {
-        UUID tokenId = UUID.randomUUID();
-        chargeBudget(tokenId);
+    @Nested
+    class OrganizationReads {
 
-        assertFalse(limiter.tryCharge(tokenId));
-        assertFalse(limiter.tryCharge(tokenId));
+        private void chargeOrganizationBudget(UUID organizationId) {
+            for (int charge = 0; charge < LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE; charge++) {
+                assertTrue(limiter.tryChargeOrganizationRead(organizationId), "charge " + (charge + 1));
+            }
+        }
+
+        @Test
+        void organizationBudget_coversTenMachinesThatEachReadEveryPageWithTwoRestarts() {
+            // One read of the CLI: at most 100 pages, started again at most twice.
+            int teamReads = 10 * 100 * 3;
+
+            assertTrue(teamReads <= LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE);
+            assertTrue(LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE > LessonConstant.DELIVERY_READS_PER_MINUTE);
+        }
+
+        @Test
+        void tryChargeOrganizationRead_overTheBudget_refusesThatOrganizationOnly() {
+            UUID busy = UUID.randomUUID();
+            chargeOrganizationBudget(busy);
+
+            assertFalse(limiter.tryChargeOrganizationRead(busy));
+            assertTrue(limiter.tryChargeOrganizationRead(UUID.randomUUID()));
+        }
+
+        @Test
+        void tryChargeOrganizationRead_afterTheWindowEnds_startsAFreshBudget() {
+            UUID organizationId = UUID.randomUUID();
+            chargeOrganizationBudget(organizationId);
+            assertFalse(limiter.tryChargeOrganizationRead(organizationId));
+
+            clock.advance(Duration.ofSeconds(LessonConstant.DELIVERY_RATE_WINDOW_SECONDS));
+
+            assertTrue(limiter.tryChargeOrganizationRead(organizationId));
+        }
+
+        @Test
+        void tryChargeOrganizationRead_keyedLikeAToken_sharesNothingWithTheTokenReads() {
+            // Organizations and tokens are both UUIDs; the budgets keep separate tables.
+            UUID id = UUID.randomUUID();
+            chargeBudget(id);
+            assertFalse(limiter.tryChargeRead(id));
+
+            assertTrue(limiter.tryChargeOrganizationRead(id));
+        }
     }
 
-    @Test
-    void tryCharge_budgetOfOneToken_doesNotCountForAnother() {
-        UUID busy = UUID.randomUUID();
-        chargeBudget(busy);
-        assertFalse(limiter.tryCharge(busy));
+    @Nested
+    class Proposals {
 
-        assertTrue(limiter.tryCharge(UUID.randomUUID()));
-    }
+        private void chargeProposalBudget(UUID tokenId) {
+            for (int charge = 0; charge < LessonConstant.DELIVERY_PROPOSALS_PER_MINUTE; charge++) {
+                assertTrue(limiter.tryChargeProposal(tokenId), "charge " + (charge + 1));
+            }
+        }
 
-    @Test
-    void tryCharge_justBeforeTheWindowEnds_stillRefuses() {
-        UUID tokenId = UUID.randomUUID();
-        chargeBudget(tokenId);
+        @Test
+        void proposalBudget_isFarBelowTheReadBudget() {
+            assertTrue(LessonConstant.DELIVERY_PROPOSALS_PER_MINUTE * 10 <= LessonConstant.DELIVERY_READS_PER_MINUTE);
+        }
 
-        clock.advance(Duration.ofSeconds(LessonConstant.DELIVERY_RATE_WINDOW_SECONDS - 1));
+        @Test
+        void tryChargeProposal_overTheBudget_refusesTheNextLessonOfThatTokenOnly() {
+            UUID tokenId = UUID.randomUUID();
+            chargeProposalBudget(tokenId);
 
-        assertFalse(limiter.tryCharge(tokenId));
-    }
+            assertFalse(limiter.tryChargeProposal(tokenId));
+            assertTrue(limiter.tryChargeProposal(UUID.randomUUID()));
+        }
 
-    @Test
-    void tryCharge_afterTheWindowEnds_startsAFreshBudget() {
-        UUID tokenId = UUID.randomUUID();
-        chargeBudget(tokenId);
-        assertFalse(limiter.tryCharge(tokenId));
+        @Test
+        void tryChargeProposal_overTheBudget_leavesTheReadsOfTheTokenAlone() {
+            UUID tokenId = UUID.randomUUID();
+            chargeProposalBudget(tokenId);
+            assertFalse(limiter.tryChargeProposal(tokenId));
 
-        clock.advance(Duration.ofSeconds(LessonConstant.DELIVERY_RATE_WINDOW_SECONDS));
+            chargeBudget(tokenId);
+        }
 
-        chargeBudget(tokenId);
-        assertFalse(limiter.tryCharge(tokenId));
+        @Test
+        void tryChargeProposal_afterTheWindowEnds_startsAFreshBudget() {
+            UUID tokenId = UUID.randomUUID();
+            chargeProposalBudget(tokenId);
+            assertFalse(limiter.tryChargeProposal(tokenId));
+
+            clock.advance(Duration.ofSeconds(LessonConstant.DELIVERY_RATE_WINDOW_SECONDS));
+
+            chargeProposalBudget(tokenId);
+            assertFalse(limiter.tryChargeProposal(tokenId));
+        }
     }
 }

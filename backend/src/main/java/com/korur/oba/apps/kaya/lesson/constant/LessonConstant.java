@@ -73,13 +73,27 @@ public final class LessonConstant {
     public static final int DELIVERY_FIRST_PAGE = 1;
     // Reads of a token per minute, pages of the list (a 304 included) and searches together: each
     // makes PostgreSQL pass over every applicable lesson. One read of the CLI requests at most 100
-    // pages and starts again at most twice, so at most 300 requests; a machine reads at a session
-    // start and on sync, and 600 lets it make two such reads within one minute, or hundreds of
-    // reads of a few pages. A token past it is a runaway or hostile client. An import checks each
-    // title with one search, so a very large one may be refused part way and goes on when run again.
+    // pages and starts again at most twice, so at most 300 requests; the CLI reads at a session start
+    // and for oba kaya lessons list, and 600 lets it make two such reads within one minute, or
+    // hundreds of reads of a few pages. A token past it is a runaway or hostile client. An import
+    // searches each title of its file once on every run, so a file of more than about 600 titles
+    // meets this budget part way however often it runs.
     public static final int DELIVERY_READS_PER_MINUTE = 600;
+    // Reads of all tokens of one organization per minute, charged beside the budget of each token.
+    // A member can mint more machine tokens, and without it each would take 600 more reads a minute
+    // from the connection pool every organization shares. A team of ten machines that each read the
+    // list from scratch in the same minute, 100 pages and two restarts each, makes 3000 reads, so a
+    // team at work never meets it; it is five tokens at their full budget. A read is charged here only
+    // once the token's own budget allows it, so one runaway token cannot use up its colleagues' reads.
+    public static final int DELIVERY_ORGANIZATION_READS_PER_MINUTE = 3_000;
+    // Lessons a token adds per minute. A lesson is added by hand with oba kaya lessons add, or by oba
+    // kaya lessons import, one after another for each title of a file its scope does not hold yet; real
+    // lessons files hold tens. Every added lesson makes each later read of the organization longer, so
+    // a runaway or hostile token is held to a tenth of its reads. An import of more than 60 new lessons
+    // stops at the refusal; run again a minute later, it skips the titles already added and goes on.
+    public static final int DELIVERY_PROPOSALS_PER_MINUTE = 60;
     public static final long DELIVERY_RATE_WINDOW_SECONDS = 60;
-    // Windows of tokens idle for a while are dropped once the table holds this many.
+    // Windows of tokens or organizations idle for a while are dropped once a table holds this many.
     public static final int DELIVERY_RATE_TABLE_PRUNE_SIZE = 10_000;
     // The time limit of one lesson read, a page of the list or a search, counted from the start of its
     // transaction. A healthy read takes milliseconds, even over thousands of lessons; one that runs for

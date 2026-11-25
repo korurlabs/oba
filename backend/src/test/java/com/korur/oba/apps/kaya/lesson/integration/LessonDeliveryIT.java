@@ -722,6 +722,27 @@ class LessonDeliveryIT extends AbstractLessonIT {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.data.length()").value(1));
         }
+
+        @Test
+        void addLesson_after60LessonsOfOneToken_answers429WithoutAddingButNotToAnotherToken() throws Exception {
+            Fixture fixture = newFixture();
+            String token = fixture.adaMachine().token();
+            for (int lesson = 1; lesson <= LessonConstant.DELIVERY_PROPOSALS_PER_MINUTE; lesson++) {
+                addFromCheckout(token, checkoutLesson(fixture.remote(), "Proposal " + lesson, false))
+                        .andExpect(status().isCreated());
+            }
+
+            addFromCheckout(token, checkoutLesson(fixture.remote(), "One too many", false))
+                    .andExpect(status().isTooManyRequests())
+                    .andExpect(jsonPath(ERROR_CODE).value("KAY_SEC_004"))
+                    .andExpect(jsonPath("$.error.errorValues.limit").value(LessonConstant.DELIVERY_PROPOSALS_PER_MINUTE));
+            assertEquals(0L, count("SELECT count(*) FROM kaya.lessons WHERE organization_id = ? AND title = 'One too many'",
+                    fixture.tenant().organization().getId()));
+            // The proposals of a token leave its reads and the proposals of another token alone.
+            okPage(fixture, pageOf(fixture, 1, null));
+            addFromCheckout(fixture.boMachine().token(), checkoutLesson(fixture.remote(), "From Bo", false))
+                    .andExpect(status().isCreated());
+        }
     }
 
     @Nested

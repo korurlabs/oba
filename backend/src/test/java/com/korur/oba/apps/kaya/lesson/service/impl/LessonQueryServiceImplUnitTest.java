@@ -90,9 +90,10 @@ class LessonQueryServiceImplUnitTest {
         service = new LessonQueryServiceImpl(lessonRepository, sessionQueryService, kayaUserQueryService,
                 repositoryQueryService, organizationAccessQueryService, lessonDeliveryRateLimiter, new LessonMapperImpl(),
                 loggingService);
-        // Every read is within the budget unless a test says otherwise; a read refused before the
+        // Every read is within the budgets unless a test says otherwise; a read refused before the
         // charge never asks.
-        lenient().when(lessonDeliveryRateLimiter.tryCharge(principal.tokenId())).thenReturn(true);
+        lenient().when(lessonDeliveryRateLimiter.tryChargeRead(principal.tokenId())).thenReturn(true);
+        lenient().when(lessonDeliveryRateLimiter.tryChargeOrganizationRead(principal.organizationId())).thenReturn(true);
     }
 
     private static LessonDeliveryQueryRequest request(Integer page, Integer amount, String etag) {
@@ -268,7 +269,8 @@ class LessonQueryServiceImplUnitTest {
             assertTrue(exception.getErrorValues().containsKey("etag"));
             verify(lessonRepository, never()).findDeliveryState(any(), any());
             verify(lessonRepository, never()).findDeliveryLessons(any(), any(), any());
-            verify(lessonDeliveryRateLimiter, never()).tryCharge(any());
+            verify(lessonDeliveryRateLimiter, never()).tryChargeRead(any());
+            verify(lessonDeliveryRateLimiter, never()).tryChargeOrganizationRead(any());
         }
     }
 
@@ -276,17 +278,18 @@ class LessonQueryServiceImplUnitTest {
     class RateLimit {
 
         @Test
-        void listForCheckout_withinTheBudget_chargesOneReadToTheToken() {
+        void listForCheckout_withinTheBudget_chargesOneReadToTheTokenAndOneToItsOrganization() {
             givenLessons(rows(3));
 
             service.listForCheckout(principal, request(1, null, null));
 
-            verify(lessonDeliveryRateLimiter).tryCharge(principal.tokenId());
+            verify(lessonDeliveryRateLimiter).tryChargeRead(principal.tokenId());
+            verify(lessonDeliveryRateLimiter).tryChargeOrganizationRead(principal.organizationId());
         }
 
         @Test
         void listForCheckout_tokenOverTheBudget_throwsTooManyRequestsBeforeAnyRead() {
-            when(lessonDeliveryRateLimiter.tryCharge(principal.tokenId())).thenReturn(false);
+            when(lessonDeliveryRateLimiter.tryChargeRead(principal.tokenId())).thenReturn(false);
 
             TooManyRequestsException exception = assertThrows(TooManyRequestsException.class,
                     () -> service.listForCheckout(principal, request(1, null, null)));
@@ -297,11 +300,39 @@ class LessonQueryServiceImplUnitTest {
             verify(repositoryQueryService, never()).getRepositories(any());
             verify(lessonRepository, never()).findDeliveryState(any(), any());
             verify(lessonRepository, never()).findDeliveryLessons(any(), any(), any());
+            // A read the token may not make costs its colleagues nothing.
+            verify(lessonDeliveryRateLimiter, never()).tryChargeOrganizationRead(any());
+        }
+
+        @Test
+        void listForCheckout_organizationOverTheBudget_throwsTooManyRequestsWithItsLimitBeforeAnyRead() {
+            when(lessonDeliveryRateLimiter.tryChargeOrganizationRead(principal.organizationId())).thenReturn(false);
+
+            TooManyRequestsException exception = assertThrows(TooManyRequestsException.class,
+                    () -> service.listForCheckout(principal, request(1, null, null)));
+
+            assertEquals(HttpStatus.TOO_MANY_REQUESTS, exception.getStatusCode());
+            assertEquals("KAY_SEC_004", exception.getErrorCode());
+            assertEquals(LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE, exception.getErrorValues().get("limit"));
+            verify(repositoryQueryService, never()).getRepositories(any());
+            verify(lessonRepository, never()).findDeliveryState(any(), any());
+        }
+
+        @Test
+        void searchForCheckout_organizationOverTheBudget_throwsTooManyRequestsWithItsLimitBeforeAnyRead() {
+            when(lessonDeliveryRateLimiter.tryChargeOrganizationRead(principal.organizationId())).thenReturn(false);
+
+            TooManyRequestsException exception = assertThrows(TooManyRequestsException.class,
+                    () -> service.searchForCheckout(principal, REMOTE, "deploy"));
+
+            assertEquals("KAY_SEC_004", exception.getErrorCode());
+            assertEquals(LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE, exception.getErrorValues().get("limit"));
+            verify(lessonRepository, never()).findAll(any(Specification.class), any(Pageable.class));
         }
 
         @Test
         void searchForCheckout_tokenOverTheBudget_throwsTooManyRequestsBeforeAnyRead() {
-            when(lessonDeliveryRateLimiter.tryCharge(principal.tokenId())).thenReturn(false);
+            when(lessonDeliveryRateLimiter.tryChargeRead(principal.tokenId())).thenReturn(false);
 
             TooManyRequestsException exception = assertThrows(TooManyRequestsException.class,
                     () -> service.searchForCheckout(principal, REMOTE, "deploy"));

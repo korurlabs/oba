@@ -278,15 +278,23 @@ public class LessonQueryServiceImpl implements LessonQueryService {
     }
 
     /**
-     * Charges one read to the token before any lesson is read, so a refused read costs no pass over
-     * the lessons.
+     * Charges one read to the token and then to its organization, before any lesson is read, so a
+     * refused read costs no pass over the lessons. The organization is charged only once the
+     * token's own budget allows the read, so the refused reads of one runaway token never use up
+     * the reads of its colleagues.
      */
     private void chargeRead(MachinePrincipal principal) {
-        if (!lessonDeliveryRateLimiter.tryCharge(principal.tokenId())) {
+        if (!lessonDeliveryRateLimiter.tryChargeRead(principal.tokenId())) {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_RATE_LIMITED,
                     principal.machineId(), principal.tokenId(), LessonConstant.DELIVERY_READS_PER_MINUTE);
             throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
                     Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_READS_PER_MINUTE));
+        }
+        if (!lessonDeliveryRateLimiter.tryChargeOrganizationRead(principal.organizationId())) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_ORGANIZATION_RATE_LIMITED,
+                    principal.machineId(), principal.organizationId(), LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE);
+            throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE));
         }
     }
 

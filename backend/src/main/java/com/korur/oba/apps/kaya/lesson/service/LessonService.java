@@ -93,6 +93,9 @@ public interface LessonService {
      *         lesson of the repository names a remote the organization does not have
      * @throws com.korur.oba.dojo.exception.internal.business.ValidationException KAY_VAL_002 for
      *         an archived repository
+     * @throws com.korur.oba.dojo.exception.internal.business.TooManyRequestsException KAY_SEC_004
+     *         when the token added more lessons in a minute than
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_PROPOSALS_PER_MINUTE}
      */
     LessonDeliveryCreatedResponse create(MachinePrincipal principal, LessonDeliveryRequest request);
 

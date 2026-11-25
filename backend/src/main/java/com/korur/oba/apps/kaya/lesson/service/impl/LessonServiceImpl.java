@@ -15,6 +15,7 @@ import java.util.UUID;
 // 4. Internal
 import com.korur.oba.apps.kaya.core.exception.enums.ExceptionDomainKayaError;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
+import com.korur.oba.dojo.exception.internal.business.TooManyRequestsException;
 import com.korur.oba.dojo.exception.internal.business.ValidationException;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
@@ -29,6 +30,7 @@ import com.korur.oba.apps.kaya.lesson.dto.request.LessonRequest;
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDeliveryCreatedResponse;
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDetailResponse;
 import com.korur.oba.apps.kaya.lesson.entity.Lesson;
+import com.korur.oba.apps.kaya.lesson.helper.LessonDeliveryRateLimiter;
 import com.korur.oba.apps.kaya.lesson.mapper.LessonMapper;
 import com.korur.oba.apps.kaya.lesson.repository.LessonRepository;
 import com.korur.oba.apps.kaya.lesson.service.LessonQueryService;
@@ -50,6 +52,7 @@ public class LessonServiceImpl implements LessonService {
     private final UserAccessHelper userAccessHelper;
     private final LessonMapper lessonMapper;
     private final DeliveryProposalProperties deliveryProposalProperties;
+    private final LessonDeliveryRateLimiter lessonDeliveryRateLimiter;
     private final LoggingService loggingService;
 
     @Override
@@ -98,6 +101,7 @@ public class LessonServiceImpl implements LessonService {
     @Override
     @Transactional
     public LessonDeliveryCreatedResponse create(MachinePrincipal principal, LessonDeliveryRequest request) {
+        chargeProposal(principal);
         User user = lessonQueryService.getActingUser(principal);
         UUID organizationId = principal.organizationId();
         UUID repositoryId = request.repoWide() ? null : requireCheckoutRepository(organizationId, request.remoteUrl());
@@ -110,6 +114,19 @@ public class LessonServiceImpl implements LessonService {
     @Transactional
     public void delete(MachinePrincipal principal, UUID lessonId) {
         delete(lessonQueryService.getActingUser(principal), principal.organizationId(), lessonId);
+    }
+
+    /**
+     * Charges one added lesson to the token before anything is read or written, so a refused
+     * lesson costs no query.
+     */
+    private void chargeProposal(MachinePrincipal principal) {
+        if (!lessonDeliveryRateLimiter.tryChargeProposal(principal.tokenId())) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_PROPOSAL_RATE_LIMITED,
+                    principal.machineId(), principal.tokenId(), LessonConstant.DELIVERY_PROPOSALS_PER_MINUTE);
+            throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_PROPOSALS_PER_MINUTE));
+        }
     }
 
     /**

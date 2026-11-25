@@ -111,7 +111,9 @@ public interface LessonQueryService {
      *         no longer names the lessons
      * @throws com.korur.oba.dojo.exception.internal.business.TooManyRequestsException KAY_SEC_004
      *         when the token made more lesson reads in a minute than
-     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_READS_PER_MINUTE}
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_READS_PER_MINUTE},
+     *         or the tokens of its organization together more than
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_ORGANIZATION_READS_PER_MINUTE}
      * @throws org.springframework.dao.QueryTimeoutException when the read runs past
      *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_READ_TIMEOUT_SECONDS},
      *         answered 503 GEN_UPS_004
@@ -130,7 +132,9 @@ public interface LessonQueryService {
      *         an archived repository
      * @throws com.korur.oba.dojo.exception.internal.business.TooManyRequestsException KAY_SEC_004
      *         when the token made more lesson reads in a minute than
-     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_READS_PER_MINUTE};
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_READS_PER_MINUTE},
+     *         or the tokens of its organization together more than
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_ORGANIZATION_READS_PER_MINUTE};
      *         a search counts as a read like a page of the list
      * @throws org.springframework.dao.QueryTimeoutException when the search runs past
      *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_READ_TIMEOUT_SECONDS},

@@ -104,7 +104,8 @@ public class LessonDeliveryController {
                     + "missing or too long, since unreadable, page or amount out of range, etag malformed or missing "
                     + "from page 2 on"),
             @ApiResponse(responseCode = "429", description = "KAY_SEC_004: more than 600 lesson reads (pages, 304s "
-                    + "and searches) of the token in a minute"),
+                    + "and searches) of the token in a minute (errorValues.limit 600), or more than 3000 of all tokens "
+                    + "of its organization (errorValues.limit 3000)"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "503", description = "GEN_UPS_004: the read ran past its time limit of 5 "
                     + "seconds; try again later")
@@ -144,6 +145,8 @@ public class LessonDeliveryController {
             @ApiResponse(responseCode = "404", description = "KAY_NF_001: no repository of the organization has this remote"),
             @ApiResponse(responseCode = "422", description = "KAY_VAL_002: repository archived; GEN_VAL_001: a field "
                     + "missing or out of range, claudeSessionId not a session id"),
+            @ApiResponse(responseCode = "429", description = "KAY_SEC_004: more than 60 lessons added by the token in a "
+                    + "minute (errorValues.limit 60)"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<CustomResponse<LessonDeliveryCreatedResponse>> addLesson(
@@ -171,7 +174,8 @@ public class LessonDeliveryController {
             @ApiResponse(responseCode = "422", description = "KAY_VAL_002: repository archived; GEN_VAL_001: remoteUrl "
                     + "or search missing or too long"),
             @ApiResponse(responseCode = "429", description = "KAY_SEC_004: more than 600 lesson reads (pages, 304s "
-                    + "and searches) of the token in a minute"),
+                    + "and searches) of the token in a minute (errorValues.limit 600), or more than 3000 of all tokens "
+                    + "of its organization (errorValues.limit 3000)"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "503", description = "GEN_UPS_004: the read ran past its time limit of 5 "
                     + "seconds; try again later")
