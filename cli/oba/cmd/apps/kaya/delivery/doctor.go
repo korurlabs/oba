@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 
 	"github.com/korurlabs/oba-cli/cmd/jsonresult"
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/capture"
@@ -1207,22 +1208,82 @@ func (d *doctor) checkProbeLoaded(run probeRun) {
 		return
 	}
 	skills, agents := deliveredSkillsAndAgents(d.active)
-	var missing []string
+	var missing, unlisted []string
 	for _, skill := range skills {
-		if named, ok := loadedName(d.checkout.Root, skill, run.skills); !ok {
-			missing = append(missing, "skill "+named)
+		named, ok := loadedName(d.checkout.Root, skill, run.skills)
+		if ok {
+			continue
 		}
+		if notUserInvocable(filepath.Join(d.checkout.Root, filepath.FromSlash(skill))) {
+			unlisted = append(unlisted, named)
+			continue
+		}
+		missing = append(missing, "skill "+named)
 	}
 	for _, agent := range agents {
 		if named, ok := loadedName(d.checkout.Root, agent, run.agents); !ok {
 			missing = append(missing, "subagent "+named)
 		}
 	}
+	note := unlistedNote(unlisted)
 	if len(missing) > 0 {
-		d.report.add(scopeProbe, name, checkFailed, "the session did not load the delivered "+strings.Join(missing, ", ")+": run oba kaya sync and doctor again")
+		d.report.add(scopeProbe, name, checkFailed, "the session did not load the delivered "+strings.Join(missing, ", ")+": run oba kaya sync and doctor again"+note)
 		return
 	}
-	d.report.add(scopeProbe, name, checkOK, fmt.Sprintf("the session loaded all %d delivered skills and %d delivered subagents", len(skills), len(agents)))
+	d.report.add(scopeProbe, name, checkOK, fmt.Sprintf("the session loaded all %d delivered skills and %d delivered subagents%s", len(skills)-len(unlisted), len(agents), note))
+}
+
+// notUserInvocable reports whether the YAML front matter of the skill file at path sets
+// user-invocable to false, as a boolean or as the quoted word. Claude Code leaves such a skill out
+// of the skills its init event lists although the session has it, so the init event cannot show
+// that it loaded. A file that cannot be read, has no front matter, or whose front matter is not
+// YAML counts as a normal skill, which the session has to list: a damaged file then fails the check
+// instead of passing unseen.
+func notUserInvocable(path string) bool {
+	values, ok := frontMatter(path)
+	if !ok {
+		return false
+	}
+	value := values["user-invocable"]
+	return value == false || value == "false"
+}
+
+// frontMatter is the YAML front matter of the file at path, read as Kaya reads the front matter of
+// a proposed skill; ok is false when the file cannot be read, has no front matter, or its front
+// matter is not YAML.
+func frontMatter(path string) (map[string]any, bool) {
+	data, err := os.ReadFile(path) // #nosec G304 -- a delivered skill of the checkout
+	if err != nil {
+		return nil, false
+	}
+	text := strings.TrimPrefix(string(data), "\uFEFF")
+	lines := strings.Split(strings.ReplaceAll(text, "\r\n", "\n"), "\n")
+	if strings.TrimSpace(lines[0]) != "---" {
+		return nil, false
+	}
+	for i := 1; i < len(lines); i++ {
+		if strings.TrimSpace(lines[i]) != "---" {
+			continue
+		}
+		var values map[string]any
+		if err := yaml.Unmarshal([]byte(strings.Join(lines[1:i], "\n")), &values); err != nil {
+			return nil, false
+		}
+		return values, true
+	}
+	return nil, false
+}
+
+// unlistedNote names the delivered skills the check passed over because they set user-invocable
+// to false and the session did not list them; empty when there are none.
+func unlistedNote(unlisted []string) string {
+	switch len(unlisted) {
+	case 0:
+		return ""
+	case 1:
+		return " (1 more skill with user-invocable: false is not listed by Claude Code and was not checked: " + unlisted[0] + ")"
+	}
+	return fmt.Sprintf(" (%d more skills with user-invocable: false are not listed by Claude Code and were not checked: %s)", len(unlisted), strings.Join(unlisted, ", "))
 }
 
 // checkProbeAgentsMD checks in a second claude -p session, with the user settings, that Claude
