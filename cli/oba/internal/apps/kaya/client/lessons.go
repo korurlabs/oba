@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -32,6 +33,12 @@ const (
 	// 1 MiB leaves about four times that. A larger bound would let a broken or hostile Kaya send
 	// millions of empty lessons per page, which decode to many times their size in memory.
 	maxLessonPageBytes = 1 << 20
+	// weakETagPrefix marks a weak ETag. A proxy that compresses the list, as a CDN in front of
+	// Kaya does, turns its strong ETag into a weak one with the same tag. The etag of a later page
+	// names the lessons by the tag alone, so it goes without the prefix, which a Kaya that accepts
+	// only the strong form also takes. If-None-Match keeps it: HTTP compares that header weakly
+	// (RFC 9110 section 13.1.2), so a stored weak ETag still answers 304.
+	weakETagPrefix = "W/"
 )
 
 // Lesson is one row of the lessons of a checkout: its repository's plus the organization-wide
@@ -112,12 +119,13 @@ func (c *Client) LessonsSince(ctx context.Context, remoteURL, etag, since string
 }
 
 // lessonPages reads the list page by page until Kaya marks the last one. Page 1 carries etag as
-// If-None-Match, so a 304 skips every page; each later page carries the ETag of page 1, so Kaya
-// refuses it with CodeLessonsChanged instead of mixing two states of the lessons. An answer
-// without paging details, from a Kaya that does not page, is the whole list. The page count of
-// page 1 bounds the read: a later page may end it sooner, never later, and a count above
-// lessonsMaxPages fails the read before page 2. A page larger than maxLessonPageBytes, or with
-// more than LessonsPageSize lessons, fails the read too.
+// If-None-Match, so a 304 skips every page; each later page carries the ETag of page 1, without
+// weakETagPrefix, so Kaya refuses it with CodeLessonsChanged instead of mixing two states of the
+// lessons. The ETag it answers is page 1's as received, weak or strong. An answer without paging
+// details, from a Kaya that does not page, is the whole list. The page count of page 1 bounds the
+// read: a later page may end it sooner, never later, and a count above lessonsMaxPages fails the
+// read before page 2. A page larger than maxLessonPageBytes, or with more than LessonsPageSize
+// lessons, fails the read too.
 func (c *Client) lessonPages(ctx context.Context, remoteURL, etag, since string) ([]Lesson, string, bool, error) {
 	var (
 		all      []Lesson
@@ -134,7 +142,7 @@ func (c *Client) lessonPages(ctx context.Context, remoteURL, etag, since string)
 			header.Set("If-None-Match", etag)
 		}
 		if page > 1 && firstTag != "" {
-			query.Set("etag", firstTag)
+			query.Set("etag", strings.TrimPrefix(firstTag, weakETagPrefix))
 		}
 		resp, raw, err := c.raw(ctx, lessonsPath+"?"+query.Encode(), header, maxLessonPageBytes+1)
 		if err != nil {

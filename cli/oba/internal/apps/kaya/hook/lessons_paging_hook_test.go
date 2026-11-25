@@ -107,6 +107,57 @@ func TestLessonsHook_a304OnPage1SkipsEveryPage(t *testing.T) {
 	}
 }
 
+func TestLessonsHook_aWeakETagReadsEveryPage(t *testing.T) {
+	lk, root := setupLessonsHook(t)
+	lk.WeakETags = true
+	lessons := manyLessons(250)
+	lk.Set(lessons...)
+
+	startSession(t, root)
+
+	if file := lessonsFile(t, root); file != lessonsFileOf(lessons) {
+		t.Fatalf("file holds %d lines, want 250 lessons", strings.Count(file, "\n- "))
+	}
+	if etag, _ := lessonsState(t, root); etag != "W/"+lk.ETag {
+		t.Fatalf("etag = %q, want the weak ETag as received, %q", etag, "W/"+lk.ETag)
+	}
+	calls := lk.Recorded()
+	if len(calls) != 3 {
+		t.Fatalf("calls = %+v", calls)
+	}
+	for i, call := range calls[1:] {
+		if call.ETag != lk.ETag {
+			t.Fatalf("page %d sent etag %q, want the tag without W/, %q", i+2, call.ETag, lk.ETag)
+		}
+	}
+}
+
+func TestLessonsHook_aStoredWeakETagStillSkipsEveryPage(t *testing.T) {
+	lk, root := setupLessonsHook(t)
+	lk.WeakETags = true
+	lk.Set(manyLessons(250)...)
+	startSession(t, root)
+	before := lessonsFile(t, root)
+	etagBefore, seenBefore := lessonsState(t, root)
+	if etagBefore != "W/"+lk.ETag {
+		t.Fatalf("stored etag = %q, want a weak one", etagBefore)
+	}
+	asked := len(lk.Recorded())
+
+	context := startSession(t, root)
+
+	calls := lk.Recorded()[asked:]
+	if len(calls) != 1 || calls[0].Page != "1" || calls[0].IfNoneMatch != etagBefore {
+		t.Fatalf("calls = %+v", calls)
+	}
+	if strings.Contains(context, lessonsAnnouncement) || lessonsFile(t, root) != before {
+		t.Fatalf("context = %s", context)
+	}
+	if etag, seenAt := lessonsState(t, root); etag != etagBefore || seenAt != seenBefore {
+		t.Fatalf("state moved on a 304: %q %q", etag, seenAt)
+	}
+}
+
 func TestLessonsHook_aChangeBetweenPagesStartsAgainAtPage1(t *testing.T) {
 	lk, root := setupLessonsHook(t)
 	lessons := manyLessons(250)

@@ -16,6 +16,9 @@ import (
 	"github.com/korurlabs/oba-cli/internal/dojo/config"
 )
 
+// weakPrefix marks a weak ETag.
+const weakPrefix = "W/"
+
 // StoredLesson is a lesson as LessonsKaya keeps it.
 type StoredLesson struct {
 	ID, Title, Body string
@@ -43,6 +46,9 @@ type LessonsKaya struct {
 	// failStatus and failCode make the conditional list answer an error.
 	FailStatus int
 	FailCode   string
+	// WeakETags makes the list answer its ETag weak, W/ before the quoted tag, as Kaya does behind a
+	// proxy that compresses the list. ETag keeps the strong form either way.
+	WeakETags bool
 	// OnPage, when set, runs before a list page is answered and outside Mu, so that it may call Set
 	// to change the lessons between two pages or wait for the request to end.
 	OnPage  func(r *http.Request, page int)
@@ -182,7 +188,8 @@ func (k *LessonsKaya) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // listPage answers one page of the list as Kaya does: page from 1 and amount up to
-// client.LessonsPageSize, both optional, and from page 2 on the ETag of page 1 as etag.
+// client.LessonsPageSize, both optional, and from page 2 on the ETag of page 1 as etag. Both
+// If-None-Match and etag compare weakly, so a W/ before the tag does not matter.
 func (k *LessonsKaya) listPage(w http.ResponseWriter, r *http.Request, fail func(int, string)) {
 	query := r.URL.Query()
 	page, amount := 1, client.LessonsPageSize
@@ -200,7 +207,7 @@ func (k *LessonsKaya) listPage(w http.ResponseWriter, r *http.Request, fail func
 		}
 	}
 	if page == 1 {
-		if match := r.Header.Get("If-None-Match"); match != "" && match == k.ETag {
+		if match := r.Header.Get("If-None-Match"); match != "" && strings.TrimPrefix(match, weakPrefix) == k.ETag {
 			w.WriteHeader(http.StatusNotModified)
 			return
 		}
@@ -210,7 +217,7 @@ func (k *LessonsKaya) listPage(w http.ResponseWriter, r *http.Request, fail func
 			fail(http.StatusUnprocessableEntity, "GEN_VAL_001")
 			return
 		}
-		if strings.Trim(sent, `"`) != strings.Trim(k.ETag, `"`) {
+		if strings.Trim(strings.TrimPrefix(sent, weakPrefix), `"`) != strings.Trim(k.ETag, `"`) {
 			fail(http.StatusConflict, client.CodeLessonsChanged)
 			return
 		}
@@ -221,7 +228,11 @@ func (k *LessonsKaya) listPage(w http.ResponseWriter, r *http.Request, fail func
 	for i := (page - 1) * amount; i < min(page*amount, total); i++ {
 		rows = append(rows, lessonRow(k.Lessons[i], query.Get("since"), false))
 	}
-	w.Header().Set("ETag", k.ETag)
+	etag := k.ETag
+	if k.WeakETags {
+		etag = weakPrefix + etag
+	}
+	w.Header().Set("ETag", etag)
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(map[string]any{
 		"success": true,

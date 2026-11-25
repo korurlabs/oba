@@ -96,6 +96,42 @@ func TestLessons_readsTheMostPages(t *testing.T) {
 	}
 }
 
+// A proxy that compresses the list answers its ETag weak. A later page names the lessons by the
+// tag without W/, which a Kaya that takes only the strong form accepts too; If-None-Match and the
+// ETag answered keep the prefix.
+func TestLessons_aWeakETagGoesBackWithoutItsPrefix(t *testing.T) {
+	var calls atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls.Add(1)
+		page, err := strconv.Atoi(r.URL.Query().Get("page"))
+		if err != nil {
+			t.Errorf("page = %q", r.URL.Query().Get("page"))
+			return
+		}
+		if page == 1 && r.Header.Get("If-None-Match") != `W/"zero"` {
+			t.Errorf("page 1 If-None-Match = %q, want the stored ETag as it is", r.Header.Get("If-None-Match"))
+		}
+		if page > 1 && r.URL.Query().Get("etag") != `"one"` {
+			w.WriteHeader(http.StatusUnprocessableEntity)
+			_, _ = w.Write([]byte(`{"success":false,"error":{"code":"GEN_VAL_001","message":"refused"}}`))
+			return
+		}
+		w.Header().Set("ETag", `W/"one"`)
+		_, _ = fmt.Fprintf(w, `{"success":true,"data":[{"id":"l%d","title":"Lesson %d"}],"pagination":{"totalPages":3,"last":%t}}`, page, page, page == 3)
+	}))
+	defer server.Close()
+	api := New(server.URL, "", func(context.Context) (string, error) { return "kyt_test", nil })
+
+	lessons, etag, notModified, err := api.LessonsSince(context.Background(), "github.com/acme/demo", `W/"zero"`, "")
+
+	if err != nil || notModified || len(lessons) != 3 || lessons[2].ID != "l3" || calls.Load() != 3 {
+		t.Fatalf("lessons = %d, calls = %d, notModified = %t, err = %v; want 3 pages", len(lessons), calls.Load(), notModified, err)
+	}
+	if etag != `W/"one"` {
+		t.Fatalf("etag = %q, want the ETag of page 1 as received", etag)
+	}
+}
+
 // onePageServer answers page 1 with data as the whole list.
 func onePageServer(t *testing.T, data string) *httptest.Server {
 	t.Helper()
