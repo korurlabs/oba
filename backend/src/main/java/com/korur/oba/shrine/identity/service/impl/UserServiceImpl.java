@@ -21,6 +21,10 @@ import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.shrine.identity.constant.service.UserServiceLogConstant;
 import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.shrine.identity.entity.embedded.UserAgentDetail;
+import com.korur.oba.shrine.identity.entity.embedded.UserProfile;
+import com.korur.oba.shrine.identity.enums.AgentRole;
+import com.korur.oba.shrine.identity.enums.UserKind;
 import com.korur.oba.shrine.identity.enums.UserStatus;
 import com.korur.oba.shrine.identity.exception.ExceptionDomainIdentityError;
 import com.korur.oba.shrine.identity.repository.UserRepository;
@@ -126,5 +130,42 @@ public class UserServiceImpl implements UserService {
                 UserServiceLogConstant.USER_ORG_DELETION_APPLIED,
                 user.getId(),
                 organizationId);
+    }
+
+    @Override
+    @Transactional
+    public User createAgentUser(String email, String name, UserAgentDetail agentDetail) {
+        Organization organization = organizationQueryService.getOrganizationEntityById(agentDetail.getOrganizationId());
+        User agent = User.builder()
+                .email(email)
+                .status(UserStatus.ACTIVE)
+                .kind(UserKind.AGENT)
+                .defaultOrganization(organization)
+                .profile(UserProfile.builder().firstName(name).build())
+                .agentDetail(agentDetail)
+                .build();
+        return userRepository.saveAndFlush(agent);
+    }
+
+    @Override
+    @Transactional
+    public User updateAgentUser(User agent, String name, AgentRole role, UserStatus status) {
+        if (Objects.nonNull(name)) {
+            agent.getProfile().setFirstName(name);
+        }
+        if (Objects.nonNull(role)) {
+            agent.getAgentDetail().setRole(role);
+        }
+        if (Objects.nonNull(status)) {
+            agent.setStatus(status);
+        }
+        return userRepository.saveAndFlush(agent);
+    }
+
+    @Override
+    @Transactional
+    public void deleteAgentUser(User agent) {
+        userRepository.delete(agent);
+        userRepository.flush();
     }
 }

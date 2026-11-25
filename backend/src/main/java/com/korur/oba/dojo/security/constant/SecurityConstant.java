@@ -88,6 +88,14 @@ public class SecurityConstant {
     // before the token's user is even known to be within the rate limit.
     public static final int KAYA_MACHINE_TOKEN_MAX_BODY_BYTES = 8 * 1024 * 1024;
 
+    // --- Agent tokens ---
+    // An agent may call every path its membership role and app grants allow, so it reserves none. The
+    // only handler without RequiredUserAccess it may call is reading its own user; changing or deleting
+    // that user stays a person's action.
+    public static final String AGENT_TOKEN_CURRENT_USER_PATH = "/users/me";
+    public static final List<ApiTokenEndpoint> AGENT_TOKEN_EXEMPT_ENDPOINTS = List.of(
+            new ApiTokenEndpoint(HttpMethod.GET, AGENT_TOKEN_CURRENT_USER_PATH));
+
     // Handlers of this package are guarded by the RequiredUserAccess check; framework handlers such
     // as SpringDoc and the error page are not
     public static final String OBA_PACKAGE_PREFIX = "com.korur.oba.";

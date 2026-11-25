@@ -13,12 +13,14 @@ import org.springframework.stereotype.Repository;
 import jakarta.persistence.LockModeType;
 
 // 3. Java SDK
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
 import com.korur.oba.dojo.repository.SoftDeleteRepository;
 import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.shrine.identity.enums.UserKind;
 import com.korur.oba.shrine.identity.enums.UserStatus;
 
 /**
@@ -106,4 +108,43 @@ public interface UserRepository extends SoftDeleteRepository<User, UUID>, JpaSpe
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT u FROM User u WHERE u.id = :id")
     Optional<User> findByIdForUpdate(@Param("id") UUID id);
+
+    /**
+     * Lists the users of one kind that belong to an organization as agents.
+     *
+     * @param kind           the kind, {@link UserKind#AGENT} for agents
+     * @param organizationId the organization of the agents
+     * @return the live agents of the organization
+     */
+    List<User> findAllByKindAndAgentDetailOrganizationId(UserKind kind, UUID organizationId);
+
+    /**
+     * Finds a user of one kind by id within the organization it belongs to as an agent, so an id of a
+     * person or of another organization's agent finds nothing.
+     *
+     * @param id             the user id
+     * @param kind           the kind, {@link UserKind#AGENT} for agents
+     * @param organizationId the organization of the agent
+     * @return the agent, or empty
+     */
+    Optional<User> findByIdAndKindAndAgentDetailOrganizationId(UUID id, UserKind kind, UUID organizationId);
+
+    /**
+     * Checks whether a live agent of the organization already has the name, ignoring case, as the
+     * unique index on the users table does.
+     *
+     * @param organizationId the organization of the agents
+     * @param name           the name to check
+     * @param excludeUserId  the agent being renamed, which may keep its own name; null on create
+     * @return true if another live agent has the name
+     */
+    @Query("""
+            SELECT COUNT(u) > 0 FROM User u
+            WHERE u.kind = com.korur.oba.shrine.identity.enums.UserKind.AGENT
+              AND u.agentDetail.organizationId = :organizationId
+              AND lower(u.profile.firstName) = lower(:name)
+              AND (:excludeUserId IS NULL OR u.id <> :excludeUserId)
+            """)
+    boolean existsAgentName(@Param("organizationId") UUID organizationId, @Param("name") String name,
+            @Param("excludeUserId") UUID excludeUserId);
 }

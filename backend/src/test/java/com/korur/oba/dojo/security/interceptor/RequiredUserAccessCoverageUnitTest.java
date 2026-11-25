@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 // 4. Internal
 import com.korur.oba.dojo.security.annotation.RequiredUserAccess;
@@ -218,7 +219,9 @@ class RequiredUserAccessCoverageUnitTest {
     }
 
     private static List<ApiTokenEndpoint> tokenExemptEndpoints() {
-        return SecurityConstant.KAYA_MACHINE_TOKEN_EXEMPT_ENDPOINTS;
+        return Stream.of(SecurityConstant.KAYA_MACHINE_TOKEN_EXEMPT_ENDPOINTS, SecurityConstant.AGENT_TOKEN_EXEMPT_ENDPOINTS)
+                .flatMap(List::stream)
+                .toList();
     }
 
     private static boolean isReserved(Handler handler) {

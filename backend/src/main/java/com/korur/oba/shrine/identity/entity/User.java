@@ -33,7 +33,9 @@ import java.util.Map;
 
 // 4. Internal
 import com.korur.oba.dojo.entity.SoftDeleteBaseEntity;
+import com.korur.oba.shrine.identity.entity.embedded.UserAgentDetail;
 import com.korur.oba.shrine.identity.entity.embedded.UserProfile;
+import com.korur.oba.shrine.identity.enums.UserKind;
 import com.korur.oba.shrine.identity.enums.UserStatus;
 import com.korur.oba.shrine.organization.entity.Organization;
 import com.korur.oba.shrine.organization.entity.OrganizationMember;
@@ -66,6 +68,13 @@ public class User extends SoftDeleteBaseEntity {
     @Column(name = "status", nullable = false)
     private UserStatus status = UserStatus.PENDING_ONBOARDING;
 
+    // A person or an agent, fixed when the account is created.
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @JdbcType(PostgreSQLEnumJdbcType.class)
+    @Column(name = "kind", nullable = false, updatable = false)
+    private UserKind kind = UserKind.HUMAN;
+
     // -------------Relations-----------//
 
     // Fetch: EAGER -- required by Hibernate 6 when both source and target entities
@@ -86,6 +95,10 @@ public class User extends SoftDeleteBaseEntity {
     @Builder.Default
     @Embedded
     private UserProfile profile = new UserProfile();
+
+    // Null for a person; set exactly when kind is AGENT.
+    @Embedded
+    private UserAgentDetail agentDetail;
 
     // -------------JSONB-----------//
     @JdbcTypeCode(SqlTypes.JSON)
