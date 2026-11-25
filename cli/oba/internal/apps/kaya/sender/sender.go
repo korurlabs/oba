@@ -4,12 +4,13 @@
 // Every two seconds it sends, per session, the events after the session's acknowledged seq (at
 // most 500), the handoff and plan snapshots changed since Kaya last acknowledged them and the
 // session's usage file, and keeps what Kaya acknowledged in the session's cursor.json, so it
-// replays in order after an outage; Kaya stores each seq once. A 429 and a network error back the
-// whole sender off from 2 s to 5 min. A 5xx and a 403 KAY_SEC_007 (the refusal of older Kaya
-// releases for a git email that no user of the organization held) answer one session's batch, so
-// that session alone backs off the same way while the others are sent. Either way the session
-// stays queued. A 401 stops the sender until the token changes. A session whose batch Kaya
-// refuses for its content (400, 409, 413, 422) is parked until the token changes; one parked after
+// replays in order after an outage; Kaya stores each seq once. A network error, a 429 and every
+// 5xx but 500, such as the 502, 503 or 504 of a gateway while Kaya is down, back the whole sender
+// off from 2 s to 5 min. A 500 and a 403 KAY_SEC_007 (the refusal of older Kaya releases for a git
+// email that no user of the organization held) answer one session's batch, so that session alone
+// backs off the same way while the others are sent. Either way the session stays queued. A 401
+// stops the sender until the token changes. A session whose batch Kaya refuses for its content
+// (400, 409, 413, 422) is parked until the token changes; one parked after
 // the machine name refusal of an older Kaya release (KAY_VAL_005) is also sent once more by
 // another oba version. One sender runs per machine: it holds sender.lock. It exits after ten
 // minutes without a sent batch while no session waits for a retry.
@@ -421,11 +422,15 @@ func (s *run) sendSession(ctx context.Context, dir, sessionID string) (bool, err
 		// carry an email Kaya knows, so only this one waits.
 		email, _ := apiErr.ErrorValues["gitAuthorEmail"].(string)
 		return false, &sessionRetryError{reason: fmt.Sprintf("Kaya answered %s: no Kaya user holds the git author email %q", answer, email)}
-	case apiErr.Status >= 500:
+	case apiErr.Status == 500:
 		// Kaya failed on this batch, as it does on content it cannot store; the batches of other
 		// sessions may still go through.
 		return false, &sessionRetryError{reason: "Kaya answered " + answer}
 	}
+	// Any other answer says nothing about this batch. A 502, 503 or 504 comes from the gateway
+	// while Kaya is down or overloaded, and a 429 from the limit of the machine token: every
+	// session would meet it alike, so the whole sender backs off once instead of sending one batch
+	// per queued session into the outage.
 	return false, &retryError{reason: "Kaya answered " + answer}
 }
 

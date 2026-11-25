@@ -425,9 +425,9 @@ func compareLog(t *testing.T, run int, sessionID string, wantAny any, got []stri
 			w, _, _ = strings.Cut(w, "UNVERIFIED:")
 			g, _, _ = strings.Cut(g, "UNVERIFIED:")
 		}
-		// A 5xx and the git email refusal answer one session's batch: only that session backs
-		// off, and the line names it.
-		if strings.HasPrefix(w, "Kaya answered 5") || strings.HasPrefix(w, "Kaya answered 403 "+codeUnknownGit) {
+		// A 500 and the git email refusal answer one session's batch: only that session backs
+		// off, and the line names it. Any other 5xx backs off the whole sender, as in Python.
+		if strings.HasPrefix(w, "Kaya answered 500") || strings.HasPrefix(w, "Kaya answered 403 "+codeUnknownGit) {
 			w = sessionID + ": " + w
 		}
 		if w != g {
