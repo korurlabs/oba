@@ -121,7 +121,7 @@ func Create(c *client.Client, r *Resolver, p PreparedCreate, warn io.Writer) (Cr
 	if err != nil {
 		return Created{}, err
 	}
-	if req.AssigneeIDs, err = peopleIDs(r.Client(), "assignee", p.in.Assignee); err != nil {
+	if req.AssigneeIDs, err = assigneeIDs(r.Client(), boardID, p.in.Assignee); err != nil {
 		return Created{}, err
 	}
 	if req.ReviewerIDs, err = peopleIDs(r.Client(), "reviewer", p.in.Reviewer); err != nil {

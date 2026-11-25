@@ -61,7 +61,7 @@ func newUpdateCmd() *cobra.Command {
 	f.StringVar(&rank, "mission-rank", "", "new mission rank: "+strings.Join(ticket.MissionRanks, ", "))
 	f.StringVar(&project, "project", "", "project id")
 	f.StringVar(&milestone, "milestone", "", `milestone id or name ("" detaches the ticket)`)
-	f.StringVar(&assignee, "assignee", "", "assignee emails or user ids (comma separated)")
+	f.StringVar(&assignee, "assignee", "", "assignee emails, user ids or agent names (comma separated)")
 	f.StringVar(&reviewer, "reviewer", "", "reviewer emails or user ids (comma separated)")
 	f.StringVar(&label, "label", "", "label ids (comma separated)")
 	f.IntVar(&storyPoints, "story-points", 0, "story points (weight)")

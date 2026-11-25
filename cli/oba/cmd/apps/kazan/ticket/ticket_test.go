@@ -379,6 +379,105 @@ func TestListMarksAnAgentAssigneeAndKeepsItsKindInJSON(t *testing.T) {
 	}
 }
 
+const (
+	idScout = "0e000000-0000-4000-8000-000000000002"
+	// opsBoardMembers is a person and two agents, one of whose names differs from the other only in case.
+	opsBoardMembers = `{"data":[` +
+		`{"id":"bm1","userId":"u-ada","email":"ada@example.com","firstName":"Ada","lastName":"Lovelace","role":"MEMBER","kind":"HUMAN"},` +
+		`{"id":"bm2","userId":"` + idScout + `","email":"agent-2@agents.oba.invalid","firstName":"Scout","lastName":"","role":"MEMBER","kind":"AGENT"},` +
+		`{"id":"bm3","userId":"` + idAgent + `","email":"agent-1@agents.oba.invalid","firstName":"Ranger","lastName":"","role":"MEMBER","kind":"AGENT"}]}`
+)
+
+func TestUpdateAssignsAnAgentByNameNextToAPerson(t *testing.T) {
+	api := newTicketAPI(t)
+	api.Respond("GET /organizations/"+clitest.OrgIDAcme+"/members", http.StatusOK,
+		`{"data":[{"id":"m1","userId":"u-ada","email":"ada@example.com","role":"MEMBER","status":"ACTIVE"}]}`)
+	api.Respond("GET /kazan/boards/"+idOps+"/members", http.StatusOK, opsBoardMembers)
+	api.Respond("PUT /kazan/boards/"+idOps+"/tickets/"+idT42, http.StatusOK, `{"data":`+withAgentAssignee(idT42, "OPS-42", "Crash")+`}`)
+	_, _, err := runCLI(t, "", "kazan", "ticket", "update", "OPS-42", "--assignee", "scout,ADA@example.com")
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := bodyOf(t, api, "PUT /kazan/boards/"+idOps+"/tickets/"+idT42)
+	ids, _ := got["assigneeIds"].([]any)
+	if len(ids) != 2 || ids[0] != idScout || ids[1] != "u-ada" {
+		t.Errorf("assigneeIds = %v", got["assigneeIds"])
+	}
+}
+
+func TestUpdateAssigneeByEmailReadsNoBoardMembers(t *testing.T) {
+	api := newTicketAPI(t)
+	api.Respond("GET /organizations/"+clitest.OrgIDAcme+"/members", http.StatusOK,
+		`{"data":[{"id":"m1","userId":"u-ada","email":"ada@example.com","role":"MEMBER","status":"ACTIVE"}]}`)
+	api.Respond("PUT /kazan/boards/"+idOps+"/tickets/"+idT42, http.StatusOK, `{"data":`+ticketJSON(idT42, "OPS-42", "Crash", idOps, "OPS")+`}`)
+	if _, _, err := runCLI(t, "", "kazan", "ticket", "update", "OPS-42", "--assignee", "ada@example.com,"+idAgent); err != nil {
+		t.Fatal(err)
+	}
+	for _, call := range api.Calls() {
+		if strings.Contains(call, "/kazan/boards/"+idOps+"/members") {
+			t.Errorf("an email or id read the board members: %v", api.Calls())
+		}
+	}
+	ids, _ := bodyOf(t, api, "PUT /kazan/boards/"+idOps+"/tickets/"+idT42)["assigneeIds"].([]any)
+	if len(ids) != 2 || ids[0] != "u-ada" || ids[1] != idAgent {
+		t.Errorf("assigneeIds = %v", ids)
+	}
+}
+
+func TestUpdateUnknownAgentNameListsTheAgentsAndSendsNothing(t *testing.T) {
+	api := newTicketAPI(t)
+	api.Respond("GET /kazan/boards/"+idOps+"/members", http.StatusOK, opsBoardMembers)
+	_, _, err := runCLI(t, "", "kazan", "ticket", "update", "OPS-42", "--assignee", "Ada Lovelace")
+	if err == nil {
+		t.Fatal("update with an unknown agent name succeeded")
+	}
+	want := `--assignee: no agent named "Ada Lovelace"; agents on the board: Scout (` + idScout + `), Ranger (` + idAgent + `)`
+	if !strings.Contains(err.Error(), want) {
+		t.Errorf("err = %v", err)
+	}
+	if code := client.ExitCode(err); code != 2 {
+		t.Errorf("exit code = %d", code)
+	}
+	for _, call := range api.Calls() {
+		if strings.HasPrefix(call, "PUT ") {
+			t.Errorf("the ticket was updated: %v", api.Calls())
+		}
+	}
+}
+
+func TestCreateWithASharedAgentNameListsTheMatches(t *testing.T) {
+	api := newTicketAPI(t)
+	api.Respond("GET /kazan/boards/"+idOps+"/members", http.StatusOK, strings.Replace(opsBoardMembers, `"Ranger"`, `"SCOUT"`, 1))
+	_, _, err := runCLI(t, "", "kazan", "ticket", "create", "--title", "Scan", "--type", "bug",
+		"--priority", "high", "--status", "todo", "--mission-rank", "s", "--sprint", "sprint", "--assignee", "Scout")
+	if err == nil {
+		t.Fatal("create with a shared agent name succeeded")
+	}
+	want := `--assignee: 2 agents on the board are named "Scout": Scout (` + idScout + `), SCOUT (` + idAgent + `); name one by its user id`
+	if !strings.Contains(err.Error(), want) {
+		t.Errorf("err = %v", err)
+	}
+	for _, call := range api.Calls() {
+		if strings.HasPrefix(call, "POST ") {
+			t.Errorf("the ticket was created: %v", api.Calls())
+		}
+	}
+}
+
+func TestCreateAssignsAnAgentByName(t *testing.T) {
+	api := newTicketAPI(t)
+	api.Respond("GET /kazan/boards/"+idOps+"/members", http.StatusOK, opsBoardMembers)
+	api.Respond("POST /kazan/boards/"+idOps+"/tickets", http.StatusCreated, `{"data":`+withAgentAssignee(idT43, "OPS-43", "Scan")+`}`)
+	if _, _, err := runCLI(t, "", "kazan", "ticket", "create", "--title", "Scan", "--type", "bug",
+		"--priority", "high", "--status", "todo", "--mission-rank", "s", "--sprint", "sprint", "--assignee", "ranger"); err != nil {
+		t.Fatal(err)
+	}
+	ids, _ := bodyOf(t, api, "POST /kazan/boards/"+idOps+"/tickets")["assigneeIds"].([]any)
+	if len(ids) != 1 || ids[0] != idAgent {
+		t.Errorf("assigneeIds = %v", ids)
+	}
+}
+
 func TestUpdateRefusesParentOfAnotherBoard(t *testing.T) {
 	api := newTicketAPI(t)
 	_, _, err := runCLI(t, "", "kazan", "ticket", "update", "OPS-42", "--parent", "KAGI-7")

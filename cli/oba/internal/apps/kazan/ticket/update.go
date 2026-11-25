@@ -130,7 +130,7 @@ func Update(c *client.Client, r *Resolver, ref string, p PreparedUpdate) (client
 		}
 	}
 	if in.Assignee != nil {
-		if req.AssigneeIDs, err = peopleIDs(r.Client(), "assignee", *in.Assignee); err != nil {
+		if req.AssigneeIDs, err = assigneeIDs(r.Client(), target.BoardID, *in.Assignee); err != nil {
 			return client.Ticket{}, err
 		}
 	}
