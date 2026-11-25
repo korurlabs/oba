@@ -10,6 +10,7 @@ import (
 	"github.com/korurlabs/oba-cli/cmd/apps/kaya/hook"
 	"github.com/korurlabs/oba-cli/cmd/apps/kaya/install"
 	"github.com/korurlabs/oba-cli/cmd/apps/kaya/lessons"
+	"github.com/korurlabs/oba-cli/cmd/apps/kaya/pack"
 	"github.com/korurlabs/oba-cli/cmd/apps/kaya/propose"
 	"github.com/korurlabs/oba-cli/cmd/apps/kaya/seed"
 	"github.com/korurlabs/oba-cli/cmd/apps/kaya/sender"
@@ -26,9 +27,11 @@ func NewCmd() *cobra.Command {
 		Short: "Kaya: the agent config of Claude Code, delivered as signed releases",
 		Long: "Kaya keeps the agent config of the organization's repositories (rules, skills, hooks and " +
 			"settings of Claude Code) and delivers it to each checkout as a signed release. 'oba kaya seed' " +
-			"imports it, 'oba kaya install' sets a machine up, 'oba kaya launch' and the hooks put the " +
-			"release in place for every session, and 'oba kaya propose' sends a change of it for review.\n\n" +
-			"seed and signing-keys act as you, in the current organization, with the sign-in of 'oba login'. " +
+			"imports it, 'oba kaya pack required' makes every repository compose a pack, 'oba kaya install' " +
+			"sets a machine up, 'oba kaya launch' and the hooks put the release in place for every session, " +
+			"and 'oba kaya propose' sends a change of it for review.\n\n" +
+			"seed, pack and signing-keys act as you, in the current organization, with the sign-in of " +
+			"'oba login'. " +
 			"The commands that run in sessions and in the background (sync, refresh, launch, watch, hook, " +
 			"sender, lessons, propose) send the machine token instead: " + machine.EnvToken + ", else the one " +
 			"in your Kagi personal environment. They call OBA_API_URL, else the production API.",
@@ -40,6 +43,7 @@ func NewCmd() *cobra.Command {
 		statusline.NewCmd(),
 		install.NewCmd(),
 		seed.NewCmd(),
+		pack.NewCmd(),
 		propose.NewCmd(),
 		lessons.NewCmd(),
 		sender.NewCmd(),
