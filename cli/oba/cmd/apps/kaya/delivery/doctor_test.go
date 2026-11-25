@@ -47,17 +47,21 @@ exit 0
 // session; one without it loads the user settings. FAKE_CLAUDE_START, FAKE_CLAUDE_AGENTS_MD and
 // FAKE_CLAUDE_RECORD list the sessions, "probe" and "user", that start, that write the agents-md
 // line of the debug log, and that queue a record event as a record hook does; "no" lists none.
-// A session that starts prints the init event with the skills and subagents the test names.
+// A session that starts prints the init event with the skills and subagents the test names. Every
+// session logs a hook's output that repeats the agents-md plugin's words, which proves nothing. As
+// Claude Code does, it refuses --strict-mcp-config where the file FAKE_CLAUDE_MANAGED_MCP exists.
 const fakeClaude = `#!/bin/sh
 printf '%s\n' "$*" >> "$FAKE_CLAUDE_ARGS"
 session=""
 debug=""
 kind="user"
+strict=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --session-id) session="$2"; shift ;;
     --debug-file) debug="$2"; shift ;;
     --setting-sources) kind="probe"; shift ;;
+    --strict-mcp-config) strict="yes" ;;
   esac
   shift
 done
@@ -67,14 +71,19 @@ does() {
   esac
   return 1
 }
+if [ -n "$strict" ] && [ -f "$FAKE_CLAUDE_MANAGED_MCP" ]; then
+  echo "--strict-mcp-config cannot replace the managed MCP servers" >&2
+  exit 1
+fi
 if ! does "$FAKE_CLAUDE_START"; then
   echo "Invalid API key" >&2
   exit 1
 fi
 printf '{"type":"system","subtype":"init","cwd":"%s","session_id":"%s","skills":%s,"agents":%s}\n' "$PWD" "$session" "$FAKE_CLAUDE_SKILLS" "$FAKE_CLAUDE_AGENTS"
-printf '2026-11-23T10:00:00.000Z [DEBUG] Session started\n' > "$debug"
+printf '2026-11-24T10:53:35.500Z [DEBUG] Session started\n' > "$debug"
+printf '2026-11-24T10:53:35.715Z [DEBUG] Hook SessionStart:startup stdout: no CLAUDE.md found; AGENTS.md loaded: %s/AGENTS.md\n' "$PWD" >> "$debug"
 if does "$FAKE_CLAUDE_AGENTS_MD"; then
-  printf '2026-11-23T10:00:00.000Z [DEBUG] [agents-md] no CLAUDE.md found; AGENTS.md loaded: %s/AGENTS.md\n' "$PWD" >> "$debug"
+  printf '2026-11-24T10:53:35.815Z [DEBUG] [cc-plugin-agents-md] $.ui.log (to debug): no CLAUDE.md found; AGENTS.md loaded: %s/AGENTS.md\n' "$PWD" >> "$debug"
 fi
 if does "$FAKE_CLAUDE_RECORD"; then
   dir="$XDG_STATE_HOME/kaya/queue/sessions/$session"
@@ -145,6 +154,7 @@ func setupDoctor(t *testing.T) *doctorEnv {
 	})
 
 	e.managed = filepath.Join(t.TempDir(), "ClaudeCode", "managed-settings.d")
+	t.Setenv("FAKE_CLAUDE_MANAGED_MCP", filepath.Join(filepath.Dir(e.managed), managedMCPFile))
 	if err := os.MkdirAll(e.managed, 0o750); err != nil {
 		t.Fatal(err)
 	}
@@ -809,13 +819,15 @@ func TestDoctorProbe_writesTheProofWhenTheDropInRecordsTheSession(t *testing.T) 
 	if !regexp.MustCompile(`"dropInSha256": "[0-9a-f]{64}"`).Match(raw) || !regexp.MustCompile(`"provedAt": "\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?Z"`).Match(raw) {
 		t.Fatalf("the proof is not lower-case hex and RFC 3339:\n%s", raw)
 	}
-	// The probe session first, with the user settings left out; then the AGENTS.md session with the
-	// same arguments but every settings source, its own session id and its own debug log.
+	// The probe session first, with the user settings left out; then the AGENTS.md session with every
+	// settings source but no tool, no MCP server and one turn, its own session id and its own debug
+	// log. The empty value of --tools shows as a second space.
 	args := probeArgs(t)
 	const shared = "-p " + probePrompt + " --output-format stream-json --verbose "
-	pattern := regexp.MustCompile(`^` + regexp.QuoteMeta(shared) + `(--setting-sources project,local )?--session-id \S+ --no-session-persistence --debug-file \S+$`)
-	if len(args) != 2 || !pattern.MatchString(args[0]) || !strings.Contains(args[0], "--setting-sources project,local") ||
-		!pattern.MatchString(args[1]) || strings.Contains(args[1], "--setting-sources") {
+	const rest = `--session-id \S+ --no-session-persistence --debug-file \S+$`
+	probe := regexp.MustCompile(`^` + regexp.QuoteMeta(shared+"--setting-sources project,local ") + rest)
+	agentsMD := regexp.MustCompile(`^` + regexp.QuoteMeta(shared+"--tools  --disallowedTools mcp__* --max-turns 1 --strict-mcp-config ") + rest)
+	if len(args) != 2 || !probe.MatchString(args[0]) || !agentsMD.MatchString(args[1]) {
 		t.Fatalf("claude ran with %q", args)
 	}
 	for _, flag := range []string{"--session-id", "--debug-file"} {
@@ -848,7 +860,7 @@ func TestLoadedAgentsMD_findsTheCheckoutAmongThePathsOfALine(t *testing.T) {
 	}
 	want := filepath.Join(root, "AGENTS.md")
 	parent := filepath.Join(dir, "AGENTS.md")
-	const loaded = "2026-11-24T10:00:00.000Z [DEBUG] [agents-md] no CLAUDE.md found; AGENTS.md loaded: "
+	const loaded = "2026-11-24T10:00:00.000Z [DEBUG] [cc-plugin-agents-md] $.ui.log (to debug): no CLAUDE.md found; AGENTS.md loaded: "
 	for name, tc := range map[string]struct {
 		log, want string
 		found     bool
@@ -865,6 +877,125 @@ func TestLoadedAgentsMD_findsTheCheckoutAmongThePathsOfALine(t *testing.T) {
 			t.Fatalf("%s: loadedAgentsMD(%q, %q) = %v", name, tc.log, tc.want, got)
 		}
 	}
+}
+
+func TestLoadedAgentsMD_takesOnlyThePluginsOwnLine(t *testing.T) {
+	want := filepath.Join(t.TempDir(), "AGENTS.md")
+	writeTestFile(t, want, "# Rules\n")
+	const words = "no CLAUDE.md found; AGENTS.md loaded: "
+	plugin := "2026-11-24T10:53:35.815Z [DEBUG] [cc-plugin-agents-md] $.ui.log (to debug): " + words + want
+	for name, tc := range map[string]struct {
+		log   string
+		found bool
+	}{
+		"the plugin's line":                {log: plugin, found: true},
+		"the plugin's line after a hook's": {log: "2026-11-24T10:53:35.715Z [DEBUG] Hook SessionStart:startup stdout: " + words + "/elsewhere/AGENTS.md\n" + plugin + "\n", found: true},
+		"a hook's output":                  {log: "2026-11-24T10:53:35.715Z [DEBUG] Hook SessionStart:startup stdout: " + words + want},
+		"an MCP server naming the plugin":  {log: `2026-11-24T10:53:35.715Z [DEBUG] MCP server "notes": [cc-plugin-agents-md] ` + words + want},
+		"a line Claude Code did not start": {log: "[cc-plugin-agents-md] " + words + want},
+		"the words alone":                  {log: "2026-11-24T10:53:35.715Z [DEBUG] AGENTS.md loaded: " + want},
+	} {
+		if got := loadedAgentsMD([]byte(tc.log), want); got != tc.found {
+			t.Fatalf("%s: loadedAgentsMD(%q) = %v", name, tc.log, got)
+		}
+	}
+}
+
+func TestDoctorProbe_leavesTheStrictMCPConfigOutWhereAManagedMCPFileFixesTheServers(t *testing.T) {
+	e := setupDelivered(t)
+	writeExecutable(t, e.bin, "claude", fakeClaude)
+	writeTestFile(t, filepath.Join(filepath.Dir(e.managed), managedMCPFile), "{\"mcpServers\": {}}\n")
+	report, err := e.doctor(t, "--probe")
+	e.wantFailed(t, report, err)
+	if check := checkNamed(t, report, "AGENTS.md"); check.Status != checkOK {
+		t.Fatalf("AGENTS.md: %+v", check)
+	}
+	if args := probeArgs(t); len(args) != 2 || strings.Contains(args[1], "--strict-mcp-config") ||
+		!strings.Contains(args[1], " --tools  --disallowedTools mcp__* --max-turns 1 --session-id ") {
+		t.Fatalf("claude ran with %q", args)
+	}
+}
+
+// lingeringClaude stands in for a claude that prints its init event and leaves sleep running in
+// its process group with its stdout, as a hook or an MCP server that outlives its session would.
+// It writes the pid of sleep to FAKE_CLAUDE_CHILD and exits, or waits when FAKE_CLAUDE_WAIT is set.
+const lingeringClaude = `#!/bin/sh
+printf '{"type":"system","subtype":"init"}\n'
+/bin/sleep 300 &
+echo $! > "$FAKE_CLAUDE_CHILD.tmp"
+/bin/mv "$FAKE_CLAUDE_CHILD.tmp" "$FAKE_CLAUDE_CHILD"
+if [ -n "$FAKE_CLAUDE_WAIT" ]; then
+  /bin/sleep 300
+fi
+`
+
+// startLingeringSession runs runSession with lingeringClaude in the background and returns the
+// pid of the sleep it left, and the channel runSession's error arrives on.
+func startLingeringSession(t *testing.T, ctx context.Context) (int, <-chan error) {
+	t.Helper()
+	child := filepath.Join(t.TempDir(), "child")
+	t.Setenv("FAKE_CLAUDE_CHILD", child)
+	claude := writeExecutable(t, t.TempDir(), "claude", lingeringClaude)
+	root := t.TempDir()
+	done := make(chan error, 1)
+	go func() {
+		_, err := runSession(ctx, claude, root)
+		done <- err
+	}()
+	deadline := time.Now().Add(10 * time.Second)
+	for {
+		data, err := os.ReadFile(child)
+		if err == nil {
+			pid, err := strconv.Atoi(strings.TrimSpace(string(data)))
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Cleanup(func() {
+				// rule-10-no-op -- reason: the sleep is usually gone already, which is what the test wants.
+				_ = syscall.Kill(pid, syscall.SIGKILL)
+			})
+			return pid, done
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("the stand-in claude did not start: %v", err)
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+}
+
+// waitForSession fails the test when runSession has not returned within a time far below the
+// sleep the stand-in left running.
+func waitForSession(t *testing.T, done <-chan error) {
+	t.Helper()
+	select {
+	case err := <-done:
+		if err != nil {
+			t.Fatalf("runSession: %v", err)
+		}
+	case <-time.After(30 * time.Second):
+		t.Fatal("runSession did not return")
+	}
+}
+
+func TestRunSession_killsTheProcessGroupWhenStopped(t *testing.T) {
+	t.Setenv("FAKE_CLAUDE_WAIT", "yes")
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	pid, done := startLingeringSession(t, ctx)
+	cancel()
+	waitForSession(t, done)
+	deadline := time.Now().Add(10 * time.Second)
+	for !errors.Is(syscall.Kill(pid, 0), syscall.ESRCH) {
+		if time.Now().After(deadline) {
+			t.Fatalf("process %d of the stopped session's group still runs", pid)
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+}
+
+func TestRunSession_returnsWhileAProcessThatOutlivedClaudeHoldsItsOutput(t *testing.T) {
+	_, done := startLingeringSession(t, context.Background())
+	waitForSession(t, done)
 }
 
 func TestDoctorProbe_checksAGENTSmdInTheSessionWithTheUserSettings(t *testing.T) {

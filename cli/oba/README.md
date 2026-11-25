@@ -9,11 +9,11 @@ Releases support macOS and Linux on amd64 and arm64. They are published to the p
 With Homebrew:
 
 ```sh
-brew trust --formula korurlabs/tap/oba-cli   # once: Homebrew loads no formula from a tap you have not trusted
+brew trust --formula korurlabs/tap/oba-cli   # once: lets a plain brew upgrade oba-cli load the formula
 brew install korurlabs/tap/oba-cli           # installs the binary oba, and oba-kaya-launch linked to it
 ```
 
-Without the trust, Homebrew stops with `Refusing to load formula ... from untrusted tap`.
+Installing the formula by its full name, as above, trusts it ([Homebrew tap trust](https://docs.brew.sh/Tap-Trust)). A plain `brew upgrade oba-cli` can refuse it as a formula from an untrusted tap; `brew trust --formula korurlabs/tap/oba-cli` lets it upgrade.
 
 With the installer:
 

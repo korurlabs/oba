@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -56,17 +57,28 @@ const (
 	versionTimeout = 10 * time.Second
 	// probeTimeout bounds each claude -p session of the probe.
 	probeTimeout = 3 * time.Minute
+	// probeKillWait bounds the wait for a session's output once claude has exited or its process
+	// group was killed, for a process that left the group, or outlived claude, and still holds it.
+	probeKillWait = 2 * time.Second
+	// managedMCPFile is the file beside the managed settings folder that fixes the MCP servers of
+	// every session on the machine.
+	managedMCPFile = "managed-mcp.json"
 	// recordWait is how long the probe looks for the session's record event after claude exits,
 	// for a hook still writing it.
 	recordWait = 2 * time.Second
 	// probePrompt is the probe session's one prompt: the session only has to start and take a
 	// turn for its hooks to run, so the cheapest answer will do.
 	probePrompt = "Reply with the single word OK."
-	// agentsMDLoaded is what the debug log of Claude Code's built-in agents-md plugin says before the
-	// paths of the AGENTS.md files it loaded, joined by agentsMDSeparator.
-	agentsMDLoaded    = "AGENTS.md loaded: "
+	// agentsMDSeparator joins the paths on the agentsMDLine of the debug log.
 	agentsMDSeparator = ", "
 )
+
+// agentsMDLine is the line of the debug log in which Claude Code's built-in agents-md plugin names
+// the AGENTS.md files it loaded, as in "2026-11-24T10:53:35.815Z [DEBUG] [cc-plugin-agents-md]
+// $.ui.log (to debug): no CLAUDE.md found; AGENTS.md loaded: /repo/AGENTS.md"; its group is the
+// paths. The plugin's tag has to follow the timestamp and level that start every line, so the
+// logged output of a hook or an MCP server that repeats the plugin's words does not pass for it.
+var agentsMDLine = regexp.MustCompile(`^\S+ \[[A-Z]+\] \[cc-plugin-agents-md\] .*?no CLAUDE\.md found; AGENTS\.md loaded: (.*)$`)
 
 // cutoverPaths are what a repository stops tracking when Kaya delivers to it, besides every path
 // its releases deliver: the agent config folders, the root AGENTS.md, the file that named the
@@ -168,7 +180,7 @@ func newDoctorCmd() *cobra.Command {
 			"then writes the in-force proof, after which oba kaya install removes Kaya's earlier hooks from the user " +
 			"settings. Without the event doctor deletes the proof and names the higher managed source that makes " +
 			"Claude Code skip the drop-in. A second claude -p session, with the user settings as a normal session " +
-			"has, checks that Claude Code loads the root AGENTS.md, which it does not in a session without the user " +
+			"has but without any tool and for one turn, checks that Claude Code loads the root AGENTS.md, which it does not in a session without the user " +
 			"settings; its record event never counts as proof. Each session runs a model turn on your account.\n\n" +
 			"doctor exits 0 when no check fails and 1 when one does; --json prints the same as a result.",
 		Args: cobra.NoArgs,
@@ -937,14 +949,19 @@ func (d *doctor) probe() {
 		return
 	}
 	dropIn := d.dropIn
-	run, err := runProbe(d.ctx, claude, c.Root)
+	// Each session runs in its own process group, which Ctrl-C at the terminal does not reach. The
+	// signal ends the context instead, which kills the session's group and lets the debug log's temp
+	// folder be removed.
+	ctx, stop := signal.NotifyContext(d.ctx, syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+	run, err := runProbe(ctx, claude, c.Root)
 	if err != nil {
 		d.report.add(scopeProbe, name, checkFailed, err.Error()+untouched)
 		return
 	}
 	d.report.add(scopeProbe, name, checkOK, "claude -p ran session "+run.sessionID+" in "+c.Root)
 	d.checkProbeLoaded(run)
-	d.checkProbeAgentsMD(claude)
+	d.checkProbeAgentsMD(ctx, claude)
 	d.checkProbeRecord(run, dropIn)
 }
 
@@ -990,9 +1007,9 @@ func runProbe(ctx context.Context, claude, root string) (probeRun, error) {
 // AGENTS.md in a session that leaves the user settings out, so the probe session cannot show
 // whether a normal session loads the checkout's AGENTS.md. A record hook in the user settings may
 // queue this session's events, so nothing here looks for them: they would prove nothing about the
-// drop-in.
-func runAgentsMDSession(ctx context.Context, claude, root string) ([]byte, error) {
-	session, err := runSession(ctx, claude, root)
+// drop-in. managedDir is the managed settings folder; see agentsMDSessionFlags.
+func runAgentsMDSession(ctx context.Context, claude, root, managedDir string) ([]byte, error) {
+	session, err := runSession(ctx, claude, root, agentsMDSessionFlags(managedDir)...)
 	if err != nil {
 		return nil, err
 	}
@@ -1002,10 +1019,26 @@ func runAgentsMDSession(ctx context.Context, claude, root string) ([]byte, error
 	return session.debugLog, nil
 }
 
+// agentsMDSessionFlags keep the AGENTS.md session, which takes a turn nobody watches with the
+// user's own settings, from acting on anything: no built-in tool, no tool of an MCP server, and one
+// turn. --strict-mcp-config also keeps the MCP servers of the user, the checkout and the plugins
+// from starting. Claude Code refuses to start with it where a managed-mcp.json beside the managed
+// settings folder fixes the machine's MCP servers, so there it is left out and only those servers
+// of the organization start, without their tools.
+func agentsMDSessionFlags(managedDir string) []string {
+	flags := []string{"--tools", "", "--disallowedTools", "mcp__*", "--max-turns", "1"}
+	if !exists(filepath.Join(filepath.Dir(managedDir), managedMCPFile)) {
+		flags = append(flags, "--strict-mcp-config")
+	}
+	return flags
+}
+
 // runSession runs one claude -p session of the probe in root, with a new session id, its own debug
-// log in a temp folder, and settings besides the arguments every session of the probe gets. It
-// fails when claude prints no init event, that is when the session did not start.
-func runSession(ctx context.Context, claude, root string, settings ...string) (claudeSession, error) {
+// log in a temp folder, and flags besides the arguments every session of the probe gets. It fails
+// when claude prints no init event, that is when the session did not start. claude runs in a
+// process group of its own, so a timeout or a signal also ends the hooks and MCP servers it
+// started.
+func runSession(ctx context.Context, claude, root string, flags ...string) (claudeSession, error) {
 	sessionID, err := newSessionID()
 	if err != nil {
 		return claudeSession{}, err
@@ -1021,14 +1054,22 @@ func runSession(ctx context.Context, claude, root string, settings ...string) (c
 	debugFile := filepath.Join(dir, "debug.log")
 	ctx, cancel := context.WithTimeout(ctx, probeTimeout)
 	defer cancel()
-	args := append([]string{"-p", probePrompt, "--output-format", "stream-json", "--verbose"}, settings...)
+	args := append([]string{"-p", probePrompt, "--output-format", "stream-json", "--verbose"}, flags...)
 	args = append(args, "--session-id", sessionID, "--no-session-persistence", "--debug-file", debugFile)
 	cmd := exec.CommandContext(ctx, claude, args...) // #nosec G204 -- claude from PATH with fixed arguments
 	cmd.Dir = root
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	cmd.Cancel = func() error {
+		return syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+	}
+	cmd.WaitDelay = probeKillWait
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &stdout, &stderr
 	runErr := cmd.Run()
 	init, found := findInit(stdout.Bytes())
+	if !found && ctx.Err() != nil {
+		return claudeSession{}, fmt.Errorf("claude -p started no session before it was stopped (%v): %s", context.Cause(ctx), lastLine(stderr.String()))
+	}
 	if !found {
 		return claudeSession{}, fmt.Errorf("claude -p started no session (%v): %s", errorText(runErr), lastLine(stderr.String()))
 	}
@@ -1186,7 +1227,7 @@ func (d *doctor) checkProbeLoaded(run probeRun) {
 
 // checkProbeAgentsMD checks in a second claude -p session, with the user settings, that Claude
 // Code loads the checkout's root AGENTS.md; see runAgentsMDSession.
-func (d *doctor) checkProbeAgentsMD(claude string) {
+func (d *doctor) checkProbeAgentsMD(ctx context.Context, claude string) {
 	const name = "AGENTS.md"
 	const session = "a claude -p session with every settings source, as a normal session has"
 	want := filepath.Join(d.checkout.Root, "AGENTS.md")
@@ -1194,7 +1235,7 @@ func (d *doctor) checkProbeAgentsMD(claude string) {
 		d.report.add(scopeProbe, name, checkFailed, "the checkout has no root AGENTS.md for Claude Code to load")
 		return
 	}
-	log, err := runAgentsMDSession(d.ctx, claude, d.checkout.Root)
+	log, err := runAgentsMDSession(ctx, claude, d.checkout.Root, d.opts.ManagedDir)
 	switch {
 	case err != nil:
 		d.report.add(scopeProbe, name, checkFailed, session+", failed: "+err.Error())
@@ -1215,16 +1256,16 @@ func exists(path string) bool {
 
 // loadedAgentsMD reports whether the debug log names want among the AGENTS.md files the agents-md
 // plugin loaded. The plugin names every AGENTS.md it loads in the checkout and the folders above it
-// on one line, so the line is split into its paths; the whole rest of the line is a candidate too,
-// for a single path that itself holds the separator.
+// on one agentsMDLine, so the line is split into its paths; the whole rest of the line is a
+// candidate too, for a single path that itself holds the separator.
 func loadedAgentsMD(log []byte, want string) bool {
 	wantResolved := resolvedPath(want)
 	for _, line := range strings.Split(string(log), "\n") {
-		_, paths, found := strings.Cut(line, agentsMDLoaded)
-		if !found {
+		match := agentsMDLine.FindStringSubmatch(line)
+		if match == nil {
 			continue
 		}
-		paths = strings.TrimSpace(paths)
+		paths := strings.TrimSpace(match[1])
 		for _, path := range append([]string{paths}, strings.Split(paths, agentsMDSeparator)...) {
 			if resolvedPath(strings.TrimSpace(path)) == wantResolved {
 				return true
