@@ -52,6 +52,7 @@ import com.korur.oba.apps.kaya.identity.service.OrganizationAccessQueryService;
 import com.korur.oba.apps.kaya.lesson.dto.projection.LessonDeliveryProjection;
 import com.korur.oba.apps.kaya.lesson.dto.request.LessonDeliveryQueryRequest;
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDeliveryResponse;
+import com.korur.oba.apps.kaya.lesson.helper.LessonDeliveryBulkhead;
 import com.korur.oba.apps.kaya.lesson.helper.LessonDeliveryRateLimiter;
 import com.korur.oba.apps.kaya.lesson.mapper.LessonMapperImpl;
 import com.korur.oba.apps.kaya.lesson.repository.LessonRepository;
@@ -117,7 +118,8 @@ class LessonDeliveryControllerUnitTest {
         LessonQueryServiceImpl lessonQueryService = new LessonQueryServiceImpl(lessonRepository, sessionQueryService,
                 kayaUserQueryService, repositoryQueryService, organizationAccessQueryService,
                 new LessonDeliveryRateLimiter(Clock.systemUTC()), new LessonMapperImpl(), loggingService);
-        controller = new LessonDeliveryController(lessonQueryService, lessonService, loggingService);
+        controller = new LessonDeliveryController(lessonQueryService, lessonService,
+                new LessonDeliveryBulkhead(loggingService), loggingService);
     }
 
     /** What a CLI sees of one request: the status, the ETag header and how many lessons the body holds. */

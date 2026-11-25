@@ -44,6 +44,7 @@ import com.korur.oba.apps.kaya.lesson.dto.response.LessonDeliveryCreatedResponse
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDeliveryResponse;
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDeliverySearchResponse;
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDetailResponse;
+import com.korur.oba.apps.kaya.lesson.helper.LessonDeliveryBulkhead;
 import com.korur.oba.apps.kaya.lesson.service.LessonQueryService;
 import com.korur.oba.apps.kaya.lesson.service.LessonService;
 import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
@@ -65,6 +66,7 @@ public class LessonDeliveryController {
 
     private final LessonQueryService lessonQueryService;
     private final LessonService lessonService;
+    private final LessonDeliveryBulkhead lessonDeliveryBulkhead;
     private final LoggingService loggingService;
 
     /**
@@ -105,10 +107,11 @@ public class LessonDeliveryController {
                     + "from page 2 on"),
             @ApiResponse(responseCode = "429", description = "KAY_SEC_004: more than 600 lesson reads (pages, 304s "
                     + "and searches) of the token in a minute (errorValues.limit 600), or more than 3000 of all tokens "
-                    + "of its organization (errorValues.limit 3000)"),
+                    + "of its organization (errorValues.limit 3000), or 2 lesson reads of the organization already "
+                    + "running on this instance (errorValues.limit 2)"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "503", description = "GEN_UPS_004: the read ran past its time limit of 5 "
-                    + "seconds; try again later")
+                    + "seconds; GEN_UPS_005: this instance already runs 4 lesson reads; try again later")
     })
     public ResponseEntity<CustomResponse<List<LessonDeliveryResponse>>> getLessons(
             @Parameter(hidden = true) @AuthenticationPrincipal MachinePrincipal principal,
@@ -116,7 +119,10 @@ public class LessonDeliveryController {
             @Parameter(hidden = true) WebRequest webRequest) {
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, LessonControllerLogConstant.DELIVERY_LIST_REQUEST,
                 principal.machineId());
-        LessonDelivery delivery = lessonQueryService.listForCheckout(principal, request);
+        // The cap on reads at the same time is taken here, outside the transaction of the read, so a
+        // refused read never takes a pooled connection.
+        LessonDelivery delivery = lessonDeliveryBulkhead.run(principal,
+                () -> lessonQueryService.listForCheckout(principal, request));
         // checkNotModified sets the ETag header and, on a match, the 304 status; a null return
         // then sends no body.
         if (webRequest.checkNotModified(delivery.etag())) {
@@ -175,18 +181,19 @@ public class LessonDeliveryController {
                     + "or search missing or too long"),
             @ApiResponse(responseCode = "429", description = "KAY_SEC_004: more than 600 lesson reads (pages, 304s "
                     + "and searches) of the token in a minute (errorValues.limit 600), or more than 3000 of all tokens "
-                    + "of its organization (errorValues.limit 3000)"),
+                    + "of its organization (errorValues.limit 3000), or 2 lesson reads of the organization already "
+                    + "running on this instance (errorValues.limit 2)"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "503", description = "GEN_UPS_004: the read ran past its time limit of 5 "
-                    + "seconds; try again later")
+                    + "seconds; GEN_UPS_005: this instance already runs 4 lesson reads; try again later")
     })
     public ResponseEntity<CustomResponse<List<LessonDeliverySearchResponse>>> searchLessons(
             @Parameter(hidden = true) @AuthenticationPrincipal MachinePrincipal principal,
             @Valid @ModelAttribute @ParameterObject LessonDeliverySearchRequest request) {
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, LessonControllerLogConstant.DELIVERY_SEARCH_REQUEST,
                 principal.machineId());
-        List<LessonDeliverySearchResponse> response =
-                lessonQueryService.searchForCheckout(principal, request.getRemoteUrl(), request.getSearch());
+        List<LessonDeliverySearchResponse> response = lessonDeliveryBulkhead.run(principal,
+                () -> lessonQueryService.searchForCheckout(principal, request.getRemoteUrl(), request.getSearch()));
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, LessonControllerLogConstant.DELIVERY_SEARCH_COMPLETED,
                 response.size(), principal.machineId());
         return ResponseUtil.ok(LessonControllerResponseConstant.RESPONSE_LESSONS_RETRIEVED, response);

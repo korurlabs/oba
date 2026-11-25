@@ -43,6 +43,10 @@ public final class LessonServiceLogConstant {
             "Refused a lesson read of machine {}: token {} made more than {} reads in a minute";
     public static final String DELIVERY_ORGANIZATION_RATE_LIMITED =
             "Refused a lesson read of machine {}: organization {} made more than {} reads in a minute";
+    public static final String DELIVERY_ORGANIZATION_BUSY =
+            "Refused a lesson read of machine {}: organization {} already runs {} reads on this instance";
+    public static final String DELIVERY_INSTANCE_BUSY =
+            "Refused a lesson read of machine {}: this instance already runs {} lesson reads";
     public static final String DELIVERY_PROPOSAL_RATE_LIMITED =
             "Refused a lesson of machine {}: token {} added more than {} lessons in a minute";
 }

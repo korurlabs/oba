@@ -100,6 +100,18 @@ public final class LessonConstant {
     // seconds waits on a lock or on a database under strain. Ending it frees its connection of the small
     // pool every request shares, and the CLI at a session start has stopped waiting by then anyway.
     public static final int DELIVERY_READ_TIMEOUT_SECONDS = 5;
+    // Lesson reads, pages of the list and searches, that run at the same time on one backend instance,
+    // all organizations together. The budgets above bound the reads that start in a minute, not the
+    // reads that hold a connection at once. A healthy read holds its connection for milliseconds, so
+    // this cap only matters once reads slow down; it then keeps them to 4 of the 10 pooled connections
+    // (spring.datasource.hikari.maximum-pool-size), and the web app, ingest and every other request
+    // keep the other 6.
+    public static final int DELIVERY_CONCURRENT_READS_MAX = 4;
+    // Lesson reads of one organization that run at the same time on one instance. The CLI reads the
+    // pages of the list one after another, so one checkout holds one read at a time, and two machines
+    // of a team rarely read in the same milliseconds. Two lets that happen, and leaves the other half of
+    // the instance's reads to the other organizations when the reads of one turn slow.
+    public static final int DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX = 2;
     public static final String FIELD_ETAG = "etag";
     // A CLI stores the ETag next to the file it wrote and sends it back in If-None-Match, so an ETag
     // must name exactly what that file holds; the form prefix says what one digest stands for. The
