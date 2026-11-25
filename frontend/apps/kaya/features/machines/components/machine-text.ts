@@ -12,10 +12,16 @@ export function accountSubscriptionText(account: MachineAccount | null | undefin
   return parts.length === 0 ? null : parts.join(" · ");
 }
 
-/** The command a developer runs, in any directory, to store a new recorder token. */
-export function tokenCommand(token: string): string {
-  return `kagi secrets set --personal --path /kaya/recorder KAYA_RECORDER_TOKEN=${token}`;
-}
+/**
+ * The command a developer runs, in any directory, to store a new recorder
+ * token. kagi reads the token from the terminal, because a token in the
+ * command line stays in the shell history and shows in the process list.
+ */
+export const TOKEN_COMMAND =
+  "kagi secrets set --personal --path /kaya/recorder --from-file /dev/stdin";
+
+/** What the developer types into TOKEN_COMMAND before pasting the token. */
+export const TOKEN_LINE_START = "KAYA_RECORDER_TOKEN=";
 
 /**
  * What a user may do to a machine. "Self" is the machine's user being the

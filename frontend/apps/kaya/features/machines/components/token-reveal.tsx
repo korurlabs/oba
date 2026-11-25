@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@oba/ui/sky/dialog";
 
-import { tokenCommand } from "./machine-text";
+import { TOKEN_COMMAND, TOKEN_LINE_START } from "./machine-text";
 
 function CopyBlock({ label, value }: { label: string; value: string }) {
   const [copied, setCopied] = useState(false);
@@ -79,13 +79,16 @@ export function TokenReveal({ token, machineName, onClose }: TokenRevealProps) {
           </DialogTitle>
           <DialogDescription>
             Copy it now: Kaya shows this token only once. On {machineName}, run the command in any
-            directory to store it in your personal Kagi environment.
+            directory, type <code className="font-mono break-all">{TOKEN_LINE_START}</code>, paste
+            the token, and press Enter and then Ctrl-D. kagi stores it in your personal Kagi
+            environment and reads it from the terminal, so it stays out of your shell history and
+            out of the process list.
           </DialogDescription>
         </DialogHeader>
         {token !== null && (
           <>
             <CopyBlock label="Token" value={token} />
-            <CopyBlock label="Command" value={tokenCommand(token)} />
+            <CopyBlock label="Command" value={TOKEN_COMMAND} />
           </>
         )}
         <DialogFooter>

@@ -50,7 +50,7 @@ func Token(ctx context.Context) (string, error) {
 	}
 	token := strings.TrimSpace(string(out))
 	if token == "" {
-		return "", fmt.Errorf("no %s in your Kagi personal environment (kagi secrets set --personal --path %s %s=<token>)", EnvToken, kagiPath, EnvToken)
+		return "", fmt.Errorf("no %s in your Kagi personal environment (kagi secrets set --personal --path %s --from-file /dev/stdin, then enter %s=<token> and Ctrl-D)", EnvToken, kagiPath, EnvToken)
 	}
 	return token, nil
 }

@@ -215,7 +215,7 @@ func tokenWarning(sessionID string, now time.Time, warn func(string, ...any)) er
 		reason = "Kaya refused KAYA_RECORDER_TOKEN"
 	}
 	warn("%s: this session is recorded on this machine only and sent once a valid token is set "+
-		"(kagi secrets set --personal --path /kaya/recorder KAYA_RECORDER_TOKEN=<token>)", reason)
+		"(kagi secrets set --personal --path /kaya/recorder --from-file /dev/stdin, then enter KAYA_RECORDER_TOKEN=<token> and Ctrl-D)", reason)
 	if err := os.WriteFile(marker, nil, 0o600); err != nil {
 		return fmt.Errorf("write %s: %w", marker, err)
 	}

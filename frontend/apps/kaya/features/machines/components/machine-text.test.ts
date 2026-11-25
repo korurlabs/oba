@@ -1,6 +1,11 @@
 import { describe, expect, test } from "bun:test";
 
-import { accountSubscriptionText, machinePermissions, tokenCommand } from "./machine-text";
+import {
+  TOKEN_COMMAND,
+  TOKEN_LINE_START,
+  accountSubscriptionText,
+  machinePermissions,
+} from "./machine-text";
 
 const TOKEN = { id: "t", tokenPrefix: "kyt_abcdefgh", createdAt: "x", expiresAt: "y" };
 
@@ -53,9 +58,11 @@ describe("machine texts", () => {
     expect(accountSubscriptionText(null)).toBeNull();
   });
 
-  test("names the Kagi command for the token", () => {
-    expect(tokenCommand("kyt_x")).toBe(
-      "kagi secrets set --personal --path /kaya/recorder KAYA_RECORDER_TOKEN=kyt_x"
+  test("names the Kagi command that reads the token from the terminal", () => {
+    expect(TOKEN_COMMAND).toBe(
+      "kagi secrets set --personal --path /kaya/recorder --from-file /dev/stdin"
     );
+    expect(TOKEN_COMMAND).not.toContain(TOKEN_LINE_START);
+    expect(TOKEN_LINE_START).toBe("KAYA_RECORDER_TOKEN=");
   });
 });

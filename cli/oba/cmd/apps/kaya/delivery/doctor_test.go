@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"maps"
 	"net/http/httptest"
 	"os"
 	"os/exec"
@@ -93,6 +94,12 @@ fi
 printf '{"type":"result","subtype":"success","result":"OK"}\n'
 `
 
+// doctorRelease is release 1, which setupDoctor publishes.
+var doctorRelease = map[string]string{
+	"AGENTS.md": "# Rules\n", ".agents/skills/demo/SKILL.md": "---\nname: demo\n---\n",
+	".claude/skills/notes/SKILL.md": "---\nname: notes\n---\n", ".claude/agents/helper.md": "---\nname: docs-helper\n---\nHelps with the docs.\n",
+}
+
 // doctorEnv is a laptop on which oba kaya doctor finds nothing wrong: a delivered checkout, the
 // drop-in in a managed folder of the test, owned by root as far as doctor sees, the git hook
 // entries in a global git config of the test, claude() in ~/.bashrc, the in-force proof, and a
@@ -148,10 +155,7 @@ func setupDoctor(t *testing.T) *doctorEnv {
 	t.Setenv("PATH", strings.Join([]string{e.bin, filepath.Dir(git), "/bin"}, string(os.PathListSeparator)))
 	oba := writeExecutable(t, e.bin, "oba", fakeOba)
 
-	kaya.Publish(t, 1, map[string]string{
-		"AGENTS.md": "# Rules\n", ".agents/skills/demo/SKILL.md": "---\nname: demo\n---\n",
-		".claude/skills/notes/SKILL.md": "---\nname: notes\n---\n", ".claude/agents/helper.md": "---\nname: docs-helper\n---\nHelps with the docs.\n",
-	})
+	kaya.Publish(t, 1, doctorRelease)
 
 	e.managed = filepath.Join(t.TempDir(), "ClaudeCode", "managed-settings.d")
 	t.Setenv("FAKE_CLAUDE_MANAGED_MCP", filepath.Join(filepath.Dir(e.managed), managedMCPFile))
@@ -219,6 +223,18 @@ func setupDelivered(t *testing.T) *doctorEnv {
 		t.Fatalf("sync: %s, %v", out, err)
 	}
 	return e
+}
+
+// deliverRelease2 publishes release 2, the files of release 1 with extra added, and syncs it into
+// the checkout.
+func (e *doctorEnv) deliverRelease2(t *testing.T, extra map[string]string) {
+	t.Helper()
+	files := maps.Clone(doctorRelease)
+	maps.Copy(files, extra)
+	e.kaya.Publish(t, 2, files)
+	if out, err := run(t, "", "sync"); err != nil {
+		t.Fatalf("sync: %s, %v", out, err)
+	}
 }
 
 // installDropIn installs the drop-in this oba renders for obaPath, mode 0644, and proves it in
@@ -1140,6 +1156,53 @@ func TestDoctorProbe_namesWhatTheSessionDidNotLoad(t *testing.T) {
 	}
 }
 
+func TestDoctorProbe_passesOverASkillThatIsNotUserInvocableAndNamesIt(t *testing.T) {
+	e := setupDoctor(t)
+	e.deliverRelease2(t, map[string]string{
+		".claude/skills/quiet/SKILL.md":  "---\nname: quiet\ndescription: Background rules for widgets.\nuser-invocable: false\n---\nKeep widgets small.\n",
+		".claude/skills/hushed/SKILL.md": "\uFEFF---\r\nname: hushed\r\nuser-invocable: \"false\"\r\n---\r\n",
+		".claude/skills/listed/SKILL.md": "---\nname: listed\nuser-invocable: FALSE\n---\n",
+	})
+	writeExecutable(t, e.bin, "claude", fakeClaude)
+	// As Claude Code does, the session leaves out the skills that set user-invocable to false; one a
+	// session lists anyway counts as loaded.
+	t.Setenv("FAKE_CLAUDE_SKILLS", `["notes","listed","example:other"]`)
+	report, err := e.doctor(t, "--probe")
+	e.wantFailed(t, report, err)
+	const want = "the session loaded all 2 delivered skills and 1 delivered subagents " +
+		"(2 more skills with user-invocable: false are not listed by Claude Code and were not checked: hushed, quiet)"
+	if check := checkNamed(t, report, "skills and subagents"); check.Status != checkOK || check.Detail != want {
+		t.Fatalf("skills and subagents: %+v, want %q", check, want)
+	}
+}
+
+func TestDoctorProbe_stillNamesAMissingSkillThatClaudeCodeLists(t *testing.T) {
+	for name, skill := range map[string]string{
+		"without user-invocable":                  "---\nname: loud\ndescription: Formats tables.\n---\n",
+		"with user-invocable: true":               "---\nname: loud\nuser-invocable: true\n---\n",
+		"with user-invocable below another field": "---\nname: loud\nmetadata:\n  user-invocable: false\n---\n",
+		"with a front matter that is not YAML":    "---\nname: loud\nuser-invocable: false\ndescription: [unclosed\n---\n",
+		"with a front matter that never closes":   "---\nname: loud\nuser-invocable: false\n",
+		"without a front matter":                  "user-invocable: false\n",
+	} {
+		t.Run(name, func(t *testing.T) {
+			e := setupDoctor(t)
+			e.deliverRelease2(t, map[string]string{
+				".claude/skills/loud/SKILL.md":  skill,
+				".claude/skills/quiet/SKILL.md": "---\nname: quiet\nuser-invocable: false\n---\n",
+			})
+			writeExecutable(t, e.bin, "claude", fakeClaude)
+			report, err := e.doctor(t, "--probe")
+			e.wantFailed(t, report, err, "skills and subagents")
+			const want = "the session did not load the delivered skill loud: run oba kaya sync and doctor again " +
+				"(1 more skill with user-invocable: false is not listed by Claude Code and was not checked: quiet)"
+			if check := checkNamed(t, report, "skills and subagents"); check.Detail != want {
+				t.Fatalf("skills and subagents: %+v, want %q", check, want)
+			}
+		})
+	}
+}
+
 func TestDoctorProbe_leavesTheProofAloneWhenItProvesNothing(t *testing.T) {
 	for name, tc := range map[string]struct {
 		change func(t *testing.T, e *doctorEnv)
@@ -1167,6 +1230,14 @@ func TestDoctorProbe_leavesTheProofAloneWhenItProvesNothing(t *testing.T) {
 					`{"hooks": {"Stop": [{"hooks": [{"type": "command", "command": "oba kaya hook record"}]}]}}`)
 			},
 			detail: "settings.local.json registers oba kaya hook record",
+		},
+		"a project file registers the record hook in another spelling": {
+			change: func(t *testing.T, e *doctorEnv) {
+				writeExecutable(t, e.bin, "claude", fakeClaude)
+				writeTestFile(t, filepath.Join(e.root, ".claude", "settings.json"),
+					`{"hooks": {"Stop": [{"hooks": [{"type": "command", "command": "'/opt/my tools/oba'  kaya \"hook\"\trecord"}]}]}}`)
+			},
+			detail: "settings.json registers oba kaya hook record",
 		},
 		"a checkout Kaya does not list": {
 			change: func(t *testing.T, e *doctorEnv) {
