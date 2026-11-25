@@ -10,7 +10,6 @@ import org.springframework.http.HttpMethod;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 // 4. Internal
 import com.korur.oba.dojo.exception.enums.ExceptionCategory;
@@ -148,7 +147,7 @@ public final class TestTokenKinds {
     @SuppressWarnings("unchecked")
     public static ApiTokenKindRegistry registryOf(ApiTokenKindHandler... handlers) {
         ObjectProvider<ApiTokenKindHandler> provider = mock(ObjectProvider.class);
-        when(provider.orderedStream()).thenReturn(Stream.of(handlers));
+        when(provider.iterator()).thenAnswer(invocation -> List.of(handlers).iterator());
         return new ApiTokenKindRegistry(provider);
     }
 }

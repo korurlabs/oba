@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 // 4. Internal
 import com.korur.oba.dojo.exception.enums.ExceptionDomainError;
@@ -177,7 +176,7 @@ class RequiredUserAccessInterceptorUnitTest {
     @SuppressWarnings("unchecked")
     private static ApiTokenKindRegistry registryOf(ApiTokenKindHandler... handlers) {
         ObjectProvider<ApiTokenKindHandler> provider = org.mockito.Mockito.mock(ObjectProvider.class);
-        when(provider.orderedStream()).thenReturn(Stream.of(handlers));
+        when(provider.iterator()).thenAnswer(invocation -> List.of(handlers).iterator());
         return new ApiTokenKindRegistry(provider);
     }
 

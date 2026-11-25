@@ -39,7 +39,7 @@ public class ApiTokenKindRegistry {
      * @throws IllegalStateException when two handlers name the same kind
      */
     public ApiTokenKindRegistry(ObjectProvider<ApiTokenKindHandler> handlerProvider) {
-        for (ApiTokenKindHandler handler : handlerProvider.orderedStream().toList()) {
+        for (ApiTokenKindHandler handler : handlerProvider) {
             ApiTokenKindHandler previous = handlers.get(handler.kind());
             if (previous != null) {
                 throw new IllegalStateException(ApiTokenConstant.DUPLICATE_KIND_HANDLER
