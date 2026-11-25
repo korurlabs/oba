@@ -458,4 +458,26 @@ class RequiredUserAccessMatrixIT extends AbstractTenantIT {
                 OrganizationMemberRole.ADMIN, OrganizationMemberRole.OWNER)),
                 "The matrix does not exercise every role level; pinned: " + pinned);
     }
+
+    @Test
+    void cyberscoreControllers_joinTheMatrixWithGuestReadsAndAdminWrites() {
+        Map<String, OrganizationMemberRole> pinned = new java.util.HashMap<>();
+        for (Target target : annotatedHandlers()) {
+            String controller = target.handler().getBeanType().getSimpleName();
+            if (controller.equals("CyberscoreController") || controller.equals("CheckController")) {
+                pinned.put(controller + "#" + target.handler().getMethod().getName(), target.required());
+            }
+        }
+
+        assertTrue(pinned.equals(Map.ofEntries(
+                Map.entry("CyberscoreController#getCyberscore", OrganizationMemberRole.GUEST),
+                Map.entry("CyberscoreController#getCyberscoreTrend", OrganizationMemberRole.GUEST),
+                Map.entry("CheckController#listChecks", OrganizationMemberRole.GUEST),
+                Map.entry("CheckController#createCheck", OrganizationMemberRole.ADMIN),
+                Map.entry("CheckController#updateCheck", OrganizationMemberRole.ADMIN),
+                Map.entry("CheckController#setCheckOutcome", OrganizationMemberRole.ADMIN),
+                Map.entry("CheckController#setCheckStatus", OrganizationMemberRole.ADMIN),
+                Map.entry("CheckController#deleteCheck", OrganizationMemberRole.ADMIN))),
+                "The cyberscore handlers in the matrix differ from the expected roles: " + pinned);
+    }
 }
