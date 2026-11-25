@@ -1540,9 +1540,7 @@
       },
       "filter": {
         "status": "Durum",
-        "allStatuses": "Tüm durumlar",
         "category": "Kategori",
-        "allCategories": "Tüm kategoriler",
         "search": "Kontrollerde ara",
         "clear": "Filtreleri temizle"
       },

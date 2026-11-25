@@ -1540,9 +1540,7 @@
       },
       "filter": {
         "status": "Status",
-        "allStatuses": "All statuses",
         "category": "Category",
-        "allCategories": "All categories",
         "search": "Search checks",
         "clear": "Clear filters"
       },

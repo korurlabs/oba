@@ -1540,9 +1540,7 @@
       },
       "filter": {
         "status": "Status",
-        "allStatuses": "Alle statussen",
         "category": "Categorie",
-        "allCategories": "Alle categorieën",
         "search": "Controles zoeken",
         "clear": "Filters wissen"
       },

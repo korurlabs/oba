@@ -91,6 +91,7 @@ afterAll(() => {
 
 const { CheckList, filterChecks, trackCheckSave } = await import("./check-list");
 const { CheckCard } = await import("./check-card");
+const { countCheckFilters } = await import("../hooks/use-check-filter-params");
 
 function markup(): string {
   return renderToStaticMarkup(
@@ -115,8 +116,8 @@ describe("CheckList write controls", () => {
     expect(html).not.toContain(`>${en.cyberscore.checks.add}<`);
     expect(html).not.toContain(en.cyberscore.checks.edit);
     expect(html).not.toContain(en.cyberscore.checks.delete);
-    // Only the category and status filters are selects; the card's outcome and status are chips.
-    expect(html.match(/role="combobox"/g)).toHaveLength(2);
+    // The filters sit behind the filter button; the card's outcome and status are chips.
+    expect(html.match(/role="combobox"/g)).toBeNull();
   });
 
   test.each(["ADMIN", "OWNER"] as const)(
@@ -127,7 +128,7 @@ describe("CheckList write controls", () => {
       expect(html).toContain(en.cyberscore.checks.add);
       expect(html).toContain(en.cyberscore.checks.edit);
       expect(html).toContain(en.cyberscore.checks.delete);
-      expect(html.match(/role="combobox"/g)).toHaveLength(4);
+      expect(html.match(/role="combobox"/g)).toHaveLength(2);
       expect(html).not.toContain(en.cyberscore.checks.readOnly);
     }
   );
@@ -260,6 +261,42 @@ describe("check card saves", () => {
   });
 });
 
+describe("CheckList toolbar", () => {
+  const positionOf = (html: string, text: string) => {
+    const position = html.indexOf(text);
+    expect(position).toBeGreaterThanOrEqual(0);
+    return position;
+  };
+
+  test("puts search first, then the view toggle, the filter button and Add check", () => {
+    role = "ADMIN";
+    const html = markup();
+    const positions = [
+      `placeholder="${en.cyberscore.checks.filter.search}"`,
+      `aria-label="${en.views.switchToCards}"`,
+      `>${en.filters.title}</span>`,
+      `${en.cyberscore.checks.add}</button>`,
+    ].map((text) => positionOf(html, text));
+    expect([...positions].sort((a, b) => a - b)).toEqual(positions);
+  });
+
+  test("the filter button counts the category and status that narrow the list", () => {
+    const badge = (html: string) =>
+      html.split(`>${en.filters.title}</span>`)[1]?.split("</button>")[0] ?? "";
+    expect(badge(markup())).not.toMatch(/>\d<\/div>/);
+    filters = { ...filters, category: "IDENTITY" };
+    expect(badge(markup())).toMatch(/>1<\/div>/);
+    filters = { ...filters, status: "DONE", search: "mfa" };
+    expect(badge(markup())).toMatch(/>2<\/div>/);
+  });
+
+  test("countCheckFilters counts only category and status", () => {
+    expect(countCheckFilters({ category: null, status: null })).toBe(0);
+    expect(countCheckFilters({ category: "NONE", status: null })).toBe(1);
+    expect(countCheckFilters({ category: "DATA", status: "DONE" })).toBe(2);
+  });
+});
+
 describe("CheckList filters", () => {
   const mixed = () => [
     makeCheck("c1", "MFA on admin accounts", "IDENTITY"),
@@ -359,9 +396,9 @@ describe("CheckList views", () => {
   test("the list gives an admin selects and a member chips", () => {
     checks = mixed();
     filters = { ...filters, view: "list" };
-    expect(markup().match(/role="combobox"/g)).toHaveLength(2);
+    expect(markup().match(/role="combobox"/g)).toBeNull();
     role = "ADMIN";
-    expect(markup().match(/role="combobox"/g)).toHaveLength(2 + checks.length * 2);
+    expect(markup().match(/role="combobox"/g)).toHaveLength(checks.length * 2);
   });
 
   test("the board shows a column per status with each check in its own", () => {

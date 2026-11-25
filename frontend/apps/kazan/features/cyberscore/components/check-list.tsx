@@ -18,13 +18,6 @@ import { ViewToggle } from "@/components/layout/view-toggle";
 import { Button } from "@/components/ui/button";
 import { InlineAlert } from "@/components/ui/inline-alert";
 import { PageHeader } from "@/components/ui/page-header";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { isOrganizationAdmin } from "@/features/updates/lib/organization-admin";
 import { cn } from "@/lib/utils";
 import { useChecks, useSetCheckOutcome, useSetCheckStatus } from "../hooks/use-checks";
@@ -37,9 +30,6 @@ import {
 } from "../hooks/use-check-filter-params";
 import {
   CHECK_CATEGORIES,
-  CHECK_STATUSES,
-  CheckCategorySchema,
-  CheckStatusSchema,
   type Check,
   type CheckCategory,
   type CheckOutcome,
@@ -48,12 +38,10 @@ import {
 import { CheckCard, CheckCardSkeleton } from "./check-card";
 import { CheckDeleteDialog } from "./check-delete-dialog";
 import { CheckDialog } from "./check-dialog";
+import { CheckFilterPanel } from "./check-filter-panel";
 import { CheckKanban } from "./check-kanban";
 import { CheckTable } from "./check-table";
 import { CyberscoreLoadError } from "./cyberscore-load-error";
-
-/** The filters' value for "no narrowing"; a Select item cannot have an empty value. */
-const ALL = "ALL";
 
 /**
  * The checks of one category (`NONE` for those without one) whose name holds
@@ -314,16 +302,6 @@ export function CheckList() {
     [trackSave, saveStatus]
   );
 
-  const handleStatusFilterChange = (value: string) => {
-    const parsed = CheckStatusSchema.safeParse(value);
-    void setFilters({ status: parsed.success ? parsed.data : null });
-  };
-  const handleCategoryFilterChange = (value: string) => {
-    const parsed = CheckCategorySchema.safeParse(value);
-    void setFilters({
-      category: parsed.success ? parsed.data : value === UNCATEGORIZED ? UNCATEGORIZED : null,
-    });
-  };
   const handleViewChange = (next: CheckView) => {
     void setFilters({ view: next });
   };
@@ -378,52 +356,30 @@ export function CheckList() {
       </Button>
 
       <PageHeader title={t("checks.title")} description={t("checks.description")}>
-        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-          <ViewToggle<CheckView>
-            view={view}
-            onViewChange={handleViewChange}
-            modes={CHECK_VIEWS}
-            className="h-9"
-          />
+        {/* Its own row under the heading, search first as on the ticket lists. */}
+        <div className="flex w-full flex-wrap items-center gap-2">
           <SenseySearchInput
             value={search}
             onSearchChange={handleSearchChange}
             placeholder={t("checks.filter.search")}
             resetSignal={searchResetSignal}
-            className="w-full sm:w-52"
+            className="w-full sm:w-56"
           />
-          <Select value={category ?? ALL} onValueChange={handleCategoryFilterChange}>
-            <SelectTrigger size="sm" className="h-9 w-52" aria-label={t("checks.filter.category")}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>{t("checks.filter.allCategories")}</SelectItem>
-              {[...CHECK_CATEGORIES, UNCATEGORIZED].map((value) => (
-                <SelectItem key={value} value={value}>
-                  {t(`categories.${value}`)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={status ?? ALL} onValueChange={handleStatusFilterChange}>
-            <SelectTrigger size="sm" className="h-9 w-44" aria-label={t("checks.filter.status")}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>{t("checks.filter.allStatuses")}</SelectItem>
-              {CHECK_STATUSES.map((value) => (
-                <SelectItem key={value} value={value}>
-                  {t(`statuses.${value}`)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {canManage && (
-            <Button size="sm" className="shrink-0" onClick={handleAdd}>
-              <Plus className="h-4 w-4" />
-              {t("checks.add")}
-            </Button>
-          )}
+          <div className="hidden flex-1 sm:block" />
+          <div className="ml-auto flex items-center gap-2">
+            <ViewToggle<CheckView>
+              view={view}
+              onViewChange={handleViewChange}
+              modes={CHECK_VIEWS}
+            />
+            <CheckFilterPanel />
+            {canManage && (
+              <Button size="sm" className="shrink-0" onClick={handleAdd}>
+                <Plus className="h-4 w-4" />
+                {t("checks.add")}
+              </Button>
+            )}
+          </div>
         </div>
       </PageHeader>
 

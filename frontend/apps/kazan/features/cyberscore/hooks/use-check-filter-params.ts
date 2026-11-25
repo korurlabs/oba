@@ -34,3 +34,8 @@ export type CheckFilterParams = Values<typeof checkFilterParams>;
 export function useCheckFilterParams() {
   return useQueryStates(checkFilterParams);
 }
+
+/** The filters behind the filter button that narrow the list: category and status, one each when set. */
+export function countCheckFilters(filters: Pick<CheckFilterParams, "category" | "status">): number {
+  return (filters.category ? 1 : 0) + (filters.status ? 1 : 0);
+}
