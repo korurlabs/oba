@@ -15,6 +15,9 @@ public final class OrganizationMemberServiceLogConstant {
     public static final String ORG_MEMBER_RESTORED =
             "Organization member restored from soft-delete";
 
+    public static final String ORG_MEMBER_RESTORE_USER_MISSING =
+            "Organization {} member restore refused: user {} no longer exists";
+
     public static final String ORG_MEMBER_DISABLED =
             "Organization member disabled";
 

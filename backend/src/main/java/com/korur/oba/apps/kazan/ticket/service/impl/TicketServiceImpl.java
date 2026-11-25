@@ -629,10 +629,6 @@ public class TicketServiceImpl implements TicketService {
     }
 
     /**
-     * Publishes the urgent incident for the alert that goes out after the commit. The board name
-     * is read here, inside the transaction that holds the board.
-     */
-    /**
      * Announces the assignees a change added, so an agent among them starts on the ticket after the
      * commit. A user named twice is announced once.
      */
@@ -647,6 +643,10 @@ public class TicketServiceImpl implements TicketService {
                 organizationId, ticket.getId(), ticket.getKey(), distinctIds));
     }
 
+    /**
+     * Publishes the urgent incident for the alert that goes out after the commit. The board name
+     * is read here, inside the transaction that holds the board.
+     */
     private void publishIncidentOpened(Ticket ticket, UUID organizationId, UUID actorId) {
         Board board = ticket.getBoard();
         applicationEventPublisher.publishEvent(new IncidentOpenedEvent(

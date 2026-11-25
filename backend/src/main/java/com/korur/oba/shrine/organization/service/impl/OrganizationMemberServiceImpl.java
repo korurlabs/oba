@@ -28,8 +28,10 @@ import com.korur.oba.shrine.access.service.AppAccessRevocationService;
 import com.korur.oba.shrine.access.service.AppAccessService;
 import com.korur.oba.shrine.agent.constant.AgentConstant;
 import com.korur.oba.shrine.agent.validator.AgentValidator;
+import com.korur.oba.shrine.identity.constant.UserConstant;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.identity.enums.UserStatus;
+import com.korur.oba.shrine.identity.exception.ExceptionDomainIdentityError;
 import com.korur.oba.shrine.identity.repository.UserRepository;
 import com.korur.oba.shrine.organization.constant.service.OrganizationMemberServiceLogConstant;
 import com.korur.oba.shrine.organization.dto.request.OrganizationMemberRoleUpdateRequest;
@@ -116,9 +118,17 @@ public class OrganizationMemberServiceImpl implements OrganizationMemberService 
                 .orElseThrow(() -> new NotFoundException(
                         ExceptionDomainOrganizationError.NOT_DELETED_MEMBER_FOUND,
                         Map.of("organizationId", organizationId, "userId", userId)));
-        // The user of a deleted agent is deleted with it and may load as null; its membership then has
-        // nothing to restore to.
-        agentValidator.ensureTargetIsNotAgent(deletedMember.getUser(), AgentConstant.ACTION_MEMBER_RESTORE);
+        // The user of a deleted agent is deleted with it and loads as null. Without a user the agent
+        // check cannot see the agent, and the membership would come back active for no one.
+        User memberUser = deletedMember.getUser();
+        if (memberUser == null) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE,
+                    OrganizationMemberServiceLogConstant.ORG_MEMBER_RESTORE_USER_MISSING,
+                    organizationId, userId);
+            throw new NotFoundException(ExceptionDomainIdentityError.NOT_USER_FOUND,
+                    Map.of(UserConstant.FIELD_USER_DATABASE_ID, userId));
+        }
+        agentValidator.ensureTargetIsNotAgent(memberUser, AgentConstant.ACTION_MEMBER_RESTORE);
 
         OrganizationMember actorMember = organizationValidator.ensureMemberExists(organizationId, actor.getId());
         organizationValidator.ensureAdminCannotModifyOwner(actorMember.getRole(), deletedMember);

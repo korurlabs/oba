@@ -18,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
@@ -43,6 +44,7 @@ import com.korur.oba.dojo.exception.internal.auth.ForbiddenException;
 import com.korur.oba.dojo.exception.internal.business.ConflictException;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
 import com.korur.oba.dojo.exception.internal.business.ValidationException;
+import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.shrine.access.enums.App;
 import com.korur.oba.shrine.access.service.AppAccessQueryService;
@@ -54,6 +56,7 @@ import com.korur.oba.shrine.identity.enums.UserKind;
 import com.korur.oba.shrine.identity.enums.UserStatus;
 import com.korur.oba.shrine.identity.repository.UserRepository;
 import com.korur.oba.shrine.identity.service.UserQueryService;
+import com.korur.oba.shrine.organization.constant.service.OrganizationMemberServiceLogConstant;
 import com.korur.oba.shrine.organization.dto.request.OrganizationMemberRoleUpdateRequest;
 import com.korur.oba.shrine.organization.dto.response.OrganizationMemberResponse;
 import com.korur.oba.shrine.organization.entity.Organization;
@@ -363,6 +366,7 @@ class OrganizationMemberServiceImplUnitTest {
 
             OrganizationMember deletedMember = OrganizationMember.builder()
                     .organization(organization)
+                    .user(User.builder().id(targetUserId).kind(UserKind.HUMAN).build())
                     .role(OrganizationMemberRole.MEMBER)
                     .status(OrganizationMemberStatus.ACTIVE)
                     .build();
@@ -758,6 +762,7 @@ class OrganizationMemberServiceImplUnitTest {
             actor.setId(UUID.randomUUID());
             OrganizationMember deletedMember = stubMember(organizationId, OrganizationMemberRole.MEMBER,
                     OrganizationMemberStatus.ACTIVE);
+            deletedMember.setUser(User.builder().id(targetUserId).kind(UserKind.HUMAN).build());
             OrganizationMember actorMember = stubMember(organizationId, OrganizationMemberRole.ADMIN,
                     OrganizationMemberStatus.ACTIVE);
             when(organizationMemberRepository.findDeletedByOrgIdAndUserId(organizationId, targetUserId))
@@ -917,6 +922,7 @@ class OrganizationMemberServiceImplUnitTest {
 
             OrganizationMember deletedMember = OrganizationMember.builder()
                     .organization(organization)
+                    .user(User.builder().id(targetUserId).kind(UserKind.HUMAN).build())
                     .role(OrganizationMemberRole.OWNER)
                     .status(OrganizationMemberStatus.ACTIVE)
                     .build();
@@ -987,6 +993,27 @@ class OrganizationMemberServiceImplUnitTest {
 
             assertEquals("AGT_VAL_001", exception.getErrorCode());
             verify(organizationMemberRepository, never()).restoreById(any());
+        }
+
+        @Test
+        void restoreMember_deletedAgentUserMissing_throwsUserNotFoundAndRestoresNothing() {
+            OrganizationMember orphanMember = OrganizationMember.builder()
+                    .role(OrganizationMemberRole.MEMBER)
+                    .status(OrganizationMemberStatus.ACTIVE)
+                    .build();
+            orphanMember.setId(UUID.randomUUID());
+            when(organizationMemberRepository.findDeletedByOrgIdAndUserId(organizationId, agent.getId()))
+                    .thenReturn(Optional.of(orphanMember));
+
+            NotFoundException exception = assertThrows(NotFoundException.class,
+                    () -> organizationMemberServiceImpl.restoreMember(admin, organizationId, agent.getId()));
+
+            assertEquals("IDN_NOT_001", exception.getErrorCode());
+            verify(organizationMemberRepository, never()).restoreById(any());
+            verify(loggingService).warn(any(), eq(LogLayer.SERVICE),
+                    eq(OrganizationMemberServiceLogConstant.ORG_MEMBER_RESTORE_USER_MISSING),
+                    eq(organizationId), eq(agent.getId()));
+            verifyNoInteractions(auditService);
         }
 
         @Test
