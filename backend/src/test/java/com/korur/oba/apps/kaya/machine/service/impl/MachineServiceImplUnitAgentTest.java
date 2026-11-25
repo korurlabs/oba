@@ -9,12 +9,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 // 3. Java SDK
 import java.time.Clock;
+import java.time.Instant;
 import java.util.UUID;
 
 // 4. Internal
@@ -22,14 +26,17 @@ import com.korur.oba.apps.kaya.identity.helper.UserAccessHelper;
 import com.korur.oba.apps.kaya.identity.service.KayaUserQueryService;
 import com.korur.oba.apps.kaya.identity.service.UserAuditRecorder;
 import com.korur.oba.apps.kaya.machine.dto.request.MachineCreateRequest;
+import com.korur.oba.apps.kaya.machine.entity.Machine;
 import com.korur.oba.apps.kaya.machine.mapper.MachineMapper;
 import com.korur.oba.apps.kaya.machine.repository.MachineRepository;
 import com.korur.oba.apps.kaya.machine.repository.MachineUsageSnapshotRepository;
 import com.korur.oba.apps.kaya.machine.service.MachineQueryService;
 import com.korur.oba.apps.kaya.machine.service.MachineUsageQueryService;
 import com.korur.oba.dojo.exception.internal.auth.ForbiddenException;
-import com.korur.oba.dojo.exception.internal.business.ValidationException;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.dojo.security.token.dto.IssuedApiToken;
+import com.korur.oba.dojo.security.token.entity.ApiToken;
+import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
 import com.korur.oba.dojo.security.token.service.ApiTokenService;
 import com.korur.oba.shrine.agent.validator.AgentValidator;
 import com.korur.oba.shrine.identity.entity.User;
@@ -38,7 +45,8 @@ import com.korur.oba.shrine.identity.service.UserQueryService;
 
 /**
  * Runs machine registration and token rotation through the real {@link AgentValidator}: an agent
- * never mints a Kaya credential, neither for itself nor through an admin registering one for it.
+ * never mints a Kaya credential itself, while an admin may register a machine for an agent, whose
+ * hosted runs record their sessions with its token.
  */
 @ExtendWith(MockitoExtension.class)
 class MachineServiceImplUnitAgentTest {
@@ -81,16 +89,24 @@ class MachineServiceImplUnitAgentTest {
     }
 
     @Test
-    void createMachine_adminForAgent_throwsAgentTargetRefusedAndCreatesNothing() {
+    void createMachine_adminForAgent_issuesTheAgentsMachineToken() {
         User admin = user(UserKind.HUMAN);
         User agent = user(UserKind.AGENT);
         when(kayaUserQueryService.getMemberEntityForUpdate(organizationId, agent.getId())).thenReturn(agent);
+        when(machineRepository.saveAndFlush(any(Machine.class))).thenAnswer(invocation -> {
+            Machine machine = invocation.getArgument(0);
+            machine.setId(UUID.randomUUID());
+            return machine;
+        });
+        ApiToken token = ApiToken.builder().tokenPrefix("kyt_abcd").expiresAt(Instant.now()).build();
+        token.setId(UUID.randomUUID());
+        when(apiTokenService.issue(eq(ApiTokenKind.KAYA_MACHINE), any(UUID.class), eq(agent), eq(organizationId)))
+                .thenReturn(new IssuedApiToken(token, "kyt_plaintext", null));
 
-        ValidationException exception = assertThrows(ValidationException.class, () -> machineService.createMachine(
-                admin, organizationId, new MachineCreateRequest("agent-host", agent.getId())));
+        machineService.createMachine(admin, organizationId, new MachineCreateRequest("agent-host", agent.getId()));
 
-        assertEquals("AGT_VAL_001", exception.getErrorCode());
-        verifyNoInteractions(machineRepository, apiTokenService);
+        verify(userAccessHelper).requireAdminOrSelf(admin, organizationId, agent.getId());
+        verify(apiTokenService).issue(eq(ApiTokenKind.KAYA_MACHINE), any(UUID.class), eq(agent), eq(organizationId));
     }
 
     @Test

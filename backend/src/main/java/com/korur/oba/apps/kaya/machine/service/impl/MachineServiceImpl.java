@@ -83,8 +83,9 @@ public class MachineServiceImpl implements MachineService {
     @Override
     @Transactional
     public MachineCreatedResponse createMachine(User actor, UUID organizationId, MachineCreateRequest request) {
-        // An agent never mints a credential, and a Kaya machine token is one: an agent may not
-        // register a machine, and no machine is registered for an agent.
+        // An agent never mints a credential, and a Kaya machine token is one, so an agent may not
+        // register a machine. An admin may register one for an agent: the agent's hosted runs record
+        // their sessions and read lessons with it, and the admin keeps the token out of the agent's reach.
         agentValidator.ensureCallerIsNotAgent(actor, AgentConstant.ACTION_KAYA_MACHINE_CREATE);
         // The user row lock serialises this with a revoke all of the same user, so a machine created
         // at that moment is either retired by it or created after it.
@@ -92,7 +93,6 @@ public class MachineServiceImpl implements MachineService {
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.CREATING_MACHINE,
                 actor.getId(), user.getId(), organizationId);
         userAccessHelper.requireAdminOrSelf(actor, organizationId, user.getId());
-        agentValidator.ensureTargetIsNotAgent(user, AgentConstant.ACTION_KAYA_MACHINE_CREATE);
 
         Optional<Machine> existing = machineRepository.findByOrganizationIdAndUser_IdAndMachineName(
                 organizationId, user.getId(), request.machineName());
