@@ -24,6 +24,7 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 
 // 3. Java SDK
+import java.time.Clock;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -37,6 +38,7 @@ import com.korur.oba.apps.kaya.identity.service.OrganizationAccessQueryService;
 import com.korur.oba.apps.kaya.lesson.dto.projection.LessonDeliveryProjection;
 import com.korur.oba.apps.kaya.lesson.dto.request.LessonDeliveryQueryRequest;
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDeliveryResponse;
+import com.korur.oba.apps.kaya.lesson.helper.LessonDeliveryRateLimiter;
 import com.korur.oba.apps.kaya.lesson.mapper.LessonMapperImpl;
 import com.korur.oba.apps.kaya.lesson.repository.LessonRepository;
 import com.korur.oba.apps.kaya.lesson.service.LessonService;
@@ -95,8 +97,8 @@ class LessonDeliveryControllerUnitTest {
     @BeforeEach
     void setUp() {
         LessonQueryServiceImpl lessonQueryService = new LessonQueryServiceImpl(lessonRepository, sessionQueryService,
-                kayaUserQueryService, repositoryQueryService, organizationAccessQueryService, new LessonMapperImpl(),
-                loggingService);
+                kayaUserQueryService, repositoryQueryService, organizationAccessQueryService,
+                new LessonDeliveryRateLimiter(Clock.systemUTC()), new LessonMapperImpl(), loggingService);
         controller = new LessonDeliveryController(lessonQueryService, lessonService, loggingService);
     }
 

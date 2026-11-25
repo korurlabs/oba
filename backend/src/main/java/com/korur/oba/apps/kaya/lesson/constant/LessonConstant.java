@@ -23,6 +23,7 @@ public final class LessonConstant {
     public static final String FIELD_LESSON_ID = "lessonId";
     public static final String FIELD_REMOTE_URL = "remoteUrl";
     public static final String FIELD_SINCE = "since";
+    public static final String FIELD_LIMIT = "limit";
 
     // --- Entity attributes read by the list filters ---
     public static final String FIELD_ORGANIZATION_ID = "organizationId";
@@ -70,6 +71,16 @@ public final class LessonConstant {
     public static final int DELIVERY_MAX_AMOUNT = 100;
     // The page a request without page reads.
     public static final int DELIVERY_FIRST_PAGE = 1;
+    // Reads of a token per minute, pages of the list (a 304 included) and searches together: each
+    // makes PostgreSQL pass over every applicable lesson. One read of the CLI requests at most 100
+    // pages and starts again at most twice, so at most 300 requests; a machine reads at a session
+    // start and on sync, and 600 lets it make two such reads within one minute, or hundreds of
+    // reads of a few pages. A token past it is a runaway or hostile client. An import checks each
+    // title with one search, so a very large one may be refused part way and goes on when run again.
+    public static final int DELIVERY_READS_PER_MINUTE = 600;
+    public static final long DELIVERY_RATE_WINDOW_SECONDS = 60;
+    // Windows of tokens idle for a while are dropped once the table holds this many.
+    public static final int DELIVERY_RATE_TABLE_PRUNE_SIZE = 10_000;
     public static final String FIELD_ETAG = "etag";
     // A CLI stores the ETag next to the file it wrote and sends it back in If-None-Match, so an ETag
     // must name exactly what that file holds; the form prefix says what one digest stands for. The

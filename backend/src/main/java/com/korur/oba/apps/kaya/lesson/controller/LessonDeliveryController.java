@@ -103,6 +103,8 @@ public class LessonDeliveryController {
             @ApiResponse(responseCode = "422", description = "KAY_VAL_002: repository archived; GEN_VAL_001: remoteUrl "
                     + "missing or too long, since unreadable, page or amount out of range, etag malformed or missing "
                     + "from page 2 on"),
+            @ApiResponse(responseCode = "429", description = "KAY_SEC_004: more than 600 lesson reads (pages, 304s "
+                    + "and searches) of the token in a minute"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<CustomResponse<List<LessonDeliveryResponse>>> getLessons(
@@ -166,6 +168,8 @@ public class LessonDeliveryController {
                     + "access"),
             @ApiResponse(responseCode = "422", description = "KAY_VAL_002: repository archived; GEN_VAL_001: remoteUrl "
                     + "or search missing or too long"),
+            @ApiResponse(responseCode = "429", description = "KAY_SEC_004: more than 600 lesson reads (pages, 304s "
+                    + "and searches) of the token in a minute"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<CustomResponse<List<LessonDeliverySearchResponse>>> searchLessons(

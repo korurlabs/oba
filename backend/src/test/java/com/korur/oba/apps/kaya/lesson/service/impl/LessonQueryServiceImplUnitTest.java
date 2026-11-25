@@ -10,6 +10,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 
 // 2. Third-party
 
@@ -21,15 +23,18 @@ import java.util.stream.IntStream;
 
 // 4. Internal
 import com.korur.oba.dojo.exception.internal.business.ConflictException;
+import com.korur.oba.dojo.exception.internal.business.TooManyRequestsException;
 import com.korur.oba.dojo.exception.internal.business.ValidationException;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.apps.kaya.identity.service.KayaUserQueryService;
 import com.korur.oba.apps.kaya.identity.service.OrganizationAccessQueryService;
+import com.korur.oba.apps.kaya.lesson.constant.LessonConstant;
 import com.korur.oba.apps.kaya.lesson.dto.derived.LessonDelivery;
 import com.korur.oba.apps.kaya.lesson.dto.projection.LessonDeliveryProjection;
 import com.korur.oba.apps.kaya.lesson.dto.projection.LessonDeliveryStateProjection;
 import com.korur.oba.apps.kaya.lesson.dto.request.LessonDeliveryQueryRequest;
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDeliveryResponse;
+import com.korur.oba.apps.kaya.lesson.helper.LessonDeliveryRateLimiter;
 import com.korur.oba.apps.kaya.lesson.helper.LessonEtagHelper;
 import com.korur.oba.apps.kaya.lesson.mapper.LessonMapperImpl;
 import com.korur.oba.apps.kaya.lesson.repository.LessonRepository;
@@ -69,6 +74,8 @@ class LessonQueryServiceImplUnitTest {
     @Mock
     private OrganizationAccessQueryService organizationAccessQueryService;
     @Mock
+    private LessonDeliveryRateLimiter lessonDeliveryRateLimiter;
+    @Mock
     private LoggingService loggingService;
 
     private final MachinePrincipal principal =
@@ -78,7 +85,11 @@ class LessonQueryServiceImplUnitTest {
     @BeforeEach
     void setUp() {
         service = new LessonQueryServiceImpl(lessonRepository, sessionQueryService, kayaUserQueryService,
-                repositoryQueryService, organizationAccessQueryService, new LessonMapperImpl(), loggingService);
+                repositoryQueryService, organizationAccessQueryService, lessonDeliveryRateLimiter, new LessonMapperImpl(),
+                loggingService);
+        // Every read is within the budget unless a test says otherwise; a read refused before the
+        // charge never asks.
+        lenient().when(lessonDeliveryRateLimiter.tryCharge(principal.tokenId())).thenReturn(true);
     }
 
     private static LessonDeliveryQueryRequest request(Integer page, Integer amount, String etag) {
@@ -238,6 +249,48 @@ class LessonQueryServiceImplUnitTest {
             assertTrue(exception.getErrorValues().containsKey("etag"));
             verify(lessonRepository, never()).findDeliveryState(any(), any());
             verify(lessonRepository, never()).findDeliveryLessons(any(), any(), any());
+            verify(lessonDeliveryRateLimiter, never()).tryCharge(any());
+        }
+    }
+
+    @Nested
+    class RateLimit {
+
+        @Test
+        void listForCheckout_withinTheBudget_chargesOneReadToTheToken() {
+            givenLessons(rows(3));
+
+            service.listForCheckout(principal, request(1, null, null));
+
+            verify(lessonDeliveryRateLimiter).tryCharge(principal.tokenId());
+        }
+
+        @Test
+        void listForCheckout_tokenOverTheBudget_throwsTooManyRequestsBeforeAnyRead() {
+            when(lessonDeliveryRateLimiter.tryCharge(principal.tokenId())).thenReturn(false);
+
+            TooManyRequestsException exception = assertThrows(TooManyRequestsException.class,
+                    () -> service.listForCheckout(principal, request(1, null, null)));
+
+            assertEquals(HttpStatus.TOO_MANY_REQUESTS, exception.getStatusCode());
+            assertEquals("KAY_SEC_004", exception.getErrorCode());
+            assertEquals(LessonConstant.DELIVERY_READS_PER_MINUTE, exception.getErrorValues().get("limit"));
+            verify(repositoryQueryService, never()).getRepositories(any());
+            verify(lessonRepository, never()).findDeliveryState(any(), any());
+            verify(lessonRepository, never()).findDeliveryLessons(any(), any(), any());
+        }
+
+        @Test
+        void searchForCheckout_tokenOverTheBudget_throwsTooManyRequestsBeforeAnyRead() {
+            when(lessonDeliveryRateLimiter.tryCharge(principal.tokenId())).thenReturn(false);
+
+            TooManyRequestsException exception = assertThrows(TooManyRequestsException.class,
+                    () -> service.searchForCheckout(principal, REMOTE, "deploy"));
+
+            assertEquals("KAY_SEC_004", exception.getErrorCode());
+            assertEquals(LessonConstant.DELIVERY_READS_PER_MINUTE, exception.getErrorValues().get("limit"));
+            verify(repositoryQueryService, never()).getRepositories(any());
+            verify(lessonRepository, never()).findAll(any(Specification.class), any(Pageable.class));
         }
     }
 

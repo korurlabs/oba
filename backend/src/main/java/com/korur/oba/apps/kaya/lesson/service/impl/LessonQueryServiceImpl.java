@@ -30,6 +30,7 @@ import com.korur.oba.apps.kaya.core.exception.enums.ExceptionDomainKayaError;
 import com.korur.oba.dojo.exception.enums.ExceptionValidationError;
 import com.korur.oba.dojo.exception.internal.business.ConflictException;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
+import com.korur.oba.dojo.exception.internal.business.TooManyRequestsException;
 import com.korur.oba.dojo.exception.internal.business.ValidationException;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
@@ -53,6 +54,7 @@ import com.korur.oba.apps.kaya.lesson.dto.response.LessonListResponse;
 import com.korur.oba.apps.kaya.lesson.dto.response.embedded.LessonReferenceResponse;
 import com.korur.oba.apps.kaya.lesson.dto.response.embedded.LessonSessionResponse;
 import com.korur.oba.apps.kaya.lesson.entity.Lesson;
+import com.korur.oba.apps.kaya.lesson.helper.LessonDeliveryRateLimiter;
 import com.korur.oba.apps.kaya.lesson.helper.LessonEtagHelper;
 import com.korur.oba.apps.kaya.lesson.mapper.LessonMapper;
 import com.korur.oba.apps.kaya.lesson.repository.LessonRepository;
@@ -82,6 +84,7 @@ public class LessonQueryServiceImpl implements LessonQueryService {
     private final KayaUserQueryService kayaUserQueryService;
     private final RepositoryQueryService repositoryQueryService;
     private final OrganizationAccessQueryService organizationAccessQueryService;
+    private final LessonDeliveryRateLimiter lessonDeliveryRateLimiter;
     private final LessonMapper lessonMapper;
     private final LoggingService loggingService;
 
@@ -158,6 +161,7 @@ public class LessonQueryServiceImpl implements LessonQueryService {
         boolean paged = request.getPage() != null;
         int page = paged ? request.getPage() : LessonConstant.DELIVERY_FIRST_PAGE;
         requireEtagAfterFirstPage(principal, page, request.getEtag());
+        chargeRead(principal);
         Optional<RepositoryResponse> repository = findCheckoutRepository(organizationId, request.getRemoteUrl());
         UUID repositoryId = repository.map(RepositoryResponse::id).orElse(null);
         String repositoryName = repository.map(RepositoryResponse::name).orElse(null);
@@ -190,6 +194,7 @@ public class LessonQueryServiceImpl implements LessonQueryService {
     @Override
     public List<LessonDeliverySearchResponse> searchForCheckout(MachinePrincipal principal, String remoteUrl, String search) {
         UUID organizationId = principal.organizationId();
+        chargeRead(principal);
         Optional<RepositoryResponse> repository = findCheckoutRepository(organizationId, remoteUrl);
         UUID repositoryId = repository.map(RepositoryResponse::id).orElse(null);
         String repositoryName = repository.map(RepositoryResponse::name).orElse(null);
@@ -259,6 +264,19 @@ public class LessonQueryServiceImpl implements LessonQueryService {
                     page, principal.machineId());
             throw new ValidationException(ExceptionValidationError.VALIDATION,
                     Map.of(LessonConstant.FIELD_ETAG, LessonConstant.ETAG_REQUIRED_MESSAGE));
+        }
+    }
+
+    /**
+     * Charges one read to the token before any lesson is read, so a refused read costs no pass over
+     * the lessons.
+     */
+    private void chargeRead(MachinePrincipal principal) {
+        if (!lessonDeliveryRateLimiter.tryCharge(principal.tokenId())) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_RATE_LIMITED,
+                    principal.machineId(), principal.tokenId(), LessonConstant.DELIVERY_READS_PER_MINUTE);
+            throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_READS_PER_MINUTE));
         }
     }
 

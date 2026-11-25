@@ -39,4 +39,6 @@ public final class LessonServiceLogConstant {
     public static final String DELIVERY_ETAG_MISSING = "Refused page {} without the ETag of page 1 from machine {}";
     public static final String DELIVERY_LESSONS_CHANGED =
             "The lessons of repository {} of organization {} changed before page {} of machine {}";
+    public static final String DELIVERY_RATE_LIMITED =
+            "Refused a lesson read of machine {}: token {} made more than {} reads in a minute";
 }

@@ -658,6 +658,44 @@ class LessonDeliveryIT extends AbstractLessonIT {
     }
 
     @Nested
+    class RateLimit {
+
+        private static final int READS_PER_MINUTE = 600;
+
+        private MockHttpServletRequestBuilder searchOf(Fixture fixture) {
+            return get(DELIVERY + "/search").param(REMOTE_URL, fixture.remote()).param("search", "flyway");
+        }
+
+        @Test
+        void getLessons_after600ReadsOfOneToken_answers429ToTheListAndTheSearchButNotToAnotherToken() throws Exception {
+            Fixture fixture = newFixture();
+            String token = fixture.adaMachine().token();
+            insertLesson(fixture, fixture.ada(), "Flyway first", fixture.repositoryId(), "2026-10-02T00:00:00Z", "2026-10-02T00:00:00Z");
+            String paged = pagedEtagOf(okPage(fixture, pageOf(fixture, 1, null)));
+            // A search is charged like a page of the list, and so is a 304.
+            machine(token, searchOf(fixture)).andExpect(status().isOk());
+            for (int read = 3; read <= READS_PER_MINUTE; read++) {
+                machine(token, pageOf(fixture, 1, null).header(HttpHeaders.IF_NONE_MATCH, paged))
+                        .andExpect(status().isNotModified());
+            }
+
+            machine(token, pageOf(fixture, 1, null).header(HttpHeaders.IF_NONE_MATCH, paged))
+                    .andExpect(status().isTooManyRequests())
+                    .andExpect(jsonPath(ERROR_CODE).value("KAY_SEC_004"))
+                    .andExpect(jsonPath("$.error.errorValues.limit").value(READS_PER_MINUTE));
+            machine(token, pageOf(fixture, 2, paged))
+                    .andExpect(status().isTooManyRequests())
+                    .andExpect(jsonPath(ERROR_CODE).value("KAY_SEC_004"));
+            machine(token, searchOf(fixture))
+                    .andExpect(status().isTooManyRequests())
+                    .andExpect(jsonPath(ERROR_CODE).value("KAY_SEC_004"));
+            machine(fixture.boMachine().token(), pageOf(fixture, 1, null))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(1));
+        }
+    }
+
+    @Nested
     class DetailAndDelete {
 
         @Test

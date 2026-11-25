@@ -109,6 +109,9 @@ public interface LessonQueryService {
      *         unreadable since or a later page without etag, KAY_VAL_002 for an archived repository
      * @throws com.korur.oba.dojo.exception.internal.business.ConflictException KAY_VAL_017 when etag
      *         no longer names the lessons
+     * @throws com.korur.oba.dojo.exception.internal.business.TooManyRequestsException KAY_SEC_004
+     *         when the token made more lesson reads in a minute than
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_READS_PER_MINUTE}
      */
     LessonDelivery listForCheckout(MachinePrincipal principal, LessonDeliveryQueryRequest request);
 
@@ -122,6 +125,10 @@ public interface LessonQueryService {
      * @return the matching lessons with their text
      * @throws com.korur.oba.dojo.exception.internal.business.ValidationException KAY_VAL_002 for
      *         an archived repository
+     * @throws com.korur.oba.dojo.exception.internal.business.TooManyRequestsException KAY_SEC_004
+     *         when the token made more lesson reads in a minute than
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_READS_PER_MINUTE};
+     *         a search counts as a read like a page of the list
      */
     List<LessonDeliverySearchResponse> searchForCheckout(MachinePrincipal principal, String remoteUrl, String search);
 
