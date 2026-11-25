@@ -42,7 +42,7 @@ import com.korur.oba.apps.otak.relation.validator.RelationValidator;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.shrine.access.enums.App;
 import com.korur.oba.shrine.access.service.AppAccessQueryService;
-import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberSummaryProjection;
+import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberKindSummaryProjection;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 import com.korur.oba.shrine.organization.service.OrganizationMemberQueryService;
 
@@ -81,9 +81,14 @@ class RelationQueryServiceImplUnitTest {
                 Clock.fixed(NOW, ZoneOffset.UTC));
     }
 
-    private static OrganizationMemberSummaryProjection summary(UUID userId, String email, String firstName,
-                                                               String role) {
-        return new OrganizationMemberSummaryProjection() {
+    private static OrganizationMemberKindSummaryProjection summary(UUID userId, String email, String firstName,
+                                                                   String role) {
+        return summary(userId, email, firstName, role, "HUMAN");
+    }
+
+    private static OrganizationMemberKindSummaryProjection summary(UUID userId, String email, String firstName,
+                                                                   String role, String kind) {
+        return new OrganizationMemberKindSummaryProjection() {
             @Override
             public UUID getUserId() {
                 return userId;
@@ -108,6 +113,26 @@ class RelationQueryServiceImplUnitTest {
             public String getRole() {
                 return role;
             }
+
+            @Override
+            public String getKind() {
+                return kind;
+            }
+
+            @Override
+            public String getAgentRole() {
+                return null;
+            }
+
+            @Override
+            public String getAgentFlow() {
+                return null;
+            }
+
+            @Override
+            public String getAgentProvider() {
+                return null;
+            }
         };
     }
 
@@ -120,10 +145,10 @@ class RelationQueryServiceImplUnitTest {
             UUID zoeId = UUID.randomUUID();
             UUID adaId = UUID.randomUUID();
             UUID unnamedId = UUID.randomUUID();
-            OrganizationMemberSummaryProjection zoe = summary(zoeId, "zoe@example.com", "Zoe", "MEMBER");
-            OrganizationMemberSummaryProjection ada = summary(adaId, "ada@example.com", "ada", "GUEST");
-            OrganizationMemberSummaryProjection unnamed = summary(unnamedId, "new@example.com", null, "ADMIN");
-            when(organizationMemberQueryService.listActiveMemberSummaries(organizationId, NOW))
+            OrganizationMemberKindSummaryProjection zoe = summary(zoeId, "zoe@example.com", "Zoe", "MEMBER");
+            OrganizationMemberKindSummaryProjection ada = summary(adaId, "ada@example.com", "ada", "GUEST");
+            OrganizationMemberKindSummaryProjection unnamed = summary(unnamedId, "new@example.com", null, "ADMIN");
+            when(organizationMemberQueryService.listActiveMemberKindSummaries(organizationId, NOW))
                     .thenReturn(List.of(zoe, unnamed, ada));
             when(appAccessQueryService.findUserIdsWithAppAccess(organizationId, App.OTAK,
                     List.of(zoeId, unnamedId, adaId))).thenReturn(Set.of(zoeId, unnamedId));
@@ -143,9 +168,31 @@ class RelationQueryServiceImplUnitTest {
         }
 
         @Test
+        void agentMember_isLeftOutOfTheCandidatesAndTheAccessRead() {
+            // Arrange
+            UUID adaId = UUID.randomUUID();
+            UUID agentId = UUID.randomUUID();
+            OrganizationMemberKindSummaryProjection ada = summary(adaId, "ada@example.com", "Ada", "MEMBER");
+            OrganizationMemberKindSummaryProjection agent =
+                    summary(agentId, "agent@agents.oba.invalid", "Scout", "MEMBER", "AGENT");
+            when(organizationMemberQueryService.listActiveMemberKindSummaries(organizationId, NOW))
+                    .thenReturn(List.of(agent, ada));
+            when(appAccessQueryService.findUserIdsWithAppAccess(organizationId, App.OTAK, List.of(adaId)))
+                    .thenReturn(Set.of(adaId));
+
+            // Act
+            List<RelationOwnerCandidateResponse> result = service.listOwnerCandidates(organizationId);
+
+            // Assert
+            assertThat(result).extracting(RelationOwnerCandidateResponse::userId).containsExactly(adaId);
+            assertThat(result.getFirst().otakAccess()).isTrue();
+        }
+
+        @Test
         void noActiveMember_returnsEmpty() {
             // Arrange
-            when(organizationMemberQueryService.listActiveMemberSummaries(organizationId, NOW)).thenReturn(List.of());
+            when(organizationMemberQueryService.listActiveMemberKindSummaries(organizationId, NOW))
+                    .thenReturn(List.of());
             when(appAccessQueryService.findUserIdsWithAppAccess(organizationId, App.OTAK, List.of()))
                     .thenReturn(Set.of());
 

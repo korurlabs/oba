@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -33,6 +34,7 @@ import com.korur.oba.dojo.audit.mapper.AuditLogMapper;
 import com.korur.oba.dojo.audit.service.AuditService;
 import com.korur.oba.dojo.exception.internal.business.ConflictException;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
+import com.korur.oba.dojo.exception.internal.business.ValidationException;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.shrine.access.dto.request.OrganizationGroupCreateRequest;
 import com.korur.oba.shrine.access.dto.request.OrganizationGroupMemberAddRequest;
@@ -53,8 +55,13 @@ import com.korur.oba.shrine.access.repository.OrganizationGroupRepository;
 import com.korur.oba.shrine.access.service.AppAccessQueryService;
 import com.korur.oba.shrine.access.service.AppAccessRevocationService;
 import com.korur.oba.shrine.access.service.OrganizationGroupQueryService;
+import com.korur.oba.shrine.access.constant.AccessConstant;
 import com.korur.oba.shrine.access.validator.OrganizationGroupValidator;
+import com.korur.oba.shrine.agent.constant.AgentConstant;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
 import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.shrine.identity.enums.UserKind;
+import com.korur.oba.shrine.identity.service.UserQueryService;
 import com.korur.oba.shrine.organization.entity.Organization;
 import com.korur.oba.shrine.organization.entity.OrganizationMember;
 import com.korur.oba.shrine.organization.service.OrganizationQueryService;
@@ -86,6 +93,10 @@ class OrganizationGroupServiceImplUnitTest {
 
     @Mock
     private OrganizationGroupValidator organizationGroupValidator;
+
+    // The real validator, so the refusal code and payload are the production ones.
+    @Spy
+    private AgentValidator agentValidator = new AgentValidator(mock(UserQueryService.class), new LoggingService());
 
     @Mock
     private AppAccessQueryService appAccessQueryService;
@@ -379,6 +390,33 @@ class OrganizationGroupServiceImplUnitTest {
                     organizationId, groupId, new OrganizationGroupMemberAddRequest(List.of(stranger))));
 
             verify(organizationGroupMemberRepository, never()).saveAll(any());
+        }
+
+        @Test
+        void agentAmongUsers_refusesTheWholeRequestWithAgentTargetRefused() {
+            UUID organizationId = UUID.randomUUID();
+            UUID groupId = UUID.randomUUID();
+            User person = userWithId();
+            User agent = User.builder().email("agent@agents.oba.invalid").kind(UserKind.AGENT).build();
+            agent.setId(UUID.randomUUID());
+            when(organizationGroupQueryService.getGroupEntity(organizationId, groupId))
+                    .thenReturn(customGroup(organization(organizationId), groupId));
+            when(organizationValidator.ensureMemberExists(organizationId, person.getId()))
+                    .thenReturn(OrganizationMember.builder().user(person).build());
+            when(organizationValidator.ensureMemberExists(organizationId, agent.getId()))
+                    .thenReturn(OrganizationMember.builder().user(agent).build());
+
+            ValidationException exception = assertThrows(ValidationException.class,
+                    () -> organizationGroupServiceImpl.addMembers(actor(), organizationId, groupId,
+                            new OrganizationGroupMemberAddRequest(List.of(person.getId(), agent.getId()))));
+
+            assertEquals("AGT_VAL_001", exception.getErrorCode());
+            assertEquals(AccessConstant.AGENT_ACTION_GROUP_MEMBER_ADD,
+                    exception.getErrorValues().get(AgentConstant.FIELD_ACTION));
+            assertEquals(agent.getId().toString(), exception.getErrorValues().get(AgentConstant.FIELD_USER_ID));
+            verify(organizationGroupMemberRepository, never()).existsByGroup_IdAndUser_Id(any(), any());
+            verify(organizationGroupMemberRepository, never()).saveAll(any());
+            verifyNoInteractions(auditService);
         }
     }
 
