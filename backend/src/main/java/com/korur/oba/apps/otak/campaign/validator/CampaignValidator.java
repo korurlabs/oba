@@ -7,22 +7,16 @@ import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 
 // 3. Java SDK
-import java.time.Clock;
-import java.time.Instant;
-import java.util.EnumSet;
-import java.util.HashMap;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 // 4. Internal
 import com.korur.oba.apps.otak.campaign.constant.CampaignConstant;
 import com.korur.oba.apps.otak.campaign.constant.CampaignExceptionLogConstant;
-import com.korur.oba.apps.otak.campaign.dto.request.CampaignContentRequest;
 import com.korur.oba.apps.otak.campaign.entity.Campaign;
-import com.korur.oba.apps.otak.campaign.enums.CampaignStatus;
 import com.korur.oba.apps.otak.campaign.repository.CampaignRepository;
 import com.korur.oba.apps.otak.exception.ExceptionDomainOtakError;
 import com.korur.oba.dojo.exception.internal.business.ConflictException;
@@ -33,14 +27,12 @@ import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.shrine.access.enums.App;
 import com.korur.oba.shrine.access.validator.AppAccessValidator;
-import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
 import com.korur.oba.shrine.organization.entity.OrganizationMember;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberStatus;
 import com.korur.oba.shrine.organization.service.OrganizationMemberQueryService;
 
 /**
- * Validator for campaign lookups, the name rule, the moments of each status, the languages
- * of the texts and the campaign owner.
+ * Validator for campaign lookups, the name rule, the date range and the campaign owner.
  */
 @Component
 @RequiredArgsConstructor
@@ -51,7 +43,6 @@ public class CampaignValidator {
     private final CampaignRepository campaignRepository;
     private final OrganizationMemberQueryService organizationMemberQueryService;
     private final AppAccessValidator appAccessValidator;
-    private final Clock clock;
     private final LoggingService loggingService;
 
     /**
@@ -70,27 +61,6 @@ public class CampaignValidator {
                 .orElseThrow(() -> {
                     loggingService.warn(LOG_PREFIX, LogLayer.VALIDATOR,
                             CampaignExceptionLogConstant.CAMPAIGN_NOT_FOUND, campaignId, organizationId);
-                    return new NotFoundException(
-                            ExceptionDomainOtakError.NOT_CAMPAIGN_FOUND,
-                            Map.of(CampaignConstant.FIELD_CAMPAIGN_ID, campaignId));
-                });
-    }
-
-    /**
-     * Ensures a campaign with the id exists in any organization and returns it, for the
-     * access check of an attachment whose parent is a campaign. The caller compares the
-     * campaign's organization with the request's.
-     *
-     * @param campaignId the campaign identifier
-     * @return the campaign
-     * @throws NotFoundException {@link ExceptionDomainOtakError#NOT_CAMPAIGN_FOUND} if no
-     *         campaign has the id
-     */
-    public Campaign ensureCampaignExists(UUID campaignId) {
-        return campaignRepository.findById(campaignId)
-                .orElseThrow(() -> {
-                    loggingService.warn(LOG_PREFIX, LogLayer.VALIDATOR,
-                            CampaignExceptionLogConstant.CAMPAIGN_NOT_FOUND_BY_ID, campaignId);
                     return new NotFoundException(
                             ExceptionDomainOtakError.NOT_CAMPAIGN_FOUND,
                             Map.of(CampaignConstant.FIELD_CAMPAIGN_ID, campaignId));
@@ -122,58 +92,25 @@ public class CampaignValidator {
     }
 
     /**
-     * Ensures the moments fit the status, the same rules the two check constraints of
-     * otak.campaigns enforce: a SCHEDULED campaign has a planned moment, and a DRAFT or
-     * SCHEDULED campaign was not published, so it has no published moment. PUBLISHED and
-     * ARCHIVED take any planned moment and a published moment up to the {@link Clock}'s now: a
-     * post that goes live later is SCHEDULED with a planned moment, not published ahead. A
-     * PUBLISHED campaign without a published moment gets the server's now afterwards.
+     * Ensures the end date is not before the start date, the same rule the check constraint
+     * campaigns_dates_ck enforces. A campaign without one of the dates always passes.
      *
-     * @param status      the status to store
-     * @param plannedAt   the planned moment, or null
-     * @param publishedAt the published moment, or null
-     * @throws ValidationException {@link ExceptionDomainOtakError#VAL_CAMPAIGN_STATUS_DATES}
-     *         when a moment does not fit the status or the published moment is in the future
+     * @param startDate the first day of the campaign, or null
+     * @param endDate   the last day of the campaign, or null
+     * @throws ValidationException {@link ExceptionDomainOtakError#VAL_CAMPAIGN_DATE_RANGE} when
+     *         the end date is before the start date
      */
-    public void ensureStatusDates(CampaignStatus status, Instant plannedAt, Instant publishedAt) {
-        boolean scheduledWithoutPlan = status == CampaignStatus.SCHEDULED && plannedAt == null;
-        boolean unpublishedWithDate = (status == CampaignStatus.DRAFT || status == CampaignStatus.SCHEDULED)
-                && publishedAt != null;
-        boolean publishedInFuture = publishedAt != null && publishedAt.isAfter(Instant.now(clock));
-        if (scheduledWithoutPlan || unpublishedWithDate || publishedInFuture) {
-            loggingService.warn(LOG_PREFIX, LogLayer.VALIDATOR,
-                    CampaignExceptionLogConstant.CAMPAIGN_STATUS_DATES_INVALID, status, plannedAt, publishedAt);
-            // HashMap, since Map.of refuses the null moments the client is told about.
-            Map<String, Object> details = new HashMap<>();
-            details.put(CampaignConstant.FIELD_STATUS, status);
-            details.put(CampaignConstant.FIELD_PLANNED_AT, plannedAt);
-            details.put(CampaignConstant.FIELD_PUBLISHED_AT, publishedAt);
-            throw new ValidationException(ExceptionDomainOtakError.VAL_CAMPAIGN_STATUS_DATES, details);
-        }
-    }
-
-    /**
-     * Ensures the texts name each language at most once, the rule the unique index of
-     * otak.campaign_contents enforces, so a repeated language is a clear 422 instead of a
-     * database error. No texts always pass.
-     *
-     * @param contents the texts of the request, or null for none
-     * @throws ValidationException {@link ExceptionDomainOtakError#VAL_CAMPAIGN_CONTENT_LANGUAGE_REPEATED}
-     *         when two texts have one language
-     */
-    public void ensureLanguagesDistinct(List<CampaignContentRequest> contents) {
-        if (contents == null) {
+    public void ensureDateRange(LocalDate startDate, LocalDate endDate) {
+        if (startDate == null || endDate == null) {
             return;
         }
-        Set<DocumentLanguage> seen = EnumSet.noneOf(DocumentLanguage.class);
-        for (CampaignContentRequest content : contents) {
-            if (!seen.add(content.language())) {
-                loggingService.warn(LOG_PREFIX, LogLayer.VALIDATOR,
-                        CampaignExceptionLogConstant.CAMPAIGN_CONTENT_LANGUAGE_REPEATED, content.language());
-                throw new ValidationException(
-                        ExceptionDomainOtakError.VAL_CAMPAIGN_CONTENT_LANGUAGE_REPEATED,
-                        Map.of(CampaignConstant.FIELD_LANGUAGE, content.language()));
-            }
+        if (endDate.isBefore(startDate)) {
+            loggingService.warn(LOG_PREFIX, LogLayer.VALIDATOR,
+                    CampaignExceptionLogConstant.CAMPAIGN_DATE_RANGE_INVALID, startDate, endDate);
+            throw new ValidationException(
+                    ExceptionDomainOtakError.VAL_CAMPAIGN_DATE_RANGE,
+                    Map.of(CampaignConstant.FIELD_START_DATE, startDate,
+                            CampaignConstant.FIELD_END_DATE, endDate));
         }
     }
 

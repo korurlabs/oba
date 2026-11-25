@@ -15,12 +15,14 @@ import java.util.UUID;
 import com.korur.oba.apps.kaya.support.AbstractTenantIT;
 
 /**
- * The campaign schema refuses rows the application must never write: a scheduled campaign
- * without a planned date, a draft or scheduled campaign with a published date, a duplicate
- * name inside one organization, an unknown channel or status, a
- * second text in one language, and a relation linked to the campaign of another organization;
- * and deleting a campaign keeps the relations that pointed at it and removes its texts.
- * The tests use SQL only, so they hold independently of the campaign entity.
+ * The campaign schema refuses rows the application must never write: a campaign whose end
+ * date lies before its start date, a duplicate name inside one organization, a scheduled
+ * content without a planned moment, a draft or scheduled content with a published moment, an
+ * unknown channel or status, a content of another organization's campaign or legal entity,
+ * and a relation linked to the campaign of another organization. Deleting a campaign keeps
+ * the relations that pointed at it and removes its contents; a legal entity that authored a
+ * content cannot be deleted. The tests use SQL only, so they hold independently of the
+ * campaign entities.
  */
 class CampaignMigrationIT extends AbstractTenantIT {
 
@@ -33,21 +35,34 @@ class CampaignMigrationIT extends AbstractTenantIT {
         tenantB = newTenant();
     }
 
-    private UUID campaign(Tenant tenant, String name, String status, String plannedAt, String publishedAt) {
+    private UUID campaign(Tenant tenant, String name) {
         UUID id = UUID.randomUUID();
-        jdbcTemplate.update("INSERT INTO otak.campaigns (id, name, channel, status, planned_at, published_at, "
-                + "organization_id) VALUES (?, ?, 'LINKEDIN', ?::otak_campaign_status_enum, ?::timestamptz, "
-                + "?::timestamptz, ?)", id, name, status, plannedAt, publishedAt, tenant.organization().getId());
+        jdbcTemplate.update("INSERT INTO otak.campaigns (id, name, organization_id) VALUES (?, ?, ?)", id, name,
+                tenant.organization().getId());
         return id;
     }
 
-    private UUID draft(Tenant tenant, String name) {
-        return campaign(tenant, name, "DRAFT", null, null);
+    private UUID legalEntity(Tenant tenant) {
+        UUID id = UUID.randomUUID();
+        jdbcTemplate.update("INSERT INTO shrine.legal_entities (id, organization_id, short_name, legal_name, country) "
+                + "VALUES (?, ?, ?, ?, 'NLD')", id, tenant.organization().getId(), "Korur " + uniqueSuffix(),
+                "Korur B.V.");
+        return id;
     }
 
-    private void content(UUID campaignId, String language, String text) {
-        jdbcTemplate.update("INSERT INTO otak.campaign_contents (id, campaign_id, language, text) "
-                + "VALUES (?, ?, ?::shrine_document_language_enum, ?)", UUID.randomUUID(), campaignId, language, text);
+    private UUID content(Tenant tenant, UUID campaignId, UUID legalEntityId, String status, String plannedAt,
+                         String publishedAt) {
+        UUID id = UUID.randomUUID();
+        jdbcTemplate.update("INSERT INTO otak.campaign_contents (id, campaign_id, organization_id, legal_entity_id, "
+                + "channel, language, status, text, planned_at, published_at) VALUES (?, ?, ?, ?, 'LINKEDIN', "
+                + "'NL'::shrine_document_language_enum, ?::otak_campaign_status_enum, 'Tekst', ?::timestamptz, "
+                + "?::timestamptz)", id, campaignId, tenant.organization().getId(), legalEntityId, status, plannedAt,
+                publishedAt);
+        return id;
+    }
+
+    private UUID draftContent(Tenant tenant, UUID campaignId, UUID legalEntityId) {
+        return content(tenant, campaignId, legalEntityId, "DRAFT", null, null);
     }
 
     private UUID lead(Tenant tenant, UUID campaignId) {
@@ -59,60 +74,32 @@ class CampaignMigrationIT extends AbstractTenantIT {
     }
 
     @Test
-    void insertCampaign_scheduledWithoutPlannedAt_isRejectedByTheCheckConstraint() {
-        assertThrows(DataIntegrityViolationException.class,
-                () -> campaign(tenantA, "Scheduled " + uniqueSuffix(), "SCHEDULED", null, null));
+    void insertCampaign_endDateBeforeStartDate_isRejectedByTheCheckConstraint() {
+        assertThrows(DataIntegrityViolationException.class, () -> jdbcTemplate.update(
+                "INSERT INTO otak.campaigns (id, name, start_date, end_date, organization_id) "
+                        + "VALUES (?, ?, '2026-12-31', '2026-12-01', ?)",
+                UUID.randomUUID(), "Backwards " + uniqueSuffix(), tenantA.organization().getId()));
     }
 
     @Test
-    void insertCampaign_scheduledWithPlannedAt_isAccepted() {
-        campaign(tenantA, "Scheduled " + uniqueSuffix(), "SCHEDULED", "2026-12-01T09:00:00Z", null);
-
-        assertEquals(1L, count("SELECT count(*) FROM otak.campaigns WHERE organization_id = ?",
-                tenantA.organization().getId()));
-    }
-
-    @Test
-    void insertCampaign_draftOrScheduledWithPublishedAt_isRejectedByTheCheckConstraint() {
-        assertThrows(DataIntegrityViolationException.class,
-                () -> campaign(tenantA, "Draft " + uniqueSuffix(), "DRAFT", null, "2026-11-01T09:00:00Z"));
-        assertThrows(DataIntegrityViolationException.class, () -> campaign(tenantA, "Sched " + uniqueSuffix(),
-                "SCHEDULED", "2026-12-01T09:00:00Z", "2026-11-01T09:00:00Z"));
-    }
-
-    @Test
-    void insertCampaign_publishedOrArchivedWithPublishedAtOrNone_isAccepted() {
-        campaign(tenantA, "Published " + uniqueSuffix(), "PUBLISHED", null, "2026-11-01T09:00:00Z");
-        campaign(tenantA, "Archived " + uniqueSuffix(), "ARCHIVED", null, null);
+    void insertCampaign_sameDayOrOpenRange_isAccepted() {
+        jdbcTemplate.update("INSERT INTO otak.campaigns (id, name, start_date, end_date, organization_id) "
+                + "VALUES (?, ?, '2026-12-01', '2026-12-01', ?)", UUID.randomUUID(), "One day " + uniqueSuffix(),
+                tenantA.organization().getId());
+        jdbcTemplate.update("INSERT INTO otak.campaigns (id, name, start_date, organization_id) "
+                + "VALUES (?, ?, '2026-12-01', ?)", UUID.randomUUID(), "Open " + uniqueSuffix(),
+                tenantA.organization().getId());
 
         assertEquals(2L, count("SELECT count(*) FROM otak.campaigns WHERE organization_id = ?",
                 tenantA.organization().getId()));
     }
 
     @Test
-    void insertCampaign_unknownChannelOrStatus_isRejectedByTheEnum() {
-        assertThrows(Exception.class, () -> jdbcTemplate.update(
-                "INSERT INTO otak.campaigns (id, name, channel, organization_id) "
-                        + "VALUES (?, ?, 'FAX'::otak_campaign_channel_enum, ?)",
-                UUID.randomUUID(), "Fax " + uniqueSuffix(), tenantA.organization().getId()));
-        assertThrows(Exception.class, () -> campaign(tenantA, "Odd " + uniqueSuffix(), "LIVE", null, null));
-    }
-
-    @Test
-    void insertCampaign_withoutStatus_defaultsToDraft() {
-        UUID id = UUID.randomUUID();
-        jdbcTemplate.update("INSERT INTO otak.campaigns (id, name, channel, organization_id) "
-                + "VALUES (?, ?, 'X', ?)", id, "Default " + uniqueSuffix(), tenantA.organization().getId());
-
-        assertEquals(1L, count("SELECT count(*) FROM otak.campaigns WHERE id = ? AND status::text = 'DRAFT'", id));
-    }
-
-    @Test
     void insertCampaign_sameNameDifferentCaseInOneOrganization_isRejected() {
         String name = "Launch " + uniqueSuffix();
-        draft(tenantA, name);
+        campaign(tenantA, name);
 
-        assertThrows(DataIntegrityViolationException.class, () -> draft(tenantA, name.toUpperCase()));
+        assertThrows(DataIntegrityViolationException.class, () -> campaign(tenantA, name.toUpperCase()));
         assertEquals(1L, count("SELECT count(*) FROM otak.campaigns WHERE organization_id = ?",
                 tenantA.organization().getId()));
     }
@@ -121,35 +108,101 @@ class CampaignMigrationIT extends AbstractTenantIT {
     void insertCampaign_sameNameInTwoOrganizations_isAccepted() {
         String name = "Launch " + uniqueSuffix();
 
-        draft(tenantA, name);
-        draft(tenantB, name);
+        campaign(tenantA, name);
+        campaign(tenantB, name);
 
         assertEquals(1L, count("SELECT count(*) FROM otak.campaigns WHERE organization_id = ?",
                 tenantB.organization().getId()));
     }
 
     @Test
-    void insertContent_secondTextInOneLanguage_isRejectedByTheUniqueIndex() {
-        UUID id = draft(tenantA, "Twice " + uniqueSuffix());
-        content(id, "NL", "Eerste");
+    void insertContent_scheduledWithoutPlannedAt_isRejectedByTheCheckConstraint() {
+        UUID campaignId = campaign(tenantA, "Scheduled " + uniqueSuffix());
+        UUID legalEntityId = legalEntity(tenantA);
 
-        assertThrows(DataIntegrityViolationException.class, () -> content(id, "NL", "Tweede"));
-        content(id, "EN", "Second");
-        assertEquals(2L, count("SELECT count(*) FROM otak.campaign_contents WHERE campaign_id = ?", id));
+        assertThrows(DataIntegrityViolationException.class,
+                () -> content(tenantA, campaignId, legalEntityId, "SCHEDULED", null, null));
+        content(tenantA, campaignId, legalEntityId, "SCHEDULED", "2026-12-01T09:00:00Z", null);
+        assertEquals(1L, count("SELECT count(*) FROM otak.campaign_contents WHERE campaign_id = ?", campaignId));
     }
 
     @Test
-    void deleteCampaign_withTextsAndLinkedRelation_removesTextsClearsTheLinkAndKeepsTheRelation() {
-        UUID id = draft(tenantA, "Linked " + uniqueSuffix());
-        content(id, "NL", "Tekst");
-        content(id, "TR", "Metin");
-        UUID relation = lead(tenantA, id);
+    void insertContent_draftOrScheduledWithPublishedAt_isRejectedByTheCheckConstraint() {
+        UUID campaignId = campaign(tenantA, "Published " + uniqueSuffix());
+        UUID legalEntityId = legalEntity(tenantA);
 
-        jdbcTemplate.update("DELETE FROM otak.campaigns WHERE id = ?", id);
+        assertThrows(DataIntegrityViolationException.class,
+                () -> content(tenantA, campaignId, legalEntityId, "DRAFT", null, "2026-11-01T09:00:00Z"));
+        assertThrows(DataIntegrityViolationException.class, () -> content(tenantA, campaignId, legalEntityId,
+                "SCHEDULED", "2026-12-01T09:00:00Z", "2026-11-01T09:00:00Z"));
+        content(tenantA, campaignId, legalEntityId, "PUBLISHED", null, "2026-11-01T09:00:00Z");
+        content(tenantA, campaignId, legalEntityId, "ARCHIVED", null, null);
+        assertEquals(2L, count("SELECT count(*) FROM otak.campaign_contents WHERE campaign_id = ?", campaignId));
+    }
 
-        assertEquals(0L, count("SELECT count(*) FROM otak.campaign_contents WHERE campaign_id = ?", id));
+    @Test
+    void insertContent_unknownChannelOrStatus_isRejectedByTheEnum() {
+        UUID campaignId = campaign(tenantA, "Odd " + uniqueSuffix());
+        UUID legalEntityId = legalEntity(tenantA);
+
+        assertThrows(Exception.class, () -> jdbcTemplate.update(
+                "INSERT INTO otak.campaign_contents (id, campaign_id, organization_id, legal_entity_id, channel, "
+                        + "language, text) VALUES (?, ?, ?, ?, 'FAX'::otak_campaign_channel_enum, 'NL', 'Tekst')",
+                UUID.randomUUID(), campaignId, tenantA.organization().getId(), legalEntityId));
+        assertThrows(Exception.class, () -> content(tenantA, campaignId, legalEntityId, "LIVE", null, null));
+    }
+
+    @Test
+    void insertContent_withoutStatus_defaultsToDraftAndTwoInOneLanguageAreAccepted() {
+        UUID campaignId = campaign(tenantA, "Default " + uniqueSuffix());
+        UUID legalEntityId = legalEntity(tenantA);
+        UUID id = UUID.randomUUID();
+        jdbcTemplate.update("INSERT INTO otak.campaign_contents (id, campaign_id, organization_id, legal_entity_id, "
+                + "channel, language, text) VALUES (?, ?, ?, ?, 'X', 'NL', 'Eerste')", id, campaignId,
+                tenantA.organization().getId(), legalEntityId);
+        draftContent(tenantA, campaignId, legalEntityId);
+
+        assertEquals(1L, count("SELECT count(*) FROM otak.campaign_contents WHERE id = ? AND status::text = 'DRAFT'",
+                id));
+        assertEquals(2L, count("SELECT count(*) FROM otak.campaign_contents WHERE campaign_id = ?", campaignId));
+    }
+
+    @Test
+    void insertContent_campaignOrLegalEntityOfAnotherOrganization_isRejectedByTheCompositeForeignKeys() {
+        UUID campaignOfA = campaign(tenantA, "Of A " + uniqueSuffix());
+        UUID legalEntityOfA = legalEntity(tenantA);
+        UUID campaignOfB = campaign(tenantB, "Of B " + uniqueSuffix());
+        UUID legalEntityOfB = legalEntity(tenantB);
+
+        assertThrows(DataIntegrityViolationException.class, () -> draftContent(tenantB, campaignOfA, legalEntityOfB));
+        assertThrows(DataIntegrityViolationException.class, () -> draftContent(tenantB, campaignOfB, legalEntityOfA));
+        assertEquals(0L, count("SELECT count(*) FROM otak.campaign_contents WHERE organization_id = ?",
+                tenantB.organization().getId()));
+    }
+
+    @Test
+    void deleteCampaign_withContentsAndLinkedRelation_removesContentsClearsTheLinkAndKeepsTheRelation() {
+        UUID campaignId = campaign(tenantA, "Linked " + uniqueSuffix());
+        UUID legalEntityId = legalEntity(tenantA);
+        draftContent(tenantA, campaignId, legalEntityId);
+        draftContent(tenantA, campaignId, legalEntityId);
+        UUID relation = lead(tenantA, campaignId);
+
+        jdbcTemplate.update("DELETE FROM otak.campaigns WHERE id = ?", campaignId);
+
+        assertEquals(0L, count("SELECT count(*) FROM otak.campaign_contents WHERE campaign_id = ?", campaignId));
         assertEquals(1L, count("SELECT count(*) FROM otak.relations WHERE id = ? AND campaign_id IS NULL "
                 + "AND organization_id = ?", relation, tenantA.organization().getId()));
+    }
+
+    @Test
+    void deleteLegalEntity_thatAuthoredAContent_isRejected() {
+        UUID campaignId = campaign(tenantA, "Author " + uniqueSuffix());
+        UUID legalEntityId = legalEntity(tenantA);
+        draftContent(tenantA, campaignId, legalEntityId);
+
+        assertThrows(DataIntegrityViolationException.class,
+                () -> jdbcTemplate.update("DELETE FROM shrine.legal_entities WHERE id = ?", legalEntityId));
     }
 
     @Test
@@ -159,8 +212,8 @@ class CampaignMigrationIT extends AbstractTenantIT {
                 + "VALUES (?, ?, 'EXPO', '2026-11-10', ?)", event, "Expo " + uniqueSuffix(),
                 tenantA.organization().getId());
         UUID id = UUID.randomUUID();
-        jdbcTemplate.update("INSERT INTO otak.campaigns (id, name, channel, event_id, organization_id) "
-                + "VALUES (?, ?, 'X', ?, ?)", id, "Event " + uniqueSuffix(), event, tenantA.organization().getId());
+        jdbcTemplate.update("INSERT INTO otak.campaigns (id, name, event_id, organization_id) VALUES (?, ?, ?, ?)",
+                id, "Event " + uniqueSuffix(), event, tenantA.organization().getId());
 
         jdbcTemplate.update("DELETE FROM otak.events WHERE id = ?", event);
 
@@ -176,13 +229,13 @@ class CampaignMigrationIT extends AbstractTenantIT {
                 tenantA.organization().getId());
 
         assertThrows(DataIntegrityViolationException.class, () -> jdbcTemplate.update(
-                "INSERT INTO otak.campaigns (id, name, channel, event_id, organization_id) VALUES (?, ?, 'X', ?, ?)",
+                "INSERT INTO otak.campaigns (id, name, event_id, organization_id) VALUES (?, ?, ?, ?)",
                 UUID.randomUUID(), "Cross " + uniqueSuffix(), eventOfA, tenantB.organization().getId()));
     }
 
     @Test
     void insertRelation_linkedToCampaignOfAnotherOrganization_isRejectedByTheCompositeForeignKey() {
-        UUID campaignOfA = draft(tenantA, "Of A " + uniqueSuffix());
+        UUID campaignOfA = campaign(tenantA, "Of A " + uniqueSuffix());
 
         assertThrows(DataIntegrityViolationException.class, () -> lead(tenantB, campaignOfA));
         assertEquals(0L, count("SELECT count(*) FROM otak.relations WHERE organization_id = ?",

@@ -50,14 +50,15 @@ import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 
 /**
- * REST controller for the campaigns of an organization: its posts and mailings per channel,
- * with their texts per language, planned and marked published by hand. Every member reads
- * and changes them; only an admin deletes one.
+ * REST controller for the campaigns of an organization: the umbrellas over the posts and
+ * mailings that belong together. What is actually shared lives in the contents of a campaign,
+ * served by {@link CampaignContentController}. Every member reads and changes campaigns; only
+ * an admin deletes one.
  */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/otak/campaigns")
-@Tag(name = "Otak campaigns", description = "Posts and mailings of an organization with their texts per language")
+@Tag(name = "Otak campaigns", description = "Campaigns of an organization, the umbrellas of its posts and mailings")
 public class CampaignController {
 
     private static final LogPrefix LOG_PREFIX = LogPrefix.fromClass(CampaignController.class);
@@ -72,15 +73,14 @@ public class CampaignController {
     @GetMapping
     @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "List campaigns",
-            description = "Every campaign of the organization that matches the optional status, channel and name "
-                    + "search, not paged. With status SCHEDULED the soonest planned comes first; otherwise the most "
-                    + "recently changed.")
+            description = "Every campaign of the organization that matches the optional event and name search, "
+                    + "not paged, the most recently changed first, each with the number of its contents.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successful operation"),
             @ApiResponse(responseCode = "400", description = "Missing or malformed X-Organization-ID header"),
             @ApiResponse(responseCode = "403", description = "GUEST role in the organization (ORG_SEC_003), not a "
                     + "member of it, or membership or organization disabled (ORG_SEC_001, ORG_SEC_005)"),
-            @ApiResponse(responseCode = "422", description = "Invalid status, channel or search (GEN_VAL_001)"),
+            @ApiResponse(responseCode = "422", description = "Invalid event id or search (GEN_VAL_001)"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<CustomResponse<List<CampaignListResponse>>> listCampaigns(
@@ -98,13 +98,13 @@ public class CampaignController {
     }
 
     /**
-     * Creates a campaign with its texts.
+     * Creates a campaign without contents.
      */
     @PostMapping
     @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "Create campaign",
-            description = "Creates a campaign of the organization with at most one text per language. Status "
-                    + "defaults to DRAFT; PUBLISHED without publishedAt stores the server's now.")
+            description = "Creates a campaign of the organization; its contents are added through the nested "
+                    + "contents endpoints.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Resource created successfully"),
             @ApiResponse(responseCode = "400", description = "Missing or malformed X-Organization-ID header"),
@@ -114,9 +114,8 @@ public class CampaignController {
                     + "of another organization"),
             @ApiResponse(responseCode = "409", description = "Another campaign of the organization has this name, case "
                     + "ignored (OTK_STA_015), or the owner is no active member (OTK_STA_001)"),
-            @ApiResponse(responseCode = "422", description = "Moments that do not fit the status (OTK_VAL_016), two "
-                    + "texts in one language (OTK_VAL_017), owner without Otak access (APP_VAL_002), or invalid "
-                    + "request body (GEN_VAL_001)"),
+            @ApiResponse(responseCode = "422", description = "End date before start date (OTK_VAL_017), owner "
+                    + "without Otak access (APP_VAL_002), or invalid request body (GEN_VAL_001)"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<CustomResponse<CampaignDetailResponse>> createCampaign(
@@ -133,11 +132,11 @@ public class CampaignController {
     }
 
     /**
-     * Reads one campaign with its texts.
+     * Reads one campaign with the number of its contents.
      */
     @GetMapping("/{campaignId}")
     @RequiredUserAccess(OrganizationMemberRole.MEMBER)
-    @Operation(summary = "Get campaign", description = "Every field of one campaign of the organization with its texts.")
+    @Operation(summary = "Get campaign", description = "Every field of one campaign of the organization with the number of its contents.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successful operation"),
             @ApiResponse(responseCode = "400", description = "Missing or malformed X-Organization-ID header"),
@@ -161,13 +160,13 @@ public class CampaignController {
     }
 
     /**
-     * Replaces every field of a campaign and its whole set of texts.
+     * Replaces every field of a campaign; its contents stay.
      */
     @PutMapping("/{campaignId}")
     @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "Update campaign",
-            description = "Replaces every field of a campaign and its whole set of texts: send the whole campaign, "
-                    + "since null or a left-out optional field clears it and a left-out language deletes its text.")
+            description = "Replaces every field of a campaign: send the whole campaign, since null or a left-out "
+                    + "optional field clears it. The contents stay as they are.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successful operation"),
             @ApiResponse(responseCode = "400", description = "Missing or malformed X-Organization-ID header"),
@@ -177,9 +176,8 @@ public class CampaignController {
                     + "(OTK_NOT_004) not found or of another organization"),
             @ApiResponse(responseCode = "409", description = "Another campaign of the organization has this name, case "
                     + "ignored (OTK_STA_015), or a new owner is no active member (OTK_STA_001)"),
-            @ApiResponse(responseCode = "422", description = "Moments that do not fit the status (OTK_VAL_016), two "
-                    + "texts in one language (OTK_VAL_017), owner without Otak access (APP_VAL_002), or invalid "
-                    + "request body (GEN_VAL_001)"),
+            @ApiResponse(responseCode = "422", description = "End date before start date (OTK_VAL_017), owner "
+                    + "without Otak access (APP_VAL_002), or invalid request body (GEN_VAL_001)"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<CustomResponse<CampaignDetailResponse>> updateCampaign(
@@ -197,13 +195,14 @@ public class CampaignController {
     }
 
     /**
-     * Deletes a campaign with its texts; its outreaches and relations stay and lose the link.
+     * Deletes a campaign with its contents and their images; its outreaches and relations stay
+     * and lose the link.
      */
     @DeleteMapping("/{campaignId}")
     @RequiredUserAccess(OrganizationMemberRole.ADMIN)
     @Operation(summary = "Delete campaign",
-            description = "Removes a campaign with its texts; the outreaches and relations linked to it stay and lose "
-                    + "the link. Organization admins and owners only.")
+            description = "Removes a campaign with its contents and their images; the outreaches and relations "
+                    + "linked to it stay and lose the link. Organization admins and owners only.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successful operation"),
             @ApiResponse(responseCode = "400", description = "Missing or malformed X-Organization-ID header"),

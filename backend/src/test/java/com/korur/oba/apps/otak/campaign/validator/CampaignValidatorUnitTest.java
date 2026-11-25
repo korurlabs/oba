@@ -5,8 +5,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -20,26 +18,19 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 // 3. Java SDK
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneOffset;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.otak.campaign.dto.request.CampaignContentRequest;
-import com.korur.oba.apps.otak.campaign.enums.CampaignStatus;
 import com.korur.oba.apps.otak.campaign.repository.CampaignRepository;
 import com.korur.oba.apps.otak.exception.ExceptionDomainOtakError;
 import com.korur.oba.dojo.exception.internal.business.ConflictException;
-import com.korur.oba.dojo.exception.internal.business.NotFoundException;
-import com.korur.oba.dojo.exception.internal.business.ValidationException;
 import com.korur.oba.dojo.exception.internal.infrastructure.ApplicationException;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.shrine.access.enums.App;
 import com.korur.oba.shrine.access.validator.AppAccessValidator;
-import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
 import com.korur.oba.shrine.organization.entity.OrganizationMember;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberStatus;
 import com.korur.oba.shrine.organization.service.OrganizationMemberQueryService;
@@ -48,8 +39,6 @@ import com.korur.oba.shrine.organization.service.OrganizationMemberQueryService;
 class CampaignValidatorUnitTest {
 
     private final UUID organizationId = UUID.randomUUID();
-    private final Instant moment = Instant.parse("2026-12-01T08:30:00Z");
-    private final Instant now = Instant.parse("2026-12-02T09:00:00Z");
 
     @Mock
     private CampaignRepository campaignRepository;
@@ -68,7 +57,7 @@ class CampaignValidatorUnitTest {
     @BeforeEach
     void setUp() {
         validator = new CampaignValidator(campaignRepository, organizationMemberQueryService, appAccessValidator,
-                Clock.fixed(now, ZoneOffset.UTC), loggingService);
+                loggingService);
     }
 
     private static String codeOf(Throwable exception) {
@@ -88,17 +77,6 @@ class CampaignValidatorUnitTest {
             assertThatThrownBy(() -> validator.ensureCampaignExists(organizationId, campaignId))
                     .satisfies(exception -> assertThat(codeOf(exception))
                             .isEqualTo(ExceptionDomainOtakError.NOT_CAMPAIGN_FOUND.getCode()));
-        }
-
-        @Test
-        void unknownIdInAnyOrganization_throwsNotFound() {
-            // Arrange
-            UUID campaignId = UUID.randomUUID();
-            when(campaignRepository.findById(campaignId)).thenReturn(Optional.empty());
-
-            // Act and assert
-            assertThatThrownBy(() -> validator.ensureCampaignExists(campaignId))
-                    .isInstanceOf(NotFoundException.class);
         }
     }
 
@@ -130,76 +108,23 @@ class CampaignValidatorUnitTest {
     }
 
     @Nested
-    class EnsureStatusDates {
+    class EnsureDateRange {
 
         @Test
-        void scheduledWithoutPlannedAt_throwsValidation() {
-            assertThatThrownBy(() -> validator.ensureStatusDates(CampaignStatus.SCHEDULED, null, null))
+        void endBeforeStart_throwsValidation() {
+            assertThatThrownBy(() -> validator.ensureDateRange(LocalDate.of(2026, 12, 31), LocalDate.of(2026, 12, 1)))
                     .satisfies(exception -> assertThat(codeOf(exception))
-                            .isEqualTo(ExceptionDomainOtakError.VAL_CAMPAIGN_STATUS_DATES.getCode()));
-        }
-
-        @ParameterizedTest
-        @EnumSource(value = CampaignStatus.class, names = {"DRAFT", "SCHEDULED"})
-        void unpublishedWithPublishedAt_throwsValidation(CampaignStatus status) {
-            assertThatThrownBy(() -> validator.ensureStatusDates(status, moment, moment))
-                    .isInstanceOf(ValidationException.class);
+                            .isEqualTo(ExceptionDomainOtakError.VAL_CAMPAIGN_DATE_RANGE.getCode()));
         }
 
         @Test
-        void scheduledWithPlannedAt_passes() {
-            assertThatCode(() -> validator.ensureStatusDates(CampaignStatus.SCHEDULED, moment, null))
+        void sameDayOrMissingDate_passes() {
+            assertThatCode(() -> validator.ensureDateRange(LocalDate.of(2026, 12, 1), LocalDate.of(2026, 12, 1)))
                     .doesNotThrowAnyException();
-        }
-
-        @ParameterizedTest
-        @EnumSource(value = CampaignStatus.class, names = {"PUBLISHED", "ARCHIVED"})
-        void publishedOrArchived_takesAnyMoments(CampaignStatus status) {
-            assertThatCode(() -> validator.ensureStatusDates(status, moment, moment)).doesNotThrowAnyException();
-            assertThatCode(() -> validator.ensureStatusDates(status, null, null)).doesNotThrowAnyException();
-        }
-
-        @ParameterizedTest
-        @EnumSource(value = CampaignStatus.class, names = {"PUBLISHED", "ARCHIVED"})
-        void publishedAtInTheFuture_throwsValidation(CampaignStatus status) {
-            assertThatThrownBy(() -> validator.ensureStatusDates(status, null, now.plusSeconds(1)))
-                    .satisfies(exception -> assertThat(codeOf(exception))
-                            .isEqualTo(ExceptionDomainOtakError.VAL_CAMPAIGN_STATUS_DATES.getCode()));
-        }
-
-        @Test
-        void publishedAtExactlyNow_passes() {
-            assertThatCode(() -> validator.ensureStatusDates(CampaignStatus.PUBLISHED, null, now))
+            assertThatCode(() -> validator.ensureDateRange(null, LocalDate.of(2026, 12, 1)))
                     .doesNotThrowAnyException();
-        }
-
-        @Test
-        void draftWithOnlyPlannedAt_passes() {
-            assertThatCode(() -> validator.ensureStatusDates(CampaignStatus.DRAFT, moment, null))
+            assertThatCode(() -> validator.ensureDateRange(LocalDate.of(2026, 12, 1), null))
                     .doesNotThrowAnyException();
-        }
-    }
-
-    @Nested
-    class EnsureLanguagesDistinct {
-
-        @Test
-        void repeatedLanguage_throwsValidation() {
-            List<CampaignContentRequest> contents = List.of(
-                    new CampaignContentRequest(DocumentLanguage.NL, "Hallo"),
-                    new CampaignContentRequest(DocumentLanguage.NL, "Goedendag"));
-
-            assertThatThrownBy(() -> validator.ensureLanguagesDistinct(contents))
-                    .satisfies(exception -> assertThat(codeOf(exception))
-                            .isEqualTo(ExceptionDomainOtakError.VAL_CAMPAIGN_CONTENT_LANGUAGE_REPEATED.getCode()));
-        }
-
-        @Test
-        void distinctLanguagesOrNone_pass() {
-            assertThatCode(() -> validator.ensureLanguagesDistinct(List.of(
-                    new CampaignContentRequest(DocumentLanguage.NL, "Hallo"),
-                    new CampaignContentRequest(DocumentLanguage.EN, "Hello")))).doesNotThrowAnyException();
-            assertThatCode(() -> validator.ensureLanguagesDistinct(null)).doesNotThrowAnyException();
         }
     }
 

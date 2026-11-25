@@ -12,8 +12,6 @@ import java.util.UUID;
 import com.korur.oba.apps.otak.campaign.constant.CampaignConstant;
 import com.korur.oba.apps.otak.campaign.dto.request.CampaignQueryRequest;
 import com.korur.oba.apps.otak.campaign.entity.Campaign;
-import com.korur.oba.apps.otak.campaign.enums.CampaignChannel;
-import com.korur.oba.apps.otak.campaign.enums.CampaignStatus;
 
 /**
  * JPA Specification builder for Campaign entity queries.
@@ -44,23 +42,13 @@ public final class CampaignSpecification {
     }
 
     /**
-     * Keeps the campaigns with the status. Returns no-op if {@code status} is null.
+     * Keeps the campaigns of the event. Returns no-op if {@code eventId} is null.
      */
-    private static Specification<Campaign> byStatus(CampaignStatus status) {
-        if (status == null) {
+    private static Specification<Campaign> byEvent(UUID eventId) {
+        if (eventId == null) {
             return noOp();
         }
-        return (root, query, cb) -> cb.equal(root.get(CampaignConstant.FIELD_STATUS), status);
-    }
-
-    /**
-     * Keeps the campaigns on the channel. Returns no-op if {@code channel} is null.
-     */
-    private static Specification<Campaign> byChannel(CampaignChannel channel) {
-        if (channel == null) {
-            return noOp();
-        }
-        return (root, query, cb) -> cb.equal(root.get(CampaignConstant.FIELD_CHANNEL), channel);
+        return (root, query, cb) -> cb.equal(root.get(CampaignConstant.FIELD_EVENT_ID), eventId);
     }
 
     /**
@@ -75,8 +63,8 @@ public final class CampaignSpecification {
     }
 
     /**
-     * Builds the specification of the campaign list: one organization, the optional status,
-     * channel and name filters.
+     * Builds the specification of the campaign list: one organization, the optional event and
+     * name filters.
      *
      * @param organizationId the organization whose campaigns are listed
      * @param request        the list filters
@@ -84,8 +72,7 @@ public final class CampaignSpecification {
      */
     public static Specification<Campaign> filterBy(UUID organizationId, CampaignQueryRequest request) {
         return belongsToOrganization(organizationId)
-                .and(byStatus(request.getStatus()))
-                .and(byChannel(request.getChannel()))
+                .and(byEvent(request.getEventId()))
                 .and(searchSpecification(request.getSearch()));
     }
 }

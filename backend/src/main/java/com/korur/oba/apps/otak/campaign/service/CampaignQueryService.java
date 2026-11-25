@@ -20,17 +20,17 @@ import com.korur.oba.apps.otak.campaign.entity.Campaign;
 public interface CampaignQueryService {
 
     /**
-     * Lists every campaign of the organization that matches the filters, unpaged. With status
-     * SCHEDULED the soonest planned comes first; otherwise the most recently changed.
+     * Lists every campaign of the organization that matches the filters, unpaged, the most
+     * recently changed first, each with the number of its contents.
      *
      * @param organizationId the organization that owns the campaigns
-     * @param request        the status, channel and name filters
+     * @param request        the event and name filters
      * @return every matching campaign
      */
     List<CampaignListResponse> list(UUID organizationId, CampaignQueryRequest request);
 
     /**
-     * Reads one campaign of the organization with its texts.
+     * Reads one campaign of the organization with the number of its contents.
      *
      * @param organizationId the organization that owns the campaign
      * @param campaignId     the campaign identifier
@@ -52,14 +52,14 @@ public interface CampaignQueryService {
     void ensureExists(UUID organizationId, UUID campaignId);
 
     /**
-     * Reads one campaign entity by id alone, in any organization, for the access check of an
-     * attachment whose parent is a campaign. The caller must compare the campaign's
-     * organization with the request's before it uses the campaign.
+     * Reads one campaign entity of the organization, for a caller that needs its fields. A
+     * campaign of another organization is not found.
      *
-     * @param campaignId the campaign identifier
+     * @param organizationId the organization that owns the campaign
+     * @param campaignId     the campaign identifier
      * @return the campaign entity
      * @throws com.korur.oba.dojo.exception.internal.business.NotFoundException OTK_NOT_012
-     *         when no campaign has the id
+     *         when the organization has no campaign with the id
      */
-    Campaign getEntityById(UUID campaignId);
+    Campaign getEntity(UUID organizationId, UUID campaignId);
 }

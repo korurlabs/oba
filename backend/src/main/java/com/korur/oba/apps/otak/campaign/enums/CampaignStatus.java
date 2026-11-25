@@ -1,9 +1,10 @@
 package com.korur.oba.apps.otak.campaign.enums;
 
 /**
- * Where a campaign stands. Mapped by name to the PostgreSQL enum otak_campaign_status_enum,
- * in its order. Any status may follow any other; only the planned and published moments are
- * tied to it (see {@link com.korur.oba.apps.otak.campaign.validator.CampaignValidator#ensureStatusDates}).
+ * Where a campaign content stands. Mapped by name to the PostgreSQL enum
+ * otak_campaign_status_enum, in its order. Any status may follow any other; only the planned
+ * and published moments are tied to it (see
+ * {@link com.korur.oba.apps.otak.campaign.validator.CampaignContentValidator#ensureStatusDates}).
  */
 public enum CampaignStatus {
 

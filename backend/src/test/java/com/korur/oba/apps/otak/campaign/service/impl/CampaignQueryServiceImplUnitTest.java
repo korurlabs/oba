@@ -20,21 +20,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 // 3. Java SDK
-import java.time.Clock;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
 import com.korur.oba.apps.otak.campaign.constant.CampaignConstant;
-import com.korur.oba.apps.otak.campaign.dto.projection.CampaignContentLanguageProjection;
+import com.korur.oba.apps.otak.campaign.dto.projection.CampaignContentCountProjection;
 import com.korur.oba.apps.otak.campaign.dto.request.CampaignQueryRequest;
 import com.korur.oba.apps.otak.campaign.dto.response.CampaignDetailResponse;
 import com.korur.oba.apps.otak.campaign.dto.response.CampaignListResponse;
 import com.korur.oba.apps.otak.campaign.entity.Campaign;
-import com.korur.oba.apps.otak.campaign.entity.CampaignContent;
-import com.korur.oba.apps.otak.campaign.enums.CampaignChannel;
-import com.korur.oba.apps.otak.campaign.enums.CampaignStatus;
 import com.korur.oba.apps.otak.campaign.helper.CampaignOwnerHelper;
 import com.korur.oba.apps.otak.campaign.mapper.CampaignMapperImpl;
 import com.korur.oba.apps.otak.campaign.repository.CampaignContentRepository;
@@ -44,7 +40,6 @@ import com.korur.oba.apps.otak.exception.ExceptionDomainOtakError;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.shrine.access.validator.AppAccessValidator;
-import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.identity.service.UserQueryService;
 import com.korur.oba.shrine.organization.service.OrganizationMemberQueryService;
@@ -77,72 +72,51 @@ class CampaignQueryServiceImplUnitTest {
     @BeforeEach
     void setUp() {
         CampaignValidator validator = new CampaignValidator(campaignRepository, organizationMemberQueryService,
-                appAccessValidator, Clock.systemUTC(), loggingService);
+                appAccessValidator, loggingService);
         service = new CampaignQueryServiceImpl(campaignRepository, campaignContentRepository, new CampaignMapperImpl(),
                 validator, new CampaignOwnerHelper(userQueryService), loggingService);
     }
 
     private Campaign campaign(String name, UUID ownerUserId) {
-        Campaign campaign = Campaign.builder().name(name).channel(CampaignChannel.LINKEDIN)
-                .status(CampaignStatus.DRAFT).ownerUserId(ownerUserId).organizationId(organizationId).build();
+        Campaign campaign = Campaign.builder().name(name).ownerUserId(ownerUserId).organizationId(organizationId)
+                .build();
         campaign.setId(UUID.randomUUID());
         return campaign;
     }
 
-    private static CampaignContentLanguageProjection language(UUID campaignId, DocumentLanguage language) {
-        return new CampaignContentLanguageProjection() {
+    private static CampaignContentCountProjection count(UUID campaignId, long contentCount) {
+        return new CampaignContentCountProjection() {
             @Override
             public UUID getCampaignId() {
                 return campaignId;
             }
 
             @Override
-            public DocumentLanguage getLanguage() {
-                return language;
+            public long getContentCount() {
+                return contentCount;
             }
         };
     }
 
+    @Test
     @SuppressWarnings("unchecked")
-    private Sort listAndCaptureSort(CampaignQueryRequest request) {
+    void list_anyFilter_sortsMostRecentlyChangedFirst() {
+        // Arrange
         when(campaignRepository.findAll(any(Specification.class), any(Sort.class))).thenReturn(List.of());
-        service.list(organizationId, request);
+
+        // Act
+        service.list(organizationId, new CampaignQueryRequest());
+
+        // Assert
         ArgumentCaptor<Sort> sort = ArgumentCaptor.forClass(Sort.class);
         verify(campaignRepository).findAll(any(Specification.class), sort.capture());
-        return sort.getValue();
-    }
-
-    @Test
-    void list_scheduled_sortsSoonestPlannedFirst() {
-        // Arrange
-        CampaignQueryRequest request = new CampaignQueryRequest();
-        request.setStatus(CampaignStatus.SCHEDULED);
-
-        // Act
-        Sort sort = listAndCaptureSort(request);
-
-        // Assert
-        assertThat(sort.getOrderFor(CampaignConstant.FIELD_PLANNED_AT).getDirection()).isEqualTo(Sort.Direction.ASC);
-        assertThat(sort.getOrderFor(CampaignConstant.FIELD_UPDATED_AT)).isNull();
-    }
-
-    @Test
-    void list_otherStatusOrNone_sortsMostRecentlyChangedFirst() {
-        // Arrange
-        CampaignQueryRequest request = new CampaignQueryRequest();
-        request.setStatus(CampaignStatus.PUBLISHED);
-
-        // Act
-        Sort sort = listAndCaptureSort(request);
-
-        // Assert
-        assertThat(sort.getOrderFor(CampaignConstant.FIELD_UPDATED_AT).getDirection()).isEqualTo(Sort.Direction.DESC);
-        assertThat(sort.getOrderFor(CampaignConstant.FIELD_PLANNED_AT)).isNull();
+        assertThat(sort.getValue().getOrderFor(CampaignConstant.FIELD_UPDATED_AT).getDirection())
+                .isEqualTo(Sort.Direction.DESC);
     }
 
     @Test
     @SuppressWarnings("unchecked")
-    void list_noMatch_returnsEmptyWithoutReadingLanguagesOrOwners() {
+    void list_noMatch_returnsEmptyWithoutCountingContentsOrReadingOwners() {
         // Arrange
         when(campaignRepository.findAll(any(Specification.class), any(Sort.class))).thenReturn(List.of());
 
@@ -151,20 +125,20 @@ class CampaignQueryServiceImplUnitTest {
 
         // Assert
         assertThat(result).isEmpty();
-        verify(campaignContentRepository, never()).findLanguages(anyCollection());
+        verify(campaignContentRepository, never()).countByCampaignIds(anyCollection());
         verify(userQueryService, never()).getUserEntitiesByIds(anyList());
     }
 
     @Test
     @SuppressWarnings("unchecked")
-    void list_everyMatch_joinsLanguagesAndOwnerNamesInOneReadEach() {
+    void list_everyMatch_joinsContentCountsAndOwnerNamesInOneReadEach() {
         // Arrange
         UUID ownerUserId = UUID.randomUUID();
-        Campaign first = campaign("IGEF", ownerUserId);
+        Campaign first = campaign("De wacht", ownerUserId);
         Campaign second = campaign("Newsletter", null);
         when(campaignRepository.findAll(any(Specification.class), any(Sort.class))).thenReturn(List.of(first, second));
-        when(campaignContentRepository.findLanguages(anyCollection())).thenReturn(List.of(
-                language(first.getId(), DocumentLanguage.NL), language(first.getId(), DocumentLanguage.EN)));
+        when(campaignContentRepository.countByCampaignIds(anyCollection()))
+                .thenReturn(List.of(count(first.getId(), 3L)));
         User owner = User.builder().email("jane@korur.com").build();
         owner.setId(ownerUserId);
         when(userQueryService.getUserEntitiesByIds(List.of(ownerUserId))).thenReturn(List.of(owner));
@@ -173,30 +147,27 @@ class CampaignQueryServiceImplUnitTest {
         List<CampaignListResponse> result = service.list(organizationId, new CampaignQueryRequest());
 
         // Assert
-        assertThat(result).extracting(CampaignListResponse::name).containsExactly("IGEF", "Newsletter");
-        assertThat(result.get(0).languages()).containsExactly(DocumentLanguage.NL, DocumentLanguage.EN);
+        assertThat(result).extracting(CampaignListResponse::name).containsExactly("De wacht", "Newsletter");
+        assertThat(result.get(0).contentCount()).isEqualTo(3L);
         assertThat(result.get(0).owner().name()).isEqualTo("jane@korur.com");
-        assertThat(result.get(1).languages()).isEmpty();
+        assertThat(result.get(1).contentCount()).isZero();
         assertThat(result.get(1).owner()).isNull();
     }
 
     @Test
-    void get_ownCampaign_returnsItWithItsTexts() {
+    void get_ownCampaign_returnsItWithItsContentCount() {
         // Arrange
-        Campaign campaign = campaign("IGEF", null);
-        CampaignContent text = CampaignContent.builder().campaignId(campaign.getId()).language(DocumentLanguage.TR)
-                .text("Merhaba").build();
+        Campaign campaign = campaign("De wacht", null);
         when(campaignRepository.findByIdAndOrganizationId(campaign.getId(), organizationId))
                 .thenReturn(Optional.of(campaign));
-        when(campaignContentRepository.findAllByCampaignIdOrderByLanguageAsc(campaign.getId())).thenReturn(List.of(text));
+        when(campaignContentRepository.countByCampaignId(campaign.getId())).thenReturn(2L);
 
         // Act
         CampaignDetailResponse result = service.get(organizationId, campaign.getId());
 
         // Assert
         assertThat(result.id()).isEqualTo(campaign.getId());
-        assertThat(result.languages()).containsExactly(DocumentLanguage.TR);
-        assertThat(result.contents()).singleElement().satisfies(content -> assertThat(content.text()).isEqualTo("Merhaba"));
+        assertThat(result.contentCount()).isEqualTo(2L);
     }
 
     @Test
@@ -213,12 +184,13 @@ class CampaignQueryServiceImplUnitTest {
     }
 
     @Test
-    void getEntityById_campaignOfAnyOrganization_returnsIt() {
+    void getEntity_ownCampaign_returnsIt() {
         // Arrange
-        Campaign campaign = campaign("IGEF", null);
-        when(campaignRepository.findById(campaign.getId())).thenReturn(Optional.of(campaign));
+        Campaign campaign = campaign("De wacht", null);
+        when(campaignRepository.findByIdAndOrganizationId(campaign.getId(), organizationId))
+                .thenReturn(Optional.of(campaign));
 
         // Act and assert
-        assertThat(service.getEntityById(campaign.getId())).isSameAs(campaign);
+        assertThat(service.getEntity(organizationId, campaign.getId())).isSameAs(campaign);
     }
 }

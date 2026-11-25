@@ -36,6 +36,7 @@ public enum ExceptionDomainOtakError implements ExceptionDomainError {
     NOT_MAIL_TEMPLATE_FOUND("OTK_NOT_010", "Mail template not found.", ExceptionCategory.NOT),
     NOT_MAIL_FOUND("OTK_NOT_011", "Mail not found.", ExceptionCategory.NOT),
     NOT_CAMPAIGN_FOUND("OTK_NOT_012", "Campaign not found.", ExceptionCategory.NOT),
+    NOT_CAMPAIGN_CONTENT_FOUND("OTK_NOT_013", "Campaign content not found.", ExceptionCategory.NOT),
 
     // ── State (OTK_STA) ──────────────────────────────────────────────────────
     STA_OWNER_NOT_ORGANIZATION_MEMBER("OTK_STA_001", "The owner must be an active member of the organization.", ExceptionCategory.STA),
@@ -62,8 +63,8 @@ public enum ExceptionDomainOtakError implements ExceptionDomainError {
     VAL_CONTACT_MAIN_FLAG_NOT_FOR_KIND("OTK_VAL_013", "A contact can only be main of its own kind.", ExceptionCategory.VAL),
     VAL_ACTION_NOT_FOR_TYPE("OTK_VAL_014", "This action does not fit the outreach's channel.", ExceptionCategory.VAL),
     VAL_CONTACT_WITHOUT_PHONE("OTK_VAL_015", "The contact has no phone number.", ExceptionCategory.VAL),
-    VAL_CAMPAIGN_STATUS_DATES("OTK_VAL_016", "A scheduled campaign needs a planned date, a draft or scheduled campaign has no published date, and a published date is not in the future.", ExceptionCategory.VAL),
-    VAL_CAMPAIGN_CONTENT_LANGUAGE_REPEATED("OTK_VAL_017", "A campaign has at most one text per language.", ExceptionCategory.VAL);
+    VAL_CAMPAIGN_CONTENT_STATUS_DATES("OTK_VAL_016", "A scheduled campaign content needs a planned date, a draft or scheduled one has no published date, and a published date is not in the future.", ExceptionCategory.VAL),
+    VAL_CAMPAIGN_DATE_RANGE("OTK_VAL_017", "The end date of a campaign cannot be before its start date.", ExceptionCategory.VAL);
 
     private final String code;
     private final String message;

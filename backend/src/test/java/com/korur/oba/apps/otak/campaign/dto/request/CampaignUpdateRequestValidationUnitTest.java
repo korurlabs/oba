@@ -14,13 +14,12 @@ import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 
 // 3. Java SDK
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
 // 4. Internal
 import com.korur.oba.apps.otak.campaign.constant.CampaignConstant;
-import com.korur.oba.apps.otak.campaign.enums.CampaignChannel;
-import com.korur.oba.apps.otak.campaign.enums.CampaignStatus;
 
 class CampaignUpdateRequestValidationUnitTest {
 
@@ -38,24 +37,23 @@ class CampaignUpdateRequestValidationUnitTest {
         validatorFactory.close();
     }
 
-    private static Set<String> violated(CampaignUpdateRequest request) {
+    private static Set<String> violated(Object request) {
         Set<String> violations = new HashSet<>();
-        for (ConstraintViolation<CampaignUpdateRequest> violation : validator.validate(request)) {
+        for (ConstraintViolation<Object> violation : validator.validate(request)) {
             violations.add(violation.getPropertyPath() + ": " + violation.getMessage());
         }
         return violations;
     }
 
     @Test
-    void requiredFieldsWithStatus_isValid() {
-        assertThat(violated(new CampaignUpdateRequest("IGEF", CampaignChannel.NEWSLETTER, CampaignStatus.DRAFT,
-                null, null, null, null, null, null, null))).isEmpty();
+    void everyField_isValid() {
+        assertThat(violated(new CampaignUpdateRequest("De wacht", "About the night watch", LocalDate.of(2026, 12, 1),
+                LocalDate.of(2026, 12, 31), null, null, null))).isEmpty();
     }
 
     @Test
-    void missingStatus_isRejected() {
-        assertThat(violated(new CampaignUpdateRequest("IGEF", CampaignChannel.NEWSLETTER, null,
-                null, null, null, null, null, null, null)))
-                .containsExactly("status: " + CampaignConstant.STATUS_REQUIRED_MESSAGE);
+    void blankName_isRejected() {
+        assertThat(violated(new CampaignUpdateRequest(" ", null, null, null, null, null, null)))
+                .containsExactly("name: " + CampaignConstant.NAME_REQUIRED_MESSAGE);
     }
 }

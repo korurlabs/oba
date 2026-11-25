@@ -7,17 +7,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 // 3. Java SDK
 import java.time.Instant;
-import java.util.List;
+import java.time.LocalDate;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.otak.campaign.enums.CampaignChannel;
-import com.korur.oba.apps.otak.campaign.enums.CampaignStatus;
-import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
 
 /**
- * One row of the campaign list. It names the languages the campaign has a text in, not the
- * texts, so the whole list stays small.
+ * One row of the campaign list, with the number of its contents and not the contents, so the
+ * whole list stays small.
  */
 @Schema(description = "Campaign list item")
 public record CampaignListResponse(
@@ -25,24 +22,18 @@ public record CampaignListResponse(
         @Schema(description = "Campaign id", example = "6c7d8e9f-0a1b-4c2d-8e3f-4a5b6c7d8e9f")
         UUID id,
 
-        @Schema(description = "Name of the campaign", example = "IGEF 2026 announcement")
+        @Schema(description = "Name of the campaign", example = "De wacht")
         String name,
 
-        @Schema(description = "Channel the campaign goes out on", example = "LINKEDIN")
-        CampaignChannel channel,
+        @Schema(description = "What the campaign is about", nullable = true,
+                example = "Post about the night watch of a security operations centre")
+        String description,
 
-        @Schema(description = "Status of the campaign", example = "SCHEDULED")
-        CampaignStatus status,
+        @Schema(description = "First day of the campaign", nullable = true, example = "2026-12-01")
+        LocalDate startDate,
 
-        @Schema(description = "Moment the campaign is planned to go live", nullable = true,
-                example = "2026-12-01T08:30:00Z")
-        Instant plannedAt,
-
-        @Schema(description = "Moment the campaign went live", nullable = true, example = "2026-12-01T08:32:00Z")
-        Instant publishedAt,
-
-        @Schema(description = "Languages the campaign has a text in, in the order NL, TR, EN", example = "[\"NL\", \"EN\"]")
-        List<DocumentLanguage> languages,
+        @Schema(description = "Last day of the campaign", nullable = true, example = "2026-12-31")
+        LocalDate endDate,
 
         @Schema(description = "Member who looks after the campaign; null for none", nullable = true)
         CampaignOwnerResponse owner,
@@ -54,6 +45,9 @@ public record CampaignListResponse(
         @Schema(description = "ICP the campaign is aimed at", nullable = true,
                 example = "2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e")
         UUID icpId,
+
+        @Schema(description = "Number of contents of the campaign", example = "3")
+        long contentCount,
 
         @Schema(description = "Creation timestamp", example = "2026-11-25T09:00:00Z")
         Instant createdAt,

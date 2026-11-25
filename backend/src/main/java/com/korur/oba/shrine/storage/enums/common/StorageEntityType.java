@@ -21,7 +21,7 @@ import com.korur.oba.shrine.access.enums.ResourceAccessType;
  *
  * uniqueContentPerEntity says whether an upload is refused when the same
  * content is already attached to the same entity. A Kalkan page, a mail, a
- * relation and a campaign keep one copy of a file each: the same file attached twice to one of
+ * relation and a campaign content keep one copy of a file each: the same file attached twice to one of
  * them would only be sent or listed twice. Another entity of the type may hold
  * the same content.
  *
@@ -37,7 +37,7 @@ public enum StorageEntityType {
     KALKAN_PAGE("KALKAN_PAGE", false, true, ResourceAccessType.KALKAN_PAGE),
     MAIL("MAIL", false, true, ResourceAccessType.MAIL),
     RELATION("RELATION", false, true, ResourceAccessType.RELATION),
-    CAMPAIGN("CAMPAIGN", false, true, ResourceAccessType.CAMPAIGN);
+    CAMPAIGN_CONTENT("CAMPAIGN_CONTENT", false, true, ResourceAccessType.CAMPAIGN_CONTENT);
 
     @Getter
     private final String type;

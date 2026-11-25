@@ -58,6 +58,6 @@ class ResourceAccessTypeUnitTest {
         assertEquals(App.KALKAN, ResourceAccessType.KALKAN_PAGE.getApp());
         assertEquals(App.OTAK, ResourceAccessType.MAIL.getApp());
         assertEquals(App.OTAK, ResourceAccessType.RELATION.getApp());
-        assertEquals(App.OTAK, ResourceAccessType.CAMPAIGN.getApp());
+        assertEquals(App.OTAK, ResourceAccessType.CAMPAIGN_CONTENT.getApp());
     }
 }

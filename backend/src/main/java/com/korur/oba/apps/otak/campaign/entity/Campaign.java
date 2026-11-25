@@ -5,8 +5,6 @@ package com.korur.oba.apps.otak.campaign.entity;
 // 2. Third-party
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
@@ -14,33 +12,27 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.JdbcType;
-import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 
 // 3. Java SDK
-import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.otak.campaign.enums.CampaignChannel;
-import com.korur.oba.apps.otak.campaign.enums.CampaignStatus;
 import com.korur.oba.dojo.entity.BaseEntity;
 
 /**
- * Entity representing a campaign, a row of otak.campaigns: one post or mailing of an
- * organization on one channel, planned and then posted by hand by a member. Oba does not
- * post it; a member marks it published once it is live.
+ * Entity representing a campaign, a row of otak.campaigns: the umbrella of an organization
+ * over the posts and mailings that belong together, for example one post and its
+ * translations. What is actually shared lives in its {@link CampaignContent} rows.
  *
  * Every campaign belongs to one organization and is only read and written within it. Its
  * name is unique per organization with case ignored, which a unique index on the
- * lower-case name enforces. Two check constraints tie the moments to the status: a
- * SCHEDULED campaign has a planned moment, and a DRAFT or SCHEDULED campaign has no
- * published moment.
+ * lower-case name enforces. The dates are calendar days without a timezone, and the end
+ * date is never before the start date, which a check constraint enforces.
  *
  * The owner, the event and the ICP are plain ids, as on a relation, and the database clears
- * each one when its row is deleted. The texts per language are rows of
- * {@link CampaignContent}, deleted with the campaign. Deleting a campaign clears the
- * campaign link of its outreaches and relations and keeps them.
+ * each one when its row is deleted. Deleting a campaign deletes its contents and clears the
+ * campaign link of its outreaches and relations, which stay.
  */
 @Entity
 @Table(
@@ -61,26 +53,26 @@ public class Campaign extends BaseEntity {
     /**
      * Name shown in the campaign list, stored trimmed; unique per organization, case ignored.
      */
-    @Column(name = "name", length = 200, nullable = false)
+    @Column(name = "name", columnDefinition = "TEXT", nullable = false)
     private String name;
 
     /**
-     * Moment the campaign is planned to go live; required while SCHEDULED.
+     * What the campaign is about, plain text, or null.
      */
-    @Column(name = "planned_at", nullable = true)
-    private Instant plannedAt;
+    @Column(name = "description", columnDefinition = "TEXT", nullable = true)
+    private String description;
 
     /**
-     * Moment the campaign went live; empty while DRAFT or SCHEDULED.
+     * First day of the campaign, or null.
      */
-    @Column(name = "published_at", nullable = true)
-    private Instant publishedAt;
+    @Column(name = "start_date", nullable = true)
+    private LocalDate startDate;
 
     /**
-     * Address of the live post, a full http or https address, or null.
+     * Last day of the campaign, or null; never before the start date.
      */
-    @Column(name = "post_url", length = 500, nullable = true)
-    private String postUrl;
+    @Column(name = "end_date", nullable = true)
+    private LocalDate endDate;
 
     /**
      * Member who looks after the campaign, or null.
@@ -106,16 +98,4 @@ public class Campaign extends BaseEntity {
      */
     @Column(name = "organization_id", nullable = false, updatable = false)
     private UUID organizationId;
-
-    // -------------Enums-----------//
-
-    @Enumerated(EnumType.STRING)
-    @JdbcType(PostgreSQLEnumJdbcType.class)
-    @Column(name = "channel", nullable = false)
-    private CampaignChannel channel;
-
-    @Enumerated(EnumType.STRING)
-    @JdbcType(PostgreSQLEnumJdbcType.class)
-    @Column(name = "status", nullable = false)
-    private CampaignStatus status;
 }

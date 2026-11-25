@@ -6,74 +6,76 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 // 3. Java SDK
-import java.time.Instant;
-import java.util.List;
+import java.time.LocalDate;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.otak.campaign.dto.request.CampaignContentRequest;
 import com.korur.oba.apps.otak.campaign.dto.request.CampaignCreateRequest;
+import com.korur.oba.apps.otak.campaign.dto.request.CampaignUpdateRequest;
 import com.korur.oba.apps.otak.campaign.dto.response.CampaignListResponse;
 import com.korur.oba.apps.otak.campaign.dto.response.CampaignOwnerResponse;
 import com.korur.oba.apps.otak.campaign.entity.Campaign;
-import com.korur.oba.apps.otak.campaign.entity.CampaignContent;
-import com.korur.oba.apps.otak.campaign.enums.CampaignChannel;
-import com.korur.oba.apps.otak.campaign.enums.CampaignStatus;
-import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
 
 class CampaignMapperUnitTest {
 
     private final CampaignMapper mapper = new CampaignMapperImpl();
 
     @Test
-    void toEntity_mapsEveryFieldButTheOrganizationAndTheTexts() {
+    void toEntity_mapsEveryFieldButTheOrganization() {
         // Arrange
         UUID ownerUserId = UUID.randomUUID();
         UUID eventId = UUID.randomUUID();
-        Instant plannedAt = Instant.parse("2026-12-01T08:30:00Z");
-        CampaignCreateRequest request = new CampaignCreateRequest("IGEF", CampaignChannel.X, CampaignStatus.SCHEDULED,
-                plannedAt, null, "https://x.com/korur/status/1", ownerUserId, eventId, null,
-                List.of(new CampaignContentRequest(DocumentLanguage.EN, "Hello")));
+        UUID icpId = UUID.randomUUID();
+        CampaignCreateRequest request = new CampaignCreateRequest("De wacht", "Night watch", LocalDate.of(2026, 12, 1),
+                LocalDate.of(2026, 12, 31), ownerUserId, eventId, icpId);
 
         // Act
         Campaign campaign = mapper.toEntity(request);
 
         // Assert
-        assertThat(campaign.getName()).isEqualTo("IGEF");
-        assertThat(campaign.getChannel()).isEqualTo(CampaignChannel.X);
-        assertThat(campaign.getStatus()).isEqualTo(CampaignStatus.SCHEDULED);
-        assertThat(campaign.getPlannedAt()).isEqualTo(plannedAt);
-        assertThat(campaign.getPostUrl()).isEqualTo("https://x.com/korur/status/1");
+        assertThat(campaign.getName()).isEqualTo("De wacht");
+        assertThat(campaign.getDescription()).isEqualTo("Night watch");
+        assertThat(campaign.getStartDate()).isEqualTo(LocalDate.of(2026, 12, 1));
+        assertThat(campaign.getEndDate()).isEqualTo(LocalDate.of(2026, 12, 31));
         assertThat(campaign.getOwnerUserId()).isEqualTo(ownerUserId);
         assertThat(campaign.getEventId()).isEqualTo(eventId);
+        assertThat(campaign.getIcpId()).isEqualTo(icpId);
         assertThat(campaign.getOrganizationId()).isNull();
         assertThat(campaign.getId()).isNull();
     }
 
     @Test
-    void toContentEntity_leavesTheCampaignForTheService() {
-        CampaignContent content = mapper.toContentEntity(new CampaignContentRequest(DocumentLanguage.TR, "Merhaba"));
+    void updateEntity_clearsOptionalFieldsSentAsNull() {
+        // Arrange
+        UUID organizationId = UUID.randomUUID();
+        Campaign campaign = Campaign.builder().name("Old").description("Old text").startDate(LocalDate.of(2026, 1, 1))
+                .eventId(UUID.randomUUID()).organizationId(organizationId).build();
 
-        assertThat(content.getLanguage()).isEqualTo(DocumentLanguage.TR);
-        assertThat(content.getText()).isEqualTo("Merhaba");
-        assertThat(content.getCampaignId()).isNull();
+        // Act
+        mapper.updateEntity(campaign, new CampaignUpdateRequest("New", null, null, null, null, null, null));
+
+        // Assert
+        assertThat(campaign.getName()).isEqualTo("New");
+        assertThat(campaign.getDescription()).isNull();
+        assertThat(campaign.getStartDate()).isNull();
+        assertThat(campaign.getEventId()).isNull();
+        assertThat(campaign.getOrganizationId()).isEqualTo(organizationId);
     }
 
     @Test
     void toListResponse_takesIdAndNameFromTheCampaignNotTheOwner() {
         // Arrange
-        Campaign campaign = Campaign.builder().name("IGEF").channel(CampaignChannel.LINKEDIN)
-                .status(CampaignStatus.DRAFT).build();
+        Campaign campaign = Campaign.builder().name("De wacht").build();
         campaign.setId(UUID.randomUUID());
         CampaignOwnerResponse owner = new CampaignOwnerResponse(UUID.randomUUID(), "Jane Doe");
 
         // Act
-        CampaignListResponse result = mapper.toListResponse(campaign, owner, List.of(DocumentLanguage.NL));
+        CampaignListResponse result = mapper.toListResponse(campaign, owner, 3L);
 
         // Assert
         assertThat(result.id()).isEqualTo(campaign.getId());
-        assertThat(result.name()).isEqualTo("IGEF");
+        assertThat(result.name()).isEqualTo("De wacht");
         assertThat(result.owner()).isEqualTo(owner);
-        assertThat(result.languages()).containsExactly(DocumentLanguage.NL);
+        assertThat(result.contentCount()).isEqualTo(3L);
     }
 }

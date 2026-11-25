@@ -21,7 +21,7 @@ import com.korur.oba.shrine.identity.entity.User;
 public interface CampaignService {
 
     /**
-     * Creates a campaign with its texts.
+     * Creates a campaign without contents.
      *
      * @param organizationId the organization that owns the campaign
      * @param user           the authenticated user
@@ -31,8 +31,7 @@ public interface CampaignService {
     CampaignDetailResponse create(UUID organizationId, User user, CampaignCreateRequest request);
 
     /**
-     * Replaces every field of a campaign and its whole set of texts; null clears an optional
-     * field and a language left out deletes its text.
+     * Replaces every field of a campaign; null clears an optional field. The contents stay.
      *
      * @param organizationId the organization that owns the campaign
      * @param campaignId     the campaign identifier
@@ -42,8 +41,9 @@ public interface CampaignService {
     CampaignDetailResponse update(UUID organizationId, UUID campaignId, CampaignUpdateRequest request);
 
     /**
-     * Deletes a campaign; the database deletes its texts and clears the campaign link of every
-     * outreach and relation that pointed to it, and keeps them.
+     * Deletes a campaign; the database deletes its contents and clears the campaign link of
+     * every outreach and relation that pointed to it, and keeps them. The images of the
+     * contents are removed too.
      *
      * @param organizationId the organization that owns the campaign
      * @param campaignId     the campaign identifier

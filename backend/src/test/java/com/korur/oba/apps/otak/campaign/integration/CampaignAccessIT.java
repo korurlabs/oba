@@ -36,7 +36,7 @@ class CampaignAccessIT extends AbstractOtakDocumentsIT {
     private String name;
 
     static String body(String name) {
-        return "{\"name\":\"" + name + "\",\"channel\":\"LINKEDIN\",\"contents\":[{\"language\":\"NL\",\"text\":\"Tekst\"}]}";
+        return "{\"name\":\"" + name + "\",\"description\":\"Night watch\"}";
     }
 
     @BeforeEach
@@ -61,20 +61,18 @@ class CampaignAccessIT extends AbstractOtakDocumentsIT {
         mockMvc.perform(in(tenant, get(CAMPAIGNS_PATH), member.jwt(), null)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.length()").value(1))
                 .andExpect(jsonPath("$.data[0].id").value(campaignId))
-                .andExpect(jsonPath("$.data[0].status").value("DRAFT"));
+                .andExpect(jsonPath("$.data[0].contentCount").value(0));
         mockMvc.perform(in(tenant, get(CAMPAIGNS_PATH + "/" + campaignId), member.jwt(), null))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.name").value(name))
-                .andExpect(jsonPath("$.data.contents[0].language").value("NL"));
+                .andExpect(jsonPath("$.data.description").value("Night watch"));
         mockMvc.perform(in(tenant, post(CAMPAIGNS_PATH), member.jwt(), body("Second " + uniqueSuffix())))
                 .andExpect(status().isCreated());
         mockMvc.perform(in(tenant, put(CAMPAIGNS_PATH + "/" + campaignId), member.jwt(),
-                "{\"name\":\"Renamed\",\"channel\":\"X\",\"status\":\"ARCHIVED\"}"))
-                .andExpect(status().isOk()).andExpect(jsonPath("$.data.status").value("ARCHIVED"));
+                "{\"name\":\"Renamed\",\"startDate\":\"2026-12-01\",\"endDate\":\"2026-12-31\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.data.endDate").value("2026-12-31"));
 
         assertThat(count("SELECT count(*) FROM otak.campaigns WHERE id = ?::uuid AND name = 'Renamed' "
-                + "AND channel::text = 'X'", campaignId)).isEqualTo(1L);
-        assertThat(count("SELECT count(*) FROM otak.campaign_contents WHERE campaign_id = ?::uuid", campaignId))
-                .isZero();
+                + "AND description IS NULL AND start_date = DATE '2026-12-01'", campaignId)).isEqualTo(1L);
     }
 
     @Test
@@ -85,7 +83,7 @@ class CampaignAccessIT extends AbstractOtakDocumentsIT {
         mockMvc.perform(in(tenant, post(CAMPAIGNS_PATH), guest.jwt(), body("By guest")))
                 .andExpect(status().isForbidden());
         mockMvc.perform(in(tenant, put(CAMPAIGNS_PATH + "/" + campaignId), guest.jwt(),
-                "{\"name\":\"Hijacked\",\"channel\":\"X\",\"status\":\"DRAFT\"}")).andExpect(status().isForbidden());
+                "{\"name\":\"Hijacked\"}")).andExpect(status().isForbidden());
         mockMvc.perform(in(tenant, delete(CAMPAIGNS_PATH + "/" + campaignId), guest.jwt(), null))
                 .andExpect(status().isForbidden());
 
@@ -117,7 +115,7 @@ class CampaignAccessIT extends AbstractOtakDocumentsIT {
         mockMvc.perform(in(otherTenant, get(CAMPAIGNS_PATH + "/" + campaignId), otherAdmin.jwt(), null))
                 .andExpect(status().isNotFound()).andExpect(jsonPath("$.error.code").value("OTK_NOT_012"));
         mockMvc.perform(in(otherTenant, put(CAMPAIGNS_PATH + "/" + campaignId), otherAdmin.jwt(),
-                "{\"name\":\"Hijacked\",\"channel\":\"X\",\"status\":\"DRAFT\"}")).andExpect(status().isNotFound());
+                "{\"name\":\"Hijacked\"}")).andExpect(status().isNotFound());
         mockMvc.perform(in(otherTenant, delete(CAMPAIGNS_PATH + "/" + campaignId), otherAdmin.jwt(), null))
                 .andExpect(status().isNotFound());
 

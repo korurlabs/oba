@@ -4,52 +4,36 @@ package com.korur.oba.apps.otak.campaign.dto.request;
 
 // 2. Third-party
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 
 // 3. Java SDK
-import java.time.Instant;
-import java.util.List;
+import java.time.LocalDate;
 import java.util.UUID;
 
 // 4. Internal
 import com.korur.oba.apps.otak.campaign.constant.CampaignConstant;
-import com.korur.oba.apps.otak.campaign.enums.CampaignChannel;
-import com.korur.oba.apps.otak.campaign.enums.CampaignStatus;
-import com.korur.oba.apps.otak.relation.constant.RelationConstant;
-import com.korur.oba.dojo.annotation.NullOrNotBlank;
 
 /**
- * Request payload used to replace every field of a campaign and its whole set of texts, the
- * body of {@link com.korur.oba.apps.otak.campaign.controller.CampaignController#updateCampaign}.
+ * Request payload used to replace every field of a campaign, the body of
+ * {@link com.korur.oba.apps.otak.campaign.controller.CampaignController#updateCampaign}.
  * The campaign is read within the organization of the checked request header, so a campaign
  * of another organization answers not found,
  * {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#NOT_CAMPAIGN_FOUND}
  * (OTK_NOT_012, 404).
  *
- * A full update (PUT): every field is written, and null clears an optional one; a text whose
- * language is left out of contents is deleted. A client sends the whole campaign, not only
- * what changed.
+ * A full update (PUT): every field is written, and null clears an optional one. A client sends
+ * the whole campaign, not only what changed. The contents are not part of it.
  *
  * Field rules, checked by Bean Validation before the service runs (422 GEN_VAL_001): the
- * name and the channel are required; the post URL is null or a full http or https address,
- * never blank; each text has a language and a text that is not blank. The
- * moments are instants, sent with Z or an offset and stored in UTC.
+ * name is required and not blank; no field has a length limit. The dates are calendar days
+ * (YYYY-MM-DD) without a timezone.
  *
  * Rules that need several fields or the stored data are checked in
  * {@link com.korur.oba.apps.otak.campaign.service.impl.CampaignServiceImpl#update}:
  *
- * - {@link com.korur.oba.apps.otak.campaign.validator.CampaignValidator#ensureStatusDates}
- *   refuses a SCHEDULED campaign without plannedAt, and a DRAFT or SCHEDULED one with
- *   publishedAt,
- *   {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#VAL_CAMPAIGN_STATUS_DATES}
- *   (OTK_VAL_016, 422); a PUBLISHED campaign without publishedAt gets the server's now;
- * - {@link com.korur.oba.apps.otak.campaign.validator.CampaignValidator#ensureLanguagesDistinct}
- *   refuses two texts in one language,
- *   {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#VAL_CAMPAIGN_CONTENT_LANGUAGE_REPEATED}
+ * - {@link com.korur.oba.apps.otak.campaign.validator.CampaignValidator#ensureDateRange}
+ *   refuses an end date before the start date,
+ *   {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#VAL_CAMPAIGN_DATE_RANGE}
  *   (OTK_VAL_017, 422);
  * - {@link com.korur.oba.apps.otak.campaign.validator.CampaignValidator#ensureNameFree} refuses
  *   a name another campaign of the organization already has, case ignored,
@@ -63,51 +47,33 @@ import com.korur.oba.dojo.annotation.NullOrNotBlank;
  *
  * @param name        the campaign name, unique within the organization with case ignored;
  *                    required, stored trimmed
- * @param channel     the channel the campaign goes out on; required
- * @param status      the status; required, any status may follow any other
- * @param plannedAt   the moment the campaign is planned to go live; required while SCHEDULED
- * @param publishedAt the moment the campaign went live; none while DRAFT or SCHEDULED
- * @param postUrl     the address of the live post, or null
+ * @param description what the campaign is about, or null
+ * @param startDate   the first day of the campaign, or null
+ * @param endDate     the last day of the campaign, or null; not before the start date
  * @param ownerUserId the member who looks after the campaign, or null
  * @param eventId     the event of the organization the campaign belongs to, or null
  * @param icpId       the ICP of the organization the campaign is aimed at, or null
- * @param contents    the texts, at most one per language; null for none
  * @see CampaignCreateRequest
  */
-@Schema(description = "Campaign update request; replaces every field and the whole set of texts")
+@Schema(description = "Campaign update request; replaces every field")
 public record CampaignUpdateRequest(
 
         @Schema(description = "Name of the campaign, unique within the organization with case ignored",
-                requiredMode = Schema.RequiredMode.REQUIRED, example = "IGEF 2026 announcement")
+                requiredMode = Schema.RequiredMode.REQUIRED, example = "De wacht")
         @NotBlank(message = CampaignConstant.NAME_REQUIRED_MESSAGE)
-        @Size(max = CampaignConstant.NAME_MAX_LENGTH, message = CampaignConstant.NAME_SIZE_MESSAGE)
         String name,
 
-        @Schema(description = "Channel the campaign goes out on", requiredMode = Schema.RequiredMode.REQUIRED,
-                example = "LINKEDIN")
-        @NotNull(message = CampaignConstant.CHANNEL_REQUIRED_MESSAGE)
-        CampaignChannel channel,
+        @Schema(description = "What the campaign is about, plain text; null for none", nullable = true,
+                example = "Post about the night watch of a security operations centre")
+        String description,
 
-        @Schema(description = "Status of the campaign", requiredMode = Schema.RequiredMode.REQUIRED,
-                example = "SCHEDULED")
-        @NotNull(message = CampaignConstant.STATUS_REQUIRED_MESSAGE)
-        CampaignStatus status,
+        @Schema(description = "First day of the campaign (YYYY-MM-DD); null for none", nullable = true,
+                example = "2026-12-01")
+        LocalDate startDate,
 
-        @Schema(description = "Moment the campaign is planned to go live (ISO 8601 with Z or an offset); "
-                + "required while SCHEDULED", nullable = true, example = "2026-12-01T08:30:00Z")
-        Instant plannedAt,
-
-        @Schema(description = "Moment the campaign went live (ISO 8601 with Z or an offset); none while DRAFT or "
-                + "SCHEDULED, the server's now when PUBLISHED without one", nullable = true,
-                example = "2026-12-01T08:32:00Z")
-        Instant publishedAt,
-
-        @Schema(description = "Address of the live post, a full http or https address; null when there is none",
-                nullable = true, example = "https://www.linkedin.com/posts/korur_igef-2026")
-        @NullOrNotBlank(message = CampaignConstant.POST_URL_BLANK_MESSAGE)
-        @Size(max = CampaignConstant.POST_URL_MAX_LENGTH, message = CampaignConstant.POST_URL_SIZE_MESSAGE)
-        @Pattern(regexp = RelationConstant.WEBSITE_PATTERN, message = CampaignConstant.POST_URL_PATTERN_MESSAGE)
-        String postUrl,
+        @Schema(description = "Last day of the campaign (YYYY-MM-DD), not before the start date; null for none",
+                nullable = true, example = "2026-12-31")
+        LocalDate endDate,
 
         @Schema(description = "Member who looks after the campaign; null for none", nullable = true,
                 example = "4d5e6f7a-8b9c-4d0e-9f1a-2b3c4d5e6f7a")
@@ -119,10 +85,6 @@ public record CampaignUpdateRequest(
 
         @Schema(description = "ICP of the organization the campaign is aimed at; null for none", nullable = true,
                 example = "2b3c4d5e-6f7a-4b8c-9d0e-1f2a3b4c5d6e")
-        UUID icpId,
-
-        @Schema(description = "Texts of the campaign, at most one per language (NL, TR, EN); null for none",
-                nullable = true)
-        List<@NotNull(message = CampaignConstant.CONTENT_REQUIRED_MESSAGE) @Valid CampaignContentRequest> contents
+        UUID icpId
 ) {
 }
