@@ -62,8 +62,18 @@ public final class LessonConstant {
     public static final String BODY_SIZE_MESSAGE = "body must be 1 to 4000 characters";
 
     // --- Machine delivery ---
-    // Caps the titles of one session start, so the list stays cheap however many lessons exist.
+    // Caps the results of one search, so a broad search stays cheap however many lessons match.
     public static final int DELIVERY_ITEMS_MAX = 100;
+    // One page of titles at session start. The default is the cap, so a CLI that sends no paging
+    // still gets the newest 100 it always got.
+    public static final int DELIVERY_DEFAULT_AMOUNT = 100;
+    public static final int DELIVERY_MAX_AMOUNT = 100;
+    public static final String FIELD_ETAG = "etag";
+    // The ETag of the lessons, bare or quoted as the ETag header carries it.
+    public static final String ETAG_PATTERN = "[0-9a-f]{64}|\"[0-9a-f]{64}\"";
+    public static final String ETAG_QUOTE = "\"";
+    public static final String ETAG_INVALID_MESSAGE = "etag must be the ETag header of page 1";
+    public static final String ETAG_REQUIRED_MESSAGE = "etag is required from page 2 on";
     public static final int REMOTE_URL_MAX_LENGTH = 500;
     public static final String REMOTE_URL_REQUIRED_MESSAGE = "remoteUrl is required";
     public static final String REMOTE_URL_SIZE_MESSAGE = "Remote URL must not exceed 500 characters";

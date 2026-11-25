@@ -13,6 +13,7 @@ import java.util.UUID;
 // 4. Internal
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.apps.kaya.lesson.dto.derived.LessonDelivery;
+import com.korur.oba.apps.kaya.lesson.dto.request.LessonDeliveryQueryRequest;
 import com.korur.oba.apps.kaya.lesson.dto.request.LessonQueryRequest;
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDeliverySearchResponse;
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDetailResponse;
@@ -82,20 +83,29 @@ public interface LessonQueryService {
     Lesson getEntity(UUID organizationId, UUID lessonId);
 
     /**
-     * The titles a checkout reads at session start: those of its repository plus the
-     * organization-wide ones, newest first, at most 100, with the ETag of every applicable lesson.
-     * The ETag ignores since, so a CLI that asks with a newer since still gets 304.
+     * One page of the titles a checkout reads at session start: those of its repository plus the
+     * organization-wide ones, newest first with the id as tie-breaker, with the ETag of every
+     * applicable lesson. The ETag ignores since and the page, so a CLI that asks with a newer since
+     * still gets 304, and every page of one state of the lessons carries the same ETag.
+     *
+     * A CLI that reads several pages sends the ETag of page 1 with every later page. The ETag and
+     * the page come from one read, so a page whose ETag matches belongs to the same state as page
+     * 1; a set that changed in between is refused, so the CLI never stores pages of two states
+     * under one ETag.
      *
      * @param principal the machine token
-     * @param remoteUrl the checkout's git remote, raw; an unknown or unreadable one gives the
-     *                  organization-wide lessons only
-     * @param since     an ISO-8601 instant, or null; a lesson created or updated after it is marked
-     *                  changed
-     * @return the titles and the ETag
+     * @param request   the checkout's git remote, raw (an unknown or unreadable one gives the
+     *                  organization-wide lessons only); since, an ISO-8601 instant or null, after
+     *                  which a created or updated lesson is marked changed; the page (1-based) and
+     *                  amount (100 by default and at most); and etag, the ETag of page 1, required
+     *                  from page 2 on
+     * @return the page and the ETag
      * @throws com.korur.oba.dojo.exception.internal.business.ValidationException GEN_VAL_001 for an
-     *         unreadable since, KAY_VAL_002 for an archived repository
+     *         unreadable since or a later page without etag, KAY_VAL_002 for an archived repository
+     * @throws com.korur.oba.dojo.exception.internal.business.ConflictException KAY_VAL_017 when etag
+     *         no longer names the lessons
      */
-    LessonDelivery listForCheckout(MachinePrincipal principal, String remoteUrl, String since);
+    LessonDelivery listForCheckout(MachinePrincipal principal, LessonDeliveryQueryRequest request);
 
     /**
      * Searches the lessons of a checkout by title and text, newest first, at most 100.

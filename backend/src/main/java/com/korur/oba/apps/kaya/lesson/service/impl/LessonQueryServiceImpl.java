@@ -2,6 +2,7 @@ package com.korur.oba.apps.kaya.lesson.service.impl;
 
 // 1. Framework-level
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 // 4. Internal
 import com.korur.oba.apps.kaya.core.exception.enums.ExceptionDomainKayaError;
 import com.korur.oba.dojo.exception.enums.ExceptionValidationError;
+import com.korur.oba.dojo.exception.internal.business.ConflictException;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
 import com.korur.oba.dojo.exception.internal.business.ValidationException;
 import com.korur.oba.dojo.logging.enums.LogLayer;
@@ -39,6 +41,7 @@ import com.korur.oba.apps.kaya.lesson.constant.LessonConstant;
 import com.korur.oba.apps.kaya.lesson.constant.service.LessonServiceLogConstant;
 import com.korur.oba.apps.kaya.lesson.dto.derived.LessonDelivery;
 import com.korur.oba.apps.kaya.lesson.dto.projection.LessonDeliveryProjection;
+import com.korur.oba.apps.kaya.lesson.dto.request.LessonDeliveryQueryRequest;
 import com.korur.oba.apps.kaya.lesson.dto.request.LessonQueryRequest;
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDeliveryResponse;
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDeliverySearchResponse;
@@ -139,22 +142,33 @@ public class LessonQueryServiceImpl implements LessonQueryService {
     }
 
     @Override
-    public LessonDelivery listForCheckout(MachinePrincipal principal, String remoteUrl, String since) {
+    public LessonDelivery listForCheckout(MachinePrincipal principal, LessonDeliveryQueryRequest request) {
         UUID organizationId = principal.organizationId();
-        Instant seenAt = parseSince(principal, since);
-        Optional<RepositoryResponse> repository = findCheckoutRepository(organizationId, remoteUrl);
+        Instant seenAt = parseSince(principal, request.getSince());
+        requireEtagAfterFirstPage(principal, request);
+        Optional<RepositoryResponse> repository = findCheckoutRepository(organizationId, request.getRemoteUrl());
         UUID repositoryId = repository.map(RepositoryResponse::id).orElse(null);
         String repositoryName = repository.map(RepositoryResponse::name).orElse(null);
         loggingService.debug(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.READING_DELIVERY, repositoryId, organizationId);
 
         List<LessonDeliveryProjection> applicable = lessonRepository.findDeliveryLessons(organizationId, repositoryId);
+        String etag = LessonEtagHelper.etagOf(applicable);
+        if (request.getEtag() != null && !LessonEtagHelper.matches(request.getEtag(), etag)) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_LESSONS_CHANGED,
+                    repositoryId, organizationId, request.getPage(), principal.machineId());
+            throw new ConflictException(ExceptionDomainKayaError.VAL_LESSONS_CHANGED);
+        }
+        // Paged in memory over the read the ETag was computed from, so a page and its ETag always
+        // describe the same state of the lessons.
+        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getAmount(), NEWEST_FIRST);
         List<LessonDeliveryResponse> lessons = applicable.stream()
-                .limit(LessonConstant.DELIVERY_ITEMS_MAX)
+                .skip(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .map(lesson -> lessonMapper.toDeliveryResponse(lesson,
                         lesson.getRepositoryId() == null ? null : repositoryName,
                         seenAt != null && lesson.getUpdatedAt().isAfter(seenAt)))
                 .toList();
-        return lessonMapper.toDelivery(lessons, LessonEtagHelper.etagOf(applicable));
+        return lessonMapper.toDelivery(new PageImpl<>(lessons, pageable, applicable.size()), etag);
     }
 
     @Override
@@ -216,6 +230,19 @@ public class LessonQueryServiceImpl implements LessonQueryService {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_SINCE_INVALID, principal.machineId());
             throw new ValidationException(ExceptionValidationError.VALIDATION,
                     Map.of(LessonConstant.FIELD_SINCE, LessonConstant.SINCE_INVALID_MESSAGE));
+        }
+    }
+
+    /**
+     * Refuses a page after the first without the ETag of page 1: without it a change between the
+     * requests would go unnoticed, and the CLI would store pages of two states of the lessons.
+     */
+    private void requireEtagAfterFirstPage(MachinePrincipal principal, LessonDeliveryQueryRequest request) {
+        if (request.getPage() > 1 && request.getEtag() == null) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_ETAG_MISSING,
+                    request.getPage(), principal.machineId());
+            throw new ValidationException(ExceptionValidationError.VALIDATION,
+                    Map.of(LessonConstant.FIELD_ETAG, LessonConstant.ETAG_REQUIRED_MESSAGE));
         }
     }
 

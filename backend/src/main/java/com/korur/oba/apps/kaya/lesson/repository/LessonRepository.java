@@ -32,9 +32,9 @@ public interface LessonRepository extends JpaRepository<Lesson, UUID>, JpaSpecif
     List<UUID> findDistinctUserIds(@Param("organizationId") UUID organizationId);
 
     /**
-     * Every lesson a checkout reads, newest first and without its body, so that the text of each
-     * lesson never travels at session start. Not capped: the ETag covers all of them, and one read
-     * keeps the ETag and the delivered titles the same state.
+     * Every lesson a checkout reads, newest first with the id as tie-breaker and without its body,
+     * so that the text of each lesson never travels at session start. Not paged here: the ETag
+     * covers all of them, and one read keeps the ETag and the delivered page the same state.
      *
      * @param organizationId the organization of the machine token
      * @param repositoryId   the repository of the checkout, or null when the remote is unknown

@@ -70,24 +70,35 @@ public class LessonDeliveryController {
     /**
      * Answers 304 when the CLI's If-None-Match already names the current lessons, so an unchanged
      * session start downloads nothing.
+     *
+     * Paged, but every page carries the ETag of all applicable lessons: the CLI sends it in
+     * If-None-Match with page 1 to skip every page while nothing changed, and with etag on each later
+     * page, which answers 409 KAY_VAL_017 once the lessons changed after page 1. The CLI then starts
+     * again at page 1, so it never stores pages of two states under one ETag. A request without
+     * paging gets page 1 of 100, the newest 100, in the shape of the unpaged list plus pagination.
      */
     @GetMapping
     @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "List the lessons of a checkout",
             description = "Bearer machine token. The titles of the lessons of the checkout's repository plus the "
-                    + "organization-wide ones, newest first, at most 100; an unknown or unreadable remote gives the "
-                    + "organization-wide ones only. The ETag covers every applicable lesson, also past the 100, and "
-                    + "ignores since; send it back in If-None-Match to get 304 while nothing changed")
+                    + "organization-wide ones, newest first; an unknown or unreadable remote gives the organization-wide "
+                    + "ones only. Paged, 100 by default and 100 at most; pagination.last marks the last page. The ETag "
+                    + "covers every applicable lesson, on every page the same, and ignores since and the page; send it "
+                    + "back in If-None-Match with page 1 to get 304 while nothing changed, and as etag with every later "
+                    + "page to get 409 KAY_VAL_017 once the lessons changed after page 1")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "The lessons, possibly none"),
+            @ApiResponse(responseCode = "200", description = "One page of the lessons, possibly empty"),
             @ApiResponse(responseCode = "304", description = "If-None-Match matches the current ETag; no body"),
             @ApiResponse(responseCode = "401", description = "KAY_SEC_003: token missing, unknown, revoked or expired, "
                     + "or machine retired"),
             @ApiResponse(responseCode = "403", description = "GEN_SEC_002: the user is not ACTIVE; ORG_SEC_001: not a "
                     + "member, or the membership is not ACTIVE; ORG_SEC_005: the organization is not ACTIVE; ORG_SEC_003: "
                     + "the user is a GUEST; APP_SEC_001: the user has no Kaya access"),
+            @ApiResponse(responseCode = "409", description = "KAY_VAL_017: etag no longer names the lessons; read them "
+                    + "again from page 1"),
             @ApiResponse(responseCode = "422", description = "KAY_VAL_002: repository archived; GEN_VAL_001: remoteUrl "
-                    + "missing or too long, since unreadable"),
+                    + "missing or too long, since unreadable, page or amount out of range, etag malformed or missing "
+                    + "from page 2 on"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<CustomResponse<List<LessonDeliveryResponse>>> getLessons(
@@ -96,7 +107,7 @@ public class LessonDeliveryController {
             @Parameter(hidden = true) WebRequest webRequest) {
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, LessonControllerLogConstant.DELIVERY_LIST_REQUEST,
                 principal.machineId());
-        LessonDelivery delivery = lessonQueryService.listForCheckout(principal, request.getRemoteUrl(), request.getSince());
+        LessonDelivery delivery = lessonQueryService.listForCheckout(principal, request);
         // checkNotModified sets the ETag header and, on a match, the 304 status; a null return
         // then sends no body.
         if (webRequest.checkNotModified(delivery.etag())) {
@@ -105,7 +116,8 @@ public class LessonDeliveryController {
             return null;
         }
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, LessonControllerLogConstant.DELIVERY_LIST_COMPLETED,
-                delivery.lessons().size(), principal.machineId());
+                delivery.lessons().getNumberOfElements(), request.getPage(), delivery.lessons().getTotalPages(),
+                principal.machineId());
         return ResponseUtil.ok(LessonControllerResponseConstant.RESPONSE_LESSONS_RETRIEVED, delivery.lessons());
     }
 

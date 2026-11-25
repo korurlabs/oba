@@ -6,8 +6,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+
+// 2. Third-party
+import com.jayway.jsonpath.JsonPath;
 
 // 3. Java SDK
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -31,6 +38,10 @@ class LessonDeliveryIT extends AbstractLessonIT {
     private static final String DELIVERY = "/kaya/delivery/lessons";
     private static final String ERROR_CODE = "$.error.code";
     private static final String REMOTE_URL = "remoteUrl";
+    private static final String PAGE = "page";
+    private static final String AMOUNT = "amount";
+    private static final String ETAG = "etag";
+    private static final String LESSONS_CHANGED = "KAY_VAL_017";
 
     private String etagOf(Fixture fixture, String token) throws Exception {
         MvcResult result = machine(token, get(DELIVERY).param(REMOTE_URL, fixture.remote()))
@@ -43,6 +54,33 @@ class LessonDeliveryIT extends AbstractLessonIT {
 
     private long rows(String lessonId) {
         return count("SELECT count(*) FROM kaya.lessons WHERE id = ?::uuid", lessonId);
+    }
+
+    /**
+     * Inserts organization-wide lessons titled "bulk 1" to "bulk n", created minutesApart minutes
+     * apart, so 0 gives them all one creation time.
+     */
+    private void insertBulk(Fixture fixture, int lessons, int minutesApart) {
+        jdbcTemplate.update("""
+                INSERT INTO kaya.lessons (title, body, organization_id, user_id, created_at, updated_at)
+                SELECT 'bulk ' || n, 'body', ?, ?, TIMESTAMPTZ '2026-09-01' + n * ?::int * INTERVAL '1 minute',
+                       TIMESTAMPTZ '2026-09-01'
+                FROM generate_series(1, ?::int) AS n
+                """, fixture.tenant().organization().getId(), fixture.ada().user().getId(), minutesApart, lessons);
+    }
+
+    private static MockHttpServletRequestBuilder pageOf(Fixture fixture, int page, String etag) {
+        MockHttpServletRequestBuilder request = get(DELIVERY).param(REMOTE_URL, fixture.remote())
+                .param(PAGE, String.valueOf(page));
+        return etag == null ? request : request.param(ETAG, etag);
+    }
+
+    private MvcResult okPage(Fixture fixture, MockHttpServletRequestBuilder request) throws Exception {
+        return machine(fixture.adaMachine().token(), request).andExpect(status().isOk()).andReturn();
+    }
+
+    private static List<String> idsOf(MvcResult result) throws Exception {
+        return JsonPath.read(result.getResponse().getContentAsString(), "$.data[*].id");
     }
 
     @Nested
@@ -233,19 +271,26 @@ class LessonDeliveryIT extends AbstractLessonIT {
         }
 
         @Test
-        void getLessons_past100_capsTheListButStillTracksEveryLesson() throws Exception {
+        void getLessons_withoutPaging_returnsTheNewest100AndStillTracksEveryLesson() throws Exception {
             Fixture fixture = newFixture();
-            jdbcTemplate.update("""
-                    INSERT INTO kaya.lessons (title, body, organization_id, user_id, created_at, updated_at)
-                    SELECT 'bulk ' || n, 'body', ?, ?, TIMESTAMPTZ '2026-09-01' + n * INTERVAL '1 minute', TIMESTAMPTZ '2026-09-01'
-                    FROM generate_series(1, 105) AS n
-                    """, fixture.tenant().organization().getId(), fixture.ada().user().getId());
+            insertBulk(fixture, 105, 1);
             String token = fixture.adaMachine().token();
             String before = etagOf(fixture, token);
-            machine(token, get(DELIVERY).param(REMOTE_URL, fixture.remote()))
-                    .andExpect(jsonPath("$.data.length()").value(100));
 
-            jdbcTemplate.update("UPDATE kaya.lessons SET updated_at = TIMESTAMPTZ '2026-09-02' WHERE title = 'bulk 1'");
+            // The request of the CLIs released before paging: remoteUrl only, data read as a list.
+            machine(token, get(DELIVERY).param(REMOTE_URL, fixture.remote()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.length()").value(100))
+                    .andExpect(jsonPath("$.data[0].title").value("bulk 105"))
+                    .andExpect(jsonPath("$.data[99].title").value("bulk 6"))
+                    .andExpect(jsonPath("$.pagination.totalElements").value(105))
+                    .andExpect(jsonPath("$.pagination.last").value(false));
+            machine(token, get(DELIVERY).param(REMOTE_URL, fixture.remote()).header(HttpHeaders.IF_NONE_MATCH, before))
+                    .andExpect(status().isNotModified());
+
+            jdbcTemplate.update("UPDATE kaya.lessons SET updated_at = TIMESTAMPTZ '2026-09-02' "
+                    + "WHERE organization_id = ? AND title = 'bulk 1'", fixture.tenant().organization().getId());
 
             assertNotEquals(before, etagOf(fixture, token));
         }
@@ -318,6 +363,130 @@ class LessonDeliveryIT extends AbstractLessonIT {
 
             machine(fixture.adaMachine().token(), get(DELIVERY).param(REMOTE_URL, fixture.remote()))
                     .andExpect(jsonPath("$.data.length()").value(0));
+        }
+    }
+
+    @Nested
+    class Paging {
+
+        @Test
+        void getLessons_pages_deliverEveryLessonOnceInOrderWithOneEtag() throws Exception {
+            Fixture fixture = newFixture();
+            // One creation time for every lesson, so only the id tie-breaker keeps the pages apart.
+            insertBulk(fixture, 205, 0);
+            insertLesson(fixture, fixture.ada(), "scoped", fixture.repositoryId(), "2026-09-01T00:00:00Z",
+                    "2026-09-01T00:00:00Z");
+
+            MvcResult first = okPage(fixture, pageOf(fixture, 1, null));
+            String etag = first.getResponse().getHeader(HttpHeaders.ETAG);
+            MvcResult second = okPage(fixture, pageOf(fixture, 2, etag));
+            MvcResult third = okPage(fixture, pageOf(fixture, 3, etag));
+            MvcResult beyond = okPage(fixture, pageOf(fixture, 4, etag));
+
+            List<String> delivered = new ArrayList<>(idsOf(first));
+            delivered.addAll(idsOf(second));
+            delivered.addAll(idsOf(third));
+            List<String> expected = jdbcTemplate.queryForList(
+                    "SELECT id::text FROM kaya.lessons WHERE organization_id = ? ORDER BY created_at DESC, id DESC",
+                    String.class, fixture.tenant().organization().getId());
+            assertEquals(206, expected.size());
+            assertEquals(expected, delivered);
+            assertEquals(206, new HashSet<>(delivered).size());
+            assertEquals(List.of(100, 100, 6), List.of(idsOf(first).size(), idsOf(second).size(), idsOf(third).size()));
+            assertEquals(etag, second.getResponse().getHeader(HttpHeaders.ETAG));
+            assertEquals(etag, third.getResponse().getHeader(HttpHeaders.ETAG));
+            assertEquals(etag, beyond.getResponse().getHeader(HttpHeaders.ETAG));
+            assertEquals(etag, etagOf(fixture, fixture.adaMachine().token()));
+
+            assertEquals("206", read(first, "$.pagination.totalElements"));
+            assertEquals("3", read(first, "$.pagination.totalPages"));
+            assertEquals("1", read(first, "$.pagination.currentPage"));
+            assertEquals("100", read(first, "$.pagination.pageSize"));
+            assertEquals("false", read(first, "$.pagination.last"));
+            assertEquals("3", read(third, "$.pagination.currentPage"));
+            assertEquals("true", read(third, "$.pagination.last"));
+            assertEquals("true", read(beyond, "$.pagination.empty"));
+            assertEquals(0, idsOf(beyond).size());
+        }
+
+        @Test
+        void getLessons_amount_setsThePageSize() throws Exception {
+            Fixture fixture = newFixture();
+            insertBulk(fixture, 5, 1);
+
+            MvcResult first = okPage(fixture, pageOf(fixture, 1, null).param(AMOUNT, "2"));
+            MvcResult last = okPage(fixture, pageOf(fixture, 3, first.getResponse().getHeader(HttpHeaders.ETAG))
+                    .param(AMOUNT, "2"));
+
+            assertEquals(List.of("bulk 5", "bulk 4"),
+                    JsonPath.read(first.getResponse().getContentAsString(), "$.data[*].title"));
+            assertEquals(List.of("bulk 1"), JsonPath.read(last.getResponse().getContentAsString(), "$.data[*].title"));
+            assertEquals("3", read(first, "$.pagination.totalPages"));
+            assertEquals("true", read(last, "$.pagination.last"));
+        }
+
+        @Test
+        void getLessons_lessonsChangedAfterPage1_laterPageAnswers409UntilPage1IsReadAgain() throws Exception {
+            Fixture fixture = newFixture();
+            String token = fixture.adaMachine().token();
+            insertBulk(fixture, 150, 1);
+            String etag = okPage(fixture, pageOf(fixture, 1, null)).getResponse().getHeader(HttpHeaders.ETAG);
+
+            createLesson(fixture, fixture.ada().jwt(), "Added between pages", null);
+
+            machine(token, pageOf(fixture, 2, etag))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath(ERROR_CODE).value(LESSONS_CHANGED));
+            String fresh = okPage(fixture, pageOf(fixture, 1, null)).getResponse().getHeader(HttpHeaders.ETAG);
+            assertNotEquals(etag, fresh);
+            machine(token, pageOf(fixture, 2, fresh))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(51));
+
+            jdbcTemplate.update("UPDATE kaya.lessons SET updated_at = TIMESTAMPTZ '2026-09-02' "
+                    + "WHERE organization_id = ? AND title = 'bulk 1'", fixture.tenant().organization().getId());
+
+            machine(token, pageOf(fixture, 2, fresh))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath(ERROR_CODE).value(LESSONS_CHANGED));
+        }
+
+        @Test
+        void getLessons_etagQuotedOrBare_isAccepted() throws Exception {
+            Fixture fixture = newFixture();
+            insertBulk(fixture, 3, 1);
+            String quoted = okPage(fixture, pageOf(fixture, 1, null)).getResponse().getHeader(HttpHeaders.ETAG);
+            String bare = quoted.substring(1, quoted.length() - 1);
+
+            machine(fixture.adaMachine().token(), pageOf(fixture, 2, quoted).param(AMOUNT, "2"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(1));
+            machine(fixture.adaMachine().token(), pageOf(fixture, 2, bare).param(AMOUNT, "2"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(1));
+        }
+
+        @Test
+        void getLessons_laterPageWithoutEtagOrPagingOutOfRange_returns422() throws Exception {
+            Fixture fixture = newFixture();
+            String token = fixture.adaMachine().token();
+
+            machine(token, pageOf(fixture, 2, null))
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath(ERROR_CODE).value("GEN_VAL_001"))
+                    .andExpect(jsonPath("$.error.errorValues.etag").exists());
+            machine(token, pageOf(fixture, 2, "\"stale\""))
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.error.errorValues.etag").exists());
+            machine(token, pageOf(fixture, 0, null))
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.error.errorValues.page").exists());
+            machine(token, pageOf(fixture, 1, null).param(AMOUNT, "101"))
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.error.errorValues.amount").exists());
+            machine(token, pageOf(fixture, 1, null).param(AMOUNT, "0"))
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.error.errorValues.amount").exists());
         }
     }
 

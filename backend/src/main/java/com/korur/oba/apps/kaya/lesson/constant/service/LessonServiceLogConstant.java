@@ -36,4 +36,7 @@ public final class LessonServiceLogConstant {
     public static final String SEARCHING_DELIVERY = "Searching the lessons of repository {} of organization {} for delivery";
     public static final String DELIVERY_REPOSITORY_UNKNOWN = "No repository of organization {} has the remote of the request";
     public static final String DELIVERY_SINCE_INVALID = "Refused an unreadable since from machine {}";
+    public static final String DELIVERY_ETAG_MISSING = "Refused page {} without the ETag of page 1 from machine {}";
+    public static final String DELIVERY_LESSONS_CHANGED =
+            "The lessons of repository {} of organization {} changed before page {} of machine {}";
 }
