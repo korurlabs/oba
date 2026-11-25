@@ -61,8 +61,6 @@ public class IngestController {
                     + "is invalid; KAY_VAL_014: no events and no usage; GEN_API_001: remote URL not accepted"),
             @ApiResponse(responseCode = "401", description = "KAY_SEC_003: token missing, unknown, revoked or expired, "
                     + "or machine retired"),
-            @ApiResponse(responseCode = "403", description = "KAY_SEC_007: no user of the organization holds the "
-                    + "git email of the batch; nothing is stored"),
             @ApiResponse(responseCode = "409", description = "KAY_VAL_001: session of another user"),
             @ApiResponse(responseCode = "413", description = "KAY_VAL_012: body over 8 MiB"),
             @ApiResponse(responseCode = "422", description = "KAY_VAL_002: repository archived; GEN_VAL_001: a field "

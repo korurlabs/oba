@@ -4,11 +4,11 @@ import { describeError } from "./error-text";
 import { KayaApiError } from "./errors";
 
 describe("describeError", () => {
-  test("tells how to unblock a recorder whose git email no user holds", () => {
-    const error = new KayaApiError("x", 403, "KAY_SEC_007", { gitAuthorEmail: "ada@example.com" });
-    expect(describeError(error)).toBe(
-      "This git email belongs to no member of the organization. Commit with the email you sign in with, or ask an admin."
-    );
+  test("the retired git email refusal falls back to the server's message", () => {
+    const error = new KayaApiError("Server words", 403, "KAY_SEC_007", {
+      gitAuthorEmail: "ada@example.com",
+    });
+    expect(describeError(error)).toBe("Server words");
   });
 
   test("adds the field messages of a validation refusal", () => {

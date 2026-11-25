@@ -25,7 +25,7 @@ public enum InvitationStatus {
     DECLINED,
 
     /**
-     * Invitation has been revoked by an admin.
+     * Invitation has been revoked by an admin, or because its organization was deleted.
      */
     REVOKED
 }

@@ -26,13 +26,13 @@ public interface InvitationQueryService {
     List<InvitationResponse> listPendingInvitations(User user, UUID organizationId);
 
     /**
-     * Lists pending invitations for a user by email, filtering out expired ones.
-     * Used by GET /users/me to include pending invitations in the response.
+     * Lists pending invitations for a user by email, filtering out expired ones and those of deleted
+     * organizations. Used by GET /users/me to include pending invitations in the response.
      */
     List<InvitationResponse> listPendingInvitationsByEmail(String email);
 
     /**
-     * Finds all pending invitations by email (raw entities).
+     * Finds all pending invitations by email (raw entities), leaving out those of deleted organizations.
      */
     List<Invitation> findPendingByEmail(String email);
 }

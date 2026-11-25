@@ -119,7 +119,7 @@ public class InvitationServiceImpl implements InvitationService {
         loggingService.observe(LOG_PREFIX, LogLayer.SERVICE,
                 InvitationServiceLogConstant.INVITATION_REVOKING, invitationId);
 
-        Invitation invitation = invitationRepository.findById(invitationId)
+        Invitation invitation = invitationRepository.findByIdInLiveOrganization(invitationId)
                 .orElseThrow(() -> new NotFoundException(ExceptionDomainInvitationError.NOT_INVITATION_FOUND,
                         Map.of(InvitationConstant.FIELD_INVITATION_ID, invitationId.toString())));
 
@@ -144,8 +144,8 @@ public class InvitationServiceImpl implements InvitationService {
                 InvitationServiceLogConstant.INVITATION_DECISION_PROCESSING,
                 request.invitationId(), request.decision());
 
-        // Find invitation
-        Invitation invitation = invitationRepository.findById(request.invitationId())
+        // Find invitation; one of a deleted organization is not found.
+        Invitation invitation = invitationRepository.findByIdInLiveOrganization(request.invitationId())
                 .orElseThrow(() -> new NotFoundException(ExceptionDomainInvitationError.NOT_INVITATION_FOUND,
                         Map.of(InvitationConstant.FIELD_INVITATION_ID, request.invitationId().toString())));
 
@@ -170,6 +170,15 @@ public class InvitationServiceImpl implements InvitationService {
         } else {
             return declineInvitation(invitation);
         }
+    }
+
+    @Override
+    @Transactional
+    public void revokePendingInvitationsOfOrganization(UUID organizationId) {
+        int revokedCount = invitationRepository.revokePendingByOrganizationId(organizationId, Instant.now());
+
+        loggingService.observe(LOG_PREFIX, LogLayer.SERVICE,
+                InvitationServiceLogConstant.ORGANIZATION_INVITATIONS_REVOKED, revokedCount, organizationId);
     }
 
     // ---- Private helpers ----
