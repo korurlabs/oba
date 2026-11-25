@@ -23,7 +23,11 @@ import { UserAvatar } from "@/components/ui/user-avatar";
 import { Input } from "@/components/ui/input";
 import { Crown, Shield, Edit, Eye, UserPlus, Pencil, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { devError } from "@oba/shared/helpers/dev-log";
 import { hasKazanAccess } from "@/lib/kazan-member-access";
+import { isAgent } from "@/lib/agent-member";
+import { AgentBadge } from "@/components/shared/agent-badge";
+import type { AgentProvider, AgentRole, UserKind } from "@oba/shared/features/users/schema";
 import {
   useAddBoardMember,
   useBoardMemberCandidates,
@@ -42,6 +46,15 @@ interface AddBoardMemberDialogProps {
   userId?: string | null;
 }
 
+interface SelectedUser {
+  id: string;
+  email: string;
+  name?: string;
+  kind: UserKind;
+  agentRole: AgentRole | null;
+  agentProvider: AgentProvider | null;
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────
 
 const ROLE_OPTIONS: { value: BoardMemberRole; icon: typeof Crown }[] = [
@@ -49,6 +62,9 @@ const ROLE_OPTIONS: { value: BoardMemberRole; icon: typeof Crown }[] = [
   { value: "MEMBER", icon: Edit },
   { value: "VIEWER", icon: Eye },
 ];
+
+/** The server refuses any board role but MEMBER for an agent, so only that one is offered. */
+const AGENT_ROLE_OPTIONS = ROLE_OPTIONS.filter((option) => option.value === "MEMBER");
 
 function candidateName(candidate: BoardMemberCandidateResponse): string {
   return `${candidate.firstName ?? ""} ${candidate.lastName ?? ""}`.trim();
@@ -122,27 +138,36 @@ export function AddBoardMemberDialog({
 
   // ── Handlers ───────────────────────────────────────────────────────
   const handleSubmit = async () => {
-    if (isEditMode && userId) {
-      await updateMutation.mutateAsync({
-        boardId,
-        userId,
-        data: { role },
-      });
-    } else if (selectedUserId) {
-      await addMutation.mutateAsync({
-        boardId,
-        data: { userId: selectedUserId, role },
-      });
+    try {
+      if (isEditMode && userId) {
+        await updateMutation.mutateAsync({
+          boardId,
+          userId,
+          data: { role },
+        });
+      } else if (selectedUserId) {
+        await addMutation.mutateAsync({
+          boardId,
+          data: { userId: selectedUserId, role },
+        });
+      }
+      onOpenChange(false);
+    } catch (error) {
+      // The mutation's `onError` has already shown the reason in a toast; the
+      // dialog stays open so the admin can pick another role or member.
+      devError("Failed to save board member:", error);
     }
-    onOpenChange(false);
   };
 
-  const selectedUser = useMemo(() => {
+  const selectedUser = useMemo((): SelectedUser | null => {
     if (isEditMode && existingMember) {
       return {
         id: existingMember.userId,
         email: existingMember.email,
         name: `${existingMember.firstName} ${existingMember.lastName}`.trim(),
+        kind: existingMember.kind,
+        agentRole: existingMember.agentRole,
+        agentProvider: existingMember.agentProvider,
       };
     }
     if (!selectedUserId) return null;
@@ -152,8 +177,20 @@ export function AddBoardMemberDialog({
       id: candidate.userId,
       email: candidate.email,
       name: candidateName(candidate) || undefined,
+      kind: candidate.kind,
+      agentRole: candidate.agentRole,
+      agentProvider: candidate.agentProvider,
     };
   }, [isEditMode, existingMember, selectedUserId, candidatesResponse?.data]);
+
+  const selectedIsAgent = selectedUser !== null && isAgent(selectedUser);
+  const roleOptions = selectedIsAgent ? AGENT_ROLE_OPTIONS : ROLE_OPTIONS;
+
+  // Picking an agent pins the role to MEMBER, so a role chosen for a person
+  // before is never sent for the agent.
+  useEffect(() => {
+    if (selectedIsAgent) setRole("MEMBER");
+  }, [selectedIsAgent]);
 
   const canSubmit = isEditMode ? role !== existingMember?.role : !!selectedUserId;
 
@@ -183,14 +220,16 @@ export function AddBoardMemberDialog({
           {isEditMode ? (
             selectedUser && (
               <div className="flex items-center gap-3 rounded-lg border p-3">
-                <UserAvatar
-                  user={{ name: selectedUser.name, email: selectedUser.email }}
-                  size="md"
-                  showName={false}
-                />
-                <div>
-                  <div className="text-sm font-medium">
+                <UserAvatar user={selectedUser} size="md" showName={false} />
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-x-2 text-sm font-medium">
                     {selectedUser.name || selectedUser.email}
+                    {selectedIsAgent && (
+                      <AgentBadge
+                        agentRole={selectedUser.agentRole}
+                        agentProvider={selectedUser.agentProvider}
+                      />
+                    )}
                   </div>
                   <div className="text-muted-foreground text-xs">
                     {selectedUser.email} 
@@ -206,14 +245,16 @@ export function AddBoardMemberDialog({
               {selectedUser ? (
                 <div className="flex items-center justify-between rounded-lg border p-3">
                   <div className="flex items-center gap-3">
-                    <UserAvatar
-                      user={{ name: selectedUser.name, email: selectedUser.email }}
-                      size="md"
-                      showName={false}
-                    />
-                    <div>
-                      <div className="text-sm font-medium">
+                    <UserAvatar user={selectedUser} size="md" showName={false} />
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-x-2 text-sm font-medium">
                         {selectedUser.name || selectedUser.email}
+                        {selectedIsAgent && (
+                          <AgentBadge
+                            agentRole={selectedUser.agentRole}
+                            agentProvider={selectedUser.agentProvider}
+                          />
+                        )}
                       </div>
                       <div className="text-muted-foreground text-xs">
                         {selectedUser.email}
@@ -266,13 +307,24 @@ export function AddBoardMemberDialog({
                             onClick={() => setSelectedUserId(user.userId)}
                           >
                             <UserAvatar
-                              user={{ name: name || undefined, email: user.email }}
+                              user={{
+                                name: name || undefined,
+                                email: user.email,
+                                kind: user.kind,
+                                agentRole: user.agentRole,
+                              }}
                               size="sm"
                               showName={false}
                             />
                             <div className="min-w-0 flex-1">
-                              <div className="truncate text-sm font-medium">
-                                {name || user.email}
+                              <div className="flex min-w-0 items-center gap-2 text-sm font-medium">
+                                <span className="truncate">{name || user.email}</span>
+                                {isAgent(user) && (
+                                  <AgentBadge
+                                    agentRole={user.agentRole}
+                                    agentProvider={user.agentProvider}
+                                  />
+                                )}
                               </div>
                               {name && (
                                 <div className="text-muted-foreground truncate text-xs">
@@ -306,7 +358,7 @@ export function AddBoardMemberDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {ROLE_OPTIONS.map(({ value, icon: Icon }) => (
+                {roleOptions.map(({ value, icon: Icon }) => (
                   <SelectItem key={value} value={value}>
                     <div className="flex items-center gap-2">
                       <Icon className="h-4 w-4" />
@@ -316,6 +368,9 @@ export function AddBoardMemberDialog({
                 ))}
               </SelectContent>
             </Select>
+            {selectedIsAgent && (
+              <p className="text-muted-foreground text-xs">{t("kazan.agents.memberRoleOnly")}</p>
+            )}
           </div>
         </div>
 

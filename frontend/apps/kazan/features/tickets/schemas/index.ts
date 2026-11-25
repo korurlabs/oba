@@ -2,6 +2,7 @@ import { z } from "zod";
 import { type LabelResponse } from "@/features/labels/schemas";
 import { projectListResponseSchema, type ProjectListResponse } from "@/features/projects/schemas";
 import { MilestoneStatusSchema } from "@/features/milestones/schemas";
+import { userKindFieldsSchema } from "@oba/shared/features/users/schema";
 
 // ── Enum Schemas ───────────────────────────────────────────────────
 
@@ -267,6 +268,8 @@ export const ticketAssigneeResponseSchema = z.object({
   email: z.string(),
   firstName: z.string(),
   lastName: z.string(),
+  /** An assignee may be an agent; the ticket views mark it as one. */
+  ...userKindFieldsSchema.shape,
 });
 
 export const ticketReviewerResponseSchema = z.object({

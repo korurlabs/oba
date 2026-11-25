@@ -6,6 +6,8 @@ import { Pencil, Trash2, UserPlus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AddBoardMemberDialog } from "./add-board-member-dialog";
 import { BoardMemberRoleChip } from "./board-member-role-chip";
+import { AgentBadge } from "@/components/shared/agent-badge";
+import { isAgent } from "@/lib/agent-member";
 import { useTranslations } from "next-intl";
 import { useBoardMembers, useRemoveBoardMember } from "@/features/boards/hooks/use-board-members";
 import type { BoardMemberRole } from "../schemas";
@@ -29,10 +31,15 @@ export function BoardMembersList({ boardId, canManage }: BoardMembersListProps) 
       membersResponse?.data?.map((m) => ({
         userId: m.userId,
         role: m.role,
+        isAgent: isAgent(m),
+        agentRole: m.agentRole,
+        agentProvider: m.agentProvider,
         user: {
           name: `${m.firstName} ${m.lastName}`.trim() || undefined,
           email: m.email || undefined,
           avatar: null as string | null,
+          kind: m.kind,
+          agentRole: m.agentRole,
         },
       })) ?? [],
     [membersResponse]
@@ -64,8 +71,13 @@ export function BoardMembersList({ boardId, canManage }: BoardMembersListProps) 
             <div key={member.userId} className="flex items-center justify-between rounded-lg p-2">
               <div className="flex items-center gap-3">
                 <UserAvatar user={member.user} showName={false} size="md" />
-                <div>
-                  <div className="text-sm font-medium">{member.user.name ?? member.user.email}</div>
+                <div className="min-w-0">
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
+                    <span className="text-sm font-medium">{member.user.name ?? member.user.email}</span>
+                    {member.isAgent && (
+                      <AgentBadge agentRole={member.agentRole} agentProvider={member.agentProvider} />
+                    )}
+                  </div>
                   <div className="text-muted-foreground text-xs">{member.user.email}</div>
                 </div>
               </div>
@@ -73,14 +85,17 @@ export function BoardMembersList({ boardId, canManage }: BoardMembersListProps) 
                 <BoardMemberRoleChip role={member.role as BoardMemberRole} />
                 {canManage && member.role !== "OWNER" && (
                   <>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-muted-foreground hover:text-foreground h-8 w-8 p-0"
-                      onClick={() => setDialog({ type: "edit", userId: member.userId })}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                    {/* An agent's board role is always MEMBER, so it has no role to edit. */}
+                    {!member.isAgent && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-muted-foreground hover:text-foreground h-8 w-8 p-0"
+                        onClick={() => setDialog({ type: "edit", userId: member.userId })}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    )}
                     <Button
                       size="sm"
                       variant="ghost"

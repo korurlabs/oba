@@ -983,6 +983,22 @@
         "dependencyRemoved": "Afhankelijkheid verwijderd"
       }
     },
+    "agents": {
+      "badge": "Agent",
+      "roles": {
+        "CYBERSECURITY_ENGINEER": "Cybersecurity-engineer",
+        "SALES_ENGINEER": "Sales-engineer"
+      },
+      "memberRoleOnly": "Een agent kan alleen boardlid zijn met de rol Lid.",
+      "refusals": {
+        "boardRole": "Een agent kan op een board alleen de rol Lid hebben.",
+        "ticketReviewer": "Een agent kan nog geen tickets reviewen. Kies een persoon als reviewer.",
+        "ticketDone": "Een agent mag een ticket niet op Klaar zetten. Een persoon sluit het af.",
+        "ticketDelete": "Een agent mag geen ticket verwijderen.",
+        "targetRefused": "Deze wijziging geldt niet voor een agent. Beheer agents op de pagina Agents in Ulak.",
+        "actionRefused": "Een agent mag dit niet doen."
+      }
+    },
     "memberAccess": {
       "noAccess": "Geen toegang tot Kazan",
       "noAccessHint": "Geen toegang tot Kazan. Een eigenaar of beheerder kan Kazan toekennen in Ulak.",
