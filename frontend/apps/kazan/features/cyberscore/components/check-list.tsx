@@ -14,6 +14,7 @@ import { ArrowLeft, Info, ListChecks, Plus } from "lucide-react";
 import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
 import { useGetMe } from "@oba/shared/features/users/hooks/use-get-me";
 import { Link } from "@oba/shared/libs/i18n/navigation";
+import { ViewToggle } from "@/components/layout/view-toggle";
 import { Button } from "@/components/ui/button";
 import { InlineAlert } from "@/components/ui/inline-alert";
 import { PageHeader } from "@/components/ui/page-header";
@@ -25,11 +26,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { isOrganizationAdmin } from "@/features/updates/lib/organization-admin";
+import { cn } from "@/lib/utils";
 import { useChecks, useSetCheckOutcome, useSetCheckStatus } from "../hooks/use-checks";
 import {
+  CHECK_VIEWS,
   UNCATEGORIZED,
   useCheckFilterParams,
   type CheckCategoryFilter,
+  type CheckView,
 } from "../hooks/use-check-filter-params";
 import {
   CHECK_CATEGORIES,
@@ -44,6 +48,8 @@ import {
 import { CheckCard, CheckCardSkeleton } from "./check-card";
 import { CheckDeleteDialog } from "./check-delete-dialog";
 import { CheckDialog } from "./check-dialog";
+import { CheckKanban } from "./check-kanban";
+import { CheckTable } from "./check-table";
 import { CyberscoreLoadError } from "./cyberscore-load-error";
 
 /** The filters' value for "no narrowing"; a Select item cannot have an empty value. */
@@ -160,12 +166,90 @@ function CheckGroupSection({
   );
 }
 
+interface CheckViewsProps {
+  view: CheckView;
+  groups: CheckGroup[];
+  /** The filtered checks in the server's order, for the board. */
+  checks: Check[];
+  isLoading: boolean;
+  canManage: boolean;
+  savingCheckIds: ReadonlySet<string>;
+  emptyMessage: ReactNode;
+  onEdit: (check: Check) => void;
+  onDelete: (check: Check) => void;
+  onOutcomeChange: (check: Check, outcome: CheckOutcome) => void;
+  onStatusChange: (check: Check, status: CheckStatus) => Promise<unknown>;
+}
+
+/** The checks in the chosen view; with no check to show, every view shows the same empty state. */
+function CheckViews({
+  view,
+  groups,
+  checks,
+  isLoading,
+  canManage,
+  savingCheckIds,
+  emptyMessage,
+  onEdit,
+  onDelete,
+  onOutcomeChange,
+  onStatusChange,
+}: CheckViewsProps) {
+  if (!isLoading && checks.length === 0) return <>{emptyMessage}</>;
+  if (view === "list") {
+    return (
+      <CheckTable
+        groups={groups}
+        isLoading={isLoading}
+        canManage={canManage}
+        savingCheckIds={savingCheckIds}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onOutcomeChange={onOutcomeChange}
+        onStatusChange={onStatusChange}
+      />
+    );
+  }
+  if (view === "kanban") {
+    return (
+      <CheckKanban
+        checks={checks}
+        isLoading={isLoading}
+        canManage={canManage}
+        savingCheckIds={savingCheckIds}
+        onStatusChange={onStatusChange}
+      />
+    );
+  }
+  return (
+    <CheckGroups
+      groups={groups}
+      isLoading={isLoading}
+      emptyMessage={emptyMessage}
+      renderCheck={(check) => (
+        <CheckCard
+          key={check.id}
+          check={check}
+          canManage={canManage}
+          isSaving={savingCheckIds.has(check.id)}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onOutcomeChange={onOutcomeChange}
+          onStatusChange={onStatusChange}
+        />
+      )}
+    />
+  );
+}
+
 /**
- * The organization's checks as one card each, grouped by category under a
- * heading each, in the server's order (sort order, name) within a category.
- * Every member may read them; only an OWNER or ADMIN of the default
- * organization gets the add, edit, delete and outcome and status controls,
- * which the server enforces as well.
+ * The organization's checks in one of three views: a card each or a table row
+ * each, grouped by category under a heading each in the server's order (sort
+ * order, name) within a category, or a board with a column per status. The
+ * filters narrow every view alike. Every member may read the checks; only an
+ * OWNER or ADMIN of the default organization gets the add, edit, delete and
+ * outcome and status controls and may move a card on the board, which the
+ * server enforces as well.
  */
 export function CheckList() {
   const t = useTranslations("cyberscore");
@@ -176,15 +260,16 @@ export function CheckList() {
 
   const [filters, setFilters] = useCheckFilterParams();
   const status = filters.status ?? undefined;
-  const { category, search } = filters;
+  const { category, search, view } = filters;
   const isNarrowed = Boolean(status || category || search);
   const { data: checksResponse, isPending, isError, isFetching, refetch } = useChecks(status);
   const checks = useMemo((): Check[] => checksResponse?.data ?? [], [checksResponse?.data]);
 
-  const groups = useMemo(
-    () => groupChecksByCategory(filterChecks(checks, { category, search })),
+  const visibleChecks = useMemo(
+    () => filterChecks(checks, { category, search }),
     [checks, category, search]
   );
+  const groups = useMemo(() => groupChecksByCategory(visibleChecks), [visibleChecks]);
 
   const setOutcome = useSetCheckOutcome();
   const setStatus = useSetCheckStatus();
@@ -221,8 +306,11 @@ export function CheckList() {
     [trackSave, saveOutcome]
   );
   const handleStatusChange = useCallback(
-    (check: Check, nextStatus: CheckStatus) =>
-      trackSave(check.id, saveStatus({ checkId: check.id, status: nextStatus })),
+    (check: Check, nextStatus: CheckStatus) => {
+      const save = saveStatus({ checkId: check.id, status: nextStatus });
+      trackSave(check.id, save);
+      return save;
+    },
     [trackSave, saveStatus]
   );
 
@@ -236,6 +324,9 @@ export function CheckList() {
       category: parsed.success ? parsed.data : value === UNCATEGORIZED ? UNCATEGORIZED : null,
     });
   };
+  const handleViewChange = (next: CheckView) => {
+    void setFilters({ view: next });
+  };
   const handleSearchChange = (value: string | undefined) => {
     void setFilters({ search: value ?? null });
   };
@@ -247,8 +338,38 @@ export function CheckList() {
     void setFilters({ status: null, category: null, search: null });
   };
 
+  const emptyMessage = (
+    <div className="border-border flex flex-col items-center gap-2 border border-dashed px-4 py-12 text-center">
+      <span
+        aria-hidden
+        className="border-primary/40 text-primary mb-2 flex size-12 items-center justify-center border border-dashed"
+      >
+        <ListChecks className="size-6" />
+      </span>
+      <span className="text-foreground text-sm font-semibold">
+        {isNarrowed ? t("checks.emptyFiltered") : t("checks.empty")}
+      </span>
+      {isNarrowed ? (
+        <Button variant="outline" size="sm" className="mt-2" onClick={handleClearFilters}>
+          {t("checks.filter.clear")}
+        </Button>
+      ) : (
+        canManage && (
+          <span className="text-muted-foreground text-sm">{t("checks.emptyDescription")}</span>
+        )
+      )}
+    </div>
+  );
+
+  // The board needs every column side by side, so it takes the full width
+  // up to the sidebar; cards and rows read best at the compact width.
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
+    <div
+      className={cn(
+        "flex w-full flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8",
+        view !== "kanban" && "mx-auto max-w-6xl"
+      )}
+    >
       <Button variant="ghost" size="sm" className="-ml-2 gap-1.5 self-start" asChild>
         <Link href="/cyberscore">
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
@@ -258,6 +379,12 @@ export function CheckList() {
 
       <PageHeader title={t("checks.title")} description={t("checks.description")}>
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+          <ViewToggle<CheckView>
+            view={view}
+            onViewChange={handleViewChange}
+            modes={CHECK_VIEWS}
+            className="h-9"
+          />
           <SenseySearchInput
             value={search}
             onSearchChange={handleSearchChange}
@@ -315,45 +442,18 @@ export function CheckList() {
           onRetry={() => void refetch()}
         />
       ) : (
-        <CheckGroups
+        <CheckViews
+          view={view}
           groups={groups}
+          checks={visibleChecks}
           isLoading={isPending}
-          emptyMessage={
-            <div className="border-border flex flex-col items-center gap-2 border border-dashed px-4 py-12 text-center">
-              <span
-                aria-hidden
-                className="border-primary/40 text-primary mb-2 flex size-12 items-center justify-center border border-dashed"
-              >
-                <ListChecks className="size-6" />
-              </span>
-              <span className="text-foreground text-sm font-semibold">
-                {isNarrowed ? t("checks.emptyFiltered") : t("checks.empty")}
-              </span>
-              {isNarrowed ? (
-                <Button variant="outline" size="sm" className="mt-2" onClick={handleClearFilters}>
-                  {t("checks.filter.clear")}
-                </Button>
-              ) : (
-                canManage && (
-                  <span className="text-muted-foreground text-sm">
-                    {t("checks.emptyDescription")}
-                  </span>
-                )
-              )}
-            </div>
-          }
-          renderCheck={(check) => (
-            <CheckCard
-              key={check.id}
-              check={check}
-              canManage={canManage}
-              isSaving={savingCheckIds.has(check.id)}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onOutcomeChange={handleOutcomeChange}
-              onStatusChange={handleStatusChange}
-            />
-          )}
+          canManage={canManage}
+          savingCheckIds={savingCheckIds}
+          emptyMessage={emptyMessage}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onOutcomeChange={handleOutcomeChange}
+          onStatusChange={handleStatusChange}
         />
       )}
 

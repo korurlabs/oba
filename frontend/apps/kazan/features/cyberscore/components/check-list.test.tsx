@@ -26,7 +26,12 @@ function makeCheck(id: string, name: string, category: Check["category"]): Check
 
 const mfaCheck = makeCheck("c1", "MFA on admin accounts", "IDENTITY");
 let checks: Check[];
-let filters: { status: string | null; category: string | null; search: string | null };
+let filters: {
+  status: string | null;
+  category: string | null;
+  search: string | null;
+  view: "cards" | "list" | "kanban";
+};
 
 const actualGetMe = { ...(await import("@oba/shared/features/users/hooks/use-get-me")) };
 const actualChecks = { ...(await import("../hooks/use-checks")) };
@@ -98,7 +103,7 @@ function markup(): string {
 beforeEach(() => {
   role = "MEMBER";
   checks = [mfaCheck];
-  filters = { status: null, category: null, search: null };
+  filters = { status: null, category: null, search: null, view: "cards" };
 });
 
 describe("CheckList write controls", () => {
@@ -286,7 +291,7 @@ describe("CheckList filters", () => {
 
   test("a category in the URL shows only that category's cards", () => {
     checks = mixed();
-    filters = { status: null, category: "IDENTITY", search: null };
+    filters = { status: null, category: "IDENTITY", search: null, view: "cards" };
     const html = markup();
 
     expect(html).toContain("MFA on admin accounts");
@@ -298,11 +303,104 @@ describe("CheckList filters", () => {
 
   test("filters that match nothing say so and offer to clear them", () => {
     checks = mixed();
-    filters = { status: null, category: "DATA", search: "mfa" };
+    filters = { status: null, category: "DATA", search: "mfa", view: "cards" };
     const html = markup();
 
     expect(html).not.toContain("<article");
     expect(html).toContain(en.cyberscore.checks.emptyFiltered);
     expect(html).toContain(en.cyberscore.checks.filter.clear);
+  });
+});
+
+describe("CheckList views", () => {
+  const mixed = () => [
+    makeCheck("c1", "ID-01 MFA on admin accounts", "IDENTITY"),
+    { ...makeCheck("c2", "DA-02 Backups restore", "DATA"), status: "IN_PROGRESS" } as Check,
+    makeCheck("c3", "No category check", null),
+  ];
+  const pressed = (html: string) =>
+    [...html.matchAll(/aria-label="([^"]*)" aria-pressed="true"/g)].map((match) => match[1]);
+
+  test("the toggle offers cards, list and kanban, and cards is the default", () => {
+    checks = mixed();
+    const html = markup();
+    expect(html).toContain(`aria-label="${en.views.switchToCards}"`);
+    expect(html).toContain(`aria-label="${en.views.switchToList}"`);
+    expect(html).toContain(`aria-label="${en.views.switchToKanban}"`);
+    expect(pressed(html)).toEqual([en.views.switchToCards]);
+    expect(html.match(/<article/g)).toHaveLength(3);
+  });
+
+  test("the list shows a row per check under a heading row per category", () => {
+    checks = mixed();
+    filters = { ...filters, view: "list" };
+    const html = markup();
+
+    expect(pressed(html)).toEqual([en.views.switchToList]);
+    expect(html).not.toContain("<article");
+    expect(html).toContain("<table");
+    expect(html).toContain(`>ID-01</span>`);
+    expect(html).toContain(`>MFA on admin accounts</span>`);
+    expect(html).toContain(
+      `aria-label="${en.cyberscore.checks.showText}: ID-01 MFA on admin accounts"`
+    );
+    const positions = [
+      en.cyberscore.categories.IDENTITY,
+      "MFA on admin accounts",
+      en.cyberscore.categories.DATA,
+      "Backups restore",
+      en.cyberscore.categories.NONE,
+      "No category check",
+    ].map((text) => html.indexOf(`>${text}<`));
+    expect(positions.every((position) => position >= 0)).toBe(true);
+    expect([...positions].sort((a, b) => a - b)).toEqual(positions);
+  });
+
+  test("the list gives an admin selects and a member chips", () => {
+    checks = mixed();
+    filters = { ...filters, view: "list" };
+    expect(markup().match(/role="combobox"/g)).toHaveLength(2);
+    role = "ADMIN";
+    expect(markup().match(/role="combobox"/g)).toHaveLength(2 + checks.length * 2);
+  });
+
+  test("the board shows a column per status with each check in its own", () => {
+    checks = mixed();
+    filters = { ...filters, view: "kanban" };
+    const html = markup();
+
+    expect(pressed(html)).toEqual([en.views.switchToKanban]);
+    const columns = [...html.matchAll(/<section aria-label="([^"]*)"/g)].map((match) => match[1]);
+    expect(columns).toEqual([
+      en.cyberscore.statuses.NOT_STARTED,
+      en.cyberscore.statuses.IN_PROGRESS,
+      en.cyberscore.statuses.DONE,
+      en.cyberscore.statuses.NOT_APPLICABLE,
+    ]);
+    const column = (status: string) =>
+      html.split(`<section aria-label="${status}"`)[1]?.split("</section>")[0] ?? "";
+    expect(column(en.cyberscore.statuses.IN_PROGRESS)).toContain("DA-02 Backups restore");
+    expect(column(en.cyberscore.statuses.DONE)).toContain("ID-01 MFA on admin accounts");
+    expect(column(en.cyberscore.statuses.DONE)).toContain("No category check");
+    expect(column(en.cyberscore.statuses.NOT_STARTED)).toContain(
+      en.cyberscore.checks.kanban.emptyColumn
+    );
+  });
+
+  test("only an admin's board cards can be picked up", () => {
+    checks = mixed();
+    filters = { ...filters, view: "kanban" };
+    expect(markup()).not.toContain('aria-roledescription="sortable"');
+    role = "OWNER";
+    expect(markup().match(/aria-roledescription="sortable"/g)).toHaveLength(3);
+  });
+
+  test("the board goes full width; cards and list keep the compact width", () => {
+    checks = mixed();
+    expect(markup()).toContain("max-w-6xl");
+    filters = { ...filters, view: "list" };
+    expect(markup()).toContain("max-w-6xl");
+    filters = { ...filters, view: "kanban" };
+    expect(markup()).not.toContain("max-w-6xl");
   });
 });

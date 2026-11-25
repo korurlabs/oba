@@ -651,9 +651,11 @@
   "views": {
     "kanban": "Kanban",
     "list": "Liste",
+    "cards": "Kartlar",
     "modeToggle": "Görünüm modu değiştir",
     "switchToList": "Liste görünümüne geç",
     "switchToKanban": "Kanban görünümüne geç",
+    "switchToCards": "Kart görünümüne geç",
     "options": "Görünüm"
   },
   "guest": {
@@ -1524,6 +1526,7 @@
       "add": "Kontrol ekle",
       "edit": "Kontrolü düzenle",
       "delete": "Sil",
+      "showText": "Tam metni göster",
       "deleteTitle": "Kontrol silinsin mi?",
       "deleteConfirm": "{name} silinecek ve cyberscore yeniden hesaplanacak.",
       "columns": {
@@ -1542,6 +1545,9 @@
         "allCategories": "Tüm kategoriler",
         "search": "Kontrollerde ara",
         "clear": "Filtreleri temizle"
+      },
+      "kanban": {
+        "emptyColumn": "Kontrol yok"
       },
       "fields": {
         "name": "Ad",

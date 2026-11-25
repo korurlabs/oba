@@ -651,9 +651,11 @@
   "views": {
     "kanban": "Kanban",
     "list": "List",
+    "cards": "Cards",
     "modeToggle": "View mode toggle",
     "switchToList": "Switch to list view",
     "switchToKanban": "Switch to kanban view",
+    "switchToCards": "Switch to cards view",
     "options": "View"
   },
   "guest": {
@@ -1524,6 +1526,7 @@
       "add": "Add check",
       "edit": "Edit check",
       "delete": "Delete",
+      "showText": "Show full text",
       "deleteTitle": "Delete check?",
       "deleteConfirm": "{name} is deleted and the cyberscore is recalculated.",
       "columns": {
@@ -1542,6 +1545,9 @@
         "allCategories": "All categories",
         "search": "Search checks",
         "clear": "Clear filters"
+      },
+      "kanban": {
+        "emptyColumn": "No checks"
       },
       "fields": {
         "name": "Name",

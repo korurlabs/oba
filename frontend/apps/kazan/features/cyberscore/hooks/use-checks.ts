@@ -113,6 +113,11 @@ export function useSetCheckOutcome() {
   });
 }
 
+/*
+ * The save settles only once the list holds the new status, so a card moved
+ * on the board stays in its new column instead of flashing back while the
+ * list refetches.
+ */
 export function useSetCheckStatus() {
   const queryClient = useQueryClient();
   const t = useTranslations("cyberscore");
@@ -123,7 +128,7 @@ export function useSetCheckStatus() {
       setCheckStatus(checkId, { status }),
     onSuccess: () => {
       toast.success(t("toast.statusUpdated"));
-      void invalidateChecks(queryClient);
+      return invalidateChecks(queryClient);
     },
     onError: (error: Error) => showError(error, "toast.saveError"),
   });

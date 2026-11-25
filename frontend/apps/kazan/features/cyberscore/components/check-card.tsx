@@ -12,14 +12,8 @@ import {
   type CheckOutcome,
   type CheckStatus,
 } from "../schemas";
+import { FAIL_CHIP_CLASS } from "./check-outcome-chip";
 import { CheckOutcomeSelect, CheckStatusSelect } from "./check-row-selects";
-
-/**
- * A failed check is the one value a reader must not miss, so its chip takes
- * the red outline Kazan gives a bug; every other outcome and status stays a
- * calm neutral chip.
- */
-const FAIL_CHIP_CLASS = "border-red-600/40 text-red-700 dark:border-red-400/50 dark:text-red-400";
 
 interface CheckCardProps {
   check: Check;

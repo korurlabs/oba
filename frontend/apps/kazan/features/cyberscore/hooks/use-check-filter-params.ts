@@ -9,17 +9,24 @@ export const UNCATEGORIZED = "NONE";
 
 export type CheckCategoryFilter = CheckCategory | typeof UNCATEGORIZED;
 
+/** The ways the check list can be shown, in the toggle's order; cards come first. */
+export const CHECK_VIEWS = ["cards", "list", "kanban"] as const;
+export type CheckView = (typeof CHECK_VIEWS)[number];
+
 /**
  * The URL keys of the check list's filters; a missing key does not narrow the
  * list. `status` is sent to the server, and the checks page parses the same
  * key to prefetch the filtered list. `category` and `search` narrow the
  * loaded list in the browser, since an organization holds at most a few
  * hundred checks; the overview's category rows link here with `category` set.
+ * `view` picks cards, list or kanban; every filter applies to each of them,
+ * and a shared link opens the same view.
  */
 export const checkFilterParams = {
   status: parseAsStringEnum<CheckStatus>([...CHECK_STATUSES]),
   category: parseAsStringEnum<CheckCategoryFilter>([...CHECK_CATEGORIES, UNCATEGORIZED]),
   search: parseAsString,
+  view: parseAsStringEnum<CheckView>([...CHECK_VIEWS]).withDefault("cards"),
 };
 
 export type CheckFilterParams = Values<typeof checkFilterParams>;
