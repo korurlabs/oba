@@ -61,9 +61,9 @@ the only live session of this checkout; with none known the lesson has no sessio
 	var lessonsListCmd = &cobra.Command{
 		Use:   "list [--search <topic>]",
 		Short: "List the lessons of this checkout, or search their full text",
-		Long: `Lists the lessons of this checkout's repository and the organization-wide ones, newest first, at
-most 100, as - <id> <title> lines. --search keeps those whose title or text holds the topic and
-prints the text under each title. --json prints the rows as a JSON array.`,
+		Long: `Lists every lesson of this checkout's repository and every organization-wide one, newest first,
+as - <id> <title> lines. --search keeps at most the 100 newest of those whose title or text holds
+the topic and prints the text under each title. --json prints the rows as one JSON array.`,
 		Args: cobra.NoArgs,
 		RunE: runLessonsList,
 	}

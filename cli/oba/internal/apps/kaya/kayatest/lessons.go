@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/korurlabs/oba-cli/internal/apps/kaya/client"
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/delivery"
 	"github.com/korurlabs/oba-cli/internal/dojo/config"
 )
@@ -22,13 +24,16 @@ type StoredLesson struct {
 	Session         string
 }
 
-// LessonsCall is one request to the lessons list.
+// LessonsCall is one request to the lessons list or search. Page, Amount and ETag are the paging
+// query of a list call, as sent.
 type LessonsCall struct {
 	Remote, Since, IfNoneMatch, Search string
+	Page, Amount, ETag                 string
 }
 
-// LessonsKaya serves /delivery/lessons like Kaya: a list with an ETag that answers 304, a search
-// with the text, one lesson, create and delete. Everything else goes to the delivery fake.
+// LessonsKaya serves /delivery/lessons like Kaya: a list in pages with an ETag over every lesson
+// that answers 304 on page 1 and 409 on a later page once the lessons changed, a search with the
+// text, one lesson, create and delete. Everything else goes to the delivery fake.
 type LessonsKaya struct {
 	Delivery http.Handler
 	Mu       sync.Mutex
@@ -38,9 +43,12 @@ type LessonsKaya struct {
 	// failStatus and failCode make the conditional list answer an error.
 	FailStatus int
 	FailCode   string
-	calls      []LessonsCall
-	posts      []map[string]any
-	Deleted    []string
+	// OnPage, when set, runs before a list page is answered and outside Mu, so that it may call Set
+	// to change the lessons between two pages or wait for the request to end.
+	OnPage  func(r *http.Request, page int)
+	calls   []LessonsCall
+	posts   []map[string]any
+	Deleted []string
 }
 
 // Set replaces the lessons and changes the ETag.
@@ -86,6 +94,15 @@ func (k *LessonsKaya) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		k.Delivery.ServeHTTP(w, r)
 		return
 	}
+	if r.Method == http.MethodGet && r.URL.Path == "/kaya/delivery/lessons" {
+		k.Mu.Lock()
+		onPage := k.OnPage
+		k.Mu.Unlock()
+		if onPage != nil {
+			page, _ := strconv.Atoi(r.URL.Query().Get("page"))
+			onPage(r, max(page, 1))
+		}
+	}
 	k.Mu.Lock()
 	defer k.Mu.Unlock()
 	reply := func(status int, value any) {
@@ -99,21 +116,15 @@ func (k *LessonsKaya) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	switch {
 	case r.Method == http.MethodGet && r.URL.Path == "/kaya/delivery/lessons":
-		k.calls = append(k.calls, LessonsCall{query.Get("remoteUrl"), query.Get("since"), r.Header.Get("If-None-Match"), ""})
+		k.calls = append(k.calls, LessonsCall{
+			Remote: query.Get("remoteUrl"), Since: query.Get("since"), IfNoneMatch: r.Header.Get("If-None-Match"),
+			Page: query.Get("page"), Amount: query.Get("amount"), ETag: query.Get("etag"),
+		})
 		if k.FailStatus != 0 {
 			fail(k.FailStatus, k.FailCode)
 			return
 		}
-		if match := r.Header.Get("If-None-Match"); match != "" && match == k.ETag {
-			w.WriteHeader(http.StatusNotModified)
-			return
-		}
-		rows := []map[string]any{}
-		for _, l := range k.Lessons {
-			rows = append(rows, lessonRow(l, query.Get("since"), false))
-		}
-		w.Header().Set("ETag", k.ETag)
-		reply(http.StatusOK, rows)
+		k.listPage(w, r, fail)
 	case r.Method == http.MethodGet && r.URL.Path == "/kaya/delivery/lessons/search":
 		search := query.Get("search")
 		k.calls = append(k.calls, LessonsCall{Remote: query.Get("remoteUrl"), Search: search})
@@ -168,6 +179,58 @@ func (k *LessonsKaya) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	default:
 		w.WriteHeader(http.StatusNotFound)
 	}
+}
+
+// listPage answers one page of the list as Kaya does: page from 1 and amount up to
+// client.LessonsPageSize, both optional, and from page 2 on the ETag of page 1 as etag.
+func (k *LessonsKaya) listPage(w http.ResponseWriter, r *http.Request, fail func(int, string)) {
+	query := r.URL.Query()
+	page, amount := 1, client.LessonsPageSize
+	var err error
+	if value := query.Get("page"); value != "" {
+		if page, err = strconv.Atoi(value); err != nil || page < 1 {
+			fail(http.StatusUnprocessableEntity, "GEN_VAL_001")
+			return
+		}
+	}
+	if value := query.Get("amount"); value != "" {
+		if amount, err = strconv.Atoi(value); err != nil || amount < 1 || amount > client.LessonsPageSize {
+			fail(http.StatusUnprocessableEntity, "GEN_VAL_001")
+			return
+		}
+	}
+	if page == 1 {
+		if match := r.Header.Get("If-None-Match"); match != "" && match == k.ETag {
+			w.WriteHeader(http.StatusNotModified)
+			return
+		}
+	} else {
+		sent := query.Get("etag")
+		if sent == "" {
+			fail(http.StatusUnprocessableEntity, "GEN_VAL_001")
+			return
+		}
+		if strings.Trim(sent, `"`) != strings.Trim(k.ETag, `"`) {
+			fail(http.StatusConflict, client.CodeLessonsChanged)
+			return
+		}
+	}
+	total := len(k.Lessons)
+	pages := (total + amount - 1) / amount
+	rows := []map[string]any{}
+	for i := (page - 1) * amount; i < min(page*amount, total); i++ {
+		rows = append(rows, lessonRow(k.Lessons[i], query.Get("since"), false))
+	}
+	w.Header().Set("ETag", k.ETag)
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(map[string]any{
+		"success": true,
+		"data":    rows,
+		"pagination": map[string]any{
+			"totalElements": total, "totalPages": pages, "currentPage": page, "pageSize": amount,
+			"first": page == 1, "last": page >= pages, "empty": len(rows) == 0,
+		},
+	})
 }
 
 // SetupLessons is a delivered checkout whose API also serves lessons.

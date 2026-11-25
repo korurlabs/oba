@@ -54,14 +54,22 @@ func IsCode(err error, code string) bool {
 }
 
 type envelope struct {
-	Success bool            `json:"success"`
-	Message string          `json:"message"`
-	Data    json.RawMessage `json:"data"`
-	Error   *struct {
+	Success    bool            `json:"success"`
+	Message    string          `json:"message"`
+	Data       json.RawMessage `json:"data"`
+	Pagination *Pagination     `json:"pagination"`
+	Error      *struct {
 		Code        string         `json:"code"`
 		Message     string         `json:"message"`
 		ErrorValues map[string]any `json:"errorValues"`
 	} `json:"error"`
+}
+
+// Pagination is the part of a list answer's paging details the client reads to walk the pages:
+// Last is true on the final page, and TotalPages bounds the walk should Last never come.
+type Pagination struct {
+	TotalPages int  `json:"totalPages"`
+	Last       bool `json:"last"`
 }
 
 // Client calls one Kaya API base URL.

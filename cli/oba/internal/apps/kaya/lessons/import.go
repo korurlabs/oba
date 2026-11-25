@@ -61,9 +61,9 @@ func checkBlocks(blocks []Block) error {
 	return errors.Join(problems...)
 }
 
-// titleExists asks by search and not through the list, which stops at the newest 100: past
-// them a second run would add every older lesson again. The search also sees organization-wide
-// lessons from a repository scope and the reverse, so the scope is compared here.
+// titleExists asks by search, one short answer per title, rather than reading every page of the
+// list for each lesson of the file. The search also sees organization-wide lessons from a
+// repository scope and the reverse, so the scope is compared here.
 func titleExists(ctx context.Context, store Store, remoteURL string, repoWide bool, title string) (bool, error) {
 	found, err := store.SearchLessons(ctx, remoteURL, searchText(title))
 	if err != nil {

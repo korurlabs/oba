@@ -2,12 +2,24 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 )
 
-// lessonsPath is the machine-token resource of lessons.
-const lessonsPath = "/kaya/delivery/lessons"
+const (
+	// lessonsPath is the machine-token resource of lessons.
+	lessonsPath = "/kaya/delivery/lessons"
+	// LessonsPageSize is the most lessons one page of the list holds; Kaya refuses more.
+	LessonsPageSize = 100
+	// CodeLessonsChanged (409): the lessons changed after page 1 of a read, so the etag a later
+	// page sends no longer names them.
+	CodeLessonsChanged = "KAY_VAL_017"
+	// lessonsRestarts bounds how often one read starts again at page 1 because the lessons changed
+	// between its pages; lessons edited faster than that are read by the next call.
+	lessonsRestarts = 2
+)
 
 // Lesson is one row of the lessons of a checkout: its repository's plus the organization-wide
 // ones. Repository is nil for an organization-wide lesson. Only a search carries Body, and only
@@ -66,35 +78,67 @@ type LessonCreated struct {
 	URL string `json:"url"`
 }
 
-// Lessons lists the lessons of the checkout whose remote is remoteURL, newest first, at most
-// 100, without their text. A remote Kaya does not know gives the organization-wide ones.
+// Lessons lists every lesson of the checkout whose remote is remoteURL, newest first, without
+// their text. A remote Kaya does not know gives the organization-wide ones.
 func (c *Client) Lessons(ctx context.Context, remoteURL string) ([]Lesson, error) {
-	var lessons []Lesson
-	return lessons, c.doJSON(ctx, http.MethodGet, lessonsPath+"?"+url.Values{"remoteUrl": {remoteURL}}.Encode(), nil, &lessons)
+	lessons, _, _, err := c.LessonsSince(ctx, remoteURL, "", "")
+	return lessons, err
 }
 
 // LessonsSince is Lessons for a session start. With an etag from an earlier answer, a 304 answers
 // notModified and no list; with a since time, the lessons Kaya changed after it are marked Changed.
+// It answers the whole list or an error, never a part: when the lessons change between two pages
+// it reads them again from page 1, at most lessonsRestarts times, and then answers Kaya's refusal.
 func (c *Client) LessonsSince(ctx context.Context, remoteURL, etag, since string) (lessons []Lesson, newETag string, notModified bool, err error) {
-	query := url.Values{"remoteUrl": {remoteURL}}
-	if since != "" {
-		query.Set("since", since)
+	for restarts := 0; ; restarts++ {
+		lessons, newETag, notModified, err = c.lessonPages(ctx, remoteURL, etag, since)
+		if restarts == lessonsRestarts || !IsCode(err, CodeLessonsChanged) {
+			return lessons, newETag, notModified, err
+		}
 	}
-	header := http.Header{}
-	if etag != "" {
-		header.Set("If-None-Match", etag)
+}
+
+// lessonPages reads the list page by page until Kaya marks the last one. Page 1 carries etag as
+// If-None-Match, so a 304 skips every page; each later page carries the ETag of page 1, so Kaya
+// refuses it with CodeLessonsChanged instead of mixing two states of the lessons. An answer
+// without paging details, from a Kaya that does not page, is the whole list.
+func (c *Client) lessonPages(ctx context.Context, remoteURL, etag, since string) ([]Lesson, string, bool, error) {
+	var (
+		all      []Lesson
+		firstTag string
+	)
+	for page := 1; ; page++ {
+		query := url.Values{"remoteUrl": {remoteURL}, "page": {strconv.Itoa(page)}, "amount": {strconv.Itoa(LessonsPageSize)}}
+		if since != "" {
+			query.Set("since", since)
+		}
+		header := http.Header{}
+		if page == 1 && etag != "" {
+			header.Set("If-None-Match", etag)
+		}
+		if page > 1 && firstTag != "" {
+			query.Set("etag", firstTag)
+		}
+		resp, raw, err := c.raw(ctx, lessonsPath+"?"+query.Encode(), header, maxResponseBytes)
+		if err != nil {
+			return nil, "", false, fmt.Errorf("read page %d of the lessons: %w", page, err)
+		}
+		if page == 1 && resp.StatusCode == http.StatusNotModified {
+			return nil, etag, true, nil
+		}
+		var lessons []Lesson
+		pagination, err := decodePage(resp, raw, lessonsPath, &lessons)
+		if err != nil {
+			return nil, "", false, fmt.Errorf("read page %d of the lessons: %w", page, err)
+		}
+		if page == 1 {
+			firstTag = resp.Header.Get("ETag")
+		}
+		all = append(all, lessons...)
+		if pagination == nil || pagination.Last || page >= pagination.TotalPages || len(lessons) == 0 {
+			return all, firstTag, false, nil
+		}
 	}
-	resp, raw, err := c.raw(ctx, lessonsPath+"?"+query.Encode(), header, maxResponseBytes)
-	if err != nil {
-		return nil, "", false, err
-	}
-	if resp.StatusCode == http.StatusNotModified {
-		return nil, etag, true, nil
-	}
-	if err := decodeData(resp, raw, lessonsPath, &lessons); err != nil {
-		return nil, "", false, err
-	}
-	return lessons, resp.Header.Get("ETag"), false, nil
 }
 
 // SearchLessons finds the lessons of the checkout whose title or text holds search (at most 200

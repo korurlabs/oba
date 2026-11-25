@@ -2,6 +2,7 @@ package lessons
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -348,5 +349,38 @@ func TestLessonsImport_refusesAFileWithABadLessonBeforeAnyCall(t *testing.T) {
 	}
 	if posts := lk.Created(); len(posts) != 0 {
 		t.Fatalf("posts = %v", posts)
+	}
+}
+
+func TestLessonsList_readsEveryPage(t *testing.T) {
+	lk, _ := kayatest.SetupLessons(t)
+	stored := make([]kayatest.StoredLesson, 0, 250)
+	for i := range 250 {
+		stored = append(stored, kayatest.StoredLesson{ID: fmt.Sprintf("l%03d", i), Title: fmt.Sprintf("Lesson %03d", i), UpdatedAt: "2026-10-01T10:00:00Z"})
+	}
+	lk.Set(stored...)
+
+	out, err := run(t, "", "lessons", "list", "--json")
+
+	var rows []struct{ ID string }
+	if err != nil || json.Unmarshal([]byte(out), &rows) != nil || len(rows) != 250 {
+		t.Fatalf("rows = %d, err = %v", len(rows), err)
+	}
+	for i, row := range rows {
+		if row.ID != stored[i].ID {
+			t.Fatalf("row %d = %q, want %q", i, row.ID, stored[i].ID)
+		}
+	}
+	var pages []string
+	for _, call := range lk.Recorded() {
+		pages = append(pages, call.Page)
+	}
+	if strings.Join(pages, ",") != "1,2,3" {
+		t.Fatalf("pages = %v", pages)
+	}
+
+	out, err = run(t, "", "lessons", "list")
+	if err != nil || strings.Count(out, "\n") != 250 || !strings.HasSuffix(out, "- l249 Lesson 249\n") {
+		t.Fatalf("text holds %d lines, err = %v", strings.Count(out, "\n"), err)
 	}
 }
