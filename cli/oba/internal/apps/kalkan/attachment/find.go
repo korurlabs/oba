@@ -1,0 +1,22 @@
+package attachment
+
+import (
+	"fmt"
+
+	"github.com/korurlabs/oba-cli/internal/dojo/attachment"
+	"github.com/korurlabs/oba-cli/internal/dojo/client"
+)
+
+// Find returns the attachment attachmentID of the target page, so that a mistyped id never
+// deletes an attachment of another page; see attachment.Find.
+func Find(c *client.Client, t Target, attachmentID string) (client.Attachment, error) {
+	found, ok, err := attachment.Find(c, t.EntityType, t.EntityID, attachmentID)
+	if err != nil {
+		return client.Attachment{}, err
+	}
+	if !ok {
+		return client.Attachment{}, fmt.Errorf("attachment %s is not an attachment of %s; 'oba kalkan attachment list' lists the ids",
+			attachmentID, t.Label)
+	}
+	return found, nil
+}
