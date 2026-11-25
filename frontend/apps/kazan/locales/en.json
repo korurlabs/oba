@@ -651,9 +651,11 @@
   "views": {
     "kanban": "Kanban",
     "list": "List",
+    "cards": "Cards",
     "modeToggle": "View mode toggle",
     "switchToList": "Switch to list view",
     "switchToKanban": "Switch to kanban view",
+    "switchToCards": "Switch to cards view",
     "options": "View"
   },
   "guest": {
@@ -1451,7 +1453,143 @@
     "title": "Cyberscore",
     "description": "The rating of your security posture, built from the state of your systems and practices.",
     "emptyTitle": "No cyberscore yet",
-    "emptyDescription": "Your cyberscore and how it changes will appear here."
+    "emptyDescription": "Add checks and record their outcomes, and your cyberscore and how it changes appear here.",
+    "loadError": "Could not load the cyberscore.",
+    "noAccess": {
+      "title": "The cyberscore is for organization members",
+      "description": "You are a guest in {organization}, and guests do not see the cyberscore. An owner or admin of the organization can make you a member in Ulak."
+    },
+    "viewChecks": "View all checks",
+    "gauge": {
+      "title": "Current score",
+      "description": "Weighted over every check with a scorable outcome.",
+      "ariaLabel": "Current cyberscore is {score} percent, {level}",
+      "lastCalculated": "Last calculated {date}",
+      "notCalculated": "Not calculated yet",
+      "scorableChecks": "{count, plural, one {# scorable check} other {# scorable checks}}"
+    },
+    "breakdown": {
+      "title": "Score by category",
+      "description": "The score of each category with at least one scorable check.",
+      "empty": "No category has a scorable check yet.",
+      "rowLink": "{category}: {score} percent, {level}. Show its checks."
+    },
+    "trend": {
+      "title": "30-day trend",
+      "description": "How your cyberscore changed over the last 30 days.",
+      "seriesLabel": "Cyberscore",
+      "tableCaption": "Cyberscore per day",
+      "date": "Date",
+      "score": "Score",
+      "level": "Risk level",
+      "empty": "Not enough history to show a trend yet."
+    },
+    "levels": {
+      "UNKNOWN": "Not yet scored",
+      "CRITICAL": "Critical risk",
+      "HIGH": "High risk",
+      "MEDIUM": "Medium risk",
+      "LOW": "Low risk",
+      "MINIMAL": "Minimal risk"
+    },
+    "categories": {
+      "IDENTITY": "Identity",
+      "OFFICE": "Office",
+      "NETWORK_EDGE": "Network and edge",
+      "CLOUD_PLATFORM": "Cloud platform",
+      "APPLICATIONS": "Applications",
+      "DATA": "Data",
+      "DEVICES": "Devices",
+      "DEVELOPMENT_SUPPLY_CHAIN": "Development and supply chain",
+      "DETECTION_RESPONSE": "Detection and response",
+      "COMPLIANCE": "Compliance",
+      "NONE": "Uncategorized"
+    },
+    "outcomes": {
+      "TODO": "To do",
+      "PASS": "Pass",
+      "PARTIAL": "Partial",
+      "FAIL": "Fail",
+      "NO_LICENSE": "No license",
+      "NOT_APPLICABLE": "Not applicable"
+    },
+    "statuses": {
+      "NOT_STARTED": "Not started",
+      "IN_PROGRESS": "In progress",
+      "DONE": "Done",
+      "NOT_APPLICABLE": "Not applicable"
+    },
+    "checks": {
+      "title": "Checks",
+      "description": "The controls your cyberscore is built from, with their weight and current outcome.",
+      "back": "Back to cyberscore",
+      "empty": "No checks yet",
+      "emptyFiltered": "No checks match these filters",
+      "emptyDescription": "Add a check to start building your cyberscore.",
+      "readOnly": "Only organization admins can change checks.",
+      "add": "Add check",
+      "edit": "Edit check",
+      "delete": "Delete",
+      "showText": "Show full text",
+      "deleteTitle": "Delete check?",
+      "deleteConfirm": "{name} is deleted and the cyberscore is recalculated.",
+      "columns": {
+        "name": "Check",
+        "category": "Category",
+        "weight": "Weight",
+        "outcome": "Outcome",
+        "status": "Status",
+        "updatedAt": "Updated",
+        "actions": "Actions"
+      },
+      "filter": {
+        "status": "Status",
+        "category": "Category",
+        "search": "Search checks",
+        "clear": "Clear filters"
+      },
+      "kanban": {
+        "emptyColumn": "No checks"
+      },
+      "fields": {
+        "name": "Name",
+        "description": "Description",
+        "expected": "Expected state",
+        "expectedHint": "What a passing check looks like.",
+        "weight": "Weight",
+        "weightHint": "1 to 100. A heavier check counts more toward the score.",
+        "sortOrder": "Sort order",
+        "sortOrderHint": "0 to 9999. Lower numbers come first within a category.",
+        "category": "Category",
+        "categoryPlaceholder": "Choose a category",
+        "outcome": "Outcome",
+        "outcomePlaceholder": "Choose an outcome",
+        "status": "Status",
+        "statusHint": "Filled in from the outcome. You can change it; the status does not affect the score."
+      }
+    },
+    "errors": {
+      "nameRequired": "Enter a name.",
+      "nameTooLong": "Use at most 255 characters.",
+      "descriptionTooLong": "Use at most 5000 characters.",
+      "expectedRequired": "Enter the expected state.",
+      "expectedTooLong": "Use at most 5000 characters.",
+      "weightRange": "Enter a whole number from 1 to 100.",
+      "sortOrderRange": "Enter a whole number from 0 to 9999.",
+      "duplicateName": "This organization already has a check with this name.",
+      "notFound": "This check no longer exists.",
+      "notAllowed": "Only organization admins can change checks.",
+      "invalid": "Some fields are not valid. Check them and try again."
+    },
+    "toast": {
+      "created": "Check added",
+      "updated": "Check saved",
+      "outcomeUpdated": "Outcome saved",
+      "statusUpdated": "Status saved",
+      "deleted": "Check deleted",
+      "saveError": "Could not save the check.",
+      "deleteError": "Could not delete the check."
+    }
   },
   "metadata": {
     "description": "Modern project management tool inspired by Notion and Jira simplicity"

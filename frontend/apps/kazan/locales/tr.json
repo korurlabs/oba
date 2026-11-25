@@ -651,9 +651,11 @@
   "views": {
     "kanban": "Kanban",
     "list": "Liste",
+    "cards": "Kartlar",
     "modeToggle": "Görünüm modu değiştir",
     "switchToList": "Liste görünümüne geç",
     "switchToKanban": "Kanban görünümüne geç",
+    "switchToCards": "Kart görünümüne geç",
     "options": "Görünüm"
   },
   "guest": {
@@ -1451,7 +1453,143 @@
     "title": "Cyberscore",
     "description": "Sistemlerinizin ve uygulamalarınızın durumundan oluşan güvenlik duruşu puanınız.",
     "emptyTitle": "Henüz cyberscore yok",
-    "emptyDescription": "Cyberscore'unuz ve değişimi burada görünecek."
+    "emptyDescription": "Kontroller ekleyip sonuçlarını kaydettiğinizde cyberscore'unuz ve değişimi burada görünecek.",
+    "loadError": "Cyberscore yüklenemedi.",
+    "noAccess": {
+      "title": "Cyberscore kuruluş üyeleri içindir",
+      "description": "{organization} kuruluşunda misafirsiniz ve misafirler cyberscore'u göremez. Kuruluşun sahibi veya yöneticisi sizi Ulak'tan üye yapabilir."
+    },
+    "viewChecks": "Tüm kontrolleri görüntüle",
+    "gauge": {
+      "title": "Güncel puan",
+      "description": "Puana sayılan sonucu olan tüm kontroller üzerinden ağırlıklı olarak hesaplanır.",
+      "ariaLabel": "Güncel cyberscore yüzde {score}, {level}",
+      "lastCalculated": "Son hesaplama {date}",
+      "notCalculated": "Henüz hesaplanmadı",
+      "scorableChecks": "{count, plural, other {Puana sayılan # kontrol}}"
+    },
+    "breakdown": {
+      "title": "Kategoriye göre puan",
+      "description": "Puana sayılan en az bir kontrolü olan her kategorinin puanı.",
+      "empty": "Henüz puana sayılan kontrolü olan bir kategori yok.",
+      "rowLink": "{category}: yüzde {score}, {level}. Kontrollerini göster."
+    },
+    "trend": {
+      "title": "30 günlük eğilim",
+      "description": "Cyberscore'unuzun son 30 gündeki değişimi.",
+      "seriesLabel": "Cyberscore",
+      "tableCaption": "Günlük cyberscore",
+      "date": "Tarih",
+      "score": "Puan",
+      "level": "Risk düzeyi",
+      "empty": "Eğilim göstermek için henüz yeterli geçmiş yok."
+    },
+    "levels": {
+      "UNKNOWN": "Henüz puanlanmadı",
+      "CRITICAL": "Kritik risk",
+      "HIGH": "Yüksek risk",
+      "MEDIUM": "Orta risk",
+      "LOW": "Düşük risk",
+      "MINIMAL": "Asgari risk"
+    },
+    "categories": {
+      "IDENTITY": "Kimlik",
+      "OFFICE": "Ofis",
+      "NETWORK_EDGE": "Ağ ve kenar",
+      "CLOUD_PLATFORM": "Bulut platformu",
+      "APPLICATIONS": "Uygulamalar",
+      "DATA": "Veri",
+      "DEVICES": "Cihazlar",
+      "DEVELOPMENT_SUPPLY_CHAIN": "Geliştirme ve tedarik zinciri",
+      "DETECTION_RESPONSE": "Tespit ve müdahale",
+      "COMPLIANCE": "Uyum",
+      "NONE": "Kategorisiz"
+    },
+    "outcomes": {
+      "TODO": "Yapılacak",
+      "PASS": "Başarılı",
+      "PARTIAL": "Kısmi",
+      "FAIL": "Başarısız",
+      "NO_LICENSE": "Lisans yok",
+      "NOT_APPLICABLE": "Uygulanamaz"
+    },
+    "statuses": {
+      "NOT_STARTED": "Başlanmadı",
+      "IN_PROGRESS": "Devam ediyor",
+      "DONE": "Tamamlandı",
+      "NOT_APPLICABLE": "Uygulanamaz"
+    },
+    "checks": {
+      "title": "Kontroller",
+      "description": "Cyberscore'unuzu oluşturan kontroller, ağırlıkları ve güncel sonuçlarıyla.",
+      "back": "Cyberscore'a dön",
+      "empty": "Henüz kontrol yok",
+      "emptyFiltered": "Bu filtrelere uyan kontrol yok",
+      "emptyDescription": "Cyberscore'unuzu oluşturmaya başlamak için bir kontrol ekleyin.",
+      "readOnly": "Kontrolleri yalnızca organizasyon yöneticileri değiştirebilir.",
+      "add": "Kontrol ekle",
+      "edit": "Kontrolü düzenle",
+      "delete": "Sil",
+      "showText": "Tam metni göster",
+      "deleteTitle": "Kontrol silinsin mi?",
+      "deleteConfirm": "{name} silinecek ve cyberscore yeniden hesaplanacak.",
+      "columns": {
+        "name": "Kontrol",
+        "category": "Kategori",
+        "weight": "Ağırlık",
+        "outcome": "Sonuç",
+        "status": "Durum",
+        "updatedAt": "Güncellendi",
+        "actions": "İşlemler"
+      },
+      "filter": {
+        "status": "Durum",
+        "category": "Kategori",
+        "search": "Kontrollerde ara",
+        "clear": "Filtreleri temizle"
+      },
+      "kanban": {
+        "emptyColumn": "Kontrol yok"
+      },
+      "fields": {
+        "name": "Ad",
+        "description": "Açıklama",
+        "expected": "Beklenen durum",
+        "expectedHint": "Başarılı bir kontrolün nasıl göründüğü.",
+        "weight": "Ağırlık",
+        "weightHint": "1 ile 100 arası. Ağırlığı yüksek kontrol puana daha çok etki eder.",
+        "sortOrder": "Sıra",
+        "sortOrderHint": "0 ile 9999 arası. Kategori içinde küçük sayılar önce gelir.",
+        "category": "Kategori",
+        "categoryPlaceholder": "Bir kategori seçin",
+        "outcome": "Sonuç",
+        "outcomePlaceholder": "Bir sonuç seçin",
+        "status": "Durum",
+        "statusHint": "Sonuca göre doldurulur. Değiştirebilirsiniz; durum puanı etkilemez."
+      }
+    },
+    "errors": {
+      "nameRequired": "Bir ad girin.",
+      "nameTooLong": "En fazla 255 karakter kullanın.",
+      "descriptionTooLong": "En fazla 5000 karakter kullanın.",
+      "expectedRequired": "Beklenen durumu girin.",
+      "expectedTooLong": "En fazla 5000 karakter kullanın.",
+      "weightRange": "1 ile 100 arasında bir tam sayı girin.",
+      "sortOrderRange": "0 ile 9999 arasında bir tam sayı girin.",
+      "duplicateName": "Bu organizasyonda bu adla bir kontrol zaten var.",
+      "notFound": "Bu kontrol artık yok.",
+      "notAllowed": "Kontrolleri yalnızca organizasyon yöneticileri değiştirebilir.",
+      "invalid": "Bazı alanlar geçersiz. Kontrol edip yeniden deneyin."
+    },
+    "toast": {
+      "created": "Kontrol eklendi",
+      "updated": "Kontrol kaydedildi",
+      "outcomeUpdated": "Sonuç kaydedildi",
+      "statusUpdated": "Durum kaydedildi",
+      "deleted": "Kontrol silindi",
+      "saveError": "Kontrol kaydedilemedi.",
+      "deleteError": "Kontrol silinemedi."
+    }
   },
   "metadata": {
     "description": "Notion ve Jira'nın sadeliğinden ilham alan modern proje yönetim aracı"

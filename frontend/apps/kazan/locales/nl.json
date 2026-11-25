@@ -651,9 +651,11 @@
   "views": {
     "kanban": "Kanban",
     "list": "Lijst",
+    "cards": "Kaarten",
     "modeToggle": "Weergavemodus schakelen",
     "switchToList": "Schakel naar lijstweergave",
     "switchToKanban": "Schakel naar kanbanweergave",
+    "switchToCards": "Schakel naar kaartweergave",
     "options": "Weergave"
   },
   "guest": {
@@ -1451,7 +1453,143 @@
     "title": "Cyberscore",
     "description": "De beoordeling van je beveiliging, opgebouwd uit de staat van je systemen en werkwijzen.",
     "emptyTitle": "Nog geen cyberscore",
-    "emptyDescription": "Je cyberscore en hoe die verandert verschijnen hier."
+    "emptyDescription": "Voeg controles toe en leg hun uitkomst vast, dan verschijnen je cyberscore en hoe die verandert hier.",
+    "loadError": "De cyberscore kon niet worden geladen.",
+    "noAccess": {
+      "title": "De cyberscore is voor leden van de organisatie",
+      "description": "Je bent gast in {organization}, en gasten zien de cyberscore niet. Een eigenaar of beheerder van de organisatie kan je in Ulak lid maken."
+    },
+    "viewChecks": "Alle controles bekijken",
+    "gauge": {
+      "title": "Huidige score",
+      "description": "Gewogen over elke controle met een uitkomst die meetelt.",
+      "ariaLabel": "De huidige cyberscore is {score} procent, {level}",
+      "lastCalculated": "Laatst berekend {date}",
+      "notCalculated": "Nog niet berekend",
+      "scorableChecks": "{count, plural, one {# controle telt mee} other {# controles tellen mee}}"
+    },
+    "breakdown": {
+      "title": "Score per categorie",
+      "description": "De score van elke categorie met minstens één controle die meetelt.",
+      "empty": "Nog geen categorie heeft een controle die meetelt.",
+      "rowLink": "{category}: {score} procent, {level}. Toon de controles."
+    },
+    "trend": {
+      "title": "Trend over 30 dagen",
+      "description": "Hoe je cyberscore de afgelopen 30 dagen is veranderd.",
+      "seriesLabel": "Cyberscore",
+      "tableCaption": "Cyberscore per dag",
+      "date": "Datum",
+      "score": "Score",
+      "level": "Risiconiveau",
+      "empty": "Nog niet genoeg historie om een trend te tonen."
+    },
+    "levels": {
+      "UNKNOWN": "Nog niet beoordeeld",
+      "CRITICAL": "Kritiek risico",
+      "HIGH": "Hoog risico",
+      "MEDIUM": "Gemiddeld risico",
+      "LOW": "Laag risico",
+      "MINIMAL": "Minimaal risico"
+    },
+    "categories": {
+      "IDENTITY": "Identiteit",
+      "OFFICE": "Kantoor",
+      "NETWORK_EDGE": "Netwerk en rand",
+      "CLOUD_PLATFORM": "Cloudplatform",
+      "APPLICATIONS": "Applicaties",
+      "DATA": "Gegevens",
+      "DEVICES": "Apparaten",
+      "DEVELOPMENT_SUPPLY_CHAIN": "Ontwikkeling en toeleveringsketen",
+      "DETECTION_RESPONSE": "Detectie en respons",
+      "COMPLIANCE": "Compliance",
+      "NONE": "Zonder categorie"
+    },
+    "outcomes": {
+      "TODO": "Te doen",
+      "PASS": "Geslaagd",
+      "PARTIAL": "Gedeeltelijk",
+      "FAIL": "Mislukt",
+      "NO_LICENSE": "Geen licentie",
+      "NOT_APPLICABLE": "Niet van toepassing"
+    },
+    "statuses": {
+      "NOT_STARTED": "Niet gestart",
+      "IN_PROGRESS": "Bezig",
+      "DONE": "Klaar",
+      "NOT_APPLICABLE": "Niet van toepassing"
+    },
+    "checks": {
+      "title": "Controles",
+      "description": "De controles waaruit je cyberscore bestaat, met hun gewicht en huidige uitkomst.",
+      "back": "Terug naar cyberscore",
+      "empty": "Nog geen controles",
+      "emptyFiltered": "Geen controles voldoen aan deze filters",
+      "emptyDescription": "Voeg een controle toe om je cyberscore op te bouwen.",
+      "readOnly": "Alleen organisatiebeheerders kunnen controles wijzigen.",
+      "add": "Controle toevoegen",
+      "edit": "Controle bewerken",
+      "delete": "Verwijderen",
+      "showText": "Volledige tekst tonen",
+      "deleteTitle": "Controle verwijderen?",
+      "deleteConfirm": "{name} wordt verwijderd en de cyberscore wordt opnieuw berekend.",
+      "columns": {
+        "name": "Controle",
+        "category": "Categorie",
+        "weight": "Gewicht",
+        "outcome": "Uitkomst",
+        "status": "Status",
+        "updatedAt": "Bijgewerkt",
+        "actions": "Acties"
+      },
+      "filter": {
+        "status": "Status",
+        "category": "Categorie",
+        "search": "Controles zoeken",
+        "clear": "Filters wissen"
+      },
+      "kanban": {
+        "emptyColumn": "Geen controles"
+      },
+      "fields": {
+        "name": "Naam",
+        "description": "Beschrijving",
+        "expected": "Verwachte situatie",
+        "expectedHint": "Hoe een geslaagde controle eruitziet.",
+        "weight": "Gewicht",
+        "weightHint": "1 tot 100. Een zwaardere controle telt meer mee in de score.",
+        "sortOrder": "Volgorde",
+        "sortOrderHint": "0 tot 9999. Lagere nummers staan eerst binnen een categorie.",
+        "category": "Categorie",
+        "categoryPlaceholder": "Kies een categorie",
+        "outcome": "Uitkomst",
+        "outcomePlaceholder": "Kies een uitkomst",
+        "status": "Status",
+        "statusHint": "Ingevuld op basis van de uitkomst. Je kunt hem wijzigen; de status telt niet mee in de score."
+      }
+    },
+    "errors": {
+      "nameRequired": "Vul een naam in.",
+      "nameTooLong": "Gebruik maximaal 255 tekens.",
+      "descriptionTooLong": "Gebruik maximaal 5000 tekens.",
+      "expectedRequired": "Vul de verwachte situatie in.",
+      "expectedTooLong": "Gebruik maximaal 5000 tekens.",
+      "weightRange": "Vul een heel getal van 1 tot 100 in.",
+      "sortOrderRange": "Vul een heel getal van 0 tot 9999 in.",
+      "duplicateName": "Deze organisatie heeft al een controle met deze naam.",
+      "notFound": "Deze controle bestaat niet meer.",
+      "notAllowed": "Alleen organisatiebeheerders kunnen controles wijzigen.",
+      "invalid": "Sommige velden zijn ongeldig. Controleer ze en probeer het opnieuw."
+    },
+    "toast": {
+      "created": "Controle toegevoegd",
+      "updated": "Controle opgeslagen",
+      "outcomeUpdated": "Uitkomst opgeslagen",
+      "statusUpdated": "Status opgeslagen",
+      "deleted": "Controle verwijderd",
+      "saveError": "De controle kon niet worden opgeslagen.",
+      "deleteError": "De controle kon niet worden verwijderd."
+    }
   },
   "metadata": {
     "description": "Moderne projectmanagementtool, geïnspireerd door de eenvoud van Notion en Jira"
