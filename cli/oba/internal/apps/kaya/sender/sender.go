@@ -311,7 +311,7 @@ func (s *run) sendRound(ctx context.Context) (int, error) {
 
 // sendSession sends one batch of a session; ok is true when Kaya took one.
 func (s *run) sendSession(ctx context.Context, dir, sessionID string) (bool, error) {
-	cur := s.readCursor(dir)
+	cur := s.readCursor(dir, sessionID)
 	if cur.Parked != nil {
 		var release string
 		switch {
@@ -465,7 +465,7 @@ func (s *run) prune(dir, sessionID string) {
 	if err != nil || s.now().Sub(info.ModTime()) < pruneAfter {
 		return
 	}
-	cur := s.readCursor(dir)
+	cur := s.readCursor(dir, sessionID)
 	events, err := s.pendingEvents(dir, cur.AcknowledgedSeq, 1, false)
 	if err != nil || len(events) > 0 {
 		return

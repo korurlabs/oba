@@ -207,7 +207,7 @@ func TestBackoffForServerAnswersAndRateLimit(t *testing.T) {
 			if !equalDurations(clock.sleeps, seconds(2, 4, 8)) {
 				t.Errorf("sleeps = %v, want 2 s, 4 s, 8 s", clock.sleeps)
 			}
-			if cur := (&run{}).readCursor(dir); cur.AcknowledgedSeq != 0 || cur.Parked != nil {
+			if cur := (&run{}).readCursor(dir, flowSession); cur.AcknowledgedSeq != 0 || cur.Parked != nil {
 				t.Errorf("cursor after %d = %+v, want queued and not parked", status, cur)
 			}
 		})
@@ -234,7 +234,7 @@ func TestForbiddenUnknownGitEmailBacksOffThenSendsAndKeepsTheSessionQueued(t *te
 	if strings.Contains(log, "parked") {
 		t.Errorf("a 403 KAY_SEC_007 must never park:\n%s", log)
 	}
-	if cur := (&run{}).readCursor(dir); cur.AcknowledgedSeq != 2 || cur.Parked != nil {
+	if cur := (&run{}).readCursor(dir, flowSession); cur.AcknowledgedSeq != 2 || cur.Parked != nil {
 		t.Errorf("cursor = %+v, want seq 2 acknowledged after the accepted batch", cur)
 	}
 }
@@ -267,7 +267,7 @@ func TestParkingStatusesWaitForANewToken(t *testing.T) {
 			if poster.calls != 1 {
 				t.Fatalf("calls = %d, want 1", poster.calls)
 			}
-			if cur := (&run{}).readCursor(dir); cur.Parked == nil || cur.Parked.Status != status || cur.Parked.ObaVersion != flowVersion {
+			if cur := (&run{}).readCursor(dir, flowSession); cur.Parked == nil || cur.Parked.Status != status || cur.Parked.ObaVersion != flowVersion {
 				t.Fatalf("cursor = %+v, want parked with %d by oba %s", cur, status, flowVersion)
 			}
 			// The same token leaves the session parked, a new one sends it again.
@@ -306,7 +306,7 @@ func TestAMachineNameParkOfAnotherObaIsSentAgainWithTheSameToken(t *testing.T) {
 			if poster.calls != 1 {
 				t.Fatalf("calls = %d, want the parked session sent once", poster.calls)
 			}
-			if cur := (&run{}).readCursor(dir); cur.Parked != nil || cur.AcknowledgedSeq != 2 {
+			if cur := (&run{}).readCursor(dir, flowSession); cur.Parked != nil || cur.AcknowledgedSeq != 2 {
 				t.Errorf("cursor = %+v, want seq 2 acknowledged and the park gone", cur)
 			}
 			// The name goes out as the hook recorded it: Kaya takes it as a label.
@@ -339,7 +339,7 @@ func TestAMachineNameParkStaysParkedUnderTheObaThatParkedIt(t *testing.T) {
 			if poster.calls != 0 {
 				t.Errorf("calls = %d, want the session kept parked", poster.calls)
 			}
-			if cur := (&run{}).readCursor(dir); cur.Parked == nil || cur.Parked.ObaVersion != versions.parked {
+			if cur := (&run{}).readCursor(dir, flowSession); cur.Parked == nil || cur.Parked.ObaVersion != versions.parked {
 				t.Errorf("cursor = %+v, want the park unchanged", cur)
 			}
 		})
@@ -362,7 +362,7 @@ func TestASecondMachineNameRefusalParksAgainWithoutALoop(t *testing.T) {
 	if !equalDurations(clock.sleeps, seconds(2, 2, 2)) {
 		t.Errorf("sleeps = %v, want the 2 s round pause without a back-off", clock.sleeps)
 	}
-	cur := (&run{}).readCursor(dir)
+	cur := (&run{}).readCursor(dir, flowSession)
 	if cur.Parked == nil || cur.Parked.Status != 409 || cur.Parked.Code == nil || *cur.Parked.Code != codeMachineName || cur.Parked.ObaVersion != flowVersion {
 		t.Fatalf("cursor = %+v, want parked again on 409 %s by oba %s", cur, codeMachineName, flowVersion)
 	}
@@ -378,7 +378,7 @@ func TestASecondMachineNameRefusalParksAgainWithoutALoop(t *testing.T) {
 	if poster.calls != 2 {
 		t.Errorf("calls = %d after two runs of the next version, want 2", poster.calls)
 	}
-	if cur := (&run{}).readCursor(dir); cur.Parked == nil || cur.Parked.ObaVersion != cfg.Version {
+	if cur := (&run{}).readCursor(dir, flowSession); cur.Parked == nil || cur.Parked.ObaVersion != cfg.Version {
 		t.Errorf("cursor = %+v, want parked by oba %s", cur, cfg.Version)
 	}
 }
@@ -402,7 +402,7 @@ func TestALocalBuildSendsAMachineNameParkOnceAndThenWaits(t *testing.T) {
 	if poster.calls != 1 {
 		t.Fatalf("calls = %d over three runs of a local build, want the one retry", poster.calls)
 	}
-	if cur := (&run{}).readCursor(dir); cur.Parked == nil || cur.Parked.ObaVersion != "dev" {
+	if cur := (&run{}).readCursor(dir, flowSession); cur.Parked == nil || cur.Parked.ObaVersion != "dev" {
 		t.Fatalf("cursor = %+v, want parked by oba dev", cur)
 	}
 	cfg.Version = flowVersion
@@ -412,7 +412,7 @@ func TestALocalBuildSendsAMachineNameParkOnceAndThenWaits(t *testing.T) {
 	if poster.calls != 2 {
 		t.Errorf("calls = %d after the release ran, want 2", poster.calls)
 	}
-	if cur := (&run{}).readCursor(dir); cur.Parked != nil || cur.AcknowledgedSeq != 1 {
+	if cur := (&run{}).readCursor(dir, flowSession); cur.Parked != nil || cur.AcknowledgedSeq != 1 {
 		t.Errorf("cursor = %+v, want seq 1 acknowledged and the park gone", cur)
 	}
 }
@@ -439,7 +439,7 @@ func TestAReleasedParkThatCannotBeSentIsLoggedOnce(t *testing.T) {
 			if poster.calls != 0 {
 				t.Fatalf("calls = %d, want nothing sent for an unlisted repository", poster.calls)
 			}
-			if cur := (&run{}).readCursor(dir); cur.Parked == nil || cur.Parked.TokenFingerprint != fingerprint(park.token) {
+			if cur := (&run{}).readCursor(dir, flowSession); cur.Parked == nil || cur.Parked.TokenFingerprint != fingerprint(park.token) {
 				t.Errorf("cursor = %+v, want the park unchanged", cur)
 			}
 			log := logText(t, state)
@@ -449,6 +449,42 @@ func TestAReleasedParkThatCannotBeSentIsLoggedOnce(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// A damaged cursor is read again every round while its session cannot be sent: each damage is
+// logged once per run, and a different damage once more.
+func TestADamagedCursorIsLoggedOncePerDamage(t *testing.T) {
+	state := flowEnv(t)
+	dir := queueSession(t, state, flowSession, 1, false)
+	path := filepath.Join(dir, cursorFile)
+	writeFile(t, path, "{")
+	// The session's repository left the organization's repository list.
+	listRepositories(t, "github.com/example/other")
+	poster := &scriptedPoster{answers: []error{nil}}
+	// Four rounds of the loop, the cursor damaged in another way after the second.
+	clock := &fakeClock{now: time.Unix(1_800_000_000, 0), limit: 4}
+	cfg := flowConfig(clock, poster)
+	cfg.Sleep = func(ctx context.Context, d time.Duration) error {
+		if len(clock.sleeps) == 1 {
+			writeFile(t, path, "[]")
+		}
+		return clock.Sleep(ctx, d)
+	}
+	if err := Run(context.Background(), cfg); !errors.Is(err, errStopLoop) {
+		t.Fatalf("Run = %v", err)
+	}
+	if poster.calls != 0 {
+		t.Fatalf("calls = %d, want nothing sent for an unlisted repository", poster.calls)
+	}
+	log := logText(t, state)
+	if n := strings.Count(log, flowSession+": "+path+" unreadable, sending the session again: "); n != 2 {
+		t.Errorf("the damaged cursor was logged %d times over four rounds and two damages, want twice, log:\n%s", n, log)
+	}
+	for _, damage := range []string{"unexpected EOF", "cannot unmarshal array"} {
+		if n := strings.Count(log, damage); n != 1 {
+			t.Errorf("%q logged %d times, want once, log:\n%s", damage, n, log)
+		}
 	}
 }
 
@@ -949,13 +985,13 @@ func TestLostAcknowledgementResendsAndKayaCountsEachSeqOnce(t *testing.T) {
 	if err := Run(context.Background(), cfg); err != nil {
 		t.Fatal(err)
 	}
-	if cur := (&run{}).readCursor(dir); cur.AcknowledgedSeq != 0 {
+	if cur := (&run{}).readCursor(dir, flowSession); cur.AcknowledgedSeq != 0 {
 		t.Fatalf("cursor acknowledged %d after a lost answer, want 0", cur.AcknowledgedSeq)
 	}
 	if err := Run(context.Background(), cfg); err != nil {
 		t.Fatal(err)
 	}
-	if cur := (&run{}).readCursor(dir); cur.AcknowledgedSeq != 3 {
+	if cur := (&run{}).readCursor(dir, flowSession); cur.AcknowledgedSeq != 3 {
 		t.Fatalf("cursor acknowledged %d after the resend, want 3", cur.AcknowledgedSeq)
 	}
 	if store.requests != 2 {
@@ -1002,7 +1038,7 @@ func TestRedirectIsNotFollowedAndTheTokenStaysOnTheFirstHost(t *testing.T) {
 	if len(hit) != 0 {
 		t.Fatalf("the redirect target received %d requests (Authorization %q); a redirect must not be followed", len(hit), hit)
 	}
-	if cur := (&run{}).readCursor(dir); cur.AcknowledgedSeq != 0 {
+	if cur := (&run{}).readCursor(dir, flowSession); cur.AcknowledgedSeq != 0 {
 		t.Errorf("a redirect acknowledged seq %d", cur.AcknowledgedSeq)
 	}
 	log := logText(t, state)
