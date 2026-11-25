@@ -9,6 +9,7 @@ import {
   Kanban,
   LayoutTemplate,
   Mail,
+  Megaphone,
   Send,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -75,6 +76,7 @@ export function OtakAppShell({
           { label: t("documents"), href: "/documents", icon: FileText },
           { label: t("templates"), href: "/templates", icon: LayoutTemplate },
           { label: t("events"), href: "/events", icon: CalendarDays },
+          { label: t("campaigns"), href: "/campaigns", icon: Megaphone },
         ],
       },
     ],

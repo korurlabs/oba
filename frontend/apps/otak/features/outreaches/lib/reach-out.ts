@@ -44,6 +44,8 @@ export interface ReachOutSelection {
   body: string;
   language: DocumentLanguage;
   title: string;
+  /** The campaign the outreach belongs to; null for none. */
+  campaignId: string | null;
 }
 
 export const emptyReachOutSelection = (): ReachOutSelection => ({
@@ -54,6 +56,7 @@ export const emptyReachOutSelection = (): ReachOutSelection => ({
   body: "",
   language: DEFAULT_MAIL_LANGUAGE,
   title: "",
+  campaignId: null,
 });
 
 /**
@@ -204,6 +207,7 @@ export function toReachOutRequest(
     contactId: selection.contactId ?? "",
     title: selection.title.trim(),
     type: selection.type,
+    campaignId: selection.campaignId,
   };
   if (selection.type !== OutreachType.MAIL) {
     return { ...base, mailTemplateId: null, mail: null };

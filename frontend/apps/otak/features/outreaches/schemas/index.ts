@@ -64,16 +64,21 @@ export const outreachRequestSchema = z.object({
   type: OutreachTypeSchema,
   mailTemplateId: z.string().nullable(),
   mail: outreachMailRequestSchema.nullable(),
+  /** The campaign of the organization the outreach belongs to; null for none. */
+  campaignId: z.string().nullable(),
 });
 
 /**
  * Replaces the contact, the title and, for a MAIL outreach, its own mail.
- * The mail is required for MAIL and null for WHATSAPP and CALL.
+ * The mail is required for MAIL and null for WHATSAPP and CALL. A full
+ * replace: a null `campaignId` clears the link, so the stored one is sent
+ * back unchanged.
  */
 export const outreachUpdateRequestSchema = z.object({
   contactId: z.string(),
   title: z.string(),
   mail: outreachMailRequestSchema.nullable(),
+  campaignId: z.string().nullable(),
 });
 
 /** Sends the outreach from one of the organization's mail senders. */
@@ -85,6 +90,7 @@ export const outreachSendRequestSchema = z.object({
 export const outreachQueryRequestSchema = z.object({
   relationId: z.string().optional(),
   status: OutreachStatusSchema.optional(),
+  campaignId: z.string().optional(),
   page: z.number().int().min(1),
   amount: z.number().int().min(1).max(50),
 });
@@ -135,6 +141,7 @@ export const createOutreachFormSchema = (t: (key: string) => string, type: Outre
   const ownFields = {
     title: createOutreachTitleSchema(t),
     contactId: z.string().min(1, t("errors.contactRequired")),
+    campaignId: z.string(),
   };
   if (type === OutreachType.MAIL) {
     return createOutreachMailFormSchema(t).extend(ownFields);
@@ -161,6 +168,7 @@ export const outreachListItemSchema = z.object({
   type: OutreachTypeSchema,
   status: OutreachStatusSchema,
   relationId: z.string(),
+  campaignId: z.string().nullable(),
   contact: outreachContactSchema.nullable(),
   /** The mail address (MAIL) or phone number (WHATSAPP, CALL) it went to; null until sent or done. */
   sentTo: z.string().nullable(),
@@ -235,6 +243,7 @@ export function outreachToFormValues(outreach: OutreachDetail): OutreachFormValu
   return {
     title: outreach.title,
     contactId: outreach.contact?.id ?? "",
+    campaignId: outreach.campaignId ?? "",
     subject: outreach.mail?.subject ?? "",
     body: outreach.mail?.body ?? "",
     language: outreach.mail?.language ?? DEFAULT_MAIL_LANGUAGE,
@@ -244,7 +253,8 @@ export function outreachToFormValues(outreach: OutreachDetail): OutreachFormValu
 /**
  * The update request. A MAIL outreach sends its subject and body as typed,
  * because the server stores them as sent; it trims only the title. A
- * WHATSAPP or CALL outreach sends no mail, which the server requires.
+ * WHATSAPP or CALL outreach sends no mail, which the server requires. The
+ * campaign is always sent, since an update without it clears the link.
  */
 export function toOutreachUpdateRequest(
   values: OutreachFormValues,
@@ -257,6 +267,7 @@ export function toOutreachUpdateRequest(
       type === OutreachType.MAIL
         ? { subject: values.subject, body: values.body, language: values.language }
         : null,
+    campaignId: values.campaignId === "" ? null : values.campaignId,
   };
 }
 

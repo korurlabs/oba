@@ -1,14 +1,16 @@
-import { createLoader, parseAsInteger, parseAsStringEnum } from "nuqs/server";
+import { createLoader, parseAsInteger, parseAsString, parseAsStringEnum } from "nuqs/server";
 import type { Values } from "nuqs";
 import { OUTREACHES_PAGE_SIZE, OutreachStatusSchema, type OutreachQueryRequest } from "../schemas";
 
 /**
- * The outreach list's status filter and page in the URL, so a filtered list
+ * The outreach list's status and campaign filters and page in the URL, so a filtered list
  * can be reloaded and shared. Server-safe: the list page parses the same
  * parsers to prefetch under the key the client builds.
  */
 export const outreachFilterParams = {
   status: parseAsStringEnum(OutreachStatusSchema.options),
+  /** The id of the campaign the outreaches belong to. */
+  campaign: parseAsString,
   page: parseAsInteger.withDefault(1),
 };
 
@@ -18,7 +20,7 @@ export const loadOutreachFilterParams = createLoader(outreachFilterParams);
 
 /**
  * The query the organization's list sends for its URL state. An absent
- * status is left out, so the client and the server prefetch build the same
+ * status or campaign is left out, so the client and the server prefetch build the same
  * key.
  */
 export function toOutreachQuery(filters: OutreachFilterParams): OutreachQueryRequest {
@@ -27,5 +29,6 @@ export function toOutreachQuery(filters: OutreachFilterParams): OutreachQueryReq
     amount: OUTREACHES_PAGE_SIZE,
   };
   if (filters.status) query.status = filters.status;
+  if (filters.campaign) query.campaignId = filters.campaign;
   return query;
 }

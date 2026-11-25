@@ -1,3 +1,4 @@
+import { isApiError } from "@oba/shared/api/axios";
 import { apiErrorText, validationFieldErrors } from "@/lib/api-error-text";
 
 /** Refusals of the outreach endpoints that have a text of their own. */
@@ -7,6 +8,7 @@ const ERROR_TEXT_KEYS: Partial<Record<string, string>> = {
   OTK_NOT_005: "errors.notFound",
   OTK_NOT_006: "errors.senderNotFound",
   OTK_NOT_010: "errors.templateNotFound",
+  OTK_NOT_012: "errors.campaignNotFound",
   OTK_STA_011: "errors.notEditable",
   OTK_VAL_004: "errors.sharedMailboxNotFound",
   OTK_VAL_007: "errors.contactWithoutAddress",
@@ -43,7 +45,17 @@ export function outreachErrorText(
   return apiErrorText(error, t, fallbackKey, ERROR_TEXT_KEYS);
 }
 
-/** The form fields a refused save names, with the message for each: the `errorValues` of a 422. */
-export function outreachFieldErrors(error: unknown): Record<string, string> {
+/**
+ * The form fields a refused save names, with the message for each: the
+ * campaign for `OTK_NOT_012`, else the `errorValues` of a 422. `t` is the
+ * `outreaches` translator.
+ */
+export function outreachFieldErrors(
+  error: unknown,
+  t: (key: string) => string
+): Record<string, string> {
+  if (isApiError(error, "OTK_NOT_012")) {
+    return { campaignId: t("errors.campaignNotFound") };
+  }
   return validationFieldErrors(error, FIELD_ALIASES);
 }

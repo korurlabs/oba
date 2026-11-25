@@ -12,6 +12,7 @@
     "documents": "Document",
     "templates": "Template",
     "events": "Event",
+    "campaigns": "Campaign",
     "language": "Language"
   },
   "errors": {
@@ -95,6 +96,7 @@
       "INBOUND": "Inbound",
       "PARTNER": "Partner",
       "EVENT": "Event",
+      "CAMPAIGN": "Campaign",
       "RESEARCH": "Research",
       "OTHER": "Other"
     },
@@ -121,7 +123,10 @@
       "ownerLabel": "Owner",
       "eventLabel": "Event",
       "eventPlaceholder": "Any event",
-      "eventsLoadError": "The events could not be loaded."
+      "eventsLoadError": "The events could not be loaded.",
+      "campaignLabel": "Campaign",
+      "campaignPlaceholder": "Any campaign",
+      "campaignsLoadError": "The campaigns could not be loaded."
     },
     "form": {
       "sections": {
@@ -182,7 +187,10 @@
       },
       "event": "Event",
       "eventPlaceholder": "Select an event",
-      "eventsLoadError": "The events could not be loaded."
+      "eventsLoadError": "The events could not be loaded.",
+      "campaign": "Campaign",
+      "campaignPlaceholder": "Select a campaign",
+      "campaignsLoadError": "The campaigns could not be loaded."
     },
     "newPage": {
       "title": "New relation",
@@ -235,7 +243,8 @@
       "typeUnchanged": "The relation already has this type.",
       "stageNotForType": "This stage does not belong to the relation's type.",
       "loadHint": "Check your connection and try again.",
-      "eventNotFound": "This event no longer exists."
+      "eventNotFound": "This event no longer exists.",
+      "campaignNotFound": "This campaign no longer exists."
     },
     "battlefield": {
       "title": "Battlefield",
@@ -954,7 +963,10 @@
     "filters": {
       "statusLabel": "Status",
       "statusAll": "All statuses",
-      "clear": "Clear filter"
+      "clear": "Clear filter",
+      "campaignLabel": "Campaign",
+      "campaignAll": "All campaigns",
+      "campaignsLoadError": "The campaigns could not be loaded."
     },
     "pagination": {
       "label": "Pages",
@@ -983,7 +995,10 @@
         "subjectMax": "Subject must be at most 255 characters",
         "bodyRequired": "Body is required",
         "bodyMax": "Body must be at most 10,000 characters"
-      }
+      },
+      "campaign": "Campaign",
+      "campaignPlaceholder": "No campaign",
+      "campaignsLoadError": "The campaigns could not be loaded."
     },
     "attachments": {
       "filesLegend": "Attach files",
@@ -1018,7 +1033,8 @@
       "loadHint": "Check your connection and try again.",
       "actionNotForType": "This action does not fit the outreach's channel.",
       "contactWithoutPhone": "The contact has no phone number. Add one in the Contacts card.",
-      "attachmentDuplicate": "This file is already attached here."
+      "attachmentDuplicate": "This file is already attached here.",
+      "campaignNotFound": "This campaign no longer exists."
     },
     "sendDialog": {
       "title": "Send {title}",
@@ -1325,6 +1341,188 @@
       "loadError": "The relations could not be loaded.",
       "empty": "No relations are linked to this event yet.",
       "tableLabel": "Relations of this event"
+    }
+  },
+  "campaigns": {
+    "title": "Campaigns",
+    "subtitle": "Posts and mailings of the organization, with their texts per language and their images.",
+    "new": "New campaign",
+    "newTitle": "New campaign",
+    "editTitle": "Edit campaign",
+    "dialogDescription": "Plan a post or mailing. Oba does not post it: post it yourself and mark it as published.",
+    "loadError": "The campaigns could not be loaded.",
+    "reloadError": "The campaigns could not be refreshed; this list may be out of date.",
+    "loadOneError": "The campaign could not be loaded.",
+    "loading": "Loading the campaigns",
+    "loadingOne": "Loading the campaign",
+    "emptyFiltered": "No campaigns match these filters",
+    "emptyFilteredHint": "Try another channel or name, or clear the filters.",
+    "emptyByTab": {
+      "all": "No campaigns yet",
+      "draft": "No draft campaigns",
+      "scheduled": "No scheduled campaigns",
+      "published": "No published campaigns",
+      "archived": "No archived campaigns"
+    },
+    "emptyHint": "Add a campaign with its texts and images, so every post lives in one library.",
+    "tableLabel": "Campaigns",
+    "tabsLabel": "Status",
+    "tabs": {
+      "all": "All",
+      "draft": "Draft",
+      "scheduled": "Scheduled",
+      "published": "Published",
+      "archived": "Archived"
+    },
+    "channels": {
+      "LINKEDIN": "LinkedIn",
+      "X": "X",
+      "NEWSLETTER": "Newsletter"
+    },
+    "statuses": {
+      "DRAFT": "Draft",
+      "SCHEDULED": "Scheduled",
+      "PUBLISHED": "Published",
+      "ARCHIVED": "Archived"
+    },
+    "noTexts": "No texts",
+    "notPlanned": "Not planned",
+    "notPublished": "Not published",
+    "noOwner": "No owner",
+    "noPostUrl": "No post address",
+    "noEvent": "No event",
+    "noIcp": "No ICP",
+    "edit": "Edit {name}",
+    "delete": "Delete {name}",
+    "deleteTitle": "Delete campaign",
+    "deleteConfirm": "Delete {name} with its texts and images? Outreaches and relations linked to it stay and lose the link. This cannot be undone.",
+    "deleteAction": "Delete",
+    "columns": {
+      "name": "Name",
+      "channel": "Channel",
+      "status": "Status",
+      "languages": "Languages",
+      "plannedAt": "Planned",
+      "publishedAt": "Published",
+      "owner": "Owner",
+      "actions": "Actions"
+    },
+    "filters": {
+      "channelLabel": "Channel",
+      "channelAll": "All channels",
+      "searchLabel": "Search",
+      "searchPlaceholder": "Search by name",
+      "clear": "Clear filters"
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Such as Security check launch",
+      "channel": "Channel",
+      "channelPlaceholder": "Select a channel",
+      "status": "Status",
+      "plannedAt": "Planned at",
+      "plannedAtHint": "In your own time zone. A scheduled campaign needs it.",
+      "publishedAt": "Published at",
+      "publishedAtHint": "Leave empty when marking it published now; fill it in for a post that went out earlier.",
+      "postUrl": "Post address",
+      "postUrlPlaceholder": "https://www.linkedin.com/posts/...",
+      "owner": "Owner",
+      "ownerPlaceholder": "Select an owner",
+      "ownerNoOtakAccess": "No Otak access, so this member cannot own a campaign.",
+      "ownersLoadError": "The members could not be loaded.",
+      "event": "Event",
+      "eventPlaceholder": "Select an event",
+      "eventsLoadError": "The events could not be loaded.",
+      "icp": "ICP",
+      "icpPlaceholder": "Select an ICP",
+      "icpsLoadError": "The ICPs could not be loaded.",
+      "texts": "Texts",
+      "textsLabel": "Text languages",
+      "text": "Text in {language}",
+      "textPlaceholder": "The text of the post. Leave empty for no text in this language.",
+      "characterCount": "{count, plural, one {# character} other {# characters}}",
+      "characterCountOfLimit": "{count} / {limit} characters",
+      "create": "Create campaign",
+      "save": "Save changes",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "errors": {
+        "nameRequired": "Name is required",
+        "nameMax": "Name must be at most 200 characters",
+        "channelRequired": "Channel is required",
+        "dateTimeInvalid": "Enter a valid date and time",
+        "postUrlMax": "Post address must be at most 500 characters",
+        "postUrlInvalid": "Enter a web address that starts with http:// or https://",
+        "textMax": "A text must be at most 20,000 characters",
+        "plannedAtRequired": "A scheduled campaign needs a planned date and time",
+        "publishedAtNotAllowed": "A draft or scheduled campaign has no published date; mark it as published or clear the date",
+        "publishedAtInFuture": "The published date cannot be in the future; schedule the campaign instead"
+      }
+    },
+    "toast": {
+      "created": "Campaign created",
+      "updated": "Campaign saved",
+      "markedPublished": "Campaign marked as published",
+      "deleted": "Campaign deleted",
+      "saveError": "The campaign could not be saved",
+      "deleteError": "The campaign could not be deleted"
+    },
+    "errors": {
+      "notFound": "This campaign no longer exists.",
+      "eventNotFound": "This event no longer exists.",
+      "icpNotFound": "This ICP no longer exists.",
+      "nameTaken": "The organization already has a campaign with this name.",
+      "ownerNotMember": "The owner must be an active member of the organization.",
+      "ownerWithoutOtakAccess": "This member has no Otak access, so they cannot own a campaign. An owner or admin can grant Otak in Ulak.",
+      "statusDates": "A scheduled campaign needs a planned date, a draft or scheduled campaign has no published date, and a published date is not in the future.",
+      "languageRepeated": "A campaign has one text per language.",
+      "imageDuplicate": "This file is already on the campaign.",
+      "forbidden": "You do not have permission to do this.",
+      "validation": "Check the highlighted fields.",
+      "loadHint": "Check your connection and try again."
+    },
+    "detail": {
+      "title": "Campaign",
+      "back": "Back to campaigns",
+      "loading": "Loading the campaign",
+      "loadError": "The campaign could not be loaded.",
+      "notFoundTitle": "Campaign not found",
+      "notFoundDescription": "This campaign does not exist, or it belongs to another organization.",
+      "timestamps": "Created {created} · Updated {updated}",
+      "edit": "Edit campaign",
+      "delete": "Delete campaign",
+      "deleting": "Deleting...",
+      "markPublished": "Mark as published",
+      "markingPublished": "Marking...",
+      "details": "Details",
+      "relationsLink": "Relations",
+      "outreachesLink": "Outreaches",
+      "plannedAt": "Planned at",
+      "publishedAt": "Published at",
+      "owner": "Owner",
+      "postUrl": "Post address",
+      "event": "Event",
+      "icp": "ICP",
+      "eventUnnamed": "Event",
+      "icpUnnamed": "ICP",
+      "texts": "Texts",
+      "noTexts": "No texts yet.",
+      "copy": "Copy",
+      "copyLabel": "Copy the {language} text",
+      "copied": "Text copied",
+      "copyError": "The text could not be copied. Select it and copy it by hand."
+    },
+    "images": {
+      "title": "Images",
+      "loading": "Loading the images",
+      "loadError": "The images could not be loaded.",
+      "empty": "No images yet.",
+      "open": "Open {name}",
+      "delete": "Delete {name}",
+      "deleteTitle": "Delete image",
+      "deleteConfirm": "Delete {name}? This cannot be undone.",
+      "deleteAction": "Delete",
+      "cancel": "Cancel"
     }
   }
 }

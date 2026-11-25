@@ -5,6 +5,7 @@ import {
   relationAttachmentSchema,
   relationDetailSchema,
   relationListItemSchema,
+  RelationSourceSchema,
   relationToFormValues,
   relationUpdateRequestSchema,
   toRelationCreateRequest,
@@ -89,6 +90,7 @@ describe("toRelationCreateRequest", () => {
       ownerUserId: null,
       icpId: null,
       eventId: null,
+      campaignId: null,
       notes: null,
     });
   });
@@ -112,6 +114,17 @@ describe("relation request and response schemas", () => {
     expect(linked.eventId).toBe("event-1");
     expect(relationUpdateRequestSchema.safeParse(linked).success).toBe(true);
     expect(toRelationUpdateRequest(schema.parse(valid)).eventId).toBeNull();
+  });
+
+  test("an edit sends the stored campaign back, and an empty campaign is sent as null", () => {
+    const linked = toRelationUpdateRequest(schema.parse({ ...valid, campaignId: "campaign-1" }));
+    expect(linked.campaignId).toBe("campaign-1");
+    expect(relationUpdateRequestSchema.safeParse(linked).success).toBe(true);
+    expect(toRelationUpdateRequest(schema.parse(valid)).campaignId).toBeNull();
+  });
+
+  test("a relation can come from a campaign", () => {
+    expect(RelationSourceSchema.safeParse("CAMPAIGN").success).toBe(true);
   });
 
   test("an empty icpId and country are sent as null", () => {
@@ -140,6 +153,7 @@ describe("relation request and response schemas", () => {
       owner: null,
       icpId: "icp-1",
       eventId: "event-1",
+      campaignId: "campaign-1",
       notes: null,
       createdAt: "2026-11-09T09:00:00Z",
       updatedAt: "2026-11-09T09:30:00Z",
@@ -147,6 +161,8 @@ describe("relation request and response schemas", () => {
     const values = relationToFormValues(detail);
     expect(values.icpId).toBe("icp-1");
     expect(values.eventId).toBe("event-1");
+    expect(values.campaignId).toBe("campaign-1");
+    expect(toRelationUpdateRequest(values).campaignId).toBe("campaign-1");
     expect(values.country).toBe("NL");
     expect(values.website).toBe("https://acme.com");
     expect(relationDetailSchema.safeParse({ ...detail, country: "XX" }).success).toBe(false);
@@ -164,6 +180,7 @@ describe("relation request and response schemas", () => {
       mainPersonContactEmail: null,
       mainBusinessContactEmail: null,
       expectedValue: null,
+      campaignId: null,
       updatedAt: "2026-11-09T09:30:00Z",
     };
     expect(relationListItemSchema.parse(item).website).toBeNull();

@@ -159,7 +159,14 @@ describe("toReachOutRequest", () => {
       type: "MAIL",
       mailTemplateId: "template-1",
       mail: null,
+      campaignId: null,
     });
+  });
+
+  test("the chosen campaign is sent with the outreach", () => {
+    expect(
+      toReachOutRequest("relation-1", { ...complete, campaignId: "campaign-1" })
+    ).toMatchObject({ campaignId: "campaign-1" });
   });
 
   test("an edited template goes as the text typed, in the template's language", () => {
@@ -186,6 +193,7 @@ describe("toReachOutRequest", () => {
       type: "MAIL",
       mailTemplateId: null,
       mail: { subject: "Hi", body: "Body", language: "TR" },
+      campaignId: null,
     });
   });
 });
@@ -232,6 +240,7 @@ describe("WhatsApp and call reach-outs", () => {
       type: "CALL",
       mailTemplateId: null,
       mail: null,
+      campaignId: null,
     });
   });
 });
