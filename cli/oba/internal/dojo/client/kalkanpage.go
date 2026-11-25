@@ -11,6 +11,13 @@ const (
 	KalkanLocaleEN = "EN"
 )
 
+// Outcomes of a Kalkan page upsert, as KalkanPageUpsertResult.Outcome names them.
+const (
+	KalkanPageCreated   = "CREATED"
+	KalkanPageUpdated   = "UPDATED"
+	KalkanPageUnchanged = "UNCHANGED"
+)
+
 // Error codes of the Kalkan page endpoints a command tells apart. A denial (403, 404) is told
 // apart by its status.
 const (
