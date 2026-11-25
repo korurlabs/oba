@@ -1,10 +1,17 @@
 "use client";
 
-import { useCallback, useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import {
+  useCallback,
+  useId,
+  useMemo,
+  useState,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
+} from "react";
 import { useTranslations } from "next-intl";
 import { parseAsStringEnum, useQueryStates } from "nuqs";
 import { ArrowLeft, Info, ListChecks, Plus } from "lucide-react";
-import { SenseyTable } from "@oba/shared/components/sensey-table";
 import { useGetMe } from "@oba/shared/features/users/hooks/use-get-me";
 import { Link } from "@oba/shared/libs/i18n/navigation";
 import { Button } from "@/components/ui/button";
@@ -19,7 +26,6 @@ import {
 } from "@/components/ui/select";
 import { isOrganizationAdmin } from "@/features/updates/lib/organization-admin";
 import { useChecks, useSetCheckOutcome, useSetCheckStatus } from "../hooks/use-checks";
-import { useCheckColumns } from "../hooks/use-check-columns";
 import {
   CHECK_CATEGORIES,
   CHECK_STATUSES,
@@ -29,6 +35,7 @@ import {
   type CheckOutcome,
   type CheckStatus,
 } from "../schemas";
+import { CheckCard, CheckCardSkeleton } from "./check-card";
 import { CheckDeleteDialog } from "./check-delete-dialog";
 import { CheckDialog } from "./check-dialog";
 import { CyberscoreLoadError } from "./cyberscore-load-error";
@@ -44,35 +51,26 @@ export const checkListFilterParams = {
 /** The status filter's value for "every status"; a Select item cannot have an empty value. */
 const ALL_STATUSES = "ALL";
 
-/**
- * A row of the check table: a check, or the header row of one category,
- * which carries the checks it groups in `groupChecks`.
- */
-export type CheckListRow = Check & { groupChecks?: Check[] };
-
-function isCategoryHeader(row: CheckListRow): boolean {
-  return row.groupChecks !== undefined;
+/** The checks of one category, or of no category when `category` is null. */
+export interface CheckGroup {
+  category: CheckCategory | null;
+  checks: Check[];
 }
 
 /**
- * Table rows for the checks: one header row per category that has checks, in
- * the category's declared order and with uncategorized checks last, each with
- * its checks nested in the server's order. A header takes the fields a column
- * reads from its first check, so a column sort moves the group where its
- * first check would go; it renders only the category name.
+ * One group per category that has checks, in the category's declared order
+ * and with uncategorized checks last, each keeping the server's order.
  */
-export function groupChecksByCategory(checks: Check[]): CheckListRow[] {
+export function groupChecksByCategory(checks: Check[]): CheckGroup[] {
   const order: (CheckCategory | null)[] = [...CHECK_CATEGORIES, null];
   return order.flatMap((category) => {
     const groupChecks = checks.filter((check) => (check.category ?? null) === category);
-    const first = groupChecks[0];
-    if (!first) return [];
-    return [{ ...first, id: `category:${category ?? "NONE"}`, groupChecks }];
+    return groupChecks.length > 0 ? [{ category, checks: groupChecks }] : [];
   });
 }
 
 /**
- * Marks a check as saving until `save` settles, so its row selects stay
+ * Marks a check as saving until `save` settles, so its card's selects stay
  * disabled for exactly that save. A mutation reports only its latest call,
  * which would release an earlier row while its save still runs, so every save
  * is tracked by its own check id.
@@ -101,11 +99,59 @@ export function trackCheckSave(
     );
 }
 
+interface CheckGroupsProps {
+  groups: CheckGroup[];
+  isLoading: boolean;
+  emptyMessage: ReactNode;
+  renderCheck: (check: Check) => ReactNode;
+}
+
+/** One section per category: its heading, then a card per check. */
+function CheckGroups({ groups, isLoading, emptyMessage, renderCheck }: CheckGroupsProps) {
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-3" aria-busy="true">
+        <CheckCardSkeleton />
+        <CheckCardSkeleton />
+        <CheckCardSkeleton />
+      </div>
+    );
+  }
+  if (groups.length === 0) return <>{emptyMessage}</>;
+  return (
+    <div className="flex flex-col gap-8">
+      {groups.map((group) => (
+        <CheckGroupSection key={group.category ?? "NONE"} group={group} renderCheck={renderCheck} />
+      ))}
+    </div>
+  );
+}
+
+function CheckGroupSection({
+  group,
+  renderCheck,
+}: {
+  group: CheckGroup;
+  renderCheck: (check: Check) => ReactNode;
+}) {
+  const t = useTranslations("cyberscore");
+  const headingId = useId();
+  return (
+    <section aria-labelledby={headingId} className="flex min-w-0 flex-col gap-3">
+      <h2 id={headingId} className="kazan-grid-heading">
+        {t(`categories.${group.category ?? "NONE"}`)}
+      </h2>
+      <div className="flex flex-col gap-3">{group.checks.map(renderCheck)}</div>
+    </section>
+  );
+}
+
 /**
- * The organization's checks, grouped by category under a header row each,
- * in the server's order (sort order, name) within a category. Every member may read them; only an OWNER or ADMIN of the default
- * organization gets the add, edit, delete and row select controls, which the
- * server enforces as well.
+ * The organization's checks as one card each, grouped by category under a
+ * heading each, in the server's order (sort order, name) within a category.
+ * Every member may read them; only an OWNER or ADMIN of the default
+ * organization gets the add, edit, delete and outcome and status controls,
+ * which the server enforces as well.
  */
 export function CheckList() {
   const t = useTranslations("cyberscore");
@@ -119,13 +165,7 @@ export function CheckList() {
   const { data: checksResponse, isPending, isError, isFetching, refetch } = useChecks(status);
   const checks = useMemo((): Check[] => checksResponse?.data ?? [], [checksResponse?.data]);
 
-  const rows = useMemo(() => groupChecksByCategory(checks), [checks]);
-  const renderCategoryHeader = useCallback(
-    (row: CheckListRow) => (
-      <span className="kazan-grid-heading">{t(`categories.${row.category ?? "NONE"}`)}</span>
-    ),
-    [t]
-  );
+  const groups = useMemo(() => groupChecksByCategory(checks), [checks]);
 
   const setOutcome = useSetCheckOutcome();
   const setStatus = useSetCheckStatus();
@@ -171,15 +211,6 @@ export function CheckList() {
     const parsed = CheckStatusSchema.safeParse(value);
     void setFilters({ status: parsed.success ? parsed.data : null });
   };
-
-  const columns = useCheckColumns({
-    canManage,
-    onEdit: handleEdit,
-    onDelete: handleDelete,
-    onOutcomeChange: handleOutcomeChange,
-    onStatusChange: handleStatusChange,
-    savingCheckIds,
-  });
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
@@ -229,15 +260,11 @@ export function CheckList() {
           onRetry={() => void refetch()}
         />
       ) : (
-        <SenseyTable<CheckListRow>
-          columns={columns}
-          data={rows}
-          hierarchyKey="groupChecks"
-          isRowStatic={isCategoryHeader}
-          renderStaticRow={renderCategoryHeader}
+        <CheckGroups
+          groups={groups}
           isLoading={isPending}
           emptyMessage={
-            <div className="flex flex-col items-center gap-2 py-8 text-center">
+            <div className="border-border flex flex-col items-center gap-2 border border-dashed px-4 py-12 text-center">
               <span
                 aria-hidden
                 className="border-primary/40 text-primary mb-2 flex size-12 items-center justify-center border border-dashed"
@@ -252,7 +279,18 @@ export function CheckList() {
               )}
             </div>
           }
-          getRowId={(check) => check.id}
+          renderCheck={(check) => (
+            <CheckCard
+              key={check.id}
+              check={check}
+              canManage={canManage}
+              isSaving={savingCheckIds.has(check.id)}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onOutcomeChange={handleOutcomeChange}
+              onStatusChange={handleStatusChange}
+            />
+          )}
         />
       )}
 

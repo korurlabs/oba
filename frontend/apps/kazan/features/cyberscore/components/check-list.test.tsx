@@ -2,7 +2,6 @@ import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
 import { NextIntlClientProvider } from "next-intl";
 import en from "@/locales/en.json";
-import { SenseyTable } from "@oba/shared/components/sensey-table";
 import type { Check } from "../schemas";
 
 // Who the reader is and which checks come back are stand-ins; the list, its
@@ -85,7 +84,7 @@ afterAll(() => {
 });
 
 const { CheckList, trackCheckSave } = await import("./check-list");
-const { useCheckColumns } = await import("../hooks/use-check-columns");
+const { CheckCard } = await import("./check-card");
 
 function markup(): string {
   return renderToStaticMarkup(
@@ -127,6 +126,26 @@ describe("CheckList write controls", () => {
   );
 });
 
+describe("CheckList cards", () => {
+  test("shows the description and the fix steps in full, keeping their line breaks", () => {
+    const steps = "1. Renew the licence.\n2. Enforce the policy.\n3. Register a key.";
+    const description = "A long description that a reader needs in full.\n\nImpact: everything.";
+    checks = [{ ...mfaCheck, description, expected: steps } as Check];
+    const html = markup();
+
+    expect(html).toContain(steps);
+    expect(html).toContain(description);
+    expect(html).toContain("whitespace-pre-line");
+    // Nothing on the card cuts its text short.
+    const card = html.match(/<article[\s\S]*<\/article>/)?.[0] ?? "";
+    expect(card).toContain(steps);
+    expect(card).not.toContain("line-clamp");
+    expect(card).not.toContain("truncate");
+    expect(html).toContain(en.cyberscore.checks.fields.description);
+    expect(html).toContain(en.cyberscore.checks.fields.expected);
+  });
+});
+
 describe("CheckList category groups", () => {
   test("shows one header per category in the declared order, uncategorized last", () => {
     checks = [
@@ -137,9 +156,9 @@ describe("CheckList category groups", () => {
     ];
     const html = markup();
 
-    const headers = [...html.matchAll(/<span class="kazan-grid-heading">([^<]*)<\/span>/g)].map(
-      (match) => match[1]
-    );
+    const headers = [
+      ...html.matchAll(/<h2 id="[^"]*" class="kazan-grid-heading">([^<]*)<\/h2>/g),
+    ].map((match) => match[1]);
     expect(headers).toEqual([
       en.cyberscore.categories.IDENTITY,
       en.cyberscore.categories.DATA,
@@ -148,12 +167,12 @@ describe("CheckList category groups", () => {
 
     // Each check sits under its own header, in the server's order within it.
     const positions = [
-      `>${en.cyberscore.categories.IDENTITY}</span>`,
+      `>${en.cyberscore.categories.IDENTITY}</h2>`,
       "MFA on admin accounts",
-      `>${en.cyberscore.categories.DATA}</span>`,
+      `>${en.cyberscore.categories.DATA}</h2>`,
       "Backups restore",
       "Disk encryption",
-      `>${en.cyberscore.categories.NONE}</span>`,
+      `>${en.cyberscore.categories.NONE}</h2>`,
       "No category check",
     ].map((text) => html.indexOf(text));
     expect(positions.every((position) => position >= 0)).toBe(true);
@@ -161,20 +180,27 @@ describe("CheckList category groups", () => {
   });
 });
 
-describe("check row saves", () => {
-  function SavingTable({ rows, savingCheckIds }: { rows: Check[]; savingCheckIds: Set<string> }) {
-    const columns = useCheckColumns({
-      canManage: true,
-      onEdit: () => undefined,
-      onDelete: () => undefined,
-      onOutcomeChange: () => undefined,
-      onStatusChange: () => undefined,
-      savingCheckIds,
-    });
-    return <SenseyTable<Check> columns={columns} data={rows} getRowId={(check) => check.id} />;
+describe("check card saves", () => {
+  function SavingCards({ rows, savingCheckIds }: { rows: Check[]; savingCheckIds: Set<string> }) {
+    return (
+      <>
+        {rows.map((check) => (
+          <CheckCard
+            key={check.id}
+            check={check}
+            canManage
+            isSaving={savingCheckIds.has(check.id)}
+            onEdit={() => undefined}
+            onDelete={() => undefined}
+            onOutcomeChange={() => undefined}
+            onStatusChange={() => undefined}
+          />
+        ))}
+      </>
+    );
   }
 
-  test("disables the selects of every row whose save is running, and only those", () => {
+  test("disables the selects of every card whose save is running, and only those", () => {
     const rows = [
       makeCheck("c1", "First check", "IDENTITY"),
       makeCheck("c2", "Second check", "IDENTITY"),
@@ -182,7 +208,7 @@ describe("check row saves", () => {
     ];
     const html = renderToStaticMarkup(
       <NextIntlClientProvider locale="en" messages={en} timeZone="UTC">
-        <SavingTable rows={rows} savingCheckIds={new Set(["c1", "c3"])} />
+        <SavingCards rows={rows} savingCheckIds={new Set(["c1", "c3"])} />
       </NextIntlClientProvider>
     );
     const triggers = html.match(/<button[^>]*role="combobox"[^>]*>/g) ?? [];
