@@ -32,6 +32,14 @@ public interface InvitationService {
 
     /**
      * Processes an invitation decision (accept or decline) by the invited user.
+     * An invitation of a deleted organization is treated as not found.
      */
     InvitationResponse processDecision(User user, InvitationDecisionRequest request);
+
+    /**
+     * Revokes every pending invitation of an organization that is being deleted. A deleted
+     * organization can no longer be joined, so no invitation to it may stay open for a decision.
+     * Runs in the caller's transaction, so the invitations are revoked only if the deletion commits.
+     */
+    void revokePendingInvitationsOfOrganization(UUID organizationId);
 }
