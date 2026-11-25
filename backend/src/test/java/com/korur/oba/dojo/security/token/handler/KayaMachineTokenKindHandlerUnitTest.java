@@ -83,6 +83,11 @@ class KayaMachineTokenKindHandlerUnitTest {
     }
 
     @Test
+    void refusedPaths_machineToken_refusesNothingBeyondItsReservedPaths() {
+        assertTrue(handler.refusedPaths().isEmpty());
+    }
+
+    @Test
     void exemptEndpoints_onlyIngestPost_isExempt() {
         assertEquals(1, handler.exemptEndpoints().size());
         ApiTokenEndpoint endpoint = handler.exemptEndpoints().get(0);

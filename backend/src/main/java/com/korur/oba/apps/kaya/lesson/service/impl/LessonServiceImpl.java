@@ -42,6 +42,8 @@ import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
 import com.korur.oba.apps.kaya.repository.dto.response.RepositoryResponse;
 import com.korur.oba.apps.kaya.repository.enums.RepositoryStatus;
 import com.korur.oba.apps.kaya.repository.service.RepositoryQueryService;
+import com.korur.oba.shrine.agent.constant.AgentConstant;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
 
 @Service
 @RequiredArgsConstructor
@@ -53,6 +55,7 @@ public class LessonServiceImpl implements LessonService {
     private final LessonQueryService lessonQueryService;
     private final RepositoryQueryService repositoryQueryService;
     private final UserAccessHelper userAccessHelper;
+    private final AgentValidator agentValidator;
     private final LessonMapper lessonMapper;
     private final DeliveryProposalProperties deliveryProposalProperties;
     private final LessonDeliveryRateLimiter lessonDeliveryRateLimiter;
@@ -91,6 +94,8 @@ public class LessonServiceImpl implements LessonService {
     @Override
     @Transactional
     public LessonDetailResponse update(User user, UUID organizationId, UUID lessonId, LessonRequest request) {
+        // Lessons reach every later session, so an agent never rewrites one.
+        agentValidator.ensureCallerIsNotAgent(user, AgentConstant.ACTION_KAYA_LESSON_UPDATE);
         Lesson lesson = lessonQueryService.getEntity(organizationId, lessonId);
         userAccessHelper.requireAdminOrSelf(user, organizationId, lesson.getUserId());
         // Only a move is checked, so a lesson whose repository was archived stays correctable.
@@ -108,6 +113,8 @@ public class LessonServiceImpl implements LessonService {
     @Override
     @Transactional
     public void delete(User user, UUID organizationId, UUID lessonId) {
+        // Also refused through the machine token, so an agent cannot remove a lesson people rely on.
+        agentValidator.ensureCallerIsNotAgent(user, AgentConstant.ACTION_KAYA_LESSON_DELETE);
         Lesson lesson = lessonQueryService.getEntity(organizationId, lessonId);
         userAccessHelper.requireAdminOrSelf(user, organizationId, lesson.getUserId());
         lessonRepository.delete(lesson);

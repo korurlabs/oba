@@ -16,6 +16,7 @@ import java.util.Optional;
 // 4. Internal
 import com.korur.oba.dojo.security.token.constant.ApiTokenConstant;
 import com.korur.oba.dojo.security.token.dto.ApiTokenEndpoint;
+import com.korur.oba.dojo.security.token.dto.ApiTokenRefusedPaths;
 import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
 import com.korur.oba.dojo.security.token.handler.ApiTokenKindHandler;
 
@@ -91,6 +92,30 @@ public class ApiTokenKindRegistry {
                 if (PATH_MATCHER.match(pattern, path)) {
                     return Optional.of(handler);
                 }
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Finds the refusal a kind answers on a path.
+     *
+     * @param kind the kind of the request's token
+     * @param path the decoded, context-relative request path
+     * @return the kind's refused paths when one of them matches the path, or empty
+     */
+    public Optional<ApiTokenRefusedPaths> findRefusal(ApiTokenKind kind, String path) {
+        ApiTokenKindHandler handler = handlers.get(kind);
+        if (handler == null) {
+            return Optional.empty();
+        }
+        Optional<ApiTokenRefusedPaths> refusedPaths = handler.refusedPaths();
+        if (refusedPaths.isEmpty()) {
+            return Optional.empty();
+        }
+        for (String pattern : refusedPaths.get().pathPatterns()) {
+            if (PATH_MATCHER.match(pattern, path)) {
+                return refusedPaths;
             }
         }
         return Optional.empty();

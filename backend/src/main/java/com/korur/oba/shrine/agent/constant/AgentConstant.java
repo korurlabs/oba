@@ -40,6 +40,15 @@ public final class AgentConstant {
     public static final String ACTION_ORGANIZATION_LEAVE = "ORGANIZATION_LEAVE";
     public static final String ACTION_KAYA_MACHINE_CREATE = "KAYA_MACHINE_CREATE";
     public static final String ACTION_KAYA_TOKEN_ROTATE = "KAYA_TOKEN_ROTATE";
+    // Nor does an agent change what Kaya delivers into people's sessions, erase the record of its own
+    // runs or cut off the machine token its runs record with.
+    public static final String ACTION_KAYA_ACCESS = "KAYA_ACCESS";
+    public static final String ACTION_KAYA_LESSON_UPDATE = "KAYA_LESSON_UPDATE";
+    public static final String ACTION_KAYA_LESSON_DELETE = "KAYA_LESSON_DELETE";
+    public static final String ACTION_KAYA_PLAN_FEEDBACK = "KAYA_PLAN_FEEDBACK";
+    public static final String ACTION_KAYA_SESSION_DELETE = "KAYA_SESSION_DELETE";
+    public static final String ACTION_KAYA_TOKEN_REVOKE = "KAYA_TOKEN_REVOKE";
+    public static final String ACTION_KAYA_MACHINE_RETIRE = "KAYA_MACHINE_RETIRE";
 
     // Actions that do not apply to an agent as the target (AGT_VAL_001): its membership and status are
     // managed on the Agents page, and its role on a board stays MEMBER.

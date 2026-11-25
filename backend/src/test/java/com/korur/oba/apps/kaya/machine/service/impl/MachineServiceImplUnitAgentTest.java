@@ -19,6 +19,7 @@ import static org.mockito.Mockito.when;
 // 3. Java SDK
 import java.time.Clock;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
@@ -26,7 +27,9 @@ import com.korur.oba.apps.kaya.identity.helper.UserAccessHelper;
 import com.korur.oba.apps.kaya.identity.service.KayaUserQueryService;
 import com.korur.oba.apps.kaya.identity.service.UserAuditRecorder;
 import com.korur.oba.apps.kaya.machine.dto.request.MachineCreateRequest;
+import com.korur.oba.apps.kaya.machine.dto.request.MachineUpdateRequest;
 import com.korur.oba.apps.kaya.machine.entity.Machine;
+import com.korur.oba.apps.kaya.machine.enums.MachineStatus;
 import com.korur.oba.apps.kaya.machine.mapper.MachineMapper;
 import com.korur.oba.apps.kaya.machine.repository.MachineRepository;
 import com.korur.oba.apps.kaya.machine.repository.MachineUsageSnapshotRepository;
@@ -44,9 +47,9 @@ import com.korur.oba.shrine.identity.enums.UserKind;
 import com.korur.oba.shrine.identity.service.UserQueryService;
 
 /**
- * Runs machine registration and token rotation through the real {@link AgentValidator}: an agent
- * never mints a Kaya credential itself, while an admin may register a machine for an agent, whose
- * hosted runs record their sessions with its token.
+ * Runs the machine changes through the real {@link AgentValidator}: an agent never mints a Kaya
+ * credential itself, nor revokes or retires the machine its runs record with, while an admin may
+ * register a machine for an agent, whose hosted runs record their sessions with its token.
  */
 @ExtendWith(MockitoExtension.class)
 class MachineServiceImplUnitAgentTest {
@@ -115,6 +118,43 @@ class MachineServiceImplUnitAgentTest {
 
         ForbiddenException exception = assertThrows(ForbiddenException.class,
                 () -> machineService.rotateToken(agent, organizationId, UUID.randomUUID()));
+
+        assertEquals("AGT_SEC_002", exception.getErrorCode());
+        verifyNoInteractions(machineRepository, apiTokenService);
+    }
+
+    @Test
+    void revokeToken_agentCaller_throwsForbiddenAndRevokesNothing() {
+        User agent = user(UserKind.AGENT);
+
+        ForbiddenException exception = assertThrows(ForbiddenException.class,
+                () -> machineService.revokeToken(agent, organizationId, UUID.randomUUID()));
+
+        assertEquals("AGT_SEC_002", exception.getErrorCode());
+        verifyNoInteractions(machineRepository, apiTokenService);
+    }
+
+    @Test
+    void revokeToken_adminForAgentsMachine_revokesTheToken() {
+        User admin = user(UserKind.HUMAN);
+        User agent = user(UserKind.AGENT);
+        Machine machine = Machine.builder().organizationId(organizationId).user(agent).machineName("cloud").build();
+        machine.setId(UUID.randomUUID());
+        when(machineRepository.findByIdAndOrganizationIdForUpdate(machine.getId(), organizationId))
+                .thenReturn(Optional.of(machine));
+
+        machineService.revokeToken(admin, organizationId, machine.getId());
+
+        verify(userAccessHelper).requireAdminOrSelf(admin, organizationId, agent.getId());
+        verify(apiTokenService).revoke(ApiTokenKind.KAYA_MACHINE, machine.getId());
+    }
+
+    @Test
+    void updateMachine_agentRetires_throwsForbiddenAndRetiresNothing() {
+        User agent = user(UserKind.AGENT);
+
+        ForbiddenException exception = assertThrows(ForbiddenException.class, () -> machineService.updateMachine(
+                agent, organizationId, UUID.randomUUID(), new MachineUpdateRequest(MachineStatus.RETIRED)));
 
         assertEquals("AGT_SEC_002", exception.getErrorCode());
         verifyNoInteractions(machineRepository, apiTokenService);

@@ -167,6 +167,46 @@ class ApiTokenAuthenticationFilterUnitTest {
     }
 
     @Test
+    void doFilter_agentTokenOnAPathRefusedToItsKind_answers403AfterMarkingTheUse() throws Exception {
+        ApiToken token = token(ApiTokenKind.AGENT);
+        when(apiTokenQueryService.authenticate(AGENT_TOKEN)).thenReturn(token);
+
+        filter.doFilter(request("PUT", "/kaya/lessons/" + UUID.randomUUID(), AGENT_TOKEN), response, chain);
+
+        assertEquals(403, response.getStatus());
+        assertEquals("TST_SEC_001", errorCode());
+        assertEquals("KAYA_ACCESS", objectMapper.readTree(response.getContentAsString())
+                .path("error").path("errorValues").path("action").asText());
+        assertNull(chain.getRequest());
+        verify(apiTokenService).markUsed(token.getId());
+        assertNull(SecurityContextHolder.getContext().getAuthentication());
+    }
+
+    @Test
+    void doFilter_unknownAgentTokenOnAPathRefusedToItsKind_answersTheKinds401() throws Exception {
+        when(apiTokenQueryService.authenticate(AGENT_TOKEN)).thenThrow(new UnauthorizedException());
+
+        filter.doFilter(request("GET", "/kaya/sessions/s-1/events", AGENT_TOKEN), response, chain);
+
+        assertEquals(401, response.getStatus());
+        assertEquals("TST_AUT_002", errorCode());
+        assertNull(chain.getRequest());
+    }
+
+    @Test
+    void doFilter_machineTokenOnItsDeliveryPath_isNotRefusedByTheAgentsKayaRefusal() throws Exception {
+        ApiToken token = token(ApiTokenKind.KAYA_MACHINE);
+        when(apiTokenQueryService.authenticate(MACHINE_TOKEN)).thenReturn(token);
+
+        filter.doFilter(request("GET", "/kaya/delivery/conventions", MACHINE_TOKEN), response, chain);
+
+        assertEquals(200, response.getStatus());
+        ApiTokenAuthentication authentication = assertInstanceOf(ApiTokenAuthentication.class,
+                SecurityContextHolder.getContext().getAuthentication());
+        assertEquals(ApiTokenKind.KAYA_MACHINE, authentication.getKind());
+    }
+
+    @Test
     void doFilter_refusedToken_answersTheKindsErrorAndMarksNothing() throws Exception {
         when(apiTokenQueryService.authenticate(AGENT_TOKEN)).thenThrow(new UnauthorizedException());
 

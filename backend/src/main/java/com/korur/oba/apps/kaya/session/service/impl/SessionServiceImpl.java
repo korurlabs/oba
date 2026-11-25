@@ -37,6 +37,8 @@ import com.korur.oba.apps.kaya.session.repository.SessionRepository;
 import com.korur.oba.apps.kaya.session.service.SessionQueryService;
 import com.korur.oba.apps.kaya.session.service.SessionService;
 import com.korur.oba.apps.kaya.repository.service.RepositoryQueryService;
+import com.korur.oba.shrine.agent.constant.AgentConstant;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
 
 @Service
 @RequiredArgsConstructor
@@ -50,6 +52,7 @@ public class SessionServiceImpl implements SessionService {
     private final SessionLinkRepository sessionLinkRepository;
     private final SessionQueryService sessionQueryService;
     private final UserAccessHelper userAccessHelper;
+    private final AgentValidator agentValidator;
     private final RepositoryQueryService repositoryQueryService;
     private final SessionMapper sessionMapper;
     private final ApplicationEventPublisher eventPublisher;
@@ -96,6 +99,8 @@ public class SessionServiceImpl implements SessionService {
     @Override
     @Transactional
     public void deleteSession(User user, UUID organizationId, String sessionId) {
+        // The transcript is the record of what a run did, so an agent never erases one, not even its own.
+        agentValidator.ensureCallerIsNotAgent(user, AgentConstant.ACTION_KAYA_SESSION_DELETE);
         Session session = sessionQueryService.getEntityBySessionId(organizationId, sessionId);
         userAccessHelper.requireAdminOrSelf(user, organizationId, session.getUserId());
 

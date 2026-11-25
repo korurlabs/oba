@@ -168,6 +168,8 @@ public class MachineServiceImpl implements MachineService {
     @Override
     @Transactional
     public void revokeToken(User actor, UUID organizationId, UUID machineId) {
+        // A run that cuts off its own machine token stops the record of what it does.
+        agentValidator.ensureCallerIsNotAgent(actor, AgentConstant.ACTION_KAYA_TOKEN_REVOKE);
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.REVOKING_TOKEN,
                 actor.getId(), machineId, organizationId);
 
@@ -188,6 +190,8 @@ public class MachineServiceImpl implements MachineService {
     @Override
     @Transactional
     public MachineResponse updateMachine(User actor, UUID organizationId, UUID machineId, MachineUpdateRequest request) {
+        // Retiring revokes the machine's token, so it is refused to an agent like the revoke itself.
+        agentValidator.ensureCallerIsNotAgent(actor, AgentConstant.ACTION_KAYA_MACHINE_RETIRE);
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.RETIRING_MACHINE,
                 actor.getId(), machineId, organizationId);
 

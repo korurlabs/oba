@@ -54,6 +54,20 @@ class ApiTokenKindRegistryUnitTest {
     }
 
     @Test
+    void findRefusal_pathTheKindIsRefusedOn_findsTheKindsRefusal() {
+        assertEquals("TST_SEC_001", registry.findRefusal(ApiTokenKind.AGENT, "/kaya/lessons/1")
+                .orElseThrow().refusedError().getCode());
+        assertTrue(registry.findRefusal(ApiTokenKind.AGENT, "/kaya").isPresent());
+    }
+
+    @Test
+    void findRefusal_otherPathOrKindWithoutRefusals_findsNothing() {
+        assertTrue(registry.findRefusal(ApiTokenKind.AGENT, "/kazan/tickets").isEmpty());
+        assertTrue(registry.findRefusal(ApiTokenKind.AGENT, "/kayak").isEmpty());
+        assertTrue(registry.findRefusal(ApiTokenKind.KAYA_MACHINE, "/kaya/delivery/conventions").isEmpty());
+    }
+
+    @Test
     void isExemptEndpoint_matchesMethodAndPathTogether() {
         assertTrue(registry.isExemptEndpoint(ApiTokenKind.AGENT, "GET", "/users/me"));
         assertFalse(registry.isExemptEndpoint(ApiTokenKind.AGENT, "PUT", "/users/me"));

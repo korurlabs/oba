@@ -23,6 +23,7 @@ import com.korur.oba.dojo.security.constant.SecurityLogConstant;
 import com.korur.oba.dojo.security.token.dto.ApiTokenBodyLimit;
 import com.korur.oba.dojo.security.token.dto.ApiTokenEndpoint;
 import com.korur.oba.dojo.security.token.dto.ApiTokenPrincipal;
+import com.korur.oba.dojo.security.token.dto.ApiTokenRefusedPaths;
 import com.korur.oba.dojo.security.token.entity.ApiToken;
 import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
 
@@ -60,6 +61,11 @@ public class KayaMachineTokenKindHandler implements ApiTokenKindHandler {
     @Override
     public List<String> reservedPaths() {
         return SecurityConstant.KAYA_MACHINE_TOKEN_PATHS;
+    }
+
+    @Override
+    public Optional<ApiTokenRefusedPaths> refusedPaths() {
+        return Optional.empty();
     }
 
     @Override
