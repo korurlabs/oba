@@ -35,7 +35,7 @@ public class UserGitEmailQueryServiceImpl implements UserGitEmailQueryService {
         if (holderId.isPresent()) {
             return holderId;
         }
-        // A member's sign-in email attributes its sessions without being registered as a git email,
+        // A member's sign-in email belongs to the member without being registered as a git email,
         // because the platform, not Kaya, now owns sign-in.
         return userQueryService.findUserByEmail(normalizedEmail)
                 .map(User::getId)

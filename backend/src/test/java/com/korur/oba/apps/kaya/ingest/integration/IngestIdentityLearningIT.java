@@ -56,43 +56,25 @@ class IngestIdentityLearningIT extends AbstractIngestIT {
     class GitEmail {
 
         @Test
-        void unknownGitEmail_answers403AndStoresNothing() throws Exception {
-            Tenant tenant = newTenant();
-            Machine machine = registerMachine(tenant, signIn(tenant, "ada"), "laptop");
-            String email = "Ada.Git@" + tenant.domain();
-            String session = sessionId();
-            Map<String, Object> batch = withIdentity(machine, session, email, account("ada.claude@" + tenant.domain()));
-
-            send(machine.token(), batch)
-                    .andExpect(status().isForbidden())
-                    .andExpect(jsonPath("$.error.code").value("KAY_SEC_007"))
-                    .andExpect(jsonPath("$.error.errorValues.gitAuthorEmail").value(email));
-
-            assertEquals(0L, sessionCount(session));
-            assertEquals(0L, eventCount(session));
-            assertEquals(0L, gitEmailRows(tenant, email.toLowerCase()));
-            assertEquals(0L, count("SELECT count(*) FROM kaya.accounts WHERE organization_id = ?::uuid", tenant.id()));
-            assertEquals(0L, count("SELECT count(*) FROM kaya.repositories WHERE organization_id = ?::uuid", tenant.id()));
-        }
-
-        @Test
-        void unknownGitEmail_isAcceptedOnTheRetryOnceTheUserRegistersIt() throws Exception {
+        void unknownGitEmail_isAcceptedForTheTokensUserWithoutAConflict() throws Exception {
             Tenant tenant = newTenant();
             Person ada = signIn(tenant, "ada");
             Machine machine = registerMachine(tenant, ada, "laptop");
-            String email = "ada.git@" + tenant.domain();
+            String email = "ada@former-" + tenant.domain();
             String session = sessionId();
-            String remote = remote();
-            Map<String, Object> batch = batch(machine, session, remote, events(1, 1));
-            section(batch, "summary").put("gitAuthorEmail", email);
-            send(machine.token(), batch).andExpect(status().isForbidden());
 
-            addGitEmail(tenant, ada.userId(), email);
-            send(machine.token(), batch).andExpect(status().isOk());
+            send(machine.token(), withIdentity(machine, session, email, null))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.acknowledgedSeq").value(1));
 
             assertEquals(1L, sessionCount(session));
             assertEquals(1L, eventCount(session));
+            assertEquals(ada.userId(), jdbcTemplate.queryForObject(
+                    "SELECT user_id::text FROM kaya.sessions WHERE session_id = ?", String.class, session));
             assertNull(conflictUserOf(session));
+            assertEquals(email, jdbcTemplate.queryForObject(
+                    "SELECT git_author_email FROM kaya.sessions WHERE session_id = ?", String.class, session));
+            assertEquals(0L, gitEmailRows(tenant, email), "ingest registers no git email");
         }
 
         @Test

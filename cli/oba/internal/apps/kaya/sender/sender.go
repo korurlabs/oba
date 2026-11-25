@@ -4,13 +4,13 @@
 // Every two seconds it sends, per session, the events after the session's acknowledged seq (at
 // most 500), the handoff and plan snapshots changed since Kaya last acknowledged them and the
 // session's usage file, and keeps what Kaya acknowledged in the session's cursor.json, so it
-// replays in order after an outage; Kaya stores each seq once. A 403 KAY_SEC_007 (no user holds
-// the session's git email yet), a 429, a 5xx and a network error back off from 2 s to 5 min and
-// keep the session queued. A 401 stops the sender until the token changes. A session whose batch
-// Kaya refuses for its content (400, 409, 413, 422) is parked until the token changes; one parked
-// after the machine name refusal of an older Kaya release (KAY_VAL_005) is also sent once more by
-// another oba version. One sender runs per machine: it holds sender.lock. It exits after ten idle
-// minutes.
+// replays in order after an outage; Kaya stores each seq once. A 403 KAY_SEC_007 (the refusal of
+// older Kaya releases for a git email that no user of the organization held), a 429, a 5xx and a
+// network error back off from 2 s to 5 min and keep the session queued. A 401 stops the sender
+// until the token changes. A session whose batch Kaya refuses for its content (400, 409, 413, 422)
+// is parked until the token changes; one parked after the machine name refusal of an older Kaya
+// release (KAY_VAL_005) is also sent once more by another oba version. One sender runs per
+// machine: it holds sender.lock. It exits after ten idle minutes.
 //
 // The token is only ever put in the Authorization header: it is never logged, never written to
 // disk, and never sent over plain http except to a loopback address. state.json keeps a one-way
@@ -53,8 +53,12 @@ const (
 	restartWait    = 30 * time.Second
 	restartWaitMax = 30 * time.Minute
 
-	tokenEnv       = "KAYA_RECORDER_TOKEN"
-	senderEnv      = "KAYA_SENDER"
+	tokenEnv  = "KAYA_RECORDER_TOKEN"
+	senderEnv = "KAYA_SENDER"
+	// codeUnknownGit is the refusal of older Kaya releases for a batch whose git email no user of
+	// the organization held. Later Kaya releases accept such a batch for the token's user, since
+	// the token identifies the person, so a session refused with it stays queued for an updated
+	// Kaya instead of being parked until a new token.
 	codeUnknownGit = "KAY_SEC_007"
 	// codeMachineName is the refusal of older Kaya releases for a batch whose machine name differs
 	// from the name of the token's machine. The name is the host name the hook recorded, which
@@ -363,8 +367,8 @@ func (s *run) sendSession(ctx context.Context, dir, sessionID string) (bool, err
 		cur.Parked = &parked{Status: apiErr.Status, Code: code, At: iso(s.now()), TokenFingerprint: s.tokenFP, ObaVersion: s.version}
 		return false, writeCursor(dir, cur)
 	case apiErr.Status == 403 && apiErr.Code == codeUnknownGit:
-		// No user of the organization holds the session's git email yet. The batch stays queued
-		// and goes out once someone registers the email; parking would need a new token instead.
+		// An older Kaya release refused the session's git email. The batch stays queued and goes
+		// out once Kaya is updated; parking would need a new token instead.
 		email, _ := apiErr.ErrorValues["gitAuthorEmail"].(string)
 		return false, &retryError{reason: fmt.Sprintf("Kaya answered %s: no Kaya user holds the git author email %q", answer, email)}
 	}
