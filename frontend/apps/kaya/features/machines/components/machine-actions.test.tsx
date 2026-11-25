@@ -1,19 +1,30 @@
-import { afterAll, describe, expect, mock, test } from "bun:test";
-import type { ReactNode } from "react";
+import { afterAll, afterEach, describe, expect, mock, test } from "bun:test";
+import { createContext, useContext, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+
+import { cleanup, renderLive, type Screen } from "@oba/shared/testing/live-render";
 
 import type { MachineResponse } from "../schemas";
 
-// The viewer and the machine mutations are replaced. The row menu is a Radix
-// portal that a static render leaves closed, so its parts render in place and
-// the markup lists every entry the menu offers. The actions themselves are real.
+// The viewer and the machine mutations are replaced. The row menu and the
+// dialogs are Radix portals that need a browser, so their parts render in
+// place: the markup lists every entry the menu offers, a menu entry is pressed
+// through its onSelect, and a dialog's content shows only while it is open.
+// The actions and the confirm dialog themselves are real.
 let viewer = { id: "user-ada", admin: false };
+/** What retiring does; a test swaps in an action that runs until the test settles it. */
+let retireMachine: () => Promise<unknown> = async () => ({});
+const DialogState = createContext<{ open: boolean; set: (open: boolean) => void }>({
+  open: false,
+  set: () => undefined,
+});
 
 // Copies, not the namespaces: mock.module rewrites a loaded module in place, so the
 // afterAll restore would otherwise put the mocks back for the files that run later.
 const actualIdentity = { ...(await import("@/lib/identity/identity-context")) };
 const actualHooks = { ...(await import("../hooks/use-machines")) };
 const actualMenu = { ...(await import("@oba/ui/sky/dropdown-menu")) };
+const actualDialog = { ...(await import("@oba/ui/sky/dialog")) };
 const mutation = () => ({ isPending: false, mutateAsync: async () => ({}) });
 mock.module("@/lib/identity/identity-context", () => ({
   ...actualIdentity,
@@ -28,7 +39,7 @@ mock.module("../hooks/use-machines", () => ({
   ...actualHooks,
   useRotateMachineToken: mutation,
   useRevokeMachineToken: mutation,
-  useRetireMachine: mutation,
+  useRetireMachine: () => ({ isPending: false, mutateAsync: () => retireMachine() }),
 }));
 mock.module("@oba/ui/sky/dropdown-menu", () => ({
   ...actualMenu,
@@ -36,14 +47,56 @@ mock.module("@oba/ui/sky/dropdown-menu", () => ({
   DropdownMenuTrigger: ({ children }: { children: ReactNode }) => <>{children}</>,
   DropdownMenuContent: ({ children }: { children: ReactNode }) => <ul>{children}</ul>,
   DropdownMenuSeparator: () => <hr />,
-  DropdownMenuItem: ({ children, variant }: { children: ReactNode; variant?: string }) => (
-    <li data-variant={variant}>{children}</li>
+  DropdownMenuItem: ({
+    children,
+    variant,
+    onSelect,
+  }: {
+    children: ReactNode;
+    variant?: string;
+    onSelect?: () => void;
+  }) => (
+    <li data-variant={variant} onClick={() => onSelect?.()}>
+      {children}
+    </li>
   ),
+}));
+mock.module("@oba/ui/sky/dialog", () => ({
+  ...actualDialog,
+  Dialog: ({
+    open,
+    onOpenChange,
+    children,
+  }: {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    children: ReactNode;
+  }) => <DialogState.Provider value={{ open, set: onOpenChange }}>{children}</DialogState.Provider>,
+  DialogTrigger: ({ children }: { children: ReactNode }) => <>{children}</>,
+  // The content's X closes the dialog even while its action runs, as Escape does.
+  DialogContent: ({ children }: { children: ReactNode }) => {
+    const { open, set } = useContext(DialogState);
+    return open ? (
+      <div>
+        {children}
+        <button onClick={() => set(false)}>Close</button>
+      </div>
+    ) : null;
+  },
+  DialogHeader: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  DialogFooter: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  DialogTitle: ({ children }: { children: ReactNode }) => <h2>{children}</h2>,
+  DialogDescription: ({ children }: { children: ReactNode }) => <div>{children}</div>,
 }));
 afterAll(() => {
   mock.module("@/lib/identity/identity-context", () => actualIdentity);
   mock.module("../hooks/use-machines", () => actualHooks);
   mock.module("@oba/ui/sky/dropdown-menu", () => actualMenu);
+  mock.module("@oba/ui/sky/dialog", () => actualDialog);
+});
+afterEach(async () => {
+  await cleanup();
+  retireMachine = async () => ({});
 });
 
 const { MachineActions } = await import("./machine-actions");
@@ -146,6 +199,72 @@ describe("MachineActions as a row menu", () => {
     expect(html).toContain("Revoke token");
     expect(html).toContain("Retire");
     expect(html.match(/<button/g)).toHaveLength(3);
+  });
+});
+
+describe("MachineActions confirmations from the row menu", () => {
+  const REVOKE_TITLE = "Revoke the token of ada-laptop";
+  const RETIRE_TITLE = "Retire ada-laptop";
+
+  function row(subject: MachineResponse) {
+    return <MachineActions machine={subject} layout="menu" />;
+  }
+
+  /** A dialog button, apart from the menu entry that carries the same label. */
+  function button(screen: Screen, label: string) {
+    return screen.byTag("button").find((handle) => handle.text === label);
+  }
+
+  test("does not reopen a confirmation by itself once a refresh offers its action again", async () => {
+    viewer = { id: "user-ada", admin: false };
+    const screen = await renderLive(row(machine()));
+    await screen.byText("Revoke token")?.click();
+    expect(screen.byText(REVOKE_TITLE)).not.toBeNull();
+
+    // The token was revoked elsewhere, so the refreshed row offers no Revoke.
+    await screen.rerender(row(machine({ token: null })));
+    expect(screen.byText(REVOKE_TITLE)).toBeNull();
+
+    // A new token brings Revoke back, and its confirmation stays closed.
+    await screen.rerender(row(machine()));
+    expect(screen.byText("Revoke token")).not.toBeNull();
+    expect(screen.byText(REVOKE_TITLE)).toBeNull();
+  });
+
+  test("does not reopen it either after the row offered no action at all for a while", async () => {
+    viewer = { id: "user-ada", admin: false };
+    const screen = await renderLive(row(machine()));
+    await screen.byText("Retire")?.click();
+    expect(screen.byText(RETIRE_TITLE)).not.toBeNull();
+
+    // Retired elsewhere, the row offers nothing; registered again, it is active.
+    await screen.rerender(row(machine({ status: "RETIRED" })));
+    expect(screen.text()).toBe("");
+    await screen.rerender(row(machine()));
+    expect(screen.byText("Retire")).not.toBeNull();
+    expect(screen.byText(RETIRE_TITLE)).toBeNull();
+  });
+
+  test("leaves the confirmation open now when an earlier one finishes after it was closed", async () => {
+    viewer = { id: "user-ada", admin: false };
+    let finishRetire: () => void = () => undefined;
+    retireMachine = () =>
+      new Promise<void>((resolve) => {
+        finishRetire = resolve;
+      });
+    const screen = await renderLive(row(machine()));
+
+    await screen.byText("Retire")?.click();
+    await button(screen, "Retire")?.click();
+    expect(button(screen, "Retire")?.disabled).toBe(true);
+    await button(screen, "Close")?.click();
+    expect(screen.byText(RETIRE_TITLE)).toBeNull();
+
+    await screen.byText("Revoke token")?.click();
+    expect(screen.byText(REVOKE_TITLE)).not.toBeNull();
+
+    await screen.act(() => finishRetire());
+    expect(screen.byText(REVOKE_TITLE)).not.toBeNull();
   });
 });
 

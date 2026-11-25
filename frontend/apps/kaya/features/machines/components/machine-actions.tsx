@@ -105,6 +105,13 @@ export function MachineActions({ machine, layout = "buttons" }: MachineActionsPr
     });
   }
 
+  // A refresh can take away the action being confirmed, for example once the
+  // token was revoked elsewhere. Its dialog then unmounts without closing, and
+  // the kept choice would reopen it unasked once the action is offered again.
+  if (confirming !== null && !actions.some((action: MachineAction) => action.kind === confirming)) {
+    setConfirming(null);
+  }
+
   if (actions.length === 0) return null;
 
   const reveal = (
@@ -170,7 +177,13 @@ export function MachineActions({ machine, layout = "buttons" }: MachineActionsPr
           key={action.kind}
           open={confirming === action.kind}
           onOpenChange={(open: boolean) => {
-            if (!open) setConfirming(null);
+            // An action that finishes after its dialog was dismissed closes only
+            // its own confirmation, not one the user opened since.
+            if (!open) {
+              setConfirming((current: MachineActionKind | null) =>
+                current === action.kind ? null : current
+              );
+            }
           }}
           onCloseAutoFocus={(event: Event) => {
             event.preventDefault();

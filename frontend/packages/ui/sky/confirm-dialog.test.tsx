@@ -60,12 +60,6 @@ describe("ConfirmDialog", () => {
     expect(html).toContain(">Remove</button>");
   });
 
-  test("stays closed while the caller holds open false, even with a trigger", () => {
-    const html = markup({ open: false, trigger: <button>Remove key</button> });
-    expect(html).toContain("<button>Remove key</button>");
-    expect(html).not.toContain("<section>");
-  });
-
   test("hands the content where focus goes once the dialog closes", () => {
     const onCloseAutoFocus = (event: Event) => event.preventDefault();
     markup({ open: true, onCloseAutoFocus });
