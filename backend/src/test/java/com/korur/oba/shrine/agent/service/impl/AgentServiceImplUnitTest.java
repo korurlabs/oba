@@ -9,6 +9,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 
 // 2. Third-party
@@ -66,6 +67,7 @@ import com.korur.oba.shrine.organization.entity.OrganizationMember;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberStatus;
 import com.korur.oba.shrine.organization.service.OrganizationMemberQueryService;
+import com.korur.oba.shrine.organization.event.AccessRevokedEvent;
 import com.korur.oba.shrine.organization.service.OrganizationMemberService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -112,6 +114,8 @@ class AgentServiceImplUnitTest {
     private AuditService auditService;
     @Mock
     private LoggingService loggingService;
+    @Mock
+    private ApplicationEventPublisher applicationEventPublisher;
 
     private final AgentMapper agentMapper = new AgentMapperImpl();
 
@@ -124,7 +128,8 @@ class AgentServiceImplUnitTest {
     void setUp() {
         agentService = new AgentServiceImpl(userService, userQueryService, agentQueryService, organizationMemberService,
                 organizationMemberQueryService, appAccessService, appAccessQueryService, apiTokenService,
-                agentRoutineService, new AgentFlowHelper(), agentMapper, auditLogMapper, auditService, loggingService);
+                agentRoutineService, new AgentFlowHelper(), agentMapper, auditLogMapper, auditService, applicationEventPublisher,
+                loggingService);
         actor = User.builder().id(UUID.randomUUID()).email("admin@example.com").build();
         organizationId = UUID.randomUUID();
         organization = Organization.builder().id(organizationId).build();
@@ -302,6 +307,37 @@ class AgentServiceImplUnitTest {
         verify(apiTokenService, never()).revoke(any(), any());
         verify(auditLogMapper).toRequest(eq(organizationId), eq(actor.getId()), eq("AGENT_STATUS_CHANGED"), eq("Agent"),
                 eq(agent.getId()), any(), any());
+        verify(applicationEventPublisher).publishEvent(AccessRevokedEvent.member(agent.getId(), organizationId));
+    }
+
+    @Test
+    void updateStatus_enable_enablesWithoutRevokingAccess() {
+        User agent = agent(AgentFlow.ROUTINE, AgentProvider.ANTHROPIC);
+        agent.setStatus(UserStatus.DISABLED);
+        OrganizationMember member = OrganizationMember.builder().organization(organization).user(agent)
+                .status(OrganizationMemberStatus.DISABLED).build();
+        when(agentQueryService.getAgentEntity(organizationId, agent.getId())).thenReturn(agent);
+        when(organizationMemberQueryService.findMember(organizationId, agent.getId())).thenReturn(Optional.of(member));
+
+        agentService.updateStatus(actor, organizationId, agent.getId(),
+                new AgentStatusUpdateRequest(OrganizationMemberStatus.ACTIVE));
+
+        verify(userService).updateAgentUser(agent, null, null, UserStatus.ACTIVE);
+        assertEquals(OrganizationMemberStatus.ACTIVE, member.getStatus());
+        verifyNoInteractions(applicationEventPublisher);
+    }
+
+    @Test
+    void updateStatus_membershipMissing_throwsNotFound() {
+        User agent = agent(AgentFlow.ROUTINE, AgentProvider.ANTHROPIC);
+        when(agentQueryService.getAgentEntity(organizationId, agent.getId())).thenReturn(agent);
+        when(organizationMemberQueryService.findMember(organizationId, agent.getId())).thenReturn(Optional.empty());
+
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> agentService.updateStatus(actor,
+                organizationId, agent.getId(), new AgentStatusUpdateRequest(OrganizationMemberStatus.DISABLED)));
+
+        assertEquals("AGT_NOT_001", exception.getErrorCode());
+        verifyNoInteractions(userService, applicationEventPublisher);
     }
 
     @Test
@@ -337,6 +373,24 @@ class AgentServiceImplUnitTest {
         verify(auditLogMapper).toRequest(eq(organizationId), eq(actor.getId()), eq("AGENT_DELETED"), eq("Agent"),
                 eq(agent.getId()), any(), newValues.capture());
         assertEquals(token.getId().toString(), newValues.getValue().get("revokedTokenId"));
+        verify(applicationEventPublisher).publishEvent(AccessRevokedEvent.member(agent.getId(), organizationId));
+    }
+
+    @Test
+    void deleteAgent_withoutToken_deletesAndAuditsWithoutRevokedToken() {
+        User agent = agent(AgentFlow.API, AgentProvider.OPENAI);
+        when(agentQueryService.getAgentEntity(organizationId, agent.getId())).thenReturn(agent);
+        when(apiTokenService.revoke(ApiTokenKind.AGENT, agent.getId())).thenReturn(Optional.empty());
+
+        agentService.deleteAgent(actor, organizationId, agent.getId());
+
+        verify(userService).deleteAgentUser(agent);
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> newValues = ArgumentCaptor.forClass(Map.class);
+        verify(auditLogMapper).toRequest(eq(organizationId), eq(actor.getId()), eq("AGENT_DELETED"), eq("Agent"),
+                eq(agent.getId()), any(), newValues.capture());
+        assertFalse(newValues.getValue().containsKey("revokedTokenId"));
+        verify(applicationEventPublisher).publishEvent(AccessRevokedEvent.member(agent.getId(), organizationId));
     }
 
     // ---------- token ----------

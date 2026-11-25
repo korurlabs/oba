@@ -29,6 +29,8 @@ import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.apps.kaya.account.entity.Account;
+import com.korur.oba.shrine.agent.constant.AgentConstant;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.apps.kaya.identity.entity.UserAuditEntry;
 import com.korur.oba.apps.kaya.identity.enums.UserAuditAction;
@@ -73,6 +75,7 @@ public class MachineServiceImpl implements MachineService {
     private final UserAuditRecorder userAuditRecorder;
     private final UserAccessHelper userAccessHelper;
     private final ApiTokenService apiTokenService;
+    private final AgentValidator agentValidator;
     private final MachineMapper machineMapper;
     private final Clock clock;
     private final LoggingService loggingService;
@@ -80,12 +83,16 @@ public class MachineServiceImpl implements MachineService {
     @Override
     @Transactional
     public MachineCreatedResponse createMachine(User actor, UUID organizationId, MachineCreateRequest request) {
+        // An agent never mints a credential, and a Kaya machine token is one: an agent may not
+        // register a machine, and no machine is registered for an agent.
+        agentValidator.ensureCallerIsNotAgent(actor, AgentConstant.ACTION_KAYA_MACHINE_CREATE);
         // The user row lock serialises this with a revoke all of the same user, so a machine created
         // at that moment is either retired by it or created after it.
         User user = lockUser(actor, organizationId, request.userId());
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.CREATING_MACHINE,
                 actor.getId(), user.getId(), organizationId);
         userAccessHelper.requireAdminOrSelf(actor, organizationId, user.getId());
+        agentValidator.ensureTargetIsNotAgent(user, AgentConstant.ACTION_KAYA_MACHINE_CREATE);
 
         Optional<Machine> existing = machineRepository.findByOrganizationIdAndUser_IdAndMachineName(
                 organizationId, user.getId(), request.machineName());
@@ -131,6 +138,8 @@ public class MachineServiceImpl implements MachineService {
     @Override
     @Transactional
     public MachineTokenCreatedResponse rotateToken(User actor, UUID organizationId, UUID machineId) {
+        // An agent never mints a credential.
+        agentValidator.ensureCallerIsNotAgent(actor, AgentConstant.ACTION_KAYA_TOKEN_ROTATE);
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.ROTATING_TOKEN,
                 actor.getId(), machineId, organizationId);
 

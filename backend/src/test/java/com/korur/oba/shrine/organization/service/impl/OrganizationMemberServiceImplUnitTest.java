@@ -3,12 +3,14 @@ package com.korur.oba.shrine.organization.service.impl;
 // 1. Framework-level
 import org.springframework.context.ApplicationEventPublisher;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -19,6 +21,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -45,9 +48,12 @@ import com.korur.oba.shrine.access.enums.App;
 import com.korur.oba.shrine.access.service.AppAccessQueryService;
 import com.korur.oba.shrine.access.service.AppAccessRevocationService;
 import com.korur.oba.shrine.access.service.AppAccessService;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
 import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.shrine.identity.enums.UserKind;
 import com.korur.oba.shrine.identity.enums.UserStatus;
 import com.korur.oba.shrine.identity.repository.UserRepository;
+import com.korur.oba.shrine.identity.service.UserQueryService;
 import com.korur.oba.shrine.organization.dto.request.OrganizationMemberRoleUpdateRequest;
 import com.korur.oba.shrine.organization.dto.response.OrganizationMemberResponse;
 import com.korur.oba.shrine.organization.entity.Organization;
@@ -94,6 +100,12 @@ class OrganizationMemberServiceImplUnitTest {
 
     @Mock
     private LoggingService loggingService;
+
+    // Real instance: which users an agent refusal applies to is behaviour under test.
+    private final UserQueryService agentUserQueryService = mock(UserQueryService.class);
+
+    @Spy
+    private AgentValidator agentValidator = new AgentValidator(agentUserQueryService, new LoggingService());
 
     @InjectMocks
     private OrganizationMemberServiceImpl organizationMemberServiceImpl;
@@ -930,6 +942,86 @@ class OrganizationMemberServiceImplUnitTest {
                     organizationMemberServiceImpl.restoreMember(actor, organizationId, targetUserId));
 
             verify(organizationMemberRepository, never()).restoreById(any());
+        }
+    }
+
+    @Nested
+    class AgentRefusals {
+
+        private final UUID organizationId = UUID.randomUUID();
+        private User admin;
+        private User agent;
+        private OrganizationMember agentMember;
+
+        @BeforeEach
+        void setUpAgent() {
+            admin = User.builder().id(UUID.randomUUID()).build();
+            agent = User.builder().id(UUID.randomUUID()).kind(UserKind.AGENT).build();
+            agentMember = OrganizationMember.builder()
+                    .user(agent)
+                    .role(OrganizationMemberRole.MEMBER)
+                    .status(OrganizationMemberStatus.ACTIVE)
+                    .build();
+            agentMember.setId(UUID.randomUUID());
+        }
+
+        @Test
+        void removeMember_agentTarget_throwsAgentTargetRefusedAndRemovesNothing() {
+            when(organizationValidator.ensureMemberExists(organizationId, agent.getId())).thenReturn(agentMember);
+
+            ValidationException exception = assertThrows(ValidationException.class,
+                    () -> organizationMemberServiceImpl.removeMember(admin, organizationId, agent.getId()));
+
+            assertEquals("AGT_VAL_001", exception.getErrorCode());
+            verify(organizationMemberRepository, never()).delete(any(OrganizationMember.class));
+            verifyNoInteractions(appAccessService, applicationEventPublisher);
+        }
+
+        @Test
+        void restoreMember_agentTarget_throwsAgentTargetRefusedAndRestoresNothing() {
+            when(organizationMemberRepository.findDeletedByOrgIdAndUserId(organizationId, agent.getId()))
+                    .thenReturn(Optional.of(agentMember));
+
+            ValidationException exception = assertThrows(ValidationException.class,
+                    () -> organizationMemberServiceImpl.restoreMember(admin, organizationId, agent.getId()));
+
+            assertEquals("AGT_VAL_001", exception.getErrorCode());
+            verify(organizationMemberRepository, never()).restoreById(any());
+        }
+
+        @Test
+        void updateMemberStatus_agentTarget_throwsAgentTargetRefusedAndKeepsStatus() {
+            when(organizationValidator.ensureMemberExists(organizationId, agent.getId())).thenReturn(agentMember);
+
+            ValidationException exception = assertThrows(ValidationException.class,
+                    () -> organizationMemberServiceImpl.updateMemberStatus(admin, organizationId, agent.getId(),
+                            OrganizationMemberStatus.DISABLED));
+
+            assertEquals("AGT_VAL_001", exception.getErrorCode());
+            assertEquals(OrganizationMemberStatus.ACTIVE, agentMember.getStatus());
+            verify(organizationMemberRepository, never()).save(any(OrganizationMember.class));
+        }
+
+        @Test
+        void changeMemberRole_agentTargetToAdmin_throwsAgentTargetRefusedAndKeepsRole() {
+            when(organizationValidator.ensureMemberExists(organizationId, agent.getId())).thenReturn(agentMember);
+
+            ValidationException exception = assertThrows(ValidationException.class,
+                    () -> organizationMemberServiceImpl.changeMemberRole(admin, organizationId, agent.getId(),
+                            new OrganizationMemberRoleUpdateRequest(OrganizationMemberRole.ADMIN)));
+
+            assertEquals("AGT_VAL_001", exception.getErrorCode());
+            assertEquals(OrganizationMemberRole.MEMBER, agentMember.getRole());
+            verify(organizationMemberRepository, never()).save(any(OrganizationMember.class));
+        }
+
+        @Test
+        void leaveOrganization_agentCaller_throwsForbiddenAndLeavesNothing() {
+            ForbiddenException exception = assertThrows(ForbiddenException.class,
+                    () -> organizationMemberServiceImpl.leaveOrganization(agent, organizationId));
+
+            assertEquals("AGT_SEC_002", exception.getErrorCode());
+            verifyNoInteractions(organizationValidator, organizationMemberRepository, applicationEventPublisher);
         }
     }
 }

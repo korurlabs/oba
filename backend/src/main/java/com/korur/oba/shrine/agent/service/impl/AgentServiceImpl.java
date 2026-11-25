@@ -1,6 +1,7 @@
 package com.korur.oba.shrine.agent.service.impl;
 
 // 1. Framework-level
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,9 +11,12 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.exception.ConstraintViolationException;
 
 // 3. Java SDK
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -60,6 +64,7 @@ import com.korur.oba.shrine.identity.service.UserService;
 import com.korur.oba.shrine.organization.entity.OrganizationMember;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberStatus;
+import com.korur.oba.shrine.organization.event.AccessRevokedEvent;
 import com.korur.oba.shrine.organization.service.OrganizationMemberQueryService;
 import com.korur.oba.shrine.organization.service.OrganizationMemberService;
 
@@ -71,6 +76,10 @@ import com.korur.oba.shrine.organization.service.OrganizationMemberService;
  * Which flow accepts which provider comes from {@link AgentFlowHelper}, and a token exists only for a
  * ROUTINE agent: an API agent is run by Oba itself, so a token would be an unused credential. Audit
  * entries carry ids and enum values, never a token.
+ *
+ * Disabling and deleting an agent end its access the way they end a person's: {@link AccessRevokedEvent}
+ * is published for the membership, so open sessions and other state built on that access are torn down
+ * once the change commits.
  */
 @Service
 @RequiredArgsConstructor
@@ -91,6 +100,7 @@ public class AgentServiceImpl implements AgentService {
     private final AgentMapper agentMapper;
     private final AuditLogMapper auditLogMapper;
     private final AuditService auditService;
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final LoggingService loggingService;
 
     @Override
@@ -123,7 +133,9 @@ public class AgentServiceImpl implements AgentService {
                 .status(OrganizationMemberStatus.ACTIVE)
                 .build());
         Set<App> apps = EnumSet.copyOf(request.apps());
-        apps.forEach(app -> grantApp(actor, organizationId, agent.getId(), app));
+        for (App app : apps) {
+            grantApp(actor, organizationId, agent.getId(), app);
+        }
 
         Map<String, Object> newValues = describe(agent, apps);
         newValues.put(AgentConstant.FIELD_FLOW, request.flow().name());
@@ -148,14 +160,16 @@ public class AgentServiceImpl implements AgentService {
         saveName(organizationId, agentId, () -> userService.updateAgentUser(agent, name, request.role(), null));
 
         Set<App> apps = EnumSet.copyOf(request.apps());
-        currentGrants.forEach((grantId, app) -> {
-            if (!apps.contains(app)) {
-                appAccessService.revoke(actor, organizationId, grantId);
+        for (Map.Entry<UUID, App> grant : currentGrants.entrySet()) {
+            if (!apps.contains(grant.getValue())) {
+                appAccessService.revoke(actor, organizationId, grant.getKey());
             }
-        });
-        apps.stream()
-                .filter(app -> !currentGrants.containsValue(app))
-                .forEach(app -> grantApp(actor, organizationId, agentId, app));
+        }
+        for (App app : apps) {
+            if (!currentGrants.containsValue(app)) {
+                grantApp(actor, organizationId, agentId, app);
+            }
+        }
 
         audit(organizationId, actor, AgentConstant.AUDIT_ACTION_AGENT_UPDATED, agentId, oldValues, describe(agent, apps));
 
@@ -168,12 +182,14 @@ public class AgentServiceImpl implements AgentService {
     @Transactional
     public AgentResponse updateStatus(User actor, UUID organizationId, UUID agentId, AgentStatusUpdateRequest request) {
         User agent = agentQueryService.getAgentEntity(organizationId, agentId);
-        OrganizationMember member = organizationMemberQueryService.findMember(organizationId, agentId).orElseThrow(() -> {
+        Optional<OrganizationMember> foundMember = organizationMemberQueryService.findMember(organizationId, agentId);
+        if (foundMember.isEmpty()) {
             loggingService.error(LOG_PREFIX, LogLayer.SERVICE, AgentServiceLogConstant.AGENT_MEMBERSHIP_MISSING,
                     organizationId, agentId);
-            return new NotFoundException(ExceptionDomainAgentError.NOT_AGENT_FOUND,
+            throw new NotFoundException(ExceptionDomainAgentError.NOT_AGENT_FOUND,
                     Map.of(AgentConstant.FIELD_AGENT_ID, agentId.toString()));
-        });
+        }
+        OrganizationMember member = foundMember.get();
 
         OrganizationMemberStatus status = request.status();
         UserStatus userStatus = UserStatus.valueOf(status.name());
@@ -187,6 +203,9 @@ public class AgentServiceImpl implements AgentService {
         userService.updateAgentUser(agent, null, null, userStatus);
         member.setStatus(status);
         organizationMemberService.saveMember(member);
+        if (status == OrganizationMemberStatus.DISABLED) {
+            applicationEventPublisher.publishEvent(AccessRevokedEvent.member(agentId, organizationId));
+        }
 
         audit(organizationId, actor, AgentConstant.AUDIT_ACTION_AGENT_STATUS_CHANGED, agentId, oldValues,
                 Map.of(AgentConstant.FIELD_STATUS, userStatus.name()));
@@ -207,15 +226,22 @@ public class AgentServiceImpl implements AgentService {
         agentRoutineService.remove(actor, organizationId, agentId);
         appAccessService.removeMemberAccess(actor, organizationId, agentId);
         userService.deleteAgentUser(agent);
+        applicationEventPublisher.publishEvent(AccessRevokedEvent.member(agentId, organizationId));
 
+        UUID revokedTokenId = null;
+        if (revoked.isPresent()) {
+            revokedTokenId = revoked.get().getId();
+        }
         Map<String, Object> newValues = new HashMap<>();
         newValues.put(AgentConstant.FIELD_SOFT_DELETED, true);
-        revoked.ifPresent(token -> newValues.put(AgentConstant.FIELD_REVOKED_TOKEN_ID, token.getId().toString()));
+        if (revokedTokenId != null) {
+            newValues.put(AgentConstant.FIELD_REVOKED_TOKEN_ID, revokedTokenId.toString());
+        }
         audit(organizationId, actor, AgentConstant.AUDIT_ACTION_AGENT_DELETED, agentId,
                 Map.of(AgentConstant.FIELD_SOFT_DELETED, false), newValues);
 
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, AgentServiceLogConstant.AGENT_DELETED,
-                organizationId, agentId, revoked.map(ApiToken::getId).orElse(null));
+                organizationId, agentId, revokedTokenId);
     }
 
     @Override
@@ -325,7 +351,12 @@ public class AgentServiceImpl implements AgentService {
     private static Map<String, Object> describe(User agent, Collection<App> apps) {
         Map<String, Object> values = new HashMap<>();
         values.put(AgentConstant.FIELD_ROLE, agent.getAgentDetail().getRole().name());
-        values.put(AgentConstant.FIELD_APPS, apps.stream().map(App::name).sorted().toList());
+        List<String> appNames = new ArrayList<>();
+        for (App app : apps) {
+            appNames.add(app.name());
+        }
+        Collections.sort(appNames);
+        values.put(AgentConstant.FIELD_APPS, List.copyOf(appNames));
         return values;
     }
 

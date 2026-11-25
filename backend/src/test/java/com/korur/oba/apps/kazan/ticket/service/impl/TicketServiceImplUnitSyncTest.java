@@ -30,6 +30,7 @@ import com.korur.oba.apps.kazan.ticket.repository.TicketRepository;
 import com.korur.oba.dojo.exception.internal.auth.ForbiddenException;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
 import com.korur.oba.shrine.identity.entity.User;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,6 +46,9 @@ class TicketServiceImplUnitSyncTest {
 
     @Mock
     private LoggingService loggingService;
+
+    @Mock
+    private AgentValidator agentValidator;
 
     @InjectMocks
     private TicketServiceImpl ticketServiceImpl;

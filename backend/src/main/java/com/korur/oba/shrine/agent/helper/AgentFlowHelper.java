@@ -4,7 +4,7 @@ package com.korur.oba.shrine.agent.helper;
 import org.springframework.stereotype.Component;
 
 // 3. Java SDK
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -45,9 +45,14 @@ public class AgentFlowHelper {
         return switch (flow) {
             case ROUTINE -> {
                 Set<RoutineProvider> routineProviders = EnumSet.allOf(RoutineProvider.class);
-                yield Arrays.stream(AgentProvider.values())
-                        .filter(provider -> routineProviderOf(provider).filter(routineProviders::contains).isPresent())
-                        .toList();
+                List<AgentProvider> providers = new ArrayList<>();
+                for (AgentProvider provider : AgentProvider.values()) {
+                    Optional<RoutineProvider> routineProvider = routineProviderOf(provider);
+                    if (routineProvider.isPresent() && routineProviders.contains(routineProvider.get())) {
+                        providers.add(provider);
+                    }
+                }
+                yield List.copyOf(providers);
             }
             case API -> List.of(AgentProvider.values());
         };

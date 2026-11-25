@@ -9,15 +9,15 @@ import lombok.RequiredArgsConstructor;
 
 // 3. Java SDK
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 // 4. Internal
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
@@ -81,20 +81,23 @@ public class AgentQueryServiceImpl implements AgentQueryService {
 
     @Override
     public User getAgentEntity(UUID organizationId, UUID agentId) {
-        return userQueryService.findAgent(organizationId, agentId).orElseThrow(() -> {
+        Optional<User> agent = userQueryService.findAgent(organizationId, agentId);
+        if (agent.isEmpty()) {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, AgentServiceLogConstant.AGENT_NOT_FOUND,
                     organizationId, agentId);
-            return new NotFoundException(ExceptionDomainAgentError.NOT_AGENT_FOUND,
+            throw new NotFoundException(ExceptionDomainAgentError.NOT_AGENT_FOUND,
                     Map.of(AgentConstant.FIELD_AGENT_ID, agentId.toString()));
-        });
+        }
+        return agent.get();
     }
 
     @Override
     public AgentOptionsResponse getOptions() {
-        List<AgentFlowOptionResponse> flows = Arrays.stream(AgentFlow.values())
-                .map(flow -> agentMapper.toFlowOptionResponse(flow, agentFlowHelper.providersOf(flow)))
-                .toList();
-        return new AgentOptionsResponse(flows);
+        List<AgentFlowOptionResponse> flows = new ArrayList<>();
+        for (AgentFlow flow : AgentFlow.values()) {
+            flows.add(agentMapper.toFlowOptionResponse(flow, agentFlowHelper.providersOf(flow)));
+        }
+        return new AgentOptionsResponse(List.copyOf(flows));
     }
 
     private List<AgentResponse> toResponses(User actor, UUID organizationId, List<User> agents) {
@@ -131,10 +134,23 @@ public class AgentQueryServiceImpl implements AgentQueryService {
      * grants do not apply to agents.
      */
     private Map<UUID, List<App>> appsByAgent(User actor, UUID organizationId, Collection<UUID> agentIds) {
-        return appAccessQueryService.listGrants(actor, organizationId).stream()
-                .filter(grant -> grant.targetType() == AppGrantTargetType.USER && agentIds.contains(grant.userId()))
-                .collect(Collectors.groupingBy(AppGrantResponse::userId,
-                        Collectors.mapping(AppGrantResponse::app, Collectors.collectingAndThen(
-                                Collectors.toList(), list -> list.stream().sorted().toList()))));
+        // An EnumSet keeps each agent's apps in enum order without a separate sort.
+        Map<UUID, Set<App>> appSets = new HashMap<>();
+        for (AppGrantResponse grant : appAccessQueryService.listGrants(actor, organizationId)) {
+            if (grant.targetType() != AppGrantTargetType.USER || !agentIds.contains(grant.userId())) {
+                continue;
+            }
+            Set<App> agentApps = appSets.get(grant.userId());
+            if (agentApps == null) {
+                agentApps = EnumSet.noneOf(App.class);
+                appSets.put(grant.userId(), agentApps);
+            }
+            agentApps.add(grant.app());
+        }
+        Map<UUID, List<App>> apps = new HashMap<>();
+        for (Map.Entry<UUID, Set<App>> entry : appSets.entrySet()) {
+            apps.put(entry.getKey(), List.copyOf(entry.getValue()));
+        }
+        return apps;
     }
 }

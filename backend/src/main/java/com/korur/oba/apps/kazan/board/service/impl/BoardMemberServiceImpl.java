@@ -39,6 +39,8 @@ import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.shrine.access.enums.App;
 import com.korur.oba.shrine.access.service.AppAccessQueryService;
 import com.korur.oba.shrine.access.validator.AppAccessValidator;
+import com.korur.oba.shrine.agent.constant.AgentConstant;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.identity.service.UserQueryService;
 
@@ -60,6 +62,7 @@ public class BoardMemberServiceImpl implements BoardMemberService {
     private final UserQueryService userQueryService;
     private final AppAccessQueryService appAccessQueryService;
     private final AppAccessValidator appAccessValidator;
+    private final AgentValidator agentValidator;
     private final LoggingService loggingService;
 
     // -------------------------------------------------------------------------
@@ -76,6 +79,11 @@ public class BoardMemberServiceImpl implements BoardMemberService {
         // restore path below.
         boardValidator.ensureUserIsOrganizationMember(board.getOrganizationId(), request.userId());
         appAccessValidator.ensureUsersHaveAppAccess(board.getOrganizationId(), App.KAZAN, List.of(request.userId()));
+
+        // An agent works tickets as a board MEMBER only, so it can never manage the board or its members.
+        if (request.role() != BoardMemberRole.MEMBER) {
+            agentValidator.ensureNoAgentAmong(List.of(request.userId()), AgentConstant.ACTION_BOARD_ROLE);
+        }
 
         // Prevent duplicate membership -- but check for soft-deleted record first.
         if (boardMemberRepository.existsByBoard_IdAndUser_Id(boardId, request.userId())) {
@@ -150,6 +158,10 @@ public class BoardMemberServiceImpl implements BoardMemberService {
 
         // Validate the target member exists and update the role.
         BoardMember member = boardValidator.ensureBoardMemberExists(boardId, userId);
+        // An agent works tickets as a board MEMBER only, so it can never manage the board or its members.
+        if (request.role() != BoardMemberRole.MEMBER) {
+            agentValidator.ensureTargetIsNotAgent(member.getUser(), AgentConstant.ACTION_BOARD_ROLE);
+        }
         member.setRole(request.role());
         member = boardMemberRepository.save(member);
 

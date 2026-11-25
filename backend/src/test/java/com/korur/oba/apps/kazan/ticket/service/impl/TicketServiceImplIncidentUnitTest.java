@@ -50,6 +50,7 @@ import com.korur.oba.apps.kazan.ticket.helper.TicketTypeNormalizer;
 import com.korur.oba.apps.kazan.ticket.repository.TicketRepository;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
 
 @ExtendWith(MockitoExtension.class)
 class TicketServiceImplIncidentUnitTest {
@@ -85,6 +86,9 @@ class TicketServiceImplIncidentUnitTest {
 
     @Mock
     private ApplicationEventPublisher applicationEventPublisher;
+
+    @Mock
+    private AgentValidator agentValidator;
 
     @InjectMocks
     private TicketServiceImpl ticketServiceImpl;

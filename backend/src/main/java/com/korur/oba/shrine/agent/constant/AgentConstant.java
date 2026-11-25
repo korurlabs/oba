@@ -30,6 +30,25 @@ public final class AgentConstant {
     public static final String FIELD_EXPIRES_AT = "expiresAt";
     public static final String FIELD_REVOKED_TOKEN_ID = "revokedTokenId";
     public static final String FIELD_SOFT_DELETED = "softDeleted";
+    public static final String FIELD_ACTION = "action";
+    public static final String FIELD_USER_ID = "userId";
+
+    // Actions an agent may not take as the caller (AGT_SEC_002). An agent never closes, deletes or
+    // outlives its work and never mints a credential, so a prompt-injected run cannot widen its reach.
+    public static final String ACTION_TICKET_DONE = "TICKET_DONE";
+    public static final String ACTION_TICKET_DELETE = "TICKET_DELETE";
+    public static final String ACTION_ORGANIZATION_LEAVE = "ORGANIZATION_LEAVE";
+    public static final String ACTION_KAYA_MACHINE_CREATE = "KAYA_MACHINE_CREATE";
+    public static final String ACTION_KAYA_TOKEN_ROTATE = "KAYA_TOKEN_ROTATE";
+
+    // Actions that do not apply to an agent as the target (AGT_VAL_001): its membership and status are
+    // managed on the Agents page, and its role on a board stays MEMBER.
+    public static final String ACTION_MEMBER_REMOVE = "MEMBER_REMOVE";
+    public static final String ACTION_MEMBER_RESTORE = "MEMBER_RESTORE";
+    public static final String ACTION_MEMBER_ROLE = "MEMBER_ROLE";
+    public static final String ACTION_MEMBER_STATUS = "MEMBER_STATUS";
+    public static final String ACTION_TICKET_REVIEWER = "TICKET_REVIEWER";
+    public static final String ACTION_BOARD_ROLE = "BOARD_ROLE";
 
     // Audit entity type and actions.
     public static final String AUDIT_ENTITY_TYPE = "Agent";
