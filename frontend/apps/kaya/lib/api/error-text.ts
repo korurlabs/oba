@@ -12,8 +12,6 @@ const REFUSALS: Readonly<Record<string, string>> = {
   ORG_SEC_005: "This organization is disabled.",
   GEN_VAL_001: "Kaya refused the values entered.",
   KAY_NF_001: "It no longer exists in this organization.",
-  KAY_SEC_007:
-    "This git email belongs to no member of the organization. Commit with the email you sign in with, or ask an admin.",
   KAY_VAL_006: "This user already has an active machine with that name.",
   KAY_VAL_011: "The machine is retired. Register it again to get a new token.",
   KAY_CFG_001: "Kaya refused the configuration.",
