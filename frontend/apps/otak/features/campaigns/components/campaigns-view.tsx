@@ -1,14 +1,12 @@
 "use client";
 
-import { useCallback, useId, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { AlertTriangle, Plus, X } from "lucide-react";
 import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
 import { useRouter } from "@oba/shared/libs/i18n/navigation";
 import { Button } from "@oba/ui/sky/button";
-import { NativeSelect } from "@oba/ui/sky/field";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
-import { Tabs, TabsList, TabsTrigger } from "@oba/ui/sky/tabs";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { DataTable } from "@/components/data-table";
 import { ActionEmptyState, FilterLabel, PageHeading } from "@/components/page-states";
@@ -17,26 +15,20 @@ import { useCampaignColumns } from "../hooks/use-campaign-columns";
 import { useCampaignFilterParams } from "../hooks/use-campaign-filter-params";
 import { useCampaigns, useDeleteCampaign } from "../hooks/use-campaigns";
 import { campaignErrorText } from "../lib/campaign-error";
-import {
-  CAMPAIGN_TABS,
-  hasActiveCampaignFilter,
-  isCampaignTab,
-  toCampaignQuery,
-} from "../lib/campaign-filters";
-import { CampaignChannelSchema, type CampaignListItem } from "../schemas";
+import { hasActiveCampaignFilter, toCampaignQuery } from "../lib/campaign-filters";
+import type { CampaignListItem } from "../schemas";
 import { CampaignFormDialog } from "./campaign-form-dialog";
 
 /**
- * The organization's campaigns in a tab per status, with a channel filter
- * and a name search in the URL. The list is not paged: an organization keeps
- * tens to hundreds of campaigns. Every member creates and edits campaigns in
- * a dialog; only an admin deletes.
+ * The organization's campaigns with a name search in the URL. The list is
+ * not paged: an organization keeps tens to hundreds of campaigns. Every
+ * member creates and edits campaigns in a dialog; only an admin deletes.
+ * The contents of a campaign are on its own page.
  */
 export function CampaignsView() {
   const t = useTranslations("campaigns");
   const tErrors = useTranslations("errors");
   const router = useRouter();
-  const channelId = useId();
   const isAdmin = useIsOrganizationAdmin();
   const [filters, setFilters] = useCampaignFilterParams();
   const query = useMemo(() => toCampaignQuery(filters), [filters]);
@@ -59,13 +51,6 @@ export function CampaignsView() {
     onEdit: handleEdit,
     onDelete: isAdmin ? handleDelete : null,
   });
-  const handleTabChange = useCallback(
-    (value: string) => {
-      if (!isCampaignTab(value)) return;
-      void setFilters({ tab: value });
-    },
-    [setFilters]
-  );
 
   const rows = useMemo(
     (): CampaignListItem[] => campaigns.data?.data ?? [],
@@ -85,37 +70,6 @@ export function CampaignsView() {
       <PageHeading title={t("title")} description={t("subtitle")} actions={newButton} />
 
       <div className="flex flex-wrap items-end gap-3">
-        <Tabs value={filters.tab} onValueChange={handleTabChange}>
-          <TabsList aria-label={t("tabsLabel")}>
-            {CAMPAIGN_TABS.map((tab) => (
-              <TabsTrigger key={tab} value={tab}>
-                {t(`tabs.${tab}`)}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-        <FilterLabel
-          label={t("filters.channelLabel")}
-          htmlFor={channelId}
-          className="w-full sm:w-44"
-        >
-          <NativeSelect
-            id={channelId}
-            value={filters.channel ?? ""}
-            onChange={(event) => {
-              const channel = CampaignChannelSchema.safeParse(event.target.value);
-              void setFilters({ channel: channel.success ? channel.data : null });
-            }}
-            className="w-full"
-          >
-            <option value="">{t("filters.channelAll")}</option>
-            {CampaignChannelSchema.options.map((channel) => (
-              <option key={channel} value={channel}>
-                {t(`channels.${channel}`)}
-              </option>
-            ))}
-          </NativeSelect>
-        </FilterLabel>
         <FilterLabel label={t("filters.searchLabel")} className="w-full sm:w-64">
           <SenseySearchInput
             value={filters.search}
@@ -143,7 +97,7 @@ export function CampaignsView() {
             action={
               <Button
                 variant="outline"
-                onClick={() => void setFilters({ channel: null, search: null })}
+                onClick={() => void setFilters({ search: null })}
               >
                 <X aria-hidden="true" />
                 {t("filters.clear")}
@@ -152,7 +106,7 @@ export function CampaignsView() {
           />
         ) : (
           <ActionEmptyState
-            title={t(`emptyByTab.${filters.tab}`)}
+            title={t("empty")}
             description={t("emptyHint")}
             action={newButton}
           />

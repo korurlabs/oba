@@ -11,7 +11,7 @@ const STATUS_VARIANTS = {
   ARCHIVED: "secondary",
 } as const satisfies Record<CampaignStatus, "muted" | "info" | "success" | "secondary">;
 
-/** Where a campaign stands: a draft, planned, out, or put away. */
+/** Where a campaign content stands: a draft, planned, out, or put away. */
 export function CampaignStatusBadge({ status }: { status: CampaignStatus }) {
   const t = useTranslations("campaigns");
   return <Badge variant={STATUS_VARIANTS[status]}>{t(`statuses.${status}`)}</Badge>;

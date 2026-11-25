@@ -1,5 +1,5 @@
 import type { QueryClient } from "@tanstack/react-query";
-import { getCampaign, listCampaigns } from "../api";
+import { getCampaign, listCampaignContents, listCampaigns } from "../api";
 import { CAMPAIGN_KEYS } from "../hooks/query-keys";
 import type { CampaignQueryRequest } from "../schemas";
 
@@ -34,5 +34,20 @@ export async function prefetchCampaign(
   } catch (error) {
     // A missing campaign is answered by the client with its not-found state.
     console.error("[campaign-page] detail prefetch failed, the client will refetch:", error);
+  }
+}
+
+export async function prefetchCampaignContents(
+  queryClient: QueryClient,
+  organizationId: string,
+  campaignId: string
+): Promise<void> {
+  try {
+    queryClient.setQueryData(
+      CAMPAIGN_KEYS.contents(organizationId, campaignId),
+      await listCampaignContents(campaignId)
+    );
+  } catch (error) {
+    console.error("[campaign-page] contents prefetch failed, the client will refetch:", error);
   }
 }
