@@ -37,6 +37,7 @@ import com.korur.oba.apps.otak.outreach.enums.OutreachType;
  * @param status            {@link OutreachStatus#DRAFT}, {@link OutreachStatus#SENT} (for
  *                          WHATSAPP and CALL: done) or {@link OutreachStatus#FAILED} (MAIL only)
  * @param relationId        the relation the outreach goes to
+ * @param campaignId        the campaign the outreach belongs to, or null for none
  * @param contact           the contact the outreach goes to, or null once the contact was deleted
  * @param sentTo            the mail address (MAIL) or phone (WHATSAPP, CALL) it went to, or
  *                          null until sent or done
@@ -64,6 +65,10 @@ public record OutreachDetailResponse(
 
         @Schema(description = "Relation the outreach goes to", example = "3f2a1b4c-5d6e-4f70-8a9b-0c1d2e3f4a5b")
         UUID relationId,
+
+        @Schema(description = "Campaign the outreach belongs to; null for none", nullable = true,
+                example = "3b7c9d1e-4f5a-4b6c-8d7e-9f0a1b2c3d4e")
+        UUID campaignId,
 
         @Schema(description = "Contact the outreach goes to; null once the contact was deleted", nullable = true)
         OutreachContactResponse contact,

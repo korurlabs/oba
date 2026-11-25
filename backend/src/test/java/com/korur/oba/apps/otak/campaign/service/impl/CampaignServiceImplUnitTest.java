@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -14,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,6 +55,8 @@ import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.identity.service.UserQueryService;
 import com.korur.oba.shrine.organization.service.OrganizationMemberQueryService;
+import com.korur.oba.shrine.storage.enums.common.StorageEntityType;
+import com.korur.oba.shrine.storage.service.attachment.AttachmentService;
 
 @ExtendWith(MockitoExtension.class)
 class CampaignServiceImplUnitTest {
@@ -83,6 +87,9 @@ class CampaignServiceImplUnitTest {
     private IcpQueryService icpQueryService;
 
     @Mock
+    private AttachmentService attachmentService;
+
+    @Mock
     private LoggingService loggingService;
 
     private CampaignServiceImpl service;
@@ -92,11 +99,12 @@ class CampaignServiceImplUnitTest {
     void setUp() {
         // The real validator, mapper and owner helper run over the mocked repositories, so the
         // error codes and the mapped fields are the production ones.
+        Clock clock = Clock.fixed(NOW, ZoneOffset.UTC);
         CampaignValidator validator = new CampaignValidator(campaignRepository, organizationMemberQueryService,
-                appAccessValidator, loggingService);
+                appAccessValidator, clock, loggingService);
         service = new CampaignServiceImpl(campaignRepository, campaignContentRepository, new CampaignMapperImpl(),
                 validator, new CampaignOwnerHelper(userQueryService), eventQueryService, icpQueryService,
-                Clock.fixed(NOW, ZoneOffset.UTC), loggingService);
+                attachmentService, clock, loggingService);
         user = User.builder().build();
         user.setId(UUID.randomUUID());
     }
@@ -209,6 +217,16 @@ class CampaignServiceImplUnitTest {
         }
 
         @Test
+        void publishedWithFuturePublishedAt_throwsValidationAndSavesNothing() {
+            assertThatThrownBy(() -> service.create(organizationId, user,
+                    createRequest("IGEF", CampaignStatus.PUBLISHED, null, NOW.plusSeconds(60), null, null)))
+                    .isInstanceOfSatisfying(ValidationException.class, (ValidationException exception) ->
+                            assertThat(exception.getErrorCode())
+                                    .isEqualTo(ExceptionDomainOtakError.VAL_CAMPAIGN_STATUS_DATES.getCode()));
+            verify(campaignRepository, never()).save(any(Campaign.class));
+        }
+
+        @Test
         void scheduledWithoutPlannedAt_throwsValidationAndSavesNothing() {
             assertThatThrownBy(() -> service.create(organizationId, user,
                     createRequest("IGEF", CampaignStatus.SCHEDULED, null, null, null, null)))
@@ -283,6 +301,69 @@ class CampaignServiceImplUnitTest {
         }
 
         @Test
+        void onlyTextsChanged_movesTheCampaignsLastChangeAndAnswersWithIt() {
+            // Arrange
+            Campaign campaign = stored();
+            Campaign touched = Campaign.builder().name("New").channel(CampaignChannel.X).status(CampaignStatus.DRAFT)
+                    .organizationId(organizationId).updatedAt(NOW).build();
+            touched.setId(campaign.getId());
+            when(campaignRepository.findByIdAndOrganizationId(campaign.getId(), organizationId))
+                    .thenReturn(Optional.of(campaign), Optional.of(touched));
+            when(campaignRepository.saveAndFlush(campaign)).thenReturn(campaign);
+            when(campaignContentRepository.findAllByCampaignIdOrderByLanguageAsc(campaign.getId()))
+                    .thenReturn(List.of(content(campaign.getId(), DocumentLanguage.NL, "Hallo")));
+            when(campaignContentRepository.saveAllAndFlush(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            // Act
+            CampaignDetailResponse result = service.update(organizationId, campaign.getId(),
+                    updateRequest(CampaignStatus.DRAFT, null,
+                            List.of(new CampaignContentRequest(DocumentLanguage.NL, "Hallo wereld"))));
+
+            // Assert
+            InOrder order = inOrder(campaignContentRepository, campaignRepository);
+            order.verify(campaignContentRepository).saveAllAndFlush(anyList());
+            order.verify(campaignRepository).touchUpdatedAt(campaign.getId(), NOW);
+            assertThat(result.updatedAt()).isEqualTo(NOW);
+        }
+
+        @Test
+        void textsUnchanged_leavesTheLastChangeToAuditing() {
+            // Arrange
+            Campaign campaign = stored();
+            when(campaignRepository.saveAndFlush(campaign)).thenReturn(campaign);
+            when(campaignContentRepository.findAllByCampaignIdOrderByLanguageAsc(campaign.getId()))
+                    .thenReturn(List.of(content(campaign.getId(), DocumentLanguage.NL, "Hallo")));
+            when(campaignContentRepository.saveAllAndFlush(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            // Act
+            service.update(organizationId, campaign.getId(), updateRequest(CampaignStatus.DRAFT, null,
+                    List.of(new CampaignContentRequest(DocumentLanguage.NL, "Hallo"))));
+
+            // Assert
+            verify(campaignRepository, never()).touchUpdatedAt(any(), any());
+        }
+
+        @Test
+        void campaignRowAndTextsChanged_leavesTheLastChangeToAuditing() {
+            // Arrange
+            Campaign campaign = stored();
+            Campaign saved = Campaign.builder().name("New").channel(CampaignChannel.X).status(CampaignStatus.DRAFT)
+                    .organizationId(organizationId).updatedAt(NOW).build();
+            saved.setId(campaign.getId());
+            when(campaignRepository.saveAndFlush(campaign)).thenReturn(saved);
+            when(campaignContentRepository.saveAllAndFlush(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            // Act
+            CampaignDetailResponse result = service.update(organizationId, campaign.getId(),
+                    updateRequest(CampaignStatus.DRAFT, null,
+                            List.of(new CampaignContentRequest(DocumentLanguage.EN, "Hello"))));
+
+            // Assert
+            verify(campaignRepository, never()).touchUpdatedAt(any(), any());
+            assertThat(result.updatedAt()).isEqualTo(NOW);
+        }
+
+        @Test
         void markedPublishedWithoutPublishedAt_storesTheClocksNow() {
             // Arrange
             Campaign campaign = stored();
@@ -334,7 +415,7 @@ class CampaignServiceImplUnitTest {
     class Delete {
 
         @Test
-        void ownCampaign_deletesIt() {
+        void ownCampaign_deletesItThenItsAttachments() {
             // Arrange
             Campaign campaign = stored();
 
@@ -342,7 +423,10 @@ class CampaignServiceImplUnitTest {
             service.delete(organizationId, campaign.getId());
 
             // Assert
-            verify(campaignRepository).delete(campaign);
+            InOrder order = inOrder(campaignRepository, attachmentService);
+            order.verify(campaignRepository).delete(campaign);
+            order.verify(campaignRepository).flush();
+            order.verify(attachmentService).deleteAttachmentsByEntity(StorageEntityType.CAMPAIGN, campaign.getId());
         }
 
         @Test
@@ -354,6 +438,7 @@ class CampaignServiceImplUnitTest {
             // Act and assert
             assertThatThrownBy(() -> service.delete(organizationId, campaignId)).isInstanceOf(NotFoundException.class);
             verify(campaignRepository, never()).delete(any(Campaign.class));
+            verify(attachmentService, never()).deleteAttachmentsByEntity(any(), any());
         }
     }
 }

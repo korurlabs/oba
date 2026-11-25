@@ -22,6 +22,7 @@ import java.util.UUID;
 // 4. Internal
 import static com.korur.oba.apps.otak.outreach.constant.service.OutreachServiceLogConstant.*;
 
+import com.korur.oba.apps.otak.campaign.service.CampaignQueryService;
 import com.korur.oba.apps.otak.contact.entity.Contact;
 import com.korur.oba.apps.otak.contact.validator.ContactValidator;
 import com.korur.oba.apps.otak.mail.entity.Mail;
@@ -144,6 +145,11 @@ public class OutreachServiceImpl implements OutreachService {
     private final ContactValidator contactValidator;
 
     /**
+     * Checks that the campaign of an outreach belongs to the organization.
+     */
+    private final CampaignQueryService campaignQueryService;
+
+    /**
      * Writes the outreach's own mail: copy from a template, create, update and delete.
      */
     private final MailService mailService;
@@ -198,7 +204,8 @@ public class OutreachServiceImpl implements OutreachService {
      * Steps, in this order:
      * - the relation is read through {@link RelationQueryService#getEntity} and the contact
      *   checked against it through {@link ContactValidator#ensureContactExists}, both within
-     *   the organization;
+     *   the organization, and a campaign, when given, through
+     *   {@link CampaignQueryService#ensureExists};
      * - {@link OutreachValidator#ensureMailFitsType} requires exactly one of a mail template
      *   and a mail written by hand for MAIL, and none of them and no document templates for
      *   WHATSAPP and CALL;
@@ -223,10 +230,11 @@ public class OutreachServiceImpl implements OutreachService {
      * @throws com.korur.oba.dojo.exception.internal.business.NotFoundException
      *         {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#NOT_RELATION_FOUND},
      *         {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#NOT_CONTACT_FOUND},
+     *         {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#NOT_CAMPAIGN_FOUND},
      *         {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#NOT_MAIL_TEMPLATE_FOUND}
      *         or {@link com.korur.oba.shrine.document.exception.ExceptionDomainDocumentError#NOT_DOCUMENT_TEMPLATE_FOUND}
-     *         if the relation, the contact of the relation, the mail template or a document template
-     *         is missing in the organization
+     *         if the relation, the contact of the relation, the campaign, the mail template or a
+     *         document template is missing in the organization
      * @throws com.korur.oba.dojo.exception.internal.business.ValidationException
      *         {@link com.korur.oba.dojo.exception.enums.ExceptionValidationError#VALIDATION} if a MAIL
      *         outreach has both or neither mail sources, or a WHATSAPP or CALL outreach has any mail
@@ -243,6 +251,7 @@ public class OutreachServiceImpl implements OutreachService {
         relationQueryService.getEntity(organizationId, relationId);
         // The contact must belong to this relation, not only to the organization.
         contactValidator.ensureContactExists(organizationId, relationId, request.contactId());
+        ensureCampaignOfOrganization(organizationId, request.campaignId());
         outreachValidator.ensureMailFitsType(request.type(), request.mailTemplateId(), request.mail(),
                 request.documentTemplateIds());
 
@@ -282,13 +291,14 @@ public class OutreachServiceImpl implements OutreachService {
     }
 
     /**
-     * Changes the contact, the title and, for MAIL, the mail of an outreach that was not sent,
-     * in one transaction.
+     * Changes the contact, the title, the campaign and, for MAIL, the mail of an outreach that
+     * was not sent, in one transaction.
      *
      * The outreach is read with a row lock by {@link #lockOutreach}, held until the
      * transaction commits, so {@link OutreachValidator#ensureEditable} and the writes below
      * run wholly before or wholly after a send's claim and never change a mail that is going
-     * out. The new contact must belong to the outreach's relation, which never changes.
+     * out. The new contact must belong to the outreach's relation, which never changes, and a
+     * campaign, when given, to the organization.
      * {@link OutreachValidator#ensureUpdateMailFitsType} requires the mail for MAIL and refuses
      * it for WHATSAPP and CALL; for MAIL the subject, the body and the language are written to
      * the outreach's mail through {@link MailService#update}.
@@ -298,13 +308,15 @@ public class OutreachServiceImpl implements OutreachService {
      *
      * @param organizationId the organization that owns the outreach, from the checked request header
      * @param outreachId     the outreach identifier
-     * @param request        the new contact, title and, for MAIL, subject, body and language
+     * @param request        the new contact, title, campaign and, for MAIL, subject, body and language
      * @return the updated outreach, read back through {@link OutreachQueryService#get}
      * @throws com.korur.oba.dojo.exception.internal.business.NotFoundException
      *         {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#NOT_OUTREACH_FOUND} if the
      *         organization has no such outreach, or
      *         {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#NOT_CONTACT_FOUND} if the
-     *         contact is not of the outreach's relation
+     *         contact is not of the outreach's relation, or
+     *         {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#NOT_CAMPAIGN_FOUND} if the
+     *         organization has no such campaign
      * @throws com.korur.oba.dojo.exception.internal.business.ConflictException
      *         {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#STA_OUTREACH_NOT_EDITABLE}
      *         if the outreach is SENT or being sent
@@ -321,6 +333,7 @@ public class OutreachServiceImpl implements OutreachService {
         outreachValidator.ensureEditable(outreach);
         outreachValidator.ensureUpdateMailFitsType(outreach.getType(), request.mail());
         contactValidator.ensureContactExists(organizationId, outreach.getRelationId(), request.contactId());
+        ensureCampaignOfOrganization(organizationId, request.campaignId());
 
         // Only a MAIL outreach has a mail to write.
         if (outreach.getType() == OutreachType.MAIL) {
@@ -721,5 +734,15 @@ public class OutreachServiceImpl implements OutreachService {
     private static String htmlBody(String body) {
         return HtmlUtils.htmlEscape(body).replaceAll(OutreachConstant.LINE_BREAK_PATTERN,
                 OutreachConstant.HTML_LINE_BREAK);
+    }
+
+    /**
+     * Refuses a campaign that is unknown or belongs to another organization, so an outreach
+     * never links to a campaign its organization cannot see. No campaign is always allowed.
+     */
+    private void ensureCampaignOfOrganization(UUID organizationId, UUID campaignId) {
+        if (campaignId != null) {
+            campaignQueryService.ensureExists(organizationId, campaignId);
+        }
     }
 }

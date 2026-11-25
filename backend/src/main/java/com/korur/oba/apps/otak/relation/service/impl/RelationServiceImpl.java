@@ -15,6 +15,7 @@ import java.util.UUID;
 // 4. Internal
 import static com.korur.oba.apps.otak.relation.constant.service.RelationServiceLogConstant.*;
 
+import com.korur.oba.apps.otak.campaign.service.CampaignQueryService;
 import com.korur.oba.apps.otak.event.service.EventQueryService;
 import com.korur.oba.apps.otak.icp.service.IcpQueryService;
 import com.korur.oba.apps.otak.mail.service.MailQueryService;
@@ -57,6 +58,7 @@ public class RelationServiceImpl implements RelationService {
     private final RelationOwnerHelper relationOwnerHelper;
     private final IcpQueryService icpQueryService;
     private final EventQueryService eventQueryService;
+    private final CampaignQueryService campaignQueryService;
     private final MailQueryService mailQueryService;
     private final AttachmentService attachmentService;
     private final DocumentService documentService;
@@ -70,6 +72,7 @@ public class RelationServiceImpl implements RelationService {
         relationValidator.ensureOwnerIsOrganizationMember(organizationId, request.ownerUserId());
         ensureIcpOfOrganization(organizationId, request.icpId());
         ensureEventOfOrganization(organizationId, request.eventId());
+        ensureCampaignOfOrganization(organizationId, request.campaignId());
 
         Relation relation = relationMapper.toEntity(request);
         relation.setOrganizationId(organizationId);
@@ -94,6 +97,7 @@ public class RelationServiceImpl implements RelationService {
         }
         ensureIcpOfOrganization(organizationId, request.icpId());
         ensureEventOfOrganization(organizationId, request.eventId());
+        ensureCampaignOfOrganization(organizationId, request.campaignId());
 
         relationMapper.updateEntity(relation, request);
         // Flushed here so the response carries the new last-change time.
@@ -224,6 +228,16 @@ public class RelationServiceImpl implements RelationService {
     private void ensureEventOfOrganization(UUID organizationId, UUID eventId) {
         if (eventId != null) {
             eventQueryService.ensureExists(organizationId, eventId);
+        }
+    }
+
+    /**
+     * Refuses a campaign that is unknown or belongs to another organization, so a relation
+     * never links to a campaign its organization cannot see. No campaign is always allowed.
+     */
+    private void ensureCampaignOfOrganization(UUID organizationId, UUID campaignId) {
+        if (campaignId != null) {
+            campaignQueryService.ensureExists(organizationId, campaignId);
         }
     }
 }

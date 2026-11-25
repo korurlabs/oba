@@ -37,6 +37,7 @@ import java.util.UUID;
 
 // 4. Internal
 import com.korur.oba.apps.otak.contact.entity.Contact;
+import com.korur.oba.apps.otak.campaign.service.CampaignQueryService;
 import com.korur.oba.apps.otak.contact.validator.ContactValidator;
 import com.korur.oba.apps.otak.exception.ExceptionDomainOtakError;
 import com.korur.oba.apps.otak.mail.dto.request.MailRequest;
@@ -101,6 +102,9 @@ class OutreachServiceImplUnitTest {
     private ContactValidator contactValidator;
 
     @Mock
+    private CampaignQueryService campaignQueryService;
+
+    @Mock
     private MailService mailService;
 
     @Mock
@@ -134,7 +138,7 @@ class OutreachServiceImplUnitTest {
         // real over a mocked manager, so the claim and the failure marker run their callbacks.
         service = new OutreachServiceImpl(outreachRepository, new OutreachMapperImpl(),
                 new OutreachValidator(outreachRepository, loggingService), outreachQueryService,
-                relationQueryService, contactValidator, mailService, mailQueryService,
+                relationQueryService, contactValidator, campaignQueryService, mailService, mailQueryService,
                 documentTemplateService, attachmentQueryService, mailSenderValidator, msGraphClient,
                 new TransactionTemplate(transactionManager), Clock.fixed(NOW, ZoneOffset.UTC), loggingService);
         user = User.builder().build();
@@ -165,7 +169,7 @@ class OutreachServiceImplUnitTest {
 
         private OutreachCreateRequest withMail(List<UUID> documentTemplateIds) {
             return new OutreachCreateRequest(relationId, contactId, "  Title  ", OutreachType.MAIL, null,
-                    new MailRequest("Subject", "Body", DocumentLanguage.NL), documentTemplateIds);
+                    new MailRequest("Subject", "Body", DocumentLanguage.NL), documentTemplateIds, null);
         }
 
         private void savesWithAnId() {
@@ -210,7 +214,7 @@ class OutreachServiceImplUnitTest {
             savesWithAnId();
             UUID mailTemplateId = UUID.randomUUID();
             OutreachCreateRequest request = new OutreachCreateRequest(relationId, contactId, "Title", OutreachType.MAIL,
-                    mailTemplateId, null, null);
+                    mailTemplateId, null, null, null);
             when(mailService.createFromTemplate(organizationId, relationId, mailTemplateId)).thenReturn(mail());
 
             // Act
@@ -248,7 +252,7 @@ class OutreachServiceImplUnitTest {
         void bothMailSources_throwsBeforeCreatingAnything() {
             // Arrange
             OutreachCreateRequest request = new OutreachCreateRequest(relationId, contactId, "Title", OutreachType.MAIL, UUID.randomUUID(),
-                    new MailRequest("S", "B", null), null);
+                    new MailRequest("S", "B", null), null, null);
 
             // Act and assert
             assertThatThrownBy(() -> service.create(organizationId, user, request))
@@ -265,6 +269,52 @@ class OutreachServiceImplUnitTest {
 
             // Act and assert
             assertThatThrownBy(() -> service.create(organizationId, user, withMail(null))).isSameAs(notFound);
+            verifyNoInteractions(mailService);
+            verify(outreachRepository, never()).saveAndFlush(any());
+        }
+
+        @Test
+        void campaignOfOrganization_isCheckedAndStored() {
+            // Arrange
+            savesWithAnId();
+            UUID campaignId = UUID.randomUUID();
+            OutreachCreateRequest request = new OutreachCreateRequest(relationId, contactId, "Title", OutreachType.CALL,
+                    null, null, null, campaignId);
+
+            // Act
+            service.create(organizationId, user, request);
+
+            // Assert
+            verify(campaignQueryService).ensureExists(organizationId, campaignId);
+            assertThat(savedOutreach().getCampaignId()).isEqualTo(campaignId);
+        }
+
+        @Test
+        void withoutCampaign_skipsTheCampaignCheck() {
+            // Arrange
+            savesWithAnId();
+            OutreachCreateRequest request = withMail(null);
+            when(mailService.create(organizationId, relationId, request.mail())).thenReturn(mail());
+
+            // Act
+            service.create(organizationId, user, request);
+
+            // Assert
+            verify(campaignQueryService, never()).ensureExists(any(), any());
+            assertThat(savedOutreach().getCampaignId()).isNull();
+        }
+
+        @Test
+        void campaignOfAnotherOrganization_throwsNotFoundBeforeCreatingAnything() {
+            // Arrange
+            UUID campaignId = UUID.randomUUID();
+            NotFoundException notFound = new NotFoundException(ExceptionDomainOtakError.NOT_CAMPAIGN_FOUND, Map.of());
+            doThrow(notFound).when(campaignQueryService).ensureExists(organizationId, campaignId);
+            OutreachCreateRequest request = new OutreachCreateRequest(relationId, contactId, "Title", OutreachType.MAIL,
+                    null, new MailRequest("S", "B", DocumentLanguage.NL), null, campaignId);
+
+            // Act and assert
+            assertThatThrownBy(() -> service.create(organizationId, user, request)).isSameAs(notFound);
             verifyNoInteractions(mailService);
             verify(outreachRepository, never()).saveAndFlush(any());
         }
@@ -291,7 +341,7 @@ class OutreachServiceImplUnitTest {
     class Update {
 
         private OutreachUpdateRequest request() {
-            return new OutreachUpdateRequest(contactId, "  Renamed  ", new MailRequest("S2", "B2", DocumentLanguage.EN));
+            return new OutreachUpdateRequest(contactId, "  Renamed  ", new MailRequest("S2", "B2", DocumentLanguage.EN), null);
         }
 
         @Test
@@ -314,6 +364,58 @@ class OutreachServiceImplUnitTest {
         }
 
         @Test
+        void draftWithCampaignOfOrganization_checksAndLinksIt() {
+            // Arrange
+            UUID campaignId = UUID.randomUUID();
+            Outreach outreach = outreach(OutreachStatus.DRAFT);
+            lockedFinds(outreach);
+            when(outreachQueryService.get(organizationId, outreachId)).thenReturn(detail);
+
+            // Act
+            service.update(organizationId, outreachId, new OutreachUpdateRequest(contactId, "Title",
+                    new MailRequest("S2", "B2", DocumentLanguage.EN), campaignId));
+
+            // Assert
+            verify(campaignQueryService).ensureExists(organizationId, campaignId);
+            assertThat(outreach.getCampaignId()).isEqualTo(campaignId);
+        }
+
+        @Test
+        void draftWithNullCampaign_skipsTheCheckAndClearsTheLink() {
+            // Arrange
+            Outreach outreach = outreach(OutreachStatus.DRAFT);
+            outreach.setCampaignId(UUID.randomUUID());
+            lockedFinds(outreach);
+            when(outreachQueryService.get(organizationId, outreachId)).thenReturn(detail);
+
+            // Act
+            service.update(organizationId, outreachId, request());
+
+            // Assert
+            verify(campaignQueryService, never()).ensureExists(any(), any());
+            assertThat(outreach.getCampaignId()).isNull();
+        }
+
+        @Test
+        void campaignOfAnotherOrganization_throwsNotFoundAndChangesNothing() {
+            // Arrange
+            UUID campaignId = UUID.randomUUID();
+            UUID currentCampaignId = UUID.randomUUID();
+            Outreach outreach = outreach(OutreachStatus.DRAFT);
+            outreach.setCampaignId(currentCampaignId);
+            lockedFinds(outreach);
+            NotFoundException notFound = new NotFoundException(ExceptionDomainOtakError.NOT_CAMPAIGN_FOUND, Map.of());
+            doThrow(notFound).when(campaignQueryService).ensureExists(organizationId, campaignId);
+
+            // Act and assert
+            assertThatThrownBy(() -> service.update(organizationId, outreachId, new OutreachUpdateRequest(contactId,
+                    "Title", new MailRequest("S2", "B2", DocumentLanguage.EN), campaignId))).isSameAs(notFound);
+            verifyNoInteractions(mailService);
+            verify(outreachRepository, never()).saveAndFlush(any());
+            assertThat(outreach.getCampaignId()).isEqualTo(currentCampaignId);
+        }
+
+        @Test
         void sent_throwsNotEditableAndChangesNothing() {
             // Arrange
             lockedFinds(outreach(OutreachStatus.SENT));
@@ -323,7 +425,7 @@ class OutreachServiceImplUnitTest {
                     .isInstanceOfSatisfying(ConflictException.class, (ConflictException exception) ->
                             assertThat(exception.getErrorCode())
                                     .isEqualTo(ExceptionDomainOtakError.STA_OUTREACH_NOT_EDITABLE.getCode()));
-            verifyNoInteractions(mailService);
+            verifyNoInteractions(mailService, campaignQueryService);
             verify(outreachRepository, never()).saveAndFlush(any());
         }
 
@@ -696,7 +798,7 @@ class OutreachServiceImplUnitTest {
             });
             when(outreachQueryService.get(organizationId, outreachId)).thenReturn(detail);
             OutreachCreateRequest request = new OutreachCreateRequest(relationId, contactId, " Call Jan ", type,
-                    null, null, null);
+                    null, null, null, null);
 
             // Act
             OutreachDetailResponse result = service.create(organizationId, user, request);
@@ -716,7 +818,7 @@ class OutreachServiceImplUnitTest {
         void create_channelWithMail_throwsBeforeCreatingAnything() {
             // Arrange
             OutreachCreateRequest request = new OutreachCreateRequest(relationId, contactId, "Title",
-                    OutreachType.WHATSAPP, null, new MailRequest("S", "B", DocumentLanguage.NL), null);
+                    OutreachType.WHATSAPP, null, new MailRequest("S", "B", DocumentLanguage.NL), null, null);
 
             // Act and assert
             assertThatThrownBy(() -> service.create(organizationId, user, request))
@@ -730,7 +832,7 @@ class OutreachServiceImplUnitTest {
             // Arrange
             lockedFinds(channelOutreach(OutreachType.CALL, OutreachStatus.DRAFT));
             OutreachUpdateRequest request = new OutreachUpdateRequest(contactId, "T",
-                    new MailRequest("S", "B", DocumentLanguage.NL));
+                    new MailRequest("S", "B", DocumentLanguage.NL), null);
 
             // Act and assert
             assertThatThrownBy(() -> service.update(organizationId, outreachId, request))
@@ -747,7 +849,7 @@ class OutreachServiceImplUnitTest {
             when(outreachQueryService.get(organizationId, outreachId)).thenReturn(detail);
 
             // Act
-            service.update(organizationId, outreachId, new OutreachUpdateRequest(contactId, " New ", null));
+            service.update(organizationId, outreachId, new OutreachUpdateRequest(contactId, " New ", null, null));
 
             // Assert
             assertThat(outreach.getTitle()).isEqualTo("New");

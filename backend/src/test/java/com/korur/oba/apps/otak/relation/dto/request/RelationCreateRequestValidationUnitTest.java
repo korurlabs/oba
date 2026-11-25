@@ -22,7 +22,7 @@ class RelationCreateRequestValidationUnitTest {
             "postalCode", "city", "notes", "website"};
 
     private static RelationCreateRequest valid() {
-        return new RelationCreateRequest("Fabrikam", RelationType.LEAD, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        return new RelationCreateRequest("Fabrikam", RelationType.LEAD, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     @Test

@@ -53,7 +53,7 @@ class OutreachMapperUnitTest {
 
         // Act
         Outreach outreach = outreachMapper.toEntity(new OutreachCreateRequest(relationId, contactId, "Intro", OutreachType.MAIL, null,
-                new MailRequest("S", "B", DocumentLanguage.EN), null));
+                new MailRequest("S", "B", DocumentLanguage.EN), null, null));
 
         // Assert
         assertThat(outreach.getRelationId()).isEqualTo(relationId);
@@ -74,7 +74,7 @@ class OutreachMapperUnitTest {
 
         // Act
         outreachMapper.updateEntity(outreach, new OutreachUpdateRequest(newContact, "New title",
-                new MailRequest("S", "B", DocumentLanguage.NL)));
+                new MailRequest("S", "B", DocumentLanguage.NL), null));
 
         // Assert
         assertThat(outreach.getContactId()).isEqualTo(newContact);

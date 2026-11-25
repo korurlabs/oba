@@ -110,6 +110,14 @@ public class Relation extends BaseEntity {
     @Column(name = "event_id", nullable = true)
     private UUID eventId;
 
+    /**
+     * Campaign that brought the relation in, of the same organization. A plain id, not an
+     * association: the campaign domain is read through its query service, and deleting the
+     * campaign clears it.
+     */
+    @Column(name = "campaign_id", nullable = true)
+    private UUID campaignId;
+
     // -------------Enums-----------//
 
     @Enumerated(EnumType.STRING)

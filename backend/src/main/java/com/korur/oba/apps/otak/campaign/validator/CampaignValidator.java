@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 
 // 3. Java SDK
+import java.time.Clock;
 import java.time.Instant;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -49,6 +50,7 @@ public class CampaignValidator {
     private final CampaignRepository campaignRepository;
     private final OrganizationMemberQueryService organizationMemberQueryService;
     private final AppAccessValidator appAccessValidator;
+    private final Clock clock;
     private final LoggingService loggingService;
 
     /**
@@ -122,20 +124,22 @@ public class CampaignValidator {
      * Ensures the moments fit the status, the same rules the two check constraints of
      * otak.campaigns enforce: a SCHEDULED campaign has a planned moment, and a DRAFT or
      * SCHEDULED campaign was not published, so it has no published moment. PUBLISHED and
-     * ARCHIVED take any moments; a PUBLISHED campaign without one gets the server's now
-     * afterwards.
+     * ARCHIVED take any planned moment and a published moment up to the {@link Clock}'s now: a
+     * post that goes live later is SCHEDULED with a planned moment, not published ahead. A
+     * PUBLISHED campaign without a published moment gets the server's now afterwards.
      *
      * @param status      the status to store
      * @param plannedAt   the planned moment, or null
      * @param publishedAt the published moment, or null
      * @throws ValidationException {@link ExceptionDomainOtakError#VAL_CAMPAIGN_STATUS_DATES}
-     *         when a moment does not fit the status
+     *         when a moment does not fit the status or the published moment is in the future
      */
     public void ensureStatusDates(CampaignStatus status, Instant plannedAt, Instant publishedAt) {
         boolean scheduledWithoutPlan = status == CampaignStatus.SCHEDULED && plannedAt == null;
         boolean unpublishedWithDate = (status == CampaignStatus.DRAFT || status == CampaignStatus.SCHEDULED)
                 && publishedAt != null;
-        if (scheduledWithoutPlan || unpublishedWithDate) {
+        boolean publishedInFuture = publishedAt != null && publishedAt.isAfter(Instant.now(clock));
+        if (scheduledWithoutPlan || unpublishedWithDate || publishedInFuture) {
             loggingService.warn(LOG_PREFIX, LogLayer.VALIDATOR,
                     CampaignExceptionLogConstant.CAMPAIGN_STATUS_DATES_INVALID, status, plannedAt, publishedAt);
             // HashMap, since Map.of refuses the null moments the client is told about.

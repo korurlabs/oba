@@ -20,6 +20,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 // 3. Java SDK
+import java.time.Clock;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -76,7 +77,7 @@ class CampaignQueryServiceImplUnitTest {
     @BeforeEach
     void setUp() {
         CampaignValidator validator = new CampaignValidator(campaignRepository, organizationMemberQueryService,
-                appAccessValidator, loggingService);
+                appAccessValidator, Clock.systemUTC(), loggingService);
         service = new CampaignQueryServiceImpl(campaignRepository, campaignContentRepository, new CampaignMapperImpl(),
                 validator, new CampaignOwnerHelper(userQueryService), loggingService);
     }

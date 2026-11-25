@@ -52,14 +52,14 @@ class OutreachCreateRequestValidationUnitTest {
     @Test
     void validRequestWithMail_hasNoViolation() {
         OutreachCreateRequest request = new OutreachCreateRequest(UUID.randomUUID(), UUID.randomUUID(), "Title", OutreachType.MAIL, null,
-                new MailRequest("S", "B", DocumentLanguage.NL), List.of(UUID.randomUUID()));
+                new MailRequest("S", "B", DocumentLanguage.NL), List.of(UUID.randomUUID()), null);
 
         assertThat(violationMessages(request)).isEmpty();
     }
 
     @Test
     void missingRelationContactAndBlankTitle_reportsEachRequiredMessage() {
-        OutreachCreateRequest request = new OutreachCreateRequest(null, null, " ", OutreachType.MAIL, UUID.randomUUID(), null, null);
+        OutreachCreateRequest request = new OutreachCreateRequest(null, null, " ", OutreachType.MAIL, UUID.randomUUID(), null, null, null);
 
         assertThat(violationMessages(request)).containsExactlyInAnyOrder(
                 OutreachConstant.RELATION_REQUIRED_MESSAGE, OutreachConstant.CONTACT_REQUIRED_MESSAGE,
@@ -69,7 +69,7 @@ class OutreachCreateRequestValidationUnitTest {
     @Test
     void titleOf201Characters_reportsTheSizeMessage() {
         OutreachCreateRequest request = new OutreachCreateRequest(UUID.randomUUID(), UUID.randomUUID(),
-                "t".repeat(OutreachConstant.TITLE_MAX_LENGTH + 1), OutreachType.MAIL, UUID.randomUUID(), null, null);
+                "t".repeat(OutreachConstant.TITLE_MAX_LENGTH + 1), OutreachType.MAIL, UUID.randomUUID(), null, null, null);
 
         assertThat(violationMessages(request)).containsExactly(OutreachConstant.TITLE_SIZE_MESSAGE);
     }
@@ -77,7 +77,7 @@ class OutreachCreateRequestValidationUnitTest {
     @Test
     void invalidNestedMail_isReported() {
         OutreachCreateRequest request = new OutreachCreateRequest(UUID.randomUUID(), UUID.randomUUID(), "Title", OutreachType.MAIL, null,
-                new MailRequest(" ", "", DocumentLanguage.NL), null);
+                new MailRequest(" ", "", DocumentLanguage.NL), null, null);
 
         assertThat(violationMessages(request)).containsExactlyInAnyOrder(
                 MailConstant.SUBJECT_REQUIRED_MESSAGE, MailConstant.BODY_REQUIRED_MESSAGE);
@@ -86,7 +86,7 @@ class OutreachCreateRequestValidationUnitTest {
     @Test
     void nullDocumentTemplateId_isReported() {
         OutreachCreateRequest request = new OutreachCreateRequest(UUID.randomUUID(), UUID.randomUUID(), "Title", OutreachType.MAIL,
-                UUID.randomUUID(), null, Arrays.asList(UUID.randomUUID(), null));
+                UUID.randomUUID(), null, Arrays.asList(UUID.randomUUID(), null), null);
 
         assertThat(violationMessages(request)).containsExactly(OutreachConstant.DOCUMENT_TEMPLATE_ID_REQUIRED_MESSAGE);
     }
@@ -102,7 +102,7 @@ class OutreachCreateRequestValidationUnitTest {
 
     @Test
     void updateRequestWithoutContactAndTitle_reportsTheRequiredMessagesButAllowsANullMail() {
-        OutreachUpdateRequest request = new OutreachUpdateRequest(null, "", null);
+        OutreachUpdateRequest request = new OutreachUpdateRequest(null, "", null, null);
 
         assertThat(violationMessages(request)).containsExactlyInAnyOrder(
                 OutreachConstant.CONTACT_REQUIRED_MESSAGE, OutreachConstant.TITLE_REQUIRED_MESSAGE);

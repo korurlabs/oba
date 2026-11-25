@@ -62,7 +62,7 @@ public enum ExceptionDomainOtakError implements ExceptionDomainError {
     VAL_CONTACT_MAIN_FLAG_NOT_FOR_KIND("OTK_VAL_013", "A contact can only be main of its own kind.", ExceptionCategory.VAL),
     VAL_ACTION_NOT_FOR_TYPE("OTK_VAL_014", "This action does not fit the outreach's channel.", ExceptionCategory.VAL),
     VAL_CONTACT_WITHOUT_PHONE("OTK_VAL_015", "The contact has no phone number.", ExceptionCategory.VAL),
-    VAL_CAMPAIGN_STATUS_DATES("OTK_VAL_016", "A scheduled campaign needs a planned date, and a draft or scheduled campaign has no published date.", ExceptionCategory.VAL),
+    VAL_CAMPAIGN_STATUS_DATES("OTK_VAL_016", "A scheduled campaign needs a planned date, a draft or scheduled campaign has no published date, and a published date is not in the future.", ExceptionCategory.VAL),
     VAL_CAMPAIGN_CONTENT_LANGUAGE_REPEATED("OTK_VAL_017", "A campaign has at most one text per language.", ExceptionCategory.VAL);
 
     private final String code;

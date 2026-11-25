@@ -41,6 +41,8 @@ import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.shrine.document.enums.common.DocumentLanguage;
 import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.shrine.storage.enums.common.StorageEntityType;
+import com.korur.oba.shrine.storage.service.attachment.AttachmentService;
 
 /**
  * Implements writes to an organization's campaigns and their texts.
@@ -67,6 +69,7 @@ public class CampaignServiceImpl implements CampaignService {
     private final CampaignOwnerHelper campaignOwnerHelper;
     private final EventQueryService eventQueryService;
     private final IcpQueryService icpQueryService;
+    private final AttachmentService attachmentService;
     private final Clock clock;
     private final LoggingService loggingService;
 
@@ -114,26 +117,53 @@ public class CampaignServiceImpl implements CampaignService {
         ensureEventOfOrganization(organizationId, request.eventId());
         ensureIcpOfOrganization(organizationId, request.icpId());
 
+        Instant previousUpdatedAt = campaign.getUpdatedAt();
         campaignMapper.updateEntity(campaign, request);
         campaign.setName(name);
         campaign.setPublishedAt(publishedAtFor(request.status(), request.publishedAt()));
         // Flushed here so the response carries the new last-change time.
         campaign = campaignRepository.saveAndFlush(campaign);
+        boolean campaignRowChanged = !Objects.equals(previousUpdatedAt, campaign.getUpdatedAt());
 
-        List<CampaignContent> contents = replaceContents(campaignId,
-                campaignContentRepository.findAllByCampaignIdOrderByLanguageAsc(campaignId), request.contents());
+        List<CampaignContent> stored = campaignContentRepository.findAllByCampaignIdOrderByLanguageAsc(campaignId);
+        boolean textsChanged = textsChanged(stored, request.contents());
+        List<CampaignContent> contents = replaceContents(campaignId, stored, request.contents());
+
+        // A change to the texts alone writes no campaign column, so the campaign's last-change
+        // time is moved here; the list sorts by it, and an edited text must bring the campaign up.
+        if (textsChanged && !campaignRowChanged) {
+            campaignRepository.touchUpdatedAt(campaignId, Instant.now(clock));
+            // Read again: the statement bypasses the loaded campaign, which still has the old time.
+            campaign = campaignValidator.ensureCampaignExists(organizationId, campaignId);
+        }
 
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, CAMPAIGN_UPDATED, campaignId, organizationId);
 
         return toDetailResponse(campaign, contents);
     }
 
+    /**
+     * Deletes the campaign and then the attachments of the campaign.
+     *
+     * The database removes the campaign's texts with the row and clears the campaign on its
+     * outreaches and relations, but an attachment row names its parent only by type and id,
+     * without a foreign key, so it is removed here. The campaign row is flushed first so that a
+     * database failure stops the delete before any attachment row is touched. The attachment rows
+     * go in this transaction; storage then deletes, best effort, each blob that no remaining row
+     * holds.
+     *
+     * @param organizationId the organization that owns the campaign
+     * @param campaignId     the campaign identifier
+     */
     @Override
     @Transactional
     public void delete(UUID organizationId, UUID campaignId) {
         Campaign campaign = campaignValidator.ensureCampaignExists(organizationId, campaignId);
 
         campaignRepository.delete(campaign);
+        campaignRepository.flush();
+
+        attachmentService.deleteAttachmentsByEntity(StorageEntityType.CAMPAIGN, campaignId);
 
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, CAMPAIGN_DELETED, campaignId, organizationId);
     }
@@ -141,13 +171,31 @@ public class CampaignServiceImpl implements CampaignService {
     /**
      * The published moment to store: the server's now for a PUBLISHED campaign sent without
      * one, otherwise the moment as sent (the validator has already refused one on a DRAFT or
-     * SCHEDULED campaign).
+     * SCHEDULED campaign, and one in the future).
      */
     private Instant publishedAtFor(CampaignStatus status, Instant requestedPublishedAt) {
         if (status == CampaignStatus.PUBLISHED && requestedPublishedAt == null) {
             return Instant.now(clock);
         }
         return requestedPublishedAt;
+    }
+
+    /**
+     * Tells whether the requested texts differ from the stored ones: a language added or
+     * left out, or a text with other content. Read before the stored texts are overwritten.
+     */
+    private static boolean textsChanged(List<CampaignContent> stored, List<CampaignContentRequest> requested) {
+        Map<DocumentLanguage, String> storedByLanguage = new EnumMap<>(DocumentLanguage.class);
+        for (CampaignContent content : stored) {
+            storedByLanguage.put(content.getLanguage(), content.getText());
+        }
+        Map<DocumentLanguage, String> requestedByLanguage = new EnumMap<>(DocumentLanguage.class);
+        if (requested != null) {
+            for (CampaignContentRequest content : requested) {
+                requestedByLanguage.put(content.language(), content.text());
+            }
+        }
+        return !storedByLanguage.equals(requestedByLanguage);
     }
 
     /**

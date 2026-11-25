@@ -27,6 +27,7 @@ public final class OutreachConstant {
     public static final String FIELD_OUTREACH_ID = "outreachId";
     public static final String FIELD_ORGANIZATION_ID = "organizationId";
     public static final String FIELD_RELATION_ID = "relationId";
+    public static final String FIELD_CAMPAIGN_ID = "campaignId";
     public static final String FIELD_STATUS = "status";
     public static final String FIELD_CREATED_AT = "createdAt";
     public static final String FIELD_MAIL = "mail";

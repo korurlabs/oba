@@ -128,8 +128,18 @@ public final class RelationSpecification {
     }
 
     /**
+     * Filters relations linked to one campaign. Returns no-op if {@code campaignId} is null.
+     */
+    private static Specification<Relation> byCampaign(UUID campaignId) {
+        if (campaignId == null) {
+            return noOp();
+        }
+        return (root, query, cb) -> cb.equal(root.get(RelationConstant.FIELD_CAMPAIGN_ID), campaignId);
+    }
+
+    /**
      * Builds the specification of the relations list: one organization, and the optional
-     * type, stage, owner, name, contact and event filters. Without a type every relation
+     * type, stage, owner, name, contact, event and campaign filters. Without a type every relation
      * of the organization matches, whatever its stage.
      *
      * @param organizationId the organization whose relations are listed
@@ -143,7 +153,8 @@ public final class RelationSpecification {
                 .and(byOwner(request.getOwnerUserId()))
                 .and(searchSpecification(request.getSearch()))
                 .and(byContacts(request.getHasContacts()))
-                .and(byEvent(request.getEventId()));
+                .and(byEvent(request.getEventId()))
+                .and(byCampaign(request.getCampaignId()));
     }
 
     /**

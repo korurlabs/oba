@@ -47,6 +47,7 @@ class RelationMapperUnitTest {
                 .ownerUserId(UUID.randomUUID())
                 .icpId(UUID.randomUUID())
                 .eventId(UUID.randomUUID())
+                .campaignId(UUID.randomUUID())
                 .type(RelationType.CUSTOMER)
                 .stage(PipelineStage.CLOSED)
                 .organizationId(UUID.randomUUID())
@@ -61,7 +62,7 @@ class RelationMapperUnitTest {
         UUID owner = UUID.randomUUID();
         RelationCreateRequest request = new RelationCreateRequest("Fabrikam", RelationType.LEAD, PipelineStage.QUALIFIED,
                 "https://fabrikam.example", "Textile", RelationSize.values()[0], "KVK-9", "NL-9", "Street 2", "2000 BB",
-                "Haarlem", Country.NL, RelationSource.LINKEDIN, new BigDecimal("1200.50"), owner, null, null,
+                "Haarlem", Country.NL, RelationSource.LINKEDIN, new BigDecimal("1200.50"), owner, null, null, null,
                 "Warm lead");
 
         // Act
@@ -83,7 +84,7 @@ class RelationMapperUnitTest {
         // Arrange
         Relation relation = stored();
         RelationUpdateRequest request = new RelationUpdateRequest("New name", null, null, null, null, null, null, null,
-                null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null);
 
         // Act
         relationMapper.updateEntity(relation, request);
@@ -104,6 +105,7 @@ class RelationMapperUnitTest {
         assertThat(relation.getOwnerUserId()).isNull();
         assertThat(relation.getIcpId()).isNull();
         assertThat(relation.getEventId()).isNull();
+        assertThat(relation.getCampaignId()).isNull();
         assertThat(relation.getNotes()).isNull();
     }
 
@@ -116,7 +118,7 @@ class RelationMapperUnitTest {
 
         // Act
         relationMapper.updateEntity(relation, new RelationUpdateRequest("New name", null, null, null, null, null, null,
-                null, null, null, null, null, null, null, null, null));
+                null, null, null, null, null, null, null, null, null, null));
 
         // Assert
         assertThat(relation.getId()).isEqualTo(id);

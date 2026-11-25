@@ -18,6 +18,8 @@ public enum RelationSource {
 
     EVENT,
 
+    CAMPAIGN,
+
     RESEARCH,
 
     OTHER

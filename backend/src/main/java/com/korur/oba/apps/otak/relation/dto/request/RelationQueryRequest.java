@@ -57,4 +57,8 @@ public class RelationQueryRequest extends QueryRequest {
     @Schema(description = "Only relations linked to this event", nullable = true,
             example = "8a4d2c1b-6e5f-4a3b-9c8d-7e6f5a4b3c2d")
     private UUID eventId;
+
+    @Schema(description = "Only relations linked to this campaign", nullable = true,
+            example = "3b7c9d1e-4f5a-4b6c-8d7e-9f0a1b2c3d4e")
+    private UUID campaignId;
 }

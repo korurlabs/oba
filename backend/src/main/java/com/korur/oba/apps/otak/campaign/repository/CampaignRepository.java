@@ -3,11 +3,15 @@ package com.korur.oba.apps.otak.campaign.repository;
 // 1. Framework-level
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 // 2. Third-party
 
 // 3. Java SDK
+import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -49,4 +53,24 @@ public interface CampaignRepository extends JpaRepository<Campaign, UUID>, JpaSp
      * @return true when a campaign of the organization other than the given one has the name
      */
     boolean existsByOrganizationIdAndNameIgnoreCaseAndIdNot(UUID organizationId, String name, UUID id);
+
+    /**
+     * Sets the last-change time of one campaign, in one statement. A change to the texts alone
+     * writes no campaign column, so auditing would leave the time as it was and the campaign
+     * would not rise in the list sorted by newest change.
+     *
+     * The persistence context is flushed before and cleared after the statement, so a caller
+     * reads the campaign again to see the new time.
+     *
+     * @param id        the campaign identifier
+     * @param updatedAt the new last-change time
+     * @return the number of rows changed, 1 for an existing campaign
+     */
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("""
+            UPDATE Campaign c
+            SET c.updatedAt = :updatedAt
+            WHERE c.id = :id
+            """)
+    int touchUpdatedAt(@Param("id") UUID id, @Param("updatedAt") Instant updatedAt);
 }

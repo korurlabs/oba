@@ -23,6 +23,7 @@ public final class RelationConstant {
     public static final String FIELD_STAGE = "stage";
     public static final String FIELD_UPDATED_AT = "updatedAt";
     public static final String FIELD_EVENT_ID = "eventId";
+    public static final String FIELD_CAMPAIGN_ID = "campaignId";
 
     // -------------Limits-----------//
 

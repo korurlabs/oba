@@ -20,7 +20,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 // 3. Java SDK
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -47,6 +49,7 @@ class CampaignValidatorUnitTest {
 
     private final UUID organizationId = UUID.randomUUID();
     private final Instant moment = Instant.parse("2026-12-01T08:30:00Z");
+    private final Instant now = Instant.parse("2026-12-02T09:00:00Z");
 
     @Mock
     private CampaignRepository campaignRepository;
@@ -65,7 +68,7 @@ class CampaignValidatorUnitTest {
     @BeforeEach
     void setUp() {
         validator = new CampaignValidator(campaignRepository, organizationMemberQueryService, appAccessValidator,
-                loggingService);
+                Clock.fixed(now, ZoneOffset.UTC), loggingService);
     }
 
     private static String codeOf(Throwable exception) {
@@ -154,6 +157,20 @@ class CampaignValidatorUnitTest {
         void publishedOrArchived_takesAnyMoments(CampaignStatus status) {
             assertThatCode(() -> validator.ensureStatusDates(status, moment, moment)).doesNotThrowAnyException();
             assertThatCode(() -> validator.ensureStatusDates(status, null, null)).doesNotThrowAnyException();
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = CampaignStatus.class, names = {"PUBLISHED", "ARCHIVED"})
+        void publishedAtInTheFuture_throwsValidation(CampaignStatus status) {
+            assertThatThrownBy(() -> validator.ensureStatusDates(status, null, now.plusSeconds(1)))
+                    .satisfies(exception -> assertThat(codeOf(exception))
+                            .isEqualTo(ExceptionDomainOtakError.VAL_CAMPAIGN_STATUS_DATES.getCode()));
+        }
+
+        @Test
+        void publishedAtExactlyNow_passes() {
+            assertThatCode(() -> validator.ensureStatusDates(CampaignStatus.PUBLISHED, null, now))
+                    .doesNotThrowAnyException();
         }
 
         @Test

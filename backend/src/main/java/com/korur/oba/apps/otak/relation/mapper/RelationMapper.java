@@ -47,8 +47,8 @@ public interface RelationMapper {
      * from the request, or from the type when none is given; the request's organization is
      * never trusted, so a relation can not be written into another organization.
      *
-     * Called by {@link com.korur.oba.apps.otak.relation.service.impl.RelationServiceImpl#create}, after the stage, owner, ICP and
-     * event checks.
+     * Called by {@link com.korur.oba.apps.otak.relation.service.impl.RelationServiceImpl#create}, after the stage, owner, ICP,
+     * event and campaign checks.
      *
      * @param request the validated create payload
      * @return a new, unsaved relation without organization or stage
@@ -70,7 +70,8 @@ public interface RelationMapper {
      * {@link com.korur.oba.apps.otak.relation.service.impl.RelationServiceImpl#changeStage}, because each change has its own rules
      * (a stage must fit the type, a type change sets the stage the new type needs).
      *
-     * Called by {@link com.korur.oba.apps.otak.relation.service.impl.RelationServiceImpl#update}, after the owner, ICP and event checks.
+     * Called by {@link com.korur.oba.apps.otak.relation.service.impl.RelationServiceImpl#update}, after the owner, ICP, event and campaign
+     * checks.
      *
      * @param relation the managed relation to change in place
      * @param request  the validated update payload

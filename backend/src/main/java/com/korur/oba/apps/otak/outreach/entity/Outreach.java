@@ -121,6 +121,14 @@ public class Outreach extends BaseEntity {
     private UUID contactId;
 
     /**
+     * Campaign the outreach belongs to, of the same organization; null for none. A plain id,
+     * not an association: the campaign domain is read through its query service, and deleting
+     * the campaign clears it (ON DELETE SET NULL).
+     */
+    @Column(name = "campaign_id")
+    private UUID campaignId;
+
+    /**
      * Mail that holds the subject, the body and the attachments; owned by this outreach
      * alone and fixed after create. Set for MAIL and null for WHATSAPP and CALL, which the
      * check outreaches_mail_id_ck enforces. A unique index keeps one mail to one outreach,

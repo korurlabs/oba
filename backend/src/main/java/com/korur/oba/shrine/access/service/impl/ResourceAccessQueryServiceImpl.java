@@ -20,6 +20,8 @@ import com.korur.oba.apps.kazan.ticket.entity.Ticket;
 import com.korur.oba.apps.kazan.ticket.service.TicketQueryService;
 import com.korur.oba.apps.kalkan.page.entity.KalkanPage;
 import com.korur.oba.apps.kalkan.page.service.KalkanPageQueryService;
+import com.korur.oba.apps.otak.campaign.entity.Campaign;
+import com.korur.oba.apps.otak.campaign.service.CampaignQueryService;
 import com.korur.oba.apps.otak.mail.entity.Mail;
 import com.korur.oba.apps.otak.mail.service.MailQueryService;
 import com.korur.oba.apps.otak.relation.entity.Relation;
@@ -59,6 +61,7 @@ public class ResourceAccessQueryServiceImpl implements ResourceAccessQueryServic
     private final KalkanPageQueryService kalkanPageQueryService;
     private final MailQueryService mailQueryService;
     private final RelationQueryService relationQueryService;
+    private final CampaignQueryService campaignQueryService;
     private final ResourceAccessValidator resourceAccessValidator;
 
     /**
@@ -114,6 +117,12 @@ public class ResourceAccessQueryServiceImpl implements ResourceAccessQueryServic
                 // Otak has no per-user visibility of relations: the organization, role and app checks
                 // below are the whole rule.
                 yield new LoadedResource(relation.getOrganizationId(), () -> { });
+            }
+            case CAMPAIGN -> {
+                Campaign campaign = campaignQueryService.getEntityById(resourceId);
+                // Every member who may open Otak sees and edits every campaign of the organization, so the
+                // organization, role and app checks below are the whole rule.
+                yield new LoadedResource(campaign.getOrganizationId(), () -> { });
             }
         };
 
