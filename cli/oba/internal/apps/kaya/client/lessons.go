@@ -25,6 +25,13 @@ const (
 	// and growing in memory, until the caller gives up. A read past it fails rather than answer
 	// part of the list as if it were all.
 	lessonsMaxPages = 100
+	// maxLessonPageBytes bounds what the client reads of one page of the list, in place of the
+	// general maxResponseBytes. A listed lesson carries its id, a title of at most 300 characters,
+	// a repository name of at most 100, changed and updatedAt; even with every character escaped
+	// as \uXXXX it stays under 2,600 bytes, so a full page of LessonsPageSize stays under 260 KB.
+	// 1 MiB leaves about four times that. A larger bound would let a broken or hostile Kaya send
+	// millions of empty lessons per page, which decode to many times their size in memory.
+	maxLessonPageBytes = 1 << 20
 )
 
 // Lesson is one row of the lessons of a checkout: its repository's plus the organization-wide
@@ -109,7 +116,8 @@ func (c *Client) LessonsSince(ctx context.Context, remoteURL, etag, since string
 // refuses it with CodeLessonsChanged instead of mixing two states of the lessons. An answer
 // without paging details, from a Kaya that does not page, is the whole list. The page count of
 // page 1 bounds the read: a later page may end it sooner, never later, and a count above
-// lessonsMaxPages fails the read before page 2.
+// lessonsMaxPages fails the read before page 2. A page larger than maxLessonPageBytes, or with
+// more than LessonsPageSize lessons, fails the read too.
 func (c *Client) lessonPages(ctx context.Context, remoteURL, etag, since string) ([]Lesson, string, bool, error) {
 	var (
 		all      []Lesson
@@ -128,17 +136,23 @@ func (c *Client) lessonPages(ctx context.Context, remoteURL, etag, since string)
 		if page > 1 && firstTag != "" {
 			query.Set("etag", firstTag)
 		}
-		resp, raw, err := c.raw(ctx, lessonsPath+"?"+query.Encode(), header, maxResponseBytes)
+		resp, raw, err := c.raw(ctx, lessonsPath+"?"+query.Encode(), header, maxLessonPageBytes+1)
 		if err != nil {
 			return nil, "", false, fmt.Errorf("read page %d of the lessons: %w", page, err)
 		}
 		if page == 1 && resp.StatusCode == http.StatusNotModified {
 			return nil, etag, true, nil
 		}
+		if len(raw) > maxLessonPageBytes {
+			return nil, "", false, fmt.Errorf("read page %d of the lessons: the answer is larger than the %d bytes a page takes", page, maxLessonPageBytes)
+		}
 		var lessons []Lesson
 		pagination, err := decodePage(resp, raw, lessonsPath, &lessons)
 		if err != nil {
 			return nil, "", false, fmt.Errorf("read page %d of the lessons: %w", page, err)
+		}
+		if len(lessons) > LessonsPageSize {
+			return nil, "", false, fmt.Errorf("read page %d of the lessons: Kaya sent %d lessons, more than the %d a page holds", page, len(lessons), LessonsPageSize)
 		}
 		if page == 1 {
 			firstTag = resp.Header.Get("ETag")

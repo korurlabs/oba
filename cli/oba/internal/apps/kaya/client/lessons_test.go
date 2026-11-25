@@ -95,3 +95,67 @@ func TestLessons_readsTheMostPages(t *testing.T) {
 		t.Fatalf("lessons = %d, calls = %d, err = %v", len(lessons), calls.Load(), err)
 	}
 }
+
+// onePageServer answers page 1 with data as the whole list.
+func onePageServer(t *testing.T, data string) *httptest.Server {
+	t.Helper()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("ETag", `"one"`)
+		_, _ = fmt.Fprintf(w, `{"success":true,"data":%s,"pagination":{"totalPages":1,"last":true}}`, data)
+	}))
+	t.Cleanup(server.Close)
+	return server
+}
+
+func TestLessons_aPageLargerThanTheBoundIsAnError(t *testing.T) {
+	title := strings.Repeat("a", maxLessonPageBytes)
+	server := onePageServer(t, `[{"id":"l1","title":"`+title+`"}]`)
+	api := New(server.URL, "", func(context.Context) (string, error) { return "kyt_test", nil })
+
+	lessons, err := api.Lessons(context.Background(), "github.com/acme/demo")
+
+	if err == nil || lessons != nil {
+		t.Fatalf("lessons = %d, err = %v; want an error for a page over %d bytes", len(lessons), err, maxLessonPageBytes)
+	}
+	if want := fmt.Sprintf("larger than the %d bytes", maxLessonPageBytes); !strings.Contains(err.Error(), want) {
+		t.Fatalf("err = %v, want it to contain %q", err, want)
+	}
+}
+
+func TestLessons_aPageWithMoreLessonsThanAskedIsAnError(t *testing.T) {
+	items := make([]string, LessonsPageSize+1)
+	for i := range items {
+		items[i] = fmt.Sprintf(`{"id":"l%d","title":"Lesson %d"}`, i, i)
+	}
+	server := onePageServer(t, "["+strings.Join(items, ",")+"]")
+	api := New(server.URL, "", func(context.Context) (string, error) { return "kyt_test", nil })
+
+	lessons, err := api.Lessons(context.Background(), "github.com/acme/demo")
+
+	if err == nil || lessons != nil {
+		t.Fatalf("lessons = %d, err = %v; want an error for %d lessons on one page", len(lessons), err, LessonsPageSize+1)
+	}
+	if want := fmt.Sprintf("Kaya sent %d lessons", LessonsPageSize+1); !strings.Contains(err.Error(), want) {
+		t.Fatalf("err = %v, want it to contain %q", err, want)
+	}
+}
+
+// A full page of the longest lessons Kaya stores, with every character escaped, stays readable:
+// the page bound refuses only what Kaya never sends.
+func TestLessons_aFullPageOfTheLongestLessonsFits(t *testing.T) {
+	title := strings.Repeat(`\u0001`, 300)
+	repository := strings.Repeat(`\u0001`, 100)
+	items := make([]string, LessonsPageSize)
+	for i := range items {
+		items[i] = fmt.Sprintf(`{"id":"1b2c3d4e-5f6a-4b7c-8d9e-%012d","title":"%s","repository":"%s","changed":false,"updatedAt":"2026-10-25T09:00:00.123456789Z"}`,
+			i, title, repository)
+	}
+	server := onePageServer(t, "["+strings.Join(items, ",")+"]")
+	api := New(server.URL, "", func(context.Context) (string, error) { return "kyt_test", nil })
+
+	lessons, err := api.Lessons(context.Background(), "github.com/acme/demo")
+
+	if err != nil || len(lessons) != LessonsPageSize || len(lessons[0].Title) != 300 {
+		t.Fatalf("lessons = %d, err = %v; want the whole page", len(lessons), err)
+	}
+}
