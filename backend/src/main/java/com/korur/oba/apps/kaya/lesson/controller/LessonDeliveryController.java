@@ -32,6 +32,7 @@ import com.korur.oba.dojo.dto.CustomResponse;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.dojo.security.annotation.RequiredUserAccess;
 import com.korur.oba.dojo.util.ResponseUtil;
 import com.korur.oba.apps.kaya.lesson.constant.controller.LessonControllerLogConstant;
 import com.korur.oba.apps.kaya.lesson.constant.controller.LessonControllerResponseConstant;
@@ -46,6 +47,7 @@ import com.korur.oba.apps.kaya.lesson.dto.response.LessonDetailResponse;
 import com.korur.oba.apps.kaya.lesson.service.LessonQueryService;
 import com.korur.oba.apps.kaya.lesson.service.LessonService;
 import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
+import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 
 /**
  * Lessons for the CLI, on the machine token chain: the bearer machine token names the organization and
@@ -70,6 +72,7 @@ public class LessonDeliveryController {
      * session start downloads nothing.
      */
     @GetMapping
+    @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "List the lessons of a checkout",
             description = "Bearer machine token. The titles of the lessons of the checkout's repository plus the "
                     + "organization-wide ones, newest first, at most 100; an unknown or unreadable remote gives the "
@@ -80,8 +83,9 @@ public class LessonDeliveryController {
             @ApiResponse(responseCode = "304", description = "If-None-Match matches the current ETag; no body"),
             @ApiResponse(responseCode = "401", description = "KAY_SEC_003: token missing, unknown, revoked or expired, "
                     + "or machine retired"),
-            @ApiResponse(responseCode = "403", description = "GEN_SEC_002: the user is not ACTIVE or not a member; "
-                    + "KAY_SEC_002: the membership or organization is not ACTIVE; APP_SEC_001: the user has no Kaya access"),
+            @ApiResponse(responseCode = "403", description = "GEN_SEC_002: the user is not ACTIVE; ORG_SEC_001: not a "
+                    + "member, or the membership is not ACTIVE; ORG_SEC_005: the organization is not ACTIVE; ORG_SEC_003: "
+                    + "the user is a GUEST; APP_SEC_001: the user has no Kaya access"),
             @ApiResponse(responseCode = "422", description = "KAY_VAL_002: repository archived; GEN_VAL_001: remoteUrl "
                     + "missing or too long, since unreadable"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -106,6 +110,7 @@ public class LessonDeliveryController {
     }
 
     @PostMapping
+    @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "Add a lesson from a checkout",
             description = "Bearer machine token. The author is the user of the token. Without repoWide the lesson belongs "
                     + "to the checkout's repository; with it, to the organization, and the remote is not resolved")
@@ -113,8 +118,9 @@ public class LessonDeliveryController {
             @ApiResponse(responseCode = "201", description = "Lesson added, with its page"),
             @ApiResponse(responseCode = "400", description = "The body malformed"),
             @ApiResponse(responseCode = "401", description = "KAY_SEC_003: token refused"),
-            @ApiResponse(responseCode = "403", description = "GEN_SEC_002 or KAY_SEC_002: the user no longer acts in "
-                    + "the organization; APP_SEC_001: the user has no Kaya access"),
+            @ApiResponse(responseCode = "403", description = "GEN_SEC_002, ORG_SEC_001 or ORG_SEC_005: the user no "
+                    + "longer acts in the organization; ORG_SEC_003: the user is a GUEST; APP_SEC_001: the user has no Kaya "
+                    + "access"),
             @ApiResponse(responseCode = "404", description = "KAY_NF_001: no repository of the organization has this remote"),
             @ApiResponse(responseCode = "422", description = "KAY_VAL_002: repository archived; GEN_VAL_001: a field "
                     + "missing or out of range, claudeSessionId not a session id"),
@@ -132,14 +138,16 @@ public class LessonDeliveryController {
     }
 
     @GetMapping("/search")
+    @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "Search the lessons of a checkout",
             description = "Bearer machine token. The lessons of the same scope as the list whose title or text holds the "
                     + "search, case ignored, with their text; newest first, at most 100")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "The matching lessons, possibly none"),
             @ApiResponse(responseCode = "401", description = "KAY_SEC_003: token refused"),
-            @ApiResponse(responseCode = "403", description = "GEN_SEC_002 or KAY_SEC_002: the user no longer acts in "
-                    + "the organization; APP_SEC_001: the user has no Kaya access"),
+            @ApiResponse(responseCode = "403", description = "GEN_SEC_002, ORG_SEC_001 or ORG_SEC_005: the user no "
+                    + "longer acts in the organization; ORG_SEC_003: the user is a GUEST; APP_SEC_001: the user has no Kaya "
+                    + "access"),
             @ApiResponse(responseCode = "422", description = "KAY_VAL_002: repository archived; GEN_VAL_001: remoteUrl "
                     + "or search missing or too long"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -157,13 +165,15 @@ public class LessonDeliveryController {
     }
 
     @GetMapping("/{lessonId}")
+    @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "Get a lesson with its text",
             description = "Bearer machine token. The same body as GET /lessons/{lessonId}; canEdit speaks for the user of the token")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "The lesson"),
             @ApiResponse(responseCode = "401", description = "KAY_SEC_003: token refused"),
-            @ApiResponse(responseCode = "403", description = "GEN_SEC_002 or KAY_SEC_002: the user no longer acts in "
-                    + "the organization; APP_SEC_001: the user has no Kaya access"),
+            @ApiResponse(responseCode = "403", description = "GEN_SEC_002, ORG_SEC_001 or ORG_SEC_005: the user no "
+                    + "longer acts in the organization; ORG_SEC_003: the user is a GUEST; APP_SEC_001: the user has no Kaya "
+                    + "access"),
             @ApiResponse(responseCode = "404", description = "KAY_NF_001: the organization has no such lesson"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
@@ -179,14 +189,15 @@ public class LessonDeliveryController {
     }
 
     @DeleteMapping("/{lessonId}")
+    @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "Delete a lesson for good",
             description = "Bearer machine token. Open to the author, or to a user of the token who is ADMIN or OWNER")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Deleted"),
             @ApiResponse(responseCode = "401", description = "KAY_SEC_003: token refused"),
             @ApiResponse(responseCode = "403", description = "GEN_SEC_003: neither the author nor ADMIN or OWNER; "
-                    + "GEN_SEC_002 or KAY_SEC_002: the user no longer acts in the organization; APP_SEC_001: the user "
-                    + "has no Kaya access"),
+                    + "GEN_SEC_002, ORG_SEC_001 or ORG_SEC_005: the user no longer acts in the organization; ORG_SEC_003: "
+                    + "the user is a GUEST; APP_SEC_001: the user has no Kaya access"),
             @ApiResponse(responseCode = "404", description = "KAY_NF_001: the organization has no such lesson"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })

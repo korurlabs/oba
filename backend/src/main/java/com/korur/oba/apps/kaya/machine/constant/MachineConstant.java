@@ -46,18 +46,9 @@ public final class MachineConstant {
     // --- Limits ---
     public static final int MACHINE_NAME_MAX_LENGTH = 255;
 
-    // --- Token format: "kyt_" plus 32 random bytes in unpadded base64url (43 characters) ---
-    public static final String TOKEN_PREFIX = "kyt_";
-    public static final int TOKEN_RANDOM_BYTES = 32;
-    public static final int TOKEN_LENGTH = 47;
-    // The first characters of the token, kept in clear so a user can tell tokens apart.
-    public static final int TOKEN_DISPLAY_PREFIX_LENGTH = 12;
-    public static final String TOKEN_HASH_ALGORITHM = "SHA-256";
-    public static final long TOKEN_VALIDITY_DAYS = 365;
-
     // --- Recorder contact ---
-    // lastSeenAt and a token's lastUsedAt move at most once a minute, so steady batches do not
-    // rewrite the machine and token rows on every request.
+    // lastSeenAt moves at most once a minute, so steady batches do not rewrite the machine row on every
+    // request.
     public static final long SEEN_REFRESH_SECONDS = 60;
 
     // --- Usage limits ---

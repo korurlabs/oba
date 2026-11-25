@@ -565,6 +565,15 @@ class RequiredUserAccessInterceptorUnitTest {
         }
 
         @Test
+        void preHandle_exemptPathWithPercentEncodedLetters_matchesTheDecodedPath() throws Exception {
+            signInWithToken(organizationId);
+            request.setRequestURI("/users/%6De");
+
+            assertTrue(interceptor.preHandle(request, response, handler("unannotated")));
+            verifyNoInteractions(validator);
+        }
+
+        @Test
         void preHandle_exemptPathWithAnotherMethod_throwsHandlerUnannotated() throws Exception {
             signInWithToken(organizationId);
             request.setMethod("DELETE");

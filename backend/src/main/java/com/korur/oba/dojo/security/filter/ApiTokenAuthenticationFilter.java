@@ -1,4 +1,4 @@
-package com.korur.oba.dojo.security.token.filter;
+package com.korur.oba.dojo.security.filter;
 
 // 1. Framework-level
 import org.springframework.http.HttpStatus;
@@ -33,6 +33,7 @@ import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.dojo.security.constant.SecurityLogConstant;
+import com.korur.oba.dojo.security.helper.RequestPathHelper;
 import com.korur.oba.dojo.security.token.authentication.ApiTokenAuthentication;
 import com.korur.oba.dojo.security.token.constant.ApiTokenConstant;
 import com.korur.oba.dojo.security.token.dto.ApiTokenBodyLimit;
@@ -63,7 +64,7 @@ import com.korur.oba.dojo.security.token.service.ApiTokenService;
  *
  * What the token may call is decided afterwards by the RequiredUserAccess check, against its user.
  *
- * Built by {@link com.korur.oba.dojo.security.token.config.ApiTokenSecurityConfig} for the token chain
+ * Built by {@link com.korur.oba.dojo.security.config.ApiTokenSecurityConfig} for the token chain
  * only and not a bean, so the servlet container does not also run it on every other path.
  */
 public class ApiTokenAuthenticationFilter extends OncePerRequestFilter {
@@ -98,7 +99,7 @@ public class ApiTokenAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        String path = ApiTokenRequestMatcher.pathWithinApplication(request);
+        String path = RequestPathHelper.pathWithinApplication(request);
         String bearerToken = ApiTokenRequestMatcher.bearerToken(request);
         Optional<ApiTokenKindHandler> tokenHandler = apiTokenKindRegistry.findByToken(bearerToken);
         Optional<ApiTokenKindHandler> pathHandler = apiTokenKindRegistry.findByReservedPath(path);
@@ -152,7 +153,7 @@ public class ApiTokenAuthenticationFilter extends OncePerRequestFilter {
                         Map.of(ApiTokenConstant.FIELD_LIMIT_BYTES, bodyLimit.get().maxBytes()));
                 return;
             }
-            forwarded = new ApiTokenCachedBodyRequest(request, body);
+            forwarded = new CachedBodyRequest(request, body);
         }
 
         SecurityContext context = SecurityContextHolder.createEmptyContext();

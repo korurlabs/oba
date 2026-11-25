@@ -1,4 +1,4 @@
-package com.korur.oba.connect.alertmanager.config;
+package com.korur.oba.dojo.security.config;
 
 // 1. Framework-level
 import org.springframework.context.annotation.Bean;
@@ -15,11 +15,11 @@ import lombok.RequiredArgsConstructor;
 // 3. Java SDK
 
 // 4. Internal
-import com.korur.oba.connect.alertmanager.constant.AlertmanagerConstant;
-import com.korur.oba.connect.alertmanager.filter.AlertmanagerAuthenticationFilter;
 import com.korur.oba.connect.alertmanager.validator.AlertmanagerTokenValidator;
 import com.korur.oba.dojo.exception.handler.security_layer.CustomAuthenticationEntryPoint;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.dojo.security.constant.SecurityConstant;
+import com.korur.oba.dojo.security.filter.AlertmanagerAuthenticationFilter;
 
 /**
  * Security chain of the Alertmanager webhook. Alertmanager sends a static bearer
@@ -27,9 +27,12 @@ import com.korur.oba.dojo.logging.service.LoggingService;
  * {@link com.korur.oba.dojo.security.config.SecurityConfig} would try to decode
  * as a JWT and answer 401. This chain has no resource server: its own
  * {@link AlertmanagerAuthenticationFilter} turns a valid token into the
- * {@link AlertmanagerConstant#AUTHORITY_INTEGRATION_ALERTMANAGER} authority, and
+ * {@link SecurityConstant#AUTHORITY_INTEGRATION_ALERTMANAGER} authority, and
  * every request without that authority is answered 401. It is ordered before the
  * main chain, so a webhook call never reaches the JWT chain.
+ *
+ * The token is a deployment secret of one organization, with no owning user, expiry or lifecycle, so it
+ * is not an API token kind and keeps this chain of its own.
  */
 @Configuration
 @RequiredArgsConstructor
@@ -38,7 +41,7 @@ public class AlertmanagerSecurityConfig {
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     /**
-     * Builds the webhook chain for {@link AlertmanagerConstant#ALERTMANAGER_WEBHOOK_PATH_PATTERN}.
+     * Builds the webhook chain for {@link SecurityConstant#ALERTMANAGER_WEBHOOK_PATH_PATTERN}.
      *
      * @param http                       the security builder
      * @param alertmanagerTokenValidator checks the bearer token
@@ -53,7 +56,7 @@ public class AlertmanagerSecurityConfig {
             AlertmanagerTokenValidator alertmanagerTokenValidator,
             LoggingService loggingService) throws Exception {
         http
-                .securityMatcher(AlertmanagerConstant.ALERTMANAGER_WEBHOOK_PATH_PATTERN)
+                .securityMatcher(SecurityConstant.ALERTMANAGER_WEBHOOK_PATH_PATTERN)
                 .csrf(csrf -> {
                     csrf.disable();
                 })
@@ -65,7 +68,7 @@ public class AlertmanagerSecurityConfig {
                         AuthorizationFilter.class)
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(customAuthenticationEntryPoint))
                 .authorizeHttpRequests(auth -> {
-                    auth.anyRequest().hasAuthority(AlertmanagerConstant.AUTHORITY_INTEGRATION_ALERTMANAGER);
+                    auth.anyRequest().hasAuthority(SecurityConstant.AUTHORITY_INTEGRATION_ALERTMANAGER);
                 });
 
         return http.build();

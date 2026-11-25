@@ -9,19 +9,15 @@ package com.korur.oba.connect.alertmanager.constant;
 // 4. Internal
 
 /**
- * Security names, payload keys and input limits of the Alertmanager webhook.
+ * Token parsing, payload keys and input limits of the Alertmanager webhook. Its chain's path and
+ * authority are in {@link com.korur.oba.dojo.security.constant.SecurityConstant}, with every other
+ * chain's.
  */
 public final class AlertmanagerConstant {
 
     private AlertmanagerConstant() {
         // Private constructor to prevent instantiation
     }
-
-    // The webhook runs on its own chain, authenticated by a static bearer token, not a JWT.
-    // The path lives under /kazan, the app whose boards the alerts become incident tickets on.
-    public static final String ALERTMANAGER_WEBHOOK_PATH_PATTERN = "/kazan/integrations/alertmanager/**";
-    // Granted only to a caller with the configured token, and required by the webhook chain.
-    public static final String AUTHORITY_INTEGRATION_ALERTMANAGER = "INTEGRATION_ALERTMANAGER";
 
     public static final String BEARER_PREFIX = "Bearer ";
 

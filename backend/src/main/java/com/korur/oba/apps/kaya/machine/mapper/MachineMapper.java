@@ -10,6 +10,7 @@ import org.mapstruct.Mapping;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 // 4. Internal
 import com.korur.oba.apps.kaya.identity.helper.UserDisplayNameHelper;
@@ -28,10 +29,10 @@ import com.korur.oba.apps.kaya.machine.dto.response.embedded.MachineUsageRespons
 import com.korur.oba.apps.kaya.machine.dto.response.embedded.MachineUsageSharedResponse;
 import com.korur.oba.apps.kaya.machine.dto.response.embedded.MachineUsageWindowResponse;
 import com.korur.oba.apps.kaya.machine.entity.Machine;
-import com.korur.oba.apps.kaya.machine.entity.MachineToken;
 import com.korur.oba.apps.kaya.machine.entity.MachineUsageSnapshot;
 import com.korur.oba.apps.kaya.machine.enums.MachineUsageState;
 import com.korur.oba.apps.kaya.session.dto.response.SessionCountSummaryResponse;
+import com.korur.oba.dojo.security.token.entity.ApiToken;
 
 /**
  * Maps machines to responses. The live token and the session count are passed in by the caller, which
@@ -53,7 +54,7 @@ public interface MachineMapper {
     @Mapping(target = "sessionCount", source = "sessionSummary.sessions", defaultValue = "0")
     @Mapping(target = "createdAt", source = "machine.createdAt")
     @Mapping(target = "updatedAt", source = "machine.updatedAt")
-    MachineResponse toResponse(Machine machine, MachineToken token, MachineUsageResponse usage, SessionCountSummaryResponse sessionSummary);
+    MachineResponse toResponse(Machine machine, ApiToken token, MachineUsageResponse usage, SessionCountSummaryResponse sessionSummary);
 
     @Mapping(target = "usedPercentage", source = "usedPercentage")
     @Mapping(target = "resetsAt", source = "resetsAt")
@@ -75,13 +76,13 @@ public interface MachineMapper {
             MachineUsageWindowResponse sevenDay);
 
     @Mapping(target = "organizationId", source = "machine.organizationId")
-    @Mapping(target = "userId", source = "user.id")
+    @Mapping(target = "userId", source = "machine.user.id")
     @Mapping(target = "machineId", source = "machine.id")
-    @Mapping(target = "tokenId", source = "id")
+    @Mapping(target = "tokenId", source = "tokenId")
     @Mapping(target = "machineName", source = "machine.machineName")
-    MachinePrincipal toPrincipal(MachineToken token);
+    MachinePrincipal toPrincipal(Machine machine, UUID tokenId);
 
-    MachineTokenEmbeddedResponse toTokenEmbeddedResponse(MachineToken token);
+    MachineTokenEmbeddedResponse toTokenEmbeddedResponse(ApiToken token);
 
     MachineAccountEmbeddedResponse toAccountEmbeddedResponse(Account account);
 
@@ -93,7 +94,7 @@ public interface MachineMapper {
     @Mapping(target = "tokenId", source = "token.id")
     @Mapping(target = "tokenPrefix", source = "token.tokenPrefix")
     @Mapping(target = "expiresAt", source = "token.expiresAt")
-    MachineTokenCreatedResponse toTokenCreatedResponse(MachineToken token, String plaintext);
+    MachineTokenCreatedResponse toTokenCreatedResponse(ApiToken token, String plaintext);
 
     MachineUserSummaryResponse toUserSummaryResponse(MachineUserSummaryProjection summary);
 

@@ -33,7 +33,7 @@ class MachineTokenAuthenticationFilterIT extends AbstractIngestIT {
 
     private Instant lastUsedAt(Machine machine) {
         List<Timestamp> rows = jdbcTemplate.queryForList(
-                "SELECT last_used_at FROM kaya.machine_tokens WHERE machine_id = ?::uuid", Timestamp.class, machine.machineId());
+                "SELECT last_used_at FROM dojo.api_tokens WHERE subject_id = ?::uuid", Timestamp.class, machine.machineId());
         return rows.get(0) == null ? null : rows.get(0).toInstant();
     }
 
@@ -113,7 +113,7 @@ class MachineTokenAuthenticationFilterIT extends AbstractIngestIT {
         @Test
         void revokedToken_returns401AndDoesNotMarkItUsed() throws Exception {
             Machine machine = newMachine();
-            jdbcTemplate.update("UPDATE kaya.machine_tokens SET revoked_at = now() WHERE machine_id = ?::uuid", machine.machineId());
+            jdbcTemplate.update("UPDATE dojo.api_tokens SET revoked_at = now() WHERE subject_id = ?::uuid", machine.machineId());
 
             assertRefused(send(machine.token(), validBatch(machine)));
 
@@ -123,7 +123,7 @@ class MachineTokenAuthenticationFilterIT extends AbstractIngestIT {
         @Test
         void expiredToken_returns401() throws Exception {
             Machine machine = newMachine();
-            jdbcTemplate.update("UPDATE kaya.machine_tokens SET expires_at = now() - interval '1 second' WHERE machine_id = ?::uuid",
+            jdbcTemplate.update("UPDATE dojo.api_tokens SET expires_at = now() - interval '1 second' WHERE subject_id = ?::uuid",
                     machine.machineId());
 
             assertRefused(send(machine.token(), validBatch(machine)));
@@ -141,7 +141,7 @@ class MachineTokenAuthenticationFilterIT extends AbstractIngestIT {
         void refusedToken_storesNothing() throws Exception {
             Machine machine = newMachine();
             String session = sessionId();
-            jdbcTemplate.update("UPDATE kaya.machine_tokens SET revoked_at = now() WHERE machine_id = ?::uuid", machine.machineId());
+            jdbcTemplate.update("UPDATE dojo.api_tokens SET revoked_at = now() WHERE subject_id = ?::uuid", machine.machineId());
 
             send(machine.token(), batch(machine, session, remote(), List.of(event(1, "SessionStart"))))
                     .andExpect(status().isUnauthorized());
@@ -157,7 +157,7 @@ class MachineTokenAuthenticationFilterIT extends AbstractIngestIT {
         void tokenUsedSecondsAgo_keepsItsLastUsedAt() throws Exception {
             Machine machine = newMachine();
             send(machine.token(), validBatch(machine)).andExpect(status().isOk());
-            jdbcTemplate.update("UPDATE kaya.machine_tokens SET last_used_at = now() - interval '10 seconds' WHERE machine_id = ?::uuid",
+            jdbcTemplate.update("UPDATE dojo.api_tokens SET last_used_at = now() - interval '10 seconds' WHERE subject_id = ?::uuid",
                     machine.machineId());
             Instant before = lastUsedAt(machine);
 
@@ -170,7 +170,7 @@ class MachineTokenAuthenticationFilterIT extends AbstractIngestIT {
         void tokenUsedMoreThanAMinuteAgo_movesItsLastUsedAt() throws Exception {
             Machine machine = newMachine();
             send(machine.token(), validBatch(machine)).andExpect(status().isOk());
-            jdbcTemplate.update("UPDATE kaya.machine_tokens SET last_used_at = now() - interval '2 minutes' WHERE machine_id = ?::uuid",
+            jdbcTemplate.update("UPDATE dojo.api_tokens SET last_used_at = now() - interval '2 minutes' WHERE subject_id = ?::uuid",
                     machine.machineId());
             Instant before = lastUsedAt(machine);
 

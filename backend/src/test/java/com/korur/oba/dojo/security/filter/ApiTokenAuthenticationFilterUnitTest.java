@@ -1,4 +1,4 @@
-package com.korur.oba.dojo.security.token.filter;
+package com.korur.oba.dojo.security.filter;
 
 // 1. Framework-level
 import org.junit.jupiter.api.AfterEach;

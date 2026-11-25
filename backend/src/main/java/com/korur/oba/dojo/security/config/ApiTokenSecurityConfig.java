@@ -1,4 +1,4 @@
-package com.korur.oba.dojo.security.token.config;
+package com.korur.oba.dojo.security.config;
 
 // 1. Framework-level
 import org.springframework.context.annotation.Bean;
@@ -19,8 +19,8 @@ import lombok.RequiredArgsConstructor;
 import com.korur.oba.dojo.exception.handler.security_layer.CustomAccessDeniedHandler;
 import com.korur.oba.dojo.exception.handler.security_layer.CustomAuthenticationEntryPoint;
 import com.korur.oba.dojo.logging.service.LoggingService;
-import com.korur.oba.dojo.security.token.filter.ApiTokenAuthenticationFilter;
-import com.korur.oba.dojo.security.token.filter.ApiTokenRequestMatcher;
+import com.korur.oba.dojo.security.filter.ApiTokenAuthenticationFilter;
+import com.korur.oba.dojo.security.filter.ApiTokenRequestMatcher;
 import com.korur.oba.dojo.security.token.helper.ApiTokenKindRegistry;
 import com.korur.oba.dojo.security.token.service.ApiTokenQueryService;
 import com.korur.oba.dojo.security.token.service.ApiTokenService;
@@ -36,7 +36,7 @@ import com.korur.oba.dojo.security.token.service.ApiTokenService;
  * these tokens.
  *
  * Ordered after the Alertmanager chain of
- * {@link com.korur.oba.connect.alertmanager.config.AlertmanagerSecurityConfig} and before the JWT
+ * {@link AlertmanagerSecurityConfig} and before the JWT
  * chain, which matches every remaining path.
  */
 @Configuration

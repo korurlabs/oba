@@ -33,6 +33,7 @@ import com.korur.oba.dojo.dto.CustomResponse;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.dojo.security.annotation.RequiredUserAccess;
 import com.korur.oba.dojo.util.ResponseUtil;
 import com.korur.oba.apps.kaya.delivery.constant.DeliveryConstant;
 import com.korur.oba.apps.kaya.delivery.constant.controller.DeliveryControllerLogConstant;
@@ -49,6 +50,7 @@ import com.korur.oba.apps.kaya.delivery.dto.response.DeliveryRepositoriesRespons
 import com.korur.oba.apps.kaya.delivery.service.DeliveryProposalService;
 import com.korur.oba.apps.kaya.delivery.service.DeliveryQueryService;
 import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
+import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 
 /**
  * Delivery to the CLI, on the machine token chain: the bearer machine token names the
@@ -75,6 +77,7 @@ public class DeliveryController {
      * this list on the laptop, instead of sending the remote of every checkout to Kaya.
      */
     @GetMapping("/repositories")
+    @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "List the repositories a checkout is recognised by",
             description = "Bearer machine token. The normalised remote URL of every ACTIVE repository of the token's "
                     + "organization, sorted; an ARCHIVED repository is left out")
@@ -83,8 +86,9 @@ public class DeliveryController {
                     + "list when it has none"),
             @ApiResponse(responseCode = "401", description = "KAY_SEC_003: token missing, unknown, revoked or expired, "
                     + "or machine retired"),
-            @ApiResponse(responseCode = "403", description = "GEN_SEC_002 or KAY_SEC_002: the user no longer acts in "
-                    + "the organization; APP_SEC_001: the user has no Kaya access"),
+            @ApiResponse(responseCode = "403", description = "GEN_SEC_002, ORG_SEC_001 or ORG_SEC_005: the user no "
+                    + "longer acts in the organization; ORG_SEC_003: the user is a GUEST; APP_SEC_001: the user has no Kaya "
+                    + "access"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<CustomResponse<DeliveryRepositoriesResponse>> getRepositories(
@@ -102,6 +106,7 @@ public class DeliveryController {
      * so an unchanged launch downloads nothing.
      */
     @GetMapping("/current")
+    @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "Get the current release of a checkout",
             description = "Bearer machine token. The newest signed release of the repository the remote names. The ETag "
                     + "covers the manifest hash; send it back in If-None-Match to get 304 while nothing changed")
@@ -112,8 +117,9 @@ public class DeliveryController {
             @ApiResponse(responseCode = "400", description = "GEN_API_001: remote URL not accepted"),
             @ApiResponse(responseCode = "401", description = "KAY_SEC_003: token missing, unknown, revoked or expired, "
                     + "or machine retired"),
-            @ApiResponse(responseCode = "403", description = "GEN_SEC_002 or KAY_SEC_002: the user no longer acts in "
-                    + "the organization; APP_SEC_001: the user has no Kaya access"),
+            @ApiResponse(responseCode = "403", description = "GEN_SEC_002, ORG_SEC_001 or ORG_SEC_005: the user no "
+                    + "longer acts in the organization; ORG_SEC_003: the user is a GUEST; APP_SEC_001: the user has no Kaya "
+                    + "access"),
             @ApiResponse(responseCode = "404", description = "KAY_NF_001: the organization has no repository with this remote"),
             @ApiResponse(responseCode = "422", description = "KAY_VAL_002: repository archived; GEN_VAL_001: remoteUrl "
                     + "missing or too long"),
@@ -139,14 +145,16 @@ public class DeliveryController {
     }
 
     @GetMapping("/releases/{releaseId}")
+    @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "Get a signed release by id",
             description = "Bearer machine token. The signed manifest text, its SHA-256 and its Ed25519 signature; the CLI "
                     + "verifies the signature over the manifest's UTF-8 bytes before it reads the file list")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Signed release"),
             @ApiResponse(responseCode = "401", description = "KAY_SEC_003: token refused"),
-            @ApiResponse(responseCode = "403", description = "GEN_SEC_002 or KAY_SEC_002: the user no longer acts in "
-                    + "the organization; APP_SEC_001: the user has no Kaya access"),
+            @ApiResponse(responseCode = "403", description = "GEN_SEC_002, ORG_SEC_001 or ORG_SEC_005: the user no "
+                    + "longer acts in the organization; ORG_SEC_003: the user is a GUEST; APP_SEC_001: the user has no Kaya "
+                    + "access"),
             @ApiResponse(responseCode = "404", description = "KAY_NF_001: no release of the organization has this id"),
             @ApiResponse(responseCode = "409", description = "KAY_CFG_012: the repository's remote URL changed after "
                     + "the release; a new release is needed"),
@@ -164,6 +172,7 @@ public class DeliveryController {
     }
 
     @GetMapping("/releases")
+    @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "Get a signed release of a checkout by number",
             description = "Bearer machine token. The same body as GET /delivery/releases/{releaseId}, for the release the "
                     + "CLI recorded by number")
@@ -171,8 +180,9 @@ public class DeliveryController {
             @ApiResponse(responseCode = "200", description = "Signed release"),
             @ApiResponse(responseCode = "400", description = "GEN_API_001: remote URL not accepted"),
             @ApiResponse(responseCode = "401", description = "KAY_SEC_003: token refused"),
-            @ApiResponse(responseCode = "403", description = "GEN_SEC_002 or KAY_SEC_002: the user no longer acts in "
-                    + "the organization; APP_SEC_001: the user has no Kaya access"),
+            @ApiResponse(responseCode = "403", description = "GEN_SEC_002, ORG_SEC_001 or ORG_SEC_005: the user no "
+                    + "longer acts in the organization; ORG_SEC_003: the user is a GUEST; APP_SEC_001: the user has no Kaya "
+                    + "access"),
             @ApiResponse(responseCode = "404", description = "KAY_NF_001: unknown repository or release number"),
             @ApiResponse(responseCode = "409", description = "KAY_CFG_012: the repository's remote URL changed after "
                     + "the release"),
@@ -196,14 +206,16 @@ public class DeliveryController {
      * Answers the raw bytes, not the JSON envelope, because the CLI hashes and writes them as they are.
      */
     @GetMapping(value = "/blobs/{sha256}", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "Get the content of a delivered file",
             description = "Bearer machine token. The raw bytes stored under the SHA-256, served only when a release of the "
                     + "organization names it. Errors answer the usual JSON envelope")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "The content, application/octet-stream"),
             @ApiResponse(responseCode = "401", description = "KAY_SEC_003: token refused"),
-            @ApiResponse(responseCode = "403", description = "GEN_SEC_002 or KAY_SEC_002: the user no longer acts in "
-                    + "the organization; APP_SEC_001: the user has no Kaya access"),
+            @ApiResponse(responseCode = "403", description = "GEN_SEC_002, ORG_SEC_001 or ORG_SEC_005: the user no "
+                    + "longer acts in the organization; ORG_SEC_003: the user is a GUEST; APP_SEC_001: the user has no Kaya "
+                    + "access"),
             @ApiResponse(responseCode = "404", description = "KAY_NF_001: no release of the organization names this hash"),
             @ApiResponse(responseCode = "422", description = "GEN_VAL_001: sha256 is not 64 lower-case hex characters"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -226,6 +238,7 @@ public class DeliveryController {
     }
 
     @PostMapping("/proposals")
+    @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "Propose a change from a checkout",
             description = "Bearer machine token. Creates a draft with source CLI from the files edited on the named release "
                     + "and submits it for review in one step, all or nothing. A path belongs to the "
@@ -236,9 +249,9 @@ public class DeliveryController {
             @ApiResponse(responseCode = "201", description = "Proposal in review, with its review page"),
             @ApiResponse(responseCode = "400", description = "GEN_API_001: remote URL not accepted; the body malformed"),
             @ApiResponse(responseCode = "401", description = "KAY_SEC_003: token refused"),
-            @ApiResponse(responseCode = "403", description = "GEN_SEC_002 {userStatus} or {organizationId}: the user is not "
-                    + "ACTIVE or not a member; KAY_SEC_002: the membership or organization is not ACTIVE; "
-                    + "APP_SEC_001: the user has no Kaya access"),
+            @ApiResponse(responseCode = "403", description = "GEN_SEC_002: the user is not ACTIVE; ORG_SEC_001: not a "
+                    + "member, or the membership is not ACTIVE; ORG_SEC_005: the organization is not ACTIVE; ORG_SEC_003: "
+                    + "the user is a GUEST; APP_SEC_001: the user has no Kaya access"),
             @ApiResponse(responseCode = "404", description = "KAY_NF_001: unknown repository or release number"),
             @ApiResponse(responseCode = "409", description = "KAY_CFG_002 {currentVersionId, conflicts}: the pack "
                     + "changed a proposed path since the release; KAY_CFG_015: another version of it is in review; "

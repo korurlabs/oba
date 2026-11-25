@@ -28,6 +28,7 @@ import com.korur.oba.dojo.dto.CustomResponse;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.dojo.security.annotation.RequiredUserAccess;
 import com.korur.oba.dojo.util.ResponseUtil;
 import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
 import com.korur.oba.apps.kaya.plan.constant.controller.PlanControllerLogConstant;
@@ -39,6 +40,7 @@ import com.korur.oba.apps.kaya.plan.dto.response.PlanFeedbackDeliveryResponse;
 import com.korur.oba.apps.kaya.plan.mapper.PlanMapper;
 import com.korur.oba.apps.kaya.plan.service.PlanQueryService;
 import com.korur.oba.apps.kaya.plan.service.PlanService;
+import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 
 /**
  * Plan feedback delivery to the CLI, on the machine token chain: the bearer machine token names the
@@ -61,6 +63,7 @@ public class PlanDeliveryController {
     private final LoggingService loggingService;
 
     @GetMapping
+    @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "Get the pending feedback of the token's user",
             description = "Bearer machine token. Either sessionId (repeated, 1 to 20): the feedback no session has received "
                     + "on plans whose latest version came from these sessions of the token's user; or remoteUrl and "
@@ -72,8 +75,9 @@ public class PlanDeliveryController {
             @ApiResponse(responseCode = "400", description = "KAY_PLN_004: neither form or both given"),
             @ApiResponse(responseCode = "401", description = "KAY_SEC_003: token missing, unknown, revoked or expired, "
                     + "or machine retired"),
-            @ApiResponse(responseCode = "403", description = "GEN_SEC_002 or KAY_SEC_002: the user no longer acts in "
-                    + "the organization; APP_SEC_001: the user has no Kaya access"),
+            @ApiResponse(responseCode = "403", description = "GEN_SEC_002, ORG_SEC_001 or ORG_SEC_005: the user no "
+                    + "longer acts in the organization; ORG_SEC_003: the user is a GUEST; APP_SEC_001: the user has no Kaya "
+                    + "access"),
             @ApiResponse(responseCode = "422", description = "GEN_VAL_001: more than 20 session ids, a session id not in "
                     + "the session id pattern, remoteUrl over 500 or branch over 255 characters"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -89,6 +93,7 @@ public class PlanDeliveryController {
     }
 
     @PostMapping("/acks")
+    @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "Acknowledge delivered feedback",
             description = "Bearer machine token. Marks the feedback delivered to the named session and lowers each plan's "
                     + "open feedback count by the rows marked. Rows already delivered, and ids outside the token's "
@@ -97,8 +102,9 @@ public class PlanDeliveryController {
             @ApiResponse(responseCode = "200", description = "Recorded; acknowledged counts the rows marked now"),
             @ApiResponse(responseCode = "400", description = "The body malformed"),
             @ApiResponse(responseCode = "401", description = "KAY_SEC_003: token refused"),
-            @ApiResponse(responseCode = "403", description = "GEN_SEC_002 or KAY_SEC_002: the user no longer acts in "
-                    + "the organization; APP_SEC_001: the user has no Kaya access"),
+            @ApiResponse(responseCode = "403", description = "GEN_SEC_002, ORG_SEC_001 or ORG_SEC_005: the user no "
+                    + "longer acts in the organization; ORG_SEC_003: the user is a GUEST; APP_SEC_001: the user has no Kaya "
+                    + "access"),
             @ApiResponse(responseCode = "422", description = "GEN_VAL_001: sessionId missing or not a session id, no "
                     + "feedback id, more than 50, or a null one"),
             @ApiResponse(responseCode = "500", description = "Internal server error")

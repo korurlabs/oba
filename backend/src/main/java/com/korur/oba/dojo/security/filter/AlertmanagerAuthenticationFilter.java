@@ -1,4 +1,4 @@
-package com.korur.oba.connect.alertmanager.filter;
+package com.korur.oba.dojo.security.filter;
 
 // 1. Framework-level
 import org.springframework.http.HttpHeaders;
@@ -24,23 +24,23 @@ import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.connect.alertmanager.constant.AlertmanagerConstant;
-import com.korur.oba.connect.alertmanager.constant.security.AlertmanagerSecurityLogConstant;
 import com.korur.oba.connect.alertmanager.dto.AlertmanagerPrincipal;
 import com.korur.oba.connect.alertmanager.validator.AlertmanagerTokenValidator;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.dojo.security.constant.SecurityConstant;
+import com.korur.oba.dojo.security.constant.SecurityLogConstant;
 
 /**
  * Authenticates an Alertmanager webhook call on its bearer token alone. Only a
  * request with the configured token becomes an {@link AlertmanagerPrincipal},
  * carrying the organization bound to that token, with the
- * {@link AlertmanagerConstant#AUTHORITY_INTEGRATION_ALERTMANAGER} authority; every
+ * {@link SecurityConstant#AUTHORITY_INTEGRATION_ALERTMANAGER} authority; every
  * other request goes on unauthenticated, and the webhook chain answers it with
  * 401. Who the app records as the author of what a notification causes is the
  * app's own concern. This filter is created by the webhook chain in
- * {@link com.korur.oba.connect.alertmanager.config.AlertmanagerSecurityConfig}
+ * {@link com.korur.oba.dojo.security.config.AlertmanagerSecurityConfig}
  * and is deliberately no Spring bean, so Spring Boot does not also register it
  * for every request.
  */
@@ -65,8 +65,8 @@ public class AlertmanagerAuthenticationFilter extends OncePerRequestFilter {
         Optional<UUID> organizationId =
                 alertmanagerTokenValidator.resolveOrganizationId(request.getHeader(HttpHeaders.AUTHORIZATION));
         if (organizationId.isEmpty()) {
-            loggingService.info(LOG_PREFIX, LogLayer.FILTER, AlertmanagerSecurityLogConstant.WEBHOOK_AUTHENTICATION,
-                    method, uri, remoteAddress, AlertmanagerSecurityLogConstant.OUTCOME_REJECTED);
+            loggingService.info(LOG_PREFIX, LogLayer.FILTER, SecurityLogConstant.WEBHOOK_AUTHENTICATION,
+                    method, uri, remoteAddress, SecurityLogConstant.OUTCOME_REJECTED);
             filterChain.doFilter(request, response);
             return;
         }
@@ -74,13 +74,13 @@ public class AlertmanagerAuthenticationFilter extends OncePerRequestFilter {
         UsernamePasswordAuthenticationToken authentication = UsernamePasswordAuthenticationToken.authenticated(
                 new AlertmanagerPrincipal(organizationId.get()),
                 null,
-                List.of(new SimpleGrantedAuthority(AlertmanagerConstant.AUTHORITY_INTEGRATION_ALERTMANAGER)));
+                List.of(new SimpleGrantedAuthority(SecurityConstant.AUTHORITY_INTEGRATION_ALERTMANAGER)));
         SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
         securityContext.setAuthentication(authentication);
         SecurityContextHolder.setContext(securityContext);
 
-        loggingService.info(LOG_PREFIX, LogLayer.FILTER, AlertmanagerSecurityLogConstant.WEBHOOK_AUTHENTICATION,
-                method, uri, remoteAddress, AlertmanagerSecurityLogConstant.OUTCOME_AUTHENTICATED);
+        loggingService.info(LOG_PREFIX, LogLayer.FILTER, SecurityLogConstant.WEBHOOK_AUTHENTICATION,
+                method, uri, remoteAddress, SecurityLogConstant.OUTCOME_AUTHENTICATED);
         filterChain.doFilter(request, response);
     }
 }
