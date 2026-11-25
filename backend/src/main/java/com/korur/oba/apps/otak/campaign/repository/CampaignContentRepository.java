@@ -86,4 +86,14 @@ public interface CampaignContentRepository
      * @return the number of contents
      */
     long countByCampaignId(UUID campaignId);
+
+    /**
+     * Tells whether a content of the organization names the legal entity, so the legal entity
+     * can not be deleted while a content still names it.
+     *
+     * @param organizationId the organization
+     * @param legalEntityId  the legal entity
+     * @return true when at least one content names it
+     */
+    boolean existsByOrganizationIdAndLegalEntityId(UUID organizationId, UUID legalEntityId);
 }

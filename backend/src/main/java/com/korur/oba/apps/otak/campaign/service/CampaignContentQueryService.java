@@ -40,4 +40,16 @@ public interface CampaignContentQueryService {
      *         when no content has the id
      */
     CampaignContent getEntityById(UUID contentId);
+
+    /**
+     * Tells whether a content of the organization names the legal entity.
+     *
+     * Called by {@link com.korur.oba.shrine.legalentity.service.impl.LegalEntityServiceImpl#delete},
+     * which refuses to delete a legal entity in use.
+     *
+     * @param organizationId the organization
+     * @param legalEntityId  the legal entity
+     * @return true when at least one content names it
+     */
+    boolean existsByLegalEntity(UUID organizationId, UUID legalEntityId);
 }

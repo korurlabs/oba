@@ -137,4 +137,15 @@ class CampaignContentQueryServiceImplUnitTest {
         // Act and assert
         assertThat(service.getEntityById(content.getId())).isSameAs(content);
     }
+
+    @Test
+    void existsByLegalEntity_contentNamesIt_returnsTrue() {
+        // Arrange
+        UUID legalEntityId = UUID.randomUUID();
+        when(campaignContentRepository.existsByOrganizationIdAndLegalEntityId(organizationId, legalEntityId))
+                .thenReturn(true);
+
+        // Act and assert
+        assertThat(service.existsByLegalEntity(organizationId, legalEntityId)).isTrue();
+    }
 }

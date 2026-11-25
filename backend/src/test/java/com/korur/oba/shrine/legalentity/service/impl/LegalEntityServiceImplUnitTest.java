@@ -23,6 +23,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
+import com.korur.oba.apps.otak.campaign.service.CampaignContentQueryService;
 import com.korur.oba.dojo.exception.internal.business.ConflictException;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
 import com.korur.oba.dojo.logging.service.LoggingService;
@@ -54,6 +55,9 @@ class LegalEntityServiceImplUnitTest {
     private DocumentTemplateQueryService documentTemplateQueryService;
 
     @Mock
+    private CampaignContentQueryService campaignContentQueryService;
+
+    @Mock
     private LoggingService loggingService;
 
     private LegalEntityServiceImpl service;
@@ -65,7 +69,7 @@ class LegalEntityServiceImplUnitTest {
         // the mapped fields are the production ones.
         service = new LegalEntityServiceImpl(legalEntityRepository, new LegalEntityMapperImpl(),
                 new LegalEntityValidator(legalEntityRepository, loggingService), documentQueryService,
-                documentTemplateQueryService, loggingService);
+                documentTemplateQueryService, campaignContentQueryService, loggingService);
         user = User.builder().build();
         user.setId(UUID.randomUUID());
     }
@@ -242,6 +246,21 @@ class LegalEntityServiceImplUnitTest {
             when(legalEntityRepository.findByIdAndOrganizationId(legalEntityId, organizationId))
                     .thenReturn(Optional.of(stored()));
             when(documentTemplateQueryService.existsByLegalEntity(organizationId, legalEntityId)).thenReturn(true);
+
+            // Act and assert
+            assertThatThrownBy(() -> service.delete(organizationId, legalEntityId))
+                    .isInstanceOf(ConflictException.class)
+                    .extracting("errorCode")
+                    .isEqualTo(ExceptionDomainLegalEntityError.STA_LEGAL_ENTITY_IN_USE.getCode());
+            verify(legalEntityRepository, never()).delete(any(LegalEntity.class));
+        }
+
+        @Test
+        void legalEntityNamedByACampaignContent_throwsConflictInUseAndDeletesNothing() {
+            // Arrange
+            when(legalEntityRepository.findByIdAndOrganizationId(legalEntityId, organizationId))
+                    .thenReturn(Optional.of(stored()));
+            when(campaignContentQueryService.existsByLegalEntity(organizationId, legalEntityId)).thenReturn(true);
 
             // Act and assert
             assertThatThrownBy(() -> service.delete(organizationId, legalEntityId))

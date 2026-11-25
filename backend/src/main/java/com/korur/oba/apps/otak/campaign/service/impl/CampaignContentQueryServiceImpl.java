@@ -83,4 +83,9 @@ public class CampaignContentQueryServiceImpl implements CampaignContentQueryServ
     public CampaignContent getEntityById(UUID contentId) {
         return campaignContentValidator.ensureContentExists(contentId);
     }
+
+    @Override
+    public boolean existsByLegalEntity(UUID organizationId, UUID legalEntityId) {
+        return campaignContentRepository.existsByOrganizationIdAndLegalEntityId(organizationId, legalEntityId);
+    }
 }
