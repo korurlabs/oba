@@ -75,7 +75,9 @@ public class LessonDeliveryController {
      * If-None-Match with page 1 to skip every page while nothing changed, and with etag on each later
      * page, which answers 409 KAY_VAL_017 once the lessons changed after page 1. The CLI then starts
      * again at page 1, so it never stores pages of two states under one ETag. A request without
-     * paging gets page 1 of 100, the newest 100, in the shape of the unpaged list plus pagination.
+     * paging gets page 1 of 100, the newest 100, in the shape of the unpaged list plus pagination,
+     * under an ETag of the unpaged form: a CLI that stored only those 100 must not get 304 once it
+     * reads every page.
      */
     @GetMapping
     @RequiredUserAccess(OrganizationMemberRole.MEMBER)
@@ -85,7 +87,9 @@ public class LessonDeliveryController {
                     + "ones only. Paged, 100 by default and 100 at most; pagination.last marks the last page. The ETag "
                     + "covers every applicable lesson, on every page the same, and ignores since and the page; send it "
                     + "back in If-None-Match with page 1 to get 304 while nothing changed, and as etag with every later "
-                    + "page to get 409 KAY_VAL_017 once the lessons changed after page 1")
+                    + "page to get 409 KAY_VAL_017 once the lessons changed after page 1. A request without page gets "
+                    + "page 1 under an ETag of the unpaged form v2u-, which matches no paged request; a request with "
+                    + "page gets the paged form v2-, the only form etag accepts")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "One page of the lessons, possibly empty"),
             @ApiResponse(responseCode = "304", description = "If-None-Match matches the current ETag; no body"),
@@ -116,8 +120,8 @@ public class LessonDeliveryController {
             return null;
         }
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, LessonControllerLogConstant.DELIVERY_LIST_COMPLETED,
-                delivery.lessons().getNumberOfElements(), request.getPage(), delivery.lessons().getTotalPages(),
-                principal.machineId());
+                delivery.lessons().getNumberOfElements(), delivery.lessons().getNumber() + 1,
+                delivery.lessons().getTotalPages(), principal.machineId());
         return ResponseUtil.ok(LessonControllerResponseConstant.RESPONSE_LESSONS_RETRIEVED, delivery.lessons());
     }
 

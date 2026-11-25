@@ -11,7 +11,11 @@ import com.korur.oba.apps.kaya.lesson.constant.LessonConstant;
 import com.korur.oba.apps.kaya.lesson.dto.projection.LessonDeliveryStateProjection;
 
 /**
- * The ETag of the lessons a checkout reads.
+ * The ETags of the lessons a checkout reads. Both forms carry one digest of every applicable
+ * lesson, not only of the page a response carries, so an add, an edit or a delete changes them
+ * wherever the lesson sits in the list. The digest comes from
+ * {@link com.korur.oba.apps.kaya.lesson.repository.LessonRepository#findDeliveryState}; the form
+ * prefix names what the answer holds, see {@link LessonConstant#ETAG_PAGED_FORM}.
  */
 public final class LessonEtagHelper {
 
@@ -19,17 +23,25 @@ public final class LessonEtagHelper {
     }
 
     /**
-     * The ETag of every applicable lesson, not only of the page a response carries, so an add, an
-     * edit or a delete changes the ETag wherever the lesson sits in the list, and every page of one
-     * state of the lessons carries the same ETag. The digest comes from
-     * {@link com.korur.oba.apps.kaya.lesson.repository.LessonRepository#findDeliveryState}; the form
-     * prefix sets it apart from every ETag an earlier computation produced.
+     * The ETag of every applicable lesson read page by page, the same on every page of one state of
+     * the lessons.
      *
      * @param state the count and digest of the applicable lessons
-     * @return the form prefix and 64 hex characters, unquoted
+     * @return the paged form prefix and 64 hex characters, unquoted
      */
-    public static String etagOf(LessonDeliveryStateProjection state) {
-        return LessonConstant.ETAG_FORM + state.getDigest();
+    public static String pagedEtagOf(LessonDeliveryStateProjection state) {
+        return LessonConstant.ETAG_PAGED_FORM + state.getDigest();
+    }
+
+    /**
+     * The ETag of the answer to a request without page, which holds only the newest lessons. It
+     * changes with the lessons exactly as {@link #pagedEtagOf} does, but never equals it.
+     *
+     * @param state the count and digest of the applicable lessons
+     * @return the unpaged form prefix and 64 hex characters, unquoted
+     */
+    public static String unpagedEtagOf(LessonDeliveryStateProjection state) {
+        return LessonConstant.ETAG_UNPAGED_FORM + state.getDigest();
     }
 
     /**

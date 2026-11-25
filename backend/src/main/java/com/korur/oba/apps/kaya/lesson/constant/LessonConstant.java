@@ -68,13 +68,21 @@ public final class LessonConstant {
     // still gets the newest 100 it always got.
     public static final int DELIVERY_DEFAULT_AMOUNT = 100;
     public static final int DELIVERY_MAX_AMOUNT = 100;
+    // The page a request without page reads.
+    public static final int DELIVERY_FIRST_PAGE = 1;
     public static final String FIELD_ETAG = "etag";
-    // Names how the digest behind the ETag is computed. A CLI stores the ETag next to the file it
-    // wrote, so a new computation takes a new form: an ETag the CLI stored under the old one then
-    // never answers 304, and the CLI reads the whole list once.
-    public static final String ETAG_FORM = "v2-";
-    // The ETag of the lessons, bare or quoted as the ETag header carries it.
-    public static final String ETAG_PATTERN = ETAG_FORM + "[0-9a-f]{64}|\"" + ETAG_FORM + "[0-9a-f]{64}\"";
+    // A CLI stores the ETag next to the file it wrote and sends it back in If-None-Match, so an ETag
+    // must name exactly what that file holds; the form prefix says what one digest stands for. The
+    // paged form names every applicable lesson, read page by page. The unpaged form names the answer
+    // to a request without page, which holds only the newest 100: an ETag a CLI stored next to those
+    // 100 then never answers 304 to a CLI that reads every page, which reads them all once. A new
+    // computation of the digest takes new prefixes for both, so an ETag of an earlier computation
+    // matches neither.
+    public static final String ETAG_PAGED_FORM = "v2-";
+    public static final String ETAG_UNPAGED_FORM = "v2u-";
+    // The ETag of page 1, bare or quoted as the ETag header carries it. Only the paged form names the
+    // set that later pages are checked against.
+    public static final String ETAG_PATTERN = ETAG_PAGED_FORM + "[0-9a-f]{64}|\"" + ETAG_PAGED_FORM + "[0-9a-f]{64}\"";
     public static final String ETAG_QUOTE = "\"";
     public static final String ETAG_INVALID_MESSAGE = "etag must be the ETag header of page 1";
     public static final String ETAG_REQUIRED_MESSAGE = "etag is required from page 2 on";

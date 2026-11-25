@@ -14,18 +14,15 @@ import org.springframework.data.domain.Pageable;
 // 2. Third-party
 
 // 3. Java SDK
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 // 4. Internal
 import com.korur.oba.dojo.exception.internal.business.ConflictException;
 import com.korur.oba.dojo.exception.internal.business.ValidationException;
 import com.korur.oba.dojo.logging.service.LoggingService;
-import com.korur.oba.apps.kaya.delivery.helper.DeliveryEtagHelper;
 import com.korur.oba.apps.kaya.identity.service.KayaUserQueryService;
 import com.korur.oba.apps.kaya.identity.service.OrganizationAccessQueryService;
 import com.korur.oba.apps.kaya.lesson.dto.derived.LessonDelivery;
@@ -40,8 +37,12 @@ import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
 import com.korur.oba.apps.kaya.repository.service.RepositoryQueryService;
 import com.korur.oba.apps.kaya.session.service.SessionQueryService;
 
+import static com.korur.oba.apps.kaya.lesson.mock_data.LessonDeliveryMocks.row;
+import static com.korur.oba.apps.kaya.lesson.mock_data.LessonDeliveryMocks.rows;
+import static com.korur.oba.apps.kaya.lesson.mock_data.LessonDeliveryMocks.stateOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -78,57 +79,6 @@ class LessonQueryServiceImplUnitTest {
     void setUp() {
         service = new LessonQueryServiceImpl(lessonRepository, sessionQueryService, kayaUserQueryService,
                 repositoryQueryService, organizationAccessQueryService, new LessonMapperImpl(), loggingService);
-    }
-
-    /** A lesson of the organization, numbered newest first as the repository returns them. */
-    private static LessonDeliveryProjection row(int number) {
-        UUID id = new UUID(0L, number);
-        Instant updatedAt = Instant.parse("2026-10-01T00:00:00Z").minusSeconds(number);
-        return new LessonDeliveryProjection() {
-            @Override
-            public UUID getId() {
-                return id;
-            }
-
-            @Override
-            public String getTitle() {
-                return "lesson " + number;
-            }
-
-            @Override
-            public UUID getRepositoryId() {
-                return null;
-            }
-
-            @Override
-            public Instant getUpdatedAt() {
-                return updatedAt;
-            }
-        };
-    }
-
-    private static List<LessonDeliveryProjection> rows(int count) {
-        return new ArrayList<>(IntStream.rangeClosed(1, count).mapToObj(LessonQueryServiceImplUnitTest::row).toList());
-    }
-
-    /** What the database answers for these lessons: their count and a digest of every id and updatedAt. */
-    private static LessonDeliveryStateProjection stateOf(List<LessonDeliveryProjection> lessons) {
-        String digest = DeliveryEtagHelper.sha256Hex(lessons.stream()
-                .map(lesson -> lesson.getId() + ":" + lesson.getUpdatedAt())
-                .sorted()
-                .collect(Collectors.joining("\n")));
-        long total = lessons.size();
-        return new LessonDeliveryStateProjection() {
-            @Override
-            public Long getTotal() {
-                return total;
-            }
-
-            @Override
-            public String getDigest() {
-                return digest;
-            }
-        };
     }
 
     private static LessonDeliveryQueryRequest request(Integer page, Integer amount, String etag) {
@@ -179,7 +129,32 @@ class LessonQueryServiceImplUnitTest {
             assertEquals(LESSONS, page.getTotalElements());
             assertEquals(2, page.getTotalPages());
             assertFalse(page.isLast());
-            assertEquals("v2-" + stateOf(rows(LESSONS)).getDigest(), delivery.etag());
+            assertEquals("v2u-" + stateOf(rows(LESSONS)).getDigest(), delivery.etag());
+        }
+
+        @Test
+        void withoutPaging_namesItsAnswerByTheUnpagedFormThatPage1NeverMatches() {
+            givenLessons(rows(LESSONS));
+
+            String unpaged = service.listForCheckout(principal, request(null, null, null)).etag();
+            String paged = service.listForCheckout(principal, request(1, null, null)).etag();
+
+            assertEquals(LessonEtagHelper.unpagedEtagOf(stateOf(rows(LESSONS))), unpaged);
+            assertEquals(LessonEtagHelper.pagedEtagOf(stateOf(rows(LESSONS))), paged);
+            assertNotEquals(unpaged, paged);
+            assertFalse(LessonEtagHelper.matches("\"" + unpaged + "\"", paged));
+            assertFalse(LessonEtagHelper.matches("\"" + paged + "\"", unpaged));
+        }
+
+        @Test
+        void withoutPaging_unpagedFormChangesWithTheLessons() {
+            List<LessonDeliveryProjection> lessons = rows(LESSONS);
+            givenLessons(lessons);
+            String before = service.listForCheckout(principal, request(null, null, null)).etag();
+
+            lessons.remove(LESSONS - 1);
+
+            assertNotEquals(before, service.listForCheckout(principal, request(null, null, null)).etag());
         }
 
         @Test
@@ -214,7 +189,7 @@ class LessonQueryServiceImplUnitTest {
         @Test
         void pageBeyondTheLast_isEmptyAndLastWithoutReadingAPage() {
             givenLessons(rows(3));
-            String etag = LessonEtagHelper.etagOf(stateOf(rows(3)));
+            String etag = LessonEtagHelper.pagedEtagOf(stateOf(rows(3)));
 
             Page<LessonDeliveryResponse> page = service.listForCheckout(principal, request(5, null, etag)).lessons();
             Page<LessonDeliveryResponse> farPage =
@@ -271,21 +246,24 @@ class LessonQueryServiceImplUnitTest {
 
         @Test
         void matches_quotedOrBare_compareTheValue() {
-            String etag = LessonEtagHelper.etagOf(stateOf(rows(2)));
+            String etag = LessonEtagHelper.pagedEtagOf(stateOf(rows(2)));
 
             assertTrue(LessonEtagHelper.matches(etag, etag));
             assertTrue(LessonEtagHelper.matches("\"" + etag + "\"", etag));
-            assertFalse(LessonEtagHelper.matches("\"" + LessonEtagHelper.etagOf(stateOf(rows(3))) + "\"", etag));
+            assertFalse(LessonEtagHelper.matches("\"" + LessonEtagHelper.pagedEtagOf(stateOf(rows(3))) + "\"", etag));
         }
 
         @Test
-        void etagOf_carriesItsForm_soAnEtagOfTheEarlierFormNeverMatches() {
+        void pagedAndUnpagedEtagOf_carryTheirForms_soAnEtagOfTheEarlierFormMatchesNeither() {
             LessonDeliveryStateProjection state = stateOf(rows(2));
-            String etag = LessonEtagHelper.etagOf(state);
+            String paged = LessonEtagHelper.pagedEtagOf(state);
+            String unpaged = LessonEtagHelper.unpagedEtagOf(state);
 
-            assertTrue(etag.matches("v2-[0-9a-f]{64}"), etag);
+            assertTrue(paged.matches("v2-[0-9a-f]{64}"), paged);
+            assertTrue(unpaged.matches("v2u-[0-9a-f]{64}"), unpaged);
             // The earlier form was the bare 64 hex digest: even the same digest no longer matches.
-            assertFalse(LessonEtagHelper.matches("\"" + state.getDigest() + "\"", etag));
+            assertFalse(LessonEtagHelper.matches("\"" + state.getDigest() + "\"", paged));
+            assertFalse(LessonEtagHelper.matches("\"" + state.getDigest() + "\"", unpaged));
         }
     }
 }

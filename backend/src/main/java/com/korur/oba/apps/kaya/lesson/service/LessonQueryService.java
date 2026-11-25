@@ -93,13 +93,18 @@ public interface LessonQueryService {
      * 1; a set that changed in between is refused, so the CLI never stores pages of two states
      * under one ETag.
      *
+     * A request without page reads page 1, but a CLI that sends none stores only that page, so its
+     * answer carries the same digest under the unpaged form. An ETag stored next to the newest 100
+     * then never answers 304 to a CLI that reads every page, and etag accepts only the paged form.
+     *
      * @param principal the machine token
      * @param request   the checkout's git remote, raw (an unknown or unreadable one gives the
      *                  organization-wide lessons only); since, an ISO-8601 instant or null, after
-     *                  which a created or updated lesson is marked changed; the page (1-based) and
-     *                  amount (100 by default and at most); and etag, the ETag of page 1, required
-     *                  from page 2 on
-     * @return the page and the ETag
+     *                  which a created or updated lesson is marked changed; the page (1-based, null
+     *                  when the request names none) and amount (100 by default and at most); and
+     *                  etag, the paged ETag of page 1, required from page 2 on
+     * @return the page and the ETag, of the paged form when the request names a page and of the
+     *         unpaged form otherwise
      * @throws com.korur.oba.dojo.exception.internal.business.ValidationException GEN_VAL_001 for an
      *         unreadable since or a later page without etag, KAY_VAL_002 for an archived repository
      * @throws com.korur.oba.dojo.exception.internal.business.ConflictException KAY_VAL_017 when etag

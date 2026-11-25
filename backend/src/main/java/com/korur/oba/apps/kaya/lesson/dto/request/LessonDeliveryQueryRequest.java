@@ -26,6 +26,9 @@ import com.korur.oba.apps.kaya.lesson.constant.LessonConstant;
  * page and amount mean what they mean in {@link com.korur.oba.dojo.dto.QueryRequest}, with pages of
  * 100 by default. The class does not extend it: its toString prints every field, and a raw remote
  * may carry an access token, so this class has no toString.
+ *
+ * page stays null when the request names none. Such a request reads page 1, but its answer holds
+ * only the newest lessons, so it carries an ETag of its own form, which no paged request matches.
  */
 @Schema(description = "The checkout, when it last looked, and the page of its lessons")
 @Getter
@@ -43,9 +46,10 @@ public class LessonDeliveryQueryRequest {
             example = "2026-10-25T09:00:00Z")
     private String since;
 
-    @Schema(description = "Page number (1-based)", example = "1", nullable = true)
+    @Schema(description = "Page number (1-based). Without it the answer is page 1 under an ETag of its own form, "
+            + "which only a request without page matches", example = "1", nullable = true)
     @Min(value = 1, message = CommonConstant.PAGE_MIN_MESSAGE)
-    private int page = 1;
+    private Integer page;
 
     @Schema(description = "Number of lessons per page", example = "100", nullable = true)
     @Min(value = 1, message = CommonConstant.AMOUNT_MIN_MESSAGE)

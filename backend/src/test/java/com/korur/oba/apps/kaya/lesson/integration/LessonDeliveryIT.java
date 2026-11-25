@@ -45,13 +45,23 @@ class LessonDeliveryIT extends AbstractLessonIT {
     private static final String AMOUNT = "amount";
     private static final String ETAG = "etag";
     private static final String LESSONS_CHANGED = "KAY_VAL_017";
+    private static final String PAGED_ETAG = "\"v2-[0-9a-f]{64}\"";
+    private static final String UNPAGED_ETAG = "\"v2u-[0-9a-f]{64}\"";
 
-    private String etagOf(Fixture fixture, String token) throws Exception {
+    /** The ETag of a request without page, as the CLIs released before paging send it. */
+    private String unpagedEtagOf(Fixture fixture, String token) throws Exception {
         MvcResult result = machine(token, get(DELIVERY).param(REMOTE_URL, fixture.remote()))
                 .andExpect(status().isOk())
                 .andReturn();
         String etag = result.getResponse().getHeader(HttpHeaders.ETAG);
-        assertTrue(etag != null && etag.matches("\"v2-[0-9a-f]{64}\""), "ETag is quoted and of form v2: " + etag);
+        assertTrue(etag != null && etag.matches(UNPAGED_ETAG), "ETag is quoted and of the unpaged form: " + etag);
+        return etag;
+    }
+
+    /** The ETag of page 1, as a CLI that reads every page receives it. */
+    private static String pagedEtagOf(MvcResult page) {
+        String etag = page.getResponse().getHeader(HttpHeaders.ETAG);
+        assertTrue(etag != null && etag.matches(PAGED_ETAG), "ETag is quoted and of the paged form: " + etag);
         return etag;
     }
 
@@ -243,7 +253,7 @@ class LessonDeliveryIT extends AbstractLessonIT {
         void getLessons_matchingIfNoneMatch_returns304WithoutBody() throws Exception {
             Fixture fixture = newFixture();
             createLesson(fixture, fixture.ada().jwt(), "One", fixture.repositoryId());
-            String etag = etagOf(fixture, fixture.adaMachine().token());
+            String etag = unpagedEtagOf(fixture, fixture.adaMachine().token());
 
             machine(fixture.adaMachine().token(), get(DELIVERY).param(REMOTE_URL, fixture.remote())
                     .header(HttpHeaders.IF_NONE_MATCH, etag))
@@ -275,7 +285,7 @@ class LessonDeliveryIT extends AbstractLessonIT {
 
             String current = unpaged.getResponse().getHeader(HttpHeaders.ETAG);
             assertNotEquals(earlier, current);
-            assertEquals(current, etagOf(fixture, token));
+            assertEquals(current, unpagedEtagOf(fixture, token));
             machine(token, get(DELIVERY).param(REMOTE_URL, fixture.remote()).header(HttpHeaders.IF_NONE_MATCH, current))
                     .andExpect(status().isNotModified());
         }
@@ -284,16 +294,16 @@ class LessonDeliveryIT extends AbstractLessonIT {
         void getLessons_addEditAndDelete_eachChangeTheEtag() throws Exception {
             Fixture fixture = newFixture();
             String token = fixture.adaMachine().token();
-            String initial = etagOf(fixture, token);
+            String initial = unpagedEtagOf(fixture, token);
 
             String id = createLesson(fixture, fixture.ada().jwt(), "One", fixture.repositoryId());
-            String afterAdd = etagOf(fixture, token);
+            String afterAdd = unpagedEtagOf(fixture, token);
             mockMvc.perform(in(fixture.tenant(), put("/kaya/lessons/" + id), fixture.ada().jwt(),
                     lessonBody("One edited", "Body.", fixture.repositoryId()))).andExpect(status().isOk());
-            String afterEdit = etagOf(fixture, token);
+            String afterEdit = unpagedEtagOf(fixture, token);
             mockMvc.perform(in(fixture.tenant(), delete("/kaya/lessons/" + id), fixture.ada().jwt(), null))
                     .andExpect(status().isOk());
-            String afterDelete = etagOf(fixture, token);
+            String afterDelete = unpagedEtagOf(fixture, token);
 
             assertNotEquals(initial, afterAdd);
             assertNotEquals(afterAdd, afterEdit);
@@ -305,11 +315,11 @@ class LessonDeliveryIT extends AbstractLessonIT {
         void getLessons_lessonOfAnotherRepository_doesNotMoveTheEtag() throws Exception {
             Fixture fixture = newFixture();
             String elsewhere = secondRepository(fixture, remote());
-            String before = etagOf(fixture, fixture.adaMachine().token());
+            String before = unpagedEtagOf(fixture, fixture.adaMachine().token());
 
             createLesson(fixture, fixture.ada().jwt(), "Elsewhere", elsewhere);
 
-            assertEquals(before, etagOf(fixture, fixture.adaMachine().token()));
+            assertEquals(before, unpagedEtagOf(fixture, fixture.adaMachine().token()));
         }
 
         @Test
@@ -317,7 +327,7 @@ class LessonDeliveryIT extends AbstractLessonIT {
             Fixture fixture = newFixture();
             insertBulk(fixture, 105, 1);
             String token = fixture.adaMachine().token();
-            String before = etagOf(fixture, token);
+            String before = unpagedEtagOf(fixture, token);
 
             // The request of the CLIs released before paging: remoteUrl only, data read as a list.
             machine(token, get(DELIVERY).param(REMOTE_URL, fixture.remote()))
@@ -334,7 +344,7 @@ class LessonDeliveryIT extends AbstractLessonIT {
             jdbcTemplate.update("UPDATE kaya.lessons SET updated_at = TIMESTAMPTZ '2026-09-02' "
                     + "WHERE organization_id = ? AND title = 'bulk 1'", fixture.tenant().organization().getId());
 
-            assertNotEquals(before, etagOf(fixture, token));
+            assertNotEquals(before, unpagedEtagOf(fixture, token));
         }
 
         @Test
@@ -420,7 +430,7 @@ class LessonDeliveryIT extends AbstractLessonIT {
                     "2026-09-01T00:00:00Z");
 
             MvcResult first = okPage(fixture, pageOf(fixture, 1, null));
-            String etag = first.getResponse().getHeader(HttpHeaders.ETAG);
+            String etag = pagedEtagOf(first);
             MvcResult second = okPage(fixture, pageOf(fixture, 2, etag));
             MvcResult third = okPage(fixture, pageOf(fixture, 3, etag));
             MvcResult beyond = okPage(fixture, pageOf(fixture, 4, etag));
@@ -438,7 +448,8 @@ class LessonDeliveryIT extends AbstractLessonIT {
             assertEquals(etag, second.getResponse().getHeader(HttpHeaders.ETAG));
             assertEquals(etag, third.getResponse().getHeader(HttpHeaders.ETAG));
             assertEquals(etag, beyond.getResponse().getHeader(HttpHeaders.ETAG));
-            assertEquals(etag, etagOf(fixture, fixture.adaMachine().token()));
+            // A request without page holds only the newest 100, so it is named by another form.
+            assertNotEquals(etag, unpagedEtagOf(fixture, fixture.adaMachine().token()));
 
             assertEquals("206", read(first, "$.pagination.totalElements"));
             assertEquals("3", read(first, "$.pagination.totalPages"));
@@ -545,6 +556,9 @@ class LessonDeliveryIT extends AbstractLessonIT {
             machine(token, pageOf(fixture, 2, earlierFormEtagOf(fixture)))
                     .andExpect(status().isUnprocessableEntity())
                     .andExpect(jsonPath("$.error.errorValues.etag").exists());
+            machine(token, pageOf(fixture, 2, unpagedEtagOf(fixture, token)))
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.error.errorValues.etag").exists());
             machine(token, pageOf(fixture, 0, null))
                     .andExpect(status().isUnprocessableEntity())
                     .andExpect(jsonPath("$.error.errorValues.page").exists());
@@ -554,6 +568,58 @@ class LessonDeliveryIT extends AbstractLessonIT {
             machine(token, pageOf(fixture, 1, null).param(AMOUNT, "0"))
                     .andExpect(status().isUnprocessableEntity())
                     .andExpect(jsonPath("$.error.errorValues.amount").exists());
+        }
+    }
+
+    @Nested
+    class EtagForms {
+
+        @Test
+        void getLessons_page1WithTheEtagOfAnUnpagedRequest_returnsEveryLesson() throws Exception {
+            Fixture fixture = newFixture();
+            String token = fixture.adaMachine().token();
+            insertBulk(fixture, 123, 1);
+            // A CLI that sends no page stores this ETag next to the newest 100.
+            String unpaged = unpagedEtagOf(fixture, token);
+
+            MvcResult first = machine(token, pageOf(fixture, 1, null).param(AMOUNT, "100")
+                    .header(HttpHeaders.IF_NONE_MATCH, unpaged))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(100))
+                    .andExpect(jsonPath("$.pagination.totalElements").value(123))
+                    .andReturn();
+            String paged = pagedEtagOf(first);
+            machine(token, pageOf(fixture, 2, paged).param(AMOUNT, "100"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(23));
+
+            assertNotEquals(unpaged, paged);
+        }
+
+        @Test
+        void getLessons_unpagedRequestWithItsOwnEtag_returns304() throws Exception {
+            Fixture fixture = newFixture();
+            String token = fixture.adaMachine().token();
+            insertBulk(fixture, 123, 1);
+            String unpaged = unpagedEtagOf(fixture, token);
+
+            machine(token, get(DELIVERY).param(REMOTE_URL, fixture.remote()).header(HttpHeaders.IF_NONE_MATCH, unpaged))
+                    .andExpect(status().isNotModified())
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().string(HttpHeaders.ETAG, unpaged))
+                    .andExpect(content().string(""));
+        }
+
+        @Test
+        void getLessons_page1WithItsOwnEtag_returns304() throws Exception {
+            Fixture fixture = newFixture();
+            String token = fixture.adaMachine().token();
+            insertBulk(fixture, 123, 1);
+            String paged = pagedEtagOf(okPage(fixture, pageOf(fixture, 1, null).param(AMOUNT, "100")));
+
+            machine(token, pageOf(fixture, 1, null).param(AMOUNT, "100").header(HttpHeaders.IF_NONE_MATCH, paged))
+                    .andExpect(status().isNotModified())
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().string(HttpHeaders.ETAG, paged))
+                    .andExpect(content().string(""));
         }
     }
 

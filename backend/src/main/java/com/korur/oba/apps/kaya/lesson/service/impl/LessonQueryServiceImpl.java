@@ -155,20 +155,22 @@ public class LessonQueryServiceImpl implements LessonQueryService {
     public LessonDelivery listForCheckout(MachinePrincipal principal, LessonDeliveryQueryRequest request) {
         UUID organizationId = principal.organizationId();
         Instant seenAt = parseSince(principal, request.getSince());
-        requireEtagAfterFirstPage(principal, request);
+        boolean paged = request.getPage() != null;
+        int page = paged ? request.getPage() : LessonConstant.DELIVERY_FIRST_PAGE;
+        requireEtagAfterFirstPage(principal, page, request.getEtag());
         Optional<RepositoryResponse> repository = findCheckoutRepository(organizationId, request.getRemoteUrl());
         UUID repositoryId = repository.map(RepositoryResponse::id).orElse(null);
         String repositoryName = repository.map(RepositoryResponse::name).orElse(null);
         loggingService.debug(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.READING_DELIVERY, repositoryId, organizationId);
 
         LessonDeliveryStateProjection state = lessonRepository.findDeliveryState(organizationId, repositoryId);
-        String etag = LessonEtagHelper.etagOf(state);
-        if (request.getEtag() != null && !LessonEtagHelper.matches(request.getEtag(), etag)) {
+        String pagedEtag = LessonEtagHelper.pagedEtagOf(state);
+        if (request.getEtag() != null && !LessonEtagHelper.matches(request.getEtag(), pagedEtag)) {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_LESSONS_CHANGED,
-                    repositoryId, organizationId, request.getPage(), principal.machineId());
+                    repositoryId, organizationId, page, principal.machineId());
             throw new ConflictException(ExceptionDomainKayaError.VAL_LESSONS_CHANGED);
         }
-        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getAmount(), NEWEST_FIRST);
+        Pageable pageable = PageRequest.of(page - 1, request.getAmount(), NEWEST_FIRST);
         // A page at or past the end is empty without a query, which also keeps a page number far past
         // the end from reaching the database as an offset beyond the int range.
         List<LessonDeliveryProjection> rows = pageable.getOffset() >= state.getTotal() ? List.of()
@@ -179,6 +181,9 @@ public class LessonQueryServiceImpl implements LessonQueryService {
                         lesson.getRepositoryId() == null ? null : repositoryName,
                         seenAt != null && lesson.getUpdatedAt().isAfter(seenAt)))
                 .toList();
+        // A CLI that sends no page stores only this page; one that reads every page stores the whole
+        // set. Each answer is named by its own form, so an If-None-Match of one never matches the other.
+        String etag = paged ? pagedEtag : LessonEtagHelper.unpagedEtagOf(state);
         return lessonMapper.toDelivery(new PageImpl<>(lessons, pageable, state.getTotal()), etag);
     }
 
@@ -248,10 +253,10 @@ public class LessonQueryServiceImpl implements LessonQueryService {
      * Refuses a page after the first without the ETag of page 1: without it a change between the
      * requests would go unnoticed, and the CLI would store pages of two states of the lessons.
      */
-    private void requireEtagAfterFirstPage(MachinePrincipal principal, LessonDeliveryQueryRequest request) {
-        if (request.getPage() > 1 && request.getEtag() == null) {
+    private void requireEtagAfterFirstPage(MachinePrincipal principal, int page, String etag) {
+        if (page > LessonConstant.DELIVERY_FIRST_PAGE && etag == null) {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_ETAG_MISSING,
-                    request.getPage(), principal.machineId());
+                    page, principal.machineId());
             throw new ValidationException(ExceptionValidationError.VALIDATION,
                     Map.of(LessonConstant.FIELD_ETAG, LessonConstant.ETAG_REQUIRED_MESSAGE));
         }
