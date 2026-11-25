@@ -105,6 +105,38 @@ func (p *scriptedPoster) PostIngestBatch(_ context.Context, body []byte) (json.R
 	return nil, p.answers[i]
 }
 
+// sessionPoster answers each batch by its session: a session in refuse gets its error, the batch
+// of any other is taken. It records the session and the time of every call.
+type sessionPoster struct {
+	clock  *fakeClock
+	refuse map[string]error
+	calls  []sessionCall
+}
+
+type sessionCall struct {
+	session string
+	at      time.Time
+}
+
+func (p *sessionPoster) PostIngestBatch(_ context.Context, body []byte) (json.RawMessage, error) {
+	var b struct {
+		SessionID string `json:"sessionId"`
+	}
+	if err := json.Unmarshal(body, &b); err != nil {
+		return nil, err
+	}
+	p.calls = append(p.calls, sessionCall{session: b.SessionID, at: p.clock.now})
+	return nil, p.refuse[b.SessionID]
+}
+
+func (p *sessionPoster) sessions() []string {
+	var ids []string
+	for _, call := range p.calls {
+		ids = append(ids, call.session)
+	}
+	return ids
+}
+
 // fakeClock is the sender's time: Sleep moves it, and stops the loop after limit sleeps.
 type fakeClock struct {
 	now    time.Time
@@ -194,18 +226,51 @@ func TestBackoffDoublesFromTwoSecondsToFiveMinutes(t *testing.T) {
 	}
 }
 
-func TestBackoffForServerAnswersAndRateLimit(t *testing.T) {
-	for _, status := range []int{429, 500, 502, 503} {
+func TestBackoffForRateLimit(t *testing.T) {
+	state := flowEnv(t)
+	dir := queueSession(t, state, flowSession, 1, false)
+	poster := &scriptedPoster{answers: []error{&client.APIError{Status: 429, Code: "KAY_SEC_004"}}}
+	clock := &fakeClock{now: time.Unix(1_800_000_000, 0), limit: 3}
+	if err := Run(context.Background(), flowConfig(clock, poster)); !errors.Is(err, errStopLoop) {
+		t.Fatalf("Run = %v", err)
+	}
+	if !equalDurations(clock.sleeps, seconds(2, 4, 8)) {
+		t.Errorf("sleeps = %v, want 2 s, 4 s, 8 s", clock.sleeps)
+	}
+	if cur := (&run{}).readCursor(dir, flowSession); cur.AcknowledgedSeq != 0 || cur.Parked != nil {
+		t.Errorf("cursor after 429 = %+v, want queued and not parked", cur)
+	}
+}
+
+// A 5xx answers one session's batch: the session backs off from 2 s on its own, while the sender
+// keeps its 2 s round.
+func TestServerErrorsBackOffTheSessionAlone(t *testing.T) {
+	for _, status := range []int{500, 502, 503} {
 		t.Run(fmt.Sprint(status), func(t *testing.T) {
 			state := flowEnv(t)
 			dir := queueSession(t, state, flowSession, 1, false)
-			poster := &scriptedPoster{answers: []error{&client.APIError{Status: status}}}
-			clock := &fakeClock{now: time.Unix(1_800_000_000, 0), limit: 3}
+			start := time.Unix(1_800_000_000, 0)
+			clock := &fakeClock{now: start, limit: 8}
+			poster := &sessionPoster{clock: clock, refuse: map[string]error{flowSession: &client.APIError{Status: status}}}
 			if err := Run(context.Background(), flowConfig(clock, poster)); !errors.Is(err, errStopLoop) {
 				t.Fatalf("Run = %v", err)
 			}
-			if !equalDurations(clock.sleeps, seconds(2, 4, 8)) {
-				t.Errorf("sleeps = %v, want 2 s, 4 s, 8 s", clock.sleeps)
+			if !equalDurations(clock.sleeps, seconds(2, 2, 2, 2, 2, 2, 2, 2)) {
+				t.Errorf("sleeps = %v, want the 2 s round pause only", clock.sleeps)
+			}
+			var at []time.Duration
+			for _, call := range poster.calls {
+				at = append(at, call.at.Sub(start))
+			}
+			if !equalDurations(at, seconds(0, 2, 6, 14)) {
+				t.Errorf("sent at %v, want 0 s, 2 s, 6 s and 14 s", at)
+			}
+			log := logText(t, state)
+			for _, wait := range []int{2, 4, 8, 16} {
+				line := fmt.Sprintf("%s: Kaya answered %d; retrying in %d s", flowSession, status, wait)
+				if n := strings.Count(log, line); n != 1 {
+					t.Errorf("%q logged %d times, want once, log:\n%s", line, n, log)
+				}
 			}
 			if cur := (&run{}).readCursor(dir, flowSession); cur.AcknowledgedSeq != 0 || cur.Parked != nil {
 				t.Errorf("cursor after %d = %+v, want queued and not parked", status, cur)
@@ -214,22 +279,45 @@ func TestBackoffForServerAnswersAndRateLimit(t *testing.T) {
 	}
 }
 
+// A session that waits for its retry is work left: the sender does not exit as idle, as it does
+// not while Kaya cannot be reached.
+func TestASessionThatWaitsForItsRetryKeepsTheSenderRunning(t *testing.T) {
+	state := flowEnv(t)
+	queueSession(t, state, flowSession, 1, false)
+	// 400 rounds of 2 s are 800 s, past the 600 s idle time.
+	clock := &fakeClock{now: time.Unix(1_800_000_000, 0), limit: 400}
+	poster := &sessionPoster{clock: clock, refuse: map[string]error{flowSession: &client.APIError{Status: 500}}}
+	if err := Run(context.Background(), flowConfig(clock, poster)); !errors.Is(err, errStopLoop) {
+		t.Fatalf("Run = %v, want the loop stopped by the test, not an idle exit", err)
+	}
+	if strings.Contains(logText(t, state), "idle for") {
+		t.Errorf("the sender exited as idle while a session waited for its retry:\n%s", logText(t, state))
+	}
+	if !strings.Contains(logText(t, state), "retrying in 300 s") {
+		t.Errorf("log does not name the 300 s wait:\n%s", logText(t, state))
+	}
+}
+
 func TestForbiddenUnknownGitEmailBacksOffThenSendsAndKeepsTheSessionQueued(t *testing.T) {
 	state := flowEnv(t)
 	dir := queueSession(t, state, flowSession, 2, false)
 	refusal := &client.APIError{Status: 403, Code: "KAY_SEC_007", ErrorValues: map[string]any{"gitAuthorEmail": "dev@example.com"}}
 	poster := &scriptedPoster{answers: []error{refusal, refusal, nil}}
-	// 2 s, 4 s while Kaya refuses, then the accepted round and the 2 s round pause.
-	clock := &fakeClock{now: time.Unix(1_800_000_000, 0), limit: 3}
+	// Refused at 0 s and 2 s, the session then waits 4 s, and its batch is taken at 6 s; the
+	// sender keeps its 2 s round throughout.
+	clock := &fakeClock{now: time.Unix(1_800_000_000, 0), limit: 4}
 	if err := Run(context.Background(), flowConfig(clock, poster)); !errors.Is(err, errStopLoop) {
 		t.Fatalf("Run = %v", err)
 	}
-	if !equalDurations(clock.sleeps, seconds(2, 4, 2)) {
-		t.Errorf("sleeps = %v, want 2 s, 4 s, 2 s", clock.sleeps)
+	if !equalDurations(clock.sleeps, seconds(2, 2, 2, 2)) {
+		t.Errorf("sleeps = %v, want the 2 s round pause only", clock.sleeps)
+	}
+	if poster.calls != 3 {
+		t.Errorf("calls = %d, want two refusals and the accepted batch", poster.calls)
 	}
 	log := logText(t, state)
-	if strings.Count(log, `KAY_SEC_007: no Kaya user holds the git author email "dev@example.com"`) != 2 {
-		t.Errorf("log does not name the code and the email twice:\n%s", log)
+	if strings.Count(log, flowSession+`: Kaya answered 403 KAY_SEC_007: no Kaya user holds the git author email "dev@example.com"`) != 2 {
+		t.Errorf("log does not name the session, the code and the email twice:\n%s", log)
 	}
 	if strings.Contains(log, "parked") {
 		t.Errorf("a 403 KAY_SEC_007 must never park:\n%s", log)
@@ -1044,5 +1132,144 @@ func TestRedirectIsNotFollowedAndTheTokenStaysOnTheFirstHost(t *testing.T) {
 	log := logText(t, state)
 	if !strings.Contains(log, "Kaya answered 307") || strings.Contains(log, tokenA) {
 		t.Errorf("log must name the 307 and never the token:\n%s", log)
+	}
+}
+
+// A binary file beside the notes of a handoff directory, or a spec file that holds a NUL byte, is
+// left out of the batch, counts as sent and is logged once; text files go out as before.
+func TestABinarySnapshotIsSkippedAndATextOneSent(t *testing.T) {
+	state := flowEnv(t)
+	dir := queueSession(t, state, flowSession, 1, false)
+	binary := map[string]string{
+		// A NUL byte among the first 8000 bytes, as in an image.
+		"handoffs/feature/picture.png": "\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR",
+		// A NUL byte only after the first 8000 bytes, which Kaya cannot store either.
+		"handoffs/feature/late.txt":        strings.Repeat("a", 9000) + "\x00b",
+		"plans/files/docs/plans/broken.md": "# plan\n\x00\n",
+	}
+	for rel, content := range binary {
+		writeFile(t, filepath.Join(dir, filepath.FromSlash(rel)), content)
+	}
+	writeFile(t, filepath.Join(dir, "handoffs", "feature", "notes.md"), "# notes\n")
+	writeFile(t, filepath.Join(dir, "plans", "files", "docs", "plans", "spec.md"), "# spec\n")
+	// The first batch fails, so the second round reads the snapshots again.
+	poster := &scriptedPoster{answers: []error{&client.APIError{Status: 500}, nil}}
+	clock := &fakeClock{now: time.Unix(1_800_000_000, 0), limit: 2}
+	if err := Run(context.Background(), flowConfig(clock, poster)); !errors.Is(err, errStopLoop) {
+		t.Fatalf("Run = %v", err)
+	}
+	if poster.calls != 2 {
+		t.Fatalf("calls = %d, want the failed batch and the accepted one", poster.calls)
+	}
+	for i, body := range poster.bodies {
+		var sent batch
+		if err := json.Unmarshal(body, &sent); err != nil {
+			t.Fatal(err)
+		}
+		var handoffs, plans []string
+		for _, h := range sent.Handoffs {
+			handoffs = append(handoffs, h.Path)
+		}
+		for _, p := range sent.Plans {
+			plans = append(plans, *p.Path)
+		}
+		if strings.Join(handoffs, ",") != "feature/notes.md" || strings.Join(plans, ",") != "docs/plans/spec.md" {
+			t.Errorf("batch %d carries handoffs %v and plans %v, want only feature/notes.md and docs/plans/spec.md", i, handoffs, plans)
+		}
+		if strings.Contains(string(body), `\u0000`) {
+			t.Errorf("batch %d carries a NUL character", i)
+		}
+	}
+	cur := (&run{}).readCursor(dir, flowSession)
+	for _, rel := range []string{"feature/picture.png", "feature/late.txt", "feature/notes.md"} {
+		if _, ok := cur.Handoffs[rel]; !ok {
+			t.Errorf("cursor handoffs = %v, want %s counted as sent", cur.Handoffs, rel)
+		}
+	}
+	for _, rel := range []string{"files/docs/plans/broken.md", "files/docs/plans/spec.md"} {
+		if _, ok := cur.Plans[rel]; !ok {
+			t.Errorf("cursor plans = %v, want %s counted as sent", cur.Plans, rel)
+		}
+	}
+	log := logText(t, state)
+	for _, line := range []string{
+		"handoff feature/picture.png is a binary file (it holds a NUL byte), not sent",
+		"handoff feature/late.txt is a binary file (it holds a NUL byte), not sent",
+		"plan files/docs/plans/broken.md is a binary file (it holds a NUL byte), not sent",
+	} {
+		if n := strings.Count(log, flowSession+": "+line); n != 1 {
+			t.Errorf("%q logged %d times over two rounds, want once, log:\n%s", line, n, log)
+		}
+	}
+}
+
+// A session whose batch Kaya fails must not keep the sessions after it from being sent in the
+// same round.
+func TestAFailingSessionDoesNotHoldBackTheSessionsAfterIt(t *testing.T) {
+	state := flowEnv(t)
+	first, second := flowSession, "22222222-aaaa-4bbb-8ccc-0000000000f2"
+	firstDir := queueSession(t, state, first, 1, false)
+	secondDir := queueSession(t, state, second, 2, false)
+	clock := &fakeClock{now: time.Unix(1_800_000_000, 0)}
+	poster := &sessionPoster{clock: clock, refuse: map[string]error{first: &client.APIError{Status: 500, Code: "GEN_INT_001"}}}
+	cfg := flowConfig(clock, poster)
+	cfg.Once = true
+	if err := Run(context.Background(), cfg); err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.Join(poster.sessions(), ","); got != first+","+second {
+		t.Fatalf("sent %s, want %s and then %s", got, first, second)
+	}
+	if cur := (&run{}).readCursor(secondDir, second); cur.AcknowledgedSeq != 2 {
+		t.Errorf("cursor of the second session = %+v, want seq 2 acknowledged", cur)
+	}
+	if cur := (&run{}).readCursor(firstDir, first); cur.AcknowledgedSeq != 0 || cur.Parked != nil {
+		t.Errorf("cursor of the failing session = %+v, want queued and not parked", cur)
+	}
+	if line := first + ": Kaya answered 500 GEN_INT_001; retrying in 2 s"; !strings.Contains(logText(t, state), line) {
+		t.Errorf("log lacks %q:\n%s", line, logText(t, state))
+	}
+}
+
+// An answer that every session would meet alike still ends the round, also after a session whose
+// own batch failed: a refused token stops the sender, and an unreachable or rate limiting Kaya
+// backs it off.
+func TestAnAnswerForEverySessionStillEndsTheRound(t *testing.T) {
+	for name, tc := range map[string]struct {
+		answer  error
+		log     string
+		refused bool
+	}{
+		"token refused":    {&client.APIError{Status: 401, Code: "KAY_SEC_003"}, "stopped: Kaya refused the token (KAY_SEC_003); set a new token", true},
+		"Kaya unreachable": {errors.New("connection refused"), "Kaya unreachable: connection refused; retrying in 2 s", false},
+		"rate limited":     {&client.APIError{Status: 429, Code: "KAY_SEC_004"}, "Kaya answered 429 KAY_SEC_004; retrying in 2 s", false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			state := flowEnv(t)
+			ids := []string{flowSession, "22222222-aaaa-4bbb-8ccc-0000000000f2", "33333333-aaaa-4bbb-8ccc-0000000000f3"}
+			for _, id := range ids {
+				queueSession(t, state, id, 1, false)
+			}
+			clock := &fakeClock{now: time.Unix(1_800_000_000, 0)}
+			poster := &sessionPoster{clock: clock, refuse: map[string]error{ids[0]: &client.APIError{Status: 500}, ids[1]: tc.answer}}
+			cfg := flowConfig(clock, poster)
+			cfg.Once = true
+			if err := Run(context.Background(), cfg); err != nil {
+				t.Fatal(err)
+			}
+			if got := strings.Join(poster.sessions(), ","); got != ids[0]+","+ids[1] {
+				t.Fatalf("sent %s, want %s and %s, and nothing after the answer for every session", got, ids[0], ids[1])
+			}
+			if !strings.Contains(logText(t, state), tc.log) {
+				t.Errorf("log lacks %q:\n%s", tc.log, logText(t, state))
+			}
+			var saved map[string]any
+			if _, err := readJSON(filepath.Join(state, capture.StateFile), &saved); err != nil {
+				t.Fatal(err)
+			}
+			if refused := saved["token"] == tokenRefused; refused != tc.refused {
+				t.Errorf("state = %v, want the token refused: %v", saved, tc.refused)
+			}
+		})
 	}
 }

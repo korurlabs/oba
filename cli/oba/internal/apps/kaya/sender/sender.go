@@ -4,13 +4,15 @@
 // Every two seconds it sends, per session, the events after the session's acknowledged seq (at
 // most 500), the handoff and plan snapshots changed since Kaya last acknowledged them and the
 // session's usage file, and keeps what Kaya acknowledged in the session's cursor.json, so it
-// replays in order after an outage; Kaya stores each seq once. A 403 KAY_SEC_007 (the refusal of
-// older Kaya releases for a git email that no user of the organization held), a 429, a 5xx and a
-// network error back off from 2 s to 5 min and keep the session queued. A 401 stops the sender
-// until the token changes. A session whose batch Kaya refuses for its content (400, 409, 413, 422)
-// is parked until the token changes; one parked after the machine name refusal of an older Kaya
-// release (KAY_VAL_005) is also sent once more by another oba version. One sender runs per
-// machine: it holds sender.lock. It exits after ten idle minutes.
+// replays in order after an outage; Kaya stores each seq once. A 429 and a network error back the
+// whole sender off from 2 s to 5 min. A 5xx and a 403 KAY_SEC_007 (the refusal of older Kaya
+// releases for a git email that no user of the organization held) answer one session's batch, so
+// that session alone backs off the same way while the others are sent. Either way the session
+// stays queued. A 401 stops the sender until the token changes. A session whose batch Kaya
+// refuses for its content (400, 409, 413, 422) is parked until the token changes; one parked after
+// the machine name refusal of an older Kaya release (KAY_VAL_005) is also sent once more by
+// another oba version. One sender runs per machine: it holds sender.lock. It exits after ten
+// minutes without a sent batch while no session waits for a retry.
 //
 // The token is only ever put in the Authorization header: it is never logged, never written to
 // disk, and never sent over plain http except to a loopback address. state.json keeps a one-way
@@ -27,6 +29,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -106,10 +109,24 @@ type stopError struct{ reason string }
 
 func (e *stopError) Error() string { return e.reason }
 
-// retryError ends the round: Kaya cannot take the batch now and the sender backs off.
+// retryError ends the round: Kaya cannot take any batch now and the sender backs off.
 type retryError struct{ reason string }
 
 func (e *retryError) Error() string { return e.reason }
+
+// sessionRetryError ends a session's turn in the round: Kaya could not take this session's batch,
+// which says nothing about the batches of the others. The session backs off on its own and the
+// round goes on with the next one.
+type sessionRetryError struct{ reason string }
+
+func (e *sessionRetryError) Error() string { return e.reason }
+
+// sessionRetry is when a session whose batch Kaya could not take is sent again, and the wait that
+// led there.
+type sessionRetry struct {
+	at   time.Time
+	wait time.Duration
+}
 
 // run is one sender process.
 type run struct {
@@ -122,6 +139,8 @@ type run struct {
 	now      func() time.Time
 	hostname func() (string, error)
 	reported map[string]bool
+	// retries are the sessions that wait before their batch is sent again.
+	retries map[string]sessionRetry
 	// unresolvedHosts are the ssh hosts the resolver could not resolve in this run.
 	unresolvedHosts map[string]bool
 }
@@ -170,7 +189,7 @@ func Run(ctx context.Context, cfg Config) error {
 		return err
 	}
 
-	s := &run{stateDir: stateDir, version: cfg.Version, now: cfg.Now, hostname: cfg.Hostname, resolver: cfg.Resolver, reported: map[string]bool{}, unresolvedHosts: map[string]bool{}}
+	s := &run{stateDir: stateDir, version: cfg.Version, now: cfg.Now, hostname: cfg.Hostname, resolver: cfg.Resolver, reported: map[string]bool{}, retries: map[string]sessionRetry{}, unresolvedHosts: map[string]bool{}}
 	if s.now == nil {
 		s.now = time.Now
 	}
@@ -245,7 +264,8 @@ func (s *run) loop(ctx context.Context, once bool, sleep func(context.Context, t
 		if once {
 			return nil
 		}
-		if s.now().Sub(lastSent) >= idleExit {
+		// A session that waits for its retry keeps the sender running, as an unreachable Kaya does.
+		if len(s.retries) == 0 && s.now().Sub(lastSent) >= idleExit {
 			s.log("idle for %d s, exiting", int(idleExit.Seconds()))
 			return nil
 		}
@@ -285,20 +305,37 @@ func (s *run) sessionIDs() ([]string, error) {
 	return ids, nil
 }
 
-// sendRound is one pass over every queued session; it returns the number of batches Kaya took.
+// sendRound is one pass over every queued session; it returns the number of batches Kaya took. A
+// session whose batch Kaya could not take is skipped until its retry is due, so it never holds
+// back the sessions after it; only an error every session would meet alike ends the round.
 func (s *run) sendRound(ctx context.Context) (int, error) {
 	ids, err := s.sessionIDs()
 	if err != nil {
 		return 0, err
 	}
+	// A session that left the queue waits for nothing.
+	for id := range s.retries {
+		if !slices.Contains(ids, id) {
+			delete(s.retries, id)
+		}
+	}
 	sent := 0
 	for _, id := range ids {
+		if retry, waiting := s.retries[id]; waiting && s.now().Before(retry.at) {
+			continue
+		}
 		dir := capture.SessionDir(s.stateDir, id)
 		for range batchesPerSessionRound {
 			ok, err := s.sendSession(ctx, dir, id)
+			var later *sessionRetryError
+			if errors.As(err, &later) {
+				s.retryLater(id, later.reason)
+				break
+			}
 			if err != nil {
 				return sent, err
 			}
+			delete(s.retries, id)
 			if !ok {
 				break
 			}
@@ -307,6 +344,18 @@ func (s *run) sendRound(ctx context.Context) (int, error) {
 		s.prune(dir, id)
 	}
 	return sent, nil
+}
+
+// retryLater makes a session whose batch Kaya could not take wait before it is sent again: 2 s
+// after the first failure, twice as long after each next one, up to 5 min, as the sender waits for
+// an unreachable Kaya.
+func (s *run) retryLater(sessionID, reason string) {
+	wait := backoffMin
+	if previous, ok := s.retries[sessionID]; ok {
+		wait = min(previous.wait*2, backoffMax)
+	}
+	s.retries[sessionID] = sessionRetry{at: s.now().Add(wait), wait: wait}
+	s.log("%s: %s; retrying in %d s", sessionID, reason, int(wait.Seconds()))
 }
 
 // sendSession sends one batch of a session; ok is true when Kaya took one.
@@ -368,9 +417,14 @@ func (s *run) sendSession(ctx context.Context, dir, sessionID string) (bool, err
 		return false, writeCursor(dir, cur)
 	case apiErr.Status == 403 && apiErr.Code == codeUnknownGit:
 		// An older Kaya release refused the session's git email. The batch stays queued and goes
-		// out once Kaya is updated; parking would need a new token instead.
+		// out once Kaya is updated; parking would need a new token instead. Other sessions may
+		// carry an email Kaya knows, so only this one waits.
 		email, _ := apiErr.ErrorValues["gitAuthorEmail"].(string)
-		return false, &retryError{reason: fmt.Sprintf("Kaya answered %s: no Kaya user holds the git author email %q", answer, email)}
+		return false, &sessionRetryError{reason: fmt.Sprintf("Kaya answered %s: no Kaya user holds the git author email %q", answer, email)}
+	case apiErr.Status >= 500:
+		// Kaya failed on this batch, as it does on content it cannot store; the batches of other
+		// sessions may still go through.
+		return false, &sessionRetryError{reason: "Kaya answered " + answer}
 	}
 	return false, &retryError{reason: "Kaya answered " + answer}
 }

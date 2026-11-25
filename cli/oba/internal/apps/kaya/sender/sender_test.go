@@ -239,7 +239,7 @@ func replayScenario(t *testing.T, dir string, c corpusCase, sc scenario) {
 			wantRequests = append(wantRequests, map[string]any{"method": req.Method, "path": req.Path, "contentType": req.ContentType, "body": body})
 		}
 		compareJSON(t, fmt.Sprintf("run %d requests", i), wantRequests, gotRequests)
-		compareLog(t, i, expand(stringsAny(w.Log), subst), readLog(t, logPath))
+		compareLog(t, i, c.SessionID, expand(stringsAny(w.Log), subst), readLog(t, logPath))
 		for _, name := range []string{logPath, filepath.Join(state, capture.StateFile)} {
 			if data, err := os.ReadFile(name); err == nil && bytes.Contains(data, []byte(token)) {
 				t.Errorf("run %d: %s holds the token", i, name)
@@ -399,7 +399,7 @@ func readLog(t *testing.T, path string) []string {
 // compareLog compares the log lines where the CLI words them as the recorder did. Where the CLI
 // says more or the Go library words an error differently, the line must still name the same
 // thing.
-func compareLog(t *testing.T, run int, wantAny any, got []string) {
+func compareLog(t *testing.T, run int, sessionID string, wantAny any, got []string) {
 	t.Helper()
 	var want []string
 	for _, line := range wantAny.([]any) {
@@ -424,6 +424,11 @@ func compareLog(t *testing.T, run int, wantAny any, got []string) {
 		case strings.Contains(w, "unreadable, reported as UNVERIFIED:"):
 			w, _, _ = strings.Cut(w, "UNVERIFIED:")
 			g, _, _ = strings.Cut(g, "UNVERIFIED:")
+		}
+		// A 5xx and the git email refusal answer one session's batch: only that session backs
+		// off, and the line names it.
+		if strings.HasPrefix(w, "Kaya answered 5") || strings.HasPrefix(w, "Kaya answered 403 "+codeUnknownGit) {
+			w = sessionID + ": " + w
 		}
 		if w != g {
 			t.Errorf("run %d: log line %d\n got %q\nwant %q", run, i, got[i], want[i])

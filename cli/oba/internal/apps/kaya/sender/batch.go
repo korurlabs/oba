@@ -331,11 +331,40 @@ func changedPlans(dir string, sent map[string]int64, limit int) ([]snapshot, err
 	return found[:min(len(found), limit)], err
 }
 
-// readText reads a snapshot as text; bytes that are not UTF-8 become U+FFFD, one for each byte.
+// binaryFirstBytes is how far into a file git looks for a NUL byte to judge it binary:
+// FIRST_FEW_BYTES of buffer_is_binary,
+// https://github.com/git/git/blob/77904e546de3bd940621092ecec47a88d0cede5d/xdiff-interface.c#L198-L204
+const binaryFirstBytes = 8000
+
+// errBinary is the error of a snapshot that is a binary file, such as an image kept beside the
+// notes of a handoff directory. Kaya stores snapshots as PostgreSQL text, which cannot hold
+// U+0000, so one such file would make it fail the whole batch.
+var errBinary = errors.New("a binary file (it holds a NUL byte)")
+
+// readText reads a snapshot as text; bytes that are not UTF-8 become U+FFFD, one for each byte. A
+// file with a NUL byte is binary and gives errBinary. As in git, the first 8000 bytes decide most
+// files without reading a large image or video to its end; the rest is checked as well, because
+// Kaya cannot store a NUL byte anywhere.
 func readText(path string) (string, error) {
-	data, err := os.ReadFile(path) // #nosec G304 -- a snapshot in the session's queue directory
+	file, err := os.Open(path) // #nosec G304 -- a snapshot in the session's queue directory
 	if err != nil {
 		return "", err
+	}
+	defer func() { _ = file.Close() }()
+	reader := bufio.NewReaderSize(file, binaryFirstBytes)
+	head, err := reader.Peek(binaryFirstBytes)
+	if err != nil && !errors.Is(err, io.EOF) {
+		return "", err
+	}
+	if bytes.IndexByte(head, 0) >= 0 {
+		return "", errBinary
+	}
+	data, err := io.ReadAll(reader)
+	if err != nil {
+		return "", err
+	}
+	if bytes.IndexByte(data[len(head):], 0) >= 0 {
+		return "", errBinary
 	}
 	if utf8.Valid(data) {
 		return string(data), nil
@@ -635,6 +664,12 @@ func (s *run) buildBatch(dir, sessionID string, cur *cursor) (*batch, *carried, 
 	}
 	for _, item := range changed {
 		entry, err := handoffOf(dir, item)
+		if errors.Is(err, errBinary) {
+			// Kaya cannot store it; it counts as sent and is looked at again only once it changes.
+			s.reportOnce(sessionID, "binary:handoffs/"+item.rel, fmt.Sprintf("handoff %s is %v, not sent", item.rel, err))
+			what.handoffs = append(what.handoffs, item)
+			continue
+		}
 		if err != nil {
 			s.log("%s: handoff %s unreadable, skipped: %v", sessionID, item.rel, err)
 			continue
@@ -651,6 +686,12 @@ func (s *run) buildBatch(dir, sessionID string, cur *cursor) (*batch, *carried, 
 	}
 	for _, item := range changed {
 		entry, ok, err := planOf(dir, item)
+		if errors.Is(err, errBinary) {
+			// Kaya cannot store it; it counts as sent and is looked at again only once it changes.
+			s.reportOnce(sessionID, "binary:plans/"+item.rel, fmt.Sprintf("plan %s is %v, not sent", item.rel, err))
+			what.plans = append(what.plans, item)
+			continue
+		}
 		if err != nil {
 			s.log("%s: plan %s unreadable, skipped: %v", sessionID, item.rel, err)
 			continue
