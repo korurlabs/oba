@@ -188,6 +188,7 @@ export function useSetAgentRoutine(organizationId: string, options?: AgentFormMu
   return useMutation({
     mutationFn: ({ agentId, data }: { agentId: string; data: AgentRoutineRequest }) =>
       setAgentRoutine(organizationId, agentId, data),
+    gcTime: 0,
     onSuccess: () => {
       toast.success(t("routine.setSuccess"));
       return queryClient.invalidateQueries({ queryKey: AGENT_KEYS.list(organizationId) });
