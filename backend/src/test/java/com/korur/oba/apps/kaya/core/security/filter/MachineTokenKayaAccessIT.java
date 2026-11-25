@@ -8,6 +8,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
@@ -20,6 +21,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -28,14 +30,15 @@ import java.util.regex.Pattern;
 // 4. Internal
 import com.korur.oba.apps.kaya.support.AbstractIngestIT;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * The machine-token filter closes every delivery path to a token whose user has no Kaya grant, whatever
- * the spelling of the path, and keeps ingest open: a plain path and a percent-encoded path both answer
- * 403 APP_SEC_001 on delivery and pass the filter on ingest.
+ * The request access check closes every delivery handler to a machine token whose user has no Kaya
+ * grant, whatever the spelling of the path, and the token chain keeps ingest open: a plain path and a
+ * percent-encoded path both answer 403 APP_SEC_001 on delivery and are accepted on ingest.
  */
 class MachineTokenKayaAccessIT extends AbstractIngestIT {
 
@@ -65,7 +68,7 @@ class MachineTokenKayaAccessIT extends AbstractIngestIT {
                 if (!pattern.startsWith("/kaya/delivery")) {
                     continue;
                 }
-                var methods = entry.getKey().getMethodsCondition().getMethods();
+                Set<RequestMethod> methods = entry.getKey().getMethodsCondition().getMethods();
                 HttpMethod method = methods.isEmpty() ? HttpMethod.GET : HttpMethod.valueOf(methods.iterator().next().name());
                 if (seen.add(method + " " + pattern)) {
                     calls.add(new Call(method, pattern));
@@ -132,12 +135,12 @@ class MachineTokenKayaAccessIT extends AbstractIngestIT {
     void deliveryPaths_encodedProposalsAndLessons_answer403AppAccessDenied() throws Exception {
         Machine machine = machineWithoutKaya();
 
-        for (String path : List.of("/kaya/%64elivery/proposals", "/kaya/delivery/%6cessons/" + UUID.randomUUID(),
-                "/kaya/delivery/proposals")) {
-            mockMvc.perform(MockMvcRequestBuilders.get(URI.create(path)).header("Authorization", "Bearer " + machine.token()))
-                    .andExpect(status().isForbidden());
-            MvcResult result = call(machine, HttpMethod.GET, path);
-            assertTrue(result.getResponse().getContentAsString().contains(APP_ACCESS_DENIED), path);
+        for (Call call : List.of(new Call(HttpMethod.POST, "/kaya/%64elivery/proposals"),
+                new Call(HttpMethod.GET, "/kaya/delivery/%6cessons/" + UUID.randomUUID()),
+                new Call(HttpMethod.POST, "/kaya/delivery/proposals"))) {
+            MvcResult result = call(machine, call.method(), call.template());
+            assertEquals(403, result.getResponse().getStatus(), call.template());
+            assertTrue(result.getResponse().getContentAsString().contains(APP_ACCESS_DENIED), call.template());
         }
     }
 

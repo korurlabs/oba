@@ -8,6 +8,7 @@ package com.korur.oba.apps.kaya.machine.dto;
 import java.util.UUID;
 
 // 4. Internal
+import com.korur.oba.dojo.security.token.dto.ApiTokenPrincipal;
 
 /**
  * The caller of a machine token path: a live token of an ACTIVE machine. Ingest attributes every
@@ -25,5 +26,5 @@ public record MachinePrincipal(
         UUID machineId,
         UUID tokenId,
         String machineName
-) {
+) implements ApiTokenPrincipal {
 }

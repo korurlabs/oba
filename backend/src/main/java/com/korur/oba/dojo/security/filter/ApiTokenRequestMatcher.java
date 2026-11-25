@@ -1,9 +1,8 @@
-package com.korur.oba.dojo.security.token.filter;
+package com.korur.oba.dojo.security.filter;
 
 // 1. Framework-level
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.web.util.UrlPathHelper;
 
 // 2. Third-party
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,7 +10,8 @@ import jakarta.servlet.http.HttpServletRequest;
 // 3. Java SDK
 
 // 4. Internal
-import com.korur.oba.dojo.security.token.constant.ApiTokenConstant;
+import com.korur.oba.dojo.security.constant.SecurityConstant;
+import com.korur.oba.dojo.security.helper.RequestPathHelper;
 import com.korur.oba.dojo.security.token.helper.ApiTokenKindRegistry;
 
 /**
@@ -19,8 +19,8 @@ import com.korur.oba.dojo.security.token.helper.ApiTokenKindRegistry;
  * any path, and any request on a path a kind reserves, whatever its credential, so a JWT sent there is
  * refused by the token filter instead of being accepted by the JWT chain.
  *
- * The path is the decoded path within the application, the same path the MVC routing matches, so an
- * encoded form of a reserved path is selected too.
+ * The path is the one of {@link RequestPathHelper}, the same path the MVC routing matches, so an encoded
+ * form of a reserved path is selected too.
  */
 public class ApiTokenRequestMatcher implements RequestMatcher {
 
@@ -33,7 +33,7 @@ public class ApiTokenRequestMatcher implements RequestMatcher {
     @Override
     public boolean matches(HttpServletRequest request) {
         return apiTokenKindRegistry.findByToken(bearerToken(request)).isPresent()
-                || apiTokenKindRegistry.findByReservedPath(pathWithinApplication(request)).isPresent();
+                || apiTokenKindRegistry.findByReservedPath(RequestPathHelper.pathWithinApplication(request)).isPresent();
     }
 
     /**
@@ -44,17 +44,9 @@ public class ApiTokenRequestMatcher implements RequestMatcher {
      */
     static String bearerToken(HttpServletRequest request) {
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (header == null || !header.startsWith(ApiTokenConstant.AUTHORIZATION_BEARER_PREFIX)) {
+        if (header == null || !header.startsWith(SecurityConstant.AUTHORIZATION_BEARER_PREFIX)) {
             return null;
         }
-        return header.substring(ApiTokenConstant.AUTHORIZATION_BEARER_PREFIX.length()).trim();
-    }
-
-    /**
-     * @param request the request
-     * @return the decoded path without the context path
-     */
-    static String pathWithinApplication(HttpServletRequest request) {
-        return UrlPathHelper.defaultInstance.getPathWithinApplication(request);
+        return header.substring(SecurityConstant.AUTHORIZATION_BEARER_PREFIX.length()).trim();
     }
 }

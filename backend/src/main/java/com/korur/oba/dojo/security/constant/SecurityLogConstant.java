@@ -46,10 +46,12 @@ public final class SecurityLogConstant {
     public static final String API_TOKEN_BODY_TOO_LARGE = "Body of {} {} with token {} exceeds {} bytes";
     public static final String API_TOKEN_ERROR_WRITE_FAILED = "Could not write the error response of {} {}";
 
-    // --- Machine token filter ---
-    public static final String MACHINE_TOKEN_MISSING = "Machine token path {} {} called without a bearer token";
-    public static final String MACHINE_TOKEN_REFUSED = "Machine token refused on {} {}: {}";
-    public static final String MACHINE_TOKEN_AUTHENTICATED = "Machine token {} of machine {} authenticated on {} {}";
-    public static final String MACHINE_BODY_TOO_LARGE = "Body of {} {} from machine {} exceeds {} bytes";
-    public static final String MACHINE_ERROR_WRITE_FAILED = "Could not write the error response of {} {}";
+    // --- Kaya machine token kind ---
+    public static final String MACHINE_NOT_ACTIVE = "KAYA_MACHINE token {} refused: machine {} of organization {} is not ACTIVE";
+
+    // --- Alertmanager webhook filter: one line per call with the method, the URI, the remote address and
+    // the outcome; the bearer token is never part of it ---
+    public static final String WEBHOOK_AUTHENTICATION = "Alertmanager webhook {} {} from {}: {}";
+    public static final String OUTCOME_AUTHENTICATED = "AUTHENTICATED";
+    public static final String OUTCOME_REJECTED = "REJECTED";
 }

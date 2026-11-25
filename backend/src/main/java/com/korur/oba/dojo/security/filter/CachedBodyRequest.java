@@ -1,4 +1,4 @@
-package com.korur.oba.dojo.security.token.filter;
+package com.korur.oba.dojo.security.filter;
 
 // 1. Framework-level
 
@@ -21,11 +21,11 @@ import java.nio.charset.StandardCharsets;
  * A request whose body the API token filter already read, within the body limit of the token's
  * kind. The body is served again from memory so the controller can bind it as usual.
  */
-class ApiTokenCachedBodyRequest extends HttpServletRequestWrapper {
+class CachedBodyRequest extends HttpServletRequestWrapper {
 
     private final byte[] body;
 
-    ApiTokenCachedBodyRequest(HttpServletRequest request, byte[] body) {
+    CachedBodyRequest(HttpServletRequest request, byte[] body) {
         super(request);
         this.body = body;
     }

@@ -1,4 +1,4 @@
-package com.korur.oba.connect.alertmanager.filter;
+package com.korur.oba.dojo.security.filter;
 
 // 1. Framework-level
 import org.junit.jupiter.api.AfterEach;
@@ -26,12 +26,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.connect.alertmanager.constant.AlertmanagerConstant;
-import com.korur.oba.connect.alertmanager.constant.security.AlertmanagerSecurityLogConstant;
 import com.korur.oba.connect.alertmanager.dto.AlertmanagerPrincipal;
 import com.korur.oba.connect.alertmanager.validator.AlertmanagerTokenValidator;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.dojo.security.constant.SecurityConstant;
+import com.korur.oba.dojo.security.constant.SecurityLogConstant;
 
 @ExtendWith(MockitoExtension.class)
 class AlertmanagerAuthenticationFilterUnitTest {
@@ -87,9 +87,9 @@ class AlertmanagerAuthenticationFilterUnitTest {
         assertThat(authentication.getPrincipal()).isEqualTo(new AlertmanagerPrincipal(organizationId));
         assertThat(authentication.getAuthorities())
                 .extracting(Object::toString)
-                .containsExactly(AlertmanagerConstant.AUTHORITY_INTEGRATION_ALERTMANAGER);
+                .containsExactly(SecurityConstant.AUTHORITY_INTEGRATION_ALERTMANAGER);
         assertThat(chain.getRequest()).isSameAs(request);
-        assertLoggedOutcome(AlertmanagerSecurityLogConstant.OUTCOME_AUTHENTICATED);
+        assertLoggedOutcome(SecurityLogConstant.OUTCOME_AUTHENTICATED);
     }
 
     @Test
@@ -100,6 +100,6 @@ class AlertmanagerAuthenticationFilterUnitTest {
 
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
         assertThat(chain.getRequest()).isSameAs(request);
-        assertLoggedOutcome(AlertmanagerSecurityLogConstant.OUTCOME_REJECTED);
+        assertLoggedOutcome(SecurityLogConstant.OUTCOME_REJECTED);
     }
 }

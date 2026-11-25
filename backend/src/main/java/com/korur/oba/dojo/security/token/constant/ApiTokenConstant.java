@@ -36,8 +36,6 @@ public final class ApiTokenConstant {
     // A sender that posts every few seconds would otherwise rewrite the token row on every request
     public static final long MARK_USED_INTERVAL_SECONDS = 60;
 
-    // --- Request ---
-    public static final String AUTHORIZATION_BEARER_PREFIX = "Bearer ";
 
     // --- Field names of error values and log details ---
     public static final String FIELD_LIMIT_BYTES = "limitBytes";

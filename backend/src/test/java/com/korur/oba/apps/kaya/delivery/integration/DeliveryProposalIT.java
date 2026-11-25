@@ -423,7 +423,7 @@ class DeliveryProposalIT extends AbstractVersionIT {
 
         propose(token, 1, file("AGENTS.md", "# Agents v2\n"))
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.error.code").value("KAY_SEC_002"));
+                .andExpect(jsonPath("$.error.code").value("ORG_SEC_001"));
     }
 
     @Test
@@ -434,7 +434,7 @@ class DeliveryProposalIT extends AbstractVersionIT {
         propose(token, 1, file("AGENTS.md", "# Agents v2\n"))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.error.code").value("GEN_SEC_002"))
-                .andExpect(jsonPath("$.error.errorValues.userStatus").value("DISABLED"));
+                .andExpect(jsonPath("$.error.errorValues.status").value("DISABLED"));
         assertEquals(0L, count("SELECT count(*) FROM kaya.versions WHERE proposed_by = ?", developer.user().getId()));
     }
 

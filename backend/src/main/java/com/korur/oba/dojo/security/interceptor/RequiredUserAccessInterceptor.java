@@ -33,6 +33,7 @@ import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.dojo.security.annotation.RequiredUserAccess;
 import com.korur.oba.dojo.security.constant.SecurityConstant;
 import com.korur.oba.dojo.security.constant.SecurityLogConstant;
+import com.korur.oba.dojo.security.helper.RequestPathHelper;
 import com.korur.oba.dojo.security.token.authentication.ApiTokenAuthentication;
 import com.korur.oba.dojo.security.token.dto.ApiTokenPrincipal;
 import com.korur.oba.dojo.security.token.helper.ApiTokenKindRegistry;
@@ -109,9 +110,9 @@ public class RequiredUserAccessInterceptor implements HandlerInterceptor {
             return true;
         }
 
-        // getRequestURI() includes the servlet context path; strip it so the lists match the same
-        // context-relative path that the request mappings use.
-        String path = request.getRequestURI().substring(request.getContextPath().length());
+        // Decoded and context-relative, as the request mappings and the security chains match it, so an
+        // encoded form of a listed path is neither refused nor let past a rule.
+        String path = RequestPathHelper.pathWithinApplication(request);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         JwtAuthenticationToken jwtAuthentication = authentication instanceof JwtAuthenticationToken jwt ? jwt : null;
         ApiTokenAuthentication tokenAuthentication =

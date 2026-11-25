@@ -92,14 +92,6 @@ public interface MachineService {
     Machine recordSeen(MachinePrincipal principal, String claudeCodeVersion, Account account);
 
     /**
-     * Records the use of a token, at most once a minute, in its own transaction, so a request
-     * refused later still shows the token as used.
-     *
-     * @param tokenId the token that authenticated the request
-     */
-    void markTokenUsed(UUID tokenId);
-
-    /**
      * Stores the usage limits a batch carried as the machine's snapshot, unless the stored one was
      * captured later. capturedAt is clamped to the receive time. A snapshot without any window
      * stores nothing.

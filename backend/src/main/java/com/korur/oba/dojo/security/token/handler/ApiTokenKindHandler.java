@@ -17,8 +17,9 @@ import com.korur.oba.dojo.security.token.entity.ApiToken;
 import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
 
 /**
- * What one token kind adds to the shared token mechanism. Each kind implements it as a bean beside its
- * subject, so the security layer never imports an app; a kind without a bean is not accepted at all.
+ * What one token kind adds to the shared token mechanism. Each kind implements it as a bean in this
+ * package, so every credential rule of the application lives in the security layer, and reads its subject
+ * through the subject owner's query service; a kind without a bean is not accepted at all.
  *
  * The token chain authenticates a request with the kind's token, refuses it with the kind's error,
  * applies the body limit and sets the principal. The request access check then applies the handler's

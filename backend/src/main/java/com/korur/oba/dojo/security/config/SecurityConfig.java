@@ -27,8 +27,9 @@ public class SecurityConfig {
     /**
      * Main chain for every request no earlier chain matched, authenticated by a
      * Keycloak JWT. Chains with their own credentials, the Alertmanager webhook
-     * chain (order 1) and the Kaya agent token chain (order 2), are ordered before
-     * it, so their paths never reach the JWT decoder.
+     * chain of {@link AlertmanagerSecurityConfig} (order 1) and the API token chain
+     * of {@link ApiTokenSecurityConfig} (order 2), are ordered before it, so their
+     * tokens and reserved paths never reach the JWT decoder.
      */
     @Bean
     @Order(3)

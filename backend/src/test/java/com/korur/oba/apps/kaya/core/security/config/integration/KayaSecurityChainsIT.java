@@ -18,15 +18,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * The three filter chains of the Oba API side by side: the Alertmanager webhook chain, the Kaya
- * machine-token chain on /kaya/ingest and /kaya/delivery, and the JWT chain for everything else.
- * A Keycloak JWT is refused on the machine-token paths with the machine code, and a machine token is
- * refused on every JWT path and on the webhook path.
+ * The three filter chains of the Oba API side by side: the Alertmanager webhook chain, the API-token
+ * chain that serves the Kaya machine token on /kaya/ingest and /kaya/delivery, and the JWT chain for
+ * everything else. A Keycloak JWT is refused on the machine-token paths with the machine code, and a
+ * machine token is refused with the same code on every other path, because the token opens only the
+ * paths its kind reserves; the webhook chain refuses it with its own answer.
  */
 class KayaSecurityChainsIT extends AbstractIngestIT {
 
     private static final String MACHINE_REFUSED = "KAY_SEC_003";
-    private static final String JWT_REFUSED = "GEN_SEC_002";
 
     private Machine newMachine() throws Exception {
         Tenant tenant = newTenant();
@@ -69,31 +69,31 @@ class KayaSecurityChainsIT extends AbstractIngestIT {
     }
 
     @Test
-    void jwtPath_machineToken_isRefusedByTheJwtChain() throws Exception {
+    void jwtPath_machineToken_isRefusedWithTheMachineCode() throws Exception {
         Machine machine = newMachine();
 
         mockMvc.perform(get("/kaya/sessions").header("Authorization", "Bearer " + machine.token()))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error.code").value(JWT_REFUSED));
+                .andExpect(jsonPath("$.error.code").value(MACHINE_REFUSED));
     }
 
     @Test
-    void jwtPathOutsideKaya_machineToken_isRefusedByTheJwtChain() throws Exception {
+    void jwtPathOutsideKaya_machineToken_isRefusedWithTheMachineCode() throws Exception {
         Machine machine = newMachine();
 
         mockMvc.perform(get("/users/me").header("Authorization", "Bearer " + machine.token()))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error.code").value(JWT_REFUSED));
+                .andExpect(jsonPath("$.error.code").value(MACHINE_REFUSED));
     }
 
     @Test
-    void machineRegistration_machineToken_isRefusedByTheJwtChain() throws Exception {
+    void machineRegistration_machineToken_isRefusedWithTheMachineCode() throws Exception {
         Machine machine = newMachine();
 
         mockMvc.perform(post("/kaya/machines").header("Authorization", "Bearer " + machine.token())
                         .contentType(MediaType.APPLICATION_JSON).content("{\"machineName\":\"other\"}"))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error.code").value(JWT_REFUSED));
+                .andExpect(jsonPath("$.error.code").value(MACHINE_REFUSED));
     }
 
     @Test
