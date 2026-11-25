@@ -1168,6 +1168,14 @@ func TestDoctorProbe_leavesTheProofAloneWhenItProvesNothing(t *testing.T) {
 			},
 			detail: "settings.local.json registers oba kaya hook record",
 		},
+		"a project file registers the record hook in another spelling": {
+			change: func(t *testing.T, e *doctorEnv) {
+				writeExecutable(t, e.bin, "claude", fakeClaude)
+				writeTestFile(t, filepath.Join(e.root, ".claude", "settings.json"),
+					`{"hooks": {"Stop": [{"hooks": [{"type": "command", "command": "'/opt/my tools/oba'  kaya \"hook\"\trecord"}]}]}}`)
+			},
+			detail: "settings.json registers oba kaya hook record",
+		},
 		"a checkout Kaya does not list": {
 			change: func(t *testing.T, e *doctorEnv) {
 				writeExecutable(t, e.bin, "claude", fakeClaude)

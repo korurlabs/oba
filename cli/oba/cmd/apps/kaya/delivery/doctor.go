@@ -966,7 +966,7 @@ func (d *doctor) probe() {
 }
 
 // projectRecordHook names the project settings file of the checkout that registers Kaya's record
-// hook; empty when none does.
+// hook, in any spelling the shell runs as that command; empty when none does.
 func projectRecordHook(root string) (string, error) {
 	for _, name := range []string{"settings.json", "settings.local.json"} {
 		path := filepath.Join(root, ".claude", name)
@@ -977,7 +977,7 @@ func projectRecordHook(root string) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("read %s: %w", path, err)
 		}
-		if bytes.Contains(data, []byte("kaya hook record")) {
+		if install.RegistersRecordHook(data) {
 			return path, nil
 		}
 	}
