@@ -8,7 +8,9 @@
 // 5xx but 500, such as the 502, 503 or 504 of a gateway while Kaya is down, back the whole sender
 // off from 2 s to 5 min. A 500 and a 403 KAY_SEC_007 (the refusal of older Kaya releases for a git
 // email that no user of the organization held) answer one session's batch, so that session alone
-// backs off the same way while the others are sent. Either way the session stays queued. A 401
+// backs off the same way while the others are sent. A 500 for a second session while Kaya takes
+// no batch is Kaya itself failing, so the whole sender backs off as for a gateway, and the next
+// round starts after that session. Either way the session stays queued. A 401
 // stops the sender until the token changes. A session whose batch Kaya refuses for its content
 // (400, 409, 413, 422) is parked until the token changes; one parked after
 // the machine name refusal of an older Kaya release (KAY_VAL_005) is also sent once more by
@@ -117,8 +119,12 @@ func (e *retryError) Error() string { return e.reason }
 
 // sessionRetryError ends a session's turn in the round: Kaya could not take this session's batch,
 // which says nothing about the batches of the others. The session backs off on its own and the
-// round goes on with the next one.
-type sessionRetryError struct{ reason string }
+// round goes on with the next one. failed marks a 500, Kaya failing on the batch, as opposed to a
+// refusal that names the session.
+type sessionRetryError struct {
+	reason string
+	failed bool
+}
 
 func (e *sessionRetryError) Error() string { return e.reason }
 
@@ -142,6 +148,11 @@ type run struct {
 	reported map[string]bool
 	// retries are the sessions that wait before their batch is sent again.
 	retries map[string]sessionRetry
+	// failing are the sessions whose batch Kaya answered with a 500 since it last took a batch.
+	failing map[string]bool
+	// resumeAfter is the session whose 500 ended the last round as a fault of Kaya itself; the
+	// next round starts after it.
+	resumeAfter string
 	// unresolvedHosts are the ssh hosts the resolver could not resolve in this run.
 	unresolvedHosts map[string]bool
 }
@@ -190,7 +201,7 @@ func Run(ctx context.Context, cfg Config) error {
 		return err
 	}
 
-	s := &run{stateDir: stateDir, version: cfg.Version, now: cfg.Now, hostname: cfg.Hostname, resolver: cfg.Resolver, reported: map[string]bool{}, retries: map[string]sessionRetry{}, unresolvedHosts: map[string]bool{}}
+	s := &run{stateDir: stateDir, version: cfg.Version, now: cfg.Now, hostname: cfg.Hostname, resolver: cfg.Resolver, reported: map[string]bool{}, retries: map[string]sessionRetry{}, failing: map[string]bool{}, unresolvedHosts: map[string]bool{}}
 	if s.now == nil {
 		s.now = time.Now
 	}
@@ -309,19 +320,31 @@ func (s *run) sessionIDs() ([]string, error) {
 // sendRound is one pass over every queued session; it returns the number of batches Kaya took. A
 // session whose batch Kaya could not take is skipped until its retry is due, so it never holds
 // back the sessions after it; only an error every session would meet alike ends the round.
+//
+// A 500 for a second session while Kaya has taken no batch, in this round or since the rounds
+// before, is such an error: Kaya itself fails, as after a deploy whose bug every request meets.
+// Sending each queued session into it would multiply the requests by the length of the queue, so
+// the round ends and the whole sender backs off as for a gateway: after the round that shows the
+// fault, one request per back-off step. One failing session among sessions Kaya takes still backs
+// off alone.
 func (s *run) sendRound(ctx context.Context) (int, error) {
 	ids, err := s.sessionIDs()
 	if err != nil {
 		return 0, err
 	}
-	// A session that left the queue waits for nothing.
+	// A session that left the queue waits for nothing and no longer counts as failing.
 	for id := range s.retries {
 		if !slices.Contains(ids, id) {
 			delete(s.retries, id)
 		}
 	}
+	for id := range s.failing {
+		if !slices.Contains(ids, id) {
+			delete(s.failing, id)
+		}
+	}
 	sent := 0
-	for _, id := range ids {
+	for _, id := range s.roundOrder(ids) {
 		if retry, waiting := s.retries[id]; waiting && s.now().Before(retry.at) {
 			continue
 		}
@@ -330,6 +353,15 @@ func (s *run) sendRound(ctx context.Context) (int, error) {
 			ok, err := s.sendSession(ctx, dir, id)
 			var later *sessionRetryError
 			if errors.As(err, &later) {
+				if later.failed {
+					s.failing[id] = true
+					if sent == 0 && len(s.failing) >= 2 {
+						// The session's own retry stays as it was, as for a gateway answer: the
+						// whole sender's back-off is the wait.
+						s.resumeAfter = id
+						return sent, &retryError{reason: fmt.Sprintf("%s for %d sessions and took no batch", later.reason, len(s.failing))}
+					}
+				}
 				s.retryLater(id, later.reason)
 				break
 			}
@@ -341,10 +373,27 @@ func (s *run) sendRound(ctx context.Context) (int, error) {
 				break
 			}
 			sent++
+			clear(s.failing)
 		}
 		s.prune(dir, id)
 	}
+	s.resumeAfter = ""
 	return sent, nil
+}
+
+// roundOrder is the order in which a round tries the queued sessions: name order, but after a
+// round that ended on a fault of Kaya itself it starts with the session after the one whose 500
+// ended it. A fault is judged on the first sessions a round tries, so without the turn two
+// sessions whose own batches fail, sorted first, would end every round before the others.
+func (s *run) roundOrder(ids []string) []string {
+	if s.resumeAfter == "" {
+		return ids
+	}
+	next, found := slices.BinarySearch(ids, s.resumeAfter)
+	if found {
+		next++
+	}
+	return slices.Concat(ids[next:], ids[:next])
 }
 
 // retryLater makes a session whose batch Kaya could not take wait before it is sent again: 2 s
@@ -425,7 +474,7 @@ func (s *run) sendSession(ctx context.Context, dir, sessionID string) (bool, err
 	case apiErr.Status == 500:
 		// Kaya failed on this batch, as it does on content it cannot store; the batches of other
 		// sessions may still go through.
-		return false, &sessionRetryError{reason: "Kaya answered " + answer}
+		return false, &sessionRetryError{reason: "Kaya answered " + answer, failed: true}
 	}
 	// Any other answer says nothing about this batch. A 502, 503 or 504 comes from the gateway
 	// while Kaya is down or overloaded, and a 429 from the limit of the machine token: every
