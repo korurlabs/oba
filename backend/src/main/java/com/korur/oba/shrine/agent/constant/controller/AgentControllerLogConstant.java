@@ -11,8 +11,8 @@ public final class AgentControllerLogConstant {
 
     public static final String AGENTS_LIST_REQUEST = "Agents list request: organizationId={}";
     public static final String AGENTS_LIST_REQUEST_COMPLETED = "Agents list request completed: organizationId={}, count={}";
-    public static final String AGENT_OPTIONS_REQUEST = "Agent options request: organizationId={}";
-    public static final String AGENT_OPTIONS_REQUEST_COMPLETED = "Agent options request completed: organizationId={}";
+    public static final String AGENT_OPTIONS_REQUEST = "Agent options request";
+    public static final String AGENT_OPTIONS_REQUEST_COMPLETED = "Agent options request completed";
     public static final String AGENT_CREATE_REQUEST = "Agent create request: organizationId={}, flow={}, provider={}";
     public static final String AGENT_CREATE_REQUEST_COMPLETED = "Agent create request completed: organizationId={}, agentId={}";
     public static final String AGENT_UPDATE_REQUEST = "Agent update request: organizationId={}, agentId={}";

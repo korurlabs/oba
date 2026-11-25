@@ -20,7 +20,12 @@ import com.korur.oba.shrine.identity.dto.response.UserDetailResponse;
 import com.korur.oba.shrine.identity.dto.response.embedded.UserOrganizationEmbeddedResponse;
 import com.korur.oba.shrine.identity.dto.request.embedded.UserProfileEmbeddedUpdateRequest;
 import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.shrine.identity.entity.embedded.UserAgentDetail;
 import com.korur.oba.shrine.identity.entity.embedded.UserProfile;
+import com.korur.oba.shrine.identity.enums.AgentFlow;
+import com.korur.oba.shrine.identity.enums.AgentProvider;
+import com.korur.oba.shrine.identity.enums.AgentRole;
+import com.korur.oba.shrine.identity.enums.UserKind;
 import com.korur.oba.shrine.identity.enums.UserStatus;
 import com.korur.oba.shrine.organization.entity.Organization;
 import com.korur.oba.shrine.organization.entity.OrganizationMember;
@@ -147,5 +152,50 @@ class UserMapperUnitTest {
         assertThat(response.organizations()).extracting(UserOrganizationEmbeddedResponse::apps)
                 .containsExactly(List.of(App.KAZAN), List.of(App.KAZAN, App.KAYA, App.KALKAN, App.OTAK));
         assertThat(response.pendingInvitations()).isEmpty();
+    }
+
+    @Test
+    void updateAgent_everyValue_setsNameRoleAndStatusOnly() {
+        User agent = agentUser();
+        UUID organizationId = agent.getAgentDetail().getOrganizationId();
+
+        userMapper.updateAgent(agent, "Renamed", AgentRole.SALES_ENGINEER, UserStatus.DISABLED);
+
+        assertThat(agent.getProfile().getFirstName()).isEqualTo("Renamed");
+        assertThat(agent.getAgentDetail().getRole()).isEqualTo(AgentRole.SALES_ENGINEER);
+        assertThat(agent.getStatus()).isEqualTo(UserStatus.DISABLED);
+        assertThat(agent.getAgentDetail().getFlow()).isEqualTo(AgentFlow.ROUTINE);
+        assertThat(agent.getAgentDetail().getProvider()).isEqualTo(AgentProvider.ANTHROPIC);
+        assertThat(agent.getAgentDetail().getOrganizationId()).isEqualTo(organizationId);
+        assertThat(agent.getEmail()).isEqualTo("agent@agents.oba.invalid");
+    }
+
+    @Test
+    void updateAgent_nullValues_leavesAgentUnchanged() {
+        User agent = agentUser();
+
+        userMapper.updateAgent(agent, null, null, null);
+
+        assertThat(agent.getProfile().getFirstName()).isEqualTo("Pentest agent");
+        assertThat(agent.getAgentDetail().getRole()).isEqualTo(AgentRole.CYBERSECURITY_ENGINEER);
+        assertThat(agent.getStatus()).isEqualTo(UserStatus.ACTIVE);
+    }
+
+    private static User agentUser() {
+        UserProfile profile = new UserProfile();
+        profile.setFirstName("Pentest agent");
+        return User.builder()
+                .id(UUID.randomUUID())
+                .email("agent@agents.oba.invalid")
+                .kind(UserKind.AGENT)
+                .status(UserStatus.ACTIVE)
+                .profile(profile)
+                .agentDetail(UserAgentDetail.builder()
+                        .role(AgentRole.CYBERSECURITY_ENGINEER)
+                        .flow(AgentFlow.ROUTINE)
+                        .provider(AgentProvider.ANTHROPIC)
+                        .organizationId(UUID.randomUUID())
+                        .build())
+                .build();
     }
 }

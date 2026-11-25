@@ -1,6 +1,7 @@
 package com.korur.oba.shrine.agent.validator;
 
 // 1. Framework-level
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 
 // 2. Third-party
@@ -17,6 +18,7 @@ import java.util.UUID;
 
 // 4. Internal
 import com.korur.oba.dojo.exception.internal.auth.ForbiddenException;
+import com.korur.oba.dojo.exception.internal.business.ConflictException;
 import com.korur.oba.dojo.exception.internal.business.ValidationException;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
@@ -24,6 +26,7 @@ import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.shrine.agent.constant.AgentConstant;
 import com.korur.oba.shrine.agent.constant.validator.AgentValidatorLogConstant;
 import com.korur.oba.shrine.agent.exception.ExceptionDomainAgentError;
+import com.korur.oba.shrine.agent.helper.AgentHelper;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.identity.enums.UserKind;
 import com.korur.oba.shrine.identity.service.UserQueryService;
@@ -37,6 +40,8 @@ import com.korur.oba.shrine.identity.service.UserQueryService;
  * target, because its membership and status follow the Agents page and its grants stay narrow; those
  * answer 422 AGT_VAL_001. The services that own each action call this validator, so the rule holds
  * for every client.
+ *
+ * It also keeps agent names unique in an organization, answering 409 AGT_STA_001.
  */
 @Component
 @RequiredArgsConstructor
@@ -107,6 +112,42 @@ public class AgentValidator {
                 throw targetRefused(user.getId(), action);
             }
         }
+    }
+
+    /**
+     * Refuses a name another agent of the organization already has, ignoring case.
+     *
+     * @param organizationId the organization of the agent
+     * @param name           the stripped name
+     * @param agentId        the agent being renamed, or null for a new agent
+     * @throws ConflictException AGT_STA_001 naming the name when it is taken
+     */
+    public void ensureNameFree(UUID organizationId, String name, UUID agentId) {
+        if (!userQueryService.existsAgentName(organizationId, name, agentId)) {
+            return;
+        }
+        loggingService.warn(LOG_PREFIX, LogLayer.VALIDATOR, AgentValidatorLogConstant.AGENT_NAME_TAKEN,
+                organizationId, agentId);
+        throw new ConflictException(ExceptionDomainAgentError.STA_NAME_TAKEN, Map.of(AgentConstant.FIELD_NAME, name));
+    }
+
+    /**
+     * Refuses a write that failed on the agent name index. A parallel request can take the name after
+     * {@link #ensureNameFree} passed, so the index gives the same 409; the caller passes any other
+     * integrity failure on.
+     *
+     * @param exception      the failure of the write
+     * @param organizationId the organization of the agent
+     * @param agentId        the agent being renamed, or null for a new agent
+     * @throws ConflictException AGT_STA_001 when the violated constraint is the agent name index
+     */
+    public void ensureNoNameConflict(DataIntegrityViolationException exception, UUID organizationId, UUID agentId) {
+        if (!AgentHelper.isNameConflict(exception)) {
+            return;
+        }
+        loggingService.warn(LOG_PREFIX, LogLayer.VALIDATOR, AgentValidatorLogConstant.AGENT_NAME_TAKEN,
+                organizationId, agentId);
+        throw new ConflictException(ExceptionDomainAgentError.STA_NAME_TAKEN);
     }
 
     private ValidationException targetRefused(UUID agentId, String action) {

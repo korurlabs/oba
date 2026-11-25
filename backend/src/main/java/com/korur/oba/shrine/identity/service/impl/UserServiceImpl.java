@@ -27,6 +27,7 @@ import com.korur.oba.shrine.identity.enums.AgentRole;
 import com.korur.oba.shrine.identity.enums.UserKind;
 import com.korur.oba.shrine.identity.enums.UserStatus;
 import com.korur.oba.shrine.identity.exception.ExceptionDomainIdentityError;
+import com.korur.oba.shrine.identity.mapper.UserMapper;
 import com.korur.oba.shrine.identity.repository.UserRepository;
 import com.korur.oba.shrine.identity.service.UserService;
 import com.korur.oba.shrine.identity.validator.UserValidator;
@@ -49,6 +50,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final OrganizationQueryService organizationQueryService;
     private final UserValidator userValidator;
+    private final UserMapper userMapper;
     private final LoggingService loggingService;
 
     @Override
@@ -150,15 +152,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User updateAgentUser(User agent, String name, AgentRole role, UserStatus status) {
-        if (Objects.nonNull(name)) {
-            agent.getProfile().setFirstName(name);
-        }
-        if (Objects.nonNull(role)) {
-            agent.getAgentDetail().setRole(role);
-        }
-        if (Objects.nonNull(status)) {
-            agent.setStatus(status);
-        }
+        userMapper.updateAgent(agent, name, role, status);
         return userRepository.saveAndFlush(agent);
     }
 

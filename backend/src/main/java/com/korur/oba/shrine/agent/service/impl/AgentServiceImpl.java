@@ -8,15 +8,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 // 2. Third-party
 import lombok.RequiredArgsConstructor;
-import org.hibernate.exception.ConstraintViolationException;
 
 // 3. Java SDK
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -24,9 +19,6 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 // 4. Internal
-import com.korur.oba.dojo.audit.mapper.AuditLogMapper;
-import com.korur.oba.dojo.audit.service.AuditService;
-import com.korur.oba.dojo.exception.internal.business.ConflictException;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
 import com.korur.oba.dojo.exception.internal.business.ValidationException;
 import com.korur.oba.dojo.logging.enums.LogLayer;
@@ -37,10 +29,7 @@ import com.korur.oba.dojo.security.token.entity.ApiToken;
 import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
 import com.korur.oba.dojo.security.token.service.ApiTokenService;
 import com.korur.oba.shrine.access.dto.request.AppGrantCreateRequest;
-import com.korur.oba.shrine.access.dto.response.AppGrantResponse;
 import com.korur.oba.shrine.access.enums.App;
-import com.korur.oba.shrine.access.enums.AppGrantTargetType;
-import com.korur.oba.shrine.access.service.AppAccessQueryService;
 import com.korur.oba.shrine.access.service.AppAccessService;
 import com.korur.oba.shrine.agent.constant.AgentConstant;
 import com.korur.oba.shrine.agent.constant.service.AgentServiceLogConstant;
@@ -51,15 +40,16 @@ import com.korur.oba.shrine.agent.dto.response.AgentResponse;
 import com.korur.oba.shrine.agent.dto.response.AgentTokenCreatedResponse;
 import com.korur.oba.shrine.agent.exception.ExceptionDomainAgentError;
 import com.korur.oba.shrine.agent.helper.AgentFlowHelper;
+import com.korur.oba.shrine.agent.helper.AgentHelper;
 import com.korur.oba.shrine.agent.mapper.AgentMapper;
 import com.korur.oba.shrine.agent.routine.service.AgentRoutineService;
 import com.korur.oba.shrine.agent.service.AgentQueryService;
 import com.korur.oba.shrine.agent.service.AgentService;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.identity.entity.embedded.UserAgentDetail;
 import com.korur.oba.shrine.identity.enums.AgentFlow;
 import com.korur.oba.shrine.identity.enums.UserStatus;
-import com.korur.oba.shrine.identity.service.UserQueryService;
 import com.korur.oba.shrine.identity.service.UserService;
 import com.korur.oba.shrine.organization.entity.OrganizationMember;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
@@ -88,18 +78,16 @@ public class AgentServiceImpl implements AgentService {
     private static final LogPrefix LOG_PREFIX = LogPrefix.fromClass(AgentServiceImpl.class);
 
     private final UserService userService;
-    private final UserQueryService userQueryService;
     private final AgentQueryService agentQueryService;
     private final OrganizationMemberService organizationMemberService;
     private final OrganizationMemberQueryService organizationMemberQueryService;
     private final AppAccessService appAccessService;
-    private final AppAccessQueryService appAccessQueryService;
     private final ApiTokenService apiTokenService;
     private final AgentRoutineService agentRoutineService;
     private final AgentFlowHelper agentFlowHelper;
+    private final AgentHelper agentHelper;
+    private final AgentValidator agentValidator;
     private final AgentMapper agentMapper;
-    private final AuditLogMapper auditLogMapper;
-    private final AuditService auditService;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final LoggingService loggingService;
 
@@ -114,7 +102,7 @@ public class AgentServiceImpl implements AgentService {
                             AgentConstant.FIELD_PROVIDER, request.provider().name()));
         }
         String name = request.name().strip();
-        ensureNameFree(organizationId, name, null);
+        agentValidator.ensureNameFree(organizationId, name, null);
 
         UserAgentDetail agentDetail = UserAgentDetail.builder()
                 .role(request.role())
@@ -134,13 +122,14 @@ public class AgentServiceImpl implements AgentService {
                 .build());
         Set<App> apps = EnumSet.copyOf(request.apps());
         for (App app : apps) {
-            grantApp(actor, organizationId, agent.getId(), app);
+            appAccessService.grant(actor, organizationId, new AppGrantCreateRequest(app, agent.getId(), null));
         }
 
-        Map<String, Object> newValues = describe(agent, apps);
+        Map<String, Object> newValues = agentHelper.describe(agent, apps);
         newValues.put(AgentConstant.FIELD_FLOW, request.flow().name());
         newValues.put(AgentConstant.FIELD_PROVIDER, request.provider().name());
-        audit(organizationId, actor, AgentConstant.AUDIT_ACTION_AGENT_CREATED, agent.getId(), null, newValues);
+        agentHelper.audit(organizationId, actor, AgentConstant.AUDIT_ACTION_AGENT_CREATED, agent.getId(), null,
+                newValues);
 
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, AgentServiceLogConstant.AGENT_CREATED,
                 organizationId, agent.getId(), request.flow(), request.provider(), apps);
@@ -152,10 +141,10 @@ public class AgentServiceImpl implements AgentService {
     public AgentResponse updateAgent(User actor, UUID organizationId, UUID agentId, AgentUpdateRequest request) {
         User agent = agentQueryService.getAgentEntity(organizationId, agentId);
         String name = request.name().strip();
-        ensureNameFree(organizationId, name, agentId);
+        agentValidator.ensureNameFree(organizationId, name, agentId);
 
-        Map<UUID, App> currentGrants = userGrants(actor, organizationId, agentId);
-        Map<String, Object> oldValues = describe(agent, currentGrants.values());
+        Map<UUID, App> currentGrants = agentHelper.userGrants(actor, organizationId, agentId);
+        Map<String, Object> oldValues = agentHelper.describe(agent, currentGrants.values());
 
         saveName(organizationId, agentId, () -> userService.updateAgentUser(agent, name, request.role(), null));
 
@@ -167,11 +156,12 @@ public class AgentServiceImpl implements AgentService {
         }
         for (App app : apps) {
             if (!currentGrants.containsValue(app)) {
-                grantApp(actor, organizationId, agentId, app);
+                appAccessService.grant(actor, organizationId, new AppGrantCreateRequest(app, agentId, null));
             }
         }
 
-        audit(organizationId, actor, AgentConstant.AUDIT_ACTION_AGENT_UPDATED, agentId, oldValues, describe(agent, apps));
+        agentHelper.audit(organizationId, actor, AgentConstant.AUDIT_ACTION_AGENT_UPDATED, agentId, oldValues,
+                agentHelper.describe(agent, apps));
 
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, AgentServiceLogConstant.AGENT_UPDATED,
                 organizationId, agentId, apps);
@@ -207,7 +197,7 @@ public class AgentServiceImpl implements AgentService {
             applicationEventPublisher.publishEvent(AccessRevokedEvent.member(agentId, organizationId));
         }
 
-        audit(organizationId, actor, AgentConstant.AUDIT_ACTION_AGENT_STATUS_CHANGED, agentId, oldValues,
+        agentHelper.audit(organizationId, actor, AgentConstant.AUDIT_ACTION_AGENT_STATUS_CHANGED, agentId, oldValues,
                 Map.of(AgentConstant.FIELD_STATUS, userStatus.name()));
 
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, AgentServiceLogConstant.AGENT_STATUS_CHANGED,
@@ -237,7 +227,7 @@ public class AgentServiceImpl implements AgentService {
         if (revokedTokenId != null) {
             newValues.put(AgentConstant.FIELD_REVOKED_TOKEN_ID, revokedTokenId.toString());
         }
-        audit(organizationId, actor, AgentConstant.AUDIT_ACTION_AGENT_DELETED, agentId,
+        agentHelper.audit(organizationId, actor, AgentConstant.AUDIT_ACTION_AGENT_DELETED, agentId,
                 Map.of(AgentConstant.FIELD_SOFT_DELETED, false), newValues);
 
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, AgentServiceLogConstant.AGENT_DELETED,
@@ -262,11 +252,12 @@ public class AgentServiceImpl implements AgentService {
                 agent.getAgentDetail().getOrganizationId());
         ApiToken token = issued.token();
 
-        Map<String, Object> newValues = tokenDetails(token);
+        Map<String, Object> newValues = agentHelper.tokenDetails(token);
         if (issued.revokedTokenId() != null) {
             newValues.put(AgentConstant.FIELD_REVOKED_TOKEN_ID, issued.revokedTokenId().toString());
         }
-        audit(organizationId, actor, AgentConstant.AUDIT_ACTION_AGENT_TOKEN_ISSUED, agentId, null, newValues);
+        agentHelper.audit(organizationId, actor, AgentConstant.AUDIT_ACTION_AGENT_TOKEN_ISSUED, agentId, null,
+                newValues);
 
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, AgentServiceLogConstant.AGENT_TOKEN_ISSUED,
                 organizationId, agentId, token.getId(), issued.revokedTokenId());
@@ -284,93 +275,23 @@ public class AgentServiceImpl implements AgentService {
                     organizationId, agentId);
             return;
         }
-        audit(organizationId, actor, AgentConstant.AUDIT_ACTION_AGENT_TOKEN_REVOKED, agentId,
-                tokenDetails(revoked.get()), null);
+        agentHelper.audit(organizationId, actor, AgentConstant.AUDIT_ACTION_AGENT_TOKEN_REVOKED, agentId,
+                agentHelper.tokenDetails(revoked.get()), null);
 
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, AgentServiceLogConstant.AGENT_TOKEN_REVOKED,
                 organizationId, agentId, revoked.get().getId());
     }
 
-    private void ensureNameFree(UUID organizationId, String name, UUID agentId) {
-        if (userQueryService.existsAgentName(organizationId, name, agentId)) {
-            throw nameTaken(organizationId, agentId, name);
-        }
-    }
-
     /**
-     * Runs a write that sets the agent's name. A parallel request can take the name after the check, so
-     * the unique index answers the same 409; any other integrity failure is not a name conflict and is
-     * passed on.
+     * Runs a write that sets the agent's name and turns a failure on the agent name index into the same
+     * 409 the name check gives.
      */
     private User saveName(UUID organizationId, UUID agentId, Supplier<User> write) {
         try {
             return write.get();
         } catch (DataIntegrityViolationException exception) {
-            if (isNameConflict(exception)) {
-                throw nameTaken(organizationId, agentId, null);
-            }
+            agentValidator.ensureNoNameConflict(exception, organizationId, agentId);
             throw exception;
         }
-    }
-
-    private ConflictException nameTaken(UUID organizationId, UUID agentId, String name) {
-        loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, AgentServiceLogConstant.AGENT_NAME_TAKEN, organizationId, agentId);
-        return name == null
-                ? new ConflictException(ExceptionDomainAgentError.STA_NAME_TAKEN)
-                : new ConflictException(ExceptionDomainAgentError.STA_NAME_TAKEN, Map.of(AgentConstant.FIELD_NAME, name));
-    }
-
-    private static boolean isNameConflict(DataIntegrityViolationException exception) {
-        Throwable cause = exception;
-        while (cause != null) {
-            if (cause instanceof ConstraintViolationException violation) {
-                return AgentConstant.AGENT_NAME_UNIQUE_INDEX.equalsIgnoreCase(violation.getConstraintName());
-            }
-            cause = cause.getCause();
-        }
-        return false;
-    }
-
-    private void grantApp(User actor, UUID organizationId, UUID agentId, App app) {
-        appAccessService.grant(actor, organizationId, new AppGrantCreateRequest(app, agentId, null));
-    }
-
-    /**
-     * @return the agent's USER grants by grant id
-     */
-    private Map<UUID, App> userGrants(User actor, UUID organizationId, UUID agentId) {
-        Map<UUID, App> grants = new HashMap<>();
-        for (AppGrantResponse grant : appAccessQueryService.listGrants(actor, organizationId)) {
-            if (grant.targetType() == AppGrantTargetType.USER && agentId.equals(grant.userId())) {
-                grants.put(grant.id(), grant.app());
-            }
-        }
-        return grants;
-    }
-
-    private static Map<String, Object> describe(User agent, Collection<App> apps) {
-        Map<String, Object> values = new HashMap<>();
-        values.put(AgentConstant.FIELD_ROLE, agent.getAgentDetail().getRole().name());
-        List<String> appNames = new ArrayList<>();
-        for (App app : apps) {
-            appNames.add(app.name());
-        }
-        Collections.sort(appNames);
-        values.put(AgentConstant.FIELD_APPS, List.copyOf(appNames));
-        return values;
-    }
-
-    private static Map<String, Object> tokenDetails(ApiToken token) {
-        Map<String, Object> details = new HashMap<>();
-        details.put(AgentConstant.FIELD_TOKEN_ID, token.getId().toString());
-        details.put(AgentConstant.FIELD_TOKEN_PREFIX, token.getTokenPrefix());
-        details.put(AgentConstant.FIELD_EXPIRES_AT, token.getExpiresAt().toString());
-        return details;
-    }
-
-    private void audit(UUID organizationId, User actor, String action, UUID agentId,
-            Map<String, Object> oldValues, Map<String, Object> newValues) {
-        auditService.log(auditLogMapper.toRequest(organizationId, actor.getId(), action,
-                AgentConstant.AUDIT_ENTITY_TYPE, agentId, oldValues, newValues));
     }
 }

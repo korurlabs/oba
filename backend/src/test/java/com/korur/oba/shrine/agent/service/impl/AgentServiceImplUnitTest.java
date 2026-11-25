@@ -48,10 +48,12 @@ import com.korur.oba.shrine.agent.dto.request.AgentUpdateRequest;
 import com.korur.oba.shrine.agent.dto.response.AgentResponse;
 import com.korur.oba.shrine.agent.dto.response.AgentTokenCreatedResponse;
 import com.korur.oba.shrine.agent.helper.AgentFlowHelper;
+import com.korur.oba.shrine.agent.helper.AgentHelper;
 import com.korur.oba.shrine.agent.mapper.AgentMapper;
 import com.korur.oba.shrine.agent.mapper.AgentMapperImpl;
 import com.korur.oba.shrine.agent.routine.service.AgentRoutineService;
 import com.korur.oba.shrine.agent.service.AgentQueryService;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.identity.entity.embedded.UserAgentDetail;
 import com.korur.oba.shrine.identity.entity.embedded.UserProfile;
@@ -126,9 +128,11 @@ class AgentServiceImplUnitTest {
 
     @BeforeEach
     void setUp() {
-        agentService = new AgentServiceImpl(userService, userQueryService, agentQueryService, organizationMemberService,
-                organizationMemberQueryService, appAccessService, appAccessQueryService, apiTokenService,
-                agentRoutineService, new AgentFlowHelper(), agentMapper, auditLogMapper, auditService, applicationEventPublisher,
+        AgentHelper agentHelper = new AgentHelper(appAccessQueryService, auditLogMapper, auditService);
+        AgentValidator agentValidator = new AgentValidator(userQueryService, loggingService);
+        agentService = new AgentServiceImpl(userService, agentQueryService, organizationMemberService,
+                organizationMemberQueryService, appAccessService, apiTokenService, agentRoutineService,
+                new AgentFlowHelper(), agentHelper, agentValidator, agentMapper, applicationEventPublisher,
                 loggingService);
         actor = User.builder().id(UUID.randomUUID()).email("admin@example.com").build();
         organizationId = UUID.randomUUID();

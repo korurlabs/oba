@@ -28,10 +28,6 @@ public class RoutineConfig {
 
     private static final LogPrefix LOG_PREFIX = LogPrefix.fromClass(RoutineConfig.class);
 
-    private static final int EXECUTOR_CORE_POOL_SIZE = 1;
-    private static final int EXECUTOR_MAX_POOL_SIZE = 2;
-    private static final int EXECUTOR_QUEUE_CAPACITY = 200;
-
     private final LoggingService loggingService;
 
     /**
@@ -47,12 +43,12 @@ public class RoutineConfig {
     @Bean(name = RoutineConstant.EXECUTOR_BEAN_NAME)
     public Executor routineExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(EXECUTOR_CORE_POOL_SIZE);
-        executor.setMaxPoolSize(EXECUTOR_MAX_POOL_SIZE);
-        executor.setQueueCapacity(EXECUTOR_QUEUE_CAPACITY);
+        executor.setCorePoolSize(RoutineConstant.EXECUTOR_CORE_POOL_SIZE);
+        executor.setMaxPoolSize(RoutineConstant.EXECUTOR_MAX_POOL_SIZE);
+        executor.setQueueCapacity(RoutineConstant.EXECUTOR_QUEUE_CAPACITY);
         executor.setThreadNamePrefix(RoutineConstant.EXECUTOR_THREAD_PREFIX);
         executor.setRejectedExecutionHandler((task, pool) -> loggingService.error(LOG_PREFIX, LogLayer.CONFIG,
-                EXECUTOR_REJECTED, EXECUTOR_QUEUE_CAPACITY));
+                EXECUTOR_REJECTED, RoutineConstant.EXECUTOR_QUEUE_CAPACITY));
         executor.initialize();
         return executor;
     }

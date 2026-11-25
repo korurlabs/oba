@@ -102,6 +102,10 @@ public class AgentController {
 
     /**
      * Lists every flow with the providers it accepts, read from the connectors of the application.
+     *
+     * The options are the same in every organization, so the handler takes no organization id. The
+     * organization in the path still decides access: only an OWNER or ADMIN of it, who may register an
+     * agent there, reads them.
      */
     @GetMapping("/options")
     @RequiredUserAccess(OrganizationMemberRole.ADMIN)
@@ -111,22 +115,18 @@ public class AgentController {
             @ApiResponse(responseCode = "403", description = "Not an active OWNER or ADMIN of an active organization"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    public ResponseEntity<CustomResponse<AgentOptionsResponse>> getOptions(
-            @Parameter(hidden = true) @GetUser User user,
-            @PathVariable UUID organizationId) {
+    public ResponseEntity<CustomResponse<AgentOptionsResponse>> getOptions() {
         loggingService.observe(
                 LOG_PREFIX,
                 LogLayer.CONTROLLER,
-                AgentControllerLogConstant.AGENT_OPTIONS_REQUEST,
-                organizationId);
+                AgentControllerLogConstant.AGENT_OPTIONS_REQUEST);
 
         AgentOptionsResponse response = agentQueryService.getOptions();
 
         loggingService.observe(
                 LOG_PREFIX,
                 LogLayer.CONTROLLER,
-                AgentControllerLogConstant.AGENT_OPTIONS_REQUEST_COMPLETED,
-                organizationId);
+                AgentControllerLogConstant.AGENT_OPTIONS_REQUEST_COMPLETED);
 
         return ResponseUtil.ok(AgentControllerResponseConstant.RESPONSE_AGENT_OPTIONS_RETRIEVED, response);
     }

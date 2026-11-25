@@ -29,8 +29,6 @@ public final class AgentServiceLogConstant {
     // Refusals.
     public static final String AGENT_NOT_FOUND =
             "Agent not found: organizationId={}, agentId={}";
-    public static final String AGENT_NAME_TAKEN =
-            "Agent name taken: organizationId={}, agentId={}";
     public static final String AGENT_FLOW_PROVIDER_REFUSED =
             "Agent flow and provider combination refused: organizationId={}, flow={}, provider={}";
     public static final String AGENT_TOKEN_FLOW_REFUSED =
