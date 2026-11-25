@@ -3,10 +3,16 @@ import { describe, expect, test } from "bun:test";
 import type { MachineUsageResponse } from "../schemas";
 import {
   countdownText,
+  FIVE_HOUR,
   NO_ACCOUNT_TEXT,
   NO_SNAPSHOT_TEXT,
+  RESET_VALUE_TEXT,
   resetClockText,
+  usageDetailLines,
   usageView,
+  WEEKLY,
+  windowDetailText,
+  windowValueText,
   windowView,
 } from "./usage-data";
 
@@ -66,6 +72,7 @@ describe("usageView", () => {
     expect(fiveHour).toEqual({
       kind: "used",
       label: "5-hour",
+      shortLabel: "5h",
       percentage: 23.5,
       percentageText: "24%",
       resetText: `resets ${clock("2026-10-23T14:30:00Z")}, in 2 h 05 min`,
@@ -83,13 +90,14 @@ describe("usageView", () => {
     expect(view.windows[0]).toEqual({
       kind: "reset",
       label: "5-hour",
+      shortLabel: "5h",
       resetText: `Reset at ${clock("2026-10-23T14:30:00Z")}`,
     });
   });
 
   test("trusts the server's reset flag with a null percentage", () => {
     const view = windowView(
-      "5-hour",
+      FIVE_HOUR,
       { usedPercentage: null, resetsAt: "2026-10-23T12:00:00Z", reset: true },
       NOW,
       UTC
@@ -127,6 +135,67 @@ describe("usageView", () => {
   test("marks a window the machine did not report", () => {
     const view = usageView(known({ sevenDay: null }), NOW, UTC);
     if (view.kind !== "known") throw new Error("expected a known view");
-    expect(view.windows[1]).toEqual({ kind: "missing", label: "Weekly" });
+    expect(view.windows[1]).toEqual({ kind: "missing", label: "Weekly", shortLabel: "Week" });
+  });
+});
+
+describe("compact usage cell", () => {
+  const RESETS_TODAY = clock("2026-10-23T14:30:00Z");
+
+  test("names the windows 5h and Week", () => {
+    expect(FIVE_HOUR).toEqual({ label: "5-hour", shortLabel: "5h" });
+    expect(WEEKLY).toEqual({ label: "Weekly", shortLabel: "Week" });
+  });
+
+  test("shows the percentage beside a used window, reset after its reset, a dash when missing", () => {
+    const used = windowView(FIVE_HOUR, known().fiveHour, NOW, UTC);
+    const reset = windowView(
+      FIVE_HOUR,
+      { usedPercentage: null, resetsAt: "2026-10-23T12:00:00Z", reset: true },
+      NOW,
+      UTC
+    );
+    const missing = windowView(WEEKLY, null, NOW, UTC);
+    expect(windowValueText(used)).toBe("24%");
+    expect(windowValueText(reset)).toBe(RESET_VALUE_TEXT);
+    expect(windowValueText(missing)).toBeNull();
+  });
+
+  test("puts the percentage, reset time and countdown of each window in the tooltip", () => {
+    expect(windowDetailText(windowView(FIVE_HOUR, known().fiveHour, NOW, UTC))).toBe(
+      `5-hour: 24%, resets ${RESETS_TODAY}, in 2 h 05 min`
+    );
+    expect(
+      windowDetailText(
+        windowView(
+          FIVE_HOUR,
+          { usedPercentage: null, resetsAt: "2026-10-23T12:00:00Z", reset: true },
+          NOW,
+          UTC
+        )
+      )
+    ).toBe(`5-hour: Reset at ${clock("2026-10-23T12:00:00Z")}`);
+    expect(windowDetailText(windowView(WEEKLY, null, NOW, UTC))).toBe("Weekly: Not reported");
+  });
+
+  test("lists both windows, the snapshot's age and the sharing machines as tooltip lines", () => {
+    const view = usageView(
+      known({ sharedWith: [{ machineId: "a2", machineName: "ada-studio" }], sevenDay: null }),
+      NOW,
+      UTC
+    );
+    if (view.kind !== "known") throw new Error("expected a known view");
+    expect(usageDetailLines(view)).toEqual([
+      `5-hour: 24%, resets ${RESETS_TODAY}, in 2 h 05 min`,
+      "Weekly: Not reported",
+      "Updated 4 min ago",
+      "Shared with ada-studio · reported by ada-mini",
+    ]);
+  });
+
+  test("leaves out the age and the sharing line when there are none", () => {
+    const view = usageView(known({ capturedAt: null }), NOW, UTC);
+    if (view.kind !== "known") throw new Error("expected a known view");
+    expect(usageDetailLines(view)).toHaveLength(2);
   });
 });
