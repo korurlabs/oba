@@ -18,7 +18,6 @@ import java.util.UUID;
 
 // 4. Internal
 import com.korur.oba.apps.kaya.core.exception.enums.ExceptionDomainKayaError;
-import com.korur.oba.dojo.exception.internal.auth.ForbiddenException;
 import com.korur.oba.dojo.exception.internal.business.BadRequestException;
 import com.korur.oba.dojo.exception.internal.business.TooManyRequestsException;
 import com.korur.oba.dojo.logging.enums.LogLayer;
@@ -85,7 +84,6 @@ public class IngestServiceImpl implements IngestService {
                     Map.of(IngestConstant.FIELD_LIMIT, IngestConstant.BATCHES_PER_MINUTE));
         }
 
-        // Resolved before the first write, so a batch of an unregistered git email stores nothing.
         UUID conflictUserId = identityConflict(principal, sessionId, gitEmailHolder(principal, sessionId,
                 request.summary().gitAuthorEmail()));
 
@@ -180,12 +178,16 @@ public class IngestServiceImpl implements IngestService {
     }
 
     /**
-     * The user that holds the git email of the batch. Kaya admits only registered people, so an
-     * email no user of the organization holds refuses the batch; the recorder retries a 403, and
-     * the batch is accepted once someone registers the email. Ingest never registers an email
-     * itself, because the token alone does not prove whose email it is.
+     * The user of the organization that holds the git email of the batch. The machine token
+     * identifies the person, and the session is attributed to the token's user whatever email the
+     * batch reports; the git email is only evidence for spotting another member at work on the
+     * machine. An email that no user of the organization holds is therefore normal, since people
+     * commit with addresses other than the one they first signed in with, for example after their
+     * mail domain changed, so it is logged at debug level and the batch is accepted. Ingest never
+     * registers an email itself, because the token alone does not prove whose email it is.
      *
-     * @return the holder, or null when the batch reported no email or one that is not an address
+     * @return the holder, or null when the batch reported no email, one that is not an address, or
+     *         one that no user of the organization holds
      */
     private UUID gitEmailHolder(MachinePrincipal principal, String sessionId, String email) {
         if (email == null || email.isBlank()) {
@@ -196,19 +198,20 @@ public class IngestServiceImpl implements IngestService {
             loggingService.debug(LOG_PREFIX, LogLayer.SERVICE, IngestServiceLogConstant.GIT_EMAIL_IGNORED, sessionId);
             return null;
         }
-        return userGitEmailQueryService.findUserIdByEmail(principal.organizationId(), trimmed).orElseThrow(() -> {
-            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, IngestServiceLogConstant.GIT_EMAIL_UNKNOWN,
+        Optional<UUID> holderId = userGitEmailQueryService.findUserIdByEmail(principal.organizationId(), trimmed);
+        if (holderId.isEmpty()) {
+            loggingService.debug(LOG_PREFIX, LogLayer.SERVICE, IngestServiceLogConstant.GIT_EMAIL_UNKNOWN,
                     sessionId, principal.machineId(), principal.organizationId());
-            return new ForbiddenException(ExceptionDomainKayaError.SEC_GIT_IDENTITY_UNKNOWN,
-                    Map.of(IngestConstant.FIELD_GIT_AUTHOR_EMAIL, trimmed));
-        });
+            return null;
+        }
+        return holderId.get();
     }
 
     /**
-     * The other user that holds the git email of the batch; null when the token's user holds it or
-     * the batch reported none. Such a batch is still accepted, so pairing on one machine keeps
-     * working, and the session is flagged for review. An account is no conflict, because several
-     * users can share one account.
+     * The other user that holds the git email of the batch; null when the token's user holds it, no
+     * user of the organization holds it, or the batch reported none. Such a batch is still
+     * accepted, so pairing on one machine keeps working, and the session is flagged for review. An
+     * account is no conflict, because several users can share one account.
      */
     private UUID identityConflict(MachinePrincipal principal, String sessionId, UUID gitEmailHolder) {
         if (gitEmailHolder == null || gitEmailHolder.equals(principal.userId())) {
