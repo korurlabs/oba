@@ -9,7 +9,7 @@ name: CodeQL
 # merges, and weekly, so code that did not change is checked against the new
 # queries GitHub adds.
 #
-# Languages: java-kotlin (backend), go (cli/oba, cli/kalkan),
+# Languages: java-kotlin (backend), go (cli/oba),
 # javascript-typescript (frontend) and actions (the workflows themselves).
 # Java, TypeScript and the workflows are analysed from source without a build;
 # Go is analysed while CodeQL builds it, which is the only mode it supports.
