@@ -10,7 +10,5 @@ public final class AnthropicRoutineConfigLogConstant {
         throw new UnsupportedOperationException("Constant class should not be instantiated");
     }
 
-    public static final String ROUTINES_ENABLED = "Anthropic routine fires are on: base URL {}";
-    public static final String ROUTINES_DISABLED =
-            "Anthropic routine fires are off: oba.integrations.routine.anthropic.enabled is false";
+    public static final String CLIENT_CREATED = "Anthropic routine client created: base URL {}";
 }

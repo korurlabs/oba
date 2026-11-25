@@ -17,10 +17,10 @@ import com.korur.oba.connect.routine.core.enums.RoutineProvider;
 public interface RoutineService {
 
     /**
-     * Tells whether fires of a vendor reach the vendor.
+     * Tells whether a client is registered for a vendor, so its routines can be fired.
      *
      * @param provider the vendor
-     * @return true when the vendor's client is switched on
+     * @return true when the vendor has a client
      */
     boolean isAvailable(RoutineProvider provider);
 

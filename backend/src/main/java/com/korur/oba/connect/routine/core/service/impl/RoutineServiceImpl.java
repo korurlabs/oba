@@ -38,7 +38,7 @@ public class RoutineServiceImpl implements RoutineService {
 
     @Override
     public boolean isAvailable(RoutineProvider provider) {
-        return routineRouter.resolveClient(provider).isEnabled();
+        return routineRouter.resolveClient(provider) != null;
     }
 
     @Override

@@ -28,9 +28,9 @@ import static com.korur.oba.connect.routine.anthropic.constant.config.AnthropicR
 /**
  * Configuration of Anthropic routine fires.
  *
- * The client exists whether or not fires are on, so the router always has a client for
- * {@link com.korur.oba.connect.routine.core.enums.RoutineProvider#ANTHROPIC}; while they are off it
- * answers every fire as failed without a call. The REST client is built here rather than taken from
+ * The client always exists, so the router has a client for
+ * {@link com.korur.oba.connect.routine.core.enums.RoutineProvider#ANTHROPIC}; whether a routine fires
+ * is decided by the agent that saved it, not by a switch here. The REST client is built here rather than taken from
  * the application's shared one, because Anthropic calls need their own base URL, headers and
  * timeouts, and it is not a bean, so no other code picks it up by type.
  */
@@ -54,7 +54,7 @@ public class AnthropicRoutineConfig {
     }
 
     /**
-     * Creates the Anthropic routine client and logs whether fires are on.
+     * Creates the Anthropic routine client and logs the base URL it calls.
      *
      * @param restClientBuilder Spring Boot's REST client builder, a new instance per injection
      * @param properties        the routine configuration
@@ -63,13 +63,8 @@ public class AnthropicRoutineConfig {
     @Bean
     public AnthropicRoutineClient anthropicRoutineClient(RestClient.Builder restClientBuilder,
                                                          AnthropicRoutineProperties properties) {
-        if (properties.isEnabled()) {
-            loggingService.info(LOG_PREFIX, LogLayer.CONFIG, ROUTINES_ENABLED, properties.getBaseUrl());
-        } else {
-            loggingService.warn(LOG_PREFIX, LogLayer.CONFIG, ROUTINES_DISABLED);
-        }
-        return new AnthropicRoutineClient(anthropicRestClient(restClientBuilder, properties), properties,
-                loggingService);
+        loggingService.info(LOG_PREFIX, LogLayer.CONFIG, CLIENT_CREATED, properties.getBaseUrl());
+        return new AnthropicRoutineClient(anthropicRestClient(restClientBuilder, properties), loggingService);
     }
 
     private RestClient anthropicRestClient(RestClient.Builder restClientBuilder,

@@ -16,7 +16,6 @@ import org.springframework.web.client.RestClientResponseException;
 import com.korur.oba.connect.routine.anthropic.constant.AnthropicRoutineConstant;
 import com.korur.oba.connect.routine.anthropic.dto.api.AnthropicApiRoutineFireRequest;
 import com.korur.oba.connect.routine.anthropic.dto.api.AnthropicApiRoutineFireResponse;
-import com.korur.oba.connect.routine.anthropic.properties.AnthropicRoutineProperties;
 import com.korur.oba.connect.routine.core.client.RoutineClient;
 import com.korur.oba.connect.routine.core.dto.RoutineFireResult;
 import com.korur.oba.connect.routine.core.enums.RoutineFireStatus;
@@ -42,20 +41,16 @@ public class AnthropicRoutineClient implements RoutineClient {
     private static final LogPrefix LOG_PREFIX = LogPrefix.fromClass(AnthropicRoutineClient.class);
 
     private final RestClient restClient;
-    private final AnthropicRoutineProperties properties;
     private final LoggingService loggingService;
 
     /**
      * Creates the client.
      *
      * @param restClient     a client with the Anthropic base URL, its version headers and timeouts
-     * @param properties     the routine configuration
      * @param loggingService the logging service
      */
-    public AnthropicRoutineClient(RestClient restClient, AnthropicRoutineProperties properties,
-                                  LoggingService loggingService) {
+    public AnthropicRoutineClient(RestClient restClient, LoggingService loggingService) {
         this.restClient = restClient;
-        this.properties = properties;
         this.loggingService = loggingService;
     }
 
@@ -65,21 +60,12 @@ public class AnthropicRoutineClient implements RoutineClient {
     }
 
     @Override
-    public boolean isEnabled() {
-        return properties.isEnabled();
-    }
-
-    @Override
     public boolean isValidRoutineId(String routineId) {
         return routineId != null && AnthropicRoutineConstant.ROUTINE_ID_PATTERN.matcher(routineId).matches();
     }
 
     @Override
     public RoutineFireResult fire(String routineId, String secret, String text) {
-        if (!properties.isEnabled()) {
-            loggingService.warn(LOG_PREFIX, LogLayer.CLIENT, FIRE_SKIPPED_DISABLED, routineId);
-            return RoutineFireResult.failedWithoutAnswer();
-        }
         if (!isValidRoutineId(routineId)) {
             loggingService.error(LOG_PREFIX, LogLayer.CLIENT, FIRE_SKIPPED_INVALID_ID);
             return RoutineFireResult.failedWithoutAnswer();

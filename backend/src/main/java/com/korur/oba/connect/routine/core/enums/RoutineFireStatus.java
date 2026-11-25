@@ -6,7 +6,7 @@ package com.korur.oba.connect.routine.core.enums;
 public enum RoutineFireStatus {
     // The vendor accepted the fire and started a session.
     FIRED,
-    // No session started: the vendor failed, timed out, or the connector is switched off.
+    // No session started: the vendor failed or timed out, or the routine id was malformed.
     FAILED,
     // The vendor refused the fire because the routine or the account reached its fire limit.
     RATE_LIMITED,

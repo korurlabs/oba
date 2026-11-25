@@ -25,14 +25,6 @@ public interface RoutineClient {
     RoutineProvider provider();
 
     /**
-     * Tells whether this client calls the vendor at all. A switched-off client answers every fire
-     * with {@link com.korur.oba.connect.routine.core.enums.RoutineFireStatus#FAILED} without a call.
-     *
-     * @return true when fires reach the vendor
-     */
-    boolean isEnabled();
-
-    /**
      * Tells whether a routine id has the vendor's format.
      *
      * @param routineId the routine id

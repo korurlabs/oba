@@ -54,13 +54,12 @@ class AnthropicRoutineClientUnitTest {
     @BeforeEach
     void setUp() {
         properties = new AnthropicRoutineProperties();
-        properties.setEnabled(true);
         RestClient.Builder builder = RestClient.builder()
                 .baseUrl(BASE_URL)
                 .defaultHeader("anthropic-beta", properties.getBetaHeader())
                 .defaultHeader("anthropic-version", properties.getVersion());
         server = MockRestServiceServer.bindTo(builder).build();
-        client = new AnthropicRoutineClient(builder.build(), properties, loggingService);
+        client = new AnthropicRoutineClient(builder.build(), loggingService);
     }
 
     @Test
@@ -130,21 +129,6 @@ class AnthropicRoutineClientUnitTest {
         // Assert
         assertThat(result).isEqualTo(new RoutineFireResult(RoutineFireStatus.FAILED, null, null));
         verify(loggingService).error(any(), any(), anyString(), any(Throwable.class), any());
-    }
-
-    @Test
-    void fire_disabled_returnsFailedWithoutCall() {
-        // Arrange
-        properties.setEnabled(false);
-        server.expect(never(), requestTo(FIRE_URL));
-
-        // Act
-        RoutineFireResult result = client.fire(ROUTINE_ID, SECRET, TICKET_KEY);
-
-        // Assert
-        assertThat(result).isEqualTo(new RoutineFireResult(RoutineFireStatus.FAILED, null, null));
-        assertThat(client.isEnabled()).isFalse();
-        server.verify();
     }
 
     @Test

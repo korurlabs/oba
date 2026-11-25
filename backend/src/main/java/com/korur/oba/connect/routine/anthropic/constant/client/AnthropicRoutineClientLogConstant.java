@@ -10,8 +10,6 @@ public final class AnthropicRoutineClientLogConstant {
         throw new UnsupportedOperationException("Constant class should not be instantiated");
     }
 
-    public static final String FIRE_SKIPPED_DISABLED =
-            "Anthropic routine [{}] not fired: oba.integrations.routine.anthropic.enabled is false";
     public static final String FIRE_SKIPPED_INVALID_ID = "Anthropic routine not fired: the routine id has the wrong format";
     public static final String FIRE_ACCEPTED = "Anthropic routine [{}] fired, session [{}]";
     public static final String FIRE_REFUSED = "Anthropic routine [{}] fire refused: provider ANTHROPIC, HTTP {}, status {}";

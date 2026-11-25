@@ -48,21 +48,18 @@ class RoutineServiceImplUnitTest {
     }
 
     @Test
-    void isAvailable_clientSwitchedOff_returnsFalse() {
-        // Arrange
-        when(routineClient.isEnabled()).thenReturn(false);
-
+    void isAvailable_clientRegistered_returnsTrue() {
         // Act and assert
-        assertThat(routineService.isAvailable(RoutineProvider.ANTHROPIC)).isFalse();
+        assertThat(routineService.isAvailable(RoutineProvider.ANTHROPIC)).isTrue();
     }
 
     @Test
-    void isAvailable_clientSwitchedOn_returnsTrue() {
+    void isAvailable_noClientRegistered_returnsFalse() {
         // Arrange
-        when(routineClient.isEnabled()).thenReturn(true);
+        when(routineRouter.resolveClient(RoutineProvider.ANTHROPIC)).thenReturn(null);
 
         // Act and assert
-        assertThat(routineService.isAvailable(RoutineProvider.ANTHROPIC)).isTrue();
+        assertThat(routineService.isAvailable(RoutineProvider.ANTHROPIC)).isFalse();
     }
 
     @Test
