@@ -651,9 +651,11 @@
   "views": {
     "kanban": "Kanban",
     "list": "Lijst",
+    "cards": "Kaarten",
     "modeToggle": "Weergavemodus schakelen",
     "switchToList": "Schakel naar lijstweergave",
     "switchToKanban": "Schakel naar kanbanweergave",
+    "switchToCards": "Schakel naar kaartweergave",
     "options": "Weergave"
   },
   "guest": {
@@ -1453,7 +1455,11 @@
     "emptyTitle": "Nog geen cyberscore",
     "emptyDescription": "Voeg controles toe en leg hun uitkomst vast, dan verschijnen je cyberscore en hoe die verandert hier.",
     "loadError": "De cyberscore kon niet worden geladen.",
-    "viewChecks": "Controles bekijken",
+    "noAccess": {
+      "title": "De cyberscore is voor leden van de organisatie",
+      "description": "Je bent gast in {organization}, en gasten zien de cyberscore niet. Een eigenaar of beheerder van de organisatie kan je in Ulak lid maken."
+    },
+    "viewChecks": "Alle controles bekijken",
     "gauge": {
       "title": "Huidige score",
       "description": "Gewogen over elke controle met een uitkomst die meetelt.",
@@ -1465,11 +1471,8 @@
     "breakdown": {
       "title": "Score per categorie",
       "description": "De score van elke categorie met minstens één controle die meetelt.",
-      "category": "Categorie",
-      "score": "Score",
-      "level": "Risiconiveau",
-      "scoreAria": "Score voor {category} is {score} procent",
-      "empty": "Nog geen categorie heeft een controle die meetelt."
+      "empty": "Nog geen categorie heeft een controle die meetelt.",
+      "rowLink": "{category}: {score} procent, {level}. Toon de controles."
     },
     "trend": {
       "title": "Trend over 30 dagen",
@@ -1521,11 +1524,13 @@
       "description": "De controles waaruit je cyberscore bestaat, met hun gewicht en huidige uitkomst.",
       "back": "Terug naar cyberscore",
       "empty": "Nog geen controles",
+      "emptyFiltered": "Geen controles voldoen aan deze filters",
       "emptyDescription": "Voeg een controle toe om je cyberscore op te bouwen.",
       "readOnly": "Alleen organisatiebeheerders kunnen controles wijzigen.",
       "add": "Controle toevoegen",
       "edit": "Controle bewerken",
       "delete": "Verwijderen",
+      "showText": "Volledige tekst tonen",
       "deleteTitle": "Controle verwijderen?",
       "deleteConfirm": "{name} wordt verwijderd en de cyberscore wordt opnieuw berekend.",
       "columns": {
@@ -1539,7 +1544,12 @@
       },
       "filter": {
         "status": "Status",
-        "allStatuses": "Alle statussen"
+        "category": "Categorie",
+        "search": "Controles zoeken",
+        "clear": "Filters wissen"
+      },
+      "kanban": {
+        "emptyColumn": "Geen controles"
       },
       "fields": {
         "name": "Naam",

@@ -15,11 +15,6 @@ public final class CyberscoreConstant {
     public static final String FIELD_ORGANIZATION_ID = "organizationId";
 
     /**
-     * Query parameter of the trend window length in days.
-     */
-    public static final String PARAM_DAYS = "days";
-
-    /**
      * Shortest trend window: today only.
      */
     public static final int MIN_TREND_DAYS = 1;
@@ -30,8 +25,7 @@ public final class CyberscoreConstant {
     public static final int MAX_TREND_DAYS = 365;
 
     /**
-     * Trend window used when the client names none. A String, because a
-     * request parameter default takes only a compile-time String.
+     * Trend window used when the client names none.
      */
-    public static final String DEFAULT_TREND_DAYS = "30";
+    public static final int DEFAULT_TREND_DAYS = 30;
 }

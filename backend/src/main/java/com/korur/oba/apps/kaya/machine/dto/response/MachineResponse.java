@@ -26,7 +26,7 @@ public record MachineResponse(
         @Schema(description = "Display name of the user", example = "Ada Lovelace")
         String userDisplayName,
 
-        @Schema(description = "Hostname of the machine", example = "ada-macbook")
+        @Schema(description = "Display label of the machine", example = "ada-macbook")
         String machineName,
 
         @Schema(description = "Claude Code version last reported; null shows \"Not reported\"", nullable = true, example = "2.3.1")

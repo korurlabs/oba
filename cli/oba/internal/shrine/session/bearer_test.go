@@ -6,10 +6,12 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/korurlabs/oba-cli/internal/dojo/client"
 	"github.com/korurlabs/oba-cli/internal/dojo/clitest"
 	"github.com/korurlabs/oba-cli/internal/dojo/config"
 	"github.com/korurlabs/oba-cli/internal/shrine/auth"
@@ -105,5 +107,43 @@ func TestOrganizationBearer_needsAnOrganization(t *testing.T) {
 	}
 	if _, err := OrganizationBearer(); !errors.Is(err, ErrNoOrganization) {
 		t.Fatalf("err = %v, want ErrNoOrganization", err)
+	}
+}
+
+func TestOrganizationBearer_marksASessionThatCannotBeRefreshedAsExpired(t *testing.T) {
+	clitest.SetupHome(t)
+	refused := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusBadRequest)
+	}))
+	t.Cleanup(refused.Close)
+	storeSession(t, refused.URL+"/realms/sensey", time.Now().Add(-time.Minute))
+
+	bearer, err := OrganizationBearer()
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = bearer.Token(context.Background())
+	if !errors.Is(err, client.ErrSessionExpired) || !strings.Contains(err.Error(), "could not be refreshed") {
+		t.Fatalf("Token() err = %v, want ErrSessionExpired", err)
+	}
+}
+
+func TestOrganizationBearer_marksASessionWithoutARefreshTokenAsExpired(t *testing.T) {
+	clitest.SetupHome(t)
+	err := auth.NewTokenStore().Save(auth.Credentials{
+		AccessToken: "stale", ExpiresAt: time.Now().Add(-time.Minute),
+		APIURL: "http://api.test", IssuerURL: "http://issuer.test/realms/sensey", ClientID: "oba-cli", DefaultOrgID: clitest.OrgIDAcme,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bearer, err := OrganizationBearer()
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = bearer.Token(context.Background())
+	if !errors.Is(err, client.ErrSessionExpired) || err.Error() != "your session has expired. Run 'oba login'" {
+		t.Fatalf("Token() err = %v, want ErrSessionExpired", err)
 	}
 }

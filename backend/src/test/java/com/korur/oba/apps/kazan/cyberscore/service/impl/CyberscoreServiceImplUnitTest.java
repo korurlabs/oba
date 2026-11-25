@@ -22,21 +22,19 @@ import static org.mockito.Mockito.when;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.kazan.cyberscore.entity.Check;
 import com.korur.oba.apps.kazan.cyberscore.entity.Cyberscore;
+import com.korur.oba.apps.kazan.cyberscore.entity.CyberscoreCheck;
 import com.korur.oba.apps.kazan.cyberscore.entity.CyberscoreSnapshot;
-import com.korur.oba.apps.kazan.cyberscore.enums.CheckCategory;
-import com.korur.oba.apps.kazan.cyberscore.enums.CheckOutcome;
+import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreCheckCategory;
+import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreCheckOutcome;
 import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreLevel;
 import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreSnapshotEventType;
-import com.korur.oba.apps.kazan.cyberscore.repository.CheckRepository;
+import com.korur.oba.apps.kazan.cyberscore.repository.CyberscoreCheckRepository;
 import com.korur.oba.apps.kazan.cyberscore.repository.CyberscoreRepository;
 import com.korur.oba.apps.kazan.cyberscore.repository.CyberscoreSnapshotRepository;
 import com.korur.oba.dojo.exception.internal.infrastructure.InternalServerErrorException;
@@ -57,7 +55,7 @@ class CyberscoreServiceImplUnitTest {
     private CyberscoreSnapshotRepository snapshotRepository;
 
     @Mock
-    private CheckRepository checkRepository;
+    private CyberscoreCheckRepository checkRepository;
 
     @Mock
     private LoggingService loggingService;
@@ -70,8 +68,8 @@ class CyberscoreServiceImplUnitTest {
                 new CyberscoreCalculateServiceImpl(), Clock.fixed(NOW, ZoneOffset.UTC), loggingService);
     }
 
-    private static Check check(int weight, CheckOutcome outcome, CheckCategory category) {
-        return Check.builder().weight(weight).outcome(outcome).category(category).build();
+    private static CyberscoreCheck check(int weight, CyberscoreCheckOutcome outcome, CyberscoreCheckCategory category) {
+        return CyberscoreCheck.builder().weight(weight).outcome(outcome).category(category).build();
     }
 
     @Nested
@@ -120,14 +118,13 @@ class CyberscoreServiceImplUnitTest {
             Cyberscore row = Cyberscore.builder().organizationId(organizationId).build();
             when(cyberscoreRepository.findByOrganizationIdForUpdate(organizationId)).thenReturn(Optional.of(row));
             when(checkRepository.findByOrganizationIdOrderByCategoryAscSortOrderAscNameAsc(organizationId))
-                    .thenReturn(List.of(check(1, CheckOutcome.PASS, CheckCategory.DEVICES),
-                            check(1, CheckOutcome.FAIL, CheckCategory.DEVICES)));
+                    .thenReturn(List.of(check(1, CyberscoreCheckOutcome.PASS, CyberscoreCheckCategory.DEVICES),
+                            check(1, CyberscoreCheckOutcome.FAIL, CyberscoreCheckCategory.DEVICES)));
 
             service.recalculate(organizationId, CyberscoreSnapshotEventType.CHECK_OUTCOME_CHANGED, performedById);
 
             assertThat(row.getScorePercentage()).isEqualTo(50);
             assertThat(row.getScoreLevel()).isEqualTo(CyberscoreLevel.MEDIUM);
-            assertThat(row.getBreakdownByCategory()).isEqualTo(Map.of("DEVICES", 50));
             assertThat(row.getLastCalculatedAt()).isEqualTo(NOW);
             verify(cyberscoreRepository).save(row);
             ArgumentCaptor<CyberscoreSnapshot> captor = ArgumentCaptor.forClass(CyberscoreSnapshot.class);
@@ -136,7 +133,6 @@ class CyberscoreServiceImplUnitTest {
             assertThat(snapshot.getOrganizationId()).isEqualTo(organizationId);
             assertThat(snapshot.getScorePercentage()).isEqualTo(50);
             assertThat(snapshot.getScoreLevel()).isEqualTo(CyberscoreLevel.MEDIUM);
-            assertThat(snapshot.getBreakdownByCategory()).isEqualTo(Map.of("DEVICES", 50));
             assertThat(snapshot.getEventType()).isEqualTo(CyberscoreSnapshotEventType.CHECK_OUTCOME_CHANGED);
             assertThat(snapshot.getPerformedById()).isEqualTo(performedById);
             assertThat(snapshot.getTakenAt()).isEqualTo(NOW);
@@ -145,11 +141,11 @@ class CyberscoreServiceImplUnitTest {
         @Test
         void resultUnchanged_refreshesTheTimestampButWritesNoSnapshot() {
             Cyberscore row = Cyberscore.builder().organizationId(organizationId).scorePercentage(100)
-                    .scoreLevel(CyberscoreLevel.MINIMAL).breakdownByCategory(new HashMap<>(Map.of("DEVICES", 100)))
+                    .scoreLevel(CyberscoreLevel.MINIMAL)
                     .lastCalculatedAt(NOW.minusSeconds(3600)).build();
             when(cyberscoreRepository.findByOrganizationIdForUpdate(organizationId)).thenReturn(Optional.of(row));
             when(checkRepository.findByOrganizationIdOrderByCategoryAscSortOrderAscNameAsc(organizationId))
-                    .thenReturn(List.of(check(5, CheckOutcome.PASS, CheckCategory.DEVICES)));
+                    .thenReturn(List.of(check(5, CyberscoreCheckOutcome.PASS, CyberscoreCheckCategory.DEVICES)));
 
             service.recalculate(organizationId, CyberscoreSnapshotEventType.CHECK_UPDATED, performedById);
 
@@ -158,19 +154,18 @@ class CyberscoreServiceImplUnitTest {
         }
 
         @Test
-        void onlyTheBreakdownMoved_writesASnapshot() {
+        void onlyTheCategorySplitMoved_writesNoSnapshot() {
             Cyberscore row = Cyberscore.builder().organizationId(organizationId).scorePercentage(50)
-                    .scoreLevel(CyberscoreLevel.MEDIUM).breakdownByCategory(new HashMap<>(Map.of("DEVICES", 50)))
-                    .lastCalculatedAt(NOW).build();
+                    .scoreLevel(CyberscoreLevel.MEDIUM).lastCalculatedAt(NOW).build();
             when(cyberscoreRepository.findByOrganizationIdForUpdate(organizationId)).thenReturn(Optional.of(row));
             // Same overall 50, now split over two categories.
             when(checkRepository.findByOrganizationIdOrderByCategoryAscSortOrderAscNameAsc(organizationId))
-                    .thenReturn(List.of(check(1, CheckOutcome.PASS, CheckCategory.COMPLIANCE),
-                            check(1, CheckOutcome.FAIL, CheckCategory.DEVICES)));
+                    .thenReturn(List.of(check(1, CyberscoreCheckOutcome.PASS, CyberscoreCheckCategory.COMPLIANCE),
+                            check(1, CyberscoreCheckOutcome.FAIL, CyberscoreCheckCategory.DEVICES)));
 
             service.recalculate(organizationId, CyberscoreSnapshotEventType.CHECK_UPDATED, performedById);
 
-            verify(snapshotRepository).save(any(CyberscoreSnapshot.class));
+            verify(snapshotRepository, never()).save(any());
         }
 
         @Test

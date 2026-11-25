@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 // 3. Java SDK
 import java.time.Clock;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -22,15 +21,15 @@ import static com.korur.oba.apps.kazan.cyberscore.constant.service.CyberscoreSer
 
 import com.korur.oba.apps.kazan.cyberscore.constant.CyberscoreConstant;
 import com.korur.oba.apps.kazan.cyberscore.constant.CyberscoreExceptionLogConstant;
-import com.korur.oba.apps.kazan.cyberscore.entity.Check;
+import com.korur.oba.apps.kazan.cyberscore.dto.derived.CyberscoreCalculation;
 import com.korur.oba.apps.kazan.cyberscore.entity.Cyberscore;
+import com.korur.oba.apps.kazan.cyberscore.entity.CyberscoreCheck;
 import com.korur.oba.apps.kazan.cyberscore.entity.CyberscoreSnapshot;
 import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreSnapshotEventType;
-import com.korur.oba.apps.kazan.cyberscore.repository.CheckRepository;
+import com.korur.oba.apps.kazan.cyberscore.repository.CyberscoreCheckRepository;
 import com.korur.oba.apps.kazan.cyberscore.repository.CyberscoreRepository;
 import com.korur.oba.apps.kazan.cyberscore.repository.CyberscoreSnapshotRepository;
 import com.korur.oba.apps.kazan.cyberscore.service.CyberscoreCalculateService;
-import com.korur.oba.apps.kazan.cyberscore.service.CyberscoreCalculation;
 import com.korur.oba.apps.kazan.cyberscore.service.CyberscoreService;
 import com.korur.oba.dojo.exception.enums.ExceptionInternalError;
 import com.korur.oba.dojo.exception.internal.infrastructure.InternalServerErrorException;
@@ -56,7 +55,7 @@ public class CyberscoreServiceImpl implements CyberscoreService {
 
     private final CyberscoreRepository cyberscoreRepository;
     private final CyberscoreSnapshotRepository cyberscoreSnapshotRepository;
-    private final CheckRepository checkRepository;
+    private final CyberscoreCheckRepository checkRepository;
     private final CyberscoreCalculateService cyberscoreCalculateService;
     private final Clock clock;
     private final LoggingService loggingService;
@@ -79,7 +78,8 @@ public class CyberscoreServiceImpl implements CyberscoreService {
         Cyberscore cyberscore = loadLockedRow(organizationId);
 
         // The query flushes the pending check change first, so the calculation sees it.
-        List<Check> checks = checkRepository.findByOrganizationIdOrderByCategoryAscSortOrderAscNameAsc(organizationId);
+        List<CyberscoreCheck> checks =
+                checkRepository.findByOrganizationIdOrderByCategoryAscSortOrderAscNameAsc(organizationId);
         CyberscoreCalculation calculation = cyberscoreCalculateService.calculate(checks);
 
         boolean moved = hasMoved(cyberscore, calculation);
@@ -87,7 +87,6 @@ public class CyberscoreServiceImpl implements CyberscoreService {
 
         cyberscore.setScorePercentage(calculation.scorePercentage());
         cyberscore.setScoreLevel(calculation.scoreLevel());
-        cyberscore.setBreakdownByCategory(new HashMap<>(calculation.breakdownByCategory()));
         cyberscore.setLastCalculatedAt(now);
         cyberscoreRepository.save(cyberscore);
 
@@ -96,7 +95,6 @@ public class CyberscoreServiceImpl implements CyberscoreService {
                     .organizationId(organizationId)
                     .scorePercentage(calculation.scorePercentage())
                     .scoreLevel(calculation.scoreLevel())
-                    .breakdownByCategory(new HashMap<>(calculation.breakdownByCategory()))
                     .eventType(eventType)
                     .performedById(performedById)
                     .takenAt(now)
@@ -126,13 +124,12 @@ public class CyberscoreServiceImpl implements CyberscoreService {
     }
 
     /**
-     * Whether the new result differs from the stored one in percentage, level or
-     * breakdown. Only such a change is worth a trend snapshot; a recalculation
-     * that lands on the same numbers writes none.
+     * Whether the new result differs from the stored one in percentage or level.
+     * Only such a change is worth a trend snapshot; a recalculation that lands on
+     * the same score writes none.
      */
     private static boolean hasMoved(Cyberscore cyberscore, CyberscoreCalculation calculation) {
         return !Objects.equals(cyberscore.getScorePercentage(), calculation.scorePercentage())
-                || cyberscore.getScoreLevel() != calculation.scoreLevel()
-                || !Objects.equals(cyberscore.getBreakdownByCategory(), calculation.breakdownByCategory());
+                || cyberscore.getScoreLevel() != calculation.scoreLevel();
     }
 }

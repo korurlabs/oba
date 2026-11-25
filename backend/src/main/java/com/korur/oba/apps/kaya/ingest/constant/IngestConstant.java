@@ -57,11 +57,8 @@ public final class IngestConstant {
     public static final String FIELD_INDEX = "index";
     public static final String FIELD_FIELD = "field";
     public static final String FIELD_SESSION_ID = "sessionId";
-    public static final String FIELD_MACHINE_NAME = "machineName";
-    public static final String FIELD_EXPECTED_MACHINE_NAME = "expectedMachineName";
     public static final String FIELD_TOKEN_ID = "tokenId";
     public static final String FIELD_LIMIT = "limit";
-    public static final String FIELD_GIT_AUTHOR_EMAIL = "gitAuthorEmail";
 
     // --- Validation messages ---
     public static final String SESSION_ID_REQUIRED_MESSAGE = "Session id is required";

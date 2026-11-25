@@ -15,14 +15,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.JdbcType;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
-import org.hibernate.type.SqlTypes;
 
 // 3. Java SDK
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 // 4. Internal
@@ -31,13 +27,13 @@ import com.korur.oba.dojo.entity.BaseEntity;
 
 /**
  * Entity holding the live cyberscore of an organization, computed from its
- * {@link Check} rows.
+ * {@link CyberscoreCheck} rows.
  *
  * One row per organization, which a unique constraint enforces. The row is
  * created on the first scoring change and doubles as the lock that makes the
  * scoring writes of one organization run one after another. Percentage and
- * level are stored, not derived at read time, so the overview and the trend
- * read one row.
+ * level are stored, so the trend reads one row; the percentage per category is
+ * computed from the checks when the score is read.
  */
 @Entity
 @Table(name = "cyberscores", schema = "kazan")
@@ -60,15 +56,6 @@ public class Cyberscore extends BaseEntity {
     @Builder.Default
     @Column(name = "score_percentage", nullable = false)
     private Integer scorePercentage = 0;
-
-    /**
-     * Percentage per category, keyed by the {@link com.korur.oba.apps.kazan.cyberscore.enums.CheckCategory}
-     * name. A category without scorable checks has no key.
-     */
-    @Builder.Default
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "breakdown_by_category", columnDefinition = "jsonb", nullable = false)
-    private Map<String, Integer> breakdownByCategory = new HashMap<>();
 
     // Null until the first calculation.
     @Column(name = "last_calculated_at", columnDefinition = "TIMESTAMP WITH TIME ZONE", nullable = true)

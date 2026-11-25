@@ -651,9 +651,11 @@
   "views": {
     "kanban": "Kanban",
     "list": "List",
+    "cards": "Cards",
     "modeToggle": "View mode toggle",
     "switchToList": "Switch to list view",
     "switchToKanban": "Switch to kanban view",
+    "switchToCards": "Switch to cards view",
     "options": "View"
   },
   "guest": {
@@ -1453,7 +1455,11 @@
     "emptyTitle": "No cyberscore yet",
     "emptyDescription": "Add checks and record their outcomes, and your cyberscore and how it changes appear here.",
     "loadError": "Could not load the cyberscore.",
-    "viewChecks": "View checks",
+    "noAccess": {
+      "title": "The cyberscore is for organization members",
+      "description": "You are a guest in {organization}, and guests do not see the cyberscore. An owner or admin of the organization can make you a member in Ulak."
+    },
+    "viewChecks": "View all checks",
     "gauge": {
       "title": "Current score",
       "description": "Weighted over every check with a scorable outcome.",
@@ -1465,11 +1471,8 @@
     "breakdown": {
       "title": "Score by category",
       "description": "The score of each category with at least one scorable check.",
-      "category": "Category",
-      "score": "Score",
-      "level": "Risk level",
-      "scoreAria": "{category} score is {score} percent",
-      "empty": "No category has a scorable check yet."
+      "empty": "No category has a scorable check yet.",
+      "rowLink": "{category}: {score} percent, {level}. Show its checks."
     },
     "trend": {
       "title": "30-day trend",
@@ -1521,11 +1524,13 @@
       "description": "The controls your cyberscore is built from, with their weight and current outcome.",
       "back": "Back to cyberscore",
       "empty": "No checks yet",
+      "emptyFiltered": "No checks match these filters",
       "emptyDescription": "Add a check to start building your cyberscore.",
       "readOnly": "Only organization admins can change checks.",
       "add": "Add check",
       "edit": "Edit check",
       "delete": "Delete",
+      "showText": "Show full text",
       "deleteTitle": "Delete check?",
       "deleteConfirm": "{name} is deleted and the cyberscore is recalculated.",
       "columns": {
@@ -1539,7 +1544,12 @@
       },
       "filter": {
         "status": "Status",
-        "allStatuses": "All statuses"
+        "category": "Category",
+        "search": "Search checks",
+        "clear": "Clear filters"
+      },
+      "kanban": {
+        "emptyColumn": "No checks"
       },
       "fields": {
         "name": "Name",

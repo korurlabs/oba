@@ -9,20 +9,15 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.JdbcType;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.dialect.PostgreSQLEnumJdbcType;
-import org.hibernate.type.SqlTypes;
 
 // 3. Java SDK
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 // 4. Internal
@@ -34,8 +29,8 @@ import com.korur.oba.dojo.entity.BaseEntity;
  * Entity recording a past value of an organization's {@link Cyberscore}, the
  * source of the trend chart.
  *
- * Append only: a row is inserted when a check change moves the percentage,
- * level or breakdown, and is never updated or deleted by the application. It
+ * Append only: a row is inserted when a check change moves the percentage or
+ * the level, and is never updated or deleted by the application. It
  * keeps no link to a check, so the history survives deleting one. Every column
  * is therefore fixed after insert.
  */
@@ -55,12 +50,6 @@ public class CyberscoreSnapshot extends BaseEntity {
 
     @Column(name = "score_percentage", nullable = false, updatable = false)
     private Integer scorePercentage;
-
-    // Percentage per category, keyed by the category name, as in Cyberscore.
-    @Builder.Default
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "breakdown_by_category", columnDefinition = "jsonb", nullable = false, updatable = false)
-    private Map<String, Integer> breakdownByCategory = new HashMap<>();
 
     /**
      * User whose change caused the snapshot. Null for a system change, and

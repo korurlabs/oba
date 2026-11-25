@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 // 4. Internal
+import com.korur.oba.apps.kazan.cyberscore.dto.request.CyberscoreTrendQueryRequest;
 import com.korur.oba.apps.kazan.cyberscore.dto.response.CyberscoreResponse;
 import com.korur.oba.apps.kazan.cyberscore.dto.response.CyberscoreTrendPointResponse;
 
@@ -31,8 +32,8 @@ public interface CyberscoreQueryService {
      * Returns the organization's score per business day.
      *
      * @param organizationId the organization of the request
-     * @param days           window length in days, clamped to 1 to 365
+     * @param query          the trend window; a missing length means the default
      * @return the trend points, oldest first; empty when never scored
      */
-    List<CyberscoreTrendPointResponse> getTrend(UUID organizationId, int days);
+    List<CyberscoreTrendPointResponse> getTrend(UUID organizationId, CyberscoreTrendQueryRequest query);
 }

@@ -16,8 +16,10 @@ import java.util.UUID;
 public interface UserGitEmailQueryService {
 
     /**
-     * Finds the user that a git email attributes a recorded session to in the organization: the
-     * holder of the git email, or else the member whose platform sign-in email it is.
+     * Finds the user of the organization that a git email belongs to: the holder of the git email,
+     * or else the member whose platform sign-in email it is. A recorded session always belongs to
+     * the user of its machine token; the user found here only shows when the session's git email is
+     * another member's.
      *
      * @param organizationId the organization
      * @param email          the git email in any case; it is compared in lower case

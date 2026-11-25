@@ -651,9 +651,11 @@
   "views": {
     "kanban": "Kanban",
     "list": "Liste",
+    "cards": "Kartlar",
     "modeToggle": "Görünüm modu değiştir",
     "switchToList": "Liste görünümüne geç",
     "switchToKanban": "Kanban görünümüne geç",
+    "switchToCards": "Kart görünümüne geç",
     "options": "Görünüm"
   },
   "guest": {
@@ -1453,7 +1455,11 @@
     "emptyTitle": "Henüz cyberscore yok",
     "emptyDescription": "Kontroller ekleyip sonuçlarını kaydettiğinizde cyberscore'unuz ve değişimi burada görünecek.",
     "loadError": "Cyberscore yüklenemedi.",
-    "viewChecks": "Kontrolleri görüntüle",
+    "noAccess": {
+      "title": "Cyberscore kuruluş üyeleri içindir",
+      "description": "{organization} kuruluşunda misafirsiniz ve misafirler cyberscore'u göremez. Kuruluşun sahibi veya yöneticisi sizi Ulak'tan üye yapabilir."
+    },
+    "viewChecks": "Tüm kontrolleri görüntüle",
     "gauge": {
       "title": "Güncel puan",
       "description": "Puana sayılan sonucu olan tüm kontroller üzerinden ağırlıklı olarak hesaplanır.",
@@ -1465,11 +1471,8 @@
     "breakdown": {
       "title": "Kategoriye göre puan",
       "description": "Puana sayılan en az bir kontrolü olan her kategorinin puanı.",
-      "category": "Kategori",
-      "score": "Puan",
-      "level": "Risk düzeyi",
-      "scoreAria": "{category} puanı yüzde {score}",
-      "empty": "Henüz puana sayılan kontrolü olan bir kategori yok."
+      "empty": "Henüz puana sayılan kontrolü olan bir kategori yok.",
+      "rowLink": "{category}: yüzde {score}, {level}. Kontrollerini göster."
     },
     "trend": {
       "title": "30 günlük eğilim",
@@ -1521,11 +1524,13 @@
       "description": "Cyberscore'unuzu oluşturan kontroller, ağırlıkları ve güncel sonuçlarıyla.",
       "back": "Cyberscore'a dön",
       "empty": "Henüz kontrol yok",
+      "emptyFiltered": "Bu filtrelere uyan kontrol yok",
       "emptyDescription": "Cyberscore'unuzu oluşturmaya başlamak için bir kontrol ekleyin.",
       "readOnly": "Kontrolleri yalnızca organizasyon yöneticileri değiştirebilir.",
       "add": "Kontrol ekle",
       "edit": "Kontrolü düzenle",
       "delete": "Sil",
+      "showText": "Tam metni göster",
       "deleteTitle": "Kontrol silinsin mi?",
       "deleteConfirm": "{name} silinecek ve cyberscore yeniden hesaplanacak.",
       "columns": {
@@ -1539,7 +1544,12 @@
       },
       "filter": {
         "status": "Durum",
-        "allStatuses": "Tüm durumlar"
+        "category": "Kategori",
+        "search": "Kontrollerde ara",
+        "clear": "Filtreleri temizle"
+      },
+      "kanban": {
+        "emptyColumn": "Kontrol yok"
       },
       "fields": {
         "name": "Ad",

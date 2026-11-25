@@ -38,6 +38,7 @@ import com.korur.oba.shrine.access.service.OrganizationGroupService;
 import com.korur.oba.shrine.helper.AnonymizationHelper;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.identity.service.UserService;
+import com.korur.oba.shrine.invitation.service.InvitationService;
 import com.korur.oba.shrine.organization.dto.request.OrganizationCreateRequest;
 import com.korur.oba.shrine.organization.dto.request.OrganizationUpdateRequest;
 import com.korur.oba.shrine.organization.dto.response.OrganizationDetailResponse;
@@ -64,6 +65,9 @@ class OrganizationServiceImplUnitTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private InvitationService invitationService;
 
     @Mock
     private OrganizationMapper organizationMapper;
@@ -473,6 +477,26 @@ class OrganizationServiceImplUnitTest {
             InOrder inOrder = inOrder(userService, organizationRepository);
             inOrder.verify(userService).applyOrganizationDeletion(firstMember.getId(), organizationId);
             inOrder.verify(userService).applyOrganizationDeletion(secondMember.getId(), organizationId);
+            inOrder.verify(organizationRepository).delete(organization);
+        }
+
+        @Test
+        void withPendingInvitations_revokesThemBeforeSoftDelete() {
+            // Arrange
+            User user = stubUser();
+            UUID organizationId = UUID.randomUUID();
+            Organization organization = stubOrganization(organizationId);
+
+            when(organizationValidator.ensureOrganizationExists(organizationId)).thenReturn(organization);
+            when(organizationRepository.save(organization)).thenReturn(organization);
+            stubAuditLogMapper();
+
+            // Act
+            organizationServiceImpl.deleteOrganization(user, organizationId);
+
+            // Assert: the invitations are revoked through the invitation service before the organization is deleted.
+            InOrder inOrder = inOrder(invitationService, organizationRepository);
+            inOrder.verify(invitationService).revokePendingInvitationsOfOrganization(organizationId);
             inOrder.verify(organizationRepository).delete(organization);
         }
     }

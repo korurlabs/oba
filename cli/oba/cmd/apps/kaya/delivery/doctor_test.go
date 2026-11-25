@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"maps"
 	"net/http/httptest"
 	"os"
 	"os/exec"
@@ -20,6 +21,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/korurlabs/oba-cli/internal/apps/kaya/capture"
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/client"
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/delivery"
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/install"
@@ -42,36 +44,61 @@ fi
 exit 0
 `
 
-// fakeClaude stands in for claude -p. It prints the init event with the skills and subagents
-// the test names, writes the agents-md line of the debug log, and queues a record event of the
-// session as the drop-in's record hook does, each as the test asks.
+// fakeClaude stands in for claude -p. A session started with --setting-sources is the probe
+// session; one without it loads the user settings. FAKE_CLAUDE_START, FAKE_CLAUDE_AGENTS_MD and
+// FAKE_CLAUDE_RECORD list the sessions, "probe" and "user", that start, that write the agents-md
+// line of the debug log, and that queue a record event as a record hook does; "no" lists none.
+// A session that starts prints the init event with the skills and subagents the test names. Every
+// session logs a hook's output that repeats the agents-md plugin's words, which proves nothing. As
+// Claude Code does, it refuses --strict-mcp-config where the file FAKE_CLAUDE_MANAGED_MCP exists.
 const fakeClaude = `#!/bin/sh
 printf '%s\n' "$*" >> "$FAKE_CLAUDE_ARGS"
 session=""
 debug=""
+kind="user"
+strict=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --session-id) session="$2"; shift ;;
     --debug-file) debug="$2"; shift ;;
+    --setting-sources) kind="probe"; shift ;;
+    --strict-mcp-config) strict="yes" ;;
   esac
   shift
 done
-if [ "$FAKE_CLAUDE_START" = "no" ]; then
+does() {
+  case " $1 " in
+    *" $kind "*) return 0 ;;
+  esac
+  return 1
+}
+if [ -n "$strict" ] && [ -f "$FAKE_CLAUDE_MANAGED_MCP" ]; then
+  echo "--strict-mcp-config cannot replace the managed MCP servers" >&2
+  exit 1
+fi
+if ! does "$FAKE_CLAUDE_START"; then
   echo "Invalid API key" >&2
   exit 1
 fi
 printf '{"type":"system","subtype":"init","cwd":"%s","session_id":"%s","skills":%s,"agents":%s}\n' "$PWD" "$session" "$FAKE_CLAUDE_SKILLS" "$FAKE_CLAUDE_AGENTS"
-printf '2026-11-23T10:00:00.000Z [DEBUG] Session started\n' > "$debug"
-if [ "$FAKE_CLAUDE_AGENTS_MD" != "no" ]; then
-  printf '2026-11-23T10:00:00.000Z [DEBUG] [agents-md] no CLAUDE.md found; AGENTS.md loaded: %s/AGENTS.md\n' "$PWD" >> "$debug"
+printf '2026-11-24T10:53:35.500Z [DEBUG] Session started\n' > "$debug"
+printf '2026-11-24T10:53:35.715Z [DEBUG] Hook SessionStart:startup stdout: no CLAUDE.md found; AGENTS.md loaded: %s/AGENTS.md\n' "$PWD" >> "$debug"
+if does "$FAKE_CLAUDE_AGENTS_MD"; then
+  printf '2026-11-24T10:53:35.815Z [DEBUG] [cc-plugin-agents-md] $.ui.log (to debug): no CLAUDE.md found; AGENTS.md loaded: %s/AGENTS.md\n' "$PWD" >> "$debug"
 fi
-if [ "$FAKE_CLAUDE_RECORD" = "yes" ]; then
+if does "$FAKE_CLAUDE_RECORD"; then
   dir="$XDG_STATE_HOME/kaya/queue/sessions/$session"
   /bin/mkdir -p "$dir"
   printf '{"seq":1,"event":"SessionStart"}\n' >> "$dir/events.jsonl"
 fi
 printf '{"type":"result","subtype":"success","result":"OK"}\n'
 `
+
+// doctorRelease is release 1, which setupDoctor publishes.
+var doctorRelease = map[string]string{
+	"AGENTS.md": "# Rules\n", ".agents/skills/demo/SKILL.md": "---\nname: demo\n---\n",
+	".claude/skills/notes/SKILL.md": "---\nname: notes\n---\n", ".claude/agents/helper.md": "---\nname: docs-helper\n---\nHelps with the docs.\n",
+}
 
 // doctorEnv is a laptop on which oba kaya doctor finds nothing wrong: a delivered checkout, the
 // drop-in in a managed folder of the test, owned by root as far as doctor sees, the git hook
@@ -113,7 +140,9 @@ func setupDoctor(t *testing.T) *doctorEnv {
 		"GIT_CONFIG_GLOBAL": filepath.Join(t.TempDir(), "gitconfig"), "SHELL": "/bin/bash", "TMPDIR": t.TempDir(),
 		"FAKE_OBA_VERSION": obaVersionUnderTest, "FAKE_CLAUDE_ARGS": filepath.Join(t.TempDir(), "claude-args"),
 		"FAKE_CLAUDE_SKILLS": `["notes","example:other"]`, "FAKE_CLAUDE_AGENTS": `["docs-helper","general-purpose"]`,
-		"FAKE_CLAUDE_RECORD": "yes", "FAKE_CLAUDE_AGENTS_MD": "yes", "FAKE_CLAUDE_START": "yes",
+		// As Claude Code does: both sessions start and queue a record event, and only the session
+		// with the user settings loads AGENTS.md.
+		"FAKE_CLAUDE_START": "probe user", "FAKE_CLAUDE_RECORD": "probe user", "FAKE_CLAUDE_AGENTS_MD": "user",
 	} {
 		t.Setenv(key, value)
 	}
@@ -126,12 +155,10 @@ func setupDoctor(t *testing.T) *doctorEnv {
 	t.Setenv("PATH", strings.Join([]string{e.bin, filepath.Dir(git), "/bin"}, string(os.PathListSeparator)))
 	oba := writeExecutable(t, e.bin, "oba", fakeOba)
 
-	kaya.Publish(t, 1, map[string]string{
-		"AGENTS.md": "# Rules\n", ".agents/skills/demo/SKILL.md": "---\nname: demo\n---\n",
-		".claude/skills/notes/SKILL.md": "---\nname: notes\n---\n", ".claude/agents/helper.md": "---\nname: docs-helper\n---\nHelps with the docs.\n",
-	})
+	kaya.Publish(t, 1, doctorRelease)
 
 	e.managed = filepath.Join(t.TempDir(), "ClaudeCode", "managed-settings.d")
+	t.Setenv("FAKE_CLAUDE_MANAGED_MCP", filepath.Join(filepath.Dir(e.managed), managedMCPFile))
 	if err := os.MkdirAll(e.managed, 0o750); err != nil {
 		t.Fatal(err)
 	}
@@ -196,6 +223,18 @@ func setupDelivered(t *testing.T) *doctorEnv {
 		t.Fatalf("sync: %s, %v", out, err)
 	}
 	return e
+}
+
+// deliverRelease2 publishes release 2, the files of release 1 with extra added, and syncs it into
+// the checkout.
+func (e *doctorEnv) deliverRelease2(t *testing.T, extra map[string]string) {
+	t.Helper()
+	files := maps.Clone(doctorRelease)
+	maps.Copy(files, extra)
+	e.kaya.Publish(t, 2, files)
+	if out, err := run(t, "", "sync"); err != nil {
+		t.Fatalf("sync: %s, %v", out, err)
+	}
 }
 
 // installDropIn installs the drop-in this oba renders for obaPath, mode 0644, and proves it in
@@ -796,9 +835,270 @@ func TestDoctorProbe_writesTheProofWhenTheDropInRecordsTheSession(t *testing.T) 
 	if !regexp.MustCompile(`"dropInSha256": "[0-9a-f]{64}"`).Match(raw) || !regexp.MustCompile(`"provedAt": "\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?Z"`).Match(raw) {
 		t.Fatalf("the proof is not lower-case hex and RFC 3339:\n%s", raw)
 	}
+	// The probe session first, with the user settings left out; then the AGENTS.md session with every
+	// settings source but no tool, no MCP server and one turn, its own session id and its own debug
+	// log. The empty value of --tools shows as a second space.
 	args := probeArgs(t)
-	if len(args) != 1 || !strings.HasPrefix(args[0], "-p ") || !strings.Contains(args[0], " --setting-sources project,local ") ||
-		!strings.Contains(args[0], " --output-format stream-json --verbose ") || !strings.Contains(args[0], " --no-session-persistence ") {
+	const shared = "-p " + probePrompt + " --output-format stream-json --verbose "
+	const rest = `--session-id \S+ --no-session-persistence --debug-file \S+$`
+	probe := regexp.MustCompile(`^` + regexp.QuoteMeta(shared+"--setting-sources project,local ") + rest)
+	agentsMD := regexp.MustCompile(`^` + regexp.QuoteMeta(shared+"--tools  --disallowedTools mcp__* --max-turns 1 --strict-mcp-config ") + rest)
+	if len(args) != 2 || !probe.MatchString(args[0]) || !agentsMD.MatchString(args[1]) {
+		t.Fatalf("claude ran with %q", args)
+	}
+	for _, flag := range []string{"--session-id", "--debug-file"} {
+		if first, second := argValue(t, args[0], flag), argValue(t, args[1], flag); first == second {
+			t.Fatalf("both sessions ran with %s %s", flag, first)
+		}
+	}
+}
+
+// argValue is the value that follows flag in a line of probeArgs.
+func argValue(t *testing.T, line, flag string) string {
+	t.Helper()
+	match := regexp.MustCompile(` ` + regexp.QuoteMeta(flag) + ` (\S+)`).FindStringSubmatch(line)
+	if match == nil {
+		t.Fatalf("no %s in %q", flag, line)
+	}
+	return match[1]
+}
+
+func TestLoadedAgentsMD_findsTheCheckoutAmongThePathsOfALine(t *testing.T) {
+	dir := t.TempDir()
+	root := filepath.Join(dir, "repo")
+	comma := filepath.Join(dir, "old, new")
+	for _, path := range []string{filepath.Join(root, "AGENTS.md"), filepath.Join(comma, "AGENTS.md")} {
+		writeTestFile(t, path, "# Rules\n")
+	}
+	link := filepath.Join(dir, "link")
+	if err := os.Symlink(root, link); err != nil {
+		t.Fatal(err)
+	}
+	want := filepath.Join(root, "AGENTS.md")
+	parent := filepath.Join(dir, "AGENTS.md")
+	const loaded = "2026-11-24T10:00:00.000Z [DEBUG] [cc-plugin-agents-md] $.ui.log (to debug): no CLAUDE.md found; AGENTS.md loaded: "
+	for name, tc := range map[string]struct {
+		log, want string
+		found     bool
+	}{
+		"one path":                       {log: loaded + want, want: want, found: true},
+		"two paths, the checkout last":   {log: loaded + parent + ", " + want, want: want, found: true},
+		"two paths, the checkout first":  {log: loaded + want + ", " + filepath.Join(root, ".claude", "AGENTS.md"), want: want, found: true},
+		"the checkout through a link":    {log: loaded + parent + ", " + filepath.Join(link, "AGENTS.md") + "\n", want: want, found: true},
+		"a checkout path with the comma": {log: loaded + filepath.Join(comma, "AGENTS.md"), want: filepath.Join(comma, "AGENTS.md"), found: true},
+		"only the folder above":          {log: loaded + parent + ", " + filepath.Join(root+"-other", "AGENTS.md"), want: want},
+		"no agents-md line":              {log: "2026-11-24T10:00:00.000Z [DEBUG] Session started\n", want: want},
+	} {
+		if got := loadedAgentsMD([]byte(tc.log), tc.want); got != tc.found {
+			t.Fatalf("%s: loadedAgentsMD(%q, %q) = %v", name, tc.log, tc.want, got)
+		}
+	}
+}
+
+func TestLoadedAgentsMD_takesOnlyThePluginsOwnLine(t *testing.T) {
+	want := filepath.Join(t.TempDir(), "AGENTS.md")
+	writeTestFile(t, want, "# Rules\n")
+	const words = "no CLAUDE.md found; AGENTS.md loaded: "
+	plugin := "2026-11-24T10:53:35.815Z [DEBUG] [cc-plugin-agents-md] $.ui.log (to debug): " + words + want
+	for name, tc := range map[string]struct {
+		log   string
+		found bool
+	}{
+		"the plugin's line":                {log: plugin, found: true},
+		"the plugin's line after a hook's": {log: "2026-11-24T10:53:35.715Z [DEBUG] Hook SessionStart:startup stdout: " + words + "/elsewhere/AGENTS.md\n" + plugin + "\n", found: true},
+		"a hook's output":                  {log: "2026-11-24T10:53:35.715Z [DEBUG] Hook SessionStart:startup stdout: " + words + want},
+		"an MCP server naming the plugin":  {log: `2026-11-24T10:53:35.715Z [DEBUG] MCP server "notes": [cc-plugin-agents-md] ` + words + want},
+		"a line Claude Code did not start": {log: "[cc-plugin-agents-md] " + words + want},
+		"the words alone":                  {log: "2026-11-24T10:53:35.715Z [DEBUG] AGENTS.md loaded: " + want},
+	} {
+		if got := loadedAgentsMD([]byte(tc.log), want); got != tc.found {
+			t.Fatalf("%s: loadedAgentsMD(%q) = %v", name, tc.log, got)
+		}
+	}
+}
+
+func TestDoctorProbe_leavesTheStrictMCPConfigOutWhereAManagedMCPFileFixesTheServers(t *testing.T) {
+	e := setupDelivered(t)
+	writeExecutable(t, e.bin, "claude", fakeClaude)
+	writeTestFile(t, filepath.Join(filepath.Dir(e.managed), managedMCPFile), "{\"mcpServers\": {}}\n")
+	report, err := e.doctor(t, "--probe")
+	e.wantFailed(t, report, err)
+	if check := checkNamed(t, report, "AGENTS.md"); check.Status != checkOK {
+		t.Fatalf("AGENTS.md: %+v", check)
+	}
+	if args := probeArgs(t); len(args) != 2 || strings.Contains(args[1], "--strict-mcp-config") ||
+		!strings.Contains(args[1], " --tools  --disallowedTools mcp__* --max-turns 1 --session-id ") {
+		t.Fatalf("claude ran with %q", args)
+	}
+}
+
+// lingeringClaude stands in for a claude that prints its init event and leaves sleep running in
+// its process group with its stdout, as a hook or an MCP server that outlives its session would.
+// It writes the pid of sleep to FAKE_CLAUDE_CHILD and exits, or waits when FAKE_CLAUDE_WAIT is set.
+const lingeringClaude = `#!/bin/sh
+printf '{"type":"system","subtype":"init"}\n'
+/bin/sleep 300 &
+echo $! > "$FAKE_CLAUDE_CHILD.tmp"
+/bin/mv "$FAKE_CLAUDE_CHILD.tmp" "$FAKE_CLAUDE_CHILD"
+if [ -n "$FAKE_CLAUDE_WAIT" ]; then
+  /bin/sleep 300
+fi
+`
+
+// startLingeringSession runs runSession with lingeringClaude in the background and returns the
+// pid of the sleep it left, and the channel runSession's error arrives on.
+func startLingeringSession(t *testing.T, ctx context.Context) (int, <-chan error) {
+	t.Helper()
+	child := filepath.Join(t.TempDir(), "child")
+	t.Setenv("FAKE_CLAUDE_CHILD", child)
+	claude := writeExecutable(t, t.TempDir(), "claude", lingeringClaude)
+	root := t.TempDir()
+	done := make(chan error, 1)
+	go func() {
+		_, err := runSession(ctx, claude, root)
+		done <- err
+	}()
+	deadline := time.Now().Add(10 * time.Second)
+	for {
+		data, err := os.ReadFile(child)
+		if err == nil {
+			pid, err := strconv.Atoi(strings.TrimSpace(string(data)))
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Cleanup(func() {
+				// rule-10-no-op -- reason: the sleep is usually gone already, which is what the test wants.
+				_ = syscall.Kill(pid, syscall.SIGKILL)
+			})
+			return pid, done
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("the stand-in claude did not start: %v", err)
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+}
+
+// waitForSession fails the test when runSession has not returned within a time far below the
+// sleep the stand-in left running.
+func waitForSession(t *testing.T, done <-chan error) {
+	t.Helper()
+	select {
+	case err := <-done:
+		if err != nil {
+			t.Fatalf("runSession: %v", err)
+		}
+	case <-time.After(30 * time.Second):
+		t.Fatal("runSession did not return")
+	}
+}
+
+func TestRunSession_killsTheProcessGroupWhenStopped(t *testing.T) {
+	t.Setenv("FAKE_CLAUDE_WAIT", "yes")
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	pid, done := startLingeringSession(t, ctx)
+	cancel()
+	waitForSession(t, done)
+	deadline := time.Now().Add(10 * time.Second)
+	for !errors.Is(syscall.Kill(pid, 0), syscall.ESRCH) {
+		if time.Now().After(deadline) {
+			t.Fatalf("process %d of the stopped session's group still runs", pid)
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+}
+
+func TestRunSession_returnsWhileAProcessThatOutlivedClaudeHoldsItsOutput(t *testing.T) {
+	_, done := startLingeringSession(t, context.Background())
+	waitForSession(t, done)
+}
+
+func TestDoctorProbe_checksAGENTSmdInTheSessionWithTheUserSettings(t *testing.T) {
+	for name, tc := range map[string]struct {
+		agentsMD string
+		failed   []string
+		detail   string
+	}{
+		"only that session loads it":      {agentsMD: "user", detail: "with every settings source, as a normal session has, loaded "},
+		"only the probe session loads it": {agentsMD: "probe", failed: []string{"AGENTS.md"}, detail: "CLAUDE.local.md"},
+		"neither session loads it":        {agentsMD: "no", failed: []string{"AGENTS.md"}, detail: "pluginConfigs"},
+		"both sessions load it":           {agentsMD: "probe user", detail: "as a normal session has, loaded "},
+	} {
+		t.Run(name, func(t *testing.T) {
+			e := setupDelivered(t)
+			writeExecutable(t, e.bin, "claude", fakeClaude)
+			t.Setenv("FAKE_CLAUDE_AGENTS_MD", tc.agentsMD)
+			report, err := e.doctor(t, "--probe")
+			e.wantFailed(t, report, err, tc.failed...)
+			check := checkNamed(t, report, "AGENTS.md")
+			if !strings.Contains(check.Detail, tc.detail) || !strings.Contains(check.Detail, filepath.Join(e.root, "AGENTS.md")) ||
+				strings.Contains(check.Detail, "setting-sources") {
+				t.Fatalf("AGENTS.md: %+v, want %q", check, tc.detail)
+			}
+		})
+	}
+}
+
+func TestDoctorProbe_namesASecondSessionThatDoesNotStart(t *testing.T) {
+	e := setupDelivered(t)
+	writeExecutable(t, e.bin, "claude", fakeClaude)
+	t.Setenv("FAKE_CLAUDE_START", "probe")
+	if err := install.RemoveInForce(e.opts.InForcePath); err != nil {
+		t.Fatal(err)
+	}
+	report, err := e.doctor(t, "--probe")
+	e.wantFailed(t, report, err, "AGENTS.md")
+	if check := checkNamed(t, report, "AGENTS.md"); !strings.Contains(check.Detail, "started no session") || !strings.Contains(check.Detail, "Invalid API key") {
+		t.Fatalf("AGENTS.md: %+v", check)
+	}
+	if _, ok, err := install.LoadInForce(e.opts.InForcePath); !ok || err != nil {
+		t.Fatalf("the probe session alone proves the drop-in in force: %v, %v", ok, err)
+	}
+}
+
+func TestDoctorProbe_takesTheProofOnlyFromTheProbeSession(t *testing.T) {
+	e := setupDelivered(t)
+	writeExecutable(t, e.bin, "claude", fakeClaude)
+	// A record hook left in the user settings queues the events of the session with the user
+	// settings only, as when Claude Code skips the drop-in.
+	t.Setenv("FAKE_CLAUDE_RECORD", "user")
+	report, err := e.doctor(t, "--probe")
+	e.wantFailed(t, report, err, "record event", "drop-in in force")
+	if check := checkNamed(t, report, "AGENTS.md"); check.Status != checkOK {
+		t.Fatalf("AGENTS.md: %+v", check)
+	}
+	if _, ok, err := install.LoadInForce(e.opts.InForcePath); ok || err != nil {
+		t.Fatalf("the proof is still there: %v, %v", ok, err)
+	}
+	args := probeArgs(t)
+	if len(args) != 2 {
+		t.Fatalf("claude ran with %q", args)
+	}
+	stateDir, err := delivery.RecorderStateDir()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i, queued := range []bool{false, true} {
+		_, err := os.Stat(filepath.Join(capture.SessionDir(stateDir, argValue(t, args[i], "--session-id")), capture.EventsFile))
+		if (err == nil) != queued {
+			t.Fatalf("session %d queued an event: %v, want %v", i+1, err == nil, queued)
+		}
+	}
+}
+
+func TestDoctorProbe_runsNoSecondSessionWithoutAnAGENTSmd(t *testing.T) {
+	e := setupDelivered(t)
+	writeExecutable(t, e.bin, "claude", fakeClaude)
+	if err := os.Remove(filepath.Join(e.root, "AGENTS.md")); err != nil {
+		t.Fatal(err)
+	}
+	report, err := e.doctor(t, "--probe")
+	e.wantFailed(t, report, err, "placed", "AGENTS.md")
+	if check := checkNamed(t, report, "AGENTS.md"); !strings.Contains(check.Detail, "no root AGENTS.md") {
+		t.Fatalf("AGENTS.md: %+v", check)
+	}
+	if args := probeArgs(t); len(args) != 1 || !strings.Contains(args[0], " --setting-sources project,local ") {
 		t.Fatalf("claude ran with %q", args)
 	}
 }
@@ -856,6 +1156,53 @@ func TestDoctorProbe_namesWhatTheSessionDidNotLoad(t *testing.T) {
 	}
 }
 
+func TestDoctorProbe_passesOverASkillThatIsNotUserInvocableAndNamesIt(t *testing.T) {
+	e := setupDoctor(t)
+	e.deliverRelease2(t, map[string]string{
+		".claude/skills/quiet/SKILL.md":  "---\nname: quiet\ndescription: Background rules for widgets.\nuser-invocable: false\n---\nKeep widgets small.\n",
+		".claude/skills/hushed/SKILL.md": "\uFEFF---\r\nname: hushed\r\nuser-invocable: \"false\"\r\n---\r\n",
+		".claude/skills/listed/SKILL.md": "---\nname: listed\nuser-invocable: FALSE\n---\n",
+	})
+	writeExecutable(t, e.bin, "claude", fakeClaude)
+	// As Claude Code does, the session leaves out the skills that set user-invocable to false; one a
+	// session lists anyway counts as loaded.
+	t.Setenv("FAKE_CLAUDE_SKILLS", `["notes","listed","example:other"]`)
+	report, err := e.doctor(t, "--probe")
+	e.wantFailed(t, report, err)
+	const want = "the session loaded all 2 delivered skills and 1 delivered subagents " +
+		"(2 more skills with user-invocable: false are not listed by Claude Code and were not checked: hushed, quiet)"
+	if check := checkNamed(t, report, "skills and subagents"); check.Status != checkOK || check.Detail != want {
+		t.Fatalf("skills and subagents: %+v, want %q", check, want)
+	}
+}
+
+func TestDoctorProbe_stillNamesAMissingSkillThatClaudeCodeLists(t *testing.T) {
+	for name, skill := range map[string]string{
+		"without user-invocable":                  "---\nname: loud\ndescription: Formats tables.\n---\n",
+		"with user-invocable: true":               "---\nname: loud\nuser-invocable: true\n---\n",
+		"with user-invocable below another field": "---\nname: loud\nmetadata:\n  user-invocable: false\n---\n",
+		"with a front matter that is not YAML":    "---\nname: loud\nuser-invocable: false\ndescription: [unclosed\n---\n",
+		"with a front matter that never closes":   "---\nname: loud\nuser-invocable: false\n",
+		"without a front matter":                  "user-invocable: false\n",
+	} {
+		t.Run(name, func(t *testing.T) {
+			e := setupDoctor(t)
+			e.deliverRelease2(t, map[string]string{
+				".claude/skills/loud/SKILL.md":  skill,
+				".claude/skills/quiet/SKILL.md": "---\nname: quiet\nuser-invocable: false\n---\n",
+			})
+			writeExecutable(t, e.bin, "claude", fakeClaude)
+			report, err := e.doctor(t, "--probe")
+			e.wantFailed(t, report, err, "skills and subagents")
+			const want = "the session did not load the delivered skill loud: run oba kaya sync and doctor again " +
+				"(1 more skill with user-invocable: false is not listed by Claude Code and was not checked: quiet)"
+			if check := checkNamed(t, report, "skills and subagents"); check.Detail != want {
+				t.Fatalf("skills and subagents: %+v, want %q", check, want)
+			}
+		})
+	}
+}
+
 func TestDoctorProbe_leavesTheProofAloneWhenItProvesNothing(t *testing.T) {
 	for name, tc := range map[string]struct {
 		change func(t *testing.T, e *doctorEnv)
@@ -884,6 +1231,14 @@ func TestDoctorProbe_leavesTheProofAloneWhenItProvesNothing(t *testing.T) {
 			},
 			detail: "settings.local.json registers oba kaya hook record",
 		},
+		"a project file registers the record hook in another spelling": {
+			change: func(t *testing.T, e *doctorEnv) {
+				writeExecutable(t, e.bin, "claude", fakeClaude)
+				writeTestFile(t, filepath.Join(e.root, ".claude", "settings.json"),
+					`{"hooks": {"Stop": [{"hooks": [{"type": "command", "command": "'/opt/my tools/oba'  kaya \"hook\"\trecord"}]}]}}`)
+			},
+			detail: "settings.json registers oba kaya hook record",
+		},
 		"a checkout Kaya does not list": {
 			change: func(t *testing.T, e *doctorEnv) {
 				writeExecutable(t, e.bin, "claude", fakeClaude)
@@ -906,6 +1261,9 @@ func TestDoctorProbe_leavesTheProofAloneWhenItProvesNothing(t *testing.T) {
 			}
 			if after, err := os.ReadFile(e.opts.InForcePath); err != nil || string(after) != string(before) {
 				t.Fatalf("the proof changed: %s, %v", after, err)
+			}
+			if args := probeArgs(t); len(args) > 1 {
+				t.Fatalf("a second session ran after a probe that proved nothing: %q", args)
 			}
 		})
 	}

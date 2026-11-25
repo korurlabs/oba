@@ -12,7 +12,7 @@ export type MachineUsageState = z.infer<typeof MachineUsageStateSchema>;
 export const MachineUsageState = MachineUsageStateSchema.enum;
 
 // ── Request Schemas ─────────────────────────────────────────────────
-/** `POST /machines`: the machine's host name; `userId` only when an admin registers it for someone else. */
+/** `POST /machines`: the label the user chose for the machine; `userId` only when an admin registers it for someone else. */
 export const machineCreateRequestSchema = z.object({
   machineName: z
     .string()

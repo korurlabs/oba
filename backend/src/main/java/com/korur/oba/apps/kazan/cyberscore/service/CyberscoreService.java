@@ -33,7 +33,7 @@ public interface CyberscoreService {
     /**
      * Scores all checks of the organization, stores the result on the locked
      * row with the calculation time, and appends a snapshot when the
-     * percentage, level or breakdown differ from the stored ones.
+     * percentage or the level differs from the stored one.
      *
      * @param organizationId the organization of the request
      * @param eventType      the check change that caused the recalculation

@@ -24,7 +24,7 @@ public record MachineUsageResponse(
         @Schema(description = "The machine that reported the snapshot; null unless KNOWN", nullable = true)
         UUID reportedByMachineId,
 
-        @Schema(description = "Hostname of the machine that reported the snapshot; null unless KNOWN", nullable = true,
+        @Schema(description = "Display label of the machine that reported the snapshot; null unless KNOWN", nullable = true,
                 example = "ada-macbook")
         String reportedByMachineName,
 

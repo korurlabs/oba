@@ -262,7 +262,7 @@ func TestDocumentCreateChecksBeforeAnyCall(t *testing.T) {
 		{"no type", without("--type"), "--type is required"},
 		{"no language", without("--language"), "--language is required"},
 		{"bad template id", withSource("--template", "nda"), `invalid --template "nda"`},
-		{"mail file", withSource("--file", md), "use 'oba otak mail-template push'"},
+		{"mail file", withSource("--file", md), "use 'oba otak mail-template upload'"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			_, _, err := runCLI(t, "", tt.args...)

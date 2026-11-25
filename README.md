@@ -17,7 +17,7 @@ Oba is the agentic operations platform for mission-critical companies. It is one
 
 - Backend: Spring Boot 3.5, Java 25, Maven; PostgreSQL 16 with Flyway migrations; Keycloak for sign-in; Azure Blob Storage (Azurite locally) for files.
 - Frontend: a Bun and Turborepo workspace of Next.js 16 apps with React 19 and Tailwind CSS v4, sharing the packages `@oba/ui` and `@oba/shared`; `kazan-mobile` is an Expo app.
-- CLIs: Go 1.26 modules.
+- CLI: a Go 1.26 module.
 
 ## Layout
 
@@ -30,14 +30,13 @@ frontend/            the Bun workspace
   tooling/           eslint, prettier and typescript configs
 cli/
   oba/               `oba`, the Oba apps from the terminal; `oba kaya` delivers agent config to sessions and records them
-  kalkan/            `kalkan`, reads and writes Kalkan pages
 scripts/             local start and stop scripts
 devstack.yaml        the local stack for devstack
 ```
 
 ## Run locally
 
-You need Java 25, Maven, Bun 1.3, Node.js 22, Go 1.26 for the CLIs, and Docker or Podman with Compose.
+You need Java 25, Maven, Bun 1.3, Node.js 22, Go 1.26 for the CLI, and Docker or Podman with Compose.
 
 ### Services
 
@@ -75,10 +74,10 @@ Each web app has a fixed dev port (`kazan` 3002, `kaya` 3014, `ulak` 3016, `acco
 
 [devstack](https://github.com/korurlabs/devstack) starts the whole stack from `devstack.yaml` on ports of its own, so several checkouts can run side by side: `devstack up`. Its app units read their secrets through Kagi, so without a Kagi account use the steps above.
 
-### CLIs
+### CLI
 
 ```sh
-cd cli/oba       # or cli/kalkan
+cd cli/oba
 make build       # bin/<name>
 make test
 ```
@@ -89,7 +88,7 @@ Every pull request and every push to `main` runs the workflows in `.github/workf
 
 - `backend.yml`: `mvn clean verify`, the unit and integration tests against PostgreSQL and Azurite.
 - `frontend.yml`: `bun install --frozen-lockfile`, `bun run build`, the type check and the tests of every workspace.
-- `cli-oba.yml`, `cli-kalkan.yml`: `make build`, `go vet`, `make test` and golangci-lint.
+- `cli-oba.yml`: `make build`, `go vet`, `make test` and golangci-lint.
 
 ## Contributing
 
@@ -97,4 +96,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Licence
 
-Oba is free software under the GNU Affero General Public License v3.0; see [LICENSE](LICENSE). The two CLIs are under the MIT License: `oba` in `cli/oba` ([cli/oba/LICENSE](cli/oba/LICENSE)) and `kalkan` in `cli/kalkan` ([cli/kalkan/LICENSE](cli/kalkan/LICENSE)). Everything else in this repository is under the AGPL-3.0.
+Oba is free software under the GNU Affero General Public License v3.0; see [LICENSE](LICENSE). The `oba` CLI in `cli/oba` is under the MIT License ([cli/oba/LICENSE](cli/oba/LICENSE)). Everything else in this repository is under the AGPL-3.0.

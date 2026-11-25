@@ -43,12 +43,15 @@ func fingerprint(token string) string {
 }
 
 // parked marks a session whose batch Kaya refused for its content. It is skipped until the token
-// changes, because a new token is the developer's sign that something was fixed.
+// changes, because a new token is the developer's sign that something was fixed. A park after a
+// machine name refusal is the one exception, see codeMachineName. ObaVersion is the version of
+// the oba that parked the session; a park written by an oba that did not keep it has none.
 type parked struct {
 	Status           int     `json:"status"`
 	Code             *string `json:"code"`
 	At               string  `json:"at"`
 	TokenFingerprint string  `json:"tokenFingerprint"`
+	ObaVersion       string  `json:"obaVersion,omitempty"`
 }
 
 // cursor is what Kaya acknowledged of a session: the highest seq it holds and the modification
@@ -62,11 +65,12 @@ type cursor struct {
 }
 
 // readCursor is the session's cursor. A damaged cursor starts the session over: Kaya stores each
-// seq once, so sending it again costs bandwidth and loses nothing.
-func (s *run) readCursor(dir string) *cursor {
+// seq once, so sending it again costs bandwidth and loses nothing. A session that cannot be sent
+// reads its cursor again every round, so the damage is logged once per run for each reason.
+func (s *run) readCursor(dir, sessionID string) *cursor {
 	c := &cursor{}
 	if _, err := readJSON(filepath.Join(dir, cursorFile), c); err != nil {
-		s.log("%s/%s unreadable, sending the session again: %v", dir, cursorFile, err)
+		s.reportOnce(sessionID, "cursor: "+err.Error(), fmt.Sprintf("%s/%s unreadable, sending the session again: %v", dir, cursorFile, err))
 		c = &cursor{}
 	}
 	if c.Handoffs == nil {

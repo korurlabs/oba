@@ -18,9 +18,7 @@ import java.util.UUID;
 
 // 4. Internal
 import com.korur.oba.apps.kaya.core.exception.enums.ExceptionDomainKayaError;
-import com.korur.oba.dojo.exception.internal.auth.ForbiddenException;
 import com.korur.oba.dojo.exception.internal.business.BadRequestException;
-import com.korur.oba.dojo.exception.internal.business.ConflictException;
 import com.korur.oba.dojo.exception.internal.business.TooManyRequestsException;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
@@ -72,7 +70,7 @@ public class IngestServiceImpl implements IngestService {
                 principal.machineId(), events.size(), request.handoffs() == null ? 0 : request.handoffs().size(),
                 request.plans() == null ? 0 : request.plans().size(), request.usage() != null);
 
-        checkMachineName(principal, request);
+        logDifferentMachineName(principal, request);
         if (events.isEmpty() && request.usage() == null) {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, IngestServiceLogConstant.BATCH_EMPTY, sessionId, principal.machineId());
             throw new BadRequestException(ExceptionDomainKayaError.VAL_BATCH_EMPTY,
@@ -86,7 +84,6 @@ public class IngestServiceImpl implements IngestService {
                     Map.of(IngestConstant.FIELD_LIMIT, IngestConstant.BATCHES_PER_MINUTE));
         }
 
-        // Resolved before the first write, so a batch of an unregistered git email stores nothing.
         UUID conflictUserId = identityConflict(principal, sessionId, gitEmailHolder(principal, sessionId,
                 request.summary().gitAuthorEmail()));
 
@@ -105,16 +102,20 @@ public class IngestServiceImpl implements IngestService {
         return ingestMapper.toBatchResponse(sessionId, acknowledgedSeq);
     }
 
-    private void checkMachineName(MachinePrincipal principal, IngestBatchRequest request) {
+    /**
+     * Logs a batch whose machine name is not the registered name of the token's machine, and never
+     * refuses it. The token alone identifies the machine, and the batch is attributed to that
+     * machine. The name is only a display label: the recorder reports the host name, and host names
+     * are neither unique nor stable, since macOS changes them with the network. A difference is
+     * therefore normal, so it is logged at debug level and not as a warning on every batch.
+     */
+    private void logDifferentMachineName(MachinePrincipal principal, IngestBatchRequest request) {
         String machineName = request.machine().machineName();
         if (machineName.equals(principal.machineName())) {
             return;
         }
-        loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, IngestServiceLogConstant.MACHINE_NAME_MISMATCH,
-                request.sessionId(), machineName, principal.machineName(), principal.machineId());
-        throw new ConflictException(ExceptionDomainKayaError.VAL_MACHINE_NAME_MISMATCH, Map.of(
-                IngestConstant.FIELD_MACHINE_NAME, machineName,
-                IngestConstant.FIELD_EXPECTED_MACHINE_NAME, principal.machineName()));
+        loggingService.debug(LOG_PREFIX, LogLayer.SERVICE, IngestServiceLogConstant.MACHINE_NAME_DIFFERENT,
+                request.sessionId(), principal.machineId(), principal.machineName(), machineName);
     }
 
     /**
@@ -177,12 +178,16 @@ public class IngestServiceImpl implements IngestService {
     }
 
     /**
-     * The user that holds the git email of the batch. Kaya admits only registered people, so an
-     * email no user of the organization holds refuses the batch; the recorder retries a 403, and
-     * the batch is accepted once someone registers the email. Ingest never registers an email
-     * itself, because the token alone does not prove whose email it is.
+     * The user of the organization that holds the git email of the batch. The machine token
+     * identifies the person, and the session is attributed to the token's user whatever email the
+     * batch reports; the git email is only evidence for spotting another member at work on the
+     * machine. An email that no user of the organization holds is therefore normal, since people
+     * commit with addresses other than the one they first signed in with, for example after their
+     * mail domain changed, so it is logged at debug level and the batch is accepted. Ingest never
+     * registers an email itself, because the token alone does not prove whose email it is.
      *
-     * @return the holder, or null when the batch reported no email or one that is not an address
+     * @return the holder, or null when the batch reported no email, one that is not an address, or
+     *         one that no user of the organization holds
      */
     private UUID gitEmailHolder(MachinePrincipal principal, String sessionId, String email) {
         if (email == null || email.isBlank()) {
@@ -193,19 +198,20 @@ public class IngestServiceImpl implements IngestService {
             loggingService.debug(LOG_PREFIX, LogLayer.SERVICE, IngestServiceLogConstant.GIT_EMAIL_IGNORED, sessionId);
             return null;
         }
-        return userGitEmailQueryService.findUserIdByEmail(principal.organizationId(), trimmed).orElseThrow(() -> {
-            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, IngestServiceLogConstant.GIT_EMAIL_UNKNOWN,
+        Optional<UUID> holderId = userGitEmailQueryService.findUserIdByEmail(principal.organizationId(), trimmed);
+        if (holderId.isEmpty()) {
+            loggingService.debug(LOG_PREFIX, LogLayer.SERVICE, IngestServiceLogConstant.GIT_EMAIL_UNKNOWN,
                     sessionId, principal.machineId(), principal.organizationId());
-            return new ForbiddenException(ExceptionDomainKayaError.SEC_GIT_IDENTITY_UNKNOWN,
-                    Map.of(IngestConstant.FIELD_GIT_AUTHOR_EMAIL, trimmed));
-        });
+            return null;
+        }
+        return holderId.get();
     }
 
     /**
-     * The other user that holds the git email of the batch; null when the token's user holds it or
-     * the batch reported none. Such a batch is still accepted, so pairing on one machine keeps
-     * working, and the session is flagged for review. An account is no conflict, because several
-     * users can share one account.
+     * The other user that holds the git email of the batch; null when the token's user holds it, no
+     * user of the organization holds it, or the batch reported none. Such a batch is still
+     * accepted, so pairing on one machine keeps working, and the session is flagged for review. An
+     * account is no conflict, because several users can share one account.
      */
     private UUID identityConflict(MachinePrincipal principal, String sessionId, UUID gitEmailHolder) {
         if (gitEmailHolder == null || gitEmailHolder.equals(principal.userId())) {

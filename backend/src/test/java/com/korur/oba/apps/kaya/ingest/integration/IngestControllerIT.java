@@ -116,6 +116,31 @@ class IngestControllerIT extends AbstractIngestIT {
         }
 
         @Test
+        void firstBatch_withTheMachineNameOfAnotherMachine_isAcceptedForTheTokensMachine() throws Exception {
+            // The recorder reports the host name, which changes with the network; the token alone
+            // identifies the machine, even when the name is that of another machine of the user.
+            Tenant tenant = newTenant();
+            Person ada = signIn(tenant, "ada");
+            Machine laptop = registerMachine(tenant, ada, "laptop");
+            Machine desktop = registerMachine(tenant, ada, "desktop");
+            String session = sessionId();
+            Map<String, Object> batch = batch(laptop, session, remote(), events(1, 2));
+            section(batch, "machine").put("machineName", "desktop");
+
+            send(laptop.token(), batch)
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.sessionId").value(session))
+                    .andExpect(jsonPath("$.data.acknowledgedSeq").value(2));
+
+            Map<String, Object> sessionRow = sessionRowOf(session);
+            assertEquals(laptop.machineId(), sessionRow.get("machine_id").toString());
+            assertEquals(ada.userId(), sessionRow.get("user_id").toString());
+            assertEquals(0L, count("SELECT count(*) FROM kaya.sessions WHERE machine_id = ?::uuid", desktop.machineId()));
+            assertEquals(1L, count("SELECT count(*) FROM kaya.machines WHERE id = ?::uuid AND machine_name = 'laptop' "
+                    + "AND last_seen_at IS NOT NULL", laptop.machineId()));
+        }
+
+        @Test
         void firstBatch_withoutTitleOrPrompt_titlesTheSessionFromTheSessionTitleThenThePrompt() throws Exception {
             Machine machine = newMachine();
             String session = sessionId();
@@ -428,22 +453,6 @@ class IngestControllerIT extends AbstractIngestIT {
 
     @Nested
     class Refusals {
-
-        @Test
-        void machineNameOfAnotherMachine_returns409AndStoresNothing() throws Exception {
-            Machine machine = newMachine();
-            String session = sessionId();
-            Map<String, Object> batch = batch(machine, session, remote(), events(1, 1));
-            section(batch, "machine").put("machineName", "desktop");
-
-            send(machine.token(), batch)
-                    .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.error.code").value("KAY_VAL_005"))
-                    .andExpect(jsonPath("$.error.errorValues.machineName").value("desktop"))
-                    .andExpect(jsonPath("$.error.errorValues.expectedMachineName").value("laptop"));
-
-            assertEquals(0L, sessionCount(session));
-        }
 
         @Test
         void batchWithoutEventsAndWithoutUsage_returns400() throws Exception {

@@ -1,6 +1,6 @@
 # Oba CLI
 
-`oba` works with the Oba apps from a terminal. The command path picks the app (`oba otak ...`). This version signs a user in, chooses the organization, lists Otak relations (leads, customers and suppliers) with their ids (`oba otak relation list`), creates, updates and deletes them and their contact persons (`oba otak contact`) from one JSON object on stdin, manages ICPs (also worked out with Claude Code in `oba otak icp brainstorm`) and events (`oba otak event`), finds new leads for an ICP, each with up to two business contacts, with Claude Code, prepares outreaches and manages the attachments of an outreach's mail or a relation (`oba otak outreach`, `attachment`). `oba legal-entity` keeps the companies in whose name the organization issues documents, and `oba document` creates a relation's documents and the organization's document templates from HTML files, renders their PDF locally, and attaches a document's PDF to a mail. `oba kaya` delivers the organization's agent config to Claude Code as signed releases and records its sessions (see Kaya).
+`oba` works with the Oba apps from a terminal. The command path picks the app (`oba otak ...`). This version signs a user in, chooses the organization, lists Otak relations (leads, customers and suppliers) with their ids (`oba otak relation list`), creates, updates and deletes them and their contact persons (`oba otak contact`) from one JSON object on stdin, manages ICPs (also worked out with Claude Code in `oba otak icp brainstorm`) and events (`oba otak event`), finds new leads for an ICP, each with up to two business contacts, with Claude Code, prepares outreaches and manages the attachments of an outreach's mail or a relation (`oba otak outreach`, `attachment`). `oba legal-entity` keeps the companies in whose name the organization issues documents, and `oba document` creates a relation's documents and the organization's document templates from HTML files, renders their PDF locally, and attaches a document's PDF to a mail. `oba kalkan` reads and writes the Kalkan pages of the organization and their attachments, and uploads a directory of Markdown pages (see Kalkan pages). `oba kaya` delivers the organization's agent config to Claude Code as signed releases and records its sessions (see Kaya).
 
 ## Install
 
@@ -9,8 +9,11 @@ Releases support macOS and Linux on amd64 and arm64. They are published to the p
 With Homebrew:
 
 ```sh
-brew install korurlabs/tap/oba-cli   # installs the binary oba, and oba-kaya-launch linked to it
+brew trust --formula korurlabs/tap/oba-cli   # once: lets a plain brew upgrade oba-cli load the formula
+brew install korurlabs/tap/oba-cli           # installs the binary oba, and oba-kaya-launch linked to it
 ```
+
+Installing the formula by its full name, as above, trusts it ([Homebrew tap trust](https://docs.brew.sh/Tap-Trust)). A plain `brew upgrade oba-cli` can refuse it as a formula from an untrusted tap; `brew trust --formula korurlabs/tap/oba-cli` lets it upgrade.
 
 With the installer:
 
@@ -129,7 +132,7 @@ Every command takes these flags:
 
 | Flag | Effect |
 |---|---|
-| `--json` | stdout holds only JSON: the `data` of the command's last API call as the API sent it, a list read across several pages or calls as one array, `null` when the command made no call. Tables, messages and prompts go to stderr. `oba otak find`, `contact fill` and `icp brainstorm` print an array of the data of every record they created. A failed command prints no JSON; its exit status (2 for 404, 3 for 403, 1 otherwise) and the error on stderr tell why. |
+| `--json` | stdout holds only JSON: the `data` of the command's last API call as the API sent it, a list read across several pages or calls as one array, `null` when the command made no call. Tables, messages and prompts go to stderr. `oba otak find`, `contact fill` and `icp brainstorm` print an array of the data of every record they created. A failed command prints no JSON, except `oba kalkan upload`, which prints its report on every run; its exit status (2 for 404, 3 for 403, 1 otherwise) and the error on stderr tell why. |
 | `--org <name\|id>` | runs this one command in another of your organizations; the organization chosen with `oba org use` stays stored. An id is sent as it is; a name is matched like `oba org use` matches it. |
 | `--debug` | logs every HTTP request and response (method, URL, headers, status, time) to stderr. The `Authorization` and cookie headers and the signature of signed download URLs are redacted; bodies are not logged. |
 
@@ -350,18 +353,18 @@ Web search results can be wrong: check each candidate before you pick it.
 
 ```sh
 oba otak mail-template list --lang nl --search intro
-oba otak mail-template push mails/first-contact.md --lang en
-oba otak mail-template push mails/first-contact.md --id <mailTemplateId>   # update; language and name stay unless given
-oba otak mail-template pull <mailTemplateId> -o work/
+oba otak mail-template upload mails/first-contact.md --lang en
+oba otak mail-template upload mails/first-contact.md --id <mailTemplateId>   # update; language and name stay unless given
+oba otak mail-template download <mailTemplateId> -o work/
 ```
 
 A mail template is a reusable mail of the organization, which a MAIL outreach copies into its own mail. It is a `.md` file: the subject on the first line, a blank line, then the body as plain text. Blank lines after the subject and trailing white space are dropped; Windows line endings and a byte order mark are accepted. Any other extension is refused before any call.
 
 - `list` prints `NAME  LANGUAGE  SUBJECT  UPDATED  ID`, every cell on one line and `-` for an empty value, or `No mail templates.`. `--lang` narrows to one language, `--search` to the names that contain the text, case ignored. The ids are what `outreach create --type mail --template` takes.
-- `push` without `--id` needs `--lang`; the name defaults to the file name without extension unless `--name` gives one. It sends `POST /otak/mail-templates` and prints `Created mail template <id> (<name>, <LANGUAGE>)`. With `--id` it reads the stored mail template only when `--lang` or `--name` is missing, takes subject and body from the file and sends the full `PUT /otak/mail-templates/{id}`. The name is unique per language in the organization. Outreaches already copied from a mail template keep their own mail when it changes.
-- `pull` writes `<name>.md` into `-o` (default the current directory) in the form `push` reads; an existing file is not overwritten without `--force`.
+- `upload` without `--id` needs `--lang`; the name defaults to the file name without extension unless `--name` gives one. It sends `POST /otak/mail-templates` and prints `Created mail template <id> (<name>, <LANGUAGE>)`. With `--id` it reads the stored mail template only when `--lang` or `--name` is missing, takes subject and body from the file and sends the full `PUT /otak/mail-templates/{id}`. The name is unique per language in the organization. Outreaches already copied from a mail template keep their own mail when it changes.
+- `download` writes `<name>.md` into `-o` (default the current directory) in the form `upload` reads; an existing file is not overwritten without `--force`.
 
-`--lang` is `nl`, `tr`, `en`, or `us` for English, case ignored. Writes need the ADMIN role; a member can list and pull.
+`--lang` is `nl`, `tr`, `en`, or `us` for English, case ignored. Writes need the ADMIN role; a member can list and download.
 
 ## Otak outreaches
 
@@ -400,39 +403,141 @@ Every subcommand takes exactly one of `--outreach`, the own mail of a MAIL outre
 
 A mail's attachments change only while its outreach is not SENT (`OTK_STA_011`) and need the ADMIN role; a relation's need the MEMBER role.
 
+## Kalkan pages
+
+```sh
+oba kalkan page list                                   # every page you can see, as a tree
+oba kalkan page list isms/controls                     # that page and the pages below it
+oba kalkan page get isms/policies                      # every translation under a header
+oba kalkan page get isms/policies --lang tr > policies.tr.md   # one body, raw Markdown
+oba kalkan page put engineering/plans --lang en --title "Plans" --file plans.md
+cat notes.md | oba kalkan page put engineering/notes --title Notes --file - --compliance
+oba kalkan page delete engineering/old-plans --yes
+```
+
+Kalkan keeps the docs and ISMS documents of the organization as a tree of Markdown pages in Turkish and English. A page is named by its path: one to ten slugs joined by `/`, each starting with a letter or digit and holding up to 99 letters, digits, `.`, `_` or `-`; surrounding slashes are dropped. An invalid path fails with exit 1 before any call.
+
+- `list` prints the tree with the path, the title (English, else Turkish), `[compliance]` on a compliance document and, on a root page, your level. With a path it prints that subtree; a path you cannot see exits 2. `--json` prints the pages as a flat array, parents first.
+- `get` prints a header with the version, your level and the compliance mark, then every translation under a header of its own. `--lang tr|en` prints only that raw body with a trailing newline. `--json` prints the page detail the API sent.
+- `put` writes one language of one page: it creates the page when the path names none (every parent must exist; a path of one slug creates a root page, which needs the ADMIN role) and otherwise updates that language, keeping the others. `--file -` reads stdin. `--compliance` sets the mark, `--compliance=false` clears it, and leaving it out keeps it. A page edited in Kalkan since the last write is not written (`KLK_STA_004`, exit 1) unless `--force` is given. `--json` prints the outcome the API sent (`CREATED`, `UPDATED` or `UNCHANGED`) with the path and version.
+- `delete` asks `Delete page <path> and every page below it?` (without a terminal pass `--yes`) and soft-deletes the page and its subtree; deleting a root page needs the MANAGE level on it. A cancel prints `Cancelled.`, and `--json` then prints `null`.
+
+The API checks every access: reading needs the VIEW level on the page's root, writing EDIT, a new root page ADMIN. A 403 exits 3 and a page that is missing or hidden from you exits 2.
+
+## Kalkan upload
+
+```sh
+oba kalkan upload docs/plans engineering/plans             # one directory under one page path
+oba kalkan upload docs/plans engineering/plans --dry-run   # the outcome per page, nothing written
+oba kalkan upload                                          # every entry of kalkan.yaml
+```
+
+`upload` writes every Markdown page of `<dir>` under the page path `<target>`, parents first, and uploads the files they link to, once per page. Without arguments it uploads every entry of the `kalkan.yaml` in the current directory, else at the git root; with neither arguments nor a file it fails with exit 1 before any call. `--lang tr|en` (default `en`) is the language of files without a language suffix.
+
+```yaml
+organization: <organization id or name>   # optional; --org wins
+upload:
+  - dir: docs/claude/plans   # relative to kalkan.yaml
+    to: engineering/plans
+    lang: en                 # optional; files without a .tr or .en suffix
+```
+
+An unknown key (`push` included), a missing directory or a file name that is not a slug ends the run with exit 1 before any call. The organization is `--org`, else the `organization` of `kalkan.yaml`, else the current one (`oba org use`).
+
+Layout rules:
+
+- `a/b.md` is page `a/b` in `--lang`; `a/b.tr.md` and `a/b.en.md` set the language.
+- `a/index[.lang].md` or `a/README[.lang].md` is page `a`, and the directory itself is the target page. A directory that holds Markdown but no index file becomes a page titled by its name with an empty body; once that page exists, an upload leaves it as it is.
+- Hidden entries, symbolic links and directories named `handoffs` are not read. A path is at most 10 slugs deep.
+- The title is the front matter `title`, else the first `# ` heading (taken out of the body), else the slug. Front matter `position` and `compliance` are optional and must agree across languages.
+- Links to Markdown files of the directory become page paths (`/engineering/plans/oba/07_KALKAN_DOCS`). Other files linked by a relative path inside the directory are uploaded to every page that links them, once per page, as `<sha256 first 12 hex>-<name>`; the link is set to the attachment URL without its signature, so an unchanged directory gives unchanged pages and a second identical run reports every page `unchanged`.
+
+Every page gets one outcome, printed as one line per page and a count line:
+
+| Outcome | Meaning |
+|---|---|
+| `created`, `updated`, `unchanged` | the page was written, or already held this content |
+| `conflict` | the page was edited in Kalkan since the last upload (`KLK_STA_004`) or another write raced it (`GEN_STA_001`); `--force` overwrites |
+| `denied` | a 403, or a 404 for a page that is missing or hidden from you |
+| `failed` | any other error |
+| `skipped` | not reached: below a page that was denied or failed (`PARENT_NOT_WRITTEN`, `not uploaded: <path> above it was not written`), or after the run stopped |
+
+The run goes on past a conflict, a denial or a failure. A refused sign-in (a 401, or a stored session that could not be refreshed) stops it, and the pages it has not reached are `skipped`. `--dry-run` sends only `dryRun=true` writes and reads, never a file. `--json` prints `{"counts":{...},"pages":[{"path","outcome","version","error"}]}` on stdout on every run, failed or not, with `error` as `{"code","message"}`. Each error prints once on stderr, as `Error: <path>: <message> (<code>)` for a page or `Error: <message> (<code>)` for the run; a skipped page adds nothing there, since its own line or `error` names the cause.
+
+Exit status of an upload:
+
+| Status | Meaning |
+|---|---|
+| 0 | every page was created, updated or unchanged |
+| 1 | a failure: a page failed, a refused sign-in, or invalid input before any call |
+| 3 | a page was denied with a 403 |
+| 2 | a page was missing or hidden from you (a 404) |
+| 4 | a conflict |
+
+With several outcomes, the status is the first of 1, 3, 2 and 4 that occurred.
+
+## Kalkan attachments
+
+```sh
+oba kalkan attachment list --page isms/policies/access-control
+oba kalkan attachment add --page isms/policies/access-control --file policy.pdf --file review.png
+```
+
+Both subcommands need `--page`, the path of the page, checked before any call; an unknown page exits 2. The calls go to `/storage/attachments` with `entityType` `KALKAN_PAGE`.
+
+- `list` prints `NAME  SIZE  TYPE  CREATED  ID` in upload order, or `No attachments.`.
+- `add` takes `--file`, repeatable, and checks every file before any call as `oba otak attachment add` does (at most 12 MB together), then uploads them in one request. The same content twice on one page answers `STG_VAL_005`.
+
+Listing needs the VIEW level on the page's root, adding EDIT. An attachment of a Kalkan page is kept as a record and is never deleted, so there is no `delete`: the API refuses every delete with `KLK_SEC_002`.
+
 ## Kaya
 
-`oba kaya` keeps the agent config of Claude Code with Kaya: it seeds an organization's agent config from its repositories (`seed`), delivers that config to Claude Code sessions as signed releases (`install`, `launch`, `sync`, `refresh`, `status`, `watch`, `hook`), checks that delivery on the machine and in a checkout (`doctor`), proposes changes of that config for review (`propose`), shares lessons between sessions and repositories (`lessons`), and records Claude Code sessions for Kaya (`hook record`, `sender`, `statusline`).
+`oba kaya` keeps the agent config of Claude Code with Kaya: it seeds an organization's agent config from its repositories (`seed`), makes every repository of the organization compose a pack (`pack required`), delivers that config to Claude Code sessions as signed releases (`install`, `launch`, `sync`, `refresh`, `status`, `watch`, `hook`), checks that delivery on the machine and in a checkout (`doctor`), proposes changes of that config for review (`propose`), shares lessons between sessions and repositories (`lessons`), and records Claude Code sessions for Kaya (`hook record`, `sender`, `statusline`).
 
 Kaya works in the checkouts of the repositories on the organization's repository list. It recognises a checkout by its git remotes, so no file in the repository names Kaya. Its Claude Code hooks and status line come from a managed settings drop-in, and two entries in your global git config run its git hooks in every repository (see Kaya config delivery).
 
-`seed`, `signing-keys` and the signing key check of `doctor` act as you, with the sign-in of `oba login` (or `OBA_TOKEN`) in the current organization. Everything that runs inside sessions, in git hooks or in the background sends the machine token instead (see Kaya config delivery).
+`seed`, `pack required`, `signing-keys` and the signing key check of `doctor` act as you, with the sign-in of `oba login` (or `OBA_TOKEN`) in the current organization. Everything that runs inside sessions, in git hooks or in the background sends the machine token instead (see Kaya config delivery).
 
 ## Kaya seed
 
 ```sh
-oba kaya seed --agents ~/src/agents --repo ~/src/village --repo ~/src/acme
+oba kaya seed --agents ~/src/agents --repo ~/src/app-one --repo ~/src/app-two
 oba kaya seed --repo . --dry-run                  # print what would be sent; no sign-in, no network
 oba kaya seed --repo . --json                     # the seed run as JSON
 oba kaya seed --repo . --pack kagi=projects/kagi  # also mount the pack kagi in the folder projects/kagi
 oba kaya seed --layout ~/src/seed-tree/layout.yaml --agents ~/src/agents --repo ~/src/app-one  # packs and placement from a seed tree
 ```
 
-Only an OWNER seeds, signed in with `oba login` (or `OBA_TOKEN`) in the organization `--org` names, else the chosen one. The seed reads the packs of a `korurlabs/agents` clone and, per repository, its packs from `.agents/.managed.json` and its own files at the paths Kaya delivers, uploads only the blobs the server is missing, posts the seed run, prints its report and compares each repository's release with the repository on disk. `oba kaya seed --help` describes the pack tree, the family pack of a repository (`--repo-pack`), mounted packs (`--pack`) and the cutover (`--after-cutover`).
+Only an OWNER seeds, signed in with `oba login` (or `OBA_TOKEN`) in the organization `--org` names, else the chosen one. The seed reads the packs of a clone of your agent config repository and, per repository, its packs from `.agents/.managed.json` and its own files at the paths Kaya delivers, uploads only the blobs the server is missing, posts the seed run, prints its report and compares each repository's release with the repository on disk. `oba kaya seed --help` describes the pack tree, the family pack of a repository (`--repo-pack`), mounted packs (`--pack`) and the cutover (`--after-cutover`).
 
 `--layout <file>` builds the packs from a seed tree instead. Its layout file names the packs with their parents, each repository's packs (at its root, or mounted in a folder), the ordered rules that place each file of the agents clone (`agents:<path>`) and of each repository (`<repository>:<path>`) in a pack, and the files left out; `content/<pack>/<path>` beside the layout file replaces or adds that path in that pack. The first rule that matches places a file, and a file that no rule and no `leftOut` entry matches fails the seed, every such file named. A repository is read with or without `.agents/.managed.json`, and `--pack`, `--pack-parent`, `--repo-pack` and `--after-cutover` do not apply. A checkout Kaya delivers to is refused, because its delivered files are links into its `.kaya/` folder, Kaya's own output: name only checkouts Kaya does not deliver to yet, and leave the others out. A pack is sent only when the run reads every source it takes files from, and a repository the run does not read keeps its stored packs, so a later run adds packs and repositories while Kaya leaves equal packs as they are. The release comparison reports the `content/` files and the files left out as changed on purpose. `oba kaya seed --help` shows an example layout file.
 
 Exit status: 0 when the run is PASSED and every release equals its repository; 2 when the run is FAILED or a release differs; 1 on any other error. With `--json` the run is printed in each case.
 
+## Kaya packs
+
+```sh
+oba kaya pack required base          # every repository of the organization composes the pack base
+oba kaya pack required base --off    # only the repositories that list base compose it again
+oba kaya pack required base --json   # Kaya's answer: packId, required and releaseCount
+```
+
+Only an OWNER marks a pack required or not required, signed in with `oba login` (or `OBA_TOKEN`) in the organization `--org` names, else the chosen one. A required pack is composed into every repository of the organization, ahead of the repository's own packs. The command finds the pack by its name in the organization's pack list; an unknown name fails and lists the names there are. Kaya then checks every active repository whose composition changes and releases each one, all in one transaction. When the change breaks a rule, such as a pack below a required one overriding one of its items, nothing changes and the error lists every violation. A pack marked the state it already has gets no release. The command prints the pack, its new state and the number of releases created. A 403 means that you are not an OWNER of the organization.
+
 ## Kaya config delivery
 
 Kaya recognises a checkout by its git remotes, so no file in a repository names Kaya; a committed `kaya.yaml` is no longer read. A checkout is Delivered when one of its remotes is on the organization's repository list and it holds no `.agents/.managed.json`. With that file it is NotCutOver: its agent config is still synced from elsewhere until the cutover, and Kaya leaves it alone. With no listed remote it is NotKaya, and nothing of it, its remotes included, is sent to Kaya. A linked worktree is a checkout of its own. Every release must be signed for the organization of the list, which is the machine token's.
 
+Once per organization, before its first machine:
+
+- An admin of the organization in Kagi creates the Kagi app `/kaya/recorder` under Secrets: folder `kaya`, app `recorder`. Each person keeps the machine token of their machines in their own personal environment of that app.
+- An OWNER of the organization seeds its agent config (`oba kaya seed`, see Kaya seed) and marks each pack that belongs in every repository required (`oba kaya pack required <name>`, see Kaya packs). `seed` and `pack required` need an OWNER of the organization.
+
 To connect a machine:
 
-1. Install oba (see Install).
+1. Install oba (see Install). With Homebrew, run `brew trust --formula korurlabs/tap/oba-cli` before `brew install`: Homebrew refuses a formula from a tap you have not trusted (`Refusing to load formula ... from untrusted tap`).
 2. Run `oba login`. `oba kaya doctor` uses this sign-in to check that Kaya signs releases with a key this oba trusts; without it, doctor skips that check.
-3. In the Kaya app, open Machines and choose New machine. Run the `kagi secrets set --personal --path /kaya/recorder KAYA_RECORDER_TOKEN=<token>` line it shows, or set `KAYA_RECORDER_TOKEN` yourself (see Machine token below).
+3. In the Kaya app, open Machines, choose New machine and copy the token it shows. Run `kagi secrets set --personal --path /kaya/recorder --from-file /dev/stdin`, type `KAYA_RECORDER_TOKEN=`, paste the token, and press Enter and then Ctrl-D. kagi reads the token from the terminal, so it stays out of your shell history and out of the process list (`ps`), where a token passed as an argument, such as `KAYA_RECORDER_TOKEN=<token>` at the end of the command line, would show. Or set `KAYA_RECORDER_TOKEN` yourself (see Machine token below). Your first token goes in by hand instead: open the app `/kaya/recorder` in the Kagi portal and add `KAYA_RECORDER_TOKEN` in its Personal tab, because `kagi secrets set --personal` refuses while you have no personal environment on the app. Later tokens take the command.
 4. Run `oba kaya install --managed`, then the `sudo` line it prints.
 5. Run `oba kaya install`, then open a new terminal and restart VS Code.
 6. Run `oba kaya doctor --probe` in a connected checkout to prove the drop-in is in force. It exits 0 when every check passes.
@@ -444,7 +549,8 @@ oba kaya sync               # refresh the repository list, fetch, verify and swi
 oba kaya refresh            # switch even while other sessions of the checkout run
 oba kaya status             # local state only, with the remote that recognised the checkout; --json for scripts, as with sync and refresh
 oba kaya doctor             # check the machine and the checkout; exits 1 when a check fails; --json for scripts
-oba kaya doctor --probe     # also run one claude -p session that proves the drop-in in force
+oba kaya doctor --probe     # also run claude -p sessions that prove the drop-in in force and the delivery loaded
+oba kaya pack required <name>  # OWNER, once per organization: every repository composes the pack; --off undoes it
 ```
 
 - Repository list: the remotes of the organization's repositories, cached in `<user config dir>/oba/kaya/repositories.json` (`~/Library/Application Support/oba/kaya/` on macOS, `$XDG_CONFIG_HOME/oba/kaya/` or `~/.config/oba/kaya/` on Linux). `install`, `sync`, `launch`, `watch` and `doctor` refresh it with the machine token, and a refresh adds repositories and never removes one; the hooks only read it. Without a cached list every checkout is NotKaya. A checkout's remotes are read from its own git config (`git config --local`): origin first, then the other remotes by name. A remote matches as written, without the user info a URL may carry (an `ssh://` user name stays), or with its ssh host alias resolved through `ssh -G`, so a clone over an alias counts as a clone over the host. `oba kaya status` names the kind and the remote that recognised the checkout.
@@ -452,7 +558,7 @@ oba kaya doctor --probe     # also run one claude -p session that proves the dro
 - Claude Code hooks: Kaya's hooks, its session capture and its status line come from the managed settings drop-in `50-kaya.json` of Claude Code, in `/Library/Application Support/ClaudeCode/managed-settings.d/` on macOS and `/etc/claude-code/managed-settings.d/` on Linux. It holds only the keys `hooks` and `statusLine`, with the absolute path of oba as found on your `PATH` when it was rendered: `oba kaya hook <event>` for `SessionStart`, `SessionEnd`, `PreToolUse`, `UserPromptSubmit` and `PostToolUse`, `oba kaya hook record` for the events of Kaya capture, and `oba kaya statusline`. Only root writes that folder, and oba never runs as root: `oba kaya install --managed` renders the drop-in into a new file in your temp folder, readable only by you, and prints one line that runs nothing but `/bin/mkdir` and `/usr/bin/install`, `sudo /bin/mkdir -p <folder> && sudo /usr/bin/install -m 0644 -o root -g wheel <temp file> <folder>/50-kaya.json` (group `root` on Linux). `--managed --dry-run` prints the drop-in and writes nothing; `--remove-managed` prints the `sudo /bin/rm -f` line that removes it. An oba at another path renders another drop-in, so after oba moves, run `oba kaya install --managed` and its line again.
 - Earlier hooks: Kaya's hooks that an earlier install, or the former `kaya` CLI, registered in the Claude Code user settings stay there until the drop-in is proved in force. Run `oba kaya doctor --probe` in a connected checkout to prove the drop-in is in force. A higher managed source, such as server-managed settings or an MDM profile, can make Claude Code skip the drop-in without a warning, so the installed file alone proves nothing. Once the proof, `<user config dir>/oba/kaya/in-force.json`, names the installed drop-in by its sha256, the next `oba kaya install` removes those hooks, so no hook runs twice. Until then `install` prints a `By hand:` line with the next step.
 - `oba kaya doctor` checks the machine and, in a checkout Kaya delivers to, that checkout. Machine checks: the drop-in exists, parses and names an existing oba of the running version; it is owned by root with mode 0644, its two folders are owned by root and writable by root only, and it holds what this oba renders; it is proved in force; your global git config runs Kaya's `pre-commit` and `post-checkout` hooks through this oba; the Claude Code user settings hold no Kaya hook once the drop-in is proved in force; `claude()` runs Claude Code through `oba kaya launch`; the machine token is found and Kaya accepts it; the repository list is refreshed and not empty; and, signed in with `oba login`, Kaya signs releases with a key this oba trusts (skipped without a sign-in). Checkout checks, in a Delivered checkout: the remote that recognised it; the active release verifies and is Kaya's current one; every delivered path is in place, covered by the exclude block and not tracked by git; git runs Kaya's git hooks there; and the checkout is not in a folder from which Claude Code loads no `AGENTS.md`, `CLAUDE.md` or rule file. doctor exits 1 when any check fails and 0 otherwise; a skipped check does not fail. In a NotCutOver or NotKaya checkout, and outside a git checkout, those checkout checks do not run, so exit 0 there means only that the machine checks passed: read the kind doctor prints, or `checkout.kind` with `--json`. In a NotCutOver checkout doctor also lists every tracked path the cutover pull request deletes and prints the `git rm -r -- <paths>` line that deletes them; that list does not fail doctor.
-- `oba kaya doctor --probe` runs one `claude -p` session in the checkout with only the project and local settings, leaving the user settings out; the session runs a model turn on your account. It checks that the session loads every delivered skill and subagent and the root `AGENTS.md`, and that its record hook queued an event. Only the drop-in registers that hook, so the event proves the drop-in in force: doctor then writes `<user config dir>/oba/kaya/in-force.json`, which names the installed drop-in by its sha256. Without the event it deletes that file, so `install` keeps the earlier hooks, and explains how a higher managed source can make Claude Code skip the drop-in. The probe runs only in a Delivered or NotCutOver checkout, and fails anywhere else; a project `.claude/settings.json` or `.claude/settings.local.json` that registers `oba kaya hook record` itself also stops it, since its event would prove nothing.
+- `oba kaya doctor --probe` runs one `claude -p` session in the checkout with only the project and local settings, leaving the user settings out; the session runs a model turn on your account. It checks that the session loads every delivered skill and subagent, and that its record hook queued an event. Claude Code leaves a skill whose `SKILL.md` front matter sets `user-invocable: false` out of the skills the session lists, although the session has it, so doctor passes over such a skill and names it in the check; a front matter that is not valid YAML counts as a normal skill. Only the drop-in registers that hook, so the event proves the drop-in in force: doctor then writes `<user config dir>/oba/kaya/in-force.json`, which names the installed drop-in by its sha256. Without the event it deletes that file, so `install` keeps the earlier hooks, and explains how a higher managed source can make Claude Code skip the drop-in. A second `claude -p` session, with the user settings as in a normal session, checks that Claude Code loads the root `AGENTS.md`, because its built-in agents-md plugin loads no `AGENTS.md` in a session that leaves the user settings out; that session also runs a model turn, and its record event never counts as proof. The probe runs only in a Delivered or NotCutOver checkout, and fails anywhere else; a project `.claude/settings.json` or `.claude/settings.local.json` that registers `oba kaya hook record` itself also stops it, since its event would prove nothing.
 - Git hooks: `oba kaya install` sets `hook.kaya-pre-commit` and `hook.kaya-post-checkout` in your global git config, each with its `event` and a `command` that runs `<oba path> kaya git-hook <event>`. git 2.54 or newer runs them in every repository, beside the repository's own hooks and its `core.hooksPath`; with an older git, install still sets them and prints a `By hand:` line to update git. They act only in a Delivered checkout. `pre-commit` refuses a commit that stages any change but a deletion to a delivered path or to a path below `.agents/`, `.claude/` or `.kaya/`, and names the `git rm -r --cached -- <path>` that takes it out of git while keeping the file. `post-checkout` puts the active release in place again after a branch switch, and delivers a new worktree: from Kaya within 3 seconds, else the release the main worktree has active, verified again. Only the refusal of `pre-commit` stops git; every other failure is a line on stderr. When oba is gone from the path a command names, the hook prints `oba kaya: <path> is missing, so the Kaya git hook <event> did not run; run oba kaya install` and lets git go on.
 - Removing the git hook entries: `git config --global --remove-section hook.kaya-pre-commit` and `git config --global --remove-section hook.kaya-post-checkout`. Always remove the whole section, never only its `command`: while a hook has an `event` and no `command`, git aborts every command that runs that hook, such as `git commit` for `pre-commit`, with `fatal: 'hook.kaya-pre-commit.command' must be configured or 'hook.kaya-pre-commit.event' must be removed; aborting.`
 - Kept out of git: before a release is put in place, Kaya adds its paths to a block of `info/exclude` in the repository's git common directory, between `# >>> oba kaya >>>` and `# <<< oba kaya <<<`: `/.agents`, `/.claude` and `/.kaya`, and every other delivered path anchored at the root, such as `/AGENTS.md`. The block only grows, and every line outside it stays as you wrote it. No `.gitignore` and no tracked file is written. The main checkout and every linked worktree share that file, so in a worktree whose branch still tracks agent config, git keeps tracking those files, but a new file below `.agents/` or `.claude/` stays out of `git status` and `git add` takes it only with `-f`. A release that would replace a path git tracks is refused, and nothing is placed; the refusal names `git rm --cached -- <path>` for each such path, which keeps the file; then sync again.
@@ -463,7 +569,7 @@ oba kaya doctor --probe     # also run one claude -p session that proves the dro
 - Layout: `.kaya/versions/<n>/` holds each built release, `.kaya/current` points at the active one (switched by one rename), and every delivered path is a relative link into `.kaya/current`, except `.claude/settings.json`, a regular file with the guardrail deny rules merged into `permissions.deny`. `.agents/.kaya-release.json` names the active release. The blob cache is `$XDG_CACHE_HOME/kaya/blobs/<sha256>`, shared by the machine's checkouts. The newest three versions stay.
 - Pinning: while another session of the checkout runs, a newer release is staged (state STALE) and activated by `oba kaya hook session-end` of the last session, or by `oba kaya refresh`.
 - States: FRESH (the newest release the server named), CACHED (Kaya not reached, or its newest release not taken), STALE (a newer release waits), NONE (no verified release; the guard refuses `Bash`, `Edit`, `Write`, `MultiEdit`, `NotebookEdit`, `Skill` and `Agent`), UNVERIFIED (the active release fails its check and cannot be restored). `oba kaya hook session-start` writes the state, the release and `deliveredBy` (LAUNCHER or HOOK) to `$XDG_STATE_HOME/kaya/queue/sessions/<session id>/config-release.json`, which the sender adds to the session's batch.
-- Hooks read only local state, except `session-start`: in a session the launcher did not start it syncs, switches when no always-on file changed (`reloadSkills`), and otherwise stages the release and asks for a restart; in every session it asks Kaya for plan feedback and lessons (below). `pre-tool-use` also refuses edits of delivered paths and runs `.agents/hooks/dispatch.sh` of the checkout when neither the project settings nor the korurlabs/agents user-level launcher run it.
+- Hooks read only local state, except `session-start`: in a session the launcher did not start it syncs, switches when no always-on file changed (`reloadSkills`), and otherwise stages the release and asks for a restart; in every session it asks Kaya for plan feedback and lessons (below). `pre-tool-use` also refuses edits of delivered paths and runs `.agents/hooks/dispatch.sh` of the checkout when neither the project settings nor a user-level guard launcher in the Claude Code user settings run it.
 - Watcher: `oba kaya watch` asks `/kaya/delivery/current` every minute and builds a newer release for the next session, without switching.
 - Plan feedback: every 15 seconds `oba kaya watch` fetches the reviewer feedback on plans whose latest version came from a live session of the checkout (`GET /kaya/delivery/plan-feedback?sessionId=`) into `.kaya/inbox/<session id>.json`, leaving out what a hook already delivered, and posts `.kaya/inbox/<session id>.acks.json` to `POST /kaya/delivery/plan-feedback/acks`, deleting each id after a 2xx (the last round runs when the last session ended). `oba kaya hook user-prompt-submit` and `post-tool-use` read only the inbox: they add the items as `additionalContext` (10 000 characters at most; the rest is named as "and N more on the Kaya plan page <url>" and waits for the next hook) and move the added ids to the acks file. No inbox gives no output. `session-start` asks `GET /kaya/delivery/plan-feedback?remoteUrl=&branch=` for the feedback a session that ended on the checkout's branch left, for 2 seconds at most, adds it after the release lines, and acknowledges it with the new session id (queued in the acks file when Kaya is not reached); offline it adds nothing and the feedback stays pending. `session-end` removes the session's inbox.
 - Lessons: `session-start` asks `GET /kaya/delivery/lessons?remoteUrl=&since=` with `If-None-Match`, for 2 seconds at most (see Lessons).
@@ -490,7 +596,7 @@ oba kaya sender --once  # hidden: send the queue once; hooks start the sender by
 - Registration: the managed settings drop-in (see Kaya config delivery), not the repository's `.claude/settings.json`. It runs `oba kaya hook record` for `PreToolUse` (`Agent|Skill|ExitPlanMode`), `PostToolUse` and `PostToolUseFailure` (`Agent|Skill|Bash|Edit|Write|MultiEdit`), `UserPromptSubmit`, `UserPromptExpansion`, `SessionStart`, `SubagentStart`, `SubagentStop`, `Stop` and `SessionEnd`, and `oba kaya statusline` as its `statusLine`. When oba is gone from the path the drop-in names, the hooks record nothing; the session itself is not affected.
 - Scope: an event is recorded only in a checkout with a remote on the cached repository list, Delivered or NotCutOver, and the session is recorded with that remote, not with origin when origin is not listed. In a NotKaya checkout the hook writes nothing, so nothing of it, its remotes included, reaches Kaya. The sender sends a session only while the cached list holds its remote; until then the session stays queued.
 - `oba kaya hook record` reads no network and prints nothing on stdout. It reads the checkout's remotes from its git config on every event once a list is cached, runs `ssh -G` for a remote over ssh that does not match as written, and runs git for the session's other facts only on `SessionStart`, `Stop` and `SessionEnd`. It exits 0 on every error with one `oba kaya hook: nothing recorded: ...` line on stderr. Prompts, command arguments, commands and messages are redacted before they are written; plan and handoff snapshots are redacted when the sender builds the batch. After it queued an event it starts `oba kaya sender` unless one runs or `KAYA_SENDER=off` is set.
-- `oba kaya sender` is one process per machine (`sender.lock`). It reads the machine token once (as config delivery does), sends only over https or to a loopback address, follows no redirect, and every 2 seconds sends each session one batch to `POST /kaya/ingest/batches`. A 401 stops it until the token changes; 400, 409, 413 and 422 park the session until the token changes; 403 `KAY_SEC_007` (no Kaya user holds the session's git email), 429, 5xx and network errors back off from 2 seconds to 5 minutes and keep the queue. It exits after 10 idle minutes and removes an ended, acknowledged session after 7 days.
+- `oba kaya sender` is one process per machine (`sender.lock`). It reads the machine token once (as config delivery does), sends only over https or to a loopback address, follows no redirect, and every 2 seconds sends each session one batch to `POST /kaya/ingest/batches`. A 401 stops it until the token changes; 400, 409, 413 and 422 park the session until the token changes, except that a session parked on 409 `KAY_VAL_005` (older Kaya releases refused a batch whose machine name differed from the token machine's name, which a macOS host name does as it changes with the network; Kaya now takes the name as a label) is sent once more by each oba version other than the one that parked it, such as an update, without a new token, and a second refusal parks it again under that version; 403 `KAY_SEC_007` (older Kaya releases refused a batch whose git email no user of the organization held; Kaya now accepts it for the token's user), 429, 5xx and network errors back off from 2 seconds to 5 minutes and keep the queue. It exits after 10 idle minutes and removes an ended, acknowledged session after 7 days.
 - `oba kaya statusline` reads the session JSON Claude Code passes. When `rate_limits` holds a `five_hour` or `seven_day` window (a percentage from 0 to 100, a reset within 8 days) that differs from the last one, it writes the usage file, which the sender adds to the session's next batch. It then runs your own `statusLine` command from the Claude Code user settings (`$CLAUDE_CONFIG_DIR/settings.json`, else `~/.claude/settings.json`) with the same input, `KAYA_STATUSLINE=1` and a 2 second limit, and prints its output unchanged. Without one, the line is `<model> | 5h 23% | 7d 41%`; when your command fails or times out, that line ends with a pointer to `recorder.log`. With `KAYA_STATUSLINE=1` it neither captures nor wraps, so a command that calls `oba kaya statusline` cannot recurse.
 
 The local state lives in `$XDG_STATE_HOME/kaya` (`~/.local/state/kaya` without it, on macOS as well), mode 0700. Its format belongs to this CLI alone.
@@ -565,9 +671,10 @@ The packages are grouped as in the Oba backend: `dojo` is the technical foundati
 | `main.go` | entry point; the version comes in through `-ldflags "-X main.version=..."` |
 | `cmd/` | the root command; it adds the platform commands and one command group per app, and `oba ulak` |
 | `cmd/shrine/` | the platform commands `login`, `logout`, `org`, `legal-entity` and `document` (with `document template`) |
-| `cmd/apps/<app>/` | `NewCmd()` builds `oba <app>` and adds the commands of each domain (`cmd/apps/otak/`, `cmd/apps/kaya/`) |
-| `cmd/apps/<app>/<domain>/` | the commands of one domain, one file per command; `NewCmd()` builds `oba <app> <domain>` (`cmd/apps/otak/relation/`, `contact/`, `icp/`, `event/`, `find/`, `mailtemplate/`, `outreach/`, `attachment/`; `cmd/apps/ulak/org/`, `member/`, `invite/`; `cmd/apps/kaya/delivery/` (sync, refresh, status, launch, watch, doctor), `hook/`, `githook/`, `statusline/`, `install/`, `seed/`, `propose/`, `lessons/`, `sender/`, `signingkey/`) |
+| `cmd/apps/<app>/` | `NewCmd()` builds `oba <app>` and adds the commands of each domain (`cmd/apps/otak/`, `cmd/apps/kalkan/`, `cmd/apps/kaya/`) |
+| `cmd/apps/<app>/<domain>/` | the commands of one domain, one file per command; `NewCmd()` builds `oba <app> <domain>` (`cmd/apps/otak/relation/`, `contact/`, `icp/`, `event/`, `find/`, `mailtemplate/`, `outreach/`, `attachment/`; `cmd/apps/kalkan/page/`, `upload/`, `attachment/`; `cmd/apps/ulak/org/`, `member/`, `invite/`; `cmd/apps/kaya/delivery/` (sync, refresh, status, launch, watch, doctor), `hook/`, `githook/`, `statusline/`, `install/`, `seed/`, `pack/`, `propose/`, `lessons/`, `sender/`, `signingkey/`) |
 | `internal/apps/<app>/<domain>/` | the logic of one domain of an app (`internal/apps/otak/relation/`, `contact/`, `icp/`, `event/`, `find/`, `mailtemplate/`, `outreach/`, `attachment/`; `internal/apps/ulak/org/`, `member/`, `invite/`, and `role/`, the role check that `invite` and `member` share) |
+| `internal/apps/kalkan/<domain>/` | the logic of Kalkan's domains: `page/` (the tree, a page and its translations, the upsert from a file or stdin, delete), `upload/` (`kalkan.yaml`, reading a directory into pages with their front matter, links and linked files, the run with its outcomes, report and exit status) and `attachment/` (the page an attachment belongs to and the files to add) |
 | `internal/apps/kaya/<domain>/` | the logic of Kaya's domains: `delivery/` (trusted keys, manifests, the blob cache, versions and the switch, sessions, the launcher and the watcher, the outcome texts, the repository list and recognition, the exclude block, the release floors), `hook/`, `githook/` (the global git hooks), `statusline/`, `install/`, `seed/`, `propose/`, `lessons/`, `capture/` (one hook event into the local queue) and `sender/` (the queue to Kaya) |
 | `internal/apps/kaya/client/` | the Kaya API client: every call takes a context, user calls are signed through `internal/shrine/session`, the others with the machine token |
 | `internal/apps/kaya/machine/` | the machine token (`KAYA_RECORDER_TOKEN`, else Kagi), the API URL of the machine calls (`OBA_API_URL`, else production, never the stored session), the https-or-loopback check and a client with the token |
@@ -581,10 +688,10 @@ The packages are grouped as in the Oba backend: `dojo` is the technical foundati
 | `internal/shrine/session/` | the signed-in client for the current organization, the bearer (API URL, organization, refreshing token) of a client of its own such as Kaya's, the current user and its id, the organization name and the API URL |
 | `internal/connect/claude/` | running Claude Code headless and reading its stream-json output; returns the result as JSON |
 | `internal/dojo/config/` | API URL, issuer and client id resolution, `config.json` and the current organization |
-| `internal/dojo/client/` | the API client: the `CustomResponse` envelope, `APIError`, refresh and retry, paged lists, exit codes, multipart uploads with a Content-Type per part, and downloads from signed URLs without the token |
+| `internal/dojo/client/` | the API client: the `CustomResponse` envelope, `APIError`, refresh and retry (`ErrSessionExpired` when a session cannot be refreshed), the Kalkan page calls and path rules, paged lists, exit codes, multipart uploads with a Content-Type per part, and downloads from signed URLs without the token |
 | `internal/dojo/pdf/` | inlining local images as data URIs and rendering HTML to PDF with `weasyprint` |
-| `internal/dojo/docfile/` | the file forms the document, template, mail-template and outreach commands share: the MAIL file, the language and type values, the extension check, loading and rendering an HTML file, and writing a download or pull |
-| `internal/dojo/attachment/` | the attachments of any storage parent that Otak and Kazan share: reading and checking local files, list, table, find, upload and delete |
+| `internal/dojo/docfile/` | the file forms the document, template, mail-template and outreach commands share: the MAIL file, the language and type values, the extension check, loading and rendering an HTML file, and writing a download |
+| `internal/dojo/attachment/` | the attachments of any storage parent that Otak, Kazan and Kalkan share: reading and checking local files, list, table, find, upload and delete |
 | `internal/dojo/apidocs/` | reading the request schemas from `/v3/api-docs`, the key check and the field help |
 | `internal/dojo/guardrail/` | `Sanitize` and `CleanJSON`: remove terminal controls from text the CLI did not write; `OneLine` and `PersonName` for table cells |
 | `internal/dojo/dates/` | typed days (YYYY-MM-DD) and instants turned into the API's date and RFC 3339 values, and instants shown in the viewer's time zone |
@@ -604,4 +711,4 @@ Rules:
 - `internal/connect/claude` knows no app: the caller passes the brief and the JSON Schema and decodes the `json.RawMessage` it gets back.
 - Everything Claude Code returns is built from web pages. `claude.Run` passes its result through `guardrail.CleanJSON`, and its progress lines and error messages through `guardrail.Sanitize`, so that no caller can print escape sequences or bidi controls from a page. `guardrail` imports nothing from `claude` or an app.
 - Tests sit next to the code they test, and a fixture next to the tests that read it; a fixture or helper that several packages share lives in `internal/dojo/clitest`. Test seams (`claudeInstalled`, `runClaude`, `stdinIsTerminal`, `stdoutIsTerminal`) are package-level variables in the package of the command that uses them. Tests never need WeasyPrint: `clitest.StubWeasyPrint` puts a stub `weasyprint` first on `PATH`, and `clitest.NoWeasyPrint` leaves it off.
-- A new app, such as `oba kalkan`, becomes `cmd/apps/kalkan/` with one package per domain under it and `internal/apps/kalkan/<domain>/`, and `cmd/root.go` gains one `AddCommand` line.
+- A new app becomes `cmd/apps/<app>/` with one package per domain under it and `internal/apps/<app>/<domain>/`, and `cmd/root.go` gains one `AddCommand` line, as `oba kalkan` did.

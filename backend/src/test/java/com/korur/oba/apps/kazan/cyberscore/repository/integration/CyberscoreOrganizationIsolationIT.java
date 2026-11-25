@@ -17,20 +17,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 // 3. Java SDK
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 // 4. Internal
-import com.korur.oba.apps.kazan.cyberscore.entity.Check;
 import com.korur.oba.apps.kazan.cyberscore.entity.Cyberscore;
+import com.korur.oba.apps.kazan.cyberscore.entity.CyberscoreCheck;
 import com.korur.oba.apps.kazan.cyberscore.entity.CyberscoreSnapshot;
-import com.korur.oba.apps.kazan.cyberscore.enums.CheckCategory;
-import com.korur.oba.apps.kazan.cyberscore.enums.CheckStatus;
+import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreCheckCategory;
+import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreCheckStatus;
 import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreLevel;
 import com.korur.oba.apps.kazan.cyberscore.enums.CyberscoreSnapshotEventType;
-import com.korur.oba.apps.kazan.cyberscore.repository.CheckRepository;
+import com.korur.oba.apps.kazan.cyberscore.repository.CyberscoreCheckRepository;
 import com.korur.oba.apps.kazan.cyberscore.repository.CyberscoreRepository;
 import com.korur.oba.apps.kazan.cyberscore.repository.CyberscoreSnapshotRepository;
 import com.korur.oba.support.ObaIntegrationTest;
@@ -51,7 +49,7 @@ class CyberscoreOrganizationIsolationIT extends ObaIntegrationTest {
     private final UUID orgB = UUID.randomUUID();
 
     @Autowired
-    private CheckRepository checkRepository;
+    private CyberscoreCheckRepository checkRepository;
 
     @Autowired
     private CyberscoreRepository cyberscoreRepository;
@@ -78,28 +76,28 @@ class CyberscoreOrganizationIsolationIT extends ObaIntegrationTest {
         jdbc.update("DELETE FROM shrine.organizations WHERE id IN (?, ?)", orgA, orgB);
     }
 
-    private Check saveCheck(UUID organizationId, String name, CheckStatus status) {
-        return checkRepository.saveAndFlush(Check.builder().organizationId(organizationId).name(name)
-                .expected("expected").weight(5).category(CheckCategory.DEVICES).status(status).build());
+    private CyberscoreCheck saveCheck(UUID organizationId, String name, CyberscoreCheckStatus status) {
+        return checkRepository.saveAndFlush(CyberscoreCheck.builder().organizationId(organizationId).name(name)
+                .expected("expected").weight(5).category(CyberscoreCheckCategory.DEVICES).status(status).build());
     }
 
     @Test
     void checks_sameNameInBothOrganizations_areListedAndFoundOnlyInTheirOwn() {
-        Check checkA = saveCheck(orgA, NAME, CheckStatus.IN_PROGRESS);
-        Check checkB = saveCheck(orgB, NAME, CheckStatus.IN_PROGRESS);
+        CyberscoreCheck checkA = saveCheck(orgA, NAME, CyberscoreCheckStatus.IN_PROGRESS);
+        CyberscoreCheck checkB = saveCheck(orgB, NAME, CyberscoreCheckStatus.IN_PROGRESS);
 
         assertEquals(List.of(checkA.getId()), checkRepository
-                .findByOrganizationIdOrderByCategoryAscSortOrderAscNameAsc(orgA).stream().map(Check::getId).toList());
+                .findByOrganizationIdOrderByCategoryAscSortOrderAscNameAsc(orgA).stream().map(CyberscoreCheck::getId).toList());
         assertEquals(List.of(checkB.getId()), checkRepository
-                .findByOrganizationIdAndStatusOrderByCategoryAscSortOrderAscNameAsc(orgB, CheckStatus.IN_PROGRESS)
-                .stream().map(Check::getId).toList());
+                .findByOrganizationIdAndStatusOrderByCategoryAscSortOrderAscNameAsc(orgB, CyberscoreCheckStatus.IN_PROGRESS)
+                .stream().map(CyberscoreCheck::getId).toList());
         assertTrue(checkRepository.findByIdAndOrganizationId(checkA.getId(), orgA).isPresent());
         assertTrue(checkRepository.findByIdAndOrganizationId(checkA.getId(), orgB).isEmpty());
     }
 
     @Test
     void existsByName_nameOnlyInOrganizationA_isFalseForB() {
-        Check checkA = saveCheck(orgA, "only a", CheckStatus.NOT_STARTED);
+        CyberscoreCheck checkA = saveCheck(orgA, "only a", CyberscoreCheckStatus.NOT_STARTED);
 
         assertTrue(checkRepository.existsByOrganizationIdAndName(orgA, "only a"));
         assertFalse(checkRepository.existsByOrganizationIdAndName(orgB, "only a"));
@@ -155,8 +153,8 @@ class CyberscoreOrganizationIsolationIT extends ObaIntegrationTest {
 
     @Test
     void organizationDeleted_removesItsChecksScoreAndSnapshotsOnly() {
-        saveCheck(orgA, NAME, CheckStatus.NOT_STARTED);
-        saveCheck(orgB, NAME, CheckStatus.NOT_STARTED);
+        saveCheck(orgA, NAME, CyberscoreCheckStatus.NOT_STARTED);
+        saveCheck(orgB, NAME, CyberscoreCheckStatus.NOT_STARTED);
         new TransactionTemplate(transactionManager).execute(status -> cyberscoreRepository.insertIfAbsent(orgA));
         new TransactionTemplate(transactionManager).execute(status -> cyberscoreRepository.insertIfAbsent(orgB));
         saveSnapshot(orgA, Instant.parse("2026-11-10T10:00:00Z"), 20);
@@ -164,10 +162,10 @@ class CyberscoreOrganizationIsolationIT extends ObaIntegrationTest {
 
         jdbc.update("DELETE FROM shrine.organizations WHERE id = ?", orgA);
 
-        assertEquals(0, count("SELECT count(*) FROM kazan.checks WHERE organization_id = ?", orgA));
+        assertEquals(0, count("SELECT count(*) FROM kazan.cyberscore_checks WHERE organization_id = ?", orgA));
         assertEquals(0, count("SELECT count(*) FROM kazan.cyberscores WHERE organization_id = ?", orgA));
         assertEquals(0, count("SELECT count(*) FROM kazan.cyberscore_snapshots WHERE organization_id = ?", orgA));
-        assertEquals(1, count("SELECT count(*) FROM kazan.checks WHERE organization_id = ?", orgB));
+        assertEquals(1, count("SELECT count(*) FROM kazan.cyberscore_checks WHERE organization_id = ?", orgB));
         assertEquals(1, count("SELECT count(*) FROM kazan.cyberscores WHERE organization_id = ?", orgB));
         assertEquals(1, count("SELECT count(*) FROM kazan.cyberscore_snapshots WHERE organization_id = ?", orgB));
     }
@@ -175,7 +173,6 @@ class CyberscoreOrganizationIsolationIT extends ObaIntegrationTest {
     private UUID saveSnapshot(UUID organizationId, Instant takenAt, int percentage) {
         return snapshotRepository.saveAndFlush(CyberscoreSnapshot.builder().organizationId(organizationId)
                 .scorePercentage(percentage).scoreLevel(CyberscoreLevel.fromPercentage(percentage))
-                .breakdownByCategory(new HashMap<>(Map.of("DEVICES", percentage)))
                 .eventType(CyberscoreSnapshotEventType.CHECK_CREATED).takenAt(takenAt).build()).getId();
     }
 }

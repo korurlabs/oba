@@ -2,7 +2,6 @@ import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
 import { NextIntlClientProvider } from "next-intl";
 import en from "@/locales/en.json";
-import { SenseyTable } from "@oba/shared/components/sensey-table";
 import type { Check } from "../schemas";
 
 // Who the reader is and which checks come back are stand-ins; the list, its
@@ -27,6 +26,12 @@ function makeCheck(id: string, name: string, category: Check["category"]): Check
 
 const mfaCheck = makeCheck("c1", "MFA on admin accounts", "IDENTITY");
 let checks: Check[];
+let filters: {
+  status: string | null;
+  category: string | null;
+  search: string | null;
+  view: "cards" | "list" | "kanban";
+};
 
 const actualGetMe = { ...(await import("@oba/shared/features/users/hooks/use-get-me")) };
 const actualChecks = { ...(await import("../hooks/use-checks")) };
@@ -74,7 +79,7 @@ mock.module("@oba/shared/libs/i18n/navigation", () => ({
 }));
 mock.module("nuqs", () => ({
   ...actualNuqs,
-  useQueryStates: () => [{ status: null }, () => Promise.resolve(new URLSearchParams())],
+  useQueryStates: () => [filters, () => Promise.resolve(new URLSearchParams())],
 }));
 
 afterAll(() => {
@@ -84,8 +89,9 @@ afterAll(() => {
   mock.module("nuqs", () => actualNuqs);
 });
 
-const { CheckList, trackCheckSave } = await import("./check-list");
-const { useCheckColumns } = await import("../hooks/use-check-columns");
+const { CheckList, filterChecks, trackCheckSave } = await import("./check-list");
+const { CheckCard } = await import("./check-card");
+const { countCheckFilters } = await import("../hooks/use-check-filter-params");
 
 function markup(): string {
   return renderToStaticMarkup(
@@ -98,6 +104,7 @@ function markup(): string {
 beforeEach(() => {
   role = "MEMBER";
   checks = [mfaCheck];
+  filters = { status: null, category: null, search: null, view: "cards" };
 });
 
 describe("CheckList write controls", () => {
@@ -109,8 +116,8 @@ describe("CheckList write controls", () => {
     expect(html).not.toContain(`>${en.cyberscore.checks.add}<`);
     expect(html).not.toContain(en.cyberscore.checks.edit);
     expect(html).not.toContain(en.cyberscore.checks.delete);
-    // Only the status filter is a select; the row's outcome and status are chips.
-    expect(html.match(/role="combobox"/g)).toHaveLength(1);
+    // The filters sit behind the filter button; the card's outcome and status are chips.
+    expect(html.match(/role="combobox"/g)).toBeNull();
   });
 
   test.each(["ADMIN", "OWNER"] as const)(
@@ -121,10 +128,30 @@ describe("CheckList write controls", () => {
       expect(html).toContain(en.cyberscore.checks.add);
       expect(html).toContain(en.cyberscore.checks.edit);
       expect(html).toContain(en.cyberscore.checks.delete);
-      expect(html.match(/role="combobox"/g)).toHaveLength(3);
+      expect(html.match(/role="combobox"/g)).toHaveLength(2);
       expect(html).not.toContain(en.cyberscore.checks.readOnly);
     }
   );
+});
+
+describe("CheckList cards", () => {
+  test("shows the description and the fix steps in full, keeping their line breaks", () => {
+    const steps = "1. Renew the licence.\n2. Enforce the policy.\n3. Register a key.";
+    const description = "A long description that a reader needs in full.\n\nImpact: everything.";
+    checks = [{ ...mfaCheck, description, expected: steps } as Check];
+    const html = markup();
+
+    expect(html).toContain(steps);
+    expect(html).toContain(description);
+    expect(html).toContain("whitespace-pre-line");
+    // Nothing on the card cuts its text short.
+    const card = html.match(/<article[\s\S]*<\/article>/)?.[0] ?? "";
+    expect(card).toContain(steps);
+    expect(card).not.toContain("line-clamp");
+    expect(card).not.toContain("truncate");
+    expect(html).toContain(en.cyberscore.checks.fields.description);
+    expect(html).toContain(en.cyberscore.checks.fields.expected);
+  });
 });
 
 describe("CheckList category groups", () => {
@@ -137,9 +164,9 @@ describe("CheckList category groups", () => {
     ];
     const html = markup();
 
-    const headers = [...html.matchAll(/<span class="kazan-grid-heading">([^<]*)<\/span>/g)].map(
-      (match) => match[1]
-    );
+    const headers = [
+      ...html.matchAll(/<h2 id="[^"]*" class="kazan-grid-heading">([^<]*)<\/h2>/g),
+    ].map((match) => match[1]);
     expect(headers).toEqual([
       en.cyberscore.categories.IDENTITY,
       en.cyberscore.categories.DATA,
@@ -148,12 +175,12 @@ describe("CheckList category groups", () => {
 
     // Each check sits under its own header, in the server's order within it.
     const positions = [
-      `>${en.cyberscore.categories.IDENTITY}</span>`,
+      `>${en.cyberscore.categories.IDENTITY}</h2>`,
       "MFA on admin accounts",
-      `>${en.cyberscore.categories.DATA}</span>`,
+      `>${en.cyberscore.categories.DATA}</h2>`,
       "Backups restore",
       "Disk encryption",
-      `>${en.cyberscore.categories.NONE}</span>`,
+      `>${en.cyberscore.categories.NONE}</h2>`,
       "No category check",
     ].map((text) => html.indexOf(text));
     expect(positions.every((position) => position >= 0)).toBe(true);
@@ -161,20 +188,27 @@ describe("CheckList category groups", () => {
   });
 });
 
-describe("check row saves", () => {
-  function SavingTable({ rows, savingCheckIds }: { rows: Check[]; savingCheckIds: Set<string> }) {
-    const columns = useCheckColumns({
-      canManage: true,
-      onEdit: () => undefined,
-      onDelete: () => undefined,
-      onOutcomeChange: () => undefined,
-      onStatusChange: () => undefined,
-      savingCheckIds,
-    });
-    return <SenseyTable<Check> columns={columns} data={rows} getRowId={(check) => check.id} />;
+describe("check card saves", () => {
+  function SavingCards({ rows, savingCheckIds }: { rows: Check[]; savingCheckIds: Set<string> }) {
+    return (
+      <>
+        {rows.map((check) => (
+          <CheckCard
+            key={check.id}
+            check={check}
+            canManage
+            isSaving={savingCheckIds.has(check.id)}
+            onEdit={() => undefined}
+            onDelete={() => undefined}
+            onOutcomeChange={() => undefined}
+            onStatusChange={() => undefined}
+          />
+        ))}
+      </>
+    );
   }
 
-  test("disables the selects of every row whose save is running, and only those", () => {
+  test("disables the selects of every card whose save is running, and only those", () => {
     const rows = [
       makeCheck("c1", "First check", "IDENTITY"),
       makeCheck("c2", "Second check", "IDENTITY"),
@@ -182,7 +216,7 @@ describe("check row saves", () => {
     ];
     const html = renderToStaticMarkup(
       <NextIntlClientProvider locale="en" messages={en} timeZone="UTC">
-        <SavingTable rows={rows} savingCheckIds={new Set(["c1", "c3"])} />
+        <SavingCards rows={rows} savingCheckIds={new Set(["c1", "c3"])} />
       </NextIntlClientProvider>
     );
     const triggers = html.match(/<button[^>]*role="combobox"[^>]*>/g) ?? [];
@@ -224,5 +258,186 @@ describe("check row saves", () => {
     first.reject(new Error("save failed"));
     await settle();
     expect(saving.size).toBe(0);
+  });
+});
+
+describe("CheckList toolbar", () => {
+  const positionOf = (html: string, text: string) => {
+    const position = html.indexOf(text);
+    expect(position).toBeGreaterThanOrEqual(0);
+    return position;
+  };
+
+  test("puts search first, then the view toggle, the filter button and Add check", () => {
+    role = "ADMIN";
+    const html = markup();
+    const positions = [
+      `placeholder="${en.cyberscore.checks.filter.search}"`,
+      `aria-label="${en.views.switchToCards}"`,
+      `>${en.filters.title}</span>`,
+      `${en.cyberscore.checks.add}</button>`,
+    ].map((text) => positionOf(html, text));
+    expect([...positions].sort((a, b) => a - b)).toEqual(positions);
+  });
+
+  test("the filter button counts the category and status that narrow the list", () => {
+    const badge = (html: string) =>
+      html.split(`>${en.filters.title}</span>`)[1]?.split("</button>")[0] ?? "";
+    expect(badge(markup())).not.toMatch(/>\d<\/div>/);
+    filters = { ...filters, category: "IDENTITY" };
+    expect(badge(markup())).toMatch(/>1<\/div>/);
+    filters = { ...filters, status: "DONE", search: "mfa" };
+    expect(badge(markup())).toMatch(/>2<\/div>/);
+  });
+
+  test("countCheckFilters counts only category and status", () => {
+    expect(countCheckFilters({ category: null, status: null })).toBe(0);
+    expect(countCheckFilters({ category: "NONE", status: null })).toBe(1);
+    expect(countCheckFilters({ category: "DATA", status: "DONE" })).toBe(2);
+  });
+});
+
+describe("CheckList filters", () => {
+  const mixed = () => [
+    makeCheck("c1", "MFA on admin accounts", "IDENTITY"),
+    makeCheck("c2", "Backups restore", "DATA"),
+    makeCheck("c3", "Admin MFA for break-glass", "IDENTITY"),
+    makeCheck("c4", "No category check", null),
+  ];
+
+  test("filterChecks keeps one category, the uncategorized ones, or every check", () => {
+    const names = (list: Check[]) => list.map((check) => check.name);
+    expect(names(filterChecks(mixed(), { category: "IDENTITY" }))).toEqual([
+      "MFA on admin accounts",
+      "Admin MFA for break-glass",
+    ]);
+    expect(names(filterChecks(mixed(), { category: "NONE" }))).toEqual(["No category check"]);
+    expect(filterChecks(mixed(), { category: null, search: null })).toHaveLength(4);
+  });
+
+  test("filterChecks matches the name, ignoring case and surrounding spaces", () => {
+    const names = (list: Check[]) => list.map((check) => check.name);
+    expect(names(filterChecks(mixed(), { search: "  mfa " }))).toEqual([
+      "MFA on admin accounts",
+      "Admin MFA for break-glass",
+    ]);
+    expect(names(filterChecks(mixed(), { category: "IDENTITY", search: "break" }))).toEqual([
+      "Admin MFA for break-glass",
+    ]);
+  });
+
+  test("a category in the URL shows only that category's cards", () => {
+    checks = mixed();
+    filters = { status: null, category: "IDENTITY", search: null, view: "cards" };
+    const html = markup();
+
+    expect(html).toContain("MFA on admin accounts");
+    expect(html).toContain("Admin MFA for break-glass");
+    expect(html).not.toContain("Backups restore");
+    expect(html).not.toContain("No category check");
+    expect(html.match(/<article/g)).toHaveLength(2);
+  });
+
+  test("filters that match nothing say so and offer to clear them", () => {
+    checks = mixed();
+    filters = { status: null, category: "DATA", search: "mfa", view: "cards" };
+    const html = markup();
+
+    expect(html).not.toContain("<article");
+    expect(html).toContain(en.cyberscore.checks.emptyFiltered);
+    expect(html).toContain(en.cyberscore.checks.filter.clear);
+  });
+});
+
+describe("CheckList views", () => {
+  const mixed = () => [
+    makeCheck("c1", "ID-01 MFA on admin accounts", "IDENTITY"),
+    { ...makeCheck("c2", "DA-02 Backups restore", "DATA"), status: "IN_PROGRESS" } as Check,
+    makeCheck("c3", "No category check", null),
+  ];
+  const pressed = (html: string) =>
+    [...html.matchAll(/aria-label="([^"]*)" aria-pressed="true"/g)].map((match) => match[1]);
+
+  test("the toggle offers cards, list and kanban, and cards is the default", () => {
+    checks = mixed();
+    const html = markup();
+    expect(html).toContain(`aria-label="${en.views.switchToCards}"`);
+    expect(html).toContain(`aria-label="${en.views.switchToList}"`);
+    expect(html).toContain(`aria-label="${en.views.switchToKanban}"`);
+    expect(pressed(html)).toEqual([en.views.switchToCards]);
+    expect(html.match(/<article/g)).toHaveLength(3);
+  });
+
+  test("the list shows a row per check under a heading row per category", () => {
+    checks = mixed();
+    filters = { ...filters, view: "list" };
+    const html = markup();
+
+    expect(pressed(html)).toEqual([en.views.switchToList]);
+    expect(html).not.toContain("<article");
+    expect(html).toContain("<table");
+    expect(html).toContain(`>ID-01</span>`);
+    expect(html).toContain(`>MFA on admin accounts</span>`);
+    expect(html).toContain(
+      `aria-label="${en.cyberscore.checks.showText}: ID-01 MFA on admin accounts"`
+    );
+    const positions = [
+      en.cyberscore.categories.IDENTITY,
+      "MFA on admin accounts",
+      en.cyberscore.categories.DATA,
+      "Backups restore",
+      en.cyberscore.categories.NONE,
+      "No category check",
+    ].map((text) => html.indexOf(`>${text}<`));
+    expect(positions.every((position) => position >= 0)).toBe(true);
+    expect([...positions].sort((a, b) => a - b)).toEqual(positions);
+  });
+
+  test("the list gives an admin selects and a member chips", () => {
+    checks = mixed();
+    filters = { ...filters, view: "list" };
+    expect(markup().match(/role="combobox"/g)).toBeNull();
+    role = "ADMIN";
+    expect(markup().match(/role="combobox"/g)).toHaveLength(checks.length * 2);
+  });
+
+  test("the board shows a column per status with each check in its own", () => {
+    checks = mixed();
+    filters = { ...filters, view: "kanban" };
+    const html = markup();
+
+    expect(pressed(html)).toEqual([en.views.switchToKanban]);
+    const columns = [...html.matchAll(/<section aria-label="([^"]*)"/g)].map((match) => match[1]);
+    expect(columns).toEqual([
+      en.cyberscore.statuses.NOT_STARTED,
+      en.cyberscore.statuses.IN_PROGRESS,
+      en.cyberscore.statuses.DONE,
+      en.cyberscore.statuses.NOT_APPLICABLE,
+    ]);
+    const column = (status: string) =>
+      html.split(`<section aria-label="${status}"`)[1]?.split("</section>")[0] ?? "";
+    expect(column(en.cyberscore.statuses.IN_PROGRESS)).toContain("DA-02 Backups restore");
+    expect(column(en.cyberscore.statuses.DONE)).toContain("ID-01 MFA on admin accounts");
+    expect(column(en.cyberscore.statuses.DONE)).toContain("No category check");
+    expect(column(en.cyberscore.statuses.NOT_STARTED)).toContain(
+      en.cyberscore.checks.kanban.emptyColumn
+    );
+  });
+
+  test("only an admin's board cards can be picked up", () => {
+    checks = mixed();
+    filters = { ...filters, view: "kanban" };
+    expect(markup()).not.toContain('aria-roledescription="sortable"');
+    role = "OWNER";
+    expect(markup().match(/aria-roledescription="sortable"/g)).toHaveLength(3);
+  });
+
+  test("the board goes full width; cards and list keep the compact width", () => {
+    checks = mixed();
+    expect(markup()).toContain("max-w-6xl");
+    filters = { ...filters, view: "list" };
+    expect(markup()).toContain("max-w-6xl");
+    filters = { ...filters, view: "kanban" };
+    expect(markup()).not.toContain("max-w-6xl");
   });
 });
