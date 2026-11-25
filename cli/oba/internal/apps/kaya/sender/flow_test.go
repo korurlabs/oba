@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -67,7 +68,7 @@ func queueSession(t *testing.T, state, id string, events int, ended bool) string
 	dir := capture.SessionDir(state, id)
 	var lines strings.Builder
 	for seq := 1; seq <= events; seq++ {
-		fmt.Fprintf(&lines, `{"seq":%d,"at":"2026-10-01T09:00:%02dZ","event":"UserPromptSubmit","prompt":"p%d"}`+"\n", seq, seq%60, seq)
+		lines.WriteString(eventLine(seq))
 	}
 	writeFile(t, filepath.Join(dir, capture.EventsFile), lines.String())
 	summary := fmt.Sprintf(`{"session_id":%q,"title":"t","started_at":"2026-10-01T09:00:00Z","last_event_at":"2026-10-01T09:00:01Z",`+
@@ -76,6 +77,27 @@ func queueSession(t *testing.T, state, id string, events int, ended bool) string
 	writeFile(t, filepath.Join(dir, capture.SessionFile),
 		`{"sessionId":"`+id+`","machineName":"flow-host","remoteUrl":"`+flowRemote+`","repositoryName":"app","gitAuthorEmail":"dev@example.com"}`)
 	return dir
+}
+
+// eventLine is the line the hook writes for event seq.
+func eventLine(seq int) string {
+	return fmt.Sprintf(`{"seq":%d,"at":"2026-10-01T09:00:%02dZ","event":"UserPromptSubmit","prompt":"p%d"}`+"\n", seq, seq%60, seq)
+}
+
+// appendEvent adds event seq to the queued session in dir, as the hook does while it records.
+func appendEvent(t *testing.T, dir string, seq int) {
+	t.Helper()
+	file, err := os.OpenFile(filepath.Join(dir, capture.EventsFile), os.O_APPEND|os.O_WRONLY, 0o600) // #nosec G304 -- a queue file in the test's directory
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := file.WriteString(eventLine(seq)); err != nil {
+		_ = file.Close()
+		t.Fatal(err)
+	}
+	if err := file.Close(); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func flowResolver() *seed.RemoteResolver {
@@ -103,6 +125,47 @@ func (p *scriptedPoster) PostIngestBatch(_ context.Context, body []byte) (json.R
 	i := min(p.calls, len(p.answers)-1)
 	p.calls++
 	return nil, p.answers[i]
+}
+
+// sessionPoster answers each batch by its session: a session in refuse gets its error, the batch
+// of any other is taken. It records the session and the time of every call.
+type sessionPoster struct {
+	clock  *fakeClock
+	refuse map[string]error
+	calls  []sessionCall
+}
+
+type sessionCall struct {
+	session string
+	at      time.Time
+}
+
+func (p *sessionPoster) PostIngestBatch(_ context.Context, body []byte) (json.RawMessage, error) {
+	var b struct {
+		SessionID string `json:"sessionId"`
+	}
+	if err := json.Unmarshal(body, &b); err != nil {
+		return nil, err
+	}
+	p.calls = append(p.calls, sessionCall{session: b.SessionID, at: p.clock.now})
+	return nil, p.refuse[b.SessionID]
+}
+
+func (c sessionCall) String() string {
+	return c.session + " at " + c.at.UTC().Format(time.TimeOnly)
+}
+
+// sameCall reports whether two calls went to the same session at the same time.
+func sameCall(a, b sessionCall) bool {
+	return a.session == b.session && a.at.Equal(b.at)
+}
+
+func (p *sessionPoster) sessions() []string {
+	var ids []string
+	for _, call := range p.calls {
+		ids = append(ids, call.session)
+	}
+	return ids
 }
 
 // fakeClock is the sender's time: Sleep moves it, and stops the loop after limit sleeps.
@@ -194,23 +257,418 @@ func TestBackoffDoublesFromTwoSecondsToFiveMinutes(t *testing.T) {
 	}
 }
 
-func TestBackoffForServerAnswersAndRateLimit(t *testing.T) {
-	for _, status := range []int{429, 500, 502, 503} {
+func TestBackoffForRateLimit(t *testing.T) {
+	state := flowEnv(t)
+	dir := queueSession(t, state, flowSession, 1, false)
+	poster := &scriptedPoster{answers: []error{&client.APIError{Status: 429, Code: "KAY_SEC_004"}}}
+	clock := &fakeClock{now: time.Unix(1_800_000_000, 0), limit: 3}
+	if err := Run(context.Background(), flowConfig(clock, poster)); !errors.Is(err, errStopLoop) {
+		t.Fatalf("Run = %v", err)
+	}
+	if !equalDurations(clock.sleeps, seconds(2, 4, 8)) {
+		t.Errorf("sleeps = %v, want 2 s, 4 s, 8 s", clock.sleeps)
+	}
+	if cur := (&run{}).readCursor(dir, flowSession); cur.AcknowledgedSeq != 0 || cur.Parked != nil {
+		t.Errorf("cursor after 429 = %+v, want queued and not parked", cur)
+	}
+}
+
+// A 500 answers one session's batch: the session backs off from 2 s on its own, while the sender
+// keeps its 2 s round.
+func TestAServerErrorBacksOffTheSessionAlone(t *testing.T) {
+	state := flowEnv(t)
+	dir := queueSession(t, state, flowSession, 1, false)
+	start := time.Unix(1_800_000_000, 0)
+	clock := &fakeClock{now: start, limit: 8}
+	poster := &sessionPoster{clock: clock, refuse: map[string]error{flowSession: &client.APIError{Status: 500}}}
+	if err := Run(context.Background(), flowConfig(clock, poster)); !errors.Is(err, errStopLoop) {
+		t.Fatalf("Run = %v", err)
+	}
+	if !equalDurations(clock.sleeps, seconds(2, 2, 2, 2, 2, 2, 2, 2)) {
+		t.Errorf("sleeps = %v, want the 2 s round pause only", clock.sleeps)
+	}
+	var at []time.Duration
+	for _, call := range poster.calls {
+		at = append(at, call.at.Sub(start))
+	}
+	if !equalDurations(at, seconds(0, 2, 6, 14)) {
+		t.Errorf("sent at %v, want 0 s, 2 s, 6 s and 14 s", at)
+	}
+	log := logText(t, state)
+	for _, wait := range []int{2, 4, 8, 16} {
+		line := fmt.Sprintf("%s: Kaya answered 500; retrying in %d s", flowSession, wait)
+		if n := strings.Count(log, line); n != 1 {
+			t.Errorf("%q logged %d times, want once, log:\n%s", line, n, log)
+		}
+	}
+	if cur := (&run{}).readCursor(dir, flowSession); cur.AcknowledgedSeq != 0 || cur.Parked != nil {
+		t.Errorf("cursor after 500 = %+v, want queued and not parked", cur)
+	}
+}
+
+// A 502, 503 or 504 comes from the gateway while Kaya is down or overloaded, and every queued
+// session would get it alike: the round ends after the first batch and the whole sender backs
+// off, so the outage costs one request per back-off step, not one per queued session.
+func TestAGatewayOutageBacksOffTheWholeQueue(t *testing.T) {
+	ids := fiveSessions
+	for _, status := range []int{502, 503, 504} {
 		t.Run(fmt.Sprint(status), func(t *testing.T) {
 			state := flowEnv(t)
-			dir := queueSession(t, state, flowSession, 1, false)
-			poster := &scriptedPoster{answers: []error{&client.APIError{Status: status}}}
-			clock := &fakeClock{now: time.Unix(1_800_000_000, 0), limit: 3}
+			start := time.Unix(1_800_000_000, 0)
+			clock := &fakeClock{now: start, limit: 4}
+			poster := &sessionPoster{clock: clock, refuse: map[string]error{}}
+			for _, id := range ids {
+				queueSession(t, state, id, 1, false)
+				poster.refuse[id] = &client.APIError{Status: status}
+			}
 			if err := Run(context.Background(), flowConfig(clock, poster)); !errors.Is(err, errStopLoop) {
 				t.Fatalf("Run = %v", err)
 			}
-			if !equalDurations(clock.sleeps, seconds(2, 4, 8)) {
-				t.Errorf("sleeps = %v, want 2 s, 4 s, 8 s", clock.sleeps)
+			if !equalDurations(clock.sleeps, seconds(2, 4, 8, 16)) {
+				t.Errorf("sleeps = %v, want the back-off of the whole sender: 2 s, 4 s, 8 s, 16 s", clock.sleeps)
 			}
-			if cur := (&run{}).readCursor(dir, flowSession); cur.AcknowledgedSeq != 0 || cur.Parked != nil {
-				t.Errorf("cursor after %d = %+v, want queued and not parked", status, cur)
+			var at []time.Duration
+			for _, call := range poster.calls {
+				if call.session != ids[0] {
+					t.Errorf("sent %s after the gateway answered %d, want the round ended", call.session, status)
+				}
+				at = append(at, call.at.Sub(start))
+			}
+			if !equalDurations(at, seconds(0, 2, 6, 14)) {
+				t.Errorf("sent at %v, want one batch per round, at 0 s, 2 s, 6 s and 14 s", at)
+			}
+			log := logText(t, state)
+			for _, wait := range []int{2, 4, 8, 16} {
+				line := fmt.Sprintf("Kaya answered %d; retrying in %d s", status, wait)
+				if n := strings.Count(log, line); n != 1 {
+					t.Errorf("%q logged %d times, want once, log:\n%s", line, n, log)
+				}
+			}
+			for _, id := range ids {
+				if strings.Contains(log, id+": Kaya answered") {
+					t.Errorf("%s backed off on its own, want the whole sender, log:\n%s", id, log)
+				}
+				if cur := (&run{}).readCursor(capture.SessionDir(state, id), id); cur.AcknowledgedSeq != 0 || cur.Parked != nil {
+					t.Errorf("cursor of %s after %d = %+v, want queued and not parked", id, status, cur)
+				}
 			}
 		})
+	}
+}
+
+// fiveSessions are the ids of a queue of five sessions, in name order.
+var fiveSessions = []string{
+	flowSession,
+	"22222222-aaaa-4bbb-8ccc-0000000000f2",
+	"33333333-aaaa-4bbb-8ccc-0000000000f3",
+	"44444444-aaaa-4bbb-8ccc-0000000000f4",
+	"55555555-aaaa-4bbb-8ccc-0000000000f5",
+}
+
+// outageRun queues sessions of one event each, answers every batch with answer for steps sleeps
+// of the sender, and returns the state directory, the poster and the clock.
+func outageRun(t *testing.T, ids []string, answer error, steps int) (string, *sessionPoster, *fakeClock) {
+	t.Helper()
+	state := flowEnv(t)
+	clock := &fakeClock{now: time.Unix(1_800_000_000, 0), limit: steps}
+	poster := &sessionPoster{clock: clock, refuse: map[string]error{}}
+	for _, id := range ids {
+		queueSession(t, state, id, 1, false)
+		poster.refuse[id] = answer
+	}
+	if err := Run(context.Background(), flowConfig(clock, poster)); !errors.Is(err, errStopLoop) {
+		t.Fatalf("Run = %v", err)
+	}
+	return state, poster, clock
+}
+
+// A 500 for every queued session, as after a deploy whose bug every request meets, is Kaya itself
+// failing: the whole sender backs off as for a gateway outage instead of each session on its own,
+// which sent one request per queued session on every back-off step. Until each session has shown
+// its 500, though, sessions that fail on their own content look the same, and a healthy session
+// sorted after them must not wait one back-off step for each: the sender tries the next session
+// after 2 s and leaves its back-off as it is. Five sessions therefore cost four 2 s steps before
+// the back-off of a gateway outage, and 24 requests in the first hour against its 19.
+func TestAServerErrorForEverySessionBacksOffTheWholeQueue(t *testing.T) {
+	start := time.Unix(1_800_000_000, 0)
+	_, gateway, gatewayClock := outageRun(t, fiveSessions, &client.APIError{Status: 503}, 19)
+	state, poster, clock := outageRun(t, fiveSessions, &client.APIError{Status: 500}, 23)
+	if len(gateway.calls) != 19 {
+		t.Fatalf("a gateway outage cost %d requests in the first hour, want 19", len(gateway.calls))
+	}
+	if want := slices.Concat(seconds(2, 2, 2, 2), gatewayClock.sleeps); !equalDurations(clock.sleeps, want) {
+		t.Errorf("sleeps = %v, want four 2 s steps and then the back-off of a gateway outage: %v", clock.sleeps, want)
+	}
+	for name, outage := range map[string]struct {
+		calls []sessionCall
+		clock *fakeClock
+	}{"gateway outage": {gateway.calls, gatewayClock}, "500 for every session": {poster.calls, clock}} {
+		last := outage.calls[len(outage.calls)-1].at
+		if !last.Before(start.Add(time.Hour)) || outage.clock.now.Before(start.Add(time.Hour)) {
+			t.Errorf("%s: last request at %v, clock at %v, want the run to cover the first hour and every request in it",
+				name, last.Sub(start), outage.clock.now.Sub(start))
+		}
+	}
+	if len(poster.calls) != 24 {
+		t.Errorf("a 500 for every session cost %d requests in the first hour, want 24", len(poster.calls))
+	}
+	// The first round stops at the second 500. Each of the next three tries the one session that
+	// has not failed yet; then each round tries one session, the one after the session whose 500
+	// ended the round before.
+	want := []sessionCall{
+		{fiveSessions[0], start}, {fiveSessions[1], start}, {fiveSessions[2], start.Add(2 * time.Second)},
+		{fiveSessions[3], start.Add(4 * time.Second)}, {fiveSessions[4], start.Add(6 * time.Second)},
+		{fiveSessions[0], start.Add(8 * time.Second)}, {fiveSessions[1], start.Add(10 * time.Second)},
+		{fiveSessions[2], start.Add(14 * time.Second)}, {fiveSessions[3], start.Add(22 * time.Second)},
+	}
+	for i, call := range want {
+		if i >= len(poster.calls) || !sameCall(poster.calls[i], call) {
+			t.Fatalf("calls = %v, want them to start with %v", poster.calls, want)
+		}
+	}
+	log := logText(t, state)
+	for line, times := range map[string]int{
+		"Kaya answered 500 for 2 sessions and took no batch; retrying in 2 s": 1,
+		"Kaya answered 500 for 3 sessions and took no batch; retrying in 2 s": 1,
+		"Kaya answered 500 for 4 sessions and took no batch; retrying in 2 s": 1,
+		"Kaya answered 500 for 5 sessions and took no batch; retrying in 2 s": 2,
+		"Kaya answered 500 for 5 sessions and took no batch; retrying in 4 s": 1,
+		"Kaya answered 500 for 5 sessions and took no batch; retrying in 8 s": 1,
+	} {
+		if n := strings.Count(log, line); n != times {
+			t.Errorf("%q logged %d times, want %d, log:\n%s", line, n, times, log)
+		}
+	}
+	// Only the first 500 came before the fault showed, so only that session backed off on its own.
+	if line := fiveSessions[0] + ": Kaya answered 500; retrying in 2 s"; strings.Count(log, line) != 1 {
+		t.Errorf("log lacks %q once:\n%s", line, log)
+	}
+	for _, id := range fiveSessions[1:] {
+		if strings.Contains(log, id+": Kaya answered") {
+			t.Errorf("%s backed off on its own, want the whole sender, log:\n%s", id, log)
+		}
+	}
+	for _, id := range fiveSessions {
+		if cur := (&run{}).readCursor(capture.SessionDir(state, id), id); cur.AcknowledgedSeq != 0 || cur.Parked != nil {
+			t.Errorf("cursor of %s = %+v, want queued and not parked", id, cur)
+		}
+	}
+}
+
+// One session whose batch Kaya keeps failing among sessions it takes backs off alone, also when it
+// sorts first: the others are sent in the first round and the sender keeps its 2 s round.
+func TestOneFailingSessionAmongOthersBacksOffAlone(t *testing.T) {
+	state := flowEnv(t)
+	start := time.Unix(1_800_000_000, 0)
+	clock := &fakeClock{now: start, limit: 4}
+	poster := &sessionPoster{clock: clock, refuse: map[string]error{fiveSessions[0]: &client.APIError{Status: 500}}}
+	for _, id := range fiveSessions {
+		queueSession(t, state, id, 1, false)
+	}
+	if err := Run(context.Background(), flowConfig(clock, poster)); !errors.Is(err, errStopLoop) {
+		t.Fatalf("Run = %v", err)
+	}
+	if !equalDurations(clock.sleeps, seconds(2, 2, 2, 2)) {
+		t.Errorf("sleeps = %v, want the 2 s round pause only", clock.sleeps)
+	}
+	for _, id := range fiveSessions[1:] {
+		if cur := (&run{}).readCursor(capture.SessionDir(state, id), id); cur.AcknowledgedSeq != 1 {
+			t.Errorf("cursor of %s = %+v, want seq 1 acknowledged", id, cur)
+		}
+	}
+	var failing []time.Duration
+	for _, call := range poster.calls {
+		if call.session == fiveSessions[0] {
+			failing = append(failing, call.at.Sub(start))
+		}
+	}
+	if !equalDurations(failing, seconds(0, 2, 6)) {
+		t.Errorf("the failing session was sent at %v, want its own back-off: 0 s, 2 s, 6 s", failing)
+	}
+	if log := logText(t, state); strings.Contains(log, "took no batch") {
+		t.Errorf("one failing session backed off the whole sender, log:\n%s", log)
+	}
+}
+
+// Two sessions whose own batches Kaya fails, sorted first, look like a fault of Kaya in the first
+// round, but they must not hold back the session after them: the next round starts with it.
+func TestSessionsWhoseBatchesFailFirstDoNotHoldBackTheQueue(t *testing.T) {
+	state := flowEnv(t)
+	ids := fiveSessions[:3]
+	start := time.Unix(1_800_000_000, 0)
+	clock := &fakeClock{now: start, limit: 2}
+	poster := &sessionPoster{clock: clock, refuse: map[string]error{
+		ids[0]: &client.APIError{Status: 500}, ids[1]: &client.APIError{Status: 500},
+	}}
+	for _, id := range ids[:2] {
+		queueSession(t, state, id, 1, false)
+	}
+	good := queueSession(t, state, ids[2], 2, false)
+	if err := Run(context.Background(), flowConfig(clock, poster)); !errors.Is(err, errStopLoop) {
+		t.Fatalf("Run = %v", err)
+	}
+	if cur := (&run{}).readCursor(good, ids[2]); cur.AcknowledgedSeq != 2 {
+		t.Errorf("cursor of the session after the failing ones = %+v, want seq 2 acknowledged", cur)
+	}
+	want := []sessionCall{
+		{ids[0], start}, {ids[1], start},
+		{ids[2], start.Add(2 * time.Second)}, {ids[0], start.Add(2 * time.Second)}, {ids[1], start.Add(2 * time.Second)},
+	}
+	if !slices.EqualFunc(poster.calls, want, sameCall) {
+		t.Errorf("calls = %v, want %v", poster.calls, want)
+	}
+	// Once Kaya took a batch, the two back off on their own.
+	if !equalDurations(clock.sleeps, seconds(2, 2)) {
+		t.Errorf("sleeps = %v, want the whole sender's 2 s back-off and then the 2 s round", clock.sleeps)
+	}
+	log := logText(t, state)
+	for _, line := range []string{ids[0] + ": Kaya answered 500; retrying in 4 s", ids[1] + ": Kaya answered 500; retrying in 2 s"} {
+		if !strings.Contains(log, line) {
+			t.Errorf("log lacks %q:\n%s", line, log)
+		}
+	}
+}
+
+// queueIDs are the ids of a queue of n sessions, in name order.
+func queueIDs(n int) []string {
+	ids := make([]string, n)
+	for i := range ids {
+		ids[i] = fmt.Sprintf("%08d-aaaa-4bbb-8ccc-%012d", i+1, i+1)
+	}
+	return ids
+}
+
+// runFor runs the sender against poster on clock until the clock has moved d, and calls after
+// after every sleep of the sender, so a test can record events while the sender waits.
+func runFor(t *testing.T, clock *fakeClock, poster Poster, d time.Duration, after func()) {
+	t.Helper()
+	end := clock.now.Add(d)
+	cfg := flowConfig(clock, poster)
+	cfg.Sleep = func(ctx context.Context, wait time.Duration) error {
+		if err := clock.Sleep(ctx, wait); err != nil {
+			return err
+		}
+		after()
+		if !clock.now.Before(end) {
+			return errStopLoop
+		}
+		return nil
+	}
+	if err := Run(context.Background(), cfg); !errors.Is(err, errStopLoop) {
+		t.Fatalf("Run = %v", err)
+	}
+}
+
+// A content bug can fail every session of one repository while the sessions of the others are
+// fine. Sessions whose own batches fail, sorted before a healthy session that keeps recording,
+// look like Kaya failing until the healthy one is tried, so they may delay it by one 2 s step
+// each, never by a growing back-off. The run covers the time in which the failing sessions' own
+// back-offs grow to the cap.
+func TestSessionsWhoseBatchesFailDoNotDelayARecordingSessionSortedAfterThem(t *testing.T) {
+	state := flowEnv(t)
+	ids := queueIDs(10)
+	broken, healthy := ids[:9], ids[9]
+	start := time.Unix(1_800_000_000, 0)
+	clock := &fakeClock{now: start}
+	poster := &sessionPoster{clock: clock, refuse: map[string]error{}}
+	for _, id := range broken {
+		queueSession(t, state, id, 1, false)
+		poster.refuse[id] = &client.APIError{Status: 500}
+	}
+	dir := queueSession(t, state, healthy, 1, false)
+	next := 2
+	runFor(t, clock, poster, 10*time.Minute, func() {
+		appendEvent(t, dir, next)
+		next++
+	})
+	// The session has work from the start to the end, so every wait counts: before its first
+	// batch, between two batches and after its last one.
+	waited := []time.Time{start}
+	for _, call := range poster.calls {
+		if call.session == healthy {
+			waited = append(waited, call.at)
+		}
+	}
+	waited = append(waited, clock.now)
+	var longest time.Duration
+	var endedAt time.Time
+	for i := 1; i < len(waited); i++ {
+		if gap := waited[i].Sub(waited[i-1]); gap > longest {
+			longest, endedAt = gap, waited[i]
+		}
+	}
+	if limit := time.Duration(len(broken)) * backoffMin; longest > limit {
+		t.Errorf("the healthy session waited %v until %v, want at most %v, one 2 s step per failing session",
+			longest, endedAt.Sub(start), limit)
+	}
+}
+
+// An idle healthy session sorted after many sessions whose own batches fail, as when a content bug
+// fails every session of one repository, sends a new event in the first round after the event is
+// recorded, not after the turn of the rounds has passed every failing session one back-off step
+// at a time.
+func TestAHealthySessionBehindFailingOnesSendsItsNextEventInTheNextRound(t *testing.T) {
+	state := flowEnv(t)
+	ids := queueIDs(25)
+	broken, healthy := ids[:24], ids[24]
+	start := time.Unix(1_800_000_000, 0)
+	clock := &fakeClock{now: start}
+	poster := &sessionPoster{clock: clock, refuse: map[string]error{}}
+	for _, id := range broken {
+		queueSession(t, state, id, 1, false)
+		poster.refuse[id] = &client.APIError{Status: 500}
+	}
+	dir := queueSession(t, state, healthy, 1, false)
+	// The event is recorded once the sender has backed off for half an hour, at 5 min a step.
+	var recorded time.Time
+	runFor(t, clock, poster, 2*time.Hour, func() {
+		if recorded.IsZero() && !clock.now.Before(start.Add(30*time.Minute)) {
+			appendEvent(t, dir, 2)
+			recorded = clock.now
+		}
+	})
+	var first, after time.Time
+	for _, call := range poster.calls {
+		if call.session != healthy {
+			continue
+		}
+		if first.IsZero() {
+			first = call.at
+		}
+		if after.IsZero() && !call.at.Before(recorded) {
+			after = call.at
+		}
+	}
+	if limit := time.Duration(len(broken)) * backoffMin; first.IsZero() || first.Sub(start) > limit {
+		t.Errorf("the healthy session's first batch went out at %v, want within %v, one 2 s step per failing session", first.Sub(start), limit)
+	}
+	switch {
+	case after.IsZero():
+		t.Errorf("the event recorded at %v was not sent within 2 h, want in the first round after it", recorded.Sub(start))
+	case !after.Equal(recorded):
+		t.Errorf("the event recorded at %v was sent at %v, want in the first round after it", recorded.Sub(start), after.Sub(start))
+	}
+	if cur := (&run{}).readCursor(dir, healthy); cur.AcknowledgedSeq != 2 {
+		t.Errorf("cursor of the healthy session = %+v, want seq 2 acknowledged", cur)
+	}
+}
+
+// A session that waits for its retry is work left: the sender does not exit as idle, as it does
+// not while Kaya cannot be reached.
+func TestASessionThatWaitsForItsRetryKeepsTheSenderRunning(t *testing.T) {
+	state := flowEnv(t)
+	queueSession(t, state, flowSession, 1, false)
+	// 400 rounds of 2 s are 800 s, past the 600 s idle time.
+	clock := &fakeClock{now: time.Unix(1_800_000_000, 0), limit: 400}
+	poster := &sessionPoster{clock: clock, refuse: map[string]error{flowSession: &client.APIError{Status: 500}}}
+	if err := Run(context.Background(), flowConfig(clock, poster)); !errors.Is(err, errStopLoop) {
+		t.Fatalf("Run = %v, want the loop stopped by the test, not an idle exit", err)
+	}
+	if strings.Contains(logText(t, state), "idle for") {
+		t.Errorf("the sender exited as idle while a session waited for its retry:\n%s", logText(t, state))
+	}
+	if !strings.Contains(logText(t, state), "retrying in 300 s") {
+		t.Errorf("log does not name the 300 s wait:\n%s", logText(t, state))
 	}
 }
 
@@ -219,17 +677,21 @@ func TestForbiddenUnknownGitEmailBacksOffThenSendsAndKeepsTheSessionQueued(t *te
 	dir := queueSession(t, state, flowSession, 2, false)
 	refusal := &client.APIError{Status: 403, Code: "KAY_SEC_007", ErrorValues: map[string]any{"gitAuthorEmail": "dev@example.com"}}
 	poster := &scriptedPoster{answers: []error{refusal, refusal, nil}}
-	// 2 s, 4 s while Kaya refuses, then the accepted round and the 2 s round pause.
-	clock := &fakeClock{now: time.Unix(1_800_000_000, 0), limit: 3}
+	// Refused at 0 s and 2 s, the session then waits 4 s, and its batch is taken at 6 s; the
+	// sender keeps its 2 s round throughout.
+	clock := &fakeClock{now: time.Unix(1_800_000_000, 0), limit: 4}
 	if err := Run(context.Background(), flowConfig(clock, poster)); !errors.Is(err, errStopLoop) {
 		t.Fatalf("Run = %v", err)
 	}
-	if !equalDurations(clock.sleeps, seconds(2, 4, 2)) {
-		t.Errorf("sleeps = %v, want 2 s, 4 s, 2 s", clock.sleeps)
+	if !equalDurations(clock.sleeps, seconds(2, 2, 2, 2)) {
+		t.Errorf("sleeps = %v, want the 2 s round pause only", clock.sleeps)
+	}
+	if poster.calls != 3 {
+		t.Errorf("calls = %d, want two refusals and the accepted batch", poster.calls)
 	}
 	log := logText(t, state)
-	if strings.Count(log, `KAY_SEC_007: no Kaya user holds the git author email "dev@example.com"`) != 2 {
-		t.Errorf("log does not name the code and the email twice:\n%s", log)
+	if strings.Count(log, flowSession+`: Kaya answered 403 KAY_SEC_007: no Kaya user holds the git author email "dev@example.com"`) != 2 {
+		t.Errorf("log does not name the session, the code and the email twice:\n%s", log)
 	}
 	if strings.Contains(log, "parked") {
 		t.Errorf("a 403 KAY_SEC_007 must never park:\n%s", log)
@@ -625,7 +1087,8 @@ func TestPruneRemovesAnEndedAcknowledgedSessionAfterSevenDays(t *testing.T) {
 		usage  bool
 		acked  int64
 		remove bool
-		// refuse makes Kaya answer 503, so the unacknowledged events stay queued.
+		// refuse makes Kaya answer 500 to the batch, so the unacknowledged events stay queued and
+		// the round still reaches the prune of that session.
 		refuse bool
 	}{
 		{"ended and old", 7*24*time.Hour + time.Hour, true, 3, false, 3, true, false},
@@ -651,7 +1114,7 @@ func TestPruneRemovesAnEndedAcknowledgedSessionAfterSevenDays(t *testing.T) {
 			}
 			poster := &scriptedPoster{answers: []error{nil}}
 			if tc.refuse {
-				poster.answers = []error{&client.APIError{Status: 503}}
+				poster.answers = []error{&client.APIError{Status: 500}}
 			}
 			clock := &fakeClock{now: now}
 			cfg := flowConfig(clock, poster)
@@ -683,7 +1146,7 @@ func TestPruneKeepsASessionWithAnUnsentSnapshot(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Kaya refuses the handoff batch for now, so the unsent snapshot must keep the session.
-	poster := &scriptedPoster{answers: []error{&client.APIError{Status: 503}}}
+	poster := &scriptedPoster{answers: []error{&client.APIError{Status: 500}}}
 	clock := &fakeClock{now: now}
 	cfg := flowConfig(clock, poster)
 	cfg.Once = true
@@ -1044,5 +1507,146 @@ func TestRedirectIsNotFollowedAndTheTokenStaysOnTheFirstHost(t *testing.T) {
 	log := logText(t, state)
 	if !strings.Contains(log, "Kaya answered 307") || strings.Contains(log, tokenA) {
 		t.Errorf("log must name the 307 and never the token:\n%s", log)
+	}
+}
+
+// A binary file beside the notes of a handoff directory, or a spec file that holds a NUL byte, is
+// left out of the batch, counts as sent and is logged once; text files go out as before.
+func TestABinarySnapshotIsSkippedAndATextOneSent(t *testing.T) {
+	state := flowEnv(t)
+	dir := queueSession(t, state, flowSession, 1, false)
+	binary := map[string]string{
+		// A NUL byte among the first 8000 bytes, as in an image.
+		"handoffs/feature/picture.png": "\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR",
+		// A NUL byte only after the first 8000 bytes, which Kaya cannot store either.
+		"handoffs/feature/late.txt":        strings.Repeat("a", 9000) + "\x00b",
+		"plans/files/docs/plans/broken.md": "# plan\n\x00\n",
+	}
+	for rel, content := range binary {
+		writeFile(t, filepath.Join(dir, filepath.FromSlash(rel)), content)
+	}
+	writeFile(t, filepath.Join(dir, "handoffs", "feature", "notes.md"), "# notes\n")
+	writeFile(t, filepath.Join(dir, "plans", "files", "docs", "plans", "spec.md"), "# spec\n")
+	// The first batch fails, so the second round reads the snapshots again.
+	poster := &scriptedPoster{answers: []error{&client.APIError{Status: 500}, nil}}
+	clock := &fakeClock{now: time.Unix(1_800_000_000, 0), limit: 2}
+	if err := Run(context.Background(), flowConfig(clock, poster)); !errors.Is(err, errStopLoop) {
+		t.Fatalf("Run = %v", err)
+	}
+	if poster.calls != 2 {
+		t.Fatalf("calls = %d, want the failed batch and the accepted one", poster.calls)
+	}
+	for i, body := range poster.bodies {
+		var sent batch
+		if err := json.Unmarshal(body, &sent); err != nil {
+			t.Fatal(err)
+		}
+		var handoffs, plans []string
+		for _, h := range sent.Handoffs {
+			handoffs = append(handoffs, h.Path)
+		}
+		for _, p := range sent.Plans {
+			plans = append(plans, *p.Path)
+		}
+		if strings.Join(handoffs, ",") != "feature/notes.md" || strings.Join(plans, ",") != "docs/plans/spec.md" {
+			t.Errorf("batch %d carries handoffs %v and plans %v, want only feature/notes.md and docs/plans/spec.md", i, handoffs, plans)
+		}
+		if strings.Contains(string(body), `\u0000`) {
+			t.Errorf("batch %d carries a NUL character", i)
+		}
+	}
+	cur := (&run{}).readCursor(dir, flowSession)
+	for _, rel := range []string{"feature/picture.png", "feature/late.txt", "feature/notes.md"} {
+		if _, ok := cur.Handoffs[rel]; !ok {
+			t.Errorf("cursor handoffs = %v, want %s counted as sent", cur.Handoffs, rel)
+		}
+	}
+	for _, rel := range []string{"files/docs/plans/broken.md", "files/docs/plans/spec.md"} {
+		if _, ok := cur.Plans[rel]; !ok {
+			t.Errorf("cursor plans = %v, want %s counted as sent", cur.Plans, rel)
+		}
+	}
+	log := logText(t, state)
+	for _, line := range []string{
+		"handoff feature/picture.png is a binary file (it holds a NUL byte), not sent",
+		"handoff feature/late.txt is a binary file (it holds a NUL byte), not sent",
+		"plan files/docs/plans/broken.md is a binary file (it holds a NUL byte), not sent",
+	} {
+		if n := strings.Count(log, flowSession+": "+line); n != 1 {
+			t.Errorf("%q logged %d times over two rounds, want once, log:\n%s", line, n, log)
+		}
+	}
+}
+
+// A session whose batch Kaya fails must not keep the sessions after it from being sent in the
+// same round.
+func TestAFailingSessionDoesNotHoldBackTheSessionsAfterIt(t *testing.T) {
+	state := flowEnv(t)
+	first, second := flowSession, "22222222-aaaa-4bbb-8ccc-0000000000f2"
+	firstDir := queueSession(t, state, first, 1, false)
+	secondDir := queueSession(t, state, second, 2, false)
+	clock := &fakeClock{now: time.Unix(1_800_000_000, 0)}
+	poster := &sessionPoster{clock: clock, refuse: map[string]error{first: &client.APIError{Status: 500, Code: "GEN_INT_001"}}}
+	cfg := flowConfig(clock, poster)
+	cfg.Once = true
+	if err := Run(context.Background(), cfg); err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.Join(poster.sessions(), ","); got != first+","+second {
+		t.Fatalf("sent %s, want %s and then %s", got, first, second)
+	}
+	if cur := (&run{}).readCursor(secondDir, second); cur.AcknowledgedSeq != 2 {
+		t.Errorf("cursor of the second session = %+v, want seq 2 acknowledged", cur)
+	}
+	if cur := (&run{}).readCursor(firstDir, first); cur.AcknowledgedSeq != 0 || cur.Parked != nil {
+		t.Errorf("cursor of the failing session = %+v, want queued and not parked", cur)
+	}
+	if line := first + ": Kaya answered 500 GEN_INT_001; retrying in 2 s"; !strings.Contains(logText(t, state), line) {
+		t.Errorf("log lacks %q:\n%s", line, logText(t, state))
+	}
+}
+
+// An answer that every session would meet alike still ends the round, also after a session whose
+// own batch failed: a refused token stops the sender, and an unreachable, failing, overloaded or
+// rate limiting Kaya backs it off.
+func TestAnAnswerForEverySessionStillEndsTheRound(t *testing.T) {
+	for name, tc := range map[string]struct {
+		answer  error
+		log     string
+		refused bool
+	}{
+		"token refused":    {&client.APIError{Status: 401, Code: "KAY_SEC_003"}, "stopped: Kaya refused the token (KAY_SEC_003); set a new token", true},
+		"Kaya unreachable": {errors.New("connection refused"), "Kaya unreachable: connection refused; retrying in 2 s", false},
+		"gateway outage":   {&client.APIError{Status: 503}, "Kaya answered 503; retrying in 2 s", false},
+		"Kaya failing":     {&client.APIError{Status: 500}, "Kaya answered 500 for 2 sessions and took no batch; retrying in 2 s", false},
+		"rate limited":     {&client.APIError{Status: 429, Code: "KAY_SEC_004"}, "Kaya answered 429 KAY_SEC_004; retrying in 2 s", false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			state := flowEnv(t)
+			ids := []string{flowSession, "22222222-aaaa-4bbb-8ccc-0000000000f2", "33333333-aaaa-4bbb-8ccc-0000000000f3"}
+			for _, id := range ids {
+				queueSession(t, state, id, 1, false)
+			}
+			clock := &fakeClock{now: time.Unix(1_800_000_000, 0)}
+			poster := &sessionPoster{clock: clock, refuse: map[string]error{ids[0]: &client.APIError{Status: 500}, ids[1]: tc.answer}}
+			cfg := flowConfig(clock, poster)
+			cfg.Once = true
+			if err := Run(context.Background(), cfg); err != nil {
+				t.Fatal(err)
+			}
+			if got := strings.Join(poster.sessions(), ","); got != ids[0]+","+ids[1] {
+				t.Fatalf("sent %s, want %s and %s, and nothing after the answer for every session", got, ids[0], ids[1])
+			}
+			if !strings.Contains(logText(t, state), tc.log) {
+				t.Errorf("log lacks %q:\n%s", tc.log, logText(t, state))
+			}
+			var saved map[string]any
+			if _, err := readJSON(filepath.Join(state, capture.StateFile), &saved); err != nil {
+				t.Fatal(err)
+			}
+			if refused := saved["token"] == tokenRefused; refused != tc.refused {
+				t.Errorf("state = %v, want the token refused: %v", saved, tc.refused)
+			}
+		})
 	}
 }
