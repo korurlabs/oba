@@ -7,17 +7,14 @@ import (
 	"github.com/korurlabs/oba-cli/internal/shrine/session"
 )
 
-const listHelp = `Lists every campaign of the current organization in one table: NAME, CHANNEL, STATUS, PLANNED,
-PUBLISHED, LANGUAGES, OWNER, ID. PLANNED and PUBLISHED are shown in this machine's time zone;
-LANGUAGES are the languages that have a text.
+const listHelp = `Lists every campaign of the current organization in one table, last changed first: NAME, START,
+END, CONTENTS (the number of its contents), OWNER, ID.
 
---status keeps one status (draft, scheduled, published, archived), --channel one channel
-(linkedin, x, newsletter), both case ignored; --search keeps the campaigns whose name contains
-the text, case ignored. With --status scheduled the list runs soonest planned first, otherwise
-last changed first.
+--search keeps the campaigns whose name contains the text, case ignored; --event keeps the
+campaigns of one event, by its id.
 
-  oba otak campaign list --status scheduled
-  oba otak campaign list --channel linkedin --search launch`
+  oba otak campaign list --search wacht
+  oba otak campaign list --event <eventId>`
 
 func newListCmd() *cobra.Command {
 	var query campaign.ListQuery
@@ -30,9 +27,8 @@ func newListCmd() *cobra.Command {
 			return runList(cmd, query)
 		},
 	}
-	cmd.Flags().StringVar(&query.Status, "status", "", "list only campaigns with this status: draft, scheduled, published or archived")
-	cmd.Flags().StringVar(&query.Channel, "channel", "", "list only campaigns on this channel: linkedin, x or newsletter")
 	cmd.Flags().StringVar(&query.Search, "search", "", "list only campaigns whose name contains this text, case ignored")
+	cmd.Flags().StringVar(&query.EventID, "event", "", "list only the campaigns of this event id")
 	return cmd
 }
 

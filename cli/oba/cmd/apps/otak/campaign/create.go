@@ -13,17 +13,15 @@ import (
 
 const createHelp = `Creates one campaign in the current organization from one JSON object on stdin. The keys are
 the API's field names and the values go to the API unchanged; a key the API does not know is
-refused before anything is sent. contents holds up to three texts, one per language (NL, TR,
-EN). The status is DRAFT unless given; SCHEDULED needs plannedAt, and PUBLISHED without
-publishedAt stores now. Moments are RFC 3339 instants, such as 2027-03-09T09:00:00Z.
+refused before anything is sent. Only name is required. startDate and endDate are dates such as
+2027-03-01; the end may not be before the start.
 
 Agents and scripts pass the object as a quoted heredoc: stdin does not show in 'ps', and the
 quoted 'EOF' stops the shell from expanding $ and backticks inside it:
 
   oba otak campaign create <<'EOF'
-  {"name": "Launch post", "channel": "LINKEDIN", "status": "SCHEDULED",
-   "plannedAt": "2027-03-09T09:00:00Z",
-   "contents": [{"language": "NL", "text": "..."}, {"language": "EN", "text": "..."}]}
+  {"name": "De wacht", "description": "Post about the night watch",
+   "startDate": "2027-03-01", "endDate": "2027-03-31"}
   EOF
 
 People typing by hand write the object to a file and redirect it, because a heredoc typed at
@@ -31,7 +29,7 @@ the prompt lands in the shell history:
 
   oba otak campaign create < campaign.json
 
-Add images with 'oba otak attachment add --campaign <campaignId> --file <path>'.`
+Add the posts with 'oba otak campaign content create <campaignId>'.`
 
 func newCreateCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -70,7 +68,6 @@ func runCreate(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
-	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Created campaign %s (%s, %s, %s)\n", created.ID, guardrail.OneLine(created.Name),
-		created.Channel, created.Status)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Created campaign %s (%s)\n", created.ID, guardrail.OneLine(created.Name))
 	return nil
 }

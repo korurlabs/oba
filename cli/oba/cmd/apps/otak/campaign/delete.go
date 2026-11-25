@@ -12,7 +12,7 @@ import (
 	"github.com/korurlabs/oba-cli/internal/shrine/session"
 )
 
-const deleteHelp = `Deletes a campaign with its texts and images after asking for confirmation; the outreaches and
+const deleteHelp = `Deletes a campaign with its contents and their images after asking for confirmation; the outreaches and
 relations linked to it stay and lose the link. Without a terminal to ask on, pass --yes. Only an
 admin or owner of the organization may delete.
 

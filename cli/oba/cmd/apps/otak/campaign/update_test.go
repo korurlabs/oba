@@ -9,24 +9,22 @@ import (
 	"github.com/korurlabs/oba-cli/internal/dojo/client"
 )
 
-const campaignDetailJSON = `{"data":{"id":"` + campaignID + `","name":"Launch","channel":"LINKEDIN","status":"DRAFT",` +
-	`"plannedAt":null,"publishedAt":null,"postUrl":null,"languages":["NL","EN"],` +
+const campaignDetailJSON = `{"data":{"id":"` + campaignID + `","name":"De wacht","description":"Nachtwacht",` +
+	`"startDate":"2027-03-01","endDate":"2027-03-31",` +
 	`"owner":{"id":"11111111-1111-4111-8111-111111111111","name":"Ayse Kaya"},"eventId":null,` +
-	`"icpId":"22222222-2222-4222-8222-222222222222",` +
-	`"contents":[{"language":"NL","text":"Hallo","updatedAt":"2026-11-25T09:00:00Z"},` +
-	`{"language":"EN","text":"Hello","updatedAt":"2026-11-25T09:00:00Z"}],` +
+	`"icpId":"22222222-2222-4222-8222-222222222222","contentCount":2,` +
 	`"createdAt":"2026-11-25T08:00:00Z","updatedAt":"2026-11-25T09:00:00Z"}}`
 
-func TestCampaignUpdateMergesOwnerAndTexts(t *testing.T) {
+func TestCampaignUpdateMergesOwner(t *testing.T) {
 	api := newCampaignAPI(t)
 	api.Respond("GET "+campaignPath, http.StatusOK, campaignDetailJSON)
-	api.Respond("PUT "+campaignPath, http.StatusOK, strings.Replace(campaignDetailJSON, `"status":"DRAFT"`, `"status":"SCHEDULED"`, 1))
-	in := `{"status": "SCHEDULED", "plannedAt": "2027-03-09T09:00:00Z", "icpId": null}`
+	api.Respond("PUT "+campaignPath, http.StatusOK, campaignDetailJSON)
+	in := `{"endDate": "2027-04-15", "icpId": null}`
 	out, _, err := runCLI(t, in, "otak", "campaign", "update", campaignID)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if out != "Updated campaign "+campaignID+" (SCHEDULED)\n" {
+	if out != "Updated campaign "+campaignID+" (De wacht)\n" {
 		t.Errorf("out = %q", out)
 	}
 	if got := strings.Join(api.Calls(), ","); got != "GET "+campaignPath+",PUT "+campaignPath {
@@ -37,31 +35,27 @@ func TestCampaignUpdateMergesOwnerAndTexts(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := map[string]any{
-		"name": "Launch", "channel": "LINKEDIN", "status": "SCHEDULED", "plannedAt": "2027-03-09T09:00:00Z",
-		"publishedAt": nil, "postUrl": nil, "ownerUserId": "11111111-1111-4111-8111-111111111111",
-		"eventId": nil, "icpId": nil,
-		"contents": []any{
-			map[string]any{"language": "NL", "text": "Hallo"},
-			map[string]any{"language": "EN", "text": "Hello"},
-		},
+		"name": "De wacht", "description": "Nachtwacht", "startDate": "2027-03-01", "endDate": "2027-04-15",
+		"ownerUserId": "11111111-1111-4111-8111-111111111111", "eventId": nil, "icpId": nil,
 	}
 	if !jsonEqual(body, want) {
 		t.Errorf("body = %v", body)
 	}
 }
 
-func TestCampaignUpdateGivenTextsReplaceEveryText(t *testing.T) {
+func TestCampaignUpdateWithoutOwnerSendsNull(t *testing.T) {
 	api := newCampaignAPI(t)
-	api.Respond("GET "+campaignPath, http.StatusOK, strings.Replace(campaignDetailJSON, `"owner":{"id":"11111111-1111-4111-8111-111111111111","name":"Ayse Kaya"}`, `"owner":null`, 1))
+	api.Respond("GET "+campaignPath, http.StatusOK, strings.Replace(campaignDetailJSON,
+		`"owner":{"id":"11111111-1111-4111-8111-111111111111","name":"Ayse Kaya"}`, `"owner":null`, 1))
 	api.Respond("PUT "+campaignPath, http.StatusOK, campaignDetailJSON)
-	if _, _, err := runCLI(t, `{"contents":[{"language":"TR","text":"Merhaba"}]}`, "otak", "campaign", "update", campaignID); err != nil {
+	if _, _, err := runCLI(t, `{"name":"De wacht 2"}`, "otak", "campaign", "update", campaignID); err != nil {
 		t.Fatal(err)
 	}
 	var body map[string]json.RawMessage
 	if err := json.Unmarshal([]byte(api.Request("PUT "+campaignPath).Body), &body); err != nil {
 		t.Fatal(err)
 	}
-	if string(body["contents"]) != `[{"language":"TR","text":"Merhaba"}]` || string(body["ownerUserId"]) != "null" {
+	if string(body["ownerUserId"]) != "null" || string(body["name"]) != `"De wacht 2"` {
 		t.Errorf("body = %s", api.Request("PUT "+campaignPath).Body)
 	}
 }

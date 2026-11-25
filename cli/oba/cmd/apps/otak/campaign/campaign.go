@@ -1,10 +1,12 @@
 // Package campaign builds the oba otak campaign commands: list, create, update and delete the
-// posts and mailings of the organization, one per channel, with a text per language.
+// campaigns of the organization, the umbrellas of related posts and mailings, and through
+// 'campaign content' their contents.
 package campaign
 
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/korurlabs/oba-cli/cmd/apps/otak/campaign/content"
 	"github.com/korurlabs/oba-cli/internal/dojo/terminal"
 )
 
@@ -15,11 +17,12 @@ var stdinIsTerminal = terminal.StdinIsTerminal
 func NewCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "campaign",
-		Short: "List, create, update and delete campaigns: posts and mailings with a text per language",
-		Long: "A campaign is one post or mailing of the organization on one channel (LINKEDIN, X or NEWSLETTER), " +
-			"with its text in NL, TR and EN and its images as attachments ('oba otak attachment add --campaign <id>'). " +
-			"Oba does not post it: plan it as SCHEDULED with plannedAt, post it by hand, then mark it PUBLISHED.",
+		Short: "List, create, update and delete campaigns and their contents",
+		Long: "A campaign is an umbrella of the organization: a name, an optional description and date range, " +
+			"owner, event and ICP. It holds any number of contents ('oba otak campaign content'); a content is one " +
+			"thing actually shared, such as one LinkedIn post, in one language, published by one legal entity. " +
+			"Translations of one post are contents of the same campaign.",
 	}
-	cmd.AddCommand(newListCmd(), newCreateCmd(), newUpdateCmd(), newDeleteCmd())
+	cmd.AddCommand(newListCmd(), newCreateCmd(), newUpdateCmd(), newDeleteCmd(), content.NewCmd())
 	return cmd
 }

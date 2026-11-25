@@ -8,16 +8,12 @@ import (
 	"github.com/korurlabs/oba-cli/internal/dojo/client"
 )
 
-// The update fields that the detail response does not carry under the same name or shape:
-// the owner comes as an object, and each text carries its own updatedAt.
-const (
-	fieldOwnerUserID = "ownerUserId"
-	fieldContents    = "contents"
-)
+// fieldOwnerUserID is the update field the detail response carries as an owner object instead.
+const fieldOwnerUserID = "ownerUserId"
 
 // Update changes only the given keys of campaign id: it reads the campaign, lays the given keys
 // over its current values, null included, and sends every request field with PUT, since the API
-// replaces them all. A given contents replaces every text, as the API does.
+// replaces them all. The contents are not part of the campaign body and stay as they are.
 func Update(c *client.Client, id string, given map[string]json.RawMessage) (client.Campaign, error) {
 	fields, err := LoadFields(c.BaseURL, UpdateFields)
 	if err != nil {
@@ -38,9 +34,9 @@ func Update(c *client.Client, id string, given map[string]json.RawMessage) (clie
 }
 
 // mergeUpdate builds the PUT body: every request field with its current value and the given
-// keys laid over it. ownerUserId is the id of the current owner, and contents the current texts
-// without their updatedAt. A field the campaign as read does not carry, and that was not given,
-// is refused: the PUT would clear it without the user asking.
+// keys laid over it. ownerUserId is the id of the current owner. A field the campaign as read
+// does not carry, and that was not given, is refused: the PUT would clear it without the user
+// asking.
 func mergeUpdate(current client.Campaign, given map[string]json.RawMessage, fields []apidocs.Field) (map[string]json.RawMessage, error) {
 	body := make(map[string]json.RawMessage, len(fields))
 	for _, field := range fields {
@@ -48,21 +44,17 @@ func mergeUpdate(current client.Campaign, given map[string]json.RawMessage, fiel
 			body[field.Name] = value
 			continue
 		}
-		var value json.RawMessage
-		var err error
-		switch field.Name {
-		case fieldOwnerUserID:
-			value, err = ownerID(current.Owner)
-		case fieldContents:
-			value, err = contents(current.Contents)
-		default:
-			var ok bool
-			if value, ok = current.Values[field.Name]; !ok {
-				return nil, fmt.Errorf("cannot keep field %q: the campaign as read has no such field; give its value", field.Name)
+		if field.Name == fieldOwnerUserID {
+			value, err := ownerID(current.Owner)
+			if err != nil {
+				return nil, fmt.Errorf("cannot keep field %q: %w", field.Name, err)
 			}
+			body[field.Name] = value
+			continue
 		}
-		if err != nil {
-			return nil, fmt.Errorf("cannot keep field %q: %w", field.Name, err)
+		value, ok := current.Values[field.Name]
+		if !ok {
+			return nil, fmt.Errorf("cannot keep field %q: the campaign as read has no such field; give its value", field.Name)
 		}
 		body[field.Name] = value
 	}
@@ -74,12 +66,4 @@ func ownerID(owner *client.CampaignOwner) (json.RawMessage, error) {
 		return json.RawMessage("null"), nil
 	}
 	return json.Marshal(owner.ID)
-}
-
-// contents is the current texts as the request takes them, an empty list when there are none.
-func contents(current []client.CampaignContent) (json.RawMessage, error) {
-	if current == nil {
-		current = []client.CampaignContent{}
-	}
-	return json.Marshal(current)
 }

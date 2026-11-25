@@ -12,9 +12,9 @@ import (
 
 const attachmentDownloadHelp = `Writes one attachment into the directory given with -o (default the current one) under its
 own file name. An existing file is not overwritten unless --force is given. The id must be an
-attachment of the given outreach, relation or campaign.
+attachment of the given outreach, relation or content.
 
-  oba otak attachment download --campaign <campaignId> --id <attachmentId> -o images/`
+  oba otak attachment download --content <contentId> --id <attachmentId> -o images/`
 
 func newDownloadCmd() *cobra.Command {
 	var target targetFlags
@@ -22,7 +22,7 @@ func newDownloadCmd() *cobra.Command {
 	var force bool
 	cmd := &cobra.Command{
 		Use:   "download",
-		Short: "Write an attachment of an outreach's mail, a relation or a campaign to a file",
+		Short: "Write an attachment of an outreach's mail, a relation or a campaign content to a file",
 		Long:  attachmentDownloadHelp,
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {

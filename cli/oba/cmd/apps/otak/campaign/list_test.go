@@ -5,7 +5,6 @@ import (
 	"net/url"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/korurlabs/oba-cli/internal/dojo/clitest"
 )
@@ -21,29 +20,26 @@ func recordList(api *clitest.MockAPI, body string) *[]url.Values {
 }
 
 func TestCampaignListOneUnpagedCallWithFilters(t *testing.T) {
-	old := time.Local
-	time.Local = time.UTC
-	t.Cleanup(func() { time.Local = old })
 	api := newCampaignAPI(t)
 	queries := recordList(api, `{"data":[`+
-		`{"id":"c1","name":"Launch","channel":"LINKEDIN","status":"SCHEDULED","plannedAt":"2027-03-09T09:00:00Z","publishedAt":null,`+
-		`"languages":["NL","EN"],"owner":{"id":"u1","name":"Ayse Kaya"},"eventId":null,"icpId":null},`+
-		`{"id":"c2","name":"Teaser","channel":"LINKEDIN","status":"SCHEDULED","plannedAt":"2027-03-10T09:30:00Z","publishedAt":null,`+
-		`"languages":[],"owner":null,"eventId":null,"icpId":null}]}`)
-	out, _, err := runCLI(t, "", "otak", "campaign", "list", "--status", "Scheduled", "--channel", "linkedin", "--search", " launch ")
+		`{"id":"c1","name":"De wacht","description":null,"startDate":"2027-03-01","endDate":"2027-03-31",`+
+		`"owner":{"id":"u1","name":"Ayse Kaya"},"eventId":"e1","icpId":null,"contentCount":3},`+
+		`{"id":"c2","name":"Teaser","description":null,"startDate":null,"endDate":null,`+
+		`"owner":null,"eventId":"e1","icpId":null,"contentCount":0}]}`)
+	out, _, err := runCLI(t, "", "otak", "campaign", "list", "--search", " wacht ", "--event", "e1")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(*queries) != 1 {
 		t.Fatalf("queries = %v", *queries)
 	}
-	want := url.Values{"status": {"SCHEDULED"}, "channel": {"LINKEDIN"}, "search": {"launch"}}
+	want := url.Values{"search": {"wacht"}, "eventId": {"e1"}}
 	if got := (*queries)[0]; got.Encode() != want.Encode() {
 		t.Errorf("query = %v, want %v (no page or amount)", got, want)
 	}
-	wantOut := "NAME    CHANNEL   STATUS     PLANNED           PUBLISHED  LANGUAGES  OWNER      ID\n" +
-		"Launch  LINKEDIN  SCHEDULED  2027-03-09 09:00  -          NL EN      Ayse Kaya  c1\n" +
-		"Teaser  LINKEDIN  SCHEDULED  2027-03-10 09:30  -          -          -          c2\n"
+	wantOut := "NAME  START  END  CONTENTS  OWNER  ID\n" +
+		"De wacht  2027-03-01  2027-03-31  3  Ayse Kaya  c1\n" +
+		"Teaser  -  -  0  -  c2\n"
 	if normalizeSpaces(out) != normalizeSpaces(wantOut) {
 		t.Errorf("out =\n%s", out)
 	}
@@ -67,23 +63,13 @@ func TestCampaignListWithoutFiltersSendsNoQuery(t *testing.T) {
 	}
 }
 
-func TestCampaignListUnknownValueBeforeAnyCall(t *testing.T) {
-	for _, tt := range []struct {
-		flag, value, want string
-	}{
-		{"--status", "live", `unknown status "live"; allowed: draft, scheduled, published, archived`},
-		{"--channel", "mastodon", `unknown channel "mastodon"; allowed: linkedin, x, newsletter`},
-	} {
-		t.Run(tt.flag, func(t *testing.T) {
-			api := newCampaignAPI(t)
-			_, _, err := runCLI(t, "", "otak", "campaign", "list", tt.flag, tt.value)
-			if err == nil || err.Error() != tt.want {
-				t.Fatalf("err = %v, want %q", err, tt.want)
-			}
-			if got := api.Calls(); len(got) != 0 {
-				t.Errorf("calls = %v", got)
-			}
-		})
+func TestCampaignListHasNoStatusOrChannelFilter(t *testing.T) {
+	newCampaignAPI(t)
+	for _, flag := range []string{"--status", "--channel"} {
+		_, _, err := runCLI(t, "", "otak", "campaign", "list", flag, "x")
+		if err == nil || !strings.Contains(err.Error(), "unknown flag: "+flag) {
+			t.Errorf("%s: err = %v", flag, err)
+		}
 	}
 }
 

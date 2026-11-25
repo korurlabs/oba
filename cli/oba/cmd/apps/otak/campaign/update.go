@@ -7,17 +7,18 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/korurlabs/oba-cli/internal/apps/otak/campaign"
+	"github.com/korurlabs/oba-cli/internal/dojo/guardrail"
 	"github.com/korurlabs/oba-cli/internal/dojo/terminal"
 	"github.com/korurlabs/oba-cli/internal/shrine/session"
 )
 
 const updateHelp = `Changes only the fields given in one JSON object on stdin; every other field keeps its value.
 null clears a field. The keys are the API's field names; the values go to the API unchanged, and
-a key the API does not know is refused before anything is sent. A given contents replaces every
-text: list each language to keep.
+a key the API does not know is refused before anything is sent. The contents stay as they are;
+'oba otak campaign content update' changes one.
 
   oba otak campaign update <id> <<'EOF'
-  {"status": "PUBLISHED", "postUrl": "https://www.linkedin.com/feed/update/urn:li:activity:1/"}
+  {"endDate": "2027-04-15", "icpId": null}
   EOF`
 
 func newUpdateCmd() *cobra.Command {
@@ -53,6 +54,6 @@ func runUpdate(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Updated campaign %s (%s)\n", id, updated.Status)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Updated campaign %s (%s)\n", id, guardrail.OneLine(updated.Name))
 	return nil
 }

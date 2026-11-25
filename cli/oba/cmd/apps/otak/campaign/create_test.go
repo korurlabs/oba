@@ -17,16 +17,16 @@ const (
 func TestCampaignCreateSendsTheObjectUnchanged(t *testing.T) {
 	api := newCampaignAPI(t)
 	api.Respond("POST /otak/campaigns", http.StatusCreated,
-		`{"data":{"id":"`+campaignID+`","name":"Launch","channel":"LINKEDIN","status":"DRAFT","contents":[]}}`)
-	in := `{"name": "Launch", "channel": "LINKEDIN", "contents": [{"language": "NL", "text": "Hallo é"}]}`
+		`{"data":{"id":"`+campaignID+`","name":"De wacht","contentCount":0}}`)
+	in := `{"name": "De wacht", "description": "Nachtwacht é", "startDate": "2027-03-01", "endDate": "2027-03-31"}`
 	out, _, err := runCLI(t, in, "otak", "campaign", "create")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if out != "Created campaign "+campaignID+" (Launch, LINKEDIN, DRAFT)\n" {
+	if out != "Created campaign "+campaignID+" (De wacht)\n" {
 		t.Errorf("out = %q", out)
 	}
-	want := `{"name":"Launch","channel":"LINKEDIN","contents":[{"language":"NL","text":"Hallo é"}]}`
+	want := `{"name":"De wacht","description":"Nachtwacht é","startDate":"2027-03-01","endDate":"2027-03-31"}`
 	if got := api.Request("POST /otak/campaigns").Body; got != want {
 		t.Errorf("body = %s", got)
 	}
@@ -37,7 +37,8 @@ func TestCampaignCreateRefusals(t *testing.T) {
 		name, stdin, want string
 		terminal          bool
 	}{
-		{"unknown key", `{"name":"x","channel":"X","plannedAtt":"x"}`, `unknown field "plannedAtt". Did you mean "plannedAt"?`, false},
+		{"unknown key", `{"name":"x","startDat":"2027-03-01"}`, `unknown field "startDat". Did you mean "startDate"?`, false},
+		{"removed field", `{"name":"x","channel":"X"}`, `unknown field "channel"`, false},
 		{"no stdin", ``, "no JSON on stdin; pass one JSON object, as 'oba otak campaign create --help' shows", true},
 	}
 	for _, tt := range tests {
@@ -55,12 +56,12 @@ func TestCampaignCreateRefusals(t *testing.T) {
 	}
 }
 
-func TestCampaignCreateStatusDates(t *testing.T) {
+func TestCampaignCreateDateRange(t *testing.T) {
 	api := newCampaignAPI(t)
 	api.Respond("POST /otak/campaigns", http.StatusUnprocessableEntity,
-		`{"error":{"code":"OTK_VAL_016","message":"A scheduled campaign needs a planned date"}}`)
-	_, _, err := runCLI(t, `{"name":"Launch","channel":"X","status":"SCHEDULED"}`, "otak", "campaign", "create")
-	if err == nil || err.Error() != "OTK_VAL_016: A scheduled campaign needs a planned date" || client.ExitCode(err) != 1 {
+		`{"error":{"code":"OTK_VAL_017","message":"The end date is before the start date"}}`)
+	_, _, err := runCLI(t, `{"name":"x","startDate":"2027-03-31","endDate":"2027-03-01"}`, "otak", "campaign", "create")
+	if err == nil || err.Error() != "OTK_VAL_017: The end date is before the start date" || client.ExitCode(err) != 1 {
 		t.Fatalf("err = %v, exit = %d", err, client.ExitCode(err))
 	}
 }
@@ -71,7 +72,7 @@ func TestCampaignHelpListsLiveFields(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(out, `"channel": "LINKEDIN" | "X" | "NEWSLETTER"`) || !strings.Contains(out, "(required)") {
+	if !strings.Contains(out, `"startDate"`) || !strings.Contains(out, "(required)") {
 		t.Errorf("out = %s", out)
 	}
 	out, _, err = runCLI(t, "", "otak", "campaign", "update", "--help")
