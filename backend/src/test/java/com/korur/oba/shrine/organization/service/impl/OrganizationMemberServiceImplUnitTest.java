@@ -199,7 +199,7 @@ class OrganizationMemberServiceImplUnitTest {
             OrganizationMemberRoleUpdateRequest request = new OrganizationMemberRoleUpdateRequest(OrganizationMemberRole.ADMIN);
 
             OrganizationMemberResponse expectedResponse = new OrganizationMemberResponse(
-                    memberId, targetUserId, "target@example.com", null, null, OrganizationMemberRole.ADMIN, OrganizationMemberStatus.ACTIVE);
+                    memberId, targetUserId, "target@example.com", null, null, OrganizationMemberRole.ADMIN, OrganizationMemberStatus.ACTIVE, UserKind.HUMAN, null, null, null);
 
             when(organizationValidator.ensureMemberExists(organizationId, targetUserId))
                     .thenReturn(targetMember);

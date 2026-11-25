@@ -12,6 +12,7 @@ import java.util.UUID;
 
 // 4. Internal
 import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.shrine.identity.enums.UserKind;
 import com.korur.oba.shrine.organization.dto.response.OrganizationMemberResponse;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberStatus;
@@ -66,7 +67,7 @@ class UserFullNameMapperUnitTest {
             // Arrange
             OrganizationMemberResponse member = new OrganizationMemberResponse(UUID.randomUUID(), UUID.randomUUID(),
                     "ada@example.com", " ", "Lovelace", OrganizationMemberRole.MEMBER,
-                    OrganizationMemberStatus.ACTIVE);
+                    OrganizationMemberStatus.ACTIVE, UserKind.HUMAN, null, null, null);
 
             // Act
             String result = UserFullNameMapper.toMemberFullName(member);
@@ -79,7 +80,7 @@ class UserFullNameMapperUnitTest {
         void memberWithBlankNames_returnsEmail() {
             // Arrange
             OrganizationMemberResponse member = new OrganizationMemberResponse(UUID.randomUUID(), UUID.randomUUID(),
-                    "ada@example.com", " ", null, OrganizationMemberRole.MEMBER, OrganizationMemberStatus.ACTIVE);
+                    "ada@example.com", " ", null, OrganizationMemberRole.MEMBER, OrganizationMemberStatus.ACTIVE, UserKind.HUMAN, null, null, null);
 
             // Act
             String result = UserFullNameMapper.toMemberFullName(member);

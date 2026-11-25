@@ -21,6 +21,7 @@ import com.korur.oba.shrine.access.enums.App;
 import com.korur.oba.shrine.access.enums.AppGrantTargetType;
 import com.korur.oba.shrine.access.enums.OrganizationGroupType;
 import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.shrine.identity.enums.UserKind;
 import com.korur.oba.shrine.organization.dto.response.OrganizationMemberResponse;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberStatus;
@@ -83,7 +84,7 @@ class AppAccessMapperUnitTest {
     void toMemberAccessResponse_member_carriesNameRoleAndApps() {
         UUID userId = UUID.randomUUID();
         OrganizationMemberResponse member = new OrganizationMemberResponse(UUID.randomUUID(), userId,
-                "ada@example.com", "Ada", "Lovelace", OrganizationMemberRole.MEMBER, OrganizationMemberStatus.ACTIVE);
+                "ada@example.com", "Ada", "Lovelace", OrganizationMemberRole.MEMBER, OrganizationMemberStatus.ACTIVE, UserKind.HUMAN, null, null, null);
 
         MemberAppAccessResponse response = appAccessMapper.toMemberAccessResponse(member, List.of(App.KAZAN));
 

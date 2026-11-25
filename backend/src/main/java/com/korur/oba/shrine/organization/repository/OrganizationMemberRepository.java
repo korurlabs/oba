@@ -17,7 +17,7 @@ import java.util.UUID;
 
 // 4. Internal
 import com.korur.oba.dojo.repository.SoftDeleteRepository;
-import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberSummaryProjection;
+import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberKindSummaryProjection;
 import com.korur.oba.shrine.organization.entity.OrganizationMember;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberStatus;
@@ -116,8 +116,9 @@ public interface OrganizationMemberRepository extends SoftDeleteRepository<Organ
     /**
      * Lists the ACTIVE, non-deleted members of an organization whose user account is
      * ACTIVE and not deleted, and whose membership was created before the given instant.
-     * Reads only the columns of {@link OrganizationMemberSummaryProjection}, so no member's
-     * {@link com.korur.oba.shrine.identity.entity.User} entity is loaded.
+     * Reads only the columns of {@link OrganizationMemberKindSummaryProjection}, so no member's
+     * {@link com.korur.oba.shrine.identity.entity.User} entity is loaded. Agents are included; the
+     * kind column tells them apart.
      *
      * @param organizationId the organization identifier
      * @param joinedBefore   memberships created at or after this instant are left out
@@ -128,7 +129,11 @@ public interface OrganizationMemberRepository extends SoftDeleteRepository<Organ
                    u.email AS email,
                    u.first_name AS firstName,
                    u.last_name AS lastName,
-                   CAST(om.role AS VARCHAR) AS role
+                   CAST(om.role AS VARCHAR) AS role,
+                   CAST(u.kind AS VARCHAR) AS kind,
+                   CAST(u.agent_role AS VARCHAR) AS agentRole,
+                   CAST(u.agent_flow AS VARCHAR) AS agentFlow,
+                   CAST(u.agent_provider AS VARCHAR) AS agentProvider
             FROM shrine.organization_members om
             JOIN shrine.users u ON u.id = om.user_id
             WHERE om.organization_id = :organizationId
@@ -138,7 +143,7 @@ public interface OrganizationMemberRepository extends SoftDeleteRepository<Organ
               AND u.deleted = false
               AND u.status = 'ACTIVE'
             """, nativeQuery = true)
-    List<OrganizationMemberSummaryProjection> findActiveMemberSummaries(@Param("organizationId") UUID organizationId,
+    List<OrganizationMemberKindSummaryProjection> findActiveMemberSummaries(@Param("organizationId") UUID organizationId,
                                                                         @Param("joinedBefore") Instant joinedBefore);
 
     /**
@@ -219,5 +224,32 @@ public interface OrganizationMemberRepository extends SoftDeleteRepository<Organ
             """, nativeQuery = true)
     List<UUID> findActiveUserIdsByRoles(@Param("organizationId") UUID organizationId,
                                         @Param("roles") Collection<String> roles);
+
+    /**
+     * Finds the users of kind HUMAN holding one of the given roles through an
+     * {@link OrganizationMemberStatus#ACTIVE}, non-deleted membership of an organization, with an
+     * {@link com.korur.oba.shrine.identity.enums.UserStatus#ACTIVE}, non-deleted user account. The same
+     * rule as {@link #findActiveUserIdsByRoles} without agents, who are never members of the Everyone
+     * group. The roles are passed by name, because the role column is a PostgreSQL enum that a native
+     * query compares as text.
+     *
+     * @param organizationId the organization identifier
+     * @param roles          the role names, not empty
+     * @return the user IDs, in no particular order
+     */
+    @Query(value = """
+            SELECT om.user_id
+            FROM shrine.organization_members om
+            JOIN shrine.users u ON u.id = om.user_id
+            WHERE om.organization_id = :organizationId
+              AND om.deleted = false
+              AND om.status = 'ACTIVE'
+              AND CAST(om.role AS VARCHAR) IN (:roles)
+              AND u.deleted = false
+              AND u.status = 'ACTIVE'
+              AND u.kind = 'HUMAN'
+            """, nativeQuery = true)
+    List<UUID> findActiveHumanUserIdsByRoles(@Param("organizationId") UUID organizationId,
+                                             @Param("roles") Collection<String> roles);
 
 }

@@ -122,7 +122,7 @@ class BoardMemberServiceImplUnitTest {
 
             BoardMemberAddRequest request = new BoardMemberAddRequest(targetUserId, BoardMemberRole.MEMBER);
 
-            BoardMemberResponse expectedResponse = new BoardMemberResponse(restoredMemberId, null, null, null, null, BoardMemberRole.MEMBER, null, true);
+            BoardMemberResponse expectedResponse = new BoardMemberResponse(restoredMemberId, null, null, null, null, BoardMemberRole.MEMBER, null, true, UserKind.HUMAN, null, null, null);
 
             when(boardAccessService.verifyBoardAccess(organizationId, boardId, requestingUser.getId(), BoardMemberRole.ADMIN)).thenReturn(board);
             when(boardMemberRepository.existsByBoard_IdAndUser_Id(boardId, targetUserId)).thenReturn(false);
@@ -167,7 +167,7 @@ class BoardMemberServiceImplUnitTest {
 
             BoardMemberAddRequest request = new BoardMemberAddRequest(targetUserId, BoardMemberRole.MEMBER);
 
-            BoardMemberResponse expectedResponse = new BoardMemberResponse(newMember.getId(), null, null, null, null, BoardMemberRole.MEMBER, null, true);
+            BoardMemberResponse expectedResponse = new BoardMemberResponse(newMember.getId(), null, null, null, null, BoardMemberRole.MEMBER, null, true, UserKind.HUMAN, null, null, null);
 
             when(boardAccessService.verifyBoardAccess(organizationId, boardId, requestingUser.getId(), BoardMemberRole.ADMIN)).thenReturn(board);
             when(boardMemberRepository.existsByBoard_IdAndUser_Id(boardId, targetUserId)).thenReturn(false);
@@ -275,7 +275,7 @@ class BoardMemberServiceImplUnitTest {
             BoardMember member = BoardMember.builder().board(board).user(targetUser)
                     .role(BoardMemberRole.MEMBER).build();
             BoardMemberResponse expectedResponse = new BoardMemberResponse(
-                    UUID.randomUUID(), targetUserId, null, null, null, BoardMemberRole.ADMIN, null, false);
+                    UUID.randomUUID(), targetUserId, null, null, null, BoardMemberRole.ADMIN, null, false, UserKind.HUMAN, null, null, null);
             when(boardAccessService.verifyBoardAccess(organizationId, boardId, requestingUser.getId(),
                     BoardMemberRole.ADMIN)).thenReturn(board);
             when(boardValidator.ensureBoardMemberExists(boardId, targetUserId)).thenReturn(member);

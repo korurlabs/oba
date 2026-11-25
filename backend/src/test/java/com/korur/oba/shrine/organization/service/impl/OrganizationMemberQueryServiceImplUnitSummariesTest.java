@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 // 4. Internal
+import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberKindSummaryProjection;
 import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberSummaryProjection;
 import com.korur.oba.shrine.organization.repository.OrganizationMemberRepository;
 
@@ -35,12 +36,29 @@ class OrganizationMemberQueryServiceImplUnitSummariesTest {
     void listActiveMemberSummaries_anyOrganization_passesCutoffToOneRepositoryQuery() {
         UUID organizationId = UUID.randomUUID();
         Instant joinedBefore = Instant.parse("2026-10-16T07:30:00Z");
-        List<OrganizationMemberSummaryProjection> summaries = List.of(mock(OrganizationMemberSummaryProjection.class));
+        OrganizationMemberKindSummaryProjection summary = mock(OrganizationMemberKindSummaryProjection.class);
         when(organizationMemberRepository.findActiveMemberSummaries(organizationId, joinedBefore))
-                .thenReturn(summaries);
+                .thenReturn(List.of(summary));
 
         List<OrganizationMemberSummaryProjection> result =
                 organizationMemberQueryServiceImpl.listActiveMemberSummaries(organizationId, joinedBefore);
+
+        assertThat(result).containsExactly(summary);
+        verify(organizationMemberRepository).findActiveMemberSummaries(organizationId, joinedBefore);
+        verifyNoMoreInteractions(organizationMemberRepository);
+    }
+
+    @Test
+    void listActiveMemberKindSummaries_anyOrganization_returnsTheRowsOfTheSameQueryAgentsIncluded() {
+        UUID organizationId = UUID.randomUUID();
+        Instant joinedBefore = Instant.parse("2026-10-16T07:30:00Z");
+        List<OrganizationMemberKindSummaryProjection> summaries =
+                List.of(mock(OrganizationMemberKindSummaryProjection.class));
+        when(organizationMemberRepository.findActiveMemberSummaries(organizationId, joinedBefore))
+                .thenReturn(summaries);
+
+        List<OrganizationMemberKindSummaryProjection> result =
+                organizationMemberQueryServiceImpl.listActiveMemberKindSummaries(organizationId, joinedBefore);
 
         assertThat(result).isSameAs(summaries);
         verify(organizationMemberRepository).findActiveMemberSummaries(organizationId, joinedBefore);

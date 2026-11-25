@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 // 3. Java SDK
 import java.time.Clock;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.EnumSet;
@@ -36,7 +37,7 @@ import com.korur.oba.apps.kazan.board.service.BoardMemberQueryService;
 import com.korur.oba.shrine.access.enums.App;
 import com.korur.oba.shrine.access.service.AppAccessQueryService;
 import com.korur.oba.shrine.identity.entity.User;
-import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberSummaryProjection;
+import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberKindSummaryProjection;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 import com.korur.oba.shrine.organization.service.OrganizationMemberQueryService;
 
@@ -90,15 +91,22 @@ public class BoardMemberQueryServiceImpl implements BoardMemberQueryService {
     public List<BoardMemberCandidateResponse> listMemberCandidates(User user, UUID organizationId, UUID boardId) {
         // Only a caller who may add members reads the people to add.
         Board board = boardAccessService.verifyBoardAccess(organizationId, boardId, user.getId(), BoardMemberRole.ADMIN);
-        List<OrganizationMemberSummaryProjection> candidates = organizationMemberQueryService
-                .listActiveMemberSummaries(board.getOrganizationId(), Instant.now(clock));
+        // Agents are offered too, with their kind, so the board admin can add one as a member.
+        List<OrganizationMemberKindSummaryProjection> candidates = organizationMemberQueryService
+                .listActiveMemberKindSummaries(board.getOrganizationId(), Instant.now(clock));
+        List<UUID> candidateUserIds = new ArrayList<>();
+        for (OrganizationMemberKindSummaryProjection candidate : candidates) {
+            candidateUserIds.add(candidate.getUserId());
+        }
         Set<UUID> kazanUserIds = appAccessQueryService.findUserIdsWithAppAccess(board.getOrganizationId(),
-                App.KAZAN, candidates.stream().map(OrganizationMemberSummaryProjection::getUserId).toList());
-        return candidates.stream()
-                .map((OrganizationMemberSummaryProjection candidate) -> boardMemberMapper.toCandidateResponse(
-                        candidate, kazanUserIds.contains(candidate.getUserId())))
-                .sorted(CANDIDATE_ORDER)
-                .toList();
+                App.KAZAN, candidateUserIds);
+        List<BoardMemberCandidateResponse> responses = new ArrayList<>();
+        for (OrganizationMemberKindSummaryProjection candidate : candidates) {
+            responses.add(boardMemberMapper.toCandidateResponse(candidate,
+                    kazanUserIds.contains(candidate.getUserId())));
+        }
+        responses.sort(CANDIDATE_ORDER);
+        return responses;
     }
 
     @Override

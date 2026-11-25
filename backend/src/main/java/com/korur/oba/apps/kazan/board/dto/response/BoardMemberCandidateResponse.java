@@ -9,6 +9,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.UUID;
 
 // 4. Internal
+import com.korur.oba.shrine.identity.enums.AgentFlow;
+import com.korur.oba.shrine.identity.enums.AgentProvider;
+import com.korur.oba.shrine.identity.enums.AgentRole;
+import com.korur.oba.shrine.identity.enums.UserKind;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberRole;
 
 /**
@@ -35,6 +39,18 @@ public record BoardMemberCandidateResponse(
 
         @Schema(description = "True when the member may open Kazan in the board's organization; a member "
                 + "without it cannot be added to the board", example = "true")
-        boolean kazanAccess
+        boolean kazanAccess,
+
+        @Schema(description = "User kind; the picker badges an agent", nullable = false, example = "HUMAN")
+        UserKind kind,
+
+        @Schema(description = "Agent role; null for a person", nullable = true)
+        AgentRole agentRole,
+
+        @Schema(description = "Agent flow; null for a person", nullable = true)
+        AgentFlow agentFlow,
+
+        @Schema(description = "Agent provider; null for a person", nullable = true)
+        AgentProvider agentProvider
 ) {
 }

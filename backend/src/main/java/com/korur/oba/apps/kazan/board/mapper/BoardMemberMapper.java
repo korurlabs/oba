@@ -14,7 +14,7 @@ import com.korur.oba.apps.kazan.board.dto.request.BoardMemberAddRequest;
 import com.korur.oba.apps.kazan.board.dto.response.BoardMemberCandidateResponse;
 import com.korur.oba.apps.kazan.board.dto.response.BoardMemberResponse;
 import com.korur.oba.apps.kazan.board.entity.BoardMember;
-import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberSummaryProjection;
+import com.korur.oba.shrine.organization.dto.projection.OrganizationMemberKindSummaryProjection;
 
 /**
  * Maps board member request payloads to entities and entities to response DTOs.
@@ -36,7 +36,8 @@ public interface BoardMemberMapper {
 
     /**
      * Maps a board member entity to a response DTO with resolved user profile data and whether the member
-     * may open Kazan in the board's organization.
+     * may open Kazan in the board's organization. The agent fields stay null for a person, whose agent
+     * detail is null.
      */
     @Mapping(source = "member.id", target = "id")
     @Mapping(source = "member.user.id", target = "userId")
@@ -46,11 +47,16 @@ public interface BoardMemberMapper {
     @Mapping(source = "member.role", target = "role")
     @Mapping(source = "member.createdAt", target = "createdAt")
     @Mapping(source = "kazanAccess", target = "kazanAccess")
+    @Mapping(source = "member.user.kind", target = "kind")
+    @Mapping(source = "member.user.agentDetail.role", target = "agentRole")
+    @Mapping(source = "member.user.agentDetail.flow", target = "agentFlow")
+    @Mapping(source = "member.user.agentDetail.provider", target = "agentProvider")
     BoardMemberResponse toResponse(BoardMember member, boolean kazanAccess);
 
     /**
      * Maps an active member of the board's organization to an entry of the add-member picker, with whether
-     * the member may open Kazan there.
+     * the member may open Kazan there. Kind and the agent fields arrive as enum names; the agent fields are
+     * null for a person.
      */
     @Mapping(source = "member.userId", target = "userId")
     @Mapping(source = "member.email", target = "email")
@@ -58,6 +64,10 @@ public interface BoardMemberMapper {
     @Mapping(source = "member.lastName", target = "lastName")
     @Mapping(source = "member.role", target = "role")
     @Mapping(source = "kazanAccess", target = "kazanAccess")
-    BoardMemberCandidateResponse toCandidateResponse(OrganizationMemberSummaryProjection member,
+    @Mapping(source = "member.kind", target = "kind")
+    @Mapping(source = "member.agentRole", target = "agentRole")
+    @Mapping(source = "member.agentFlow", target = "agentFlow")
+    @Mapping(source = "member.agentProvider", target = "agentProvider")
+    BoardMemberCandidateResponse toCandidateResponse(OrganizationMemberKindSummaryProjection member,
                                                      boolean kazanAccess);
 }

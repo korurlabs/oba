@@ -43,6 +43,7 @@ import com.korur.oba.shrine.access.mapper.AppAccessMapperImpl;
 import com.korur.oba.shrine.access.repository.AppGrantRepository;
 import com.korur.oba.shrine.access.service.OrganizationGroupQueryService;
 import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.shrine.identity.enums.UserKind;
 import com.korur.oba.shrine.organization.constant.OrganizationConstant;
 import com.korur.oba.shrine.organization.dto.response.OrganizationMemberResponse;
 import com.korur.oba.shrine.organization.entity.Organization;
@@ -399,7 +400,7 @@ class AppAccessQueryServiceImplUnitTest {
         private OrganizationMemberResponse response(UUID userId, String firstName, OrganizationMemberRole role,
                                                     OrganizationMemberStatus status) {
             return new OrganizationMemberResponse(UUID.randomUUID(), userId, firstName + "@example.com", firstName,
-                    "Doe", role, status);
+                    "Doe", role, status, UserKind.HUMAN, null, null, null);
         }
 
         @Test

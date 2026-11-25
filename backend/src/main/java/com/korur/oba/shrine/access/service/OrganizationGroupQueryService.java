@@ -59,8 +59,8 @@ public interface OrganizationGroupQueryService {
 
     /**
      * Lists the users whom a grant to a group reaches. The Everyone group has no member rows, so it reaches
-     * every ACTIVE member of the organization whose app access depends on grants; a custom group reaches
-     * the users of its member rows.
+     * every ACTIVE member of kind HUMAN whose app access depends on grants, never an agent; a custom group
+     * reaches the users of its member rows.
      *
      * @param group the group
      * @return the user ids, in no particular order
