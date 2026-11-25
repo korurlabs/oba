@@ -66,6 +66,8 @@ export const relationFilterParams = {
   owner: parseAsString,
   /** The id of the event the relations were met at. */
   event: parseAsString,
+  /** The id of the campaign the relations came from. */
+  campaign: parseAsString,
   page: parseAsInteger.withDefault(1),
 };
 
@@ -89,6 +91,7 @@ export function toRelationQuery(filters: RelationFilterParams): RelationQueryReq
   if (search) query.search = search;
   if (filters.owner) query.ownerUserId = filters.owner;
   if (filters.event) query.eventId = filters.event;
+  if (filters.campaign) query.campaignId = filters.campaign;
   const stages = tabStages(filters);
   if (stages.length > 0) query.stage = stages;
   return query;
@@ -96,5 +99,11 @@ export function toRelationQuery(filters: RelationFilterParams): RelationQueryReq
 
 /** True when the list is narrowed by anything other than its tab and page. */
 export function hasActiveRelationFilter(filters: RelationFilterParams): boolean {
-  return !!filters.search || !!filters.owner || !!filters.event || tabStages(filters).length > 0;
+  return (
+    !!filters.search ||
+    !!filters.owner ||
+    !!filters.event ||
+    !!filters.campaign ||
+    tabStages(filters).length > 0
+  );
 }

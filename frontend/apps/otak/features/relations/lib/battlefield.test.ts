@@ -32,6 +32,7 @@ function lead(id: string, name: string, stage: PipelineStage | null): RelationLi
     mainPersonContactEmail: null,
     mainBusinessContactEmail: null,
     expectedValue: null,
+    campaignId: null,
     updatedAt: "2026-11-09T10:00:00Z",
   };
 }

@@ -8,6 +8,7 @@ export const StorageEntityTypeSchema = z.enum([
   "KALKAN_PAGE",
   "MAIL",
   "RELATION",
+  "CAMPAIGN",
 ]);
 export type StorageEntityType = z.infer<typeof StorageEntityTypeSchema>;
 export const StorageEntityType = StorageEntityTypeSchema.enum;

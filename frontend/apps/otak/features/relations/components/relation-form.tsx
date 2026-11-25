@@ -13,6 +13,7 @@ import {
 } from "@oba/shared/features/form";
 import { Button } from "@oba/ui/sky/button";
 import { Card, CardContent, CardHeader } from "@oba/ui/sky/card";
+import { useCampaignOptions } from "@/features/campaigns/hooks/use-campaigns";
 import { useEvent, useEventOptions } from "@/features/events/hooks/use-events";
 import { useIcp, useIcpOptions } from "@/features/icps/hooks/use-icps";
 import { countryOptions } from "@/lib/countries";
@@ -128,6 +129,9 @@ function RelationFormFields({
   const storedEvent = useEvent(currentEventId, {
     enabled: events.isSuccess && !storedEventListed,
   });
+  // Every campaign of the organization: the list is unpaged, so a stored
+  // link is always among the options while its campaign exists.
+  const campaigns = useCampaignOptions();
 
   const typeOptions = useMemo(
     () => RelationTypeSchema.options.map((type) => ({ value: type, label: t(`types.${type}`) })),
@@ -325,7 +329,20 @@ function RelationFormFields({
               description={events.isError ? t("form.eventsLoadError") : undefined}
             />
           </div>
-          <div className="md:col-span-3">
+          <div className="md:col-span-2">
+            <SelectField
+              name="campaignId"
+              label={t("form.campaign")}
+              placeholder={t("form.campaignPlaceholder")}
+              control={control}
+              options={campaigns.data ?? []}
+              isLoading={campaigns.isPending && campaigns.fetchStatus !== "idle"}
+              clearable
+              disabled={isPending}
+              description={campaigns.isError ? t("form.campaignsLoadError") : undefined}
+            />
+          </div>
+          <div className="md:col-span-2">
             <SelectField
               name="source"
               label={t("form.source")}
@@ -336,7 +353,7 @@ function RelationFormFields({
               disabled={isPending}
             />
           </div>
-          <div className="md:col-span-3">
+          <div className="md:col-span-2">
             <TextField
               name="expectedValue"
               label={t("form.expectedValue")}

@@ -53,4 +53,8 @@ export const API_ROUTES = {
     list: "/otak/events",
     detail: (eventId: string) => `/otak/events/${eventId}`,
   },
+  campaigns: {
+    list: "/otak/campaigns",
+    detail: (campaignId: string) => `/otak/campaigns/${campaignId}`,
+  },
 } as const;

@@ -22,6 +22,7 @@ import { Button } from "@oba/ui/sky/button";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@oba/ui/sky/tabs";
 import { EntityAttachments } from "@/features/attachments/components/entity-attachments";
+import { useCampaignOptions } from "@/features/campaigns/hooks/use-campaigns";
 import { useContacts } from "@/features/contacts/hooks/use-contacts";
 import { DocumentLanguageSchema } from "@/features/document-templates/schemas";
 import { useIsOrganizationAdmin } from "@/hooks/use-is-organization-admin";
@@ -91,7 +92,7 @@ export function OutreachFormDialog({ outreachId, onOpenChange }: OutreachFormDia
                 },
                 {
                   onSuccess: () => onOpenChange(false),
-                  onError: (error) => applyOutreachFieldErrors(form, error),
+                  onError: (error) => applyOutreachFieldErrors(form, error, t),
                 }
               );
             }}
@@ -166,9 +167,13 @@ function OutreachEditForm({
 }
 
 /** Puts the fields a refused save names on the form. */
-function applyOutreachFieldErrors(form: UseFormReturn<OutreachFormValues>, error: unknown): void {
+function applyOutreachFieldErrors(
+  form: UseFormReturn<OutreachFormValues>,
+  error: unknown,
+  t: (key: string) => string
+): void {
   const fields = Object.keys(form.getValues());
-  for (const [field, message] of Object.entries(outreachFieldErrors(error))) {
+  for (const [field, message] of Object.entries(outreachFieldErrors(error, t))) {
     if (fields.includes(field)) {
       form.setError(field as Path<OutreachFormValues>, { type: "server", message });
     }
@@ -186,6 +191,7 @@ function OutreachFormFields({
   const tTemplates = useTranslations("documentTemplates");
   const { control } = useFormContext<OutreachFormValues>();
   const contacts = useContacts(outreach.relationId);
+  const campaigns = useCampaignOptions();
   const isMail = isMailOutreach(outreach);
 
   // The stored contact stays a choice even when it no longer has a business address or phone.
@@ -236,6 +242,17 @@ function OutreachFormFields({
           {t("form.contactsLoadError")}
         </p>
       )}
+      <SelectField
+        name="campaignId"
+        label={t("form.campaign")}
+        placeholder={t("form.campaignPlaceholder")}
+        control={control}
+        options={campaigns.data ?? []}
+        isLoading={campaigns.isPending && campaigns.fetchStatus !== "idle"}
+        clearable
+        disabled={isPending}
+        description={campaigns.isError ? t("form.campaignsLoadError") : undefined}
+      />
       {isMail && (
         <>
           <SelectField

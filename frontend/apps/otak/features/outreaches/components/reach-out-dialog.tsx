@@ -21,6 +21,7 @@ import {
 import { Field, Input, NativeSelect, Textarea } from "@oba/ui/sky/field";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { FilterLabel } from "@/components/page-states";
+import { useCampaignOptions } from "@/features/campaigns/hooks/use-campaigns";
 import { useContacts } from "@/features/contacts/hooks/use-contacts";
 import { contactErrorText } from "@/features/contacts/lib/contact-error";
 import type { ContactListItem } from "@/features/contacts/schemas";
@@ -149,6 +150,8 @@ function ReachOutSteps({
     [contacts.data, selection.type]
   );
   const [titleError, setTitleError] = useState<string | null>(null);
+  const [campaignError, setCampaignError] = useState<string | null>(null);
+  const campaigns = useCampaignOptions();
   const select = (change: Partial<ReachOutSelection>) =>
     setSelection((current) => ({ ...current, ...change }));
 
@@ -188,8 +191,9 @@ function ReachOutSteps({
         );
       },
       onError: (error) => {
-        const fields = outreachFieldErrors(error);
+        const fields = outreachFieldErrors(error, tOutreaches);
         if (fields.title) setTitleError(fields.title);
+        if (fields.campaignId) setCampaignError(fields.campaignId);
       },
     });
   };
@@ -299,6 +303,29 @@ function ReachOutSteps({
                   select({ title: event.target.value });
                 }}
               />
+            </Field>
+            <Field
+              label={tForm("campaign")}
+              hint={campaigns.isError ? tForm("campaignsLoadError") : undefined}
+              error={campaignError}
+              className="w-full"
+            >
+              <NativeSelect
+                value={selection.campaignId ?? ""}
+                disabled={isPending || (campaigns.isPending && campaigns.fetchStatus !== "idle")}
+                onChange={(event) => {
+                  setCampaignError(null);
+                  select({ campaignId: event.target.value || null });
+                }}
+                className="w-full"
+              >
+                <option value="">{tForm("campaignPlaceholder")}</option>
+                {(campaigns.data ?? []).map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </NativeSelect>
             </Field>
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
               <dt className="text-muted-foreground">{t("summary.channel")}</dt>

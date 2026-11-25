@@ -15,6 +15,7 @@ describe("outreachErrorText", () => {
     ["OTK_NOT_005", "t:errors.notFound"],
     ["OTK_NOT_006", "t:errors.senderNotFound"],
     ["OTK_NOT_010", "t:errors.templateNotFound"],
+    ["OTK_NOT_012", "t:errors.campaignNotFound"],
     ["OTK_STA_011", "t:errors.notEditable"],
     ["OTK_VAL_004", "t:errors.sharedMailboxNotFound"],
     ["OTK_VAL_007", "t:errors.contactWithoutAddress"],
@@ -52,7 +53,8 @@ describe("outreachFieldErrors", () => {
           "mail.subject": "Subject is required",
           "mail.body": "Body is required",
           count: 3,
-        })
+        }),
+        t
       )
     ).toEqual({
       title: "Title is required",
@@ -61,8 +63,14 @@ describe("outreachFieldErrors", () => {
     });
   });
 
+  test("a campaign that no longer exists is put on the campaign field", () => {
+    expect(outreachFieldErrors(apiError("OTK_NOT_012"), t)).toEqual({
+      campaignId: "t:errors.campaignNotFound",
+    });
+  });
+
   test("any other error names no field", () => {
-    expect(outreachFieldErrors(apiError("OTK_STA_011"))).toEqual({});
-    expect(outreachFieldErrors(new Error("x"))).toEqual({});
+    expect(outreachFieldErrors(apiError("OTK_STA_011"), t)).toEqual({});
+    expect(outreachFieldErrors(new Error("x"), t)).toEqual({});
   });
 });

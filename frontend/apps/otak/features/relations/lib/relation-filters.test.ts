@@ -59,6 +59,13 @@ describe("toRelationQuery", () => {
     expect(hasActiveRelationFilter(loadRelationFilterParams("?tab=suppliers"))).toBe(false);
   });
 
+  test("the campaign filter is sent as campaignId and counts as a filter", () => {
+    const filters = loadRelationFilterParams("?tab=leads&campaign=campaign-1");
+    expect(toRelationQuery(filters)).toMatchObject({ type: "LEAD", campaignId: "campaign-1" });
+    expect(hasActiveRelationFilter(filters)).toBe(true);
+    expect(toRelationQuery(loadRelationFilterParams("?tab=leads")).campaignId).toBeUndefined();
+  });
+
   test("suppliers send no stage", () => {
     const filters = loadRelationFilterParams("?tab=suppliers&stage=DIRECT");
     expect(toRelationQuery(filters)).toEqual({ type: "SUPPLIER", page: 1, amount: 25 });

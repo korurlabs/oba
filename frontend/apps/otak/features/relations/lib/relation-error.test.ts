@@ -42,6 +42,17 @@ describe("relation errors of the event link", () => {
   });
 });
 
+describe("relation errors of the campaign link", () => {
+  test("OTK_NOT_012 shows the campaign-not-found text on the campaignId field", () => {
+    expect(relationErrorText(apiError("OTK_NOT_012"), t, "toast.saveError")).toBe(
+      "t:errors.campaignNotFound"
+    );
+    expect(relationFieldErrors(apiError("OTK_NOT_012"), t)).toEqual({
+      campaignId: "t:errors.campaignNotFound",
+    });
+  });
+});
+
 describe("relation errors of an owner without Otak access", () => {
   const refusal = (): ApiError => apiError("APP_VAL_002", 422);
 

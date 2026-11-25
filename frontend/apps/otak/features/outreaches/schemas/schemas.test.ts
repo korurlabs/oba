@@ -32,6 +32,7 @@ function errorsOf(values: OutreachFormValues): Record<string, string> {
 const valid: OutreachFormValues = {
   title: "Intro security check",
   contactId: "c-1",
+  campaignId: "",
   subject: "Hello from Korur",
   body: "Dear reader,\n\nWe would like to meet.",
   language: "NL",
@@ -44,6 +45,7 @@ const detail: OutreachDetail = {
   type: "MAIL",
   status: "DRAFT",
   relationId: "r-1",
+  campaignId: null,
   contact: { id: "c-1", name: "Jan de Vries" },
   sentTo: null,
   sentAt: null,
@@ -142,6 +144,7 @@ describe("request schemas", () => {
       contactId: "c-1",
       title: "Intro",
       type: "MAIL",
+      campaignId: null,
     };
     expect(
       outreachRequestSchema.safeParse({ ...base, mailTemplateId: "t-1", mail: null }).success
@@ -197,7 +200,21 @@ describe("form mapping", () => {
       contactId: "c-1",
       title: "Intro security check",
       mail: { subject: valid.subject, body: valid.body, language: "NL" },
+      campaignId: null,
     });
+  });
+
+  test("an edit sends the stored campaign back, so the link is kept", () => {
+    const linked = outreachDetailSchema.parse({ ...detail, campaignId: "campaign-1" });
+    const values = outreachToFormValues(linked);
+    expect(values.campaignId).toBe("campaign-1");
+    expect(toOutreachUpdateRequest(values, "MAIL").campaignId).toBe("campaign-1");
+  });
+
+  test("a campaign cleared in the form is sent as null", () => {
+    const linked = outreachDetailSchema.parse({ ...detail, campaignId: "campaign-1" });
+    const values = { ...outreachToFormValues(linked), campaignId: "" };
+    expect(toOutreachUpdateRequest(values, "MAIL").campaignId).toBeNull();
   });
 
   test("a WhatsApp outreach fills empty mail fields and updates without a mail", () => {
@@ -212,6 +229,7 @@ describe("form mapping", () => {
       contactId: "c-1",
       title: "Intro security check",
       mail: null,
+      campaignId: null,
     });
   });
 

@@ -33,6 +33,7 @@ const CLEARED_FILTERS: Partial<RelationFilterParams> = {
   search: null,
   owner: null,
   event: null,
+  campaign: null,
   stage: null,
 };
 

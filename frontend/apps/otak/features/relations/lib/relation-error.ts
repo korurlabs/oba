@@ -17,6 +17,7 @@ const ERROR_TEXT_KEYS: Partial<Record<string, string>> = {
   OTK_STA_006: "errors.stageNotForType",
   OTK_NOT_004: "errors.icpNotFound",
   OTK_NOT_009: "errors.eventNotFound",
+  OTK_NOT_012: "errors.campaignNotFound",
   ORG_SEC_003: "errors.forbidden",
   GEN_VAL_001: "errors.validation",
 };
@@ -37,8 +38,8 @@ export function relationErrorText(
 /**
  * The form fields a refused save names, with the server's message for each:
  * the `errorValues` of a 422, the owner for `OTK_STA_001` and for an owner
- * without Otak access, the ICP for `OTK_NOT_004`, or the event for
- * `OTK_NOT_009`. Empty for any other refusal. `t` is the `relations`
+ * without Otak access, the ICP for `OTK_NOT_004`, the event for
+ * `OTK_NOT_009`, or the campaign for `OTK_NOT_012`. Empty for any other refusal. `t` is the `relations`
  * translator.
  */
 export function relationFieldErrors(
@@ -56,6 +57,9 @@ export function relationFieldErrors(
   }
   if (isApiError(error, "OTK_NOT_009")) {
     return { eventId: t("errors.eventNotFound") };
+  }
+  if (isApiError(error, "OTK_NOT_012")) {
+    return { campaignId: t("errors.campaignNotFound") };
   }
   return validationFieldErrors(error);
 }
