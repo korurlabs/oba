@@ -16,6 +16,8 @@ public final class InvitationServiceLogConstant {
             "Revoking invitation: {}";
     public static final String INVITATION_REVOKED =
             "Invitation revoked: {}";
+    public static final String ORGANIZATION_INVITATIONS_REVOKED =
+            "Revoked {} pending invitations of deleted organization: {}";
 
     public static final String INVITATION_DECISION_PROCESSING =
             "Processing invitation decision for invitation: {} with decision: {}";

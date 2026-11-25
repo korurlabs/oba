@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -263,7 +264,7 @@ class InvitationServiceImplTest {
             InvitationDecisionRequest request = new InvitationDecisionRequest(invitation.getId(), InvitationDecision.ACCEPT);
             InvitationResponse expectedResponse = stubResponse(invitation.getId());
 
-            when(invitationRepository.findById(invitation.getId())).thenReturn(Optional.of(invitation));
+            when(invitationRepository.findByIdInLiveOrganization(invitation.getId())).thenReturn(Optional.of(invitation));
             when(organizationMemberRepository.findDeletedByOrgIdAndUserId(org.getId(), user.getId()))
                     .thenReturn(Optional.empty());
             when(invitationRepository.save(invitation)).thenReturn(invitation);
@@ -293,7 +294,7 @@ class InvitationServiceImplTest {
 
             InvitationDecisionRequest request = new InvitationDecisionRequest(invitation.getId(), InvitationDecision.ACCEPT);
 
-            when(invitationRepository.findById(invitation.getId())).thenReturn(Optional.of(invitation));
+            when(invitationRepository.findByIdInLiveOrganization(invitation.getId())).thenReturn(Optional.of(invitation));
             when(organizationMemberRepository.findDeletedByOrgIdAndUserId(invitedOrg.getId(), user.getId()))
                     .thenReturn(Optional.empty());
             when(invitationRepository.save(invitation)).thenReturn(invitation);
@@ -317,7 +318,7 @@ class InvitationServiceImplTest {
             InvitationDecisionRequest request = new InvitationDecisionRequest(invitation.getId(), InvitationDecision.DECLINE);
             InvitationResponse expectedResponse = stubResponse(invitation.getId());
 
-            when(invitationRepository.findById(invitation.getId())).thenReturn(Optional.of(invitation));
+            when(invitationRepository.findByIdInLiveOrganization(invitation.getId())).thenReturn(Optional.of(invitation));
             when(invitationRepository.save(invitation)).thenReturn(invitation);
             when(invitationMapper.toResponse(invitation)).thenReturn(expectedResponse);
 
@@ -341,7 +342,7 @@ class InvitationServiceImplTest {
 
             InvitationDecisionRequest request = new InvitationDecisionRequest(invitation.getId(), InvitationDecision.ACCEPT);
 
-            when(invitationRepository.findById(invitation.getId())).thenReturn(Optional.of(invitation));
+            when(invitationRepository.findByIdInLiveOrganization(invitation.getId())).thenReturn(Optional.of(invitation));
             when(invitationRepository.save(invitation)).thenReturn(invitation);
 
             // Act & Assert
@@ -367,7 +368,7 @@ class InvitationServiceImplTest {
                     .build();
             invitation.setId(invitationId);
 
-            when(invitationRepository.findById(invitationId)).thenReturn(Optional.of(invitation));
+            when(invitationRepository.findByIdInLiveOrganization(invitationId)).thenReturn(Optional.of(invitation));
             doThrow(new ValidationException(ExceptionDomainInvitationError.VAL_INVITATION_ALREADY_ACCEPTED))
                     .when(invitationValidator).ensureInvitationIsActionable(invitation);
 
@@ -391,7 +392,7 @@ class InvitationServiceImplTest {
                     .build();
             invitation.setId(invitationId);
 
-            when(invitationRepository.findById(invitationId)).thenReturn(Optional.of(invitation));
+            when(invitationRepository.findByIdInLiveOrganization(invitationId)).thenReturn(Optional.of(invitation));
             doThrow(new ValidationException(ExceptionDomainInvitationError.VAL_INVITATION_REVOKED))
                     .when(invitationValidator).ensureInvitationIsActionable(invitation);
 
@@ -415,7 +416,7 @@ class InvitationServiceImplTest {
                     .build();
             invitation.setId(invitationId);
 
-            when(invitationRepository.findById(invitationId)).thenReturn(Optional.of(invitation));
+            when(invitationRepository.findByIdInLiveOrganization(invitationId)).thenReturn(Optional.of(invitation));
             doThrow(new ValidationException(ExceptionDomainInvitationError.VAL_EMAIL_MISMATCH))
                     .when(invitationValidator).ensureInvitationBelongsToUser(invitation, user.getEmail());
 
@@ -433,7 +434,7 @@ class InvitationServiceImplTest {
             UUID invitationId = UUID.randomUUID();
             InvitationDecisionRequest request = new InvitationDecisionRequest(invitationId, InvitationDecision.ACCEPT);
 
-            when(invitationRepository.findById(invitationId)).thenReturn(Optional.empty());
+            when(invitationRepository.findByIdInLiveOrganization(invitationId)).thenReturn(Optional.empty());
 
             // Act & Assert
             NotFoundException exception = assertThrows(NotFoundException.class, () ->
@@ -459,7 +460,7 @@ class InvitationServiceImplTest {
 
             Invitation invitation = stubPendingInvitation(org, admin, "invitee@example.com");
 
-            when(invitationRepository.findById(invitation.getId())).thenReturn(Optional.of(invitation));
+            when(invitationRepository.findByIdInLiveOrganization(invitation.getId())).thenReturn(Optional.of(invitation));
             when(invitationRepository.save(invitation)).thenReturn(invitation);
 
             // Act
@@ -477,7 +478,7 @@ class InvitationServiceImplTest {
             UUID organizationId = UUID.randomUUID();
             UUID invitationId = UUID.randomUUID();
 
-            when(invitationRepository.findById(invitationId)).thenReturn(Optional.empty());
+            when(invitationRepository.findByIdInLiveOrganization(invitationId)).thenReturn(Optional.empty());
 
             // Act & Assert
             NotFoundException exception = assertThrows(NotFoundException.class, () ->
@@ -497,7 +498,7 @@ class InvitationServiceImplTest {
 
             Invitation invitation = stubPendingInvitation(differentOrg, admin, "invitee@example.com");
 
-            when(invitationRepository.findById(invitation.getId())).thenReturn(Optional.of(invitation));
+            when(invitationRepository.findByIdInLiveOrganization(invitation.getId())).thenReturn(Optional.of(invitation));
 
             // Act & Assert
             assertThrows(com.korur.oba.dojo.exception.internal.auth.ForbiddenException.class, () ->
@@ -524,7 +525,7 @@ class InvitationServiceImplTest {
                     .build();
             invitation.setId(UUID.randomUUID());
 
-            when(invitationRepository.findById(invitation.getId())).thenReturn(Optional.of(invitation));
+            when(invitationRepository.findByIdInLiveOrganization(invitation.getId())).thenReturn(Optional.of(invitation));
             doThrow(new ValidationException(ExceptionDomainInvitationError.VAL_INVITATION_NOT_PENDING))
                     .when(invitationValidator).ensureInvitationIsPending(invitation);
 
@@ -533,6 +534,28 @@ class InvitationServiceImplTest {
                     invitationServiceImpl.revokeInvitation(admin, organizationId, invitation.getId()));
 
             assertEquals(ExceptionDomainInvitationError.VAL_INVITATION_NOT_PENDING.getCode(), exception.getErrorCode());
+        }
+    }
+
+    // ── RevokePendingInvitationsOfOrganization ────────────────────────────────
+
+    @Nested
+    class RevokePendingInvitationsOfOrganization {
+
+        @Test
+        void organizationBeingDeleted_revokesItsPendingInvitationsAsOfNow() {
+            // Arrange
+            UUID organizationId = UUID.randomUUID();
+            Instant before = Instant.now();
+
+            // Act
+            invitationServiceImpl.revokePendingInvitationsOfOrganization(organizationId);
+
+            // Assert
+            ArgumentCaptor<Instant> revokedAt = ArgumentCaptor.forClass(Instant.class);
+            verify(invitationRepository).revokePendingByOrganizationId(eq(organizationId), revokedAt.capture());
+            assertFalse(revokedAt.getValue().isBefore(before));
+            verify(invitationRepository, never()).save(any());
         }
     }
 }

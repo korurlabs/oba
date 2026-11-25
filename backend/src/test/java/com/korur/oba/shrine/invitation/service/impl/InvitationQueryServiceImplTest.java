@@ -86,7 +86,7 @@ class InvitationQueryServiceImplTest {
             Invitation invitation = stubPendingInvitation(email, Instant.now().plusSeconds(3600));
             InvitationResponse response = stubResponse(invitation);
 
-            when(invitationRepository.findByEmailIgnoreCaseAndStatus(email, InvitationStatus.PENDING))
+            when(invitationRepository.findByEmailAndStatusInLiveOrganization(email, InvitationStatus.PENDING))
                     .thenReturn(List.of(invitation));
             when(invitationMapper.toResponse(invitation)).thenReturn(response);
 
@@ -104,7 +104,7 @@ class InvitationQueryServiceImplTest {
             String email = "invitee@example.com";
             Invitation expiredInvitation = stubPendingInvitation(email, Instant.now().minusSeconds(1));
 
-            when(invitationRepository.findByEmailIgnoreCaseAndStatus(email, InvitationStatus.PENDING))
+            when(invitationRepository.findByEmailAndStatusInLiveOrganization(email, InvitationStatus.PENDING))
                     .thenReturn(List.of(expiredInvitation));
 
             // Act
@@ -121,7 +121,7 @@ class InvitationQueryServiceImplTest {
             Invitation legacyInvitation = stubPendingInvitation(email, null);
             InvitationResponse response = stubResponse(legacyInvitation);
 
-            when(invitationRepository.findByEmailIgnoreCaseAndStatus(email, InvitationStatus.PENDING))
+            when(invitationRepository.findByEmailAndStatusInLiveOrganization(email, InvitationStatus.PENDING))
                     .thenReturn(List.of(legacyInvitation));
             when(invitationMapper.toResponse(legacyInvitation)).thenReturn(response);
 
@@ -144,7 +144,7 @@ class InvitationQueryServiceImplTest {
             InvitationResponse validResponse = stubResponse(validInvitation);
             InvitationResponse legacyResponse = stubResponse(legacyInvitation);
 
-            when(invitationRepository.findByEmailIgnoreCaseAndStatus(email, InvitationStatus.PENDING))
+            when(invitationRepository.findByEmailAndStatusInLiveOrganization(email, InvitationStatus.PENDING))
                     .thenReturn(List.of(validInvitation, expiredInvitation, legacyInvitation));
             when(invitationMapper.toResponse(validInvitation)).thenReturn(validResponse);
             when(invitationMapper.toResponse(legacyInvitation)).thenReturn(legacyResponse);
@@ -161,7 +161,7 @@ class InvitationQueryServiceImplTest {
             // Arrange
             String email = "invitee@example.com";
 
-            when(invitationRepository.findByEmailIgnoreCaseAndStatus(email, InvitationStatus.PENDING))
+            when(invitationRepository.findByEmailAndStatusInLiveOrganization(email, InvitationStatus.PENDING))
                     .thenReturn(Collections.emptyList());
 
             // Act

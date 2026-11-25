@@ -45,7 +45,7 @@ public class InvitationQueryServiceImpl implements InvitationQueryService {
     @Override
     public List<InvitationResponse> listPendingInvitationsByEmail(String email) {
         List<Invitation> pendingInvitations = invitationRepository
-                .findByEmailIgnoreCaseAndStatus(email, InvitationStatus.PENDING);
+                .findByEmailAndStatusInLiveOrganization(email, InvitationStatus.PENDING);
 
         Instant now = Instant.now();
 
@@ -57,6 +57,6 @@ public class InvitationQueryServiceImpl implements InvitationQueryService {
 
     @Override
     public List<Invitation> findPendingByEmail(String email) {
-        return invitationRepository.findByEmailIgnoreCaseAndStatus(email, InvitationStatus.PENDING);
+        return invitationRepository.findByEmailAndStatusInLiveOrganization(email, InvitationStatus.PENDING);
     }
 }

@@ -24,6 +24,7 @@ import com.korur.oba.shrine.access.service.OrganizationGroupService;
 import com.korur.oba.shrine.helper.AnonymizationHelper;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.identity.service.UserService;
+import com.korur.oba.shrine.invitation.service.InvitationService;
 import com.korur.oba.shrine.organization.constant.service.OrganizationServiceLogConstant;
 import com.korur.oba.shrine.organization.dto.request.OrganizationCreateRequest;
 import com.korur.oba.shrine.organization.dto.request.OrganizationUpdateRequest;
@@ -58,6 +59,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     private final OrganizationRepository organizationRepository;
     private final OrganizationMemberRepository organizationMemberRepository;
     private final UserService userService;
+    private final InvitationService invitationService;
     private final OrganizationMapper organizationMapper;
     private final AnonymizationHelper anonymizationHelper;
     private final OrganizationValidator organizationValidator;
@@ -193,7 +195,7 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     /**
      * Permanently deletes an organization by anonymizing and soft-deleting.
-     * JPA cascades soft-delete to members.
+     * JPA cascades soft-delete to members, and the organization's pending invitations are revoked.
      */
     @Override
     @Transactional
@@ -211,6 +213,9 @@ public class OrganizationServiceImpl implements OrganizationService {
         for (OrganizationMember member : organization.getMembers()) {
             userService.applyOrganizationDeletion(member.getUser().getId(), organizationId);
         }
+
+        // A deleted organization can no longer be joined, so no invitation to it may stay open.
+        invitationService.revokePendingInvitationsOfOrganization(organizationId);
 
         // Anonymize organization data before soft-deleting.
         anonymizationHelper.anonymizeOrganization(organization);
