@@ -1,37 +1,41 @@
 package com.korur.oba.apps.kazan.cyberscore.enums;
 
 /**
- * Area of the organization's IT a check belongs to.
+ * Layer of the organization's IT a check belongs to, after the ten layers of a
+ * cyberscan from the top of the stack down.
  *
  * The declaration order is the display order. Mapped to the PostgreSQL enum
  * kazan_check_category_enum, whose values must stay in the same order.
  */
 public enum CheckCategory {
 
-    // Network and office.
-    NETWORK_OFFICE,
+    // Identity.
+    IDENTITY,
 
-    // Cloudflare and DNS.
-    CLOUDFLARE_DNS,
+    // Office.
+    OFFICE,
 
-    // Microsoft 365.
-    MICROSOFT_365,
+    // Network and edge.
+    NETWORK_EDGE,
 
-    // SharePoint and OneDrive.
-    SHAREPOINT_ONEDRIVE,
+    // Cloud platform.
+    CLOUD_PLATFORM,
 
-    // Passwords and role-based access control.
-    PASSWORDS_RBAC,
+    // Applications.
+    APPLICATIONS,
 
-    // Accounting software.
-    ACCOUNTING_SOFTWARE,
+    // Data.
+    DATA,
 
-    // Devices and laptops.
+    // Devices.
     DEVICES,
 
-    // Storage, backups and retention.
-    STORAGE_BACKUPS_RETENTION,
+    // Development and supply chain.
+    DEVELOPMENT_SUPPLY_CHAIN,
 
-    // GDPR (AVG in Dutch).
-    GDPR_AVG
+    // Detection and response.
+    DETECTION_RESPONSE,
+
+    // Compliance.
+    COMPLIANCE
 }

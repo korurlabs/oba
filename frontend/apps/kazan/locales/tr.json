@@ -1490,15 +1490,16 @@
       "MINIMAL": "Asgari risk"
     },
     "categories": {
-      "NETWORK_OFFICE": "Ağ ve ofis",
-      "CLOUDFLARE_DNS": "Cloudflare ve DNS",
-      "MICROSOFT_365": "Microsoft 365",
-      "SHAREPOINT_ONEDRIVE": "SharePoint ve OneDrive",
-      "PASSWORDS_RBAC": "Parolalar ve erişim denetimi",
-      "ACCOUNTING_SOFTWARE": "Muhasebe yazılımı",
-      "DEVICES": "Cihazlar ve dizüstü bilgisayarlar",
-      "STORAGE_BACKUPS_RETENTION": "Depolama, yedekleme ve saklama",
-      "GDPR_AVG": "GDPR",
+      "IDENTITY": "Kimlik",
+      "OFFICE": "Ofis",
+      "NETWORK_EDGE": "Ağ ve kenar",
+      "CLOUD_PLATFORM": "Bulut platformu",
+      "APPLICATIONS": "Uygulamalar",
+      "DATA": "Veri",
+      "DEVICES": "Cihazlar",
+      "DEVELOPMENT_SUPPLY_CHAIN": "Geliştirme ve tedarik zinciri",
+      "DETECTION_RESPONSE": "Tespit ve müdahale",
+      "COMPLIANCE": "Uyum",
       "NONE": "Kategorisiz"
     },
     "outcomes": {

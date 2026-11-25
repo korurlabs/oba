@@ -234,12 +234,12 @@ class CyberscoreControllerIT extends AbstractTenantIT {
         Tenant tenant = newTenant();
         User admin = tenant.admin().getUser();
         createCheck(tenant, admin, "no category", 1, null);
-        String done = createCheck(tenant, admin, "done check", 1, "GDPR_AVG");
-        createCheck(tenant, admin, "network check", 1, "NETWORK_OFFICE");
+        String done = createCheck(tenant, admin, "done check", 1, "COMPLIANCE");
+        createCheck(tenant, admin, "identity check", 1, "IDENTITY");
         mockMvc.perform(setOutcome(tenant, admin, done, "PASS")).andExpect(status().isOk());
 
         mockMvc.perform(in(tenant, get(CHECKS), jwtOf(admin), null))
-                .andExpect(jsonPath("$.data[0].name").value("network check"))
+                .andExpect(jsonPath("$.data[0].name").value("identity check"))
                 .andExpect(jsonPath("$.data[1].name").value("done check"))
                 .andExpect(jsonPath("$.data[2].name").value("no category"));
         mockMvc.perform(in(tenant, get(CHECKS + "?status=DONE"), jwtOf(admin), null))
@@ -254,7 +254,7 @@ class CyberscoreControllerIT extends AbstractTenantIT {
         String[] outcomes = {"PASS", "PARTIAL", "FAIL", "PASS", "NO_LICENSE", "PARTIAL"};
         List<String> ids = new ArrayList<>();
         for (int index = 0; index < outcomes.length; index++) {
-            ids.add(createCheck(tenant, admin, "check " + index, 7 + index * 11, index % 2 == 0 ? "DEVICES" : "GDPR_AVG"));
+            ids.add(createCheck(tenant, admin, "check " + index, 7 + index * 11, index % 2 == 0 ? "DEVICES" : "COMPLIANCE"));
         }
 
         List<Callable<Integer>> writes = new ArrayList<>();

@@ -1490,15 +1490,16 @@
       "MINIMAL": "Minimal risk"
     },
     "categories": {
-      "NETWORK_OFFICE": "Network and office",
-      "CLOUDFLARE_DNS": "Cloudflare and DNS",
-      "MICROSOFT_365": "Microsoft 365",
-      "SHAREPOINT_ONEDRIVE": "SharePoint and OneDrive",
-      "PASSWORDS_RBAC": "Passwords and access control",
-      "ACCOUNTING_SOFTWARE": "Accounting software",
-      "DEVICES": "Devices and laptops",
-      "STORAGE_BACKUPS_RETENTION": "Storage, backups and retention",
-      "GDPR_AVG": "GDPR",
+      "IDENTITY": "Identity",
+      "OFFICE": "Office",
+      "NETWORK_EDGE": "Network and edge",
+      "CLOUD_PLATFORM": "Cloud platform",
+      "APPLICATIONS": "Applications",
+      "DATA": "Data",
+      "DEVICES": "Devices",
+      "DEVELOPMENT_SUPPLY_CHAIN": "Development and supply chain",
+      "DETECTION_RESPONSE": "Detection and response",
+      "COMPLIANCE": "Compliance",
       "NONE": "Uncategorized"
     },
     "outcomes": {

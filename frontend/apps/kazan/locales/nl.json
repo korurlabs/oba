@@ -1490,15 +1490,16 @@
       "MINIMAL": "Minimaal risico"
     },
     "categories": {
-      "NETWORK_OFFICE": "Netwerk en kantoor",
-      "CLOUDFLARE_DNS": "Cloudflare en DNS",
-      "MICROSOFT_365": "Microsoft 365",
-      "SHAREPOINT_ONEDRIVE": "SharePoint en OneDrive",
-      "PASSWORDS_RBAC": "Wachtwoorden en toegangsbeheer",
-      "ACCOUNTING_SOFTWARE": "Boekhoudsoftware",
-      "DEVICES": "Apparaten en laptops",
-      "STORAGE_BACKUPS_RETENTION": "Opslag, back-ups en bewaring",
-      "GDPR_AVG": "AVG",
+      "IDENTITY": "Identiteit",
+      "OFFICE": "Kantoor",
+      "NETWORK_EDGE": "Netwerk en rand",
+      "CLOUD_PLATFORM": "Cloudplatform",
+      "APPLICATIONS": "Applicaties",
+      "DATA": "Gegevens",
+      "DEVICES": "Apparaten",
+      "DEVELOPMENT_SUPPLY_CHAIN": "Ontwikkeling en toeleveringsketen",
+      "DETECTION_RESPONSE": "Detectie en respons",
+      "COMPLIANCE": "Compliance",
       "NONE": "Zonder categorie"
     },
     "outcomes": {

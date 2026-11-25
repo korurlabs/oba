@@ -27,7 +27,7 @@ public record CyberscoreResponse(
         CyberscoreLevel scoreLevel,
 
         // Percentage per category name; a category without scorable checks has no key.
-        @Schema(description = "Percentage per check category", example = "{\"DEVICES\": 80, \"GDPR_AVG\": 50}")
+        @Schema(description = "Percentage per check category", example = "{\"IDENTITY\": 80, \"DATA\": 50}")
         Map<String, Integer> breakdownByCategory,
 
         // Number of checks whose outcome counts toward the score.

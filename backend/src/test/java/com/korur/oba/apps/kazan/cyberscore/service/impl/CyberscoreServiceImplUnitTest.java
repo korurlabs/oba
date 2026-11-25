@@ -165,7 +165,7 @@ class CyberscoreServiceImplUnitTest {
             when(cyberscoreRepository.findByOrganizationIdForUpdate(organizationId)).thenReturn(Optional.of(row));
             // Same overall 50, now split over two categories.
             when(checkRepository.findByOrganizationIdOrderByCategoryAscSortOrderAscNameAsc(organizationId))
-                    .thenReturn(List.of(check(1, CheckOutcome.PASS, CheckCategory.GDPR_AVG),
+                    .thenReturn(List.of(check(1, CheckOutcome.PASS, CheckCategory.COMPLIANCE),
                             check(1, CheckOutcome.FAIL, CheckCategory.DEVICES)));
 
             service.recalculate(organizationId, CyberscoreSnapshotEventType.CHECK_UPDATED, performedById);

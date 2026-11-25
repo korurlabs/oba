@@ -65,7 +65,7 @@ public record CheckRequest(
 
         // Null for an uncategorized check, which counts only towards the overall score.
         @Schema(description = "Category; null for an uncategorized check", nullable = true,
-                example = "MICROSOFT_365")
+                example = "IDENTITY")
         CheckCategory category,
 
         @Schema(description = "Current outcome; null means TODO on create and no change on edit", nullable = true,

@@ -119,17 +119,17 @@ class CyberscoreRepositoryIT extends ObaIntegrationTest {
     void breakdownByCategory_savedAndReloaded_roundTripsThroughJsonb() {
         Cyberscore saved = cyberscoreRepository.saveAndFlush(Cyberscore.builder().organizationId(organizationId)
                 .scorePercentage(61).scoreLevel(CyberscoreLevel.LOW)
-                .breakdownByCategory(new java.util.HashMap<>(Map.of("NETWORK_OFFICE", 100, "GDPR_AVG", 0)))
+                .breakdownByCategory(new java.util.HashMap<>(Map.of("IDENTITY", 100, "COMPLIANCE", 0)))
                 .lastCalculatedAt(Instant.parse("2026-11-25T10:00:00Z")).build());
 
         Cyberscore reloaded = cyberscoreRepository.findByOrganizationId(organizationId).orElseThrow();
 
         assertEquals(saved.getId(), reloaded.getId());
-        assertEquals(Map.of("NETWORK_OFFICE", 100, "GDPR_AVG", 0), reloaded.getBreakdownByCategory());
+        assertEquals(Map.of("IDENTITY", 100, "COMPLIANCE", 0), reloaded.getBreakdownByCategory());
         assertEquals(CyberscoreLevel.LOW, reloaded.getScoreLevel());
         assertEquals(Instant.parse("2026-11-25T10:00:00Z"), reloaded.getLastCalculatedAt());
         assertEquals("100", jdbc.queryForObject(
-                "SELECT breakdown_by_category ->> 'NETWORK_OFFICE' FROM kazan.cyberscores WHERE id = ?", String.class,
+                "SELECT breakdown_by_category ->> 'IDENTITY' FROM kazan.cyberscores WHERE id = ?", String.class,
                 saved.getId()));
     }
 
@@ -146,16 +146,16 @@ class CyberscoreRepositoryIT extends ObaIntegrationTest {
     @Test
     void listChecks_mixedCategories_sortsByEnumOrderThenSortOrderThenNameWithUncategorizedLast() {
         saveCheck("z uncategorized", null, 0, CheckStatus.NOT_STARTED);
-        saveCheck("b gdpr", CheckCategory.GDPR_AVG, 0, CheckStatus.NOT_STARTED);
-        saveCheck("b network", CheckCategory.NETWORK_OFFICE, 1, CheckStatus.NOT_STARTED);
-        saveCheck("c network", CheckCategory.NETWORK_OFFICE, 0, CheckStatus.NOT_STARTED);
-        saveCheck("a network", CheckCategory.NETWORK_OFFICE, 1, CheckStatus.NOT_STARTED);
+        saveCheck("b compliance", CheckCategory.COMPLIANCE, 0, CheckStatus.NOT_STARTED);
+        saveCheck("b identity", CheckCategory.IDENTITY, 1, CheckStatus.NOT_STARTED);
+        saveCheck("c identity", CheckCategory.IDENTITY, 0, CheckStatus.NOT_STARTED);
+        saveCheck("a identity", CheckCategory.IDENTITY, 1, CheckStatus.NOT_STARTED);
         saveCheck("a uncategorized", null, 0, CheckStatus.NOT_STARTED);
 
         List<String> names = checkRepository.findByOrganizationIdOrderByCategoryAscSortOrderAscNameAsc(organizationId)
                 .stream().map(Check::getName).toList();
 
-        assertEquals(List.of("c network", "a network", "b network", "b gdpr", "a uncategorized", "z uncategorized"),
+        assertEquals(List.of("c identity", "a identity", "b identity", "b compliance", "a uncategorized", "z uncategorized"),
                 names);
     }
 

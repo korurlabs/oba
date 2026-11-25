@@ -40,7 +40,7 @@ public record CheckResponse(
         int sortOrder,
 
         // Null for an uncategorized check.
-        @Schema(description = "Category; null for an uncategorized check", nullable = true, example = "MICROSOFT_365")
+        @Schema(description = "Category; null for an uncategorized check", nullable = true, example = "IDENTITY")
         CheckCategory category,
 
         @Schema(description = "Current outcome", example = "PASS")

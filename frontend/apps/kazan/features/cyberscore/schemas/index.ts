@@ -31,15 +31,16 @@ export const CHECK_ERROR_CODES = {
 
 /** Declaration order is display order, as on the server. */
 export const CheckCategorySchema = z.enum([
-  "NETWORK_OFFICE",
-  "CLOUDFLARE_DNS",
-  "MICROSOFT_365",
-  "SHAREPOINT_ONEDRIVE",
-  "PASSWORDS_RBAC",
-  "ACCOUNTING_SOFTWARE",
+  "IDENTITY",
+  "OFFICE",
+  "NETWORK_EDGE",
+  "CLOUD_PLATFORM",
+  "APPLICATIONS",
+  "DATA",
   "DEVICES",
-  "STORAGE_BACKUPS_RETENTION",
-  "GDPR_AVG",
+  "DEVELOPMENT_SUPPLY_CHAIN",
+  "DETECTION_RESPONSE",
+  "COMPLIANCE",
 ]);
 export type CheckCategory = z.infer<typeof CheckCategorySchema>;
 export const CheckCategory = CheckCategorySchema.enum;

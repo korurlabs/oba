@@ -1,5 +1,5 @@
 -- Oba Database Schema - Kazan: Create Cyberscore
--- V1_2_133__Kazan_Create_Cyberscore.sql
+-- V1_2_135__Kazan_Create_Cyberscore.sql
 --
 -- Every organization keeps a list of security checks, each with a weight, an
 -- optional category, an outcome and a workflow status. The organization has one
@@ -33,15 +33,16 @@
 
 -- The declaration order of kazan_check_category_enum is the display order.
 CREATE TYPE kazan_check_category_enum AS ENUM (
-    'NETWORK_OFFICE',
-    'CLOUDFLARE_DNS',
-    'MICROSOFT_365',
-    'SHAREPOINT_ONEDRIVE',
-    'PASSWORDS_RBAC',
-    'ACCOUNTING_SOFTWARE',
+    'IDENTITY',
+    'OFFICE',
+    'NETWORK_EDGE',
+    'CLOUD_PLATFORM',
+    'APPLICATIONS',
+    'DATA',
     'DEVICES',
-    'STORAGE_BACKUPS_RETENTION',
-    'GDPR_AVG'
+    'DEVELOPMENT_SUPPLY_CHAIN',
+    'DETECTION_RESPONSE',
+    'COMPLIANCE'
 );
 CREATE TYPE kazan_check_outcome_enum AS ENUM ('TODO', 'PASS', 'PARTIAL', 'FAIL', 'NO_LICENSE', 'NOT_APPLICABLE');
 CREATE TYPE kazan_check_status_enum AS ENUM ('NOT_STARTED', 'IN_PROGRESS', 'DONE', 'NOT_APPLICABLE');

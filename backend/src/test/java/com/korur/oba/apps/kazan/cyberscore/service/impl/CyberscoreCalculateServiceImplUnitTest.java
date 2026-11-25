@@ -92,16 +92,16 @@ class CyberscoreCalculateServiceImplUnitTest {
     @Test
     void calculate_categories_giveOnePercentagePerCategoryInDeclarationOrder() {
         List<Check> checks = new ArrayList<>(List.of(
-                check(3, CheckOutcome.PASS, CheckCategory.GDPR_AVG),
-                check(1, CheckOutcome.FAIL, CheckCategory.GDPR_AVG),
-                check(5, CheckOutcome.PASS, CheckCategory.NETWORK_OFFICE),
+                check(3, CheckOutcome.PASS, CheckCategory.COMPLIANCE),
+                check(1, CheckOutcome.FAIL, CheckCategory.COMPLIANCE),
+                check(5, CheckOutcome.PASS, CheckCategory.IDENTITY),
                 check(5, CheckOutcome.NO_LICENSE, CheckCategory.DEVICES)));
 
         CyberscoreCalculation result = service.calculate(checks);
 
-        // The category with only unscored outcomes has no entry; GDPR_AVG is declared after NETWORK_OFFICE.
+        // The category with only unscored outcomes has no entry; COMPLIANCE is declared after IDENTITY.
         assertThat(result.breakdownByCategory()).containsExactly(
-                java.util.Map.entry("NETWORK_OFFICE", 100), java.util.Map.entry("GDPR_AVG", 75));
+                java.util.Map.entry("IDENTITY", 100), java.util.Map.entry("COMPLIANCE", 75));
         assertThat(result.scorePercentage()).isEqualTo(89);
     }
 
