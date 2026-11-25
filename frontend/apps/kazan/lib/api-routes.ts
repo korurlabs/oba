@@ -92,6 +92,14 @@ export const API_ROUTES = {
     list: "/kazan/alert-routes",
     detail: (routeId: string) => `/kazan/alert-routes/${routeId}`,
   },
+  cyberscore: {
+    current: "/kazan/cyberscore",
+    trend: "/kazan/cyberscore/trend",
+    checks: "/kazan/cyberscore/checks",
+    checkDetail: (checkId: string) => `/kazan/cyberscore/checks/${checkId}`,
+    checkOutcome: (checkId: string) => `/kazan/cyberscore/checks/${checkId}/outcome`,
+    checkStatus: (checkId: string) => `/kazan/cyberscore/checks/${checkId}/status`,
+  },
   allTickets: {
     list: "/kazan/tickets",
     byKey: (key: string) => `/kazan/tickets/by-key/${encodeURIComponent(key)}`,

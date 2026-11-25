@@ -1,12 +1,20 @@
 import { ageText } from "@/lib/format-time";
 
 import type { MachineUsageResponse, MachineUsageWindow } from "../schemas";
+import { NOT_REPORTED } from "./machine-text";
+
+/** A usage window's names: in the usage panel, and in the compact cell of the machines table. */
+export type UsageWindowName = { label: string; shortLabel: string };
+
+export const FIVE_HOUR: UsageWindowName = { label: "5-hour", shortLabel: "5h" };
+export const WEEKLY: UsageWindowName = { label: "Weekly", shortLabel: "Week" };
 
 /** What one bar of the usage cell shows. */
 export type UsageWindowView =
   | {
       kind: "used";
       label: string;
+      shortLabel: string;
       /** 0 to 100, rounded for the text; the bar takes it as is. */
       percentage: number;
       /** "23%" */
@@ -18,25 +26,30 @@ export type UsageWindowView =
       /** The window's reset time has passed: no percentage, an empty bar. */
       kind: "reset";
       label: string;
+      shortLabel: string;
       /** "Reset at 14:30" */
       resetText: string;
     }
-  | { kind: "missing"; label: string };
+  | { kind: "missing"; label: string; shortLabel: string };
+
+/** What the whole cell shows when the account has a snapshot. */
+export type KnownUsageView = {
+  kind: "known";
+  windows: UsageWindowView[];
+  /** "updated 4 min ago" */
+  ageText: string | null;
+  /** "Shared with ada-mini, ada-studio · reported by ada-mini", or null for an account of one machine. */
+  sharedText: string | null;
+};
 
 /** What the whole cell shows. */
-export type UsageView =
-  | { kind: "unknown"; text: string }
-  | {
-      kind: "known";
-      windows: UsageWindowView[];
-      /** "updated 4 min ago" */
-      ageText: string | null;
-      /** "Shared with ada-mini, ada-studio · reported by ada-mini", or null for an account of one machine. */
-      sharedText: string | null;
-    };
+export type UsageView = { kind: "unknown"; text: string } | KnownUsageView;
 
 export const NO_ACCOUNT_TEXT = "Unknown: no Claude subscription reported";
 export const NO_SNAPSHOT_TEXT = "Unknown: no usage reported yet";
+
+/** The compact cell's text beside a window whose reset time has passed. */
+export const RESET_VALUE_TEXT = "reset";
 
 const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;
@@ -95,26 +108,26 @@ export function resetClockText(resetsAt: number, now: number, timeZone?: string)
  * `resetsAt` passes, the old percentage is never shown.
  */
 export function windowView(
-  label: string,
+  name: UsageWindowName,
   window: MachineUsageWindow | null | undefined,
   now: number,
   timeZone?: string
 ): UsageWindowView {
-  if (window === null || window === undefined) return { kind: "missing", label };
+  if (window === null || window === undefined) return { kind: "missing", ...name };
   const resetsAt = Date.parse(window.resetsAt);
-  if (Number.isNaN(resetsAt)) return { kind: "missing", label };
+  if (Number.isNaN(resetsAt)) return { kind: "missing", ...name };
   const clock = resetClockText(resetsAt, now, timeZone);
   const used =
     window.usedPercentage === null || window.usedPercentage === undefined
       ? Number.NaN
       : Number(window.usedPercentage);
   if (window.reset || resetsAt <= now || Number.isNaN(used)) {
-    return { kind: "reset", label, resetText: `Reset at ${clock}` };
+    return { kind: "reset", ...name, resetText: `Reset at ${clock}` };
   }
   const percentage = Math.min(100, Math.max(0, used));
   return {
     kind: "used",
-    label,
+    ...name,
     percentage,
     percentageText: `${Math.round(percentage)}%`,
     resetText: `resets ${clock}, ${countdownText(resetsAt, now)}`,
@@ -138,8 +151,8 @@ export function usageView(
   return {
     kind: "known",
     windows: [
-      windowView("5-hour", usage.fiveHour, now, timeZone),
-      windowView("Weekly", usage.sevenDay, now, timeZone),
+      windowView(FIVE_HOUR, usage.fiveHour, now, timeZone),
+      windowView(WEEKLY, usage.sevenDay, now, timeZone),
     ],
     ageText: usage.capturedAt ? `updated ${ageText(usage.capturedAt, now)}` : null,
     sharedText:
@@ -147,6 +160,37 @@ export function usageView(
         ? null
         : `Shared with ${shared.join(", ")}${reporter ? ` · reported by ${reporter}` : ""}`,
   };
+}
+
+/**
+ * The text beside a window's bar in the compact cell: "47%", "reset" once the
+ * reset time has passed, or null for a window the machine did not report,
+ * which the cell shows as a dash.
+ */
+export function windowValueText(view: UsageWindowView): string | null {
+  if (view.kind === "used") return view.percentageText;
+  if (view.kind === "reset") return RESET_VALUE_TEXT;
+  return null;
+}
+
+/** The window's line in the compact cell's tooltip: "5-hour: 47%, resets 14:30, in 2 h 05 min". */
+export function windowDetailText(view: UsageWindowView): string {
+  if (view.kind === "used") return `${view.label}: ${view.percentageText}, ${view.resetText}`;
+  if (view.kind === "reset") return `${view.label}: ${view.resetText}`;
+  return `${view.label}: ${NOT_REPORTED}`;
+}
+
+/**
+ * The compact cell keeps one short row per window; when each resets, how old
+ * the snapshot is and which machines share the account move into its tooltip,
+ * one line each.
+ */
+export function usageDetailLines(view: KnownUsageView): string[] {
+  const lines = view.windows.map(windowDetailText);
+  if (view.ageText !== null)
+    lines.push(view.ageText.charAt(0).toUpperCase() + view.ageText.slice(1));
+  if (view.sharedText !== null) lines.push(view.sharedText);
+  return lines;
 }
 
 /** The usage cell recomputes countdowns, ages and passed resets this often. */

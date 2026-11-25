@@ -2,7 +2,7 @@
   {
     "exit": 0,
     "stderr": [
-      "kaya recorder: no KAYA_RECORDER_TOKEN: this session is recorded on this machine only and sent once a valid token is set (kagi secrets set --personal --path /kaya/recorder KAYA_RECORDER_TOKEN=<token>)"
+      "kaya recorder: no KAYA_RECORDER_TOKEN: this session is recorded on this machine only and sent once a valid token is set (kagi secrets set --personal --path /kaya/recorder --from-file /dev/stdin, then enter KAYA_RECORDER_TOKEN=<token> and Ctrl-D)"
     ],
     "stdout": ""
   },

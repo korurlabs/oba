@@ -105,6 +105,7 @@ public enum ExceptionDomainKazanError implements ExceptionDomainError {
     NOT_GITHUB_REPOSITORY_FOUND("KAZ_NOT_017", "GitHub repository not found.", ExceptionCategory.NOT),
     NOT_GITHUB_PULL_REQUEST_FOUND("KAZ_NOT_018", "Pull request not found on GitHub.", ExceptionCategory.NOT),
     NOT_PULL_REQUEST_SHARE_FOUND("KAZ_NOT_019", "Pull request share not found.", ExceptionCategory.NOT),
+    NOT_CHECK_FOUND("KAZ_NOT_020", "Cyberscore check not found.", ExceptionCategory.NOT),
 
     // ── State (KAZ_STA) ─────────────────────────────────────────────────────
     STA_SPRINT_ALREADY_COMPLETED("KAZ_STA_001", "Sprint is already completed.", ExceptionCategory.STA),
@@ -126,6 +127,7 @@ public enum ExceptionDomainKazanError implements ExceptionDomainError {
     STA_SLUG_TAKEN("KAZ_STA_017", "Another item took this name a moment ago. Try again.", ExceptionCategory.STA),
     STA_BOARD_IN_OTHER_SPRINT_SERIES("KAZ_STA_018", "This board already belongs to another repeating sprint series. Turn that series off or unlink the board from its sprint first.", ExceptionCategory.STA),
     STA_BOARD_MEMBER_NOT_IN_ORGANIZATION("KAZ_STA_019", "This user is not a member of the board's organization.", ExceptionCategory.STA),
+    STA_CHECK_NAME_DUPLICATE("KAZ_STA_020", "This organization already has a cyberscore check with this name.", ExceptionCategory.STA),
 
     // ── Upstream (KAZ_UPS) ───────────────────────────────────────────────────
     UPS_AI_UNAVAILABLE("KAZ_UPS_001", "AI service is currently unavailable.", ExceptionCategory.UPS),

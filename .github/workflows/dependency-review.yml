@@ -11,7 +11,7 @@ name: Dependency review
 # already on main, and advisories published after a dependency merged, are
 # reported by Dependabot alerts under the repository's Security tab.
 #
-# Ecosystems: Maven (backend), Go modules (cli/oba, cli/kalkan), the frontend
+# Ecosystems: Maven (backend), Go module (cli/oba), the frontend
 # packages and the GitHub Actions the workflows use, as far as GitHub's
 # dependency graph reads their manifests.
 #

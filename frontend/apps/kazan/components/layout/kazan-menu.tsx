@@ -22,6 +22,7 @@ import {
 import { useGetMe } from "@oba/shared/features/users/hooks/use-get-me";
 import { useChatChannelListRealtime } from "@/features/chat/hooks/use-chat-realtime";
 import { ChatChannelPurpose } from "@/features/chat/schemas";
+import { isCyberscoreClosed } from "@/features/cyberscore/lib/cyberscore-access";
 import { BoardsNavItem } from "./sidebar-boards-nav";
 import { ChatChannelNavItem, ChatNavItem } from "./sidebar-chat-nav";
 import { SidebarItem } from "./sidebar-item";
@@ -31,9 +32,10 @@ import { SidebarItem } from "./sidebar-item";
  * sections like the other sky apps: Operations holds the security operations
  * pages, Work the tickets and the team's conversations. The daily updates and
  * pull requests channels sit in Work, next to the Chats and Boards rows; each
- * channel row shows only once its channel exists. Settings sits apart at the
- * panel's foot, drawn by the shell. When the rows do not fit, the panel
- * scrolls.
+ * channel row shows only once its channel exists. The Cyberscore row is left
+ * out for a guest of the organization, whom the API refuses the cyberscore.
+ * Settings sits apart at the panel's foot, drawn by the shell. When the rows
+ * do not fit, the panel scrolls.
  *
  * The rows close the menu sheet of a narrow window on a click, and the Chats
  * and Boards rows hide their channel list, board tree and "+" while Kazan is
@@ -42,7 +44,9 @@ import { SidebarItem } from "./sidebar-item";
 export function KazanMenu() {
   const t = useTranslations("sidebar");
   const { data: meResponse } = useGetMe();
-  const currentUserId = meResponse?.data?.id;
+  const me = meResponse?.data;
+  const currentUserId = me?.id;
+  const cyberscoreClosed = isCyberscoreClosed(me, me?.defaultOrganizationId);
   // The chat rows follow channel changes on every page, not only in the chat view.
   useChatChannelListRealtime();
 
@@ -58,7 +62,9 @@ export function KazanMenu() {
             <SidebarItem href="/disaster-drills" label={t("disasterDrills")} icon={LifeBuoy} />
             <SidebarItem href="/backup-runs" label={t("backupRuns")} icon={DatabaseBackup} />
             <SidebarItem href="/chaos-engineering" label={t("chaosEngineering")} icon={Tornado} />
-            <SidebarItem href="/cyberscore" label={t("cyberscore")} icon={Gauge} />
+            {!cyberscoreClosed && (
+              <SidebarItem href="/cyberscore" label={t("cyberscore")} icon={Gauge} />
+            )}
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>

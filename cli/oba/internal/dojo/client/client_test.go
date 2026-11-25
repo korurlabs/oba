@@ -1,6 +1,7 @@
 package client
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -85,5 +86,21 @@ func TestClientRefreshesOnce(t *testing.T) {
 	c := New(srv.URL, "", func() (string, error) { return "old", nil }, func() (string, error) { refreshed++; return "new", nil })
 	if _, err := c.Get("/x"); err != nil || refreshed != 1 || calls != 2 {
 		t.Errorf("err %v refreshed %d calls %d", err, refreshed, calls)
+	}
+}
+
+func TestClientMarksAFailedRefreshAsAnExpiredSession(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+	}))
+	defer srv.Close()
+	refreshErr := errors.New("invalid_grant")
+	c := New(srv.URL, "", func() (string, error) { return "old", nil }, func() (string, error) { return "", refreshErr })
+	_, err := c.Get("/x")
+	if !errors.Is(err, ErrSessionExpired) || !errors.Is(err, refreshErr) {
+		t.Fatalf("err = %v, want ErrSessionExpired wrapping the refresh error", err)
+	}
+	if want := "your session has expired and could not be refreshed (invalid_grant). Run 'oba login'"; err.Error() != want {
+		t.Errorf("err = %q, want %q", err, want)
 	}
 }

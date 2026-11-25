@@ -1,0 +1,121 @@
+-- Oba Database Schema - Kazan: Create Cyberscore
+-- V1_2_135__Kazan_Create_Cyberscore.sql
+--
+-- Every organization keeps a list of security checks, each with a weight, an
+-- optional category, an outcome and a workflow status. The organization has one
+-- live cyberscore computed from its checks (kazan.cyberscores, one row per
+-- organization), and an append-only history of that score (kazan.cyberscore_snapshots)
+-- that feeds the trend chart. The status is workflow only and never enters the
+-- score. Snapshots keep no link to a check, so they survive deleting one.
+-- The percentage per category is not stored: it is computed from the checks
+-- when the score is read, so it can never disagree with them.
+--
+-- Delete rules:
+--   cyberscore_checks_organization_id_fk, cyberscores_organization_id_fk and
+--     cyberscore_snapshots_organization_id_fk ON DELETE CASCADE: deleting an
+--     organization deletes its checks, its score and its history.
+--   cyberscore_snapshots_performed_by_id_fk ON DELETE SET NULL: the history
+--     outlives the user who caused a snapshot, so only the author is cleared.
+--
+-- Indexes:
+--   cyberscore_checks_organization_id_name_uk enforces one check name per organization;
+--     leading with organization_id it also serves the list of an organization's
+--     checks and the organization foreign key cascade.
+--   cyberscores_organization_id_uk enforces one score row per organization, serves
+--     the lookup and the row lock of the write flow, and the organization cascade.
+--   cyberscore_snapshots_organization_id_taken_at_idx serves the trend query
+--     (one organization, a time range, ordered by time) and the organization
+--     cascade.
+--   cyberscore_snapshots_performed_by_id_idx serves the user foreign key
+--     (SET NULL on user delete).
+
+-- =====================================================
+-- 1. Create enums
+-- =====================================================
+
+-- The declaration order of kazan_cyberscore_check_category_enum is the display order.
+CREATE TYPE kazan_cyberscore_check_category_enum AS ENUM (
+    'IDENTITY',
+    'OFFICE',
+    'NETWORK_EDGE',
+    'CLOUD_PLATFORM',
+    'APPLICATIONS',
+    'DATA',
+    'DEVICES',
+    'DEVELOPMENT_SUPPLY_CHAIN',
+    'DETECTION_RESPONSE',
+    'COMPLIANCE'
+);
+CREATE TYPE kazan_cyberscore_check_outcome_enum AS ENUM ('TODO', 'PASS', 'PARTIAL', 'FAIL', 'NO_LICENSE', 'NOT_APPLICABLE');
+CREATE TYPE kazan_cyberscore_check_status_enum AS ENUM ('NOT_STARTED', 'IN_PROGRESS', 'DONE', 'NOT_APPLICABLE');
+CREATE TYPE kazan_cyberscore_level_enum AS ENUM ('UNKNOWN', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'MINIMAL');
+CREATE TYPE kazan_cyberscore_snapshot_event_type_enum AS ENUM (
+    'CHECK_CREATED',
+    'CHECK_UPDATED',
+    'CHECK_OUTCOME_CHANGED',
+    'CHECK_DELETED'
+);
+
+-- =====================================================
+-- 2. Create tables
+-- =====================================================
+
+CREATE TABLE kazan.cyberscore_checks (
+    id UUID NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    description VARCHAR(5000) NULL,
+    expected VARCHAR(5000) NOT NULL,
+    weight INTEGER NOT NULL,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    category kazan_cyberscore_check_category_enum NULL,
+    outcome kazan_cyberscore_check_outcome_enum NOT NULL DEFAULT 'TODO',
+    status kazan_cyberscore_check_status_enum NOT NULL DEFAULT 'NOT_STARTED',
+    organization_id UUID NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT cyberscore_checks_pk PRIMARY KEY (id),
+    CONSTRAINT cyberscore_checks_organization_id_fk FOREIGN KEY (organization_id) REFERENCES shrine.organizations (id) ON DELETE CASCADE,
+    CONSTRAINT cyberscore_checks_organization_id_name_uk UNIQUE (organization_id, name),
+    CONSTRAINT cyberscore_checks_weight_ck CHECK (weight BETWEEN 1 AND 100),
+    CONSTRAINT cyberscore_checks_sort_order_ck CHECK (sort_order BETWEEN 0 AND 9999)
+);
+
+-- One row per organization, created on the first scoring change.
+CREATE TABLE kazan.cyberscores (
+    id UUID NOT NULL,
+    score_percentage INTEGER NOT NULL DEFAULT 0,
+    score_level kazan_cyberscore_level_enum NOT NULL DEFAULT 'UNKNOWN',
+    organization_id UUID NOT NULL,
+    last_calculated_at TIMESTAMP WITH TIME ZONE NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT cyberscores_pk PRIMARY KEY (id),
+    CONSTRAINT cyberscores_organization_id_fk FOREIGN KEY (organization_id) REFERENCES shrine.organizations (id) ON DELETE CASCADE,
+    CONSTRAINT cyberscores_organization_id_uk UNIQUE (organization_id),
+    CONSTRAINT cyberscores_score_percentage_ck CHECK (score_percentage BETWEEN 0 AND 100)
+);
+
+-- Append only: the application inserts a row when the score or its level
+-- changes, and never updates or deletes one.
+CREATE TABLE kazan.cyberscore_snapshots (
+    id UUID NOT NULL,
+    score_percentage INTEGER NOT NULL,
+    score_level kazan_cyberscore_level_enum NOT NULL,
+    event_type kazan_cyberscore_snapshot_event_type_enum NOT NULL,
+    organization_id UUID NOT NULL,
+    performed_by_id UUID NULL,
+    taken_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT cyberscore_snapshots_pk PRIMARY KEY (id),
+    CONSTRAINT cyberscore_snapshots_organization_id_fk FOREIGN KEY (organization_id) REFERENCES shrine.organizations (id) ON DELETE CASCADE,
+    CONSTRAINT cyberscore_snapshots_performed_by_id_fk FOREIGN KEY (performed_by_id) REFERENCES shrine.users (id) ON DELETE SET NULL,
+    CONSTRAINT cyberscore_snapshots_score_percentage_ck CHECK (score_percentage BETWEEN 0 AND 100)
+);
+
+-- =====================================================
+-- 3. Create indexes
+-- =====================================================
+
+CREATE INDEX cyberscore_snapshots_organization_id_taken_at_idx ON kazan.cyberscore_snapshots (organization_id, taken_at);
+CREATE INDEX cyberscore_snapshots_performed_by_id_idx ON kazan.cyberscore_snapshots (performed_by_id);
