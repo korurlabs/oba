@@ -17,6 +17,8 @@ import {
   MEMBER_KEYS,
   ORGANIZATION_KEYS,
 } from "@/features/organizations/hooks/query-keys";
+import { listAgents } from "@/features/agents/api";
+import { AGENT_KEYS } from "@/features/agents/hooks/query-keys";
 import type { OrganizationSection } from "@/features/organizations/components/current-organization-page";
 
 interface OrganizationQuery {
@@ -27,6 +29,13 @@ interface OrganizationQuery {
 /** The lists each section's view queries on mount, besides the organization. */
 function sectionQueries(organizationId: string, section: OrganizationSection): OrganizationQuery[] {
   switch (section) {
+    case "agents":
+      return [
+        {
+          queryKey: AGENT_KEYS.list(organizationId),
+          queryFn: () => listAgents(organizationId),
+        },
+      ];
     case "humans":
       return [
         {

@@ -28,6 +28,18 @@ export const API_ROUTES = {
     appAccess: (orgId: string) =>
       `/organizations/${orgId}/app-grants/app-access`,
   },
+  agents: {
+    list: (orgId: string) => `/organizations/${orgId}/agents`,
+    options: (orgId: string) => `/organizations/${orgId}/agents/options`,
+    detail: (orgId: string, agentId: string) =>
+      `/organizations/${orgId}/agents/${agentId}`,
+    status: (orgId: string, agentId: string) =>
+      `/organizations/${orgId}/agents/${agentId}/status`,
+    token: (orgId: string, agentId: string) =>
+      `/organizations/${orgId}/agents/${agentId}/token`,
+    routine: (orgId: string, agentId: string) =>
+      `/organizations/${orgId}/agents/${agentId}/routine`,
+  },
   legalEntities: {
     list: "/legal-entities",
     detail: (legalEntityId: string) => `/legal-entities/${legalEntityId}`,
