@@ -26,6 +26,7 @@ import java.util.stream.Stream;
 import com.korur.oba.dojo.constant.CommonConstant;
 import com.korur.oba.dojo.exception.enums.ExceptionSecurityError;
 import com.korur.oba.dojo.exception.internal.auth.ForbiddenException;
+import com.korur.oba.dojo.exception.internal.auth.UnauthorizedException;
 import com.korur.oba.dojo.exception.internal.business.BadRequestException;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
@@ -67,6 +68,8 @@ import com.korur.oba.shrine.organization.exception.ExceptionDomainOrganizationEr
  *    a handler outside the apps has no app check (403).
  * 9. The user and the membership are stored on the request for GetUser and the services.
  *
+ * An API token authentication without a principal carries no identity and is refused before step 1 (401).
+ *
  * Default behavior: DEFAULT-DENY. Any other authentication is refused (403), except an anonymous one on
  * {@link SecurityConstant#PUBLIC_PATHS} and the authentication of an integration chain on
  * {@link SecurityConstant#INTEGRATION_CHAIN_PATHS}, which that chain guards. Handlers outside
@@ -99,6 +102,7 @@ public class RequiredUserAccessInterceptor implements HandlerInterceptor {
      *                             ACTIVE, the token names another organization, the membership is
      *                             missing or not ACTIVE, the organization is disabled, the role is too
      *                             low, or the member may not open the app of the handler
+     * @throws UnauthorizedException when an API token authentication carries no principal
      * @throws BadRequestException when the organization id is missing, not a UUID, or differs
      *                             between the path and the header
      */
@@ -163,9 +167,20 @@ public class RequiredUserAccessInterceptor implements HandlerInterceptor {
                 : pathVariables.get(SecurityConstant.PATH_VARIABLE_ORGANIZATION_ID);
         String headerOrganizationId = request.getHeader(CommonConstant.HEADER_ORGANIZATION_ID);
 
+        ApiTokenPrincipal tokenPrincipal = tokenAuthentication == null ? null : tokenAuthentication.getPrincipal();
+        String jwtSubject = jwtAuthentication == null ? null : jwtAuthentication.getToken().getSubject();
+
+        // Every check below acts for one identity: the token's principal or the JWT. A token
+        // authentication built without a principal names nobody, so it is refused as unauthenticated
+        // instead of being checked as if it were a JWT.
+        if (tokenPrincipal == null && jwtAuthentication == null) {
+            loggingService.error(LOG_PREFIX, LogLayer.HANDLER, SecurityLogConstant.ACCESS_DENIED_AUTHENTICATION_UNSUPPORTED,
+                    handlerMethod, path, authentication == null ? null : authentication.getClass().getName());
+            throw new UnauthorizedException(ExceptionSecurityError.UNAUTHORIZED);
+        }
+
         // An SSE response is dispatched a second time within the same request. The first dispatch
         // passed every check and stored the principal, so it is reused for the same organization.
-        ApiTokenPrincipal tokenPrincipal = tokenAuthentication == null ? null : tokenAuthentication.getPrincipal();
         if (request.getAttribute(SecurityConstant.REQUEST_ATTRIBUTE_ORGANIZATION_MEMBER)
                         instanceof OrganizationMember storedMember
                 && storedMember.getOrganization().getId().equals(tokenPrincipal == null
@@ -178,7 +193,7 @@ public class RequiredUserAccessInterceptor implements HandlerInterceptor {
 
         // 1. The JWT subject must belong to a provisioned user; a token's user must still exist.
         User user = tokenPrincipal == null
-                ? userAuthorizationValidator.ensureUserIsProvisioned(jwtAuthentication.getToken().getSubject(), path)
+                ? userAuthorizationValidator.ensureUserIsProvisioned(jwtSubject, path)
                 : userAuthorizationValidator.ensureUserExistsById(tokenPrincipal.userId(), path);
 
         // 2. A disabled or onboarding account has no organization access.

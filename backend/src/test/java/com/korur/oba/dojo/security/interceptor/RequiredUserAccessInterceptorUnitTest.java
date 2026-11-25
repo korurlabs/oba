@@ -36,6 +36,7 @@ import java.util.UUID;
 import com.korur.oba.dojo.exception.enums.ExceptionDomainError;
 import com.korur.oba.dojo.exception.enums.ExceptionSecurityError;
 import com.korur.oba.dojo.exception.internal.auth.ForbiddenException;
+import com.korur.oba.dojo.exception.internal.auth.UnauthorizedException;
 import com.korur.oba.dojo.exception.internal.business.BadRequestException;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
@@ -664,6 +665,21 @@ class RequiredUserAccessInterceptorUnitTest {
 
             verify(validator, never()).ensureUserIsActive(any(), anyString());
             verify(validator, never()).ensureApiTokenOrganizationId(any(), any(), any(), anyString());
+        }
+
+        @Test
+        void preHandle_tokenWithoutPrincipal_throwsUnauthorizedBeforeEveryStep() throws Exception {
+            SecurityContextHolder.getContext().setAuthentication(new ApiTokenAuthentication(ApiTokenKind.AGENT, null));
+
+            UnauthorizedException exception = assertThrows(UnauthorizedException.class,
+                    () -> interceptor.preHandle(request, response, handler("guestOk")));
+
+            assertEquals(ExceptionSecurityError.UNAUTHORIZED.getCode(), exception.getErrorCode());
+            verifyNoInteractions(validator);
+            verify(loggingService).error(any(LogPrefix.class), eq(LogLayer.HANDLER),
+                    eq(SecurityLogConstant.ACCESS_DENIED_AUTHENTICATION_UNSUPPORTED), any(HandlerMethod.class),
+                    eq("/kazan/chat/channels"), eq(ApiTokenAuthentication.class.getName()));
+            assertNull(request.getAttribute(SecurityConstant.REQUEST_ATTRIBUTE_CURRENT_USER));
         }
     }
 }

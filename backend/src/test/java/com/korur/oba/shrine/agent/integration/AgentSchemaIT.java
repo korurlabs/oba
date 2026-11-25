@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The application starts with {@code ddl-auto=validate}, so reaching any test of this class proves that the
- * User columns of V1_2_134 and the agent routine entity of V1_2_135 match the migrated schema. The tests
+ * User columns of V1_2_135 and the agent routine entity of V1_2_136 match the migrated schema. The tests
  * add the loading of both mappings, the agent name query and the constraints of the schema.
  */
 class AgentSchemaIT extends AbstractAgentIT {
