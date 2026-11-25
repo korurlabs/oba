@@ -202,6 +202,37 @@ class TicketServiceImplUnitAgentTest {
         assertThat(event.organizationId()).isEqualTo(organizationId);
         assertThat(event.ticketKey()).isEqualTo("B-0");
         assertThat(event.addedUserIds()).containsExactly(agent.getId(), personId);
+        assertThat(event.actorId()).isEqualTo(personId);
+        assertThat(event.actorKind()).isEqualTo(UserKind.HUMAN);
+    }
+
+    @Test
+    void createTicket_agentAssignsAnAgent_throwsForbiddenAndSavesAndPublishesNothing() {
+        User assignedAgent = user(UserKind.AGENT);
+        TicketCreateRequest request = createRequest(TicketStatus.TODO, List.of(assignedAgent.getId()), null);
+        givenMapped(request);
+        when(agentUserQueryService.getUserEntitiesByIds(List.of(assignedAgent.getId()))).thenReturn(List.of(assignedAgent));
+
+        ForbiddenException exception = assertThrows(ForbiddenException.class,
+                () -> ticketService.createTicket(agent, organizationId, boardId, request));
+
+        assertThat(exception.getErrorCode()).isEqualTo("AGT_SEC_002");
+        verify(ticketRepository, never()).save(any(Ticket.class));
+        verifyNoInteractions(applicationEventPublisher);
+    }
+
+    @Test
+    void createTicket_agentAssignsAPerson_savesAndPublishesWithTheAgentAsActor() {
+        TicketCreateRequest request = createRequest(TicketStatus.TODO, List.of(person.getId()), null);
+        givenMapped(request);
+        when(agentUserQueryService.getUserEntitiesByIds(List.of(person.getId()))).thenReturn(List.of(person));
+
+        ticketService.createTicket(agent, organizationId, boardId, request);
+
+        verify(ticketRepository).save(any(Ticket.class));
+        TicketAssigneesAddedEvent event = publishedEvent();
+        assertThat(event.addedUserIds()).containsExactly(person.getId());
+        assertThat(event.actorKind()).isEqualTo(UserKind.AGENT);
     }
 
     @Test
@@ -273,6 +304,33 @@ class TicketServiceImplUnitAgentTest {
         assertThat(event.ticketId()).isEqualTo(ticket.getId());
         assertThat(event.ticketKey()).isEqualTo("B-7");
         assertThat(event.addedUserIds()).containsExactly(agent.getId());
+    }
+
+    @Test
+    void updateTicket_agentAddsAnAgentAssignee_throwsForbiddenAndSavesAndPublishesNothing() {
+        Ticket ticket = storedTicket(TicketStatus.TODO);
+        User assignedAgent = user(UserKind.AGENT);
+        when(agentUserQueryService.getUserEntitiesByIds(List.of(assignedAgent.getId()))).thenReturn(List.of(assignedAgent));
+
+        ForbiddenException exception = assertThrows(ForbiddenException.class, () -> ticketService.updateTicket(
+                agent, organizationId, boardId, ticket.getId(), updateRequest(null, List.of(assignedAgent.getId()), null)));
+
+        assertThat(exception.getErrorCode()).isEqualTo("AGT_SEC_002");
+        verify(ticketRepository, never()).save(any(Ticket.class));
+        verifyNoInteractions(applicationEventPublisher);
+    }
+
+    @Test
+    void updateTicket_agentKeepsAnAgentAlreadyAssigned_savesWithoutALookup() {
+        Ticket ticket = storedTicket(TicketStatus.TODO);
+        User assignedAgent = user(UserKind.AGENT);
+        ticket.getAssignees().add(TicketAssignee.builder().ticket(ticket).user(assignedAgent).build());
+
+        ticketService.updateTicket(agent, organizationId, boardId, ticket.getId(),
+                updateRequest(null, List.of(assignedAgent.getId()), null));
+
+        verify(ticketRepository).save(ticket);
+        verifyNoInteractions(agentUserQueryService, applicationEventPublisher);
     }
 
     @Test

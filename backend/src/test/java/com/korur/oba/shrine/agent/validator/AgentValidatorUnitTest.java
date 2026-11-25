@@ -120,6 +120,45 @@ class AgentValidatorUnitTest {
     }
 
     @Test
+    void ensureCallerNamesNoAgent_agentNamingAnAgent_throwsForbiddenAgentActionRefused() {
+        User caller = user(UserKind.AGENT);
+        User person = user(UserKind.HUMAN);
+        User agent = user(UserKind.AGENT);
+        when(userQueryService.getUserEntitiesByIds(List.of(person.getId(), agent.getId())))
+                .thenReturn(List.of(person, agent));
+
+        ForbiddenException exception = assertThrows(ForbiddenException.class, () -> agentValidator
+                .ensureCallerNamesNoAgent(caller, List.of(person.getId(), agent.getId(), person.getId()),
+                        AgentConstant.ACTION_TICKET_AGENT_ASSIGNEE));
+
+        assertEquals("AGT_SEC_002", exception.getErrorCode());
+        assertEquals(AgentConstant.ACTION_TICKET_AGENT_ASSIGNEE,
+                exception.getErrorValues().get(AgentConstant.FIELD_ACTION));
+        assertEquals(agent.getId().toString(), exception.getErrorValues().get(AgentConstant.FIELD_USER_ID));
+    }
+
+    @Test
+    void ensureCallerNamesNoAgent_agentNamingPeople_passes() {
+        User person = user(UserKind.HUMAN);
+        when(userQueryService.getUserEntitiesByIds(List.of(person.getId()))).thenReturn(List.of(person));
+
+        assertDoesNotThrow(() -> agentValidator.ensureCallerNamesNoAgent(user(UserKind.AGENT),
+                List.of(person.getId()), AgentConstant.ACTION_TICKET_AGENT_ASSIGNEE));
+    }
+
+    @Test
+    void ensureCallerNamesNoAgent_personCallerOrNoUsers_queriesNothing() {
+        agentValidator.ensureCallerNamesNoAgent(user(UserKind.HUMAN), List.of(UUID.randomUUID()),
+                AgentConstant.ACTION_TICKET_AGENT_ASSIGNEE);
+        agentValidator.ensureCallerNamesNoAgent(user(UserKind.AGENT), List.of(),
+                AgentConstant.ACTION_TICKET_AGENT_ASSIGNEE);
+        agentValidator.ensureCallerNamesNoAgent(user(UserKind.AGENT), null,
+                AgentConstant.ACTION_TICKET_AGENT_ASSIGNEE);
+
+        verify(userQueryService, never()).getUserEntitiesByIds(anyList());
+    }
+
+    @Test
     void ensureNameFree_nameTaken_throwsConflictNameTaken() {
         UUID organizationId = UUID.randomUUID();
         UUID agentId = UUID.randomUUID();

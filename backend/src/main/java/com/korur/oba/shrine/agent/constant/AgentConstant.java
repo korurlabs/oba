@@ -49,6 +49,9 @@ public final class AgentConstant {
     public static final String ACTION_KAYA_SESSION_DELETE = "KAYA_SESSION_DELETE";
     public static final String ACTION_KAYA_TOKEN_REVOKE = "KAYA_TOKEN_REVOKE";
     public static final String ACTION_KAYA_MACHINE_RETIRE = "KAYA_MACHINE_RETIRE";
+    // Nor does an agent assign a ticket to another agent: the assignment starts that agent's run, and
+    // only a person starts an agent.
+    public static final String ACTION_TICKET_AGENT_ASSIGNEE = "TICKET_AGENT_ASSIGNEE";
 
     // Actions that do not apply to an agent as the target (AGT_VAL_001): its membership and status are
     // managed on the Agents page, and its role on a board stays MEMBER.

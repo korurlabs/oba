@@ -22,10 +22,15 @@ import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.shrine.agent.routine.service.AgentRoutineService;
+import com.korur.oba.shrine.identity.enums.UserKind;
 
 /**
  * Fires the routine of each agent a ticket change assigned, with the ticket key as the routine's
  * only input, so the agent's hosted session starts on the ticket.
+ *
+ * Only a person starts an agent: an assignment an agent made fires nothing. The ticket service already
+ * refuses an agent that assigns another agent; this listener holds the same rule for any change that
+ * reaches it.
  *
  * It lives in Kazan, which owns the ticket and the event, so the agent and connector code stays free
  * of tickets. {@link AgentRoutineService#fire} answers empty for a person, an API agent, a disabled
@@ -47,13 +52,19 @@ public class TicketAgentRoutineListener {
     private final LoggingService loggingService;
 
     /**
-     * Fires the routine of every agent among the added assignees.
+     * Fires the routine of every agent among the added assignees, when a person added them.
      *
      * @param event the committed assignment
      */
     @Async(RoutineConstant.EXECUTOR_BEAN_NAME)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onTicketAssigneesAdded(TicketAssigneesAddedEvent event) {
+        if (event.actorKind() != UserKind.HUMAN) {
+            loggingService.info(LOG_PREFIX, LogLayer.HANDLER,
+                    TicketAgentRoutineListenerLogConstant.ROUTINE_NOT_FIRED_FOR_NON_PERSON,
+                    event.organizationId(), event.ticketKey(), event.actorId(), event.actorKind());
+            return;
+        }
         for (UUID userId : event.addedUserIds()) {
             fire(event, userId);
         }

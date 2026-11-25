@@ -11,6 +11,8 @@ public final class AgentValidatorLogConstant {
 
     public static final String AGENT_CALLER_REFUSED =
             "Agent caller refused: agentId={}, action={}";
+    public static final String AGENT_CALLER_NAMING_AGENT_REFUSED =
+            "Agent caller naming an agent refused: agentId={}, targetAgentId={}, action={}";
     public static final String AGENT_TARGET_REFUSED =
             "Agent target refused: agentId={}, action={}";
     public static final String AGENT_NAME_TAKEN =
