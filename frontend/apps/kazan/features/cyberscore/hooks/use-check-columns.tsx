@@ -28,8 +28,8 @@ interface CheckColumnsOptions {
   onDelete: (check: Check) => void;
   onOutcomeChange: (check: Check, outcome: CheckOutcome) => void;
   onStatusChange: (check: Check, status: CheckStatus) => void;
-  /** The check whose outcome or status is being saved; its selects are disabled until the answer. */
-  savingCheckId: string | null;
+  /** The checks whose outcome or status is being saved; their selects are disabled until each answers. */
+  savingCheckIds: ReadonlySet<string>;
 }
 
 /**
@@ -43,7 +43,7 @@ export function useCheckColumns({
   onDelete,
   onOutcomeChange,
   onStatusChange,
-  savingCheckId,
+  savingCheckIds,
 }: CheckColumnsOptions) {
   const t = useTranslations("cyberscore");
   const dates = useDateFormat();
@@ -93,7 +93,7 @@ export function useCheckColumns({
             <CheckOutcomeSelect
               value={row.original.outcome}
               checkName={row.original.name}
-              disabled={savingCheckId === row.original.id}
+              disabled={savingCheckIds.has(row.original.id)}
               onChange={(outcome) => onOutcomeChange(row.original, outcome)}
             />
           ) : (
@@ -116,7 +116,7 @@ export function useCheckColumns({
             <CheckStatusSelect
               value={row.original.status}
               checkName={row.original.name}
-              disabled={savingCheckId === row.original.id}
+              disabled={savingCheckIds.has(row.original.id)}
               onChange={(status) => onStatusChange(row.original, status)}
             />
           ) : (
@@ -165,6 +165,6 @@ export function useCheckColumns({
           ]
         : []),
     ],
-    [t, dates, canManage, onEdit, onDelete, onOutcomeChange, onStatusChange, savingCheckId]
+    [t, dates, canManage, onEdit, onDelete, onOutcomeChange, onStatusChange, savingCheckIds]
   );
 }

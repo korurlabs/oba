@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import { useTranslations } from "next-intl";
 import { parseAsStringEnum, useQueryStates } from "nuqs";
 import { ArrowLeft, Info, ListChecks, Plus } from "lucide-react";
@@ -21,9 +21,11 @@ import { isOrganizationAdmin } from "@/features/updates/lib/organization-admin";
 import { useChecks, useSetCheckOutcome, useSetCheckStatus } from "../hooks/use-checks";
 import { useCheckColumns } from "../hooks/use-check-columns";
 import {
+  CHECK_CATEGORIES,
   CHECK_STATUSES,
   CheckStatusSchema,
   type Check,
+  type CheckCategory,
   type CheckOutcome,
   type CheckStatus,
 } from "../schemas";
@@ -43,8 +45,65 @@ export const checkListFilterParams = {
 const ALL_STATUSES = "ALL";
 
 /**
- * The organization's checks, in the server's order (category, sort order,
- * name). Every member may read them; only an OWNER or ADMIN of the default
+ * A row of the check table: a check, or the header row of one category,
+ * which carries the checks it groups in `groupChecks`.
+ */
+export type CheckListRow = Check & { groupChecks?: Check[] };
+
+function isCategoryHeader(row: CheckListRow): boolean {
+  return row.groupChecks !== undefined;
+}
+
+/**
+ * Table rows for the checks: one header row per category that has checks, in
+ * the category's declared order and with uncategorized checks last, each with
+ * its checks nested in the server's order. A header takes the fields a column
+ * reads from its first check, so a column sort moves the group where its
+ * first check would go; it renders only the category name.
+ */
+export function groupChecksByCategory(checks: Check[]): CheckListRow[] {
+  const order: (CheckCategory | null)[] = [...CHECK_CATEGORIES, null];
+  return order.flatMap((category) => {
+    const groupChecks = checks.filter((check) => (check.category ?? null) === category);
+    const first = groupChecks[0];
+    if (!first) return [];
+    return [{ ...first, id: `category:${category ?? "NONE"}`, groupChecks }];
+  });
+}
+
+/**
+ * Marks a check as saving until `save` settles, so its row selects stay
+ * disabled for exactly that save. A mutation reports only its latest call,
+ * which would release an earlier row while its save still runs, so every save
+ * is tracked by its own check id.
+ */
+export function trackCheckSave(
+  setSavingCheckIds: Dispatch<SetStateAction<ReadonlySet<string>>>,
+  checkId: string,
+  save: Promise<unknown>
+): void {
+  setSavingCheckIds((current) => new Set(current).add(checkId));
+  void save
+    .then(
+      () => undefined,
+      () => {
+        // rule-10-no-op -- reason: the mutation's onError already toasts the
+        // server's message; this handler only keeps the rejection from going
+        // unhandled, so the row is released either way.
+      }
+    )
+    .finally(() =>
+      setSavingCheckIds((current) => {
+        const next = new Set(current);
+        next.delete(checkId);
+        return next;
+      })
+    );
+}
+
+/**
+ * The organization's checks, grouped by category under a header row each,
+ * in the server's order (sort order, name) within a category. Every member may read them; only an OWNER or ADMIN of the default
  * organization gets the add, edit, delete and row select controls, which the
  * server enforces as well.
  */
@@ -60,12 +119,21 @@ export function CheckList() {
   const { data: checksResponse, isPending, isError, isFetching, refetch } = useChecks(status);
   const checks = useMemo((): Check[] => checksResponse?.data ?? [], [checksResponse?.data]);
 
+  const rows = useMemo(() => groupChecksByCategory(checks), [checks]);
+  const renderCategoryHeader = useCallback(
+    (row: CheckListRow) => (
+      <span className="kazan-grid-heading">{t(`categories.${row.category ?? "NONE"}`)}</span>
+    ),
+    [t]
+  );
+
   const setOutcome = useSetCheckOutcome();
   const setStatus = useSetCheckStatus();
-  const savingCheckId =
-    (setOutcome.isPending ? setOutcome.variables?.checkId : undefined) ??
-    (setStatus.isPending ? setStatus.variables?.checkId : undefined) ??
-    null;
+  const [savingCheckIds, setSavingCheckIds] = useState<ReadonlySet<string>>(() => new Set());
+  const trackSave = useCallback(
+    (checkId: string, save: Promise<unknown>) => trackCheckSave(setSavingCheckIds, checkId, save),
+    []
+  );
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -86,16 +154,17 @@ export function CheckList() {
     setDeletingCheck(check);
     setIsDeleteOpen(true);
   }, []);
-  const { mutate: mutateOutcome } = setOutcome;
-  const { mutate: mutateStatus } = setStatus;
+  const { mutateAsync: saveOutcome } = setOutcome;
+  const { mutateAsync: saveStatus } = setStatus;
   const handleOutcomeChange = useCallback(
-    (check: Check, outcome: CheckOutcome) => mutateOutcome({ checkId: check.id, outcome }),
-    [mutateOutcome]
+    (check: Check, outcome: CheckOutcome) =>
+      trackSave(check.id, saveOutcome({ checkId: check.id, outcome })),
+    [trackSave, saveOutcome]
   );
   const handleStatusChange = useCallback(
     (check: Check, nextStatus: CheckStatus) =>
-      mutateStatus({ checkId: check.id, status: nextStatus }),
-    [mutateStatus]
+      trackSave(check.id, saveStatus({ checkId: check.id, status: nextStatus })),
+    [trackSave, saveStatus]
   );
 
   const handleFilterChange = (value: string) => {
@@ -109,7 +178,7 @@ export function CheckList() {
     onDelete: handleDelete,
     onOutcomeChange: handleOutcomeChange,
     onStatusChange: handleStatusChange,
-    savingCheckId,
+    savingCheckIds,
   });
 
   return (
@@ -160,9 +229,12 @@ export function CheckList() {
           onRetry={() => void refetch()}
         />
       ) : (
-        <SenseyTable<Check>
+        <SenseyTable<CheckListRow>
           columns={columns}
-          data={checks}
+          data={rows}
+          hierarchyKey="groupChecks"
+          isRowStatic={isCategoryHeader}
+          renderStaticRow={renderCategoryHeader}
           isLoading={isPending}
           emptyMessage={
             <div className="flex flex-col items-center gap-2 py-8 text-center">
