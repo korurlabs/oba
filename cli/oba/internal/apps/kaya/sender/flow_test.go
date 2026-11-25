@@ -417,6 +417,41 @@ func TestALocalBuildSendsAMachineNameParkOnceAndThenWaits(t *testing.T) {
 	}
 }
 
+// A released park whose batch cannot be built stays parked on disk, so every round releases it
+// again: the release and the reason the session is not sent are each logged once per run.
+func TestAReleasedParkThatCannotBeSentIsLoggedOnce(t *testing.T) {
+	for name, park := range map[string]struct{ code, token, version, release string }{
+		"token changed":        {"", tokenB, flowVersion, "the token changed, the parked session is sent again"},
+		"machine name refusal": {codeMachineName, tokenA, "", "parked after " + codeMachineName + " by an oba that did not record its version"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			state := flowEnv(t)
+			dir := queueSession(t, state, flowSession, 1, false)
+			parkSession(t, dir, 409, park.code, park.token, park.version)
+			// The session's repository left the organization's repository list.
+			listRepositories(t, "github.com/example/other")
+			poster := &scriptedPoster{answers: []error{nil}}
+			// Two rounds of the loop.
+			clock := &fakeClock{now: time.Unix(1_800_000_000, 0), limit: 2}
+			if err := Run(context.Background(), flowConfig(clock, poster)); !errors.Is(err, errStopLoop) {
+				t.Fatalf("Run = %v", err)
+			}
+			if poster.calls != 0 {
+				t.Fatalf("calls = %d, want nothing sent for an unlisted repository", poster.calls)
+			}
+			if cur := (&run{}).readCursor(dir); cur.Parked == nil || cur.Parked.TokenFingerprint != fingerprint(park.token) {
+				t.Errorf("cursor = %+v, want the park unchanged", cur)
+			}
+			log := logText(t, state)
+			for _, line := range []string{park.release, "not sent, " + unlisted} {
+				if n := strings.Count(log, flowSession+": "+line); n != 1 {
+					t.Errorf("%q logged %d times over two rounds, want once, log:\n%s", line, n, log)
+				}
+			}
+		})
+	}
+}
+
 func TestAParkOnAnotherRefusalWaitsForANewTokenUnderANewerOba(t *testing.T) {
 	for _, refusal := range []struct {
 		status int

@@ -309,14 +309,19 @@ func (s *run) sendRound(ctx context.Context) (int, error) {
 func (s *run) sendSession(ctx context.Context, dir, sessionID string) (bool, error) {
 	cur := s.readCursor(dir)
 	if cur.Parked != nil {
+		var release string
 		switch {
 		case cur.Parked.TokenFingerprint != s.tokenFP:
-			s.log("%s: the token changed, the parked session is sent again", sessionID)
+			release = "the token changed, the parked session is sent again"
 		case s.retriesMachineNamePark(cur.Parked):
-			s.log("%s: parked after %s by %s, oba %s sends it again", sessionID, codeMachineName, parkedBy(cur.Parked), s.version)
+			release = fmt.Sprintf("parked after %s by %s, oba %s sends it again", codeMachineName, parkedBy(cur.Parked), s.version)
 		default:
 			return false, nil
 		}
+		// The park stays on disk until Kaya answers a batch, so a session whose batch cannot be
+		// built yet (its remote left the repository list, say) is released again every round. The
+		// release is logged once per run, like the reason the session is not sent.
+		s.reportOnce(sessionID, "release: "+release, release)
 		cur.Parked = nil
 	}
 	b, what, reason := s.buildBatch(dir, sessionID, cur)
