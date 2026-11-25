@@ -7,17 +7,13 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 
 // 3. Java SDK
-import java.util.Map;
 
 // 4. Internal
 import com.korur.oba.connect.routine.core.client.RoutineClient;
-import com.korur.oba.connect.routine.core.constant.RoutineConstant;
 import com.korur.oba.connect.routine.core.dto.RoutineFireResult;
 import com.korur.oba.connect.routine.core.enums.RoutineProvider;
-import com.korur.oba.connect.routine.core.exception.ExceptionDomainRoutineError;
 import com.korur.oba.connect.routine.core.router.RoutineRouter;
 import com.korur.oba.connect.routine.core.service.RoutineService;
-import com.korur.oba.dojo.exception.internal.business.ValidationException;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
@@ -35,20 +31,6 @@ public class RoutineServiceImpl implements RoutineService {
 
     private final RoutineRouter routineRouter;
     private final LoggingService loggingService;
-
-    @Override
-    public boolean isAvailable(RoutineProvider provider) {
-        return routineRouter.resolveClient(provider) != null;
-    }
-
-    @Override
-    public void validateRoutineId(RoutineProvider provider, String routineId) {
-        if (!routineRouter.resolveClient(provider).isValidRoutineId(routineId)) {
-            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, ROUTINE_ID_INVALID, provider);
-            throw new ValidationException(ExceptionDomainRoutineError.VAL_ROUTINE_ID_FORMAT,
-                    Map.of(RoutineConstant.FIELD_PROVIDER, provider.name()));
-        }
-    }
 
     @Override
     public RoutineFireResult fire(RoutineProvider provider, String routineId, String secret, String text) {

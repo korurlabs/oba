@@ -6,8 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 // 2. Third-party
@@ -22,7 +20,6 @@ import com.korur.oba.connect.routine.core.dto.RoutineFireResult;
 import com.korur.oba.connect.routine.core.enums.RoutineFireStatus;
 import com.korur.oba.connect.routine.core.enums.RoutineProvider;
 import com.korur.oba.connect.routine.core.router.RoutineRouter;
-import com.korur.oba.dojo.exception.internal.business.ValidationException;
 import com.korur.oba.dojo.logging.service.LoggingService;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,42 +42,6 @@ class RoutineServiceImplUnitTest {
     void setUp() {
         routineService = new RoutineServiceImpl(routineRouter, loggingService);
         when(routineRouter.resolveClient(RoutineProvider.ANTHROPIC)).thenReturn(routineClient);
-    }
-
-    @Test
-    void isAvailable_clientRegistered_returnsTrue() {
-        // Act and assert
-        assertThat(routineService.isAvailable(RoutineProvider.ANTHROPIC)).isTrue();
-    }
-
-    @Test
-    void isAvailable_noClientRegistered_returnsFalse() {
-        // Arrange
-        when(routineRouter.resolveClient(RoutineProvider.ANTHROPIC)).thenReturn(null);
-
-        // Act and assert
-        assertThat(routineService.isAvailable(RoutineProvider.ANTHROPIC)).isFalse();
-    }
-
-    @Test
-    void validateRoutineId_wrongFormat_throwsValidationException() {
-        // Arrange
-        when(routineClient.isValidRoutineId("bad")).thenReturn(false);
-
-        // Act and assert
-        assertThatThrownBy(() -> routineService.validateRoutineId(RoutineProvider.ANTHROPIC, "bad"))
-                .isInstanceOf(ValidationException.class)
-                .hasFieldOrPropertyWithValue("errorCode", "RTN_VAL_001");
-    }
-
-    @Test
-    void validateRoutineId_rightFormat_passes() {
-        // Arrange
-        when(routineClient.isValidRoutineId(ROUTINE_ID)).thenReturn(true);
-
-        // Act and assert
-        assertThatCode(() -> routineService.validateRoutineId(RoutineProvider.ANTHROPIC, ROUTINE_ID))
-                .doesNotThrowAnyException();
     }
 
     @Test
