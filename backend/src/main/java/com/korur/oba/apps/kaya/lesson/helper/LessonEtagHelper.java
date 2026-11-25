@@ -5,13 +5,10 @@ package com.korur.oba.apps.kaya.lesson.helper;
 // 2. Third-party
 
 // 3. Java SDK
-import java.util.Collection;
-import java.util.stream.Collectors;
 
 // 4. Internal
-import com.korur.oba.apps.kaya.delivery.helper.DeliveryEtagHelper;
 import com.korur.oba.apps.kaya.lesson.constant.LessonConstant;
-import com.korur.oba.apps.kaya.lesson.dto.projection.LessonDeliveryProjection;
+import com.korur.oba.apps.kaya.lesson.dto.projection.LessonDeliveryStateProjection;
 
 /**
  * The ETag of the lessons a checkout reads.
@@ -22,18 +19,17 @@ public final class LessonEtagHelper {
     }
 
     /**
-     * Hashes the id and updatedAt of every applicable lesson, not only of the page a response
-     * carries, so an add, an edit or a delete changes the ETag wherever the lesson sits in the list,
-     * and every page of one state of the lessons carries the same ETag.
+     * The ETag of every applicable lesson, not only of the page a response carries, so an add, an
+     * edit or a delete changes the ETag wherever the lesson sits in the list, and every page of one
+     * state of the lessons carries the same ETag. The digest comes from
+     * {@link com.korur.oba.apps.kaya.lesson.repository.LessonRepository#findDeliveryState}; the form
+     * prefix sets it apart from every ETag an earlier computation produced.
      *
-     * @param lessons every lesson that applies to the checkout, in any order
-     * @return 64 hex characters, unquoted
+     * @param state the count and digest of the applicable lessons
+     * @return the form prefix and 64 hex characters, unquoted
      */
-    public static String etagOf(Collection<LessonDeliveryProjection> lessons) {
-        return DeliveryEtagHelper.sha256Hex(lessons.stream()
-                .map(lesson -> lesson.getId() + LessonConstant.ETAG_FIELD_SEPARATOR + lesson.getUpdatedAt())
-                .sorted()
-                .collect(Collectors.joining(LessonConstant.ETAG_LINE_SEPARATOR)));
+    public static String etagOf(LessonDeliveryStateProjection state) {
+        return LessonConstant.ETAG_FORM + state.getDigest();
     }
 
     /**

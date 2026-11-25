@@ -12,13 +12,16 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import com.jayway.jsonpath.JsonPath;
 
 // 3. Java SDK
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 // 4. Internal
+import com.korur.oba.apps.kaya.delivery.helper.DeliveryEtagHelper;
 
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.containsString;
@@ -48,8 +51,22 @@ class LessonDeliveryIT extends AbstractLessonIT {
                 .andExpect(status().isOk())
                 .andReturn();
         String etag = result.getResponse().getHeader(HttpHeaders.ETAG);
-        assertTrue(etag != null && etag.startsWith("\"") && etag.endsWith("\""), "ETag is quoted: " + etag);
+        assertTrue(etag != null && etag.matches("\"v2-[0-9a-f]{64}\""), "ETag is quoted and of form v2: " + etag);
         return etag;
+    }
+
+    /**
+     * The ETag the server answered before its ETag took the v2 form, as a CLI may still hold it: the
+     * SHA-256 of every applicable lesson's id and updatedAt, sorted, one per line, without a prefix.
+     */
+    private String earlierFormEtagOf(Fixture fixture) {
+        List<String> lines = jdbcTemplate.query("""
+                SELECT id, updated_at FROM kaya.lessons
+                WHERE organization_id = ? AND (repository_id = ?::uuid OR repository_id IS NULL)
+                """, (row, number) -> row.getObject("id", UUID.class) + ":"
+                        + row.getObject("updated_at", Timestamp.class).toInstant(),
+                fixture.tenant().organization().getId(), fixture.repositoryId());
+        return "\"" + DeliveryEtagHelper.sha256Hex(lines.stream().sorted().collect(Collectors.joining("\n"))) + "\"";
     }
 
     private long rows(String lessonId) {
@@ -239,6 +256,31 @@ class LessonDeliveryIT extends AbstractLessonIT {
         }
 
         @Test
+        void getLessons_ifNoneMatchOfTheEarlierEtagForm_returnsTheLessonsAndTheNewForm() throws Exception {
+            Fixture fixture = newFixture();
+            insertBulk(fixture, 3, 1);
+            createLesson(fixture, fixture.ada().jwt(), "scoped", fixture.repositoryId());
+            String earlier = earlierFormEtagOf(fixture);
+            String token = fixture.adaMachine().token();
+
+            // An older CLI asks without paging, a paging CLI with page 1: both read the lessons again.
+            MvcResult unpaged = machine(token, get(DELIVERY).param(REMOTE_URL, fixture.remote())
+                    .header(HttpHeaders.IF_NONE_MATCH, earlier))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(4))
+                    .andReturn();
+            machine(token, pageOf(fixture, 1, null).param(AMOUNT, "100").header(HttpHeaders.IF_NONE_MATCH, earlier))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(4));
+
+            String current = unpaged.getResponse().getHeader(HttpHeaders.ETAG);
+            assertNotEquals(earlier, current);
+            assertEquals(current, etagOf(fixture, token));
+            machine(token, get(DELIVERY).param(REMOTE_URL, fixture.remote()).header(HttpHeaders.IF_NONE_MATCH, current))
+                    .andExpect(status().isNotModified());
+        }
+
+        @Test
         void getLessons_addEditAndDelete_eachChangeTheEtag() throws Exception {
             Fixture fixture = newFixture();
             String token = fixture.adaMachine().token();
@@ -407,6 +449,7 @@ class LessonDeliveryIT extends AbstractLessonIT {
             assertEquals("true", read(third, "$.pagination.last"));
             assertEquals("true", read(beyond, "$.pagination.empty"));
             assertEquals(0, idsOf(beyond).size());
+            assertEquals(0, idsOf(okPage(fixture, pageOf(fixture, Integer.MAX_VALUE, etag))).size());
         }
 
         @Test
@@ -452,6 +495,27 @@ class LessonDeliveryIT extends AbstractLessonIT {
         }
 
         @Test
+        void getLessons_lessonDeletedAfterPage1_laterPageAnswers409() throws Exception {
+            Fixture fixture = newFixture();
+            String token = fixture.adaMachine().token();
+            insertBulk(fixture, 150, 1);
+            String doomed = createLesson(fixture, fixture.ada().jwt(), "Deleted between pages", fixture.repositoryId());
+            String etag = okPage(fixture, pageOf(fixture, 1, null)).getResponse().getHeader(HttpHeaders.ETAG);
+
+            mockMvc.perform(in(fixture.tenant(), delete("/kaya/lessons/" + doomed), fixture.ada().jwt(), null))
+                    .andExpect(status().isOk());
+
+            machine(token, pageOf(fixture, 2, etag))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath(ERROR_CODE).value(LESSONS_CHANGED));
+            String fresh = okPage(fixture, pageOf(fixture, 1, null)).getResponse().getHeader(HttpHeaders.ETAG);
+            assertNotEquals(etag, fresh);
+            machine(token, pageOf(fixture, 2, fresh))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(50));
+        }
+
+        @Test
         void getLessons_etagQuotedOrBare_isAccepted() throws Exception {
             Fixture fixture = newFixture();
             insertBulk(fixture, 3, 1);
@@ -476,6 +540,9 @@ class LessonDeliveryIT extends AbstractLessonIT {
                     .andExpect(jsonPath(ERROR_CODE).value("GEN_VAL_001"))
                     .andExpect(jsonPath("$.error.errorValues.etag").exists());
             machine(token, pageOf(fixture, 2, "\"stale\""))
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.error.errorValues.etag").exists());
+            machine(token, pageOf(fixture, 2, earlierFormEtagOf(fixture)))
                     .andExpect(status().isUnprocessableEntity())
                     .andExpect(jsonPath("$.error.errorValues.etag").exists());
             machine(token, pageOf(fixture, 0, null))

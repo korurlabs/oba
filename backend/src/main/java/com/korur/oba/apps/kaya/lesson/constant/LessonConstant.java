@@ -69,8 +69,12 @@ public final class LessonConstant {
     public static final int DELIVERY_DEFAULT_AMOUNT = 100;
     public static final int DELIVERY_MAX_AMOUNT = 100;
     public static final String FIELD_ETAG = "etag";
+    // Names how the digest behind the ETag is computed. A CLI stores the ETag next to the file it
+    // wrote, so a new computation takes a new form: an ETag the CLI stored under the old one then
+    // never answers 304, and the CLI reads the whole list once.
+    public static final String ETAG_FORM = "v2-";
     // The ETag of the lessons, bare or quoted as the ETag header carries it.
-    public static final String ETAG_PATTERN = "[0-9a-f]{64}|\"[0-9a-f]{64}\"";
+    public static final String ETAG_PATTERN = ETAG_FORM + "[0-9a-f]{64}|\"" + ETAG_FORM + "[0-9a-f]{64}\"";
     public static final String ETAG_QUOTE = "\"";
     public static final String ETAG_INVALID_MESSAGE = "etag must be the ETag header of page 1";
     public static final String ETAG_REQUIRED_MESSAGE = "etag is required from page 2 on";
@@ -81,8 +85,6 @@ public final class LessonConstant {
     public static final String SEARCH_REQUIRED_MESSAGE = "search is required";
     public static final String CLAUDE_SESSION_ID_INVALID_MESSAGE = "claudeSessionId must be a Claude Code session id";
     public static final String SINCE_INVALID_MESSAGE = "since must be an ISO-8601 instant";
-    public static final String ETAG_FIELD_SEPARATOR = ":";
-    public static final String ETAG_LINE_SEPARATOR = "\n";
     // The web app's page of a lesson, after the web app's origin.
     public static final String LESSON_PAGE_PATH = "/lessons/";
     public static final String URL_PATH_SEPARATOR = "/";

@@ -89,7 +89,7 @@ public interface LessonQueryService {
      * still gets 304, and every page of one state of the lessons carries the same ETag.
      *
      * A CLI that reads several pages sends the ETag of page 1 with every later page. The ETag and
-     * the page come from one read, so a page whose ETag matches belongs to the same state as page
+     * the page come from one snapshot, so a page whose ETag matches belongs to the same state as page
      * 1; a set that changed in between is refused, so the CLI never stores pages of two states
      * under one ETag.
      *

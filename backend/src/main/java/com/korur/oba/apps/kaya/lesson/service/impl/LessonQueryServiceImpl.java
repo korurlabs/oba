@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 // 2. Third-party
@@ -41,6 +42,7 @@ import com.korur.oba.apps.kaya.lesson.constant.LessonConstant;
 import com.korur.oba.apps.kaya.lesson.constant.service.LessonServiceLogConstant;
 import com.korur.oba.apps.kaya.lesson.dto.derived.LessonDelivery;
 import com.korur.oba.apps.kaya.lesson.dto.projection.LessonDeliveryProjection;
+import com.korur.oba.apps.kaya.lesson.dto.projection.LessonDeliveryStateProjection;
 import com.korur.oba.apps.kaya.lesson.dto.request.LessonDeliveryQueryRequest;
 import com.korur.oba.apps.kaya.lesson.dto.request.LessonQueryRequest;
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDeliveryResponse;
@@ -141,7 +143,15 @@ public class LessonQueryServiceImpl implements LessonQueryService {
         });
     }
 
+    /**
+     * Reads the ETag and the page in two statements of one snapshot. Under READ COMMITTED each
+     * statement sees the lessons as they are when it starts, so a change between the two would pair
+     * a page with the ETag of another state; REPEATABLE READ keeps the snapshot of the first
+     * statement for the whole transaction. A transaction that only reads never fails its
+     * serialization check in PostgreSQL, so nothing has to be retried.
+     */
     @Override
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public LessonDelivery listForCheckout(MachinePrincipal principal, LessonDeliveryQueryRequest request) {
         UUID organizationId = principal.organizationId();
         Instant seenAt = parseSince(principal, request.getSince());
@@ -151,24 +161,25 @@ public class LessonQueryServiceImpl implements LessonQueryService {
         String repositoryName = repository.map(RepositoryResponse::name).orElse(null);
         loggingService.debug(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.READING_DELIVERY, repositoryId, organizationId);
 
-        List<LessonDeliveryProjection> applicable = lessonRepository.findDeliveryLessons(organizationId, repositoryId);
-        String etag = LessonEtagHelper.etagOf(applicable);
+        LessonDeliveryStateProjection state = lessonRepository.findDeliveryState(organizationId, repositoryId);
+        String etag = LessonEtagHelper.etagOf(state);
         if (request.getEtag() != null && !LessonEtagHelper.matches(request.getEtag(), etag)) {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_LESSONS_CHANGED,
                     repositoryId, organizationId, request.getPage(), principal.machineId());
             throw new ConflictException(ExceptionDomainKayaError.VAL_LESSONS_CHANGED);
         }
-        // Paged in memory over the read the ETag was computed from, so a page and its ETag always
-        // describe the same state of the lessons.
         Pageable pageable = PageRequest.of(request.getPage() - 1, request.getAmount(), NEWEST_FIRST);
-        List<LessonDeliveryResponse> lessons = applicable.stream()
-                .skip(pageable.getOffset())
-                .limit(pageable.getPageSize())
+        // A page at or past the end is empty without a query, which also keeps a page number far past
+        // the end from reaching the database as an offset beyond the int range.
+        List<LessonDeliveryProjection> rows = pageable.getOffset() >= state.getTotal() ? List.of()
+                : lessonRepository.findDeliveryLessons(organizationId, repositoryId,
+                        PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()));
+        List<LessonDeliveryResponse> lessons = rows.stream()
                 .map(lesson -> lessonMapper.toDeliveryResponse(lesson,
                         lesson.getRepositoryId() == null ? null : repositoryName,
                         seenAt != null && lesson.getUpdatedAt().isAfter(seenAt)))
                 .toList();
-        return lessonMapper.toDelivery(new PageImpl<>(lessons, pageable, applicable.size()), etag);
+        return lessonMapper.toDelivery(new PageImpl<>(lessons, pageable, state.getTotal()), etag);
     }
 
     @Override
