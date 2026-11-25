@@ -68,7 +68,7 @@ func queueSession(t *testing.T, state, id string, events int, ended bool) string
 	dir := capture.SessionDir(state, id)
 	var lines strings.Builder
 	for seq := 1; seq <= events; seq++ {
-		fmt.Fprintf(&lines, `{"seq":%d,"at":"2026-10-01T09:00:%02dZ","event":"UserPromptSubmit","prompt":"p%d"}`+"\n", seq, seq%60, seq)
+		lines.WriteString(eventLine(seq))
 	}
 	writeFile(t, filepath.Join(dir, capture.EventsFile), lines.String())
 	summary := fmt.Sprintf(`{"session_id":%q,"title":"t","started_at":"2026-10-01T09:00:00Z","last_event_at":"2026-10-01T09:00:01Z",`+
@@ -77,6 +77,27 @@ func queueSession(t *testing.T, state, id string, events int, ended bool) string
 	writeFile(t, filepath.Join(dir, capture.SessionFile),
 		`{"sessionId":"`+id+`","machineName":"flow-host","remoteUrl":"`+flowRemote+`","repositoryName":"app","gitAuthorEmail":"dev@example.com"}`)
 	return dir
+}
+
+// eventLine is the line the hook writes for event seq.
+func eventLine(seq int) string {
+	return fmt.Sprintf(`{"seq":%d,"at":"2026-10-01T09:00:%02dZ","event":"UserPromptSubmit","prompt":"p%d"}`+"\n", seq, seq%60, seq)
+}
+
+// appendEvent adds event seq to the queued session in dir, as the hook does while it records.
+func appendEvent(t *testing.T, dir string, seq int) {
+	t.Helper()
+	file, err := os.OpenFile(filepath.Join(dir, capture.EventsFile), os.O_APPEND|os.O_WRONLY, 0o600) // #nosec G304 -- a queue file in the test's directory
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := file.WriteString(eventLine(seq)); err != nil {
+		_ = file.Close()
+		t.Fatal(err)
+	}
+	if err := file.Close(); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func flowResolver() *seed.RemoteResolver {
@@ -363,29 +384,42 @@ func outageRun(t *testing.T, ids []string, answer error, steps int) (string, *se
 
 // A 500 for every queued session, as after a deploy whose bug every request meets, is Kaya itself
 // failing: the whole sender backs off as for a gateway outage instead of each session on its own,
-// which sent one request per queued session on every back-off step. Over the first hour (19
-// back-off steps) five sessions cost the requests of a gateway outage plus one, the second 500
-// that tells Kaya's fault from one failing batch, and the sender sleeps the same back-off.
+// which sent one request per queued session on every back-off step. Until each session has shown
+// its 500, though, sessions that fail on their own content look the same, and a healthy session
+// sorted after them must not wait one back-off step for each: the sender tries the next session
+// after 2 s and leaves its back-off as it is. Five sessions therefore cost four 2 s steps before
+// the back-off of a gateway outage, and 24 requests in the first hour against its 19.
 func TestAServerErrorForEverySessionBacksOffTheWholeQueue(t *testing.T) {
 	start := time.Unix(1_800_000_000, 0)
 	_, gateway, gatewayClock := outageRun(t, fiveSessions, &client.APIError{Status: 503}, 19)
-	state, poster, clock := outageRun(t, fiveSessions, &client.APIError{Status: 500}, 19)
+	state, poster, clock := outageRun(t, fiveSessions, &client.APIError{Status: 500}, 23)
 	if len(gateway.calls) != 19 {
 		t.Fatalf("a gateway outage cost %d requests in the first hour, want 19", len(gateway.calls))
 	}
-	if !equalDurations(clock.sleeps, gatewayClock.sleeps) {
-		t.Errorf("sleeps = %v, want the back-off of a gateway outage %v", clock.sleeps, gatewayClock.sleeps)
+	if want := slices.Concat(seconds(2, 2, 2, 2), gatewayClock.sleeps); !equalDurations(clock.sleeps, want) {
+		t.Errorf("sleeps = %v, want four 2 s steps and then the back-off of a gateway outage: %v", clock.sleeps, want)
 	}
-	if len(poster.calls) != len(gateway.calls)+1 {
-		t.Errorf("a 500 for every session cost %d requests in the first hour, want %d, those of a gateway outage plus one",
-			len(poster.calls), len(gateway.calls)+1)
+	for name, outage := range map[string]struct {
+		calls []sessionCall
+		clock *fakeClock
+	}{"gateway outage": {gateway.calls, gatewayClock}, "500 for every session": {poster.calls, clock}} {
+		last := outage.calls[len(outage.calls)-1].at
+		if !last.Before(start.Add(time.Hour)) || outage.clock.now.Before(start.Add(time.Hour)) {
+			t.Errorf("%s: last request at %v, clock at %v, want the run to cover the first hour and every request in it",
+				name, last.Sub(start), outage.clock.now.Sub(start))
+		}
 	}
-	// The first round stops at the second 500; each next round tries one session, the one after
-	// the session whose 500 ended the round before.
+	if len(poster.calls) != 24 {
+		t.Errorf("a 500 for every session cost %d requests in the first hour, want 24", len(poster.calls))
+	}
+	// The first round stops at the second 500. Each of the next three tries the one session that
+	// has not failed yet; then each round tries one session, the one after the session whose 500
+	// ended the round before.
 	want := []sessionCall{
 		{fiveSessions[0], start}, {fiveSessions[1], start}, {fiveSessions[2], start.Add(2 * time.Second)},
-		{fiveSessions[3], start.Add(6 * time.Second)}, {fiveSessions[4], start.Add(14 * time.Second)},
-		{fiveSessions[0], start.Add(30 * time.Second)}, {fiveSessions[1], start.Add(62 * time.Second)},
+		{fiveSessions[3], start.Add(4 * time.Second)}, {fiveSessions[4], start.Add(6 * time.Second)},
+		{fiveSessions[0], start.Add(8 * time.Second)}, {fiveSessions[1], start.Add(10 * time.Second)},
+		{fiveSessions[2], start.Add(14 * time.Second)}, {fiveSessions[3], start.Add(22 * time.Second)},
 	}
 	for i, call := range want {
 		if i >= len(poster.calls) || !sameCall(poster.calls[i], call) {
@@ -393,10 +427,16 @@ func TestAServerErrorForEverySessionBacksOffTheWholeQueue(t *testing.T) {
 		}
 	}
 	log := logText(t, state)
-	for i, wait := range []int{2, 4, 8, 16} {
-		line := fmt.Sprintf("Kaya answered 500 for %d sessions and took no batch; retrying in %d s", i+2, wait)
-		if n := strings.Count(log, line); n != 1 {
-			t.Errorf("%q logged %d times, want once, log:\n%s", line, n, log)
+	for line, times := range map[string]int{
+		"Kaya answered 500 for 2 sessions and took no batch; retrying in 2 s": 1,
+		"Kaya answered 500 for 3 sessions and took no batch; retrying in 2 s": 1,
+		"Kaya answered 500 for 4 sessions and took no batch; retrying in 2 s": 1,
+		"Kaya answered 500 for 5 sessions and took no batch; retrying in 2 s": 2,
+		"Kaya answered 500 for 5 sessions and took no batch; retrying in 4 s": 1,
+		"Kaya answered 500 for 5 sessions and took no batch; retrying in 8 s": 1,
+	} {
+		if n := strings.Count(log, line); n != times {
+			t.Errorf("%q logged %d times, want %d, log:\n%s", line, n, times, log)
 		}
 	}
 	// Only the first 500 came before the fault showed, so only that session backed off on its own.
@@ -486,6 +526,130 @@ func TestSessionsWhoseBatchesFailFirstDoNotHoldBackTheQueue(t *testing.T) {
 		if !strings.Contains(log, line) {
 			t.Errorf("log lacks %q:\n%s", line, log)
 		}
+	}
+}
+
+// queueIDs are the ids of a queue of n sessions, in name order.
+func queueIDs(n int) []string {
+	ids := make([]string, n)
+	for i := range ids {
+		ids[i] = fmt.Sprintf("%08d-aaaa-4bbb-8ccc-%012d", i+1, i+1)
+	}
+	return ids
+}
+
+// runFor runs the sender against poster on clock until the clock has moved d, and calls after
+// after every sleep of the sender, so a test can record events while the sender waits.
+func runFor(t *testing.T, clock *fakeClock, poster Poster, d time.Duration, after func()) {
+	t.Helper()
+	end := clock.now.Add(d)
+	cfg := flowConfig(clock, poster)
+	cfg.Sleep = func(ctx context.Context, wait time.Duration) error {
+		if err := clock.Sleep(ctx, wait); err != nil {
+			return err
+		}
+		after()
+		if !clock.now.Before(end) {
+			return errStopLoop
+		}
+		return nil
+	}
+	if err := Run(context.Background(), cfg); !errors.Is(err, errStopLoop) {
+		t.Fatalf("Run = %v", err)
+	}
+}
+
+// A content bug can fail every session of one repository while the sessions of the others are
+// fine. Sessions whose own batches fail, sorted before a healthy session that keeps recording,
+// look like Kaya failing until the healthy one is tried, so they may delay it by one 2 s step
+// each, never by a growing back-off. The run covers the time in which the failing sessions' own
+// back-offs grow to the cap.
+func TestSessionsWhoseBatchesFailDoNotDelayARecordingSessionSortedAfterThem(t *testing.T) {
+	state := flowEnv(t)
+	ids := queueIDs(10)
+	broken, healthy := ids[:9], ids[9]
+	start := time.Unix(1_800_000_000, 0)
+	clock := &fakeClock{now: start}
+	poster := &sessionPoster{clock: clock, refuse: map[string]error{}}
+	for _, id := range broken {
+		queueSession(t, state, id, 1, false)
+		poster.refuse[id] = &client.APIError{Status: 500}
+	}
+	dir := queueSession(t, state, healthy, 1, false)
+	next := 2
+	runFor(t, clock, poster, 10*time.Minute, func() {
+		appendEvent(t, dir, next)
+		next++
+	})
+	// The session has work from the start to the end, so every wait counts: before its first
+	// batch, between two batches and after its last one.
+	waited := []time.Time{start}
+	for _, call := range poster.calls {
+		if call.session == healthy {
+			waited = append(waited, call.at)
+		}
+	}
+	waited = append(waited, clock.now)
+	var longest time.Duration
+	var endedAt time.Time
+	for i := 1; i < len(waited); i++ {
+		if gap := waited[i].Sub(waited[i-1]); gap > longest {
+			longest, endedAt = gap, waited[i]
+		}
+	}
+	if limit := time.Duration(len(broken)) * backoffMin; longest > limit {
+		t.Errorf("the healthy session waited %v until %v, want at most %v, one 2 s step per failing session",
+			longest, endedAt.Sub(start), limit)
+	}
+}
+
+// An idle healthy session sorted after many sessions whose own batches fail, as when a content bug
+// fails every session of one repository, sends a new event in the first round after the event is
+// recorded, not after the turn of the rounds has passed every failing session one back-off step
+// at a time.
+func TestAHealthySessionBehindFailingOnesSendsItsNextEventInTheNextRound(t *testing.T) {
+	state := flowEnv(t)
+	ids := queueIDs(25)
+	broken, healthy := ids[:24], ids[24]
+	start := time.Unix(1_800_000_000, 0)
+	clock := &fakeClock{now: start}
+	poster := &sessionPoster{clock: clock, refuse: map[string]error{}}
+	for _, id := range broken {
+		queueSession(t, state, id, 1, false)
+		poster.refuse[id] = &client.APIError{Status: 500}
+	}
+	dir := queueSession(t, state, healthy, 1, false)
+	// The event is recorded once the sender has backed off for half an hour, at 5 min a step.
+	var recorded time.Time
+	runFor(t, clock, poster, 2*time.Hour, func() {
+		if recorded.IsZero() && !clock.now.Before(start.Add(30*time.Minute)) {
+			appendEvent(t, dir, 2)
+			recorded = clock.now
+		}
+	})
+	var first, after time.Time
+	for _, call := range poster.calls {
+		if call.session != healthy {
+			continue
+		}
+		if first.IsZero() {
+			first = call.at
+		}
+		if after.IsZero() && !call.at.Before(recorded) {
+			after = call.at
+		}
+	}
+	if limit := time.Duration(len(broken)) * backoffMin; first.IsZero() || first.Sub(start) > limit {
+		t.Errorf("the healthy session's first batch went out at %v, want within %v, one 2 s step per failing session", first.Sub(start), limit)
+	}
+	switch {
+	case after.IsZero():
+		t.Errorf("the event recorded at %v was not sent within 2 h, want in the first round after it", recorded.Sub(start))
+	case !after.Equal(recorded):
+		t.Errorf("the event recorded at %v was sent at %v, want in the first round after it", recorded.Sub(start), after.Sub(start))
+	}
+	if cur := (&run{}).readCursor(dir, healthy); cur.AcknowledgedSeq != 2 {
+		t.Errorf("cursor of the healthy session = %+v, want seq 2 acknowledged", cur)
 	}
 }
 

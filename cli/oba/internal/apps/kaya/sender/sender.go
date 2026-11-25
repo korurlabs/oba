@@ -10,7 +10,11 @@
 // email that no user of the organization held) answer one session's batch, so that session alone
 // backs off the same way while the others are sent. A 500 for a second session while Kaya takes
 // no batch is Kaya itself failing, so the whole sender backs off as for a gateway, and the next
-// round starts after that session. Either way the session stays queued. A 401
+// round starts after that session. A round tries the sessions without such a 500 first, and a 500
+// of a session that had none yet ends the round with a wait of 2 s that leaves the back-off as it
+// is: sessions that fail on their own content look like Kaya failing until a healthy session is
+// tried, and that session must not wait one back-off step per failing session sorted before it.
+// Either way the session stays queued. A 401
 // stops the sender until the token changes. A session whose batch Kaya refuses for its content
 // (400, 409, 413, 422) is parked until the token changes; one parked after
 // the machine name refusal of an older Kaya release (KAY_VAL_005) is also sent once more by
@@ -112,8 +116,15 @@ type stopError struct{ reason string }
 
 func (e *stopError) Error() string { return e.reason }
 
-// retryError ends the round: Kaya cannot take any batch now and the sender backs off.
-type retryError struct{ reason string }
+// retryError ends the round: Kaya cannot take any batch now and the sender backs off. newFailure
+// marks a round ended by the first 500 of a session since Kaya last took a batch. That session may
+// fail on its own content while a session not tried yet would be taken, so the sender tries again
+// after 2 s and leaves its back-off as it is. The failing sessions are only forgotten when Kaya
+// takes a batch, so there is at most one such short wait per queued session in between.
+type retryError struct {
+	reason     string
+	newFailure bool
+}
 
 func (e *retryError) Error() string { return e.reason }
 
@@ -254,14 +265,20 @@ func (s *run) loop(ctx context.Context, once bool, sleep func(context.Context, t
 			s.log("stopped: %s; set a new token", stop.reason)
 			return s.writeState(map[string]any{"token": tokenRefused, "refusedFingerprint": s.tokenFP})
 		case errors.As(err, &retry):
-			s.log("%s; retrying in %d s", retry.reason, int(backoff.Seconds()))
+			wait := backoff
+			if retry.newFailure {
+				wait = backoffMin
+			}
+			s.log("%s; retrying in %d s", retry.reason, int(wait.Seconds()))
 			if once {
 				return nil
 			}
-			if err := sleep(ctx, backoff); err != nil {
+			if err := sleep(ctx, wait); err != nil {
 				return err
 			}
-			backoff = min(backoff*2, backoffMax)
+			if !retry.newFailure {
+				backoff = min(backoff*2, backoffMax)
+			}
 			continue
 		case err != nil:
 			return err
@@ -324,9 +341,11 @@ func (s *run) sessionIDs() ([]string, error) {
 // A 500 for a second session while Kaya has taken no batch, in this round or since the rounds
 // before, is such an error: Kaya itself fails, as after a deploy whose bug every request meets.
 // Sending each queued session into it would multiply the requests by the length of the queue, so
-// the round ends and the whole sender backs off as for a gateway: after the round that shows the
-// fault, one request per back-off step. One failing session among sessions Kaya takes still backs
-// off alone.
+// the round ends and the whole sender backs off as for a gateway: once every queued session with
+// work has shown its 500, one request per back-off step. Until then each round ends on the first
+// 500 of another session and waits only 2 s, because sessions that fail on their own content look
+// the same until a session Kaya takes is tried. One failing session among sessions Kaya takes
+// still backs off alone.
 func (s *run) sendRound(ctx context.Context) (int, error) {
 	ids, err := s.sessionIDs()
 	if err != nil {
@@ -354,12 +373,13 @@ func (s *run) sendRound(ctx context.Context) (int, error) {
 			var later *sessionRetryError
 			if errors.As(err, &later) {
 				if later.failed {
+					known := s.failing[id]
 					s.failing[id] = true
 					if sent == 0 && len(s.failing) >= 2 {
 						// The session's own retry stays as it was, as for a gateway answer: the
 						// whole sender's back-off is the wait.
 						s.resumeAfter = id
-						return sent, &retryError{reason: fmt.Sprintf("%s for %d sessions and took no batch", later.reason, len(s.failing))}
+						return sent, &retryError{reason: fmt.Sprintf("%s for %d sessions and took no batch", later.reason, len(s.failing)), newFailure: !known}
 					}
 				}
 				s.retryLater(id, later.reason)
@@ -381,19 +401,30 @@ func (s *run) sendRound(ctx context.Context) (int, error) {
 	return sent, nil
 }
 
-// roundOrder is the order in which a round tries the queued sessions: name order, but after a
-// round that ended on a fault of Kaya itself it starts with the session after the one whose 500
-// ended it. A fault is judged on the first sessions a round tries, so without the turn two
-// sessions whose own batches fail, sorted first, would end every round before the others.
+// roundOrder is the order in which a round tries the queued sessions: those without a 500 since
+// Kaya last took a batch before those with one. Each group is in name order, turned after a round
+// that ended on a fault of Kaya itself so that it starts after the session whose 500 ended it. A
+// fault is judged on the first sessions a round tries, so sessions whose own batches fail must not
+// come first: they would end every round before a session Kaya takes is tried. The turn spreads
+// the requests of the back-off over the failing sessions, so one that Kaya takes again is found.
 func (s *run) roundOrder(ids []string) []string {
-	if s.resumeAfter == "" {
-		return ids
+	order := ids
+	if s.resumeAfter != "" {
+		next, found := slices.BinarySearch(ids, s.resumeAfter)
+		if found {
+			next++
+		}
+		order = slices.Concat(ids[next:], ids[:next])
 	}
-	next, found := slices.BinarySearch(ids, s.resumeAfter)
-	if found {
-		next++
+	var fresh, failing []string
+	for _, id := range order {
+		if s.failing[id] {
+			failing = append(failing, id)
+		} else {
+			fresh = append(fresh, id)
+		}
 	}
-	return slices.Concat(ids[next:], ids[:next])
+	return slices.Concat(fresh, failing)
 }
 
 // retryLater makes a session whose batch Kaya could not take wait before it is sent again: 2 s
