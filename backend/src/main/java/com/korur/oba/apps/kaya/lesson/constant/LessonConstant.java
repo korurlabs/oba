@@ -86,6 +86,14 @@ public final class LessonConstant {
     // team at work never meets it; it is five tokens at their full budget. A read is charged here only
     // once the token's own budget allows it, so one runaway token cannot use up its colleagues' reads.
     public static final int DELIVERY_ORGANIZATION_READS_PER_MINUTE = 3_000;
+    // Reads of all tokens of one user per minute, in every organization the user belongs to, charged
+    // beside the budgets of the token and the organization. Any signed-in user can create organizations,
+    // and each brings an organization budget of its own, so without it one person could multiply their
+    // reads by creating organizations. A person works on a few machines: four that each read the list
+    // from scratch in the same minute, 100 pages and two restarts each, make 1200, so a person at work
+    // never meets it; it is two tokens at their full budget. A read is charged here only once the token
+    // allows it, and to the organization only once the user does.
+    public static final int DELIVERY_USER_READS_PER_MINUTE = 1_200;
     // Lessons a token adds per minute. A lesson is added by hand with oba kaya lessons add, or by oba
     // kaya lessons import, one after another for each title of a file its scope does not hold yet; real
     // lessons files hold tens. Every added lesson makes each later read of the organization longer, so
@@ -95,11 +103,17 @@ public final class LessonConstant {
     public static final long DELIVERY_RATE_WINDOW_SECONDS = 60;
     // Windows of tokens or organizations idle for a while are dropped once a table holds this many.
     public static final int DELIVERY_RATE_TABLE_PRUNE_SIZE = 10_000;
-    // The time limit of one lesson read, a page of the list or a search, counted from the start of its
-    // transaction. A healthy read takes milliseconds, even over thousands of lessons; one that runs for
-    // seconds waits on a lock or on a database under strain. Ending it frees its connection of the small
-    // pool every request shares, and the CLI at a session start has stopped waiting by then anyway.
+    // The time limit of one lesson read, a page of the list or a search of the CLI or a page of the web
+    // list, counted from the start of its transaction. A healthy read takes milliseconds, even over
+    // thousands of lessons; one that runs for seconds waits on a lock or on a database under strain.
+    // Ending it frees its connection of the small pool every request shares, and the CLI at a session
+    // start has stopped waiting by then anyway.
     public static final int DELIVERY_READ_TIMEOUT_SECONDS = 5;
+    // The same limit for each statement of such a read, as PostgreSQL reads statement_timeout. The JDBC
+    // limit Hibernate derives from the transaction timeout is whole seconds, rounded, so a statement that
+    // starts with less than half a second left would get no limit at all; PostgreSQL enforces this one
+    // itself, on every statement.
+    public static final String DELIVERY_STATEMENT_TIMEOUT = DELIVERY_READ_TIMEOUT_SECONDS + "s";
     // Lesson reads, pages of the list and searches, that run at the same time on one backend instance,
     // all organizations together. The budgets above bound the reads that start in a minute, not the
     // reads that hold a connection at once. A healthy read holds its connection for milliseconds, so

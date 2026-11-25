@@ -81,7 +81,9 @@ public class LessonController {
             @ApiResponse(responseCode = "401", description = "No valid JWT"),
             @ApiResponse(responseCode = "403", description = "Not a member with access to the organization"),
             @ApiResponse(responseCode = "422", description = "GEN_VAL_001: a paging or filter value is invalid"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "500", description = "Internal server error"),
+            @ApiResponse(responseCode = "503", description = "GEN_UPS_004: the read ran past its time limit of 5 "
+                    + "seconds; try again later")
     })
     public ResponseEntity<CustomResponse<List<LessonListResponse>>> getLessons(
             @Parameter(hidden = true) @GetUser User user,

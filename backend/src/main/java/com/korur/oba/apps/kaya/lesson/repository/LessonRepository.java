@@ -25,6 +25,20 @@ public interface LessonRepository extends JpaRepository<Lesson, UUID>, JpaSpecif
 
     Optional<Lesson> findByIdAndOrganizationId(UUID id, UUID organizationId);
 
+    /**
+     * Bounds every later statement of the current transaction in PostgreSQL itself. set_config with
+     * true as its last argument is SET LOCAL in a form that takes a parameter: the setting ends with
+     * the transaction, commit or rollback, so it never stays on a pooled connection. PostgreSQL
+     * cancels a statement past the limit with SQLSTATE 57014, the same cancel as the JDBC time limit.
+     * The setting holds for the rest of the transaction it runs in, so it belongs at the start of a
+     * read that opens its own transaction.
+     *
+     * @param timeout the limit as statement_timeout reads it, such as 5s
+     * @return the setting as PostgreSQL now holds it
+     */
+    @Query(value = "SELECT set_config('statement_timeout', :timeout, true)", nativeQuery = true)
+    String limitStatementTime(@Param("timeout") String timeout);
+
     /** The repositories that have lessons, for the list's filter options. */
     @Query("SELECT DISTINCT l.repositoryId FROM Lesson l WHERE l.organizationId = :organizationId AND l.repositoryId IS NOT NULL")
     List<UUID> findDistinctRepositoryIds(@Param("organizationId") UUID organizationId);

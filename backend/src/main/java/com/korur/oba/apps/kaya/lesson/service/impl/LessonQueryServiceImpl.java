@@ -88,8 +88,15 @@ public class LessonQueryServiceImpl implements LessonQueryService {
     private final LessonMapper lessonMapper;
     private final LoggingService loggingService;
 
+    /**
+     * A page of the web list, above all one with a search, passes over the lessons of the
+     * organization like a read of the CLI, so it ends at the same time limit, in the transaction and
+     * in PostgreSQL.
+     */
     @Override
+    @Transactional(readOnly = true, timeout = LessonConstant.DELIVERY_READ_TIMEOUT_SECONDS)
     public Page<LessonListResponse> listLessons(User user, UUID organizationId, LessonQueryRequest request) {
+        lessonRepository.limitStatementTime(LessonConstant.DELIVERY_STATEMENT_TIMEOUT);
         loggingService.debug(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.LISTING_LESSONS, organizationId, request);
 
         Pageable pageable = PageRequest.of(request.getPage() - 1, request.getAmount(), NEWEST_FIRST);
@@ -155,12 +162,15 @@ public class LessonQueryServiceImpl implements LessonQueryService {
      *
      * Both statements pass over every applicable lesson, so the transaction ends at
      * {@link LessonConstant#DELIVERY_READ_TIMEOUT_SECONDS}: a read stuck on a lock or on a slow
-     * database then answers 503 instead of holding a pooled connection.
+     * database then answers 503 instead of holding a pooled connection. Its first statement sets
+     * {@link LessonConstant#DELIVERY_STATEMENT_TIMEOUT} in PostgreSQL, which also bounds a statement
+     * that starts too close to the end for the JDBC limit.
      */
     @Override
     @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ,
             timeout = LessonConstant.DELIVERY_READ_TIMEOUT_SECONDS)
     public LessonDelivery listForCheckout(MachinePrincipal principal, LessonDeliveryQueryRequest request) {
+        lessonRepository.limitStatementTime(LessonConstant.DELIVERY_STATEMENT_TIMEOUT);
         UUID organizationId = principal.organizationId();
         Instant seenAt = parseSince(principal, request.getSince());
         boolean paged = request.getPage() != null;
@@ -198,11 +208,12 @@ public class LessonQueryServiceImpl implements LessonQueryService {
 
     /**
      * A search matches the title and text of every applicable lesson, so it ends at the same time
-     * limit as a page of the list.
+     * limit as a page of the list, in the transaction and in PostgreSQL.
      */
     @Override
     @Transactional(readOnly = true, timeout = LessonConstant.DELIVERY_READ_TIMEOUT_SECONDS)
     public List<LessonDeliverySearchResponse> searchForCheckout(MachinePrincipal principal, String remoteUrl, String search) {
+        lessonRepository.limitStatementTime(LessonConstant.DELIVERY_STATEMENT_TIMEOUT);
         UUID organizationId = principal.organizationId();
         chargeRead(principal);
         Optional<RepositoryResponse> repository = findCheckoutRepository(organizationId, remoteUrl);
@@ -278,10 +289,12 @@ public class LessonQueryServiceImpl implements LessonQueryService {
     }
 
     /**
-     * Charges one read to the token and then to its organization, before any lesson is read, so a
-     * refused read costs no pass over the lessons. The organization is charged only once the
-     * token's own budget allows the read, so the refused reads of one runaway token never use up
-     * the reads of its colleagues.
+     * Charges one read to the token, then to its user and then to its organization, before any
+     * lesson is read, so a refused read costs no pass over the lessons. Each budget is charged only
+     * once the one before allows the read, so the refused reads of one runaway token never use up
+     * the reads of its user's other machines, and those of one person never use up the reads of
+     * their colleagues. The user budget is the one a person cannot multiply by creating
+     * organizations.
      */
     private void chargeRead(MachinePrincipal principal) {
         if (!lessonDeliveryRateLimiter.tryChargeRead(principal.tokenId())) {
@@ -289,6 +302,12 @@ public class LessonQueryServiceImpl implements LessonQueryService {
                     principal.machineId(), principal.tokenId(), LessonConstant.DELIVERY_READS_PER_MINUTE);
             throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
                     Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_READS_PER_MINUTE));
+        }
+        if (!lessonDeliveryRateLimiter.tryChargeUserRead(principal.userId())) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_USER_RATE_LIMITED,
+                    principal.machineId(), principal.userId(), LessonConstant.DELIVERY_USER_READS_PER_MINUTE);
+            throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_USER_READS_PER_MINUTE));
         }
         if (!lessonDeliveryRateLimiter.tryChargeOrganizationRead(principal.organizationId())) {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_ORGANIZATION_RATE_LIMITED,

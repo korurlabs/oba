@@ -37,6 +37,9 @@ public interface LessonQueryService {
      * @param organizationId the organization of the request
      * @param request        paging (25 by default, at most 100) and filters
      * @return one page of lessons with the names of their repository and author and their sessions
+     * @throws org.springframework.dao.QueryTimeoutException when the read runs past
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_READ_TIMEOUT_SECONDS},
+     *         answered 503 GEN_UPS_004
      */
     Page<LessonListResponse> listLessons(User user, UUID organizationId, LessonQueryRequest request);
 
@@ -112,6 +115,8 @@ public interface LessonQueryService {
      * @throws com.korur.oba.dojo.exception.internal.business.TooManyRequestsException KAY_SEC_004
      *         when the token made more lesson reads in a minute than
      *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_READS_PER_MINUTE},
+     *         the tokens of its user together more than
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_USER_READS_PER_MINUTE},
      *         or the tokens of its organization together more than
      *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_ORGANIZATION_READS_PER_MINUTE}
      * @throws org.springframework.dao.QueryTimeoutException when the read runs past
@@ -133,6 +138,8 @@ public interface LessonQueryService {
      * @throws com.korur.oba.dojo.exception.internal.business.TooManyRequestsException KAY_SEC_004
      *         when the token made more lesson reads in a minute than
      *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_READS_PER_MINUTE},
+     *         the tokens of its user together more than
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_USER_READS_PER_MINUTE},
      *         or the tokens of its organization together more than
      *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_ORGANIZATION_READS_PER_MINUTE};
      *         a search counts as a read like a page of the list

@@ -5,8 +5,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.QueryTimeoutException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +31,7 @@ import com.korur.oba.dojo.exception.internal.business.ConflictException;
 import com.korur.oba.dojo.exception.internal.business.TooManyRequestsException;
 import com.korur.oba.dojo.exception.internal.business.ValidationException;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.apps.kaya.identity.service.KayaUserQueryService;
 import com.korur.oba.apps.kaya.identity.service.OrganizationAccessQueryService;
 import com.korur.oba.apps.kaya.lesson.constant.LessonConstant;
@@ -36,6 +39,7 @@ import com.korur.oba.apps.kaya.lesson.dto.derived.LessonDelivery;
 import com.korur.oba.apps.kaya.lesson.dto.projection.LessonDeliveryProjection;
 import com.korur.oba.apps.kaya.lesson.dto.projection.LessonDeliveryStateProjection;
 import com.korur.oba.apps.kaya.lesson.dto.request.LessonDeliveryQueryRequest;
+import com.korur.oba.apps.kaya.lesson.dto.request.LessonQueryRequest;
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDeliveryResponse;
 import com.korur.oba.apps.kaya.lesson.helper.LessonDeliveryRateLimiter;
 import com.korur.oba.apps.kaya.lesson.helper.LessonEtagHelper;
@@ -55,6 +59,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -93,6 +98,7 @@ class LessonQueryServiceImplUnitTest {
         // Every read is within the budgets unless a test says otherwise; a read refused before the
         // charge never asks.
         lenient().when(lessonDeliveryRateLimiter.tryChargeRead(principal.tokenId())).thenReturn(true);
+        lenient().when(lessonDeliveryRateLimiter.tryChargeUserRead(principal.userId())).thenReturn(true);
         lenient().when(lessonDeliveryRateLimiter.tryChargeOrganizationRead(principal.organizationId())).thenReturn(true);
     }
 
@@ -278,13 +284,44 @@ class LessonQueryServiceImplUnitTest {
     class RateLimit {
 
         @Test
-        void listForCheckout_withinTheBudget_chargesOneReadToTheTokenAndOneToItsOrganization() {
+        void listForCheckout_withinTheBudget_chargesOneReadToTheTokenItsUserAndItsOrganization() {
             givenLessons(rows(3));
 
             service.listForCheckout(principal, request(1, null, null));
 
-            verify(lessonDeliveryRateLimiter).tryChargeRead(principal.tokenId());
-            verify(lessonDeliveryRateLimiter).tryChargeOrganizationRead(principal.organizationId());
+            InOrder charges = inOrder(lessonDeliveryRateLimiter);
+            charges.verify(lessonDeliveryRateLimiter).tryChargeRead(principal.tokenId());
+            charges.verify(lessonDeliveryRateLimiter).tryChargeUserRead(principal.userId());
+            charges.verify(lessonDeliveryRateLimiter).tryChargeOrganizationRead(principal.organizationId());
+        }
+
+        @Test
+        void listForCheckout_userOverTheBudget_throwsTooManyRequestsWithItsLimitBeforeAnyRead() {
+            when(lessonDeliveryRateLimiter.tryChargeUserRead(principal.userId())).thenReturn(false);
+
+            TooManyRequestsException exception = assertThrows(TooManyRequestsException.class,
+                    () -> service.listForCheckout(principal, request(1, null, null)));
+
+            assertEquals(HttpStatus.TOO_MANY_REQUESTS, exception.getStatusCode());
+            assertEquals("KAY_SEC_004", exception.getErrorCode());
+            assertEquals(LessonConstant.DELIVERY_USER_READS_PER_MINUTE, exception.getErrorValues().get("limit"));
+            verify(repositoryQueryService, never()).getRepositories(any());
+            verify(lessonRepository, never()).findDeliveryState(any(), any());
+            // A read the person may not make costs their colleagues nothing.
+            verify(lessonDeliveryRateLimiter, never()).tryChargeOrganizationRead(any());
+        }
+
+        @Test
+        void searchForCheckout_userOverTheBudget_throwsTooManyRequestsWithItsLimitBeforeAnyRead() {
+            when(lessonDeliveryRateLimiter.tryChargeUserRead(principal.userId())).thenReturn(false);
+
+            TooManyRequestsException exception = assertThrows(TooManyRequestsException.class,
+                    () -> service.searchForCheckout(principal, REMOTE, "deploy"));
+
+            assertEquals("KAY_SEC_004", exception.getErrorCode());
+            assertEquals(LessonConstant.DELIVERY_USER_READS_PER_MINUTE, exception.getErrorValues().get("limit"));
+            verify(lessonRepository, never()).findAll(any(Specification.class), any(Pageable.class));
+            verify(lessonDeliveryRateLimiter, never()).tryChargeOrganizationRead(any());
         }
 
         @Test
@@ -301,6 +338,7 @@ class LessonQueryServiceImplUnitTest {
             verify(lessonRepository, never()).findDeliveryState(any(), any());
             verify(lessonRepository, never()).findDeliveryLessons(any(), any(), any());
             // A read the token may not make costs its colleagues nothing.
+            verify(lessonDeliveryRateLimiter, never()).tryChargeUserRead(any());
             verify(lessonDeliveryRateLimiter, never()).tryChargeOrganizationRead(any());
         }
 
@@ -390,12 +428,64 @@ class LessonQueryServiceImplUnitTest {
                     MachinePrincipal.class, LessonDeliveryQueryRequest.class));
             Transactional search = transactionOf(LessonQueryServiceImpl.class.getMethod("searchForCheckout",
                     MachinePrincipal.class, String.class, String.class));
+            Transactional webList = transactionOf(LessonQueryServiceImpl.class.getMethod("listLessons",
+                    User.class, UUID.class, LessonQueryRequest.class));
 
             assertEquals(LessonConstant.DELIVERY_READ_TIMEOUT_SECONDS, list.timeout());
             assertEquals(LessonConstant.DELIVERY_READ_TIMEOUT_SECONDS, search.timeout());
+            assertEquals(LessonConstant.DELIVERY_READ_TIMEOUT_SECONDS, webList.timeout());
             // The list keeps the one snapshot that pairs a page with its ETag.
             assertEquals(Isolation.REPEATABLE_READ, list.isolation());
-            assertTrue(list.readOnly() && search.readOnly());
+            assertTrue(list.readOnly() && search.readOnly() && webList.readOnly());
+        }
+
+        @Test
+        void statementTimeout_isTheReadTimeLimitInPostgresUnits() {
+            assertEquals(LessonConstant.DELIVERY_READ_TIMEOUT_SECONDS + "s", LessonConstant.DELIVERY_STATEMENT_TIMEOUT);
+        }
+
+        @Test
+        void listForCheckout_limitsTheStatementTimeBeforeItsFirstQuery() {
+            givenLessons(rows(3));
+
+            service.listForCheckout(principal, request(1, null, null));
+
+            InOrder statements = inOrder(lessonRepository, repositoryQueryService);
+            statements.verify(lessonRepository).limitStatementTime(LessonConstant.DELIVERY_STATEMENT_TIMEOUT);
+            statements.verify(repositoryQueryService).getRepositories(principal.organizationId());
+            statements.verify(lessonRepository).findDeliveryState(principal.organizationId(), null);
+            statements.verify(lessonRepository).findDeliveryLessons(eq(principal.organizationId()), eq(null), any());
+        }
+
+        @Test
+        void searchForCheckout_limitsTheStatementTimeBeforeItsFirstQuery() {
+            when(repositoryQueryService.getRepositories(principal.organizationId())).thenReturn(List.of());
+            when(lessonRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(Page.empty());
+
+            service.searchForCheckout(principal, REMOTE, "deploy");
+
+            InOrder statements = inOrder(lessonRepository, repositoryQueryService);
+            statements.verify(lessonRepository).limitStatementTime(LessonConstant.DELIVERY_STATEMENT_TIMEOUT);
+            statements.verify(repositoryQueryService).getRepositories(principal.organizationId());
+            statements.verify(lessonRepository).findAll(any(Specification.class), any(Pageable.class));
+        }
+
+        @Test
+        void listLessons_limitsTheStatementTimeBeforeItsFirstQueryAndPassesTheCancelOn() {
+            // Arrange: PostgreSQL cancels the page at the statement limit (SQLSTATE 57014).
+            QueryTimeoutException cancel = new QueryTimeoutException("canceling statement due to statement timeout");
+            when(lessonRepository.findAll(any(Specification.class), any(Pageable.class))).thenThrow(cancel);
+            User user = User.builder().id(UUID.randomUUID()).build();
+
+            // Act: the cancel reaches the handler, which answers 503 GEN_UPS_004.
+            QueryTimeoutException thrown = assertThrows(QueryTimeoutException.class,
+                    () -> service.listLessons(user, principal.organizationId(), new LessonQueryRequest()));
+
+            // Assert
+            assertEquals(cancel, thrown);
+            InOrder statements = inOrder(lessonRepository);
+            statements.verify(lessonRepository).limitStatementTime(LessonConstant.DELIVERY_STATEMENT_TIMEOUT);
+            statements.verify(lessonRepository).findAll(any(Specification.class), any(Pageable.class));
         }
 
         private static Transactional transactionOf(Method method) {

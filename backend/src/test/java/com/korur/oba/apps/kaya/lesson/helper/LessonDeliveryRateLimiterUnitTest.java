@@ -153,6 +153,65 @@ class LessonDeliveryRateLimiterUnitTest {
     }
 
     @Nested
+    class UserReads {
+
+        private void chargeUserBudget(UUID userId) {
+            for (int charge = 0; charge < LessonConstant.DELIVERY_USER_READS_PER_MINUTE; charge++) {
+                assertTrue(limiter.tryChargeUserRead(userId), "charge " + (charge + 1));
+            }
+        }
+
+        @Test
+        void userBudget_coversFourMachinesThatEachReadEveryPageWithTwoRestarts() {
+            assertTrue(LessonConstant.DELIVERY_USER_READS_PER_MINUTE >= 4 * 3 * 100);
+            assertTrue(LessonConstant.DELIVERY_USER_READS_PER_MINUTE < LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE);
+        }
+
+        @Test
+        void tryChargeUserRead_overTheBudget_refusesThatUserOnly() {
+            UUID busy = UUID.randomUUID();
+            chargeUserBudget(busy);
+
+            assertFalse(limiter.tryChargeUserRead(busy));
+            assertTrue(limiter.tryChargeUserRead(UUID.randomUUID()));
+        }
+
+        @Test
+        void tryChargeUserRead_overTheBudget_holdsWhateverOrganizationTheTokenBelongsTo() {
+            // The reads of one person through the tokens of many organizations share one budget: the
+            // key is the user, so a fresh organization and a fresh token start no fresh budget.
+            UUID userId = UUID.randomUUID();
+            chargeUserBudget(userId);
+            UUID freshOrganization = UUID.randomUUID();
+            UUID freshToken = UUID.randomUUID();
+
+            assertTrue(limiter.tryChargeRead(freshToken));
+            assertFalse(limiter.tryChargeUserRead(userId));
+            assertTrue(limiter.tryChargeOrganizationRead(freshOrganization));
+        }
+
+        @Test
+        void tryChargeUserRead_afterTheWindowEnds_startsAFreshBudget() {
+            UUID userId = UUID.randomUUID();
+            chargeUserBudget(userId);
+            assertFalse(limiter.tryChargeUserRead(userId));
+
+            clock.advance(Duration.ofSeconds(LessonConstant.DELIVERY_RATE_WINDOW_SECONDS));
+
+            assertTrue(limiter.tryChargeUserRead(userId));
+        }
+
+        @Test
+        void tryChargeUserRead_keyedLikeAToken_sharesNothingWithTheOtherBudgets() {
+            UUID key = UUID.randomUUID();
+            chargeUserBudget(key);
+
+            assertTrue(limiter.tryChargeRead(key));
+            assertTrue(limiter.tryChargeOrganizationRead(key));
+        }
+    }
+
+    @Nested
     class Proposals {
 
         private void chargeProposalBudget(UUID tokenId) {
