@@ -26,6 +26,11 @@ const (
 	contentTypeJSON = "application/json"
 )
 
+// ErrSessionExpired marks a stored session that has expired and cannot be refreshed. Every later
+// call of the process would be refused the same way, so a command that makes many calls, such as
+// an upload, stops at the first error that wraps it.
+var ErrSessionExpired = errors.New("your session has expired")
+
 // TokenFunc returns the access token to send.
 type TokenFunc func() (string, error)
 
@@ -253,7 +258,7 @@ func (c *Client) exchange(method, path string, body []byte, contentType string, 
 	if resp.StatusCode == http.StatusUnauthorized && allowRetry && c.refresh != nil {
 		newToken, refreshErr := c.refresh()
 		if refreshErr != nil {
-			return nil, fmt.Errorf("your session has expired and could not be refreshed (%w). Run 'oba login'", refreshErr)
+			return nil, fmt.Errorf("%w and could not be refreshed (%w). Run 'oba login'", ErrSessionExpired, refreshErr)
 		}
 		c.tokenFunc = func() (string, error) { return newToken, nil }
 		return c.exchange(method, path, body, contentType, false)

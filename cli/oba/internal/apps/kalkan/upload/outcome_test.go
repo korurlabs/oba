@@ -37,9 +37,12 @@ func TestClassify(t *testing.T) {
 	}
 }
 
-func TestStopsRunOnlyOnA401(t *testing.T) {
+func TestStopsRunOnlyOnARefusedSignIn(t *testing.T) {
 	if !stopsRun(fmt.Errorf("list: %w", &client.APIError{Status: http.StatusUnauthorized})) {
 		t.Error("a wrapped 401 stops the run")
+	}
+	if !stopsRun(fmt.Errorf("upload a.png: %w", fmt.Errorf("%w and could not be refreshed (%w)", client.ErrSessionExpired, errors.New("invalid_grant")))) {
+		t.Error("a session that could not be refreshed stops the run")
 	}
 	if stopsRun(&client.APIError{Status: http.StatusForbidden}) || stopsRun(errors.New("401")) {
 		t.Error("only an API 401 stops the run")

@@ -5,7 +5,9 @@ package kalkan
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/korurlabs/oba-cli/cmd/apps/kalkan/attachment"
 	"github.com/korurlabs/oba-cli/cmd/apps/kalkan/page"
+	"github.com/korurlabs/oba-cli/cmd/apps/kalkan/upload"
 )
 
 // NewCmd builds the oba kalkan command with its subcommands.
@@ -16,6 +18,6 @@ func NewCmd() *cobra.Command {
 		Long: "Kalkan keeps the pages of the current organization: its docs and the documents of its ISMS, as a tree " +
 			"of Markdown pages in Turkish and English, each named by its path of slugs such as engineering/plans.",
 	}
-	cmd.AddCommand(page.NewCmd())
+	cmd.AddCommand(page.NewCmd(), upload.NewCmd(), attachment.NewCmd())
 	return cmd
 }

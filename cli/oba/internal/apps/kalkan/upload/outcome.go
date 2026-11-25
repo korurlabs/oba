@@ -102,9 +102,13 @@ func classify(err error) (string, int) {
 	}
 }
 
-// stopsRun reports a refused sign-in: every later call would be refused the same way, so the run
-// ends and the pages it has not reached are skipped.
+// stopsRun reports a refused sign-in, a 401 or a stored session that could not be refreshed: every
+// later call would be refused the same way, so the run ends and the pages it has not reached are
+// skipped.
 func stopsRun(err error) bool {
+	if errors.Is(err, client.ErrSessionExpired) {
+		return true
+	}
 	var apiErr *client.APIError
 	return errors.As(err, &apiErr) && apiErr.Status == http.StatusUnauthorized
 }

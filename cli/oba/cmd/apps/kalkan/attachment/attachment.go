@@ -1,22 +1,20 @@
-// Package attachment builds oba kalkan attachment: list, add and delete the evidence files of a
-// Kalkan page.
+// Package attachment builds oba kalkan attachment: list and add the evidence files of a Kalkan
+// page. It has no delete: the files of a Kalkan page are kept as a record, and the API refuses
+// every delete of one.
 package attachment
 
 import (
 	"github.com/spf13/cobra"
 
 	"github.com/korurlabs/oba-cli/internal/dojo/client"
-	"github.com/korurlabs/oba-cli/internal/dojo/terminal"
 )
 
-const attachmentHelp = `Lists, adds and deletes the attachments of the Kalkan page at --page, such as the evidence files
-of an ISMS page. Reading them needs the VIEW level on the page's root; changing them, EDIT.
+const attachmentHelp = `Lists and adds the attachments of the Kalkan page at --page, such as the evidence files of an
+ISMS page. Listing them needs the VIEW level on the page's root; adding them, EDIT. An attachment
+is kept as a record of the page and cannot be deleted.
 
 A page is named by its path of slugs from its root page, such as engineering/plans; surrounding
 slashes are dropped.`
-
-// stdinIsTerminal is a variable so that tests can stand in for a terminal.
-var stdinIsTerminal = terminal.StdinIsTerminal
 
 // pageFlag is the --page flag every subcommand takes.
 type pageFlag struct {
@@ -37,9 +35,9 @@ func (f *pageFlag) normalized() (string, error) {
 func NewCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "attachment",
-		Short: "List, add and delete the attachments of a Kalkan page",
+		Short: "List and add the attachments of a Kalkan page",
 		Long:  attachmentHelp,
 	}
-	cmd.AddCommand(newListCmd(), newAddCmd(), newDeleteCmd())
+	cmd.AddCommand(newListCmd(), newAddCmd())
 	return cmd
 }

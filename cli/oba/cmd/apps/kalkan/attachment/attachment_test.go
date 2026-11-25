@@ -9,12 +9,11 @@ import (
 )
 
 func TestAttachmentNeedsPage(t *testing.T) {
-	api := newAttachmentAPI(t, false)
+	api := newAttachmentAPI(t)
 	file := writeFile(t, t.TempDir(), "a.pdf", "%PDF-1.7")
 	for _, args := range [][]string{
 		{"kalkan", "attachment", "list"},
 		{"kalkan", "attachment", "add", "--file", file},
-		{"kalkan", "attachment", "delete", "--id", attachmentID, "--yes"},
 	} {
 		_, _, err := runCLI(t, "", args...)
 		if err == nil || !strings.Contains(err.Error(), `"page" not set`) {
@@ -27,12 +26,12 @@ func TestAttachmentNeedsPage(t *testing.T) {
 }
 
 func TestAttachmentRefusesAnInvalidPathBeforeAnyCall(t *testing.T) {
-	api := newAttachmentAPI(t, false)
+	api := newAttachmentAPI(t)
 	file := writeFile(t, t.TempDir(), "a.pdf", "%PDF-1.7")
 	for _, args := range [][]string{
 		{"kalkan", "attachment", "list", "--page", "/"},
 		{"kalkan", "attachment", "add", "--page", "engineering/-bad", "--file", file},
-		{"kalkan", "attachment", "delete", "--page", "a/b/c/d/e/f/g/h/i/j/k", "--id", attachmentID, "--yes"},
+		{"kalkan", "attachment", "list", "--page", "a/b/c/d/e/f/g/h/i/j/k"},
 	} {
 		_, _, err := runCLI(t, "", args...)
 		if err == nil || client.ExitCode(err) != 1 {
@@ -45,7 +44,7 @@ func TestAttachmentRefusesAnInvalidPathBeforeAnyCall(t *testing.T) {
 }
 
 func TestAttachmentOfAnUnknownPageExits2(t *testing.T) {
-	api := newAttachmentAPI(t, false)
+	api := newAttachmentAPI(t)
 	_, _, err := runCLI(t, "", "kalkan", "attachment", "list", "--page", "engineering/nope")
 	if err == nil || client.ExitCode(err) != 2 || !strings.Contains(err.Error(), "engineering/nope") {
 		t.Fatalf("err = %v", err)

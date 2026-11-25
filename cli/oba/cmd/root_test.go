@@ -23,6 +23,8 @@ func TestUnknownSubcommandFailsInEveryGroup(t *testing.T) {
 		{[]string{"otak", "mail-template", "pull"}, `unknown command "pull" for "oba otak mail-template"`},
 		{[]string{"kalkan", "bogus"}, `unknown command "bogus" for "oba kalkan"`},
 		{[]string{"kalkan", "page", "bogus"}, `unknown command "bogus" for "oba kalkan page"`},
+		{[]string{"kalkan", "attachment", "bogus"}, `unknown command "bogus" for "oba kalkan attachment"`},
+		{[]string{"kalkan", "attachment", "delete"}, `unknown command "delete" for "oba kalkan attachment"`},
 		{[]string{"ulak", "bogus"}, `unknown command "bogus" for "oba ulak"`},
 		{[]string{"admin", "member", "list"}, `unknown command "admin" for "oba"`},
 	}
@@ -53,7 +55,7 @@ func TestUnknownSubcommandSuggestsTheNearName(t *testing.T) {
 }
 
 func TestGroupWithoutSubcommandPrintsHelp(t *testing.T) {
-	for _, args := range [][]string{{"kazan"}, {"kazan", "pr"}, {"otak"}, {"ulak"}, {"kalkan"}, {"kalkan", "page"}, {"kazan", "--json"}} {
+	for _, args := range [][]string{{"kazan"}, {"kazan", "pr"}, {"otak"}, {"ulak"}, {"kalkan"}, {"kalkan", "page"}, {"kalkan", "attachment"}, {"kazan", "--json"}} {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
 			out, _, err := run(t, args...)
 			if err != nil {
@@ -63,5 +65,17 @@ func TestGroupWithoutSubcommandPrintsHelp(t *testing.T) {
 				t.Errorf("out = %q, want the group's help", out)
 			}
 		})
+	}
+}
+
+func TestKalkanListsEveryDomain(t *testing.T) {
+	out, _, err := run(t, "kalkan")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"page", "upload", "attachment"} {
+		if !strings.Contains(out, "\n  "+name+" ") {
+			t.Errorf("out = %q, want the command %s", out, name)
+		}
 	}
 }

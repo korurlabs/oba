@@ -10,7 +10,7 @@ import (
 )
 
 func TestAttachmentListOfPage(t *testing.T) {
-	api := newAttachmentAPI(t, false)
+	api := newAttachmentAPI(t)
 	var query url.Values
 	serveList(api, &query, attachmentJSON(attachmentID, "policy.pdf", "application/pdf"))
 
@@ -36,7 +36,7 @@ func TestAttachmentListOfPage(t *testing.T) {
 }
 
 func TestAttachmentListEmpty(t *testing.T) {
-	api := newAttachmentAPI(t, false)
+	api := newAttachmentAPI(t)
 	var query url.Values
 	serveList(api, &query)
 
@@ -48,7 +48,7 @@ func TestAttachmentListEmpty(t *testing.T) {
 
 // With --json, the result is the attachment list, not the tree read to find the page.
 func TestAttachmentListJSONIsTheList(t *testing.T) {
-	api := newAttachmentAPI(t, false)
+	api := newAttachmentAPI(t)
 	var query url.Values
 	serveList(api, &query, attachmentJSON(attachmentID, "policy.pdf", "application/pdf"))
 	buf := captureJSON(t)
@@ -64,7 +64,7 @@ func TestAttachmentListJSONIsTheList(t *testing.T) {
 
 // A caller below the VIEW level of the page's root gets the API's 403, which exits 3.
 func TestAttachmentListForbiddenExits3(t *testing.T) {
-	api := newAttachmentAPI(t, false)
+	api := newAttachmentAPI(t)
 	api.Respond("GET "+attachmentsPath, http.StatusForbidden, `{"code":"KLK_SEC_001","message":"No access"}`)
 
 	_, _, err := runCLI(t, "", "kalkan", "attachment", "list", "--page", "engineering/plans")

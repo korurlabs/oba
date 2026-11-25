@@ -9,7 +9,7 @@ import (
 )
 
 func TestAttachmentAddFilesToPage(t *testing.T) {
-	api := newAttachmentAPI(t, false)
+	api := newAttachmentAPI(t)
 	dir := t.TempDir()
 	pdf := writeFile(t, dir, "policy.pdf", "%PDF-1.7 a")
 	notes := writeFile(t, dir, "notes", "plain text notes")
@@ -50,7 +50,7 @@ func TestAttachmentAddFilesToPage(t *testing.T) {
 }
 
 func TestAttachmentAddRefusesBadInputBeforeAnyCall(t *testing.T) {
-	api := newAttachmentAPI(t, false)
+	api := newAttachmentAPI(t)
 	dir := t.TempDir()
 	a := writeFile(t, dir, "a.pdf", "%PDF same")
 	b := writeFile(t, dir, "b.pdf", "%PDF same")

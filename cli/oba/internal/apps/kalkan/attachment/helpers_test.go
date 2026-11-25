@@ -7,11 +7,7 @@ import (
 	"github.com/korurlabs/oba-cli/internal/dojo/clitest"
 )
 
-const (
-	pageID          = "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
-	attachmentID    = "55555555-5555-4555-8555-555555555555"
-	attachmentsPath = "/storage/attachments"
-)
+const pageID = "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
 
 // treeJSON is the tree of pages the caller can see, parents first, as the API lists it.
 const treeJSON = `{"data":[` +

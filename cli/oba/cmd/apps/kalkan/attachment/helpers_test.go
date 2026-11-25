@@ -39,11 +39,9 @@ func runCLI(t *testing.T, stdin string, args ...string) (string, string, error) 
 	return clitest.RunCLI(t, newRoot(), stdin, args...)
 }
 
-// newAttachmentAPI starts a mock API signed in to clitest.OrgIDAcme that serves treeJSON, with a
-// terminal on stdin or not.
-func newAttachmentAPI(t *testing.T, isTerminal bool) *clitest.MockAPI {
+// newAttachmentAPI starts a mock API signed in to clitest.OrgIDAcme that serves treeJSON.
+func newAttachmentAPI(t *testing.T) *clitest.MockAPI {
 	t.Helper()
-	clitest.FakeTerminal(t, &stdinIsTerminal, isTerminal)
 	api := clitest.NewSignedInAPI(t)
 	api.Respond("GET "+pagesPath, http.StatusOK, treeJSON)
 	return api
@@ -89,14 +87,4 @@ func writeFile(t *testing.T, dir, name, content string) string {
 		t.Fatal(err)
 	}
 	return path
-}
-
-// noDelete fails the test when the run sent a DELETE.
-func noDelete(t *testing.T, api *clitest.MockAPI) {
-	t.Helper()
-	for _, call := range api.Calls() {
-		if strings.HasPrefix(call, "DELETE") {
-			t.Errorf("deleted: %v", call)
-		}
-	}
 }
