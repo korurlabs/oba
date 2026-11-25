@@ -7,6 +7,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+
+// 2. Third-party
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 // 3. Java SDK
 import java.time.Clock;
@@ -29,6 +33,7 @@ import com.korur.oba.apps.kaya.ingest.dto.request.IngestRepositoryRequest;
 import com.korur.oba.apps.kaya.ingest.dto.request.IngestSummaryRequest;
 import com.korur.oba.apps.kaya.ingest.dto.response.IngestBatchResponse;
 import com.korur.oba.apps.kaya.ingest.helper.IngestRateLimiter;
+import com.korur.oba.apps.kaya.ingest.helper.IngestTextSanitizer;
 import com.korur.oba.apps.kaya.ingest.mapper.IngestMapper;
 import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
 import com.korur.oba.apps.kaya.machine.service.MachineService;
@@ -82,7 +87,11 @@ class IngestServiceImplUnitTest {
 
     @BeforeEach
     void setUp() {
-        service = new IngestServiceImpl(ingestRateLimiter, repositoryService, machineService, accountService,
+        // The real sanitizer: a batch without U+0000 passes it unchanged, as the stubs below expect.
+        IngestTextSanitizer ingestTextSanitizer = new IngestTextSanitizer(Jackson2ObjectMapperBuilder.json()
+                .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .build(), loggingService);
+        service = new IngestServiceImpl(ingestRateLimiter, ingestTextSanitizer, repositoryService, machineService, accountService,
                 userGitEmailQueryService, sessionIngestService, planIngestService, ingestMapper,
                 Clock.fixed(NOW, ZoneOffset.UTC), loggingService);
         principal = new MachinePrincipal(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),

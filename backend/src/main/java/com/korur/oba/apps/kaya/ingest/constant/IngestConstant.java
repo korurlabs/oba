@@ -43,6 +43,11 @@ public final class IngestConstant {
     // Windows of tokens idle for a while are dropped once the table holds this many.
     public static final int RATE_TABLE_PRUNE_SIZE = 10_000;
 
+    // --- Text PostgreSQL cannot store ---
+    // PostgreSQL holds no U+0000 in text, varchar or jsonb; the replacement character takes its place.
+    public static final char NUL = '\u0000';
+    public static final char NUL_REPLACEMENT = '\uFFFD';
+
     // --- Event keys the endpoint checks ---
     public static final String EVENT_SEQ = "seq";
     public static final String EVENT_AT = "at";

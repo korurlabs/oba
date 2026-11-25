@@ -22,10 +22,12 @@ public interface IngestService {
      * account, stores the usage snapshot and applies the batch to the session. The batch belongs to
      * the token's machine and user whatever machine name and git email it reports; a git email of
      * another member flags the session for review. A batch with usage but no events for a session
-     * Kaya has not recorded yet creates no session.
+     * Kaya has not recorded yet creates no session. A handoff or plan whose content holds U+0000 is
+     * a binary file and is left out, and U+0000 in any other text is stored as U+FFFD, as
+     * {@link com.korur.oba.apps.kaya.ingest.helper.IngestTextSanitizer} describes.
      *
      * @param principal the authenticated machine token
-     * @param request   the batch
+     * @param received  the batch as received
      * @return the session and the highest seq Kaya holds for it
      * @throws com.korur.oba.dojo.exception.internal.business.ConflictException KAY_VAL_001 when the
      *         session belongs to another user
@@ -37,5 +39,5 @@ public interface IngestService {
      * @throws com.korur.oba.dojo.exception.internal.business.ValidationException KAY_VAL_002 when
      *         the repository is archived
      */
-    IngestBatchResponse ingestBatch(MachinePrincipal principal, IngestBatchRequest request);
+    IngestBatchResponse ingestBatch(MachinePrincipal principal, IngestBatchRequest received);
 }

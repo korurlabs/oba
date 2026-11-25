@@ -33,6 +33,7 @@ import com.korur.oba.apps.kaya.ingest.dto.request.IngestAccountRequest;
 import com.korur.oba.apps.kaya.ingest.dto.request.IngestBatchRequest;
 import com.korur.oba.apps.kaya.ingest.dto.response.IngestBatchResponse;
 import com.korur.oba.apps.kaya.ingest.helper.IngestRateLimiter;
+import com.korur.oba.apps.kaya.ingest.helper.IngestTextSanitizer;
 import com.korur.oba.apps.kaya.ingest.mapper.IngestMapper;
 import com.korur.oba.apps.kaya.ingest.service.IngestService;
 import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
@@ -51,6 +52,7 @@ public class IngestServiceImpl implements IngestService {
     private static final LogPrefix LOG_PREFIX = LogPrefix.fromClass(IngestServiceImpl.class);
 
     private final IngestRateLimiter ingestRateLimiter;
+    private final IngestTextSanitizer ingestTextSanitizer;
     private final RepositoryService repositoryService;
     private final MachineService machineService;
     private final AccountService accountService;
@@ -63,12 +65,14 @@ public class IngestServiceImpl implements IngestService {
 
     @Override
     @Transactional
-    public IngestBatchResponse ingestBatch(MachinePrincipal principal, IngestBatchRequest request) {
+    public IngestBatchResponse ingestBatch(MachinePrincipal principal, IngestBatchRequest received) {
+        loggingService.info(LOG_PREFIX, LogLayer.SERVICE, IngestServiceLogConstant.INGESTING_BATCH, received.sessionId(),
+                principal.machineId(), received.events() == null ? 0 : received.events().size(),
+                received.handoffs() == null ? 0 : received.handoffs().size(),
+                received.plans() == null ? 0 : received.plans().size(), received.usage() != null);
+        IngestBatchRequest request = ingestTextSanitizer.sanitize(principal, received);
         List<Map<String, Object>> events = request.events() == null ? List.of() : request.events();
         String sessionId = request.sessionId();
-        loggingService.info(LOG_PREFIX, LogLayer.SERVICE, IngestServiceLogConstant.INGESTING_BATCH, sessionId,
-                principal.machineId(), events.size(), request.handoffs() == null ? 0 : request.handoffs().size(),
-                request.plans() == null ? 0 : request.plans().size(), request.usage() != null);
 
         logDifferentMachineName(principal, request);
         if (events.isEmpty() && request.usage() == null) {
