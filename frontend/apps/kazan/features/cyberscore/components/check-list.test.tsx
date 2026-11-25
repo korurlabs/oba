@@ -26,6 +26,7 @@ function makeCheck(id: string, name: string, category: Check["category"]): Check
 
 const mfaCheck = makeCheck("c1", "MFA on admin accounts", "IDENTITY");
 let checks: Check[];
+let filters: { status: string | null; category: string | null; search: string | null };
 
 const actualGetMe = { ...(await import("@oba/shared/features/users/hooks/use-get-me")) };
 const actualChecks = { ...(await import("../hooks/use-checks")) };
@@ -73,7 +74,7 @@ mock.module("@oba/shared/libs/i18n/navigation", () => ({
 }));
 mock.module("nuqs", () => ({
   ...actualNuqs,
-  useQueryStates: () => [{ status: null }, () => Promise.resolve(new URLSearchParams())],
+  useQueryStates: () => [filters, () => Promise.resolve(new URLSearchParams())],
 }));
 
 afterAll(() => {
@@ -83,7 +84,7 @@ afterAll(() => {
   mock.module("nuqs", () => actualNuqs);
 });
 
-const { CheckList, trackCheckSave } = await import("./check-list");
+const { CheckList, filterChecks, trackCheckSave } = await import("./check-list");
 const { CheckCard } = await import("./check-card");
 
 function markup(): string {
@@ -97,6 +98,7 @@ function markup(): string {
 beforeEach(() => {
   role = "MEMBER";
   checks = [mfaCheck];
+  filters = { status: null, category: null, search: null };
 });
 
 describe("CheckList write controls", () => {
@@ -108,8 +110,8 @@ describe("CheckList write controls", () => {
     expect(html).not.toContain(`>${en.cyberscore.checks.add}<`);
     expect(html).not.toContain(en.cyberscore.checks.edit);
     expect(html).not.toContain(en.cyberscore.checks.delete);
-    // Only the status filter is a select; the row's outcome and status are chips.
-    expect(html.match(/role="combobox"/g)).toHaveLength(1);
+    // Only the category and status filters are selects; the card's outcome and status are chips.
+    expect(html.match(/role="combobox"/g)).toHaveLength(2);
   });
 
   test.each(["ADMIN", "OWNER"] as const)(
@@ -120,7 +122,7 @@ describe("CheckList write controls", () => {
       expect(html).toContain(en.cyberscore.checks.add);
       expect(html).toContain(en.cyberscore.checks.edit);
       expect(html).toContain(en.cyberscore.checks.delete);
-      expect(html.match(/role="combobox"/g)).toHaveLength(3);
+      expect(html.match(/role="combobox"/g)).toHaveLength(4);
       expect(html).not.toContain(en.cyberscore.checks.readOnly);
     }
   );
@@ -250,5 +252,57 @@ describe("check card saves", () => {
     first.reject(new Error("save failed"));
     await settle();
     expect(saving.size).toBe(0);
+  });
+});
+
+describe("CheckList filters", () => {
+  const mixed = () => [
+    makeCheck("c1", "MFA on admin accounts", "IDENTITY"),
+    makeCheck("c2", "Backups restore", "DATA"),
+    makeCheck("c3", "Admin MFA for break-glass", "IDENTITY"),
+    makeCheck("c4", "No category check", null),
+  ];
+
+  test("filterChecks keeps one category, the uncategorized ones, or every check", () => {
+    const names = (list: Check[]) => list.map((check) => check.name);
+    expect(names(filterChecks(mixed(), { category: "IDENTITY" }))).toEqual([
+      "MFA on admin accounts",
+      "Admin MFA for break-glass",
+    ]);
+    expect(names(filterChecks(mixed(), { category: "NONE" }))).toEqual(["No category check"]);
+    expect(filterChecks(mixed(), { category: null, search: null })).toHaveLength(4);
+  });
+
+  test("filterChecks matches the name, ignoring case and surrounding spaces", () => {
+    const names = (list: Check[]) => list.map((check) => check.name);
+    expect(names(filterChecks(mixed(), { search: "  mfa " }))).toEqual([
+      "MFA on admin accounts",
+      "Admin MFA for break-glass",
+    ]);
+    expect(names(filterChecks(mixed(), { category: "IDENTITY", search: "break" }))).toEqual([
+      "Admin MFA for break-glass",
+    ]);
+  });
+
+  test("a category in the URL shows only that category's cards", () => {
+    checks = mixed();
+    filters = { status: null, category: "IDENTITY", search: null };
+    const html = markup();
+
+    expect(html).toContain("MFA on admin accounts");
+    expect(html).toContain("Admin MFA for break-glass");
+    expect(html).not.toContain("Backups restore");
+    expect(html).not.toContain("No category check");
+    expect(html.match(/<article/g)).toHaveLength(2);
+  });
+
+  test("filters that match nothing say so and offer to clear them", () => {
+    checks = mixed();
+    filters = { status: null, category: "DATA", search: "mfa" };
+    const html = markup();
+
+    expect(html).not.toContain("<article");
+    expect(html).toContain(en.cyberscore.checks.emptyFiltered);
+    expect(html).toContain(en.cyberscore.checks.filter.clear);
   });
 });

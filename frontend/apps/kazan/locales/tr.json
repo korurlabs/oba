@@ -1453,7 +1453,7 @@
     "emptyTitle": "Henüz cyberscore yok",
     "emptyDescription": "Kontroller ekleyip sonuçlarını kaydettiğinizde cyberscore'unuz ve değişimi burada görünecek.",
     "loadError": "Cyberscore yüklenemedi.",
-    "viewChecks": "Kontrolleri görüntüle",
+    "viewChecks": "Tüm kontrolleri görüntüle",
     "gauge": {
       "title": "Güncel puan",
       "description": "Puana sayılan sonucu olan tüm kontroller üzerinden ağırlıklı olarak hesaplanır.",
@@ -1465,11 +1465,8 @@
     "breakdown": {
       "title": "Kategoriye göre puan",
       "description": "Puana sayılan en az bir kontrolü olan her kategorinin puanı.",
-      "category": "Kategori",
-      "score": "Puan",
-      "level": "Risk düzeyi",
-      "scoreAria": "{category} puanı yüzde {score}",
-      "empty": "Henüz puana sayılan kontrolü olan bir kategori yok."
+      "empty": "Henüz puana sayılan kontrolü olan bir kategori yok.",
+      "rowLink": "{category}: yüzde {score}, {level}. Kontrollerini göster."
     },
     "trend": {
       "title": "30 günlük eğilim",
@@ -1521,6 +1518,7 @@
       "description": "Cyberscore'unuzu oluşturan kontroller, ağırlıkları ve güncel sonuçlarıyla.",
       "back": "Cyberscore'a dön",
       "empty": "Henüz kontrol yok",
+      "emptyFiltered": "Bu filtrelere uyan kontrol yok",
       "emptyDescription": "Cyberscore'unuzu oluşturmaya başlamak için bir kontrol ekleyin.",
       "readOnly": "Kontrolleri yalnızca organizasyon yöneticileri değiştirebilir.",
       "add": "Kontrol ekle",
@@ -1539,7 +1537,11 @@
       },
       "filter": {
         "status": "Durum",
-        "allStatuses": "Tüm durumlar"
+        "allStatuses": "Tüm durumlar",
+        "category": "Kategori",
+        "allCategories": "Tüm kategoriler",
+        "search": "Kontrollerde ara",
+        "clear": "Filtreleri temizle"
       },
       "fields": {
         "name": "Ad",

@@ -10,8 +10,8 @@ import {
   type SetStateAction,
 } from "react";
 import { useTranslations } from "next-intl";
-import { parseAsStringEnum, useQueryStates } from "nuqs";
 import { ArrowLeft, Info, ListChecks, Plus } from "lucide-react";
+import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
 import { useGetMe } from "@oba/shared/features/users/hooks/use-get-me";
 import { Link } from "@oba/shared/libs/i18n/navigation";
 import { Button } from "@/components/ui/button";
@@ -27,8 +27,14 @@ import {
 import { isOrganizationAdmin } from "@/features/updates/lib/organization-admin";
 import { useChecks, useSetCheckOutcome, useSetCheckStatus } from "../hooks/use-checks";
 import {
+  UNCATEGORIZED,
+  useCheckFilterParams,
+  type CheckCategoryFilter,
+} from "../hooks/use-check-filter-params";
+import {
   CHECK_CATEGORIES,
   CHECK_STATUSES,
+  CheckCategorySchema,
   CheckStatusSchema,
   type Check,
   type CheckCategory,
@@ -40,16 +46,24 @@ import { CheckDeleteDialog } from "./check-delete-dialog";
 import { CheckDialog } from "./check-dialog";
 import { CyberscoreLoadError } from "./cyberscore-load-error";
 
-/**
- * URL key of the status filter; no value lists every check. The checks page
- * parses the same `status` key on the server to prefetch the filtered list.
- */
-export const checkListFilterParams = {
-  status: parseAsStringEnum<CheckStatus>([...CHECK_STATUSES]),
-};
+/** The filters' value for "no narrowing"; a Select item cannot have an empty value. */
+const ALL = "ALL";
 
-/** The status filter's value for "every status"; a Select item cannot have an empty value. */
-const ALL_STATUSES = "ALL";
+/**
+ * The checks of one category (`NONE` for those without one) whose name holds
+ * the search text, ignoring case; a missing filter keeps every check.
+ */
+export function filterChecks(
+  checks: Check[],
+  { category, search }: { category?: CheckCategoryFilter | null; search?: string | null }
+): Check[] {
+  const needle = search?.trim().toLocaleLowerCase() ?? "";
+  return checks.filter(
+    (check) =>
+      (!category || (check.category ?? UNCATEGORIZED) === category) &&
+      (needle === "" || check.name.toLocaleLowerCase().includes(needle))
+  );
+}
 
 /** The checks of one category, or of no category when `category` is null. */
 export interface CheckGroup {
@@ -160,12 +174,17 @@ export function CheckList() {
   const me = meResponse?.data;
   const canManage = isOrganizationAdmin(me, me?.defaultOrganizationId);
 
-  const [filters, setFilters] = useQueryStates(checkListFilterParams);
+  const [filters, setFilters] = useCheckFilterParams();
   const status = filters.status ?? undefined;
+  const { category, search } = filters;
+  const isNarrowed = Boolean(status || category || search);
   const { data: checksResponse, isPending, isError, isFetching, refetch } = useChecks(status);
   const checks = useMemo((): Check[] => checksResponse?.data ?? [], [checksResponse?.data]);
 
-  const groups = useMemo(() => groupChecksByCategory(checks), [checks]);
+  const groups = useMemo(
+    () => groupChecksByCategory(filterChecks(checks, { category, search })),
+    [checks, category, search]
+  );
 
   const setOutcome = useSetCheckOutcome();
   const setStatus = useSetCheckStatus();
@@ -207,9 +226,25 @@ export function CheckList() {
     [trackSave, saveStatus]
   );
 
-  const handleFilterChange = (value: string) => {
+  const handleStatusFilterChange = (value: string) => {
     const parsed = CheckStatusSchema.safeParse(value);
     void setFilters({ status: parsed.success ? parsed.data : null });
+  };
+  const handleCategoryFilterChange = (value: string) => {
+    const parsed = CheckCategorySchema.safeParse(value);
+    void setFilters({
+      category: parsed.success ? parsed.data : value === UNCATEGORIZED ? UNCATEGORIZED : null,
+    });
+  };
+  const handleSearchChange = (value: string | undefined) => {
+    void setFilters({ search: value ?? null });
+  };
+  // Bumped to empty the search box at once; its typed text is held inside it
+  // until the debounce runs, so a cleared URL value alone would not reset it.
+  const [searchResetSignal, setSearchResetSignal] = useState(0);
+  const handleClearFilters = () => {
+    setSearchResetSignal((current) => current + 1);
+    void setFilters({ status: null, category: null, search: null });
   };
 
   return (
@@ -222,13 +257,33 @@ export function CheckList() {
       </Button>
 
       <PageHeader title={t("checks.title")} description={t("checks.description")}>
-        <div className="flex items-center gap-2">
-          <Select value={status ?? ALL_STATUSES} onValueChange={handleFilterChange}>
+        <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+          <SenseySearchInput
+            value={search}
+            onSearchChange={handleSearchChange}
+            placeholder={t("checks.filter.search")}
+            resetSignal={searchResetSignal}
+            className="w-full sm:w-52"
+          />
+          <Select value={category ?? ALL} onValueChange={handleCategoryFilterChange}>
+            <SelectTrigger size="sm" className="h-9 w-52" aria-label={t("checks.filter.category")}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>{t("checks.filter.allCategories")}</SelectItem>
+              {[...CHECK_CATEGORIES, UNCATEGORIZED].map((value) => (
+                <SelectItem key={value} value={value}>
+                  {t(`categories.${value}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={status ?? ALL} onValueChange={handleStatusFilterChange}>
             <SelectTrigger size="sm" className="h-9 w-44" aria-label={t("checks.filter.status")}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL_STATUSES}>{t("checks.filter.allStatuses")}</SelectItem>
+              <SelectItem value={ALL}>{t("checks.filter.allStatuses")}</SelectItem>
               {CHECK_STATUSES.map((value) => (
                 <SelectItem key={value} value={value}>
                   {t(`statuses.${value}`)}
@@ -271,11 +326,19 @@ export function CheckList() {
               >
                 <ListChecks className="size-6" />
               </span>
-              <span className="text-foreground text-sm font-semibold">{t("checks.empty")}</span>
-              {canManage && !status && (
-                <span className="text-muted-foreground text-sm">
-                  {t("checks.emptyDescription")}
-                </span>
+              <span className="text-foreground text-sm font-semibold">
+                {isNarrowed ? t("checks.emptyFiltered") : t("checks.empty")}
+              </span>
+              {isNarrowed ? (
+                <Button variant="outline" size="sm" className="mt-2" onClick={handleClearFilters}>
+                  {t("checks.filter.clear")}
+                </Button>
+              ) : (
+                canManage && (
+                  <span className="text-muted-foreground text-sm">
+                    {t("checks.emptyDescription")}
+                  </span>
+                )
               )}
             </div>
           }
