@@ -138,13 +138,29 @@ public interface UserRepository extends SoftDeleteRepository<User, UUID>, JpaSpe
      * @param excludeUserId  the agent being renamed, which may keep its own name; null on create
      * @return true if another live agent has the name
      */
+    default boolean existsAgentName(UUID organizationId, String name, UUID excludeUserId) {
+        return existsNameOfKind(UserKind.AGENT, organizationId, name, excludeUserId);
+    }
+
+    /**
+     * Checks whether another live user of one kind in the organization has the name, ignoring case.
+     *
+     * The kind is bound as a parameter, not written as a literal: Hibernate renders an enum literal
+     * as a cast to the Java type name, which names no PostgreSQL type.
+     *
+     * @param kind           the kind, {@link UserKind#AGENT} for agents
+     * @param organizationId the organization of the agents
+     * @param name           the name to check
+     * @param excludeUserId  the user being renamed, which may keep its own name; null on create
+     * @return true if another live user of the kind has the name
+     */
     @Query("""
             SELECT COUNT(u) > 0 FROM User u
-            WHERE u.kind = com.korur.oba.shrine.identity.enums.UserKind.AGENT
+            WHERE u.kind = :kind
               AND u.agentDetail.organizationId = :organizationId
               AND lower(u.profile.firstName) = lower(:name)
               AND (:excludeUserId IS NULL OR u.id <> :excludeUserId)
             """)
-    boolean existsAgentName(@Param("organizationId") UUID organizationId, @Param("name") String name,
-            @Param("excludeUserId") UUID excludeUserId);
+    boolean existsNameOfKind(@Param("kind") UserKind kind, @Param("organizationId") UUID organizationId,
+            @Param("name") String name, @Param("excludeUserId") UUID excludeUserId);
 }
