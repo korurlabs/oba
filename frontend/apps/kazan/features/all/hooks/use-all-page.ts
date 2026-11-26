@@ -66,7 +66,7 @@ export function useAllPage(boardId: string) {
   // not a step the Back button should walk through.
   const [sprintParam, setSprintParam] = useQueryState(
     ALL_TAB_SPRINT_PARAM,
-    parseAsString.withOptions({ history: "replace", scroll: false }),
+    parseAsString.withOptions({ history: "replace", scroll: false })
   );
 
   // ── Persistent UI prefs (shared with backlog/sprint pages) ─────────
@@ -99,7 +99,7 @@ export function useAllPage(boardId: string) {
   // empty baseline when nothing is saved.
   const filterBaseline = useMemo(
     () => (boardPrefs.isMeFetched ? (boardPrefs.savedFilters ?? {}) : null),
-    [boardPrefs.isMeFetched, boardPrefs.savedFilters],
+    [boardPrefs.isMeFetched, boardPrefs.savedFilters]
   );
   const {
     filters,
@@ -119,22 +119,16 @@ export function useAllPage(boardId: string) {
       setIncludeAllBoards(value);
       if (!value) setFilters({ boardIds: null });
     },
-    [setIncludeAllBoards, setFilters],
+    [setIncludeAllBoards, setFilters]
   );
 
   // ── Independent row selection per section ──────────────────────────
-  const [sprintRowSelection, setSprintRowSelection] = useState<
-    Record<string, boolean>
-  >({});
-  const [backlogRowSelection, setBacklogRowSelection] = useState<
-    Record<string, boolean>
-  >({});
+  const [sprintRowSelection, setSprintRowSelection] = useState<Record<string, boolean>>({});
+  const [backlogRowSelection, setBacklogRowSelection] = useState<Record<string, boolean>>({});
 
   // ── Bulk move dialogs (one per section, independent) ──────────────
-  const [showSprintBulkMoveDialog, setShowSprintBulkMoveDialog] =
-    useState(false);
-  const [showBacklogBulkMoveDialog, setShowBacklogBulkMoveDialog] =
-    useState(false);
+  const [showSprintBulkMoveDialog, setShowSprintBulkMoveDialog] = useState(false);
+  const [showBacklogBulkMoveDialog, setShowBacklogBulkMoveDialog] = useState(false);
 
   // ── Edit/Delete sprint dialog state ──────────────────────────────
   const [showEditSprintDialog, setShowEditSprintDialog] = useState(false);
@@ -182,17 +176,14 @@ export function useAllPage(boardId: string) {
       if (sprintId && !sprint) return;
       void setSprintParam(!sprint || sprint.id === defaultSprint(sprints)?.id ? null : sprint.slug);
     },
-    [sprints, setSprintParam],
+    [sprints, setSprintParam]
   );
 
   const { data: backlogResponse, isLoading: backlogLoading } = useBacklog(boardId);
   const backlogId = backlogResponse?.data?.id ?? null;
 
   const { data: childBoardsData } = useCachedChildBoards(boardId);
-  const childBoards = useMemo(
-    () => mapChildBoards(childBoardsData),
-    [childBoardsData],
-  );
+  const childBoards = useMemo(() => mapChildBoards(childBoardsData), [childBoardsData]);
 
   // The Board filter offers the boards this list spans: the current board and
   // every board below it at any depth, and only while child boards are
@@ -237,10 +228,10 @@ export function useAllPage(boardId: string) {
     };
   }, [filtersReady, currentSprint?.id, includeAllBoards, filters]);
 
-  const {
-    data: sprintTicketsResponse,
-    isLoading: sprintTicketsQueryLoading,
-  } = useTickets(boardId, sprintTicketParams as Parameters<typeof useTickets>[1]);
+  const { data: sprintTicketsResponse, isLoading: sprintTicketsQueryLoading } = useTickets(
+    boardId,
+    sprintTicketParams as Parameters<typeof useTickets>[1]
+  );
 
   // Backlog tickets — only enabled when backlog id and the saved filters are loaded
   const backlogTicketParams = useMemo(() => {
@@ -264,10 +255,10 @@ export function useAllPage(boardId: string) {
     };
   }, [filtersReady, backlogId, includeAllBoards, filters]);
 
-  const {
-    data: backlogTicketsResponse,
-    isLoading: backlogTicketsQueryLoading,
-  } = useTickets(boardId, backlogTicketParams);
+  const { data: backlogTicketsResponse, isLoading: backlogTicketsQueryLoading } = useTickets(
+    boardId,
+    backlogTicketParams
+  );
 
   // A section whose query waits for the saved filters is loading, not empty.
   const sprintTicketsLoading = sprintTicketsQueryLoading || !filtersReady;
@@ -275,11 +266,11 @@ export function useAllPage(boardId: string) {
 
   const sprintTickets = useMemo(
     (): TicketListResponse[] => sprintTicketsResponse?.data ?? [],
-    [sprintTicketsResponse?.data],
+    [sprintTicketsResponse?.data]
   );
   const backlogTickets = useMemo(
     (): TicketListResponse[] => backlogTicketsResponse?.data ?? [],
-    [backlogTicketsResponse?.data],
+    [backlogTicketsResponse?.data]
   );
 
   // Toggles one status in the shared `statuses` URL filter, from the status
@@ -298,7 +289,7 @@ export function useAllPage(boardId: string) {
         return { statuses: next.length > 0 ? next : null };
       });
     },
-    [setFilters],
+    [setFilters]
   );
 
   // Clear row selections when filters change or selected sprint switches
@@ -334,7 +325,7 @@ export function useAllPage(boardId: string) {
         },
       });
     },
-    [boardId, createSprintMutation],
+    [boardId, createSprintMutation]
   );
 
   const handleOpenEditSprintDialog = useCallback((sprintId: string) => {
@@ -368,7 +359,7 @@ export function useAllPage(boardId: string) {
       setShowEditSprintDialog(false);
       setEditTargetSprintId(null);
     },
-    [boardId, editTargetSprintId, updateSprintMutation],
+    [boardId, editTargetSprintId, updateSprintMutation]
   );
 
   const handleDeleteSprint = useCallback(
@@ -383,17 +374,18 @@ export function useAllPage(boardId: string) {
       setShowDeleteSprintDialog(false);
       setDeleteTargetSprintId(null);
     },
-    [boardId, deleteTargetSprintId, deleteSprintMutation],
+    [boardId, deleteTargetSprintId, deleteSprintMutation]
   );
 
   const editTargetSprint = useMemo(
-    () => (editTargetSprintId ? sprints.find((s) => s.id === editTargetSprintId) ?? null : null),
-    [editTargetSprintId, sprints],
+    () => (editTargetSprintId ? (sprints.find((s) => s.id === editTargetSprintId) ?? null) : null),
+    [editTargetSprintId, sprints]
   );
 
   const deleteTargetSprint = useMemo(
-    () => (deleteTargetSprintId ? sprints.find((s) => s.id === deleteTargetSprintId) ?? null : null),
-    [deleteTargetSprintId, sprints],
+    () =>
+      deleteTargetSprintId ? (sprints.find((s) => s.id === deleteTargetSprintId) ?? null) : null,
+    [deleteTargetSprintId, sprints]
   );
 
   // ── Helpers ─────────────────────────────────────────────────────
@@ -411,7 +403,7 @@ export function useAllPage(boardId: string) {
       }
       return boardId;
     },
-    [sprintTickets, backlogTickets, boardId],
+    [sprintTickets, backlogTickets, boardId]
   );
 
   // ── Section-aware create entry points ────────────────────────────
@@ -434,7 +426,7 @@ export function useAllPage(boardId: string) {
     (status?: TicketStatus) => {
       openCreateTicketDialogIn({ status });
     },
-    [openCreateTicketDialogIn],
+    [openCreateTicketDialogIn]
   );
 
   // ── Row action handlers ─────────────────────────────────────────
@@ -442,7 +434,7 @@ export function useAllPage(boardId: string) {
     (ticket: TicketListResponse) => {
       openEditTicketDialog(ticket);
     },
-    [openEditTicketDialog],
+    [openEditTicketDialog]
   );
 
   const handleMoveToSprint = useCallback(
@@ -453,7 +445,7 @@ export function useAllPage(boardId: string) {
         data: { sprintId, ...subTickets },
       });
     },
-    [findTicketBoardId, moveTicketMutation],
+    [findTicketBoardId, moveTicketMutation]
   );
 
   const handleMoveToBacklog = useCallback(
@@ -468,7 +460,7 @@ export function useAllPage(boardId: string) {
         data: { backlogId: targetBacklogId, ...subTickets },
       });
     },
-    [findTicketBoardId, moveTicketMutation],
+    [findTicketBoardId, moveTicketMutation]
   );
 
   const handleDeleteTicket = useCallback(
@@ -478,7 +470,7 @@ export function useAllPage(boardId: string) {
         ticketId,
       });
     },
-    [findTicketBoardId, deleteTicketMutation],
+    [findTicketBoardId, deleteTicketMutation]
   );
 
   // ── Bulk move (independent per section) ────────────────────────
@@ -488,7 +480,7 @@ export function useAllPage(boardId: string) {
       setShowSprintBulkMoveDialog(false);
       setSprintRowSelection({});
     },
-    [boardId, bulkMoveTicketsMutation],
+    [boardId, bulkMoveTicketsMutation]
   );
 
   const handleBacklogBulkMove = useCallback(
@@ -497,17 +489,17 @@ export function useAllPage(boardId: string) {
       setShowBacklogBulkMoveDialog(false);
       setBacklogRowSelection({});
     },
-    [boardId, bulkMoveTicketsMutation],
+    [boardId, bulkMoveTicketsMutation]
   );
 
   // ── Selection / incomplete derivations ─────────────────────────
   const sprintSelectedTicketIds = useMemo(
     () => Object.keys(sprintRowSelection).filter((id) => sprintRowSelection[id]),
-    [sprintRowSelection],
+    [sprintRowSelection]
   );
   const backlogSelectedTicketIds = useMemo(
     () => Object.keys(backlogRowSelection).filter((id) => backlogRowSelection[id]),
-    [backlogRowSelection],
+    [backlogRowSelection]
   );
 
   // ── Bulk delete (independent per section) ──────────────────────
@@ -517,7 +509,7 @@ export function useAllPage(boardId: string) {
   const deleteSelection = useCallback(
     async (
       ticketIds: readonly string[],
-      setSelection: (selection: Record<string, boolean>) => void,
+      setSelection: (selection: Record<string, boolean>) => void
     ) => {
       if (ticketIds.length === 0) return;
       const targets: BulkDeleteTicketTarget[] = ticketIds.map((ticketId) => ({
@@ -526,37 +518,29 @@ export function useAllPage(boardId: string) {
       }));
       const result = await bulkDeleteTicketsMutation.mutateAsync({ targets });
       setSelection(
-        Object.fromEntries(
-          result.failed.map((failure) => [failure.target.ticketId, true] as const),
-        ),
+        Object.fromEntries(result.failed.map((failure) => [failure.target.ticketId, true] as const))
       );
     },
-    [findTicketBoardId, bulkDeleteTicketsMutation],
+    [findTicketBoardId, bulkDeleteTicketsMutation]
   );
 
   const handleSprintBulkDelete = useCallback(
     () => deleteSelection(sprintSelectedTicketIds, setSprintRowSelection),
-    [deleteSelection, sprintSelectedTicketIds],
+    [deleteSelection, sprintSelectedTicketIds]
   );
 
   const handleBacklogBulkDelete = useCallback(
     () => deleteSelection(backlogSelectedTicketIds, setBacklogRowSelection),
-    [deleteSelection, backlogSelectedTicketIds],
+    [deleteSelection, backlogSelectedTicketIds]
   );
 
   const sprintIncompleteTicketIds = useMemo(
-    () =>
-      sprintTickets
-        .filter((t) => t.status !== TicketStatus.DONE)
-        .map((t) => t.id),
-    [sprintTickets],
+    () => sprintTickets.filter((t) => t.status !== TicketStatus.DONE).map((t) => t.id),
+    [sprintTickets]
   );
   const backlogIncompleteTicketIds = useMemo(
-    () =>
-      backlogTickets
-        .filter((t) => t.status !== TicketStatus.DONE)
-        .map((t) => t.id),
-    [backlogTickets],
+    () => backlogTickets.filter((t) => t.status !== TicketStatus.DONE).map((t) => t.id),
+    [backlogTickets]
   );
 
   // ── Derived values ─────────────────────────────────────────────

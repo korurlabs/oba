@@ -32,6 +32,10 @@ interface OptionGroupProps<T extends string> {
   options: Option<T>[];
   /** Undefined until the current value is known, so no tile is marked. */
   value: T | undefined;
+  /**
+   * True while a save runs. The tiles stay focusable and only ignore input,
+   * because a natively disabled tile would drop the keyboard focus to the page.
+   */
   disabled: boolean;
   onChange: (value: T) => void;
 }
@@ -65,6 +69,7 @@ function OptionGroup<T extends string>({
           : 0;
     if (step === 0) return;
     event.preventDefault();
+    if (disabled) return;
     const next = (index + step + options.length) % options.length;
     const option = options[next];
     if (!option) return;
@@ -97,12 +102,14 @@ function OptionGroup<T extends string>({
               role="radio"
               aria-checked={checked}
               tabIndex={index === focusIndex ? 0 : -1}
-              disabled={disabled}
-              onClick={() => onChange(option.value)}
+              aria-disabled={disabled}
+              onClick={() => {
+                if (!disabled) onChange(option.value);
+              }}
               onKeyDown={(event) => onKeyDown(event, index)}
               className={cn(
                 "border-border bg-background flex cursor-pointer flex-col gap-2 rounded-md border p-2 text-left transition-colors",
-                "hover:border-primary/60 disabled:cursor-wait disabled:opacity-70",
+                "hover:border-primary/60 aria-disabled:cursor-wait aria-disabled:opacity-70",
                 checked && "border-primary ring-primary ring-1"
               )}
             >
@@ -127,10 +134,10 @@ function LayoutPreview({ layout }: { layout: KazanLayout }) {
     return (
       <span className="bg-muted flex h-full p-1">
         <span className="flex w-1/4 flex-col gap-1 p-1">
-          <span className="h-1.5 bg-muted-foreground/30 rounded-sm" />
-          <span className="h-1 bg-muted-foreground/30 rounded-sm" />
+          <span className="bg-muted-foreground/30 h-1.5 rounded-sm" />
+          <span className="bg-muted-foreground/30 h-1 rounded-sm" />
           <span className="h-1 rounded-sm bg-[#2f8fe9]/50" />
-          <span className="h-1 bg-muted-foreground/30 rounded-sm" />
+          <span className="bg-muted-foreground/30 h-1 rounded-sm" />
         </span>
         <span className="bg-background flex-1 rounded-md border" />
       </span>
@@ -170,7 +177,7 @@ const BACKGROUND_PREVIEW: Record<KazanBackground, string> = {
  * Kazan's appearance settings: the layout, the theme and the background, each
  * saved to the user's preferences the moment it is chosen. The layout and the
  * background apply at once through the cached user; the theme is applied once
- * its save went through. While a save is pending the tiles are disabled, so
+ * its save went through. While a save is pending the tiles ignore input, so
  * two saves never race over the preferences.
  */
 export function AppearanceSettings() {

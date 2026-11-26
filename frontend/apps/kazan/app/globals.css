@@ -160,10 +160,14 @@
       linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) left top / 2px 10px no-repeat,
       linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) right top / 10px 2px no-repeat,
       linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) right top / 2px 10px no-repeat,
-      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) left bottom / 10px 2px no-repeat,
-      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) left bottom / 2px 10px no-repeat,
-      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) right bottom / 10px 2px no-repeat,
-      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) right bottom / 2px 10px no-repeat;
+      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) left bottom / 10px 2px
+        no-repeat,
+      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) left bottom / 2px 10px
+        no-repeat,
+      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) right bottom / 10px 2px
+        no-repeat,
+      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) right bottom / 2px 10px
+        no-repeat;
   }
 
   .kazan-grid-label {
@@ -320,7 +324,8 @@
     /* One straight bar of the corner bracket colour, layered eight times below. */
     --kazan-grid-crop: linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark));
     --kazan-grid-edge: color-mix(in srgb, var(--primary) 28%, transparent);
-    --kazan-grid-shadow: 0 18px 40px -20px rgb(47 79 106 / 0.45), 0 2px 6px -2px rgb(47 79 106 / 0.12);
+    --kazan-grid-shadow:
+      0 18px 40px -20px rgb(47 79 106 / 0.45), 0 2px 6px -2px rgb(47 79 106 / 0.12);
     --kazan-grid-hover: color-mix(in srgb, var(--primary) 8%, transparent);
     --kazan-control-edge: color-mix(in srgb, var(--foreground) 24%, transparent);
   }
@@ -350,26 +355,44 @@
     border-color: var(--kazan-grid-edge);
     box-shadow: var(--kazan-grid-shadow);
     background-image:
-      var(--kazan-grid-crop), var(--kazan-grid-crop), var(--kazan-grid-crop), var(--kazan-grid-crop),
-      var(--kazan-grid-crop), var(--kazan-grid-crop), var(--kazan-grid-crop), var(--kazan-grid-crop),
+      var(--kazan-grid-crop), var(--kazan-grid-crop), var(--kazan-grid-crop),
+      var(--kazan-grid-crop), var(--kazan-grid-crop), var(--kazan-grid-crop),
+      var(--kazan-grid-crop), var(--kazan-grid-crop),
       linear-gradient(var(--kazan-grid-line) 1px, transparent 1px),
       linear-gradient(90deg, var(--kazan-grid-line) 1px, transparent 1px);
     background-size:
-      12px 2px, 2px 12px, 12px 2px, 2px 12px,
-      12px 2px, 2px 12px, 12px 2px, 2px 12px,
-      16px 16px, 16px 16px;
+      12px 2px,
+      2px 12px,
+      12px 2px,
+      2px 12px,
+      12px 2px,
+      2px 12px,
+      12px 2px,
+      2px 12px,
+      16px 16px,
+      16px 16px;
     background-position:
-      left top, left top, right top, right top,
-      left bottom, left bottom, right bottom, right bottom,
-      left top, left top;
+      left top,
+      left top,
+      right top,
+      right top,
+      left bottom,
+      left bottom,
+      right bottom,
+      right bottom,
+      left top,
+      left top;
     background-repeat:
-      no-repeat, no-repeat, no-repeat, no-repeat,
-      no-repeat, no-repeat, no-repeat, no-repeat,
+      no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat,
       repeat, repeat;
   }
 
   /* The scrim behind a dialog or sheet: a flat Korur ink tint, no blur, so the page edge stays crisp. */
-  :is([data-slot="dialog-overlay"], [data-slot="alert-dialog-overlay"], [data-slot="sheet-overlay"]) {
+  :is(
+    [data-slot="dialog-overlay"],
+    [data-slot="alert-dialog-overlay"],
+    [data-slot="sheet-overlay"]
+  ) {
     background-color: rgb(22 39 58 / 0.45);
     backdrop-filter: none;
   }
@@ -379,7 +402,9 @@
    * readable size. A heading that already leads with an icon keeps the icon as
    * its only marker.
    */
-  :is([data-slot="dialog-title"], [data-slot="alert-dialog-title"], [data-slot="sheet-title"]):not(:has(svg))::before {
+  :is([data-slot="dialog-title"], [data-slot="alert-dialog-title"], [data-slot="sheet-title"]):not(
+      :has(svg)
+    )::before {
     content: "";
     display: inline-block;
     width: 14px;
@@ -484,11 +509,17 @@
     box-shadow: none;
   }
 
-  :is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"]):not([aria-invalid="true"]) {
+  :is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"]):not(
+    [aria-invalid="true"]
+  ) {
     border-color: var(--kazan-control-edge);
   }
 
-  :is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"]):hover:not([aria-invalid="true"], :disabled, [data-disabled]) {
+  :is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"]):hover:not(
+      [aria-invalid="true"],
+      :disabled,
+      [data-disabled]
+    ) {
     border-color: color-mix(in srgb, var(--primary) 55%, transparent);
   }
 
@@ -496,7 +527,11 @@
    * Focus doubles the primary edge to 2px; a field in error keeps its red edge,
    * and a borderless field inside its own frame leaves focus to that frame.
    */
-  :is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"]):is(:focus, :focus-visible, [data-state="open"]):not([aria-invalid="true"], [class~="border-0"], [class~="border-none"]) {
+  :is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"]):is(
+      :focus,
+      :focus-visible,
+      [data-state="open"]
+    ):not([aria-invalid="true"], [class~="border-0"], [class~="border-none"]) {
     border-color: var(--primary);
     box-shadow: 0 0 0 1px var(--primary);
   }
@@ -702,7 +737,12 @@
     linear-gradient(rgb(74 163 255 / 0.06) 1px, transparent 1px) 0 0 / 16px 16px,
     linear-gradient(90deg, rgb(74 163 255 / 0.06) 1px, transparent 1px) 0 0 / 16px 16px,
     radial-gradient(120% 45% at 0% 0%, rgb(74 163 255 / 0.12), transparent 70%),
-    linear-gradient(180deg, rgb(20 48 76 / 0.92) 0%, rgb(14 33 52 / 0.92) 55%, rgb(11 22 34 / 0.94) 100%);
+    linear-gradient(
+      180deg,
+      rgb(20 48 76 / 0.92) 0%,
+      rgb(14 33 52 / 0.92) 55%,
+      rgb(11 22 34 / 0.94) 100%
+    );
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.06),
     0 0 26px -10px rgb(74 163 255 / 0.35),
@@ -843,13 +883,17 @@
 }
 
 :root[data-kazan-layout="classic"] [data-slot="sidebar"] [data-slot="sidebar-menu-button"]:hover,
-:root[data-kazan-layout="classic"] [data-slot="sidebar"] [data-slot="sidebar-menu-button"][data-active="true"] {
+:root[data-kazan-layout="classic"]
+  [data-slot="sidebar"]
+  [data-slot="sidebar-menu-button"][data-active="true"] {
   background: var(--sidebar-accent);
   color: var(--sidebar-accent-foreground);
   box-shadow: none;
 }
 
-:root[data-kazan-layout="classic"] [data-slot="sidebar"] [data-slot="sidebar-menu-button"][data-active="true"] {
+:root[data-kazan-layout="classic"]
+  [data-slot="sidebar"]
+  [data-slot="sidebar-menu-button"][data-active="true"] {
   font-weight: 500;
 }
 
@@ -887,7 +931,8 @@
  * the classic layout as plain text and plain cards: no mono capitals, no
  * markers, no grid paint or corner brackets.
  */
-:root[data-kazan-layout="classic"] :is(.kazan-grid-label, .kazan-grid-heading, .kazan-grid-number, .kazan-grid-chip) {
+:root[data-kazan-layout="classic"]
+  :is(.kazan-grid-label, .kazan-grid-heading, .kazan-grid-number, .kazan-grid-chip) {
   font-family: inherit;
   text-transform: none;
   letter-spacing: normal;

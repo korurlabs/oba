@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { Link } from '@oba/shared/libs/i18n/navigation';
-import { MoreVertical } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { boardPath } from '@/features/boards/lib/board-route';
-import { useTranslations } from 'next-intl';
+import { Link } from "@oba/shared/libs/i18n/navigation";
+import { MoreVertical } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { boardPath } from "@/features/boards/lib/board-route";
+import { useTranslations } from "next-intl";
 
 interface BoardCardProps {
   id: string;
@@ -16,56 +16,51 @@ interface BoardCardProps {
 }
 
 const colorToGradient: Record<string, string> = {
-  '#4AA3FF': 'from-korur-blue-medium to-korur-blue',
-  '#FFB7C5': 'from-[#FFD4E0] to-[#FFB7C5]',
-  '#C084FC': 'from-purple-200 to-purple-400',
-  '#60A5FA': 'from-blue-200 to-blue-400',
-  '#4ADE80': 'from-green-200 to-green-400',
-  '#FBBF24': 'from-amber-200 to-amber-400',
-  '#9CA3AF': 'from-gray-200 to-gray-400',
+  "#4AA3FF": "from-korur-blue-medium to-korur-blue",
+  "#FFB7C5": "from-[#FFD4E0] to-[#FFB7C5]",
+  "#C084FC": "from-purple-200 to-purple-400",
+  "#60A5FA": "from-blue-200 to-blue-400",
+  "#4ADE80": "from-green-200 to-green-400",
+  "#FBBF24": "from-amber-200 to-amber-400",
+  "#9CA3AF": "from-gray-200 to-gray-400",
 };
 
 function getGradientClass(color?: string): string {
   if (color && colorToGradient[color]) {
     return colorToGradient[color];
   }
-  return 'from-korur-blue-medium to-korur-blue';
+  return "from-korur-blue-medium to-korur-blue";
 }
 
-export function BoardCard({
-  slug,
-  name,
-  prefix,
-  color,
-}: BoardCardProps) {
+export function BoardCard({ slug, name, prefix, color }: BoardCardProps) {
   const gradientClass = getGradientClass(color);
 
   return (
     <Link href={boardPath(slug)}>
-      <div className="group relative bg-card text-card-foreground rounded-2xl border border-border overflow-hidden cursor-pointer transition-all duration-150 ease-in-out hover:-translate-y-1 hover:shadow-lg hover:border-transparent">
+      <div className="group bg-card text-card-foreground border-border relative cursor-pointer overflow-hidden rounded-2xl border transition-all duration-150 ease-in-out hover:-translate-y-1 hover:border-transparent hover:shadow-lg">
         {/* Gradient Bar */}
         <div className={`h-2 bg-gradient-to-r ${gradientClass}`} />
 
         {/* Content */}
         <div className="p-5">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex-1 min-w-0">
-              <h3 className="text-base font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+          <div className="mb-4 flex items-start justify-between">
+            <div className="min-w-0 flex-1">
+              <h3 className="text-foreground group-hover:text-primary truncate text-base font-semibold transition-colors">
                 {name}
               </h3>
-              <p className="mt-1 text-sm text-muted-foreground">{prefix}</p>
+              <p className="text-muted-foreground mt-1 text-sm">{prefix}</p>
             </div>
 
             <Button
               variant="ghost"
               size="icon-sm"
-              className="opacity-0 group-hover:opacity-100 transition-opacity -mr-2"
+              className="-mr-2 opacity-0 transition-opacity group-hover:opacity-100"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
               }}
             >
-              <MoreVertical className="h-4 w-4 text-muted-foreground" />
+              <MoreVertical className="text-muted-foreground h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -78,15 +73,15 @@ export function BoardCard({
  * Create Board Card - Special card for creating new boards
  */
 export function CreateBoardCard({ onClick }: { onClick: () => void }) {
-  const t = useTranslations('board');
+  const t = useTranslations("board");
 
   return (
     <div
       onClick={onClick}
-      className="group relative h-[180px] bg-card rounded-2xl border-2 border-dashed border-border overflow-hidden cursor-pointer transition-all duration-200 hover:border-primary hover:bg-primary/10 flex flex-col items-center justify-center"
+      className="group bg-card border-border hover:border-primary hover:bg-primary/10 relative flex h-[180px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed transition-all duration-200"
     >
       {/* Icon */}
-      <div className="w-12 h-12 rounded-xl bg-muted group-hover:bg-primary/20 flex items-center justify-center mb-3 transition-colors">
+      <div className="bg-muted group-hover:bg-primary/20 mb-3 flex h-12 w-12 items-center justify-center rounded-xl transition-colors">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"
@@ -105,10 +100,10 @@ export function CreateBoardCard({ onClick }: { onClick: () => void }) {
       </div>
 
       {/* Text */}
-      <h3 className="text-base font-semibold text-foreground/80 group-hover:text-primary transition-colors">
-        {t('create')}
+      <h3 className="text-foreground/80 group-hover:text-primary text-base font-semibold transition-colors">
+        {t("create")}
       </h3>
-      <p className="text-sm text-muted-foreground mt-1">{t('startNewProject')}</p>
+      <p className="text-muted-foreground mt-1 text-sm">{t("startNewProject")}</p>
     </div>
   );
 }

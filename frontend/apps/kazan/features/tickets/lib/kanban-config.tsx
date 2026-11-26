@@ -137,7 +137,7 @@ export type DropSlotResolver<S extends string = string> = (cardId: string) => S 
  * an earlier drop alone.
  */
 export function useDropHandoff<T extends { id: string }, S extends string = string>(
-  resolveSlot: DropSlotResolver<S>,
+  resolveSlot: DropSlotResolver<S>
 ) {
   const [activeCard, setActiveCard] = useState<T | null>(null);
   const [pendingDrop, setPendingDrop] = useState<PendingDrop<S> | null>(null);
@@ -205,7 +205,7 @@ export function useDropHandoff<T extends { id: string }, S extends string = stri
 export function useKanbanDropHandoff<T extends KanbanDragCard>(tickets: T[]) {
   const resolveSlot = useCallback<DropSlotResolver<TicketStatus>>(
     (ticketId) => tickets.find((ticket) => ticket.id === ticketId)?.status ?? null,
-    [tickets],
+    [tickets]
   );
 
   const { activeCard, pendingDrop, beginDrag, releaseDrag, handOffTo } = useDropHandoff<
@@ -218,7 +218,7 @@ export function useKanbanDropHandoff<T extends KanbanDragCard>(tickets: T[]) {
   const displayTickets = useMemo(() => {
     if (!pendingId || !pendingStatus) return tickets;
     return tickets.map((ticket) =>
-      ticket.id === pendingId ? { ...ticket, status: pendingStatus } : ticket,
+      ticket.id === pendingId ? { ...ticket, status: pendingStatus } : ticket
     );
   }, [tickets, pendingId, pendingStatus]);
 
@@ -280,8 +280,9 @@ export function DroppableColumn({ id, children, isOver }: DroppableColumnProps) 
     <div
       ref={setNodeRef}
       className={cn(
-        "flex flex-1 flex-col gap-3 rounded-none border border-dashed border-transparent p-0 transition-colors classic:rounded-lg classic:border-2",
-        isOver && "border-primary bg-primary/5 dark:border-border dark:bg-muted classic:bg-primary/10",
+        "classic:rounded-lg classic:border-2 flex flex-1 flex-col gap-3 rounded-none border border-dashed border-transparent p-0 transition-colors",
+        isOver &&
+          "border-primary bg-primary/5 dark:border-border dark:bg-muted classic:bg-primary/10"
       )}
     >
       {children}

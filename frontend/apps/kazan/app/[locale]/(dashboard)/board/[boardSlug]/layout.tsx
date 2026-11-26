@@ -1,13 +1,13 @@
-import { Suspense } from 'react';
-import { BoardTabs } from '@/components/layout/board-tabs';
-import { BoardBarSlotProvider } from '@/components/layout/board-bar-slot';
-import { BoardRoleProvider } from '@/features/boards/providers/board-role-provider';
-import { findBoardRoute } from '@/features/boards/lib/board-route';
-import { Skeleton } from '@/components/ui/skeleton';
-import { isKazanClosedOnServer } from '@/components/layout/kazan-access-server';
-import { loadServerAppearance } from '@/components/layout/kazan-appearance-server';
-import type { KazanLayout } from '@/lib/kazan-appearance';
-import { UnknownBoardGate } from './unknown-board-gate';
+import { Suspense } from "react";
+import { BoardTabs } from "@/components/layout/board-tabs";
+import { BoardBarSlotProvider } from "@/components/layout/board-bar-slot";
+import { BoardRoleProvider } from "@/features/boards/providers/board-role-provider";
+import { findBoardRoute } from "@/features/boards/lib/board-route";
+import { Skeleton } from "@/components/ui/skeleton";
+import { isKazanClosedOnServer } from "@/components/layout/kazan-access-server";
+import { loadServerAppearance } from "@/components/layout/kazan-appearance-server";
+import type { KazanLayout } from "@/lib/kazan-appearance";
+import { UnknownBoardGate } from "./unknown-board-gate";
 
 interface BoardLayoutProps {
   children: React.ReactNode;
@@ -25,10 +25,7 @@ interface BoardLayoutProps {
  * the lookup and the no-access panel takes the place of the board, so the
  * layout skips both the lookup and the board chrome.
  */
-export default async function BoardLayout({
-  children,
-  params,
-}: BoardLayoutProps) {
+export default async function BoardLayout({ children, params }: BoardLayoutProps) {
   if (await isKazanClosedOnServer()) {
     return <>{children}</>;
   }
@@ -67,10 +64,10 @@ export default async function BoardLayout({
 
 /** The board bar's placeholder, in the shape of the user's layout. */
 function BoardTabsSkeleton({ layout }: { layout: KazanLayout }) {
-  if (layout === 'classic') return <ClassicBoardTabsSkeleton />;
+  if (layout === "classic") return <ClassicBoardTabsSkeleton />;
 
   return (
-    <div className="border-b border-border bg-card px-4 py-3 lg:px-6">
+    <div className="border-border bg-card border-b px-4 py-3 lg:px-6">
       {/* Mirrors BoardTabs: the name and the tabs on the left, the controls
         on the right, which wrap under the tabs when the row is narrow. */}
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
@@ -93,7 +90,7 @@ function BoardTabsSkeleton({ layout }: { layout: KazanLayout }) {
 
 function ClassicBoardTabsSkeleton() {
   return (
-    <div className="border-b border-border bg-card px-6 py-3" data-board-bar="">
+    <div className="border-border bg-card border-b px-6 py-3" data-board-bar="">
       {/* Mirrors the phone layout of the classic bar: below `md` the tabs take
         a row of their own under the breadcrumb and the actions, so the
         placeholder fits a phone and the header does not jump when it loads. */}

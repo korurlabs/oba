@@ -58,7 +58,7 @@ describe("TicketSectionHeader classic layout", () => {
 
   const render = (withTickets: boolean) =>
     renderToStaticMarkup(
-      <NextIntlClientProvider locale="en" messages={en}>
+      <NextIntlClientProvider locale="en" timeZone="UTC" messages={en}>
         <TicketSectionHeader title="Backlog" tickets={withTickets ? tickets : undefined} />
       </NextIntlClientProvider>
     );

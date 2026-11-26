@@ -34,12 +34,7 @@ interface InlineAlertProps extends VariantProps<typeof inlineAlertVariants> {
   className?: string;
 }
 
-function InlineAlert({
-  variant,
-  icon,
-  description,
-  className,
-}: InlineAlertProps) {
+function InlineAlert({ variant, icon, description, className }: InlineAlertProps) {
   return (
     <div role="alert" className={cn(inlineAlertVariants({ variant }), className)}>
       <span className="shrink-0 [&>svg]:h-5 [&>svg]:w-5">{icon}</span>

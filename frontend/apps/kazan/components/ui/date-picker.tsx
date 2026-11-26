@@ -5,11 +5,7 @@ import { format } from "date-fns";
 import { CalendarIcon, X } from "lucide-react";
 import type { Locale } from "date-fns";
 
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
@@ -69,9 +65,7 @@ function DatePicker({
     setOpen(false);
   };
 
-  const formattedDate = value
-    ? format(value, dateFormat, { locale })
-    : undefined;
+  const formattedDate = value ? format(value, dateFormat, { locale }) : undefined;
 
   return (
     <div className="space-y-2">
@@ -91,18 +85,17 @@ function DatePicker({
             variant="outline"
             disabled={disabled}
             className={cn(
-              "flex h-11 w-full items-center justify-between whitespace-nowrap border border-(--kazan-control-edge) bg-background px-4 py-2 text-sm text-foreground transition-colors duration-150 dark:bg-input/30 classic:rounded-lg classic:border-[1.5px] classic:border-input classic:shadow-xs classic:transition-all",
+              "bg-background text-foreground dark:bg-input/30 classic:rounded-lg classic:border-[1.5px] classic:border-input classic:shadow-xs classic:transition-all flex h-11 w-full items-center justify-between border border-(--kazan-control-edge) px-4 py-2 text-sm whitespace-nowrap transition-colors duration-150",
               "hover:border-primary/55 hover:bg-background dark:hover:bg-input/50",
-              "outline-none focus:border-primary focus:ring-1 focus:ring-primary focus:ring-offset-0 classic:focus:ring-[3px] classic:focus:ring-primary/20",
-              open && "border-primary ring-1 ring-primary classic:ring-[3px] classic:ring-primary/20",
-              "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted",
+              "focus:border-primary focus:ring-primary classic:focus:ring-[3px] classic:focus:ring-primary/20 outline-none focus:ring-1 focus:ring-offset-0",
+              open &&
+                "border-primary ring-primary classic:ring-[3px] classic:ring-primary/20 ring-1",
+              "disabled:bg-muted disabled:cursor-not-allowed disabled:opacity-50",
               !formattedDate && "text-muted-foreground",
               className
             )}
           >
-            <span className="truncate">
-              {formattedDate ?? placeholder}
-            </span>
+            <span className="truncate">{formattedDate ?? placeholder}</span>
             <div className="ml-2 flex items-center gap-1">
               {isClearable && value && (
                 <span
@@ -112,20 +105,16 @@ function DatePicker({
                     e.stopPropagation();
                     onChange?.(undefined);
                   }}
-                  className="flex h-4 w-4 shrink-0 items-center justify-center classic:rounded-full text-muted-foreground hover:text-foreground hover:bg-muted"
+                  className="classic:rounded-full text-muted-foreground hover:text-foreground hover:bg-muted flex h-4 w-4 shrink-0 items-center justify-center"
                 >
                   <X className="h-3 w-3" />
                 </span>
               )}
-              <CalendarIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <CalendarIcon className="text-muted-foreground h-4 w-4 shrink-0" />
             </div>
           </Button>
         </PopoverTrigger>
-        <PopoverContent
-          className="w-auto p-0"
-          align="start"
-          sideOffset={8}
-        >
+        <PopoverContent className="w-auto p-0" align="start" sideOffset={8}>
           <Calendar
             mode="single"
             captionLayout="dropdown"

@@ -59,9 +59,7 @@ const EMPTY_COLUMN_LAYOUT: ColumnLayout = { columnVisibility: {}, columnOrder: [
 /** A table has its own layout only when it saved a visibility or an order. */
 function hasOwnColumnLayout(pref: BoardPreference | null): boolean {
   if (!pref) return false;
-  return (
-    Object.keys(pref.columnVisibility ?? {}).length > 0 || (pref.columnOrder ?? []).length > 0
-  );
+  return Object.keys(pref.columnVisibility ?? {}).length > 0 || (pref.columnOrder ?? []).length > 0;
 }
 
 // ── Filter keys that are persisted ────────────────────────────────────
@@ -119,10 +117,7 @@ function deepEqual(a: unknown, b: unknown): boolean {
     const keysB = Object.keys(b as Record<string, unknown>);
     if (keysA.length !== keysB.length) return false;
     return keysA.every((key) =>
-      deepEqual(
-        (a as Record<string, unknown>)[key],
-        (b as Record<string, unknown>)[key],
-      ),
+      deepEqual((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key])
     );
   }
 
@@ -141,11 +136,9 @@ function deepEqual(a: unknown, b: unknown): boolean {
  * identity on every save and discard a caller's unsaved column edits.
  */
 function useStoredColumnDefault(
-  userPreferences: Record<string, unknown> | undefined,
+  userPreferences: Record<string, unknown> | undefined
 ): ColumnLayout | null {
-  const storedDefault = userPreferences?.[COLUMN_DEFAULT_KEY] as
-    | Partial<ColumnLayout>
-    | undefined;
+  const storedDefault = userPreferences?.[COLUMN_DEFAULT_KEY] as Partial<ColumnLayout> | undefined;
   const hasColumnDefault = storedDefault != null;
   const defaultVisibility = storedDefault?.columnVisibility;
   const defaultOrder = storedDefault?.columnOrder;
@@ -158,7 +151,7 @@ function useStoredColumnDefault(
             columnOrder: defaultOrder ?? EMPTY_COLUMN_LAYOUT.columnOrder,
           }
         : null,
-    [hasColumnDefault, defaultVisibility, defaultOrder],
+    [hasColumnDefault, defaultVisibility, defaultOrder]
   );
 }
 
@@ -171,9 +164,7 @@ export function useColumnDefault() {
   const { data: meResponse, isFetched: isMeFetched, isRefetching: isMeRefetching } = useGetMe();
   const updateMeMutation = useUpdateMe();
 
-  const userPreferences = meResponse?.data?.userPreferences as
-    | Record<string, unknown>
-    | undefined;
+  const userPreferences = meResponse?.data?.userPreferences as Record<string, unknown> | undefined;
   const columnDefault = useStoredColumnDefault(userPreferences);
 
   // PUT /users/me replaces the whole map, so every save starts from the cached copy.
@@ -181,7 +172,7 @@ export function useColumnDefault() {
     async (build: (current: Record<string, unknown>) => Record<string, unknown>) => {
       await updateMeMutation.mutateAsync({ userPreferences: build(userPreferences ?? {}) });
     },
-    [userPreferences, updateMeMutation],
+    [userPreferences, updateMeMutation]
   );
 
   /** Stores the layout as the default of every ticket table. */
@@ -196,7 +187,7 @@ export function useColumnDefault() {
         toast.error(t("defaultSaveError"));
       }
     },
-    [writeUserPreferences, t],
+    [writeUserPreferences, t]
   );
 
   /**
@@ -246,7 +237,7 @@ export function useBoardPreferences(boardId: string) {
 
   const savedFilters = useMemo(
     (): SavedFilters | null => boardPreferences?.filters ?? null,
-    [boardPreferences],
+    [boardPreferences]
   );
 
   // The layouts are derived from the stored arrays and maps themselves, never
@@ -256,7 +247,7 @@ export function useBoardPreferences(boardId: string) {
   // derived from a wrapper would re-run the effect below and discard the
   // user's unsaved column edits.
   const columnDefault = useStoredColumnDefault(
-    userPreferences as Record<string, unknown> | undefined,
+    userPreferences as Record<string, unknown> | undefined
   );
   const hasColumnDefault = columnDefault !== null;
   const overrideVisibility = boardPreferences?.columnVisibility;
@@ -300,20 +291,17 @@ export function useBoardPreferences(boardId: string) {
       const saved = extractSavedFilters(savedFilters ?? {});
       return !deepEqual(current, saved);
     },
-    [savedFilters],
+    [savedFilters]
   );
 
   const hasColumnChanges = useCallback(
-    (
-      currentVisibility: VisibilityState,
-      currentOrder: string[],
-    ): boolean => {
+    (currentVisibility: VisibilityState, currentOrder: string[]): boolean => {
       return (
         !deepEqual(currentVisibility, effectiveColumnLayout.columnVisibility) ||
         !deepEqual(currentOrder, effectiveColumnLayout.columnOrder)
       );
     },
-    [effectiveColumnLayout],
+    [effectiveColumnLayout]
   );
 
   // ── Save helpers ───────────────────────────────────────────────────
@@ -326,7 +314,7 @@ export function useBoardPreferences(boardId: string) {
         userPreferences: build(currentPrefs),
       });
     },
-    [userPreferences, updateMeMutation],
+    [userPreferences, updateMeMutation]
   );
 
   const writeBoardPreference = useCallback(
@@ -340,14 +328,14 @@ export function useBoardPreferences(boardId: string) {
         return { ...currentPrefs, kazan: newKazan };
       });
     },
-    [boardId, writeUserPreferences],
+    [boardId, writeUserPreferences]
   );
 
   const saveBoardPreference = useCallback(
     async (patch: Partial<BoardPreference>) => {
       await writeBoardPreference((current) => ({ ...current, ...patch }));
     },
-    [writeBoardPreference],
+    [writeBoardPreference]
   );
 
   // A saved set lists every field, null when cleared, so a saved "no filters"
@@ -356,7 +344,7 @@ export function useBoardPreferences(boardId: string) {
   const saveFilters = useCallback(
     async (currentFilters: SavedFilters) => {
       const filters = Object.fromEntries(
-        FILTER_KEYS.map((key) => [key, currentFilters[key] ?? null]),
+        FILTER_KEYS.map((key) => [key, currentFilters[key] ?? null])
       ) as SavedFilters;
       try {
         await saveBoardPreference({ filters });
@@ -365,7 +353,7 @@ export function useBoardPreferences(boardId: string) {
         toast.error(t("filtersSaveError"));
       }
     },
-    [saveBoardPreference, t],
+    [saveBoardPreference, t]
   );
 
   const saveColumns = useCallback(
@@ -380,7 +368,7 @@ export function useBoardPreferences(boardId: string) {
         toast.error(t("columnsSaveError"));
       }
     },
-    [saveBoardPreference, t],
+    [saveBoardPreference, t]
   );
 
   /**
@@ -398,7 +386,7 @@ export function useBoardPreferences(boardId: string) {
         toast.error(t("defaultSaveError"));
       }
     },
-    [writeUserPreferences, t],
+    [writeUserPreferences, t]
   );
 
   // ── Reset ──────────────────────────────────────────────────────────
@@ -503,6 +491,6 @@ export function useBoardHref() {
   return useCallback(
     (board: { id: string; slug: string }, tab: BoardTab = defaultTab): string =>
       boardPath(board.slug, tab),
-    [defaultTab],
+    [defaultTab]
   );
 }

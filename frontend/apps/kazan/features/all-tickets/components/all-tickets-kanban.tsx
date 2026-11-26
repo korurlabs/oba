@@ -83,7 +83,7 @@ export function AllTicketsKanban({
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    }),
+    })
   );
 
   const handleDragStart = (event: DragStartEvent) => {

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { useRef, useCallback, useEffect, useState } from 'react';
-import { FieldValues, Control, Path } from 'react-hook-form';
-import { cn } from '@oba/ui/lib/utils';
+import * as React from "react";
+import { useRef, useCallback, useEffect, useState } from "react";
+import { FieldValues, Control, Path } from "react-hook-form";
+import { cn } from "@oba/ui/lib/utils";
 import {
   FormControl,
   FormDescription,
@@ -11,12 +11,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@oba/ui/components/form';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@oba/ui/components/popover';
+} from "@oba/ui/components/form";
+import { Popover, PopoverContent, PopoverTrigger } from "@oba/ui/components/popover";
 import {
   Bold,
   Italic,
@@ -36,37 +32,37 @@ import {
   Upload,
   X,
   WandSparkles,
-} from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import { toast } from 'sonner';
+} from "lucide-react";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import {
   useEditor,
   EditorContent,
   NodeViewWrapper,
   NodeViewContent,
   ReactNodeViewRenderer,
-} from '@tiptap/react';
-import type { ReactNodeViewProps, Editor } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Link from '@tiptap/extension-link';
-import TaskList from '@tiptap/extension-task-list';
-import TaskItem from '@tiptap/extension-task-item';
-import Placeholder from '@tiptap/extension-placeholder';
-import Image from '@tiptap/extension-image';
-import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
-import { Table, TableCell, TableHeader, TableRow } from '@tiptap/extension-table';
-import { Extension } from '@tiptap/core';
-import type { Node as ProseMirrorNode } from '@tiptap/pm/model';
-import { Markdown } from 'tiptap-markdown';
-import { common, createLowlight } from 'lowlight';
-import { ImageNodeView } from './markdown-editor-image-node-view';
+} from "@tiptap/react";
+import type { ReactNodeViewProps, Editor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Link from "@tiptap/extension-link";
+import TaskList from "@tiptap/extension-task-list";
+import TaskItem from "@tiptap/extension-task-item";
+import Placeholder from "@tiptap/extension-placeholder";
+import Image from "@tiptap/extension-image";
+import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
+import { Table, TableCell, TableHeader, TableRow } from "@tiptap/extension-table";
+import { Extension } from "@tiptap/core";
+import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
+import { Markdown } from "tiptap-markdown";
+import { common, createLowlight } from "lowlight";
+import { ImageNodeView } from "./markdown-editor-image-node-view";
 import {
   MarkdownEditorComponentsProvider,
   useMarkdownEditorComponents,
   type MarkdownEditorComponents,
-} from './markdown-editor-components';
+} from "./markdown-editor-components";
 
-export type { MarkdownEditorComponents } from './markdown-editor-components';
+export type { MarkdownEditorComponents } from "./markdown-editor-components";
 
 // ── Image Markdown ───────────────────────────────────────────────
 
@@ -89,37 +85,37 @@ export interface ImageMarkdownSerializerState {
  */
 export function serializeImageMarkdown(
   state: ImageMarkdownSerializerState,
-  node: ProseMirrorNode,
+  node: ProseMirrorNode
 ): void {
   const escapeAttr = (value: string): string =>
     value
-      .replace(/&/g, '&amp;')
-      .replace(/"/g, '&quot;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
+      .replace(/&/g, "&amp;")
+      .replace(/"/g, "&quot;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
 
   const attrs: string[] = [];
-  const src = (node.attrs.src as string | null | undefined) ?? '';
-  const alt = (node.attrs.alt as string | null | undefined) ?? '';
-  const title = (node.attrs.title as string | null | undefined) ?? '';
+  const src = (node.attrs.src as string | null | undefined) ?? "";
+  const alt = (node.attrs.alt as string | null | undefined) ?? "";
+  const title = (node.attrs.title as string | null | undefined) ?? "";
   const width = node.attrs.width as string | number | null | undefined;
   const height = node.attrs.height as string | number | null | undefined;
-  const aid = node.attrs['data-attachment-id'] as string | null | undefined;
+  const aid = node.attrs["data-attachment-id"] as string | null | undefined;
 
   attrs.push(`src="${escapeAttr(src)}"`);
   if (alt) attrs.push(`alt="${escapeAttr(alt)}"`);
   if (title) attrs.push(`title="${escapeAttr(title)}"`);
-  if (width !== null && width !== undefined && width !== '') {
+  if (width !== null && width !== undefined && width !== "") {
     attrs.push(`width="${escapeAttr(String(width))}"`);
   }
-  if (height !== null && height !== undefined && height !== '') {
+  if (height !== null && height !== undefined && height !== "") {
     attrs.push(`height="${escapeAttr(String(height))}"`);
   }
   if (aid) attrs.push(`data-attachment-id="${escapeAttr(aid)}"`);
   attrs.push('loading="lazy"');
   attrs.push('decoding="async"');
 
-  state.write(`<img ${attrs.join(' ')}>`);
+  state.write(`<img ${attrs.join(" ")}>`);
   state.closeBlock(node);
 }
 
@@ -137,7 +133,7 @@ export const markdownStarterKit = StarterKit.configure({
 });
 
 /** Link attributes that only the editor sets, never the content. */
-const EDITOR_OWNED_LINK_ATTRIBUTES = ['class', 'rel', 'target'] as const;
+const EDITOR_OWNED_LINK_ATTRIBUTES = ["class", "rel", "target"] as const;
 
 /**
  * The editor's link mark. Stored content is Markdown with raw HTML, and the
@@ -160,9 +156,9 @@ export const safeLinkExtension = Link.extend({
   openOnClick: false,
   autolink: true,
   HTMLAttributes: {
-    class: 'text-primary underline cursor-pointer',
-    rel: 'noopener noreferrer',
-    target: '_blank',
+    class: "text-primary underline cursor-pointer",
+    rel: "noopener noreferrer",
+    target: "_blank",
   },
 });
 
@@ -170,25 +166,25 @@ export const safeLinkExtension = Link.extend({
 const lowlight = createLowlight(common);
 
 const CODE_BLOCK_LANGUAGES = [
-  { value: '', label: 'auto' },
-  { value: 'plaintext', label: 'plaintext' },
-  { value: 'javascript', label: 'javascript' },
-  { value: 'typescript', label: 'typescript' },
-  { value: 'html', label: 'html' },
-  { value: 'css', label: 'css' },
-  { value: 'json', label: 'json' },
-  { value: 'xml', label: 'xml' },
-  { value: 'java', label: 'java' },
-  { value: 'python', label: 'python' },
-  { value: 'sql', label: 'sql' },
-  { value: 'bash', label: 'bash' },
-  { value: 'yaml', label: 'yaml' },
-  { value: 'markdown', label: 'markdown' },
+  { value: "", label: "auto" },
+  { value: "plaintext", label: "plaintext" },
+  { value: "javascript", label: "javascript" },
+  { value: "typescript", label: "typescript" },
+  { value: "html", label: "html" },
+  { value: "css", label: "css" },
+  { value: "json", label: "json" },
+  { value: "xml", label: "xml" },
+  { value: "java", label: "java" },
+  { value: "python", label: "python" },
+  { value: "sql", label: "sql" },
+  { value: "bash", label: "bash" },
+  { value: "yaml", label: "yaml" },
+  { value: "markdown", label: "markdown" },
 ] as const;
 
 // ── Code formatting utilities ────────────────────────────────────
 
-const FORMATTABLE_LANGUAGES = new Set(['json', 'xml', 'html']);
+const FORMATTABLE_LANGUAGES = new Set(["json", "xml", "html"]);
 
 function formatJson(code: string): string {
   const parsed: unknown = JSON.parse(code);
@@ -198,7 +194,7 @@ function formatJson(code: string): string {
 function formatXmlHtml(code: string): string {
   const trimmed = code.trim();
   // Split between adjacent tags and rejoin with newlines + indentation
-  const parts = trimmed.replace(/>\s*</g, '>\n<').split('\n');
+  const parts = trimmed.replace(/>\s*</g, ">\n<").split("\n");
   let indent = 0;
   const lines: string[] = [];
 
@@ -207,19 +203,19 @@ function formatXmlHtml(code: string): string {
     if (!trimmedPart) continue;
 
     // Decrease indent for closing tags
-    if (trimmedPart.startsWith('</')) {
+    if (trimmedPart.startsWith("</")) {
       indent = Math.max(0, indent - 1);
     }
 
-    lines.push('  '.repeat(indent) + trimmedPart);
+    lines.push("  ".repeat(indent) + trimmedPart);
 
     // Increase indent for opening tags that are not self-closing and not void
     if (
-      trimmedPart.startsWith('<') &&
-      !trimmedPart.startsWith('</') &&
-      !trimmedPart.endsWith('/>') &&
-      !trimmedPart.startsWith('<!') &&
-      !trimmedPart.startsWith('<?')
+      trimmedPart.startsWith("<") &&
+      !trimmedPart.startsWith("</") &&
+      !trimmedPart.endsWith("/>") &&
+      !trimmedPart.startsWith("<!") &&
+      !trimmedPart.startsWith("<?")
     ) {
       // Only increase if this tag also has a separate closing tag (not inline closed)
       const tagMatch = trimmedPart.match(/^<(\w+)/);
@@ -232,17 +228,17 @@ function formatXmlHtml(code: string): string {
     }
   }
 
-  return lines.join('\n');
+  return lines.join("\n");
 }
 
 function formatCode(code: string, language: string): string | null {
   const lang = language.toLowerCase();
 
-  if (lang === 'json') {
+  if (lang === "json") {
     return formatJson(code);
   }
 
-  if (lang === 'xml' || lang === 'html') {
+  if (lang === "xml" || lang === "html") {
     return formatXmlHtml(code);
   }
 
@@ -252,12 +248,12 @@ function formatCode(code: string, language: string): string | null {
 
 // ── Code block NodeView with language selector ───────────────────
 
-type FormatFeedback = 'idle' | 'success' | 'error';
+type FormatFeedback = "idle" | "success" | "error";
 
 function CodeBlockNodeView({ node, updateAttributes, editor, getPos }: ReactNodeViewProps) {
-  const t = useTranslations('markdownEditor');
-  const currentLanguage = (node.attrs.language as string) ?? 'json';
-  const [formatFeedback, setFormatFeedback] = useState<FormatFeedback>('idle');
+  const t = useTranslations("markdownEditor");
+  const currentLanguage = (node.attrs.language as string) ?? "json";
+  const [formatFeedback, setFormatFeedback] = useState<FormatFeedback>("idle");
   const feedbackTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   const canFormat = FORMATTABLE_LANGUAGES.has(currentLanguage.toLowerCase());
@@ -276,58 +272,61 @@ function CodeBlockNodeView({ node, updateAttributes, editor, getPos }: ReactNode
     if (feedbackTimeoutRef.current) {
       clearTimeout(feedbackTimeoutRef.current);
     }
-    feedbackTimeoutRef.current = setTimeout(() => setFormatFeedback('idle'), 1200);
+    feedbackTimeoutRef.current = setTimeout(() => setFormatFeedback("idle"), 1200);
   }, []);
 
-  const handleFormat = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleFormat = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-    if (!editor || typeof getPos !== 'function') return;
+      if (!editor || typeof getPos !== "function") return;
 
-    const code = node.textContent;
-    let formatted: string | null = null;
+      const code = node.textContent;
+      let formatted: string | null = null;
 
-    try {
-      formatted = formatCode(code, currentLanguage);
-    } catch {
-      setFeedbackWithTimeout('error');
-      return;
-    }
+      try {
+        formatted = formatCode(code, currentLanguage);
+      } catch {
+        setFeedbackWithTimeout("error");
+        return;
+      }
 
-    if (formatted === null || formatted === code) {
-      return;
-    }
+      if (formatted === null || formatted === code) {
+        return;
+      }
 
-    try {
-      const pos = getPos();
-      if (typeof pos !== 'number') return;
+      try {
+        const pos = getPos();
+        if (typeof pos !== "number") return;
 
-      // Use editor chain to replace the entire code block with new content
-      editor
-        .chain()
-        .focus()
-        .command(({ tr }) => {
-          const currentNode = tr.doc.nodeAt(pos);
-          if (!currentNode) return false;
+        // Use editor chain to replace the entire code block with new content
+        editor
+          .chain()
+          .focus()
+          .command(({ tr }) => {
+            const currentNode = tr.doc.nodeAt(pos);
+            if (!currentNode) return false;
 
-          const textContent = formatted as string;
-          const codeBlockNode = editor.state.schema.nodes.codeBlock;
-          if (!codeBlockNode) return false;
-          const newNode = codeBlockNode.create(
-            { ...currentNode.attrs },
-            editor.state.schema.text(textContent),
-          );
-          tr.replaceWith(pos, pos + currentNode.nodeSize, newNode);
-          return true;
-        })
-        .run();
+            const textContent = formatted as string;
+            const codeBlockNode = editor.state.schema.nodes.codeBlock;
+            if (!codeBlockNode) return false;
+            const newNode = codeBlockNode.create(
+              { ...currentNode.attrs },
+              editor.state.schema.text(textContent)
+            );
+            tr.replaceWith(pos, pos + currentNode.nodeSize, newNode);
+            return true;
+          })
+          .run();
 
-      setFeedbackWithTimeout('success');
-    } catch {
-      setFeedbackWithTimeout('error');
-    }
-  }, [editor, getPos, node, currentLanguage, setFeedbackWithTimeout]);
+        setFeedbackWithTimeout("success");
+      } catch {
+        setFeedbackWithTimeout("error");
+      }
+    },
+    [editor, getPos, node, currentLanguage, setFeedbackWithTimeout]
+  );
 
   return (
     <NodeViewWrapper as="pre" className="code-block-wrapper" spellCheck={false}>
@@ -337,13 +336,13 @@ function CodeBlockNodeView({ node, updateAttributes, editor, getPos }: ReactNode
           <button
             type="button"
             className={cn(
-              'code-block-format-button',
-              formatFeedback === 'success' && 'code-block-format-success',
-              formatFeedback === 'error' && 'code-block-format-error',
+              "code-block-format-button",
+              formatFeedback === "success" && "code-block-format-success",
+              formatFeedback === "error" && "code-block-format-error"
             )}
             onMouseDown={handleFormat}
             disabled={!canFormat}
-            title={t('formatCode')}
+            title={t("formatCode")}
           >
             <WandSparkles className="h-3 w-3" />
           </button>
@@ -361,14 +360,17 @@ function CodeBlockNodeView({ node, updateAttributes, editor, getPos }: ReactNode
         </div>
       )}
       <div className="code-block-content">
-        <NodeViewContent<'code'> as="code" className={node.attrs.language ? `language-${node.attrs.language}` : ''} />
+        <NodeViewContent<"code">
+          as="code"
+          className={node.attrs.language ? `language-${node.attrs.language}` : ""}
+        />
       </div>
     </NodeViewWrapper>
   );
 }
 
 /** The editor's document as Markdown, as `onChange` reports it. */
-function editorMarkdown(editor: Pick<Editor, 'storage'>): string {
+function editorMarkdown(editor: Pick<Editor, "storage">): string {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (editor.storage as any).markdown.getMarkdown() as string;
 }
@@ -384,13 +386,13 @@ function editorMarkdown(editor: Pick<Editor, 'storage'>): string {
  * back to the form.
  */
 export function syncExternalValue(
-  editor: Pick<Editor, 'storage' | 'commands'>,
+  editor: Pick<Editor, "storage" | "commands">,
   value: string,
   syncedValue: { current: string | null }
 ): void {
   if (value === syncedValue.current) return;
   if (editorMarkdown(editor) !== value) {
-    editor.commands.setContent(value || '', { emitUpdate: false });
+    editor.commands.setContent(value || "", { emitUpdate: false });
   }
   syncedValue.current = value;
 }
@@ -467,8 +469,9 @@ interface MarkdownEditorStandaloneProps extends MarkdownEditorBaseProps {
 }
 
 /** Form-integrated usage: caller provides name + control, value/onChange come from react-hook-form */
-interface MarkdownEditorFormProps<TFieldValues extends FieldValues = FieldValues>
-  extends MarkdownEditorBaseProps {
+interface MarkdownEditorFormProps<
+  TFieldValues extends FieldValues = FieldValues,
+> extends MarkdownEditorBaseProps {
   name: Path<TFieldValues>;
   control: Control<TFieldValues>;
   label?: string;
@@ -505,16 +508,16 @@ interface CompressImageResult {
 async function compressImage(
   file: File,
   maxWidth = 1200,
-  quality = 0.8,
+  quality = 0.8
 ): Promise<CompressImageResult> {
-  if (!file.type.startsWith('image/')) {
-    throw new Error('NOT_AN_IMAGE');
+  if (!file.type.startsWith("image/")) {
+    throw new Error("NOT_AN_IMAGE");
   }
-  if (file.type === 'image/svg+xml') {
-    throw new Error('SVG_BLOCKED');
+  if (file.type === "image/svg+xml") {
+    throw new Error("SVG_BLOCKED");
   }
 
-  if (file.type === 'image/gif') {
+  if (file.type === "image/gif") {
     // Read intrinsic dimensions without canvas-converting so animation is
     // preserved on upload.
     return new Promise<CompressImageResult>((resolve, reject) => {
@@ -528,7 +531,7 @@ async function compressImage(
       };
       img.onerror = () => {
         URL.revokeObjectURL(objectUrl);
-        reject(new Error('IMAGE_LOAD_FAILED'));
+        reject(new Error("IMAGE_LOAD_FAILED"));
       };
       img.src = objectUrl;
     });
@@ -539,7 +542,7 @@ async function compressImage(
     reader.onload = (e) => {
       const img = new window.Image();
       img.onload = () => {
-        const canvas = document.createElement('canvas');
+        const canvas = document.createElement("canvas");
         let { width, height } = img;
 
         if (width > maxWidth) {
@@ -550,12 +553,12 @@ async function compressImage(
         canvas.width = width;
         canvas.height = height;
 
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext("2d");
         ctx?.drawImage(img, 0, 0, width, height);
 
-        const outputType = 'image/webp';
-        const ext = '.webp';
-        const baseName = file.name.replace(/\.[^/.]+$/, '');
+        const outputType = "image/webp";
+        const ext = ".webp";
+        const baseName = file.name.replace(/\.[^/.]+$/, "");
 
         canvas.toBlob(
           (blob) => {
@@ -568,17 +571,17 @@ async function compressImage(
                 height: canvas.height,
               });
             } else {
-              reject(new Error('CANVAS_TOBLOB_FAILED'));
+              reject(new Error("CANVAS_TOBLOB_FAILED"));
             }
           },
           outputType,
-          quality,
+          quality
         );
       };
-      img.onerror = () => reject(new Error('IMAGE_LOAD_FAILED'));
+      img.onerror = () => reject(new Error("IMAGE_LOAD_FAILED"));
       img.src = e.target?.result as string;
     };
-    reader.onerror = () => reject(new Error('FILE_READ_FAILED'));
+    reader.onerror = () => reject(new Error("FILE_READ_FAILED"));
     reader.readAsDataURL(file);
   });
 }
@@ -592,48 +595,48 @@ async function compressImage(
 function getTitleFromUrl(url: string): string {
   try {
     const parsed = new URL(url);
-    const hostname = parsed.hostname.replace(/^www\./, '');
+    const hostname = parsed.hostname.replace(/^www\./, "");
 
     // Well-known domain mappings
     const knownDomains: Record<string, string> = {
-      'github.com': 'GitHub',
-      'gitlab.com': 'GitLab',
-      'bitbucket.org': 'Bitbucket',
-      'stackoverflow.com': 'Stack Overflow',
-      'docs.google.com': 'Google Docs',
-      'drive.google.com': 'Google Drive',
-      'sheets.google.com': 'Google Sheets',
-      'slides.google.com': 'Google Slides',
-      'youtube.com': 'YouTube',
-      'figma.com': 'Figma',
-      'notion.so': 'Notion',
-      'linear.app': 'Linear',
-      'slack.com': 'Slack',
-      'discord.com': 'Discord',
-      'twitter.com': 'Twitter',
-      'x.com': 'X',
-      'linkedin.com': 'LinkedIn',
-      'medium.com': 'Medium',
-      'reddit.com': 'Reddit',
-      'wikipedia.org': 'Wikipedia',
-      'npm.js.com': 'npm',
-      'vercel.com': 'Vercel',
-      'netlify.com': 'Netlify',
-      'jira.atlassian.com': 'Jira',
-      'confluence.atlassian.com': 'Confluence',
-      'trello.com': 'Trello',
+      "github.com": "GitHub",
+      "gitlab.com": "GitLab",
+      "bitbucket.org": "Bitbucket",
+      "stackoverflow.com": "Stack Overflow",
+      "docs.google.com": "Google Docs",
+      "drive.google.com": "Google Drive",
+      "sheets.google.com": "Google Sheets",
+      "slides.google.com": "Google Slides",
+      "youtube.com": "YouTube",
+      "figma.com": "Figma",
+      "notion.so": "Notion",
+      "linear.app": "Linear",
+      "slack.com": "Slack",
+      "discord.com": "Discord",
+      "twitter.com": "Twitter",
+      "x.com": "X",
+      "linkedin.com": "LinkedIn",
+      "medium.com": "Medium",
+      "reddit.com": "Reddit",
+      "wikipedia.org": "Wikipedia",
+      "npm.js.com": "npm",
+      "vercel.com": "Vercel",
+      "netlify.com": "Netlify",
+      "jira.atlassian.com": "Jira",
+      "confluence.atlassian.com": "Confluence",
+      "trello.com": "Trello",
     };
 
     // Check exact hostname match and subdomain matches
     for (const [domain, name] of Object.entries(knownDomains)) {
-      if (hostname === domain || hostname.endsWith('.' + domain)) {
+      if (hostname === domain || hostname.endsWith("." + domain)) {
         return name;
       }
     }
 
     // Fallback: capitalize the first part of the hostname
-    const parts = hostname.split('.');
-    const mainPart = parts.length >= 2 ? parts[parts.length - 2] ?? parts[0] : parts[0];
+    const parts = hostname.split(".");
+    const mainPart = parts.length >= 2 ? (parts[parts.length - 2] ?? parts[0]) : parts[0];
     if (!mainPart) return hostname;
     return mainPart.charAt(0).toUpperCase() + mainPart.slice(1);
   } catch {
@@ -647,9 +650,7 @@ function getTitleFromUrl(url: string): string {
  */
 async function fetchLinkTitle(url: string): Promise<string> {
   try {
-    const response = await fetch(
-      `/api/link-metadata?url=${encodeURIComponent(url)}`
-    );
+    const response = await fetch(`/api/link-metadata?url=${encodeURIComponent(url)}`);
     if (response.ok) {
       const data = (await response.json()) as { title: string | null };
       if (data.title) {
@@ -664,11 +665,9 @@ async function fetchLinkTitle(url: string): Promise<string> {
 
 // ── /link slash command extension ─────────────────────────────────
 
-function createSlashLinkExtension(
-  onOpenLinkPopover: () => void
-): Extension {
+function createSlashLinkExtension(onOpenLinkPopover: () => void): Extension {
   return Extension.create({
-    name: 'slashLink',
+    name: "slashLink",
 
     addKeyboardShortcuts() {
       return {
@@ -696,9 +695,9 @@ function createSlashLinkExtension(
                 .chain()
                 .focus()
                 .insertContent({
-                  type: 'text',
+                  type: "text",
                   text: title,
-                  marks: [{ type: 'link', attrs: { href: url } }],
+                  marks: [{ type: "link", attrs: { href: url } }],
                 })
                 .run();
             });
@@ -724,20 +723,14 @@ interface ToolbarButtonProps {
   children: React.ReactNode;
 }
 
-function ToolbarButton({
-  onClick,
-  isActive,
-  disabled,
-  title,
-  children,
-}: ToolbarButtonProps) {
+function ToolbarButton({ onClick, isActive, disabled, title, children }: ToolbarButtonProps) {
   const { Button } = useMarkdownEditorComponents();
   return (
     <Button
       type="button"
       variant="ghost"
       size="sm"
-      className={cn('h-7 w-7 p-0', isActive && 'bg-accent text-accent-foreground')}
+      className={cn("h-7 w-7 p-0", isActive && "bg-accent text-accent-foreground")}
       onClick={onClick}
       disabled={disabled}
       title={title}
@@ -757,23 +750,17 @@ interface LinkPopoverProps {
   triggerRef: React.RefObject<HTMLButtonElement | null>;
 }
 
-function LinkPopover({
-  editor,
-  open,
-  onOpenChange,
-  disabled,
-  triggerRef,
-}: LinkPopoverProps) {
-  const t = useTranslations('markdownEditor');
+function LinkPopover({ editor, open, onOpenChange, disabled, triggerRef }: LinkPopoverProps) {
+  const t = useTranslations("markdownEditor");
   const { Button, Input } = useMarkdownEditorComponents();
-  const [linkUrl, setLinkUrl] = useState('');
+  const [linkUrl, setLinkUrl] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   // When the popover opens, pre-fill with existing link URL or default
   useEffect(() => {
     if (open) {
-      const existingUrl = editor.getAttributes('link').href as string | undefined;
-      setLinkUrl(existingUrl ?? 'https://');
+      const existingUrl = editor.getAttributes("link").href as string | undefined;
+      setLinkUrl(existingUrl ?? "https://");
       // Focus the input after the popover renders
       setTimeout(() => inputRef.current?.focus(), 0);
     }
@@ -783,27 +770,22 @@ function LinkPopover({
     e?.preventDefault();
     const trimmedUrl = linkUrl.trim();
 
-    if (!trimmedUrl || trimmedUrl === 'https://') {
+    if (!trimmedUrl || trimmedUrl === "https://") {
       // Empty URL — remove link if one exists
-      editor.chain().focus().extendMarkRange('link').unsetLink().run();
+      editor.chain().focus().extendMarkRange("link").unsetLink().run();
     } else {
-      editor
-        .chain()
-        .focus()
-        .extendMarkRange('link')
-        .setLink({ href: trimmedUrl })
-        .run();
+      editor.chain().focus().extendMarkRange("link").setLink({ href: trimmedUrl }).run();
     }
 
     onOpenChange(false);
   };
 
   const handleRemoveLink = () => {
-    editor.chain().focus().extendMarkRange('link').unsetLink().run();
+    editor.chain().focus().extendMarkRange("link").unsetLink().run();
     onOpenChange(false);
   };
 
-  const hasExistingLink = editor.isActive('link');
+  const hasExistingLink = editor.isActive("link");
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
@@ -813,12 +795,9 @@ function LinkPopover({
           type="button"
           variant="ghost"
           size="sm"
-          className={cn(
-            'h-7 w-7 p-0',
-            hasExistingLink && 'bg-accent text-accent-foreground'
-          )}
+          className={cn("h-7 w-7 p-0", hasExistingLink && "bg-accent text-accent-foreground")}
           disabled={disabled}
-          title={t('link')}
+          title={t("link")}
           onClick={() => onOpenChange(!open)}
         >
           <Link2 className="h-4 w-4" />
@@ -838,19 +817,17 @@ function LinkPopover({
           }}
           className="flex flex-col gap-2"
         >
-          <label className="text-sm font-medium text-foreground">
-            {t('linkUrl')}
-          </label>
+          <label className="text-foreground text-sm font-medium">{t("linkUrl")}</label>
           <div className="flex gap-2">
             <Input
               ref={inputRef}
               type="url"
               value={linkUrl}
               onChange={(e) => setLinkUrl(e.target.value)}
-              placeholder={t('linkUrlPlaceholder')}
+              placeholder={t("linkUrlPlaceholder")}
               className="h-8 text-sm"
               onKeyDown={(e) => {
-                if (e.key === 'Escape') {
+                if (e.key === "Escape") {
                   e.preventDefault();
                   onOpenChange(false);
                   editor.commands.focus();
@@ -858,17 +835,17 @@ function LinkPopover({
               }}
             />
             <Button type="button" size="sm" className="h-8 px-3 text-sm" onClick={handleSubmit}>
-              {t('linkInsert')}
+              {t("linkInsert")}
             </Button>
           </div>
           {hasExistingLink && (
             <button
               type="button"
               onClick={handleRemoveLink}
-              className="flex items-center gap-1 text-xs text-destructive hover:underline self-start"
+              className="text-destructive flex items-center gap-1 self-start text-xs hover:underline"
             >
               <X className="h-3 w-3" />
-              {t('linkRemove')}
+              {t("linkRemove")}
             </button>
           )}
         </form>
@@ -898,128 +875,128 @@ function Toolbar({
   onLinkPopoverChange,
   linkTriggerRef,
 }: ToolbarProps) {
-  const t = useTranslations('markdownEditor');
+  const t = useTranslations("markdownEditor");
 
   return (
-    <div className="flex flex-wrap items-center gap-0.5 border-b border-input rounded-t-md bg-muted/50 px-2 py-1">
+    <div className="border-input bg-muted/50 flex flex-wrap items-center gap-0.5 rounded-t-md border-b px-2 py-1">
       {/* Text formatting */}
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleBold().run()}
-        isActive={editor.isActive('bold')}
+        isActive={editor.isActive("bold")}
         disabled={disabled}
-        title={t('bold')}
+        title={t("bold")}
       >
         <Bold className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleItalic().run()}
-        isActive={editor.isActive('italic')}
+        isActive={editor.isActive("italic")}
         disabled={disabled}
-        title={t('italic')}
+        title={t("italic")}
       >
         <Italic className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleStrike().run()}
-        isActive={editor.isActive('strike')}
+        isActive={editor.isActive("strike")}
         disabled={disabled}
-        title={t('strikethrough')}
+        title={t("strikethrough")}
       >
         <Strikethrough className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleCode().run()}
-        isActive={editor.isActive('code')}
+        isActive={editor.isActive("code")}
         disabled={disabled}
-        title={t('code')}
+        title={t("code")}
       >
         <Code className="h-4 w-4" />
       </ToolbarButton>
 
-      <div className="mx-1 h-5 w-px bg-border" />
+      <div className="bg-border mx-1 h-5 w-px" />
 
       {/* Headings */}
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-        isActive={editor.isActive('heading', { level: 1 })}
+        isActive={editor.isActive("heading", { level: 1 })}
         disabled={disabled}
-        title={t('heading1')}
+        title={t("heading1")}
       >
         <Heading1 className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-        isActive={editor.isActive('heading', { level: 2 })}
+        isActive={editor.isActive("heading", { level: 2 })}
         disabled={disabled}
-        title={t('heading2')}
+        title={t("heading2")}
       >
         <Heading2 className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-        isActive={editor.isActive('heading', { level: 3 })}
+        isActive={editor.isActive("heading", { level: 3 })}
         disabled={disabled}
-        title={t('heading3')}
+        title={t("heading3")}
       >
         <Heading3 className="h-4 w-4" />
       </ToolbarButton>
 
-      <div className="mx-1 h-5 w-px bg-border" />
+      <div className="bg-border mx-1 h-5 w-px" />
 
       {/* Lists */}
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleBulletList().run()}
-        isActive={editor.isActive('bulletList')}
+        isActive={editor.isActive("bulletList")}
         disabled={disabled}
-        title={t('bulletList')}
+        title={t("bulletList")}
       >
         <List className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleOrderedList().run()}
-        isActive={editor.isActive('orderedList')}
+        isActive={editor.isActive("orderedList")}
         disabled={disabled}
-        title={t('orderedList')}
+        title={t("orderedList")}
       >
         <ListOrdered className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleTaskList().run()}
-        isActive={editor.isActive('taskList')}
+        isActive={editor.isActive("taskList")}
         disabled={disabled}
-        title={t('taskList')}
+        title={t("taskList")}
       >
         <ListChecks className="h-4 w-4" />
       </ToolbarButton>
 
-      <div className="mx-1 h-5 w-px bg-border" />
+      <div className="bg-border mx-1 h-5 w-px" />
 
       {/* Block elements */}
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleBlockquote().run()}
-        isActive={editor.isActive('blockquote')}
+        isActive={editor.isActive("blockquote")}
         disabled={disabled}
-        title={t('blockquote')}
+        title={t("blockquote")}
       >
         <Quote className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-        isActive={editor.isActive('codeBlock')}
+        isActive={editor.isActive("codeBlock")}
         disabled={disabled}
-        title={t('codeBlock')}
+        title={t("codeBlock")}
       >
         <CodeSquare className="h-4 w-4" />
       </ToolbarButton>
       <ToolbarButton
         onClick={() => editor.chain().focus().setHorizontalRule().run()}
         disabled={disabled}
-        title={t('horizontalRule')}
+        title={t("horizontalRule")}
       >
         <Minus className="h-4 w-4" />
       </ToolbarButton>
 
-      <div className="mx-1 h-5 w-px bg-border" />
+      <div className="bg-border mx-1 h-5 w-px" />
 
       {/* Link — inline popover replaces browser prompt */}
       <LinkPopover
@@ -1035,9 +1012,9 @@ function Toolbar({
         <ToolbarButton
           onClick={onFileClick}
           disabled={disabled || isUploading}
-          title={t('uploadFile')}
+          title={t("uploadFile")}
         >
-          <Paperclip className={cn('h-4 w-4', isUploading && 'animate-pulse')} />
+          <Paperclip className={cn("h-4 w-4", isUploading && "animate-pulse")} />
         </ToolbarButton>
       )}
     </div>
@@ -1065,8 +1042,8 @@ function MarkdownEditorInner({
   error = false,
   components,
 }: MarkdownEditorInnerProps) {
-  const t = useTranslations('markdownEditor');
-  const tAttachments = useTranslations('attachments.messages');
+  const t = useTranslations("markdownEditor");
+  const tAttachments = useTranslations("attachments.messages");
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [linkPopoverOpen, setLinkPopoverOpen] = useState(false);
@@ -1089,7 +1066,7 @@ function MarkdownEditorInner({
         },
       }).configure({
         lowlight,
-        defaultLanguage: 'json',
+        defaultLanguage: "json",
       }),
       safeLinkExtension,
       TaskList,
@@ -1100,22 +1077,22 @@ function MarkdownEditorInner({
         addAttributes() {
           return {
             ...this.parent?.(),
-            'data-attachment-id': {
+            "data-attachment-id": {
               default: null,
-              parseHTML: (el) => el.getAttribute('data-attachment-id'),
+              parseHTML: (el) => el.getAttribute("data-attachment-id"),
               renderHTML: (attrs) =>
-                attrs['data-attachment-id']
-                  ? { 'data-attachment-id': attrs['data-attachment-id'] }
+                attrs["data-attachment-id"]
+                  ? { "data-attachment-id": attrs["data-attachment-id"] }
                   : {},
             },
             width: {
               default: null,
-              parseHTML: (el) => el.getAttribute('width'),
+              parseHTML: (el) => el.getAttribute("width"),
               renderHTML: (attrs) => (attrs.width ? { width: attrs.width } : {}),
             },
             height: {
               default: null,
-              parseHTML: (el) => el.getAttribute('height'),
+              parseHTML: (el) => el.getAttribute("height"),
               renderHTML: (attrs) => (attrs.height ? { height: attrs.height } : {}),
             },
           };
@@ -1146,9 +1123,9 @@ function MarkdownEditorInner({
         },
       }).configure({
         HTMLAttributes: {
-          class: 'max-w-full rounded-md my-2',
-          loading: 'lazy',
-          decoding: 'async',
+          class: "max-w-full rounded-md my-2",
+          loading: "lazy",
+          decoding: "async",
         },
       }),
       // GFM tables: markdown-it parses them and tiptap-markdown writes
@@ -1159,7 +1136,7 @@ function MarkdownEditorInner({
       TableHeader,
       TableCell,
       Placeholder.configure({
-        placeholder: placeholder ?? '',
+        placeholder: placeholder ?? "",
       }),
       Markdown.configure({
         // html: true so the markdown-it parser accepts raw <img> HTML
@@ -1168,13 +1145,13 @@ function MarkdownEditorInner({
         // parse via default markdown-it image rules.
         html: true,
         tightLists: true,
-        bulletListMarker: '-',
+        bulletListMarker: "-",
         transformPastedText: true,
         transformCopiedText: true,
       }),
       createSlashLinkExtension(handleOpenLinkPopover),
     ],
-    content: value || '',
+    content: value || "",
     editable: !disabled && !readOnly,
     immediatelyRender: false,
     onUpdate: ({ editor: updatedEditor }) => {
@@ -1220,13 +1197,13 @@ function MarkdownEditorInner({
 
       // Hard size cap before compression.
       if (file.size > MAX_IMAGE_BYTES) {
-        toast.error(tAttachments('imageSizeTooLarge'));
+        toast.error(tAttachments("imageSizeTooLarge"));
         return;
       }
 
       // Block SVG outright -- stored XSS risk via embedded scripts.
-      if (file.type === 'image/svg+xml') {
-        toast.error(tAttachments('imageTypeBlocked'));
+      if (file.type === "image/svg+xml") {
+        toast.error(tAttachments("imageTypeBlocked"));
         return;
       }
 
@@ -1253,7 +1230,7 @@ function MarkdownEditorInner({
             .chain()
             .focus()
             .insertContent({
-              type: 'image',
+              type: "image",
               attrs: {
                 src: blobUrl,
                 alt: altFromFilename,
@@ -1263,13 +1240,10 @@ function MarkdownEditorInner({
             })
             .run();
         } catch (compressionError) {
-          if (
-            compressionError instanceof Error &&
-            compressionError.message === 'SVG_BLOCKED'
-          ) {
-            toast.error(tAttachments('imageTypeBlocked'));
+          if (compressionError instanceof Error && compressionError.message === "SVG_BLOCKED") {
+            toast.error(tAttachments("imageTypeBlocked"));
           } else {
-            toast.error(tAttachments('imageUploadError'));
+            toast.error(tAttachments("imageUploadError"));
           }
         }
         return;
@@ -1290,19 +1264,19 @@ function MarkdownEditorInner({
             .chain()
             .focus()
             .insertContent({
-              type: 'text',
+              type: "text",
               text: result.filename,
-              marks: [{ type: 'link', attrs: { href: result.url } }],
+              marks: [{ type: "link", attrs: { href: result.url } }],
             })
             .run();
         }
       } catch {
-        toast.error(tAttachments('imageUploadError'));
+        toast.error(tAttachments("imageUploadError"));
       } finally {
         setIsUploading(false);
       }
     },
-    [editor, onImageDrop, onFileUpload, tAttachments],
+    [editor, onImageDrop, onFileUpload, tAttachments]
   );
 
   // Non-image path: stays on the existing /api/upload route via
@@ -1322,47 +1296,45 @@ function MarkdownEditorInner({
             .chain()
             .focus()
             .insertContent({
-              type: 'text',
+              type: "text",
               text: result.filename,
-              marks: [{ type: 'link', attrs: { href: result.url } }],
+              marks: [{ type: "link", attrs: { href: result.url } }],
             })
             .run();
         }
       } catch {
-        toast.error(tAttachments('imageUploadError'));
+        toast.error(tAttachments("imageUploadError"));
       } finally {
         setIsUploading(false);
       }
     },
-    [onFileUpload, editor, tAttachments],
+    [onFileUpload, editor, tAttachments]
   );
 
   // Routes a file to the correct handler based on MIME type.
   const uploadFile = useCallback(
     async (file: File) => {
-      const isImage = file.type.startsWith('image/');
+      const isImage = file.type.startsWith("image/");
       if (isImage) {
         await handleImageFile(file);
       } else {
         await uploadNonImageFile(file);
       }
     },
-    [handleImageFile, uploadNonImageFile],
+    [handleImageFile, uploadNonImageFile]
   );
 
   const handleFileClick = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileInputChange = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       await uploadFile(file);
     }
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -1403,8 +1375,8 @@ function MarkdownEditorInner({
       if (!items || items.length === 0) return;
 
       for (const item of Array.from(items)) {
-        if (item.kind !== 'file') continue;
-        if (!item.type.startsWith('image/')) continue;
+        if (item.kind !== "file") continue;
+        if (!item.type.startsWith("image/")) continue;
 
         const file = item.getAsFile();
         if (!file) continue;
@@ -1417,7 +1389,7 @@ function MarkdownEditorInner({
       }
       // No image item found -- fall through to default paste handling.
     },
-    [disabled, readOnly, onImageDrop, onFileUpload, handleImageFile],
+    [disabled, readOnly, onImageDrop, onFileUpload, handleImageFile]
   );
 
   const handleDrop = useCallback(
@@ -1438,7 +1410,7 @@ function MarkdownEditorInner({
         await uploadFile(file);
       }
     },
-    [onImageDrop, onFileUpload, disabled, readOnly, uploadFile],
+    [onImageDrop, onFileUpload, disabled, readOnly, uploadFile]
   );
 
   if (readOnly) {
@@ -1446,7 +1418,7 @@ function MarkdownEditorInner({
       <MarkdownEditorComponentsProvider components={components}>
         <EditorContent
           editor={editor}
-          className={cn('wysiwyg-editor min-h-0 overflow-auto border-0', className)}
+          className={cn("wysiwyg-editor min-h-0 overflow-auto border-0", className)}
         />
       </MarkdownEditorComponentsProvider>
     );
@@ -1456,9 +1428,9 @@ function MarkdownEditorInner({
     <MarkdownEditorComponentsProvider components={components}>
       <div
         className={cn(
-          'relative flex flex-col rounded-md border border-input focus-within:border-primary focus-within:ring-0',
-          error && 'border-error focus-within:border-error focus-within:ring-error-light',
-          isDragging && 'border-primary border-2 bg-korur-blue-accent dark:bg-korur-slate',
+          "border-input focus-within:border-primary relative flex flex-col rounded-md border focus-within:ring-0",
+          error && "border-error focus-within:border-error focus-within:ring-error-light",
+          isDragging && "border-primary bg-korur-blue-accent dark:bg-korur-slate border-2",
           className
         )}
         onDragEnter={handleDragEnter}
@@ -1469,10 +1441,10 @@ function MarkdownEditorInner({
       >
         {/* Drag overlay */}
         {isDragging && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-md bg-korur-blue-accent/90 dark:bg-korur-slate/90">
-            <div className="flex flex-col items-center gap-2 text-primary">
+          <div className="bg-korur-blue-accent/90 dark:bg-korur-slate/90 absolute inset-0 z-10 flex items-center justify-center rounded-md">
+            <div className="text-primary flex flex-col items-center gap-2">
               <Upload className="h-8 w-8" />
-              <span className="text-sm font-medium">{t('dropFiles')}</span>
+              <span className="text-sm font-medium">{t("dropFiles")}</span>
             </div>
           </div>
         )}
@@ -1494,8 +1466,8 @@ function MarkdownEditorInner({
         <EditorContent
           editor={editor}
           className={cn(
-            'wysiwyg-editor flex-1 min-h-0 overflow-auto border-0',
-            disabled && 'cursor-not-allowed opacity-50'
+            "wysiwyg-editor min-h-0 flex-1 overflow-auto border-0",
+            disabled && "cursor-not-allowed opacity-50"
           )}
         />
 
@@ -1519,7 +1491,8 @@ export function MarkdownEditor<TFieldValues extends FieldValues = FieldValues>(
 ) {
   // Form-integrated mode: name + control are provided
   if (props.name !== undefined && props.control !== undefined) {
-    const { name, control, label, description, required, ...editorProps } = props as MarkdownEditorFormProps<TFieldValues>;
+    const { name, control, label, description, required, ...editorProps } =
+      props as MarkdownEditorFormProps<TFieldValues>;
     return (
       <FormField
         control={control}
@@ -1535,7 +1508,7 @@ export function MarkdownEditor<TFieldValues extends FieldValues = FieldValues>(
             <FormControl>
               <MarkdownEditorInner
                 {...editorProps}
-                value={field.value ?? ''}
+                value={field.value ?? ""}
                 onChange={field.onChange}
                 error={!!fieldState.error}
               />
@@ -1550,12 +1523,5 @@ export function MarkdownEditor<TFieldValues extends FieldValues = FieldValues>(
 
   // Standalone mode: caller provides value + onChange directly
   const { value, onChange, error, ...rest } = props as MarkdownEditorStandaloneProps;
-  return (
-    <MarkdownEditorInner
-      {...rest}
-      value={value}
-      onChange={onChange}
-      error={error}
-    />
-  );
+  return <MarkdownEditorInner {...rest} value={value} onChange={onChange} error={error} />;
 }

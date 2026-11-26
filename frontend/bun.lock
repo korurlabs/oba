@@ -211,6 +211,7 @@
         "zustand": "catalog:",
       },
       "devDependencies": {
+        "@happy-dom/global-registrator": "21.0.4",
         "@oba/eslint-config": "workspace:*",
         "@oba/prettier-config": "workspace:*",
         "@oba/typescript-config": "workspace:*",

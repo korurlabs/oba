@@ -131,15 +131,16 @@ export const TicketCard = memo(function TicketCard({
   // class-level `border-color/box-shadow/opacity` transition in effect, which
   // is what fades the card to 50% as the drag starts.
   const style = useMemo(
-    () => ({
-      transform: CSS.Transform.toString(transform),
-      transition: isDragging ? undefined : (transition ?? undefined),
-      // Scoped to cards that are actually moving so the compositor hint is not
-      // left on every card on the board.
-      willChange: transform ? "transform" : undefined,
-      // Read only by the classic layout, which edges the card in this colour.
-      "--ticket-status-edge": STATUS_EDGE_COLOR[ticket.status],
-    }) as CSSProperties,
+    () =>
+      ({
+        transform: CSS.Transform.toString(transform),
+        transition: isDragging ? undefined : (transition ?? undefined),
+        // Scoped to cards that are actually moving so the compositor hint is not
+        // left on every card on the board.
+        willChange: transform ? "transform" : undefined,
+        // Read only by the classic layout, which edges the card in this colour.
+        "--ticket-status-edge": STATUS_EDGE_COLOR[ticket.status],
+      }) as CSSProperties,
     [transform, transition, isDragging, ticket.status]
   );
 
@@ -188,7 +189,7 @@ export const TicketCard = memo(function TicketCard({
             // sprint's id, so the child board's Sprint tab resolves the id to
             // that board's slug for the sprint.
             router.push(
-              `${boardPath(ticketBoardSlug, BOARD_TAB.sprint)}?sprintId=${encodeURIComponent(currentSprintId)}`,
+              `${boardPath(ticketBoardSlug, BOARD_TAB.sprint)}?sprintId=${encodeURIComponent(currentSprintId)}`
             );
           }}
         >
@@ -227,14 +228,10 @@ export const TicketCard = memo(function TicketCard({
       </h4>
 
       {/* Project, Milestone & Labels */}
-      {(ticket.project || ticket.milestone || ticket.labels?.length) ? (
+      {ticket.project || ticket.milestone || ticket.labels?.length ? (
         <div className="mb-2.5 flex flex-wrap items-center gap-1.5">
-          {ticket.project && (
-            <ProjectBadge project={ticket.project} size="sm" />
-          )}
-          {ticket.milestone && (
-            <MilestoneBadge milestone={ticket.milestone} size="sm" />
-          )}
+          {ticket.project && <ProjectBadge project={ticket.project} size="sm" />}
+          {ticket.milestone && <MilestoneBadge milestone={ticket.milestone} size="sm" />}
           {ticket.labels?.length ? (
             <LabelBadgeList labels={ticket.labels} maxVisible={3} size="sm" />
           ) : null}
