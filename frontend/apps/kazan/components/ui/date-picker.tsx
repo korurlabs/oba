@@ -91,10 +91,10 @@ function DatePicker({
             variant="outline"
             disabled={disabled}
             className={cn(
-              "flex h-11 w-full items-center justify-between whitespace-nowrap border border-(--kazan-control-edge) bg-background px-4 py-2 text-sm text-foreground transition-colors duration-150 dark:bg-input/30",
+              "flex h-11 w-full items-center justify-between whitespace-nowrap border border-(--kazan-control-edge) bg-background px-4 py-2 text-sm text-foreground transition-colors duration-150 dark:bg-input/30 classic:rounded-lg classic:border-[1.5px] classic:border-input classic:shadow-xs classic:transition-all",
               "hover:border-primary/55 hover:bg-background dark:hover:bg-input/50",
-              "outline-none focus:border-primary focus:ring-1 focus:ring-primary focus:ring-offset-0",
-              open && "border-primary ring-1 ring-primary",
+              "outline-none focus:border-primary focus:ring-1 focus:ring-primary focus:ring-offset-0 classic:focus:ring-[3px] classic:focus:ring-primary/20",
+              open && "border-primary ring-1 ring-primary classic:ring-[3px] classic:ring-primary/20",
               "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted",
               !formattedDate && "text-muted-foreground",
               className
@@ -112,7 +112,7 @@ function DatePicker({
                     e.stopPropagation();
                     onChange?.(undefined);
                   }}
-                  className="flex h-4 w-4 shrink-0 items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted"
+                  className="flex h-4 w-4 shrink-0 items-center justify-center classic:rounded-full text-muted-foreground hover:text-foreground hover:bg-muted"
                 >
                   <X className="h-3 w-3" />
                 </span>

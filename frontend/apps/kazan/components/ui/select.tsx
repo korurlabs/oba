@@ -29,12 +29,12 @@ const SelectTrigger = React.forwardRef<
     data-slot="select-trigger"
     ref={ref}
     className={cn(
-      'flex w-full items-center justify-between whitespace-nowrap border border-input bg-background dark:bg-input/30 text-sm text-foreground transition-colors duration-150',
+      'flex w-full items-center justify-between whitespace-nowrap border border-input bg-background dark:bg-input/30 text-sm text-foreground transition-colors duration-150 classic:rounded-lg classic:border-[1.5px] classic:shadow-xs classic:transition-all',
       selectTriggerSizes[size],
       'data-placeholder:text-muted-foreground',
       'hover:border-border dark:hover:bg-input/50',
-      'outline-none focus:border-primary',
-      'data-[state=open]:border-primary data-[state=open]:outline-none',
+      'outline-none focus:border-primary classic:focus:ring-[3px] classic:focus:ring-primary/20',
+      'data-[state=open]:border-primary data-[state=open]:outline-none classic:data-[state=open]:ring-[3px] classic:data-[state=open]:ring-primary/20',
       'disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted',
       '[&>span]:line-clamp-1',
       className

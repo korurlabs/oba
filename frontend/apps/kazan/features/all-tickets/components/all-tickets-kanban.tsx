@@ -171,6 +171,7 @@ export function AllTicketsKanban({
               <div key={column.id} className="flex min-h-[500px] flex-col gap-3">
                 <KanbanColumnHeader
                   index={columnIndex + 1}
+                  classicEdgeClass={column.classicEdgeClass}
                   title={t(`ticket.status.${column.id}`)}
                   count={columnTickets.length}
                 />

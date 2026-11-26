@@ -6,7 +6,8 @@ import { useGetMe } from "@oba/shared/features/users/hooks/use-get-me";
 import { useUpdateMe } from "@oba/shared/features/users/hooks/use-update-me";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { BOARD_DEFAULT_TAB, boardPath, type BoardTab } from "@/features/boards/lib/board-route";
+import { boardDefaultTab, boardPath, type BoardTab } from "@/features/boards/lib/board-route";
+import { useKazanAppearance } from "@/features/settings/hooks/use-kazan-appearance";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -497,9 +498,11 @@ export function useBoardPreferences(boardId: string) {
  * slug; the preferences stay keyed by board id, so a rename does not lose them.
  */
 export function useBoardHref() {
+  // Without a tab, a link opens the first tab of the user's layout.
+  const defaultTab = boardDefaultTab(useKazanAppearance().layout);
   return useCallback(
-    (board: { id: string; slug: string }, tab: BoardTab = BOARD_DEFAULT_TAB): string =>
+    (board: { id: string; slug: string }, tab: BoardTab = defaultTab): string =>
       boardPath(board.slug, tab),
-    [],
+    [defaultTab],
   );
 }

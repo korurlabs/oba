@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { TicketSectionHeader } from "@/features/tickets/components/ticket-section-header";
+import type { TicketListResponse, TicketStatus } from "@/features/tickets/schemas";
 import { SprintStatus, type SprintListResponse } from "../schemas";
 
 interface SprintSectionHeaderProps {
@@ -12,6 +13,12 @@ interface SprintSectionHeaderProps {
   sprintContext: ReactNode;
   /** Optional Add-to-Sprint click handler. When omitted the button is hidden. */
   onAddTicket?: () => void;
+  /** Tickets rendered by the sprint table (parent tickets only), for the classic status chips. */
+  tickets?: TicketListResponse[];
+  /** Currently selected statuses (the shared `statuses` URL filter). */
+  selectedStatuses?: TicketStatus[];
+  /** Toggles one status in the shared `statuses` URL filter. */
+  onStatusToggle?: (status: TicketStatus) => void;
 }
 
 /**
@@ -23,6 +30,9 @@ export function SprintSectionHeader({
   currentSprint,
   sprintContext,
   onAddTicket,
+  tickets,
+  selectedStatuses,
+  onStatusToggle,
 }: SprintSectionHeaderProps) {
   const t = useTranslations();
 
@@ -31,6 +41,9 @@ export function SprintSectionHeader({
   return (
     <TicketSectionHeader
       leading={sprintContext}
+      tickets={tickets}
+      selectedStatuses={selectedStatuses}
+      onStatusToggle={onStatusToggle}
       onAddTicket={canAddTicket ? onAddTicket : undefined}
       addLabel={t("all.addToSprint")}
     />

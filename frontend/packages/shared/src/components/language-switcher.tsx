@@ -32,6 +32,8 @@ import {
 } from "@oba/ui/components/ops-grid";
 import { cn } from "@oba/ui/lib/utils";
 
+import { useMenuLook } from "./app-header/menu-look";
+
 export interface Language {
   code: string;
   name: string;
@@ -181,7 +183,9 @@ interface LanguageSwitcherSubMenuProps {
  * The same locale list as `LanguageSwitcher`, presented as a submenu row so it
  * can live INSIDE another dropdown (every app nests it in the header's account
  * menu). It renders no menu root of its own -- it must be a child of a
- * `DropdownMenuContent` -- and it takes that menu's ops grid look.
+ * `DropdownMenuContent`. Inside the header's account menu it takes that
+ * menu's ops grid look; inside a plain menu, such as the sidebar variant of
+ * the account menu, it keeps the theme's menu (see `useMenuLook`).
  *
  * Routing is the shared `useLanguageSwitch` hook, so switching here behaves
  * exactly as it does from the standalone switcher.
@@ -189,6 +193,37 @@ interface LanguageSwitcherSubMenuProps {
 export function LanguageSwitcherSubMenu({ supportedLocales, label }: LanguageSwitcherSubMenuProps) {
   const { locale, availableLanguages, currentLanguage, handleLanguageChange } =
     useLanguageSwitch(supportedLocales);
+  const isGrid = useMenuLook() === "grid";
+
+  if (!isGrid) {
+    return (
+      <DropdownMenuSub>
+        <DropdownMenuSubTrigger className="cursor-pointer rounded-lg px-3 py-2.5">
+          <Globe className="text-muted-foreground h-4 w-4" />
+          <span className="flex-1">{label}</span>
+          <span className="text-muted-foreground text-xs">{currentLanguage?.nativeName}</span>
+        </DropdownMenuSubTrigger>
+        <DropdownMenuSubContent collisionPadding={16} className="min-w-[180px]">
+          {availableLanguages.map((language) => (
+            <DropdownMenuItem
+              key={language.code}
+              onClick={() => handleLanguageChange(language.code)}
+              className={cn(
+                "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5",
+                locale === language.code && "bg-primary/10 text-primary"
+              )}
+            >
+              <span className="text-base" aria-hidden="true">
+                {getFlagEmoji(language.flag)}
+              </span>
+              <span className="flex-1">{language.nativeName}</span>
+              {locale === language.code && <span className="bg-primary h-2 w-2 rounded-full" />}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuSubContent>
+      </DropdownMenuSub>
+    );
+  }
 
   return (
     <DropdownMenuSub>

@@ -26,8 +26,8 @@ export function Providers({
     <RuntimeConfigProvider config={runtimeConfig}>
       <NextIntlClientProvider locale={locale}>
         <QueryParamsProvider>
-          {/* The sky design has no dark mode, so a stored dark preference is not applied. */}
-          <ThemeProvider forcedTheme="light">
+          {/* Follows the Oba-wide theme preference, applied by the account session sync. */}
+          <ThemeProvider>
             <SessionProvider>
               <QueryClientProvider>
                 <OrganizationSyncProvider>

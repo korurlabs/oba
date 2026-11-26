@@ -93,6 +93,13 @@ describe("AppAccessGate", () => {
       expect(html).not.toContain(CHOOSE);
     });
 
+    test("lets /settings/appearance render", () => {
+      pathname = "/settings/appearance";
+      const html = markup();
+      expect(html).toContain('data-page=""');
+      expect(html).not.toContain(CHOOSE);
+    });
+
     test("does not let another settings page through", () => {
       pathname = "/settings/alerts";
       expect(markup()).toContain(CHOOSE);

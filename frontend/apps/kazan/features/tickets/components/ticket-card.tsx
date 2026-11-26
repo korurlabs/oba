@@ -7,8 +7,8 @@
 
 "use client";
 
-import { memo, useMemo, useState, useEffect } from "react";
-import type { TicketListResponse } from "@/features/tickets/schemas";
+import { memo, useMemo, useState, useEffect, type CSSProperties } from "react";
+import type { TicketListResponse, TicketStatus } from "@/features/tickets/schemas";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { TicketTypeBadge } from "./ticket-type-badge";
@@ -27,6 +27,15 @@ import { MilestoneBadge } from "@/features/milestones/components/milestone-badge
 import { useTranslations } from "next-intl";
 import { useRouter } from "@oba/shared/libs/i18n/navigation";
 import { BOARD_TAB, boardPath } from "@/features/boards/lib/board-route";
+
+/** The left edge of a card in the classic layout, one colour per status. */
+const STATUS_EDGE_COLOR: Record<TicketStatus, string> = {
+  TODO: "#9ca3af",
+  IN_PROGRESS: "#60a5fa",
+  WAITING_FOR_THIRD_PARTY: "#fbbf24",
+  IN_REVIEW: "#c084fc",
+  DONE: "#4ade80",
+};
 
 interface TicketCardProps {
   ticket: TicketListResponse;
@@ -128,8 +137,10 @@ export const TicketCard = memo(function TicketCard({
       // Scoped to cards that are actually moving so the compositor hint is not
       // left on every card on the board.
       willChange: transform ? "transform" : undefined,
-    }),
-    [transform, transition, isDragging]
+      // Read only by the classic layout, which edges the card in this colour.
+      "--ticket-status-edge": STATUS_EDGE_COLOR[ticket.status],
+    }) as CSSProperties,
+    [transform, transition, isDragging, ticket.status]
   );
 
   const assignees = useMemo(() => ticket.assignees ?? [], [ticket.assignees]);
@@ -158,6 +169,9 @@ export const TicketCard = memo(function TicketCard({
         // apart from its faint blue fade; a primary edge on hover is the only
         // cue that it opens.
         "group kazan-card border-border relative cursor-pointer rounded-none border p-[14px]",
+        // The classic card keeps its rounded corners and the left edge in the
+        // colour of its status.
+        "classic:rounded-[10px] classic:border-l-[3px] classic:border-l-(--ticket-status-edge) classic:hover:border-border classic:hover:border-l-(--ticket-status-edge) classic:hover:shadow-lg",
         "transition-[border-color,box-shadow,opacity] duration-150 ease-in-out",
         "hover:border-primary/50",
         isDragging && "opacity-50 shadow-xl",

@@ -26,19 +26,22 @@ import { sortByPriority } from "@/features/tickets/lib/ticket-priority-order";
 // ---------------------------------------------------------------------------
 
 /**
- * The status columns in board order. A column is told apart by its label and
- * its position, not by a colour.
+ * The status columns in board order. In the modern layout a column is told
+ * apart by its label and its position, not by a colour; the classic layout
+ * keeps the coloured edge on the column header it always had.
  */
 export interface KanbanColumn {
   id: TicketStatus;
+  /** The coloured left edge of the column header, in the classic layout only. */
+  classicEdgeClass: string;
 }
 
 export const KANBAN_COLUMNS: KanbanColumn[] = [
-  { id: TicketStatus.TODO },
-  { id: TicketStatus.IN_PROGRESS },
-  { id: TicketStatus.WAITING_FOR_THIRD_PARTY },
-  { id: TicketStatus.IN_REVIEW },
-  { id: TicketStatus.DONE },
+  { id: TicketStatus.TODO, classicEdgeClass: "classic:border-l-gray-300" },
+  { id: TicketStatus.IN_PROGRESS, classicEdgeClass: "classic:border-l-blue-400" },
+  { id: TicketStatus.WAITING_FOR_THIRD_PARTY, classicEdgeClass: "classic:border-l-amber-400" },
+  { id: TicketStatus.IN_REVIEW, classicEdgeClass: "classic:border-l-purple-400" },
+  { id: TicketStatus.DONE, classicEdgeClass: "classic:border-l-green-400" },
 ];
 
 /**
@@ -277,8 +280,8 @@ export function DroppableColumn({ id, children, isOver }: DroppableColumnProps) 
     <div
       ref={setNodeRef}
       className={cn(
-        "flex flex-1 flex-col gap-3 rounded-none border border-dashed border-transparent p-0 transition-colors",
-        isOver && "border-primary bg-primary/5 dark:border-border dark:bg-muted",
+        "flex flex-1 flex-col gap-3 rounded-none border border-dashed border-transparent p-0 transition-colors classic:rounded-lg classic:border-2",
+        isOver && "border-primary bg-primary/5 dark:border-border dark:bg-muted classic:bg-primary/10",
       )}
     >
       {children}

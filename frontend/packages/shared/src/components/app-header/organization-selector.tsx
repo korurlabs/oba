@@ -6,6 +6,7 @@ import {
   SelectGroup,
   SelectItem,
   SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@oba/ui/components/select";
@@ -13,7 +14,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useRouter } from "@oba/shared/libs/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { Building2, Loader2, Plus } from "lucide-react";
+import { Building2, ChevronsUpDown, Loader2, Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useGetMe } from "@oba/shared/features/users/hooks/use-get-me";
@@ -46,6 +47,8 @@ import { managedOrganizations } from "../../features/organizations/lib/managed-o
  * The trigger may shrink (`min-w-0` on it and on its value) so a long name, or
  * a narrow window where the name shows, cuts the name short instead of pushing
  * the app switcher and the account menu out of the top bar.
+ *
+ * The "sidebar" variant keeps the theme's plain menu.
  */
 const GRID_TRIGGER =
   "h-8 max-h-8 !min-h-8 min-w-0 gap-2 *:data-[slot=select-value]:min-w-0 rounded-lg border-0 bg-transparent px-2.5 text-sm font-medium shadow-none hover:bg-muted data-[state=open]:bg-muted dark:bg-transparent dark:hover:bg-muted [&>svg:last-child]:size-3.5";
@@ -58,6 +61,27 @@ const GRID_ROW = cn(OPS_GRID_ROW, OPS_GRID_NO_INDICATOR, OPS_GRID_HIGHLIGHT);
 const GRID_SELECTABLE_ROW = cn(GRID_ROW, OPS_GRID_HAIRLINE, OPS_GRID_CURRENT);
 
 export interface OrganizationSelectorProps {
+  /**
+   * "header" renders the top bar's ghost trigger and the grid panel menu.
+   * "sidebar" renders a trigger shaped like a large sidebar menu button
+   * (organization icon, name, secondary line and, unless `showChevron` is
+   * false, an up/down chevron) that collapses to its icon inside a sidebar
+   * with collapsible="icon", and the plain menu with separators.
+   */
+  variant?: "header" | "sidebar";
+  /**
+   * Secondary line under the organization name in the "sidebar" variant,
+   * supplied by the host so the copy stays in that app's messages.
+   */
+  secondaryLabel?: string;
+  /** Whether the "sidebar" variant draws the up/down chevron. Ignored by "header". */
+  showChevron?: boolean;
+  /**
+   * Called when the "Create organization" row navigates. The selector cannot
+   * close a surrounding overlay itself, so a host that renders it inside one,
+   * such as a mobile sidebar sheet, closes it here.
+   */
+  onNavigate?: () => void;
   /**
    * Where the "Create organization" row navigates: the account app's create
    * screen by default, because any user may create an organization. An in-app path is also accepted and navigates client-side.
@@ -92,6 +116,10 @@ export interface OrganizationSelectorProps {
 }
 
 export function OrganizationSelector({
+  variant = "header",
+  secondaryLabel,
+  showChevron = true,
+  onNavigate,
   createOrganizationHref = ACCOUNT_LINKS.newOrganization,
   app,
   managedOnly = false,
@@ -122,6 +150,7 @@ export function OrganizationSelector({
         : organizations;
   // A controlled host does not wait for the current user: its list is its own.
   const isSyncing = controlled ? isSwitching : isFetching || isSwitching;
+  const isGrid = variant === "header";
 
   // The API serves no request without an organization, so there is no mode
   // without one. With no organization chosen the Select gets the empty value
@@ -133,6 +162,7 @@ export function OrganizationSelector({
 
   const handleCreateOrganization = () => {
     setOpen(false);
+    onNavigate?.();
     // An absolute URL is another app; the locale-aware router only handles
     // paths of this one.
     if (/^https?:\/\//.test(createOrganizationHref)) {
@@ -226,33 +256,86 @@ export function OrganizationSelector({
       open={open}
       onOpenChange={setOpen}
     >
-      <SelectTrigger
-        className={cn(GRID_TRIGGER, className)}
-        aria-label={t("selectOrganization")}
-        title={triggerLabel}
+      {isGrid ? (
+        <SelectTrigger
+          className={cn(GRID_TRIGGER, className)}
+          aria-label={t("selectOrganization")}
+          title={triggerLabel}
+        >
+          <SelectValue aria-label={t("selectOrganization")} placeholder={gridTriggerContent}>
+            {gridTriggerContent}
+          </SelectValue>
+        </SelectTrigger>
+      ) : (
+        /*
+         * Shaped like a large sidebar menu button rather than a bordered
+         * select, and rendered without `SelectValue`, whose one-line clamp
+         * would collapse the two-line label. `[&>svg]:hidden` drops the
+         * Select's own chevron; the nested ChevronsUpDown takes its place.
+         */
+        <SelectTrigger
+          aria-label={t("selectOrganization")}
+          title={triggerLabel}
+          className={cn(
+            "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground dark:hover:bg-sidebar-accent h-12 max-h-12 w-full max-w-none justify-start gap-2 rounded-md border-0 bg-transparent p-2 shadow-none focus-visible:ring-0 dark:bg-transparent",
+            "min-h-12! group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:min-h-8! group-data-[collapsible=icon]:p-1!",
+            "[&>svg]:hidden",
+            className
+          )}
+        >
+          <span className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg group-data-[collapsible=icon]:size-6">
+            {isSyncing ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Building2 className="size-4" />
+            )}
+          </span>
+          <span className="grid min-w-0 flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
+            <span className="truncate text-sm font-medium">{triggerLabel}</span>
+            {secondaryLabel && (
+              <span className="text-muted-foreground truncate text-xs">{secondaryLabel}</span>
+            )}
+          </span>
+          {showChevron && (
+            <span className="ml-auto shrink-0 group-data-[collapsible=icon]:hidden">
+              <ChevronsUpDown className="size-4" />
+            </span>
+          )}
+        </SelectTrigger>
+      )}
+      <SelectContent
+        className={isGrid ? GRID_PANEL : undefined}
+        align={isGrid ? "end" : undefined}
+        sideOffset={isGrid ? 8 : undefined}
       >
-        <SelectValue aria-label={t("selectOrganization")} placeholder={gridTriggerContent}>
-          {gridTriggerContent}
-        </SelectValue>
-      </SelectTrigger>
-      <SelectContent className={GRID_PANEL} align="end" sideOffset={8}>
         {selectableOrganizations.length > 0 && (
           <SelectGroup>
-            <SelectLabel className={OPS_GRID_HEADING}>{t("yourOrganizations")}</SelectLabel>
+            <SelectLabel className={isGrid ? OPS_GRID_HEADING : "text-muted-foreground text-xs"}>
+              {t("yourOrganizations")}
+            </SelectLabel>
             {selectableOrganizations.map((org) => (
-              <SelectItem key={org.id} value={org.id} className={GRID_SELECTABLE_ROW}>
+              <SelectItem
+                key={org.id}
+                value={org.id}
+                className={isGrid ? GRID_SELECTABLE_ROW : undefined}
+              >
                 {org.name}
               </SelectItem>
             ))}
           </SelectGroup>
         )}
+        {!isGrid && <SelectSeparator />}
         <div
           role="option"
           tabIndex={0}
-          className={cn(
-            "relative flex w-full cursor-pointer items-center outline-none select-none",
-            GRID_ROW
-          )}
+          className={
+            isGrid
+              ? cn(
+                  "relative flex w-full cursor-pointer items-center outline-none select-none",
+                  GRID_ROW
+                )
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground relative flex w-full cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none select-none"
+          }
           onMouseDown={(e) => {
             e.preventDefault();
             handleCreateOrganization();
@@ -264,7 +347,7 @@ export function OrganizationSelector({
             }
           }}
         >
-          <Plus className={cn("size-4", OPS_GRID_ACCENT)} />
+          <Plus className={isGrid ? cn("size-4", OPS_GRID_ACCENT) : "h-3.5 w-3.5"} />
           {t("createOrganization")}
         </div>
       </SelectContent>

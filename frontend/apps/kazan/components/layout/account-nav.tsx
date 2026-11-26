@@ -1,12 +1,12 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { Columns3, Download, Siren } from "lucide-react";
+import { Columns3, Download, Palette, Siren } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@oba/shared/libs/i18n/navigation";
 import { cn } from "@oba/ui/lib/utils";
 
-type AccountTabId = "tableColumns" | "alerts" | "downloads";
+type AccountTabId = "tableColumns" | "alerts" | "appearance" | "downloads";
 
 interface AccountTab {
   id: AccountTabId;
@@ -23,12 +23,13 @@ interface AccountTab {
 const ACCOUNT_TABS: readonly AccountTab[] = [
   { id: "tableColumns", href: "/settings/columns", icon: Columns3 },
   { id: "alerts", href: "/settings/alerts", icon: Siren },
+  { id: "appearance", href: "/settings/appearance", icon: Palette },
   { id: "downloads", href: "/settings/cli", icon: Download },
 ];
 
 /**
  * Navigation row shared by the Kazan settings screens (table columns,
- * alerts, Download CLI). Rendered by the `(account)` layout, so it stays on
+ * alerts, appearance, Download CLI). Rendered by the `(account)` layout, so it stays on
  * screen when one of those pages throws.
  *
  * Modelled on `board-tabs.tsx`: a row of links whose active tab comes from the

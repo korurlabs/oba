@@ -9,14 +9,17 @@ import { cn } from "@/lib/utils";
  * information, ink for a warning, red for danger), never a tinted fill.
  */
 const inlineAlertVariants = cva(
-  "flex flex-row items-center gap-2 border border-l-2 bg-card p-3",
+  "flex flex-row items-center gap-2 border border-l-2 bg-card p-3 classic:rounded-lg classic:border-l",
   {
     variants: {
       variant: {
-        info: "border-primary/30 border-l-primary [&_svg]:text-primary",
-        success: "border-primary/30 border-l-korur-blue-strong [&_svg]:text-korur-blue-strong",
-        warning: "border-foreground/25 border-l-foreground/70 [&_svg]:text-foreground",
-        danger: "border-destructive/40 border-l-destructive [&_svg]:text-destructive",
+        info: "border-primary/30 border-l-primary [&_svg]:text-primary classic:border-info/30 classic:bg-info/10 classic:[&_svg]:text-info",
+        success:
+          "border-primary/30 border-l-korur-blue-strong [&_svg]:text-korur-blue-strong classic:border-success/30 classic:bg-success/10 classic:[&_svg]:text-success",
+        warning:
+          "border-foreground/25 border-l-foreground/70 [&_svg]:text-foreground classic:border-warning/30 classic:bg-warning/10 classic:[&_svg]:text-warning",
+        danger:
+          "border-destructive/40 border-l-destructive [&_svg]:text-destructive classic:border-destructive/30 classic:bg-destructive/10",
       },
     },
     defaultVariants: {

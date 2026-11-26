@@ -901,7 +901,7 @@ function Toolbar({
   const t = useTranslations('markdownEditor');
 
   return (
-    <div className="flex flex-wrap items-center gap-0.5 border-b border-input rounded-t-md bg-gray-50/50 px-2 py-1">
+    <div className="flex flex-wrap items-center gap-0.5 border-b border-input rounded-t-md bg-muted/50 px-2 py-1">
       {/* Text formatting */}
       <ToolbarButton
         onClick={() => editor.chain().focus().toggleBold().run()}

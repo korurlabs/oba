@@ -4,7 +4,10 @@ import {
   BOARD_FIXED_SEGMENTS,
   BOARD_TAB,
   BOARD_TAB_ORDER,
+  CLASSIC_BOARD_TAB_ORDER,
+  boardDefaultTab,
   boardPath,
+  boardTabOrder,
 } from "./board-route";
 
 describe("board tabs", () => {
@@ -34,5 +37,29 @@ describe("default board tab", () => {
     expect(boardPath("ops", BOARD_TAB.all)).toBe("/board/ops/all");
     expect(boardPath("ops", BOARD_TAB.backlog)).toBe("/board/ops/backlog");
     expect(boardPath("ops", BOARD_TAB.roadmap)).toBe("/board/ops/roadmap");
+  });
+});
+
+describe("board tabs per layout", () => {
+  test("list All first in the classic layout: All, Sprint, Backlog, Roadmap", () => {
+    expect(CLASSIC_BOARD_TAB_ORDER).toEqual(["all", "sprint", "backlog", "roadmap"]);
+    expect(boardTabOrder("classic")).toEqual(CLASSIC_BOARD_TAB_ORDER);
+  });
+
+  test("keep the modern order, with All last", () => {
+    expect(boardTabOrder("modern")).toEqual(BOARD_TAB_ORDER);
+    expect(boardTabOrder("modern").at(-1)).toBe(BOARD_TAB.all);
+  });
+
+  test("list every tab exactly once in the classic order", () => {
+    expect([...CLASSIC_BOARD_TAB_ORDER].sort()).toEqual(Object.values(BOARD_TAB).sort());
+  });
+
+  test("open a board on All in the classic layout and on Sprint in the modern one", () => {
+    expect(boardDefaultTab("classic")).toBe(BOARD_TAB.all);
+    expect(boardDefaultTab("modern")).toBe(BOARD_DEFAULT_TAB);
+    for (const layout of ["classic", "modern"] as const) {
+      expect(boardDefaultTab(layout)).toBe(boardTabOrder(layout)[0]!);
+    }
   });
 });

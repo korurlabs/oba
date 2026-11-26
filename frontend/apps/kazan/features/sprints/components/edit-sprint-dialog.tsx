@@ -356,7 +356,7 @@ function SprintLinkedBoards({ boardId, sprintId }: SprintLinkedBoardsProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center rounded-lg border bg-white p-4">
+      <div className="flex items-center justify-center rounded-lg border bg-card p-4">
         <Loader2 className="text-muted-foreground h-5 w-5 animate-spin" />
       </div>
     );

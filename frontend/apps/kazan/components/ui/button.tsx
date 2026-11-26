@@ -5,24 +5,25 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-none text-sm cursor-pointer font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-none text-sm cursor-pointer font-medium transition-colors duration-150 classic:rounded-lg classic:transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         // Primary (CTA): flat Korur blue in the strong shade, which keeps white
         // text readable, and a deeper shade on hover instead of a lift and glow.
         default:
-          "bg-korur-blue-strong text-white border border-korur-blue-strong hover:bg-korur-blue-deep hover:border-korur-blue-deep",
+          "bg-korur-blue-strong text-white border border-korur-blue-strong hover:bg-korur-blue-deep hover:border-korur-blue-deep classic:border-0 classic:bg-gradient-to-br classic:from-korur-blue-hover classic:to-korur-blue-strong classic:shadow-sm classic:hover:-translate-y-0.5 classic:hover:shadow-primary-glow classic:active:translate-y-0",
         // Secondary: a card-coloured plate with a hairline rim.
         secondary:
-          "bg-card border border-border text-foreground hover:bg-primary/5 hover:border-primary/40",
+          "bg-card border border-border text-foreground hover:bg-primary/5 hover:border-primary/40 classic:shadow-sm classic:hover:bg-accent classic:hover:border-border",
         // Ghost: no rim until hovered.
         ghost: "text-foreground hover:bg-accent hover:[&_svg]:text-foreground",
         // Destructive/Danger
-        destructive: "bg-error text-white border border-error hover:bg-error/90",
+        destructive:
+          "bg-error text-white border border-error hover:bg-error/90 classic:border-0 classic:shadow-sm",
         // Outline: a hairline rim that turns primary on hover.
         outline:
-          "border border-border bg-transparent text-foreground hover:bg-primary/5 hover:border-primary/40 hover:[&_svg]:text-current",
+          "border border-border bg-transparent text-foreground hover:bg-primary/5 hover:border-primary/40 hover:[&_svg]:text-current classic:hover:bg-accent classic:hover:border-border",
         // Link
         link: "text-primary underline-offset-4 hover:underline",
       },

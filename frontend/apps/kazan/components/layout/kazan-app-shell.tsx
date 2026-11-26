@@ -13,9 +13,13 @@ import { Link, usePathname } from "@oba/shared/libs/i18n/navigation";
 import { SkyAppShell, type SkyLinkProps, type SkyNavItem } from "@oba/ui/sky/app-shell";
 import { IncidentAlertWatcher } from "@/features/incidents/components/incident-alert-watcher";
 import { SUPPORTED_LOCALES } from "@/lib/i18n/supported-locales";
+import { useKazanAppearance } from "@/features/settings/hooks/use-kazan-appearance";
 import { AccountSessionSync } from "./account-session-sync";
 import { AppAccessGate } from "./app-access-gate";
+import { AppearanceMenuItem } from "./appearance-menu-item";
 import { ChatUnreadTitle } from "./chat-unread-title";
+import { ClassicAppShell } from "./classic/classic-app-shell";
+import { KazanAppearanceRoot } from "./kazan-appearance-root";
 import { KazanLogo } from "./kazan-logo";
 import { KazanMenu } from "./kazan-menu";
 import { SidebarWidthProvider, useSidebarWidthContext } from "./sidebar-context";
@@ -56,16 +60,55 @@ function isSettingsPath(pathname: string): boolean {
  * narrow one, as in the other apps. Boards lay out and scroll their own
  * panes, so the page fills the space beside the menu and scrolls in its own
  * area here.
+ *
+ * The user picks the layout in the appearance settings: this modern frame,
+ * or the classic one (`ClassicAppShell`), a full-height inset sidebar with
+ * no top bar. Only the frame differs; the page body, its data and its
+ * providers are the same in both.
  */
 export function KazanAppShell({ children }: { children: ReactNode }) {
+  const { layout } = useKazanAppearance();
+  const body = <KazanShellBody>{children}</KazanShellBody>;
+
   return (
     <SidebarWidthProvider>
-      <KazanFrame>{children}</KazanFrame>
+      {layout === "classic" ? (
+        <ClassicAppShell>{body}</ClassicAppShell>
+      ) : (
+        <KazanFrame>{body}</KazanFrame>
+      )}
     </SidebarWidthProvider>
   );
 }
 
-/** The frame inside the width provider, since the shell's provider reads the width. */
+/**
+ * The page body of both frames. The side effects render nothing in place and
+ * sit outside the gate, so the session sync, the appearance on <html>, the
+ * alert for open P1 and P2 incidents and the unread count in the tab title
+ * reach every page, also behind the no-access panel and while the menu is a
+ * closed sheet.
+ */
+function KazanShellBody({ children }: { children: ReactNode }) {
+  return (
+    <>
+      <AccountSessionSync />
+      <KazanAppearanceRoot />
+      <IncidentAlertWatcher />
+      <ChatUnreadTitle />
+      {/* The page area is Kazan's canvas, painted with the chosen background
+          on the scroll container so it stays put while a page scrolls.
+          Toolbars, cards and tables lie on it as solid plates. */}
+      <div className="kazan-canvas min-h-0 flex-1 overflow-auto">
+        {/* One gate holds the page and the ticket dialog, so an organization
+            without Kazan shows one panel and no dialog over it. The dialog
+            renders through a portal, so the scroll area does not clip it. */}
+        <AppAccessGate>{children}</AppAccessGate>
+      </div>
+    </>
+  );
+}
+
+/** The modern frame inside the width provider, since the shell's provider reads the width. */
 function KazanFrame({ children }: { children: ReactNode }) {
   const t = useTranslations("sidebar");
   const tApps = useTranslations("apps");
@@ -96,8 +139,15 @@ function KazanFrame({ children }: { children: ReactNode }) {
           <AppSwitcher currentAppId="kazan" />
           <ProfileDropdown
             profileHref={profileHref}
+            showDarkModeSoon={false}
             extraMenuContent={
-              <LanguageSwitcherSubMenu supportedLocales={SUPPORTED_LOCALES} label={t("language")} />
+              <>
+                <AppearanceMenuItem />
+                <LanguageSwitcherSubMenu
+                  supportedLocales={SUPPORTED_LOCALES}
+                  label={t("language")}
+                />
+              </>
             }
           />
         </>
@@ -105,22 +155,7 @@ function KazanFrame({ children }: { children: ReactNode }) {
       menu={<KazanMenu />}
       footerItems={footerItems}
     >
-      {/* These render nothing in place and sit outside the gate, so the
-          session side effects, the alert for open P1 and P2 incidents and the
-          unread count in the tab title reach every page, also behind the
-          no-access panel and while the menu is a closed sheet. */}
-      <AccountSessionSync />
-      <IncidentAlertWatcher />
-      <ChatUnreadTitle />
-      {/* The page area is Kazan's canvas: a pale blue sheet with the grid of
-          the menu, painted on the scroll container so it stays put while a
-          page scrolls. Toolbars, cards and tables lie on it as solid plates. */}
-      <div className="kazan-canvas min-h-0 flex-1 overflow-auto">
-        {/* One gate holds the page and the ticket dialog, so an organization
-            without Kazan shows one panel and no dialog over it. The dialog
-            renders through a portal, so the scroll area does not clip it. */}
-        <AppAccessGate>{children}</AppAccessGate>
-      </div>
+      {children}
     </SkyAppShell>
   );
 }

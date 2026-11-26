@@ -42,7 +42,7 @@ export function BoardCard({
 
   return (
     <Link href={boardPath(slug)}>
-      <div className="group relative bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer transition-all duration-150 ease-in-out hover:-translate-y-1 hover:shadow-lg hover:border-transparent">
+      <div className="group relative bg-card text-card-foreground rounded-2xl border border-border overflow-hidden cursor-pointer transition-all duration-150 ease-in-out hover:-translate-y-1 hover:shadow-lg hover:border-transparent">
         {/* Gradient Bar */}
         <div className={`h-2 bg-gradient-to-r ${gradientClass}`} />
 
@@ -50,10 +50,10 @@ export function BoardCard({
         <div className="p-5">
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1 min-w-0">
-              <h3 className="text-base font-semibold text-gray-900 truncate group-hover:text-primary transition-colors">
+              <h3 className="text-base font-semibold text-foreground truncate group-hover:text-primary transition-colors">
                 {name}
               </h3>
-              <p className="mt-1 text-sm text-gray-400">{prefix}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{prefix}</p>
             </div>
 
             <Button
@@ -65,7 +65,7 @@ export function BoardCard({
                 e.stopPropagation();
               }}
             >
-              <MoreVertical className="h-4 w-4 text-gray-400" />
+              <MoreVertical className="h-4 w-4 text-muted-foreground" />
             </Button>
           </div>
         </div>
@@ -83,10 +83,10 @@ export function CreateBoardCard({ onClick }: { onClick: () => void }) {
   return (
     <div
       onClick={onClick}
-      className="group relative h-[180px] bg-white rounded-2xl border-2 border-dashed border-gray-200 overflow-hidden cursor-pointer transition-all duration-200 hover:border-primary hover:bg-primary/10 flex flex-col items-center justify-center"
+      className="group relative h-[180px] bg-card rounded-2xl border-2 border-dashed border-border overflow-hidden cursor-pointer transition-all duration-200 hover:border-primary hover:bg-primary/10 flex flex-col items-center justify-center"
     >
       {/* Icon */}
-      <div className="w-12 h-12 rounded-xl bg-gray-100 group-hover:bg-primary/20 flex items-center justify-center mb-3 transition-colors">
+      <div className="w-12 h-12 rounded-xl bg-muted group-hover:bg-primary/20 flex items-center justify-center mb-3 transition-colors">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="24"
@@ -97,7 +97,7 @@ export function CreateBoardCard({ onClick }: { onClick: () => void }) {
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="text-gray-400 group-hover:text-primary transition-colors"
+          className="text-muted-foreground group-hover:text-primary transition-colors"
         >
           <path d="M5 12h14" />
           <path d="M12 5v14" />
@@ -105,10 +105,10 @@ export function CreateBoardCard({ onClick }: { onClick: () => void }) {
       </div>
 
       {/* Text */}
-      <h3 className="text-base font-semibold text-gray-600 group-hover:text-primary transition-colors">
+      <h3 className="text-base font-semibold text-foreground/80 group-hover:text-primary transition-colors">
         {t('create')}
       </h3>
-      <p className="text-sm text-gray-400 mt-1">{t('startNewProject')}</p>
+      <p className="text-sm text-muted-foreground mt-1">{t('startNewProject')}</p>
     </div>
   );
 }
