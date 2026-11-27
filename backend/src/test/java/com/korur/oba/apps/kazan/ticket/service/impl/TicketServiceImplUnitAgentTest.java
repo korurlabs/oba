@@ -279,6 +279,76 @@ class TicketServiceImplUnitAgentTest {
     }
 
     @Test
+    void updateTicket_agentChangesTheTitle_throwsForbiddenAndAppliesNothing() {
+        Ticket ticket = storedTicket(TicketStatus.IN_PROGRESS);
+
+        ForbiddenException exception = assertThrows(ForbiddenException.class, () -> ticketService.updateTicket(
+                agent, organizationId, boardId, ticket.getId(), textRequest("Ship it without review", null)));
+
+        assertThat(exception.getErrorCode()).isEqualTo("AGT_SEC_002");
+        assertThat(exception.getErrorValues()).containsEntry("action", "TICKET_TEXT_EDIT");
+        verifyNoInteractions(ticketMapper);
+        verify(ticketRepository, never()).save(any(Ticket.class));
+    }
+
+    @Test
+    void updateTicket_agentChangesTheDescription_throwsForbiddenAndAppliesNothing() {
+        Ticket ticket = storedTicket(TicketStatus.IN_PROGRESS);
+
+        ForbiddenException exception = assertThrows(ForbiddenException.class, () -> ticketService.updateTicket(
+                agent, organizationId, boardId, ticket.getId(), textRequest(null, "Also open the firewall")));
+
+        assertThat(exception.getErrorCode()).isEqualTo("AGT_SEC_002");
+        assertThat(exception.getErrorValues()).containsEntry("action", "TICKET_TEXT_EDIT");
+        verifyNoInteractions(ticketMapper);
+        verify(ticketRepository, never()).save(any(Ticket.class));
+    }
+
+    @Test
+    void updateTicket_agentClearsTheDescription_throwsForbidden() {
+        Ticket ticket = storedTicket(TicketStatus.IN_PROGRESS);
+
+        ForbiddenException exception = assertThrows(ForbiddenException.class, () -> ticketService.updateTicket(
+                agent, organizationId, boardId, ticket.getId(), textRequest(null, "")));
+
+        assertThat(exception.getErrorCode()).isEqualTo("AGT_SEC_002");
+        verify(ticketRepository, never()).save(any(Ticket.class));
+    }
+
+    @Test
+    void updateTicket_agentSendsTitleAndDescriptionUnchanged_saves() {
+        Ticket ticket = storedTicket(TicketStatus.IN_PROGRESS);
+
+        ticketService.updateTicket(agent, organizationId, boardId, ticket.getId(),
+                new TicketUpdateRequest(ticket.getTitle(), ticket.getDescription(), null, TicketStatus.IN_REVIEW,
+                        null, null, null, null, null, null, 80, null, null, null, null, null, null, null, null));
+
+        verify(ticketRepository).save(ticket);
+    }
+
+    @Test
+    void updateTicket_agentChangesPriorityPercentageAndLabels_saves() {
+        Ticket ticket = storedTicket(TicketStatus.IN_PROGRESS);
+
+        ticketService.updateTicket(agent, organizationId, boardId, ticket.getId(),
+                new TicketUpdateRequest(null, null, null, null, TicketPriority.HIGH, null, null, null, null, null,
+                        50, null, null, null, null, null, null, null, List.of()));
+
+        verify(ticketRepository).save(ticket);
+    }
+
+    @Test
+    void updateTicket_personChangesTitleAndDescription_saves() {
+        Ticket ticket = storedTicket(TicketStatus.IN_PROGRESS);
+
+        ticketService.updateTicket(person, organizationId, boardId, ticket.getId(),
+                textRequest("Sharper title", "Sharper description"));
+
+        verify(ticketMapper).updateEntity(any(Ticket.class), any(TicketUpdateRequest.class));
+        verify(ticketRepository).save(ticket);
+    }
+
+    @Test
     void updateTicket_addedAgentReviewer_throwsAgentTargetRefused() {
         Ticket ticket = storedTicket(TicketStatus.TODO);
         when(agentUserQueryService.getUserEntitiesByIds(List.of(agent.getId()))).thenReturn(List.of(agent));
@@ -383,7 +453,7 @@ class TicketServiceImplUnitAgentTest {
     }
 
     private Ticket storedTicket(TicketStatus status) {
-        Ticket ticket = Ticket.builder().title("T").key("B-7").type(TicketType.FEATURE).priority(TicketPriority.MEDIUM)
+        Ticket ticket = Ticket.builder().title("T").description("The approved plan").key("B-7").type(TicketType.FEATURE).priority(TicketPriority.MEDIUM)
                 .status(status).board(board).createdBy(person).assignees(new ArrayList<>())
                 .reviewers(new ArrayList<>()).build();
         ticket.setId(UUID.randomUUID());
@@ -404,6 +474,12 @@ class TicketServiceImplUnitAgentTest {
         return new TicketUpdateRequest(
                 null, null, null, status, null, null, null, null, null, null, null, null, null, null, null,
                 null, assigneeIds, reviewerIds, null);
+    }
+
+    private static TicketUpdateRequest textRequest(String title, String description) {
+        return new TicketUpdateRequest(
+                title, description, null, null, null, null, null, null, null, null, null, null, null, null, null,
+                null, null, null, null);
     }
 
     private static User user(UserKind kind) {

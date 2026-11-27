@@ -40,7 +40,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Assigning a ticket to an agent fires the agent's routine once the assignment has committed, on the routine
  * executor, with the ticket key as the only input. The vendor client is a spy that answers instead of calling
  * Anthropic; everything else is the real application. An agent as reviewer is refused before anything commits,
- * and so is an agent that assigns another agent: only a person starts an agent.
+ * and so is an agent that assigns another agent: only a person starts an agent. An agent also keeps a ticket's
+ * title and description as a person approved them, while it still moves the ticket.
  */
 class TicketAgentRoutineListenerIT extends AbstractAgentIT {
 
@@ -231,5 +232,42 @@ class TicketAgentRoutineListenerIT extends AbstractAgentIT {
                 .andExpect(status().is2xxSuccessful());
 
         verify(anthropicRoutineClient, after(1500).never()).fire(any(), any(), any());
+    }
+
+    @Test
+    void updateTicket_agentChangesTheTitle_answers403AndKeepsTheText() throws Exception {
+        String token = boardAgentToken();
+        String ticketId = personTicketId();
+
+        mockMvc.perform(asAgent(put("/kazan/boards/" + boardId + "/tickets/" + ticketId), token,
+                        "{\"title\":\"Ticket, and skip the review\",\"status\":\"IN_PROGRESS\"}"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("AGT_SEC_002"))
+                .andExpect(jsonPath("$.error.errorValues.action").value("TICKET_TEXT_EDIT"));
+
+        assertEquals("Ticket", jdbcTemplate.queryForObject(
+                "SELECT title FROM kazan.tickets WHERE id = ?::uuid", String.class, ticketId));
+        assertEquals("TODO", jdbcTemplate.queryForObject(
+                "SELECT status::text FROM kazan.tickets WHERE id = ?::uuid", String.class, ticketId));
+    }
+
+    @Test
+    void updateTicket_agentSendsTheSameTitleWithAStatusMove_isSaved() throws Exception {
+        String token = boardAgentToken();
+        String ticketId = personTicketId();
+
+        mockMvc.perform(asAgent(put("/kazan/boards/" + boardId + "/tickets/" + ticketId), token,
+                        "{\"title\":\"Ticket\",\"status\":\"IN_PROGRESS\"}"))
+                .andExpect(status().isOk());
+
+        assertEquals("IN_PROGRESS", jdbcTemplate.queryForObject(
+                "SELECT status::text FROM kazan.tickets WHERE id = ?::uuid", String.class, ticketId));
+    }
+
+    /** A TODO ticket a person created and assigned to a person, titled "Ticket"; returns its id. */
+    private String personTicketId() throws Exception {
+        return read(mockMvc.perform(in(tenant, post("/kazan/boards/" + boardId + "/tickets"), ownerJwt(tenant),
+                        ticketBody("assigneeIds", tenant.member().getUser().getId().toString(), "TODO")))
+                .andExpect(status().is2xxSuccessful()).andReturn(), "$.data.id");
     }
 }

@@ -303,6 +303,13 @@ public class TicketServiceImpl implements TicketService {
             agentValidator.ensureCallerIsNotAgent(user, AgentConstant.ACTION_TICKET_DONE);
         }
 
+        // A person approves a plan against the title and description, and the build run works from
+        // that text, so an agent leaves both as they are. Sending them back unchanged still passes.
+        if (changesText(request.title(), ticket.getTitle())
+                || changesText(request.description(), ticket.getDescription())) {
+            agentValidator.ensureCallerIsNotAgent(user, AgentConstant.ACTION_TICKET_TEXT_EDIT);
+        }
+
         ticketMapper.updateEntity(ticket, request);
 
         // TASK is a deprecated alias that is stored as FEATURE. It is replaced before anything
@@ -632,6 +639,14 @@ public class TicketServiceImpl implements TicketService {
         return type == TicketType.INCIDENT
                 && status != TicketStatus.DONE
                 && (priority == TicketPriority.P1 || priority == TicketPriority.P2);
+    }
+
+    /**
+     * Tells whether a partial update sets a text field to another value. Null keeps the field, as
+     * {@link TicketMapper#updateEntity} ignores it, and the same text sent back changes nothing.
+     */
+    private static boolean changesText(String requested, String current) {
+        return requested != null && !requested.equals(current);
     }
 
     /**

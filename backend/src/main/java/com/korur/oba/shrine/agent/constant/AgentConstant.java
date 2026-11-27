@@ -38,6 +38,9 @@ public final class AgentConstant {
     // outlives its work and never mints a credential, so a prompt-injected run cannot widen its reach.
     public static final String ACTION_TICKET_DONE = "TICKET_DONE";
     public static final String ACTION_TICKET_DELETE = "TICKET_DELETE";
+    // Nor does an agent rewrite a ticket's title or description: a person approves a plan against
+    // that text, and the build run must work from what was approved.
+    public static final String ACTION_TICKET_TEXT_EDIT = "TICKET_TEXT_EDIT";
     public static final String ACTION_ORGANIZATION_LEAVE = "ORGANIZATION_LEAVE";
     public static final String ACTION_KAYA_MACHINE_CREATE = "KAYA_MACHINE_CREATE";
     public static final String ACTION_KAYA_TOKEN_ROTATE = "KAYA_TOKEN_ROTATE";
