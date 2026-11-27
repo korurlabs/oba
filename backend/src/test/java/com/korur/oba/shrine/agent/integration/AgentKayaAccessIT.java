@@ -30,8 +30,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Kaya and the agent: an {@code oat_} agent token is refused on the Kaya web API even with the Kaya grant,
  * however the path is spelled, so a run cannot rewrite lessons, give plan feedback, read transcripts, delete
  * its sessions or cut off its machine. A person's JWT keeps working there, and the {@code kyt_} machine token
- * an admin registered for the agent still records sessions and reads delivery, but writes no lesson and ends
- * when the agent is disabled.
+ * an admin registered for the agent still records sessions and reads delivery, but writes no lesson, takes
+ * over no person's spec and ends when the agent is disabled.
  */
 class AgentKayaAccessIT extends AbstractAgentIT {
 
@@ -61,6 +61,19 @@ class AgentKayaAccessIT extends AbstractAgentIT {
                         + ".git\",\"name\":\"scratch\"},"
                         + "\"machine\":{\"machineName\":\"cloud\"},\"summary\":{},"
                         + "\"events\":[{\"seq\":1,\"at\":\"2026-10-20T09:00:01Z\",\"event\":\"UserPromptSubmit\"}]}");
+    }
+
+    /** A batch of one event that captures the spec docs/plans/x/01_X.md of the given repository. */
+    private static MockHttpServletRequestBuilder specBatch(String machineToken, String machineName, String remoteUrl,
+            String content, String capturedAt) {
+        return bearer(post("/kaya/ingest/batches"), machineToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"sessionId\":\"sess-" + uniqueSuffix() + "\","
+                        + "\"repository\":{\"remoteUrl\":\"" + remoteUrl + "\",\"name\":\"scratch\"},"
+                        + "\"machine\":{\"machineName\":\"" + machineName + "\"},\"summary\":{},"
+                        + "\"events\":[{\"seq\":1,\"at\":\"" + capturedAt + "\",\"event\":\"UserPromptSubmit\"}],"
+                        + "\"plans\":[{\"kind\":\"SPEC\",\"source\":\"FILE\",\"path\":\"docs/plans/x/01_X.md\","
+                        + "\"content\":\"" + content + "\",\"capturedAt\":\"" + capturedAt + "\"}]}");
     }
 
     @Test
@@ -160,6 +173,28 @@ class AgentKayaAccessIT extends AbstractAgentIT {
                 .andExpect(jsonPath("$.error.code").value(AGENT_ACTION_REFUSED))
                 .andExpect(jsonPath("$.error.errorValues.action").value("KAYA_LESSON_CREATE"));
         assertEquals(0L, count("SELECT count(*) FROM kaya.lessons WHERE organization_id = ?::uuid", tenant.id()));
+    }
+
+    @Test
+    void machineTokenOfTheAgent_versioningAPersonsSpec_leavesTheSpecAndItsReviewWithThatPerson() throws Exception {
+        Tenant tenant = newTenant();
+        String remoteUrl = "git@github.com:korurlabs/repo-" + uniqueSuffix() + ".git";
+        String ownerToken = read(mockMvc.perform(in(tenant, post("/kaya/machines"), ownerJwt(tenant),
+                        "{\"machineName\":\"laptop\"}"))
+                .andExpect(status().isCreated())
+                .andReturn(), "$.data.token");
+        String agentToken = read(registerMachine(tenant, routineAgent(tenant)), "$.data.token");
+
+        mockMvc.perform(specBatch(ownerToken, "laptop", remoteUrl, "# X by the owner", "2026-10-20T09:00:00Z"))
+                .andExpect(status().isOk());
+        mockMvc.perform(specBatch(agentToken, "cloud", remoteUrl, "# X rewritten by the agent", "2026-10-20T10:00:00Z"))
+                .andExpect(status().isOk());
+
+        assertEquals(tenant.owner().getUser().getId().toString(), jdbcTemplate.queryForObject(
+                "SELECT user_id::text FROM kaya.plans WHERE organization_id = ?::uuid AND kind = 'SPEC'", String.class,
+                tenant.id()));
+        assertEquals(1L, count("SELECT count(*) FROM kaya.plan_versions v JOIN kaya.plans p ON p.id = v.plan_id "
+                + "WHERE p.organization_id = ?::uuid", tenant.id()));
     }
 
     @Test
