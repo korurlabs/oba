@@ -44,10 +44,11 @@ import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
  * The user's cap counts their reads in every organization together. Any signed-in user can create
  * organizations, so without it one person could fill the instance with the reads of two
  * organizations of their own and lock every other tenant's reads out; with it, that takes two
- * accounts. The user is asked first and the organization next, as the budgets are charged, so the
- * surplus reads of one person never hold a permit their colleagues need, and those of one
- * organization never hold a permit of the instance another organization needs; both are answered
- * 429, which names who is over the cap. A user or an organization keeps its entry in its table only
+ * accounts. The user's cap is below the organization's, so no single member, a person or an agent,
+ * holds every permit of their organization. The user is asked first and the organization next, as the
+ * budgets are charged, so the surplus reads of one member never hold a permit their colleagues need,
+ * and those of one organization never hold a permit of the instance another organization needs; both
+ * are answered 429, which names who is over the cap. A user or an organization keeps its entry in its table only
  * while one of its reads runs, so a table never holds more entries than requests in this method.
  * Like the budgets, the caps are per instance.
  *

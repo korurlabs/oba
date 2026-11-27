@@ -27,6 +27,7 @@ import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The caps on lesson reads at the same time. A read that is still running is a call of run inside the
@@ -130,6 +131,30 @@ class LessonDeliveryBulkheadUnitTest {
         }
 
         @Test
+        void run_userAtItsCapInItsOrganization_leavesAPlaceForAColleagueOfTheSameOrganization() {
+            LessonDeliveryBulkhead bulkhead = bulkhead();
+            UUID organizationId = UUID.randomUUID();
+            UUID userId = UUID.randomUUID();
+            List<MachinePrincipal> machines = new ArrayList<>();
+            for (int read = 0; read < LessonConstant.DELIVERY_USER_CONCURRENT_READS_MAX; read++) {
+                machines.add(machineOf(organizationId, userId));
+            }
+
+            // An agent's run or a member's machines, all reading in the one organization at once.
+            String answer = runNested(bulkhead, machines, () -> bulkhead.run(machineOf(organizationId), () -> ANSWER));
+
+            assertEquals(ANSWER, answer);
+        }
+
+        @Test
+        void caps_ofOneUserBelowItsOrganizationAndOfOneOrganizationBelowTheInstance() {
+            assertTrue(LessonConstant.DELIVERY_USER_CONCURRENT_READS_MAX
+                    < LessonConstant.DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX);
+            assertTrue(LessonConstant.DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX
+                    < LessonConstant.DELIVERY_CONCURRENT_READS_MAX);
+        }
+
+        @Test
         void run_refusedByTheUser_takesNoPermitOfTheOrganizationOrTheInstance() {
             LessonDeliveryBulkhead bulkhead = bulkhead();
             UUID organizationId = UUID.randomUUID();
@@ -140,8 +165,14 @@ class LessonDeliveryBulkheadUnitTest {
                     assertThrows(TooManyRequestsException.class,
                             () -> bulkhead.run(machineOf(organizationId, userId), () -> ANSWER));
                 }
-                // The user holds two places of the instance; the organization and the other two are free.
-                assertEquals(ANSWER, runNested(bulkhead, fillTheOrganization(organizationId), () -> ANSWER));
+                // The user holds two places of the instance in other organizations. Every other place of
+                // the instance is still free, and every one of them can go to this organization.
+                List<MachinePrincipal> colleagues = new ArrayList<>();
+                while (colleagues.size() < LessonConstant.DELIVERY_CONCURRENT_READS_MAX
+                        - LessonConstant.DELIVERY_USER_CONCURRENT_READS_MAX) {
+                    colleagues.add(machineOf(organizationId));
+                }
+                assertEquals(ANSWER, runNested(bulkhead, colleagues, () -> ANSWER));
                 return ANSWER;
             });
 

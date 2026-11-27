@@ -109,9 +109,9 @@ public class LessonDeliveryController {
                     + "and searches) of the token in a minute (errorValues.limit 600, errorValues.policy "
                     + "token-reads-per-minute), more than 1200 of its user, all tokens and the web app together (errorValues.limit "
                     + "1200, errorValues.policy user-reads-per-minute), more than 3000 of its organization, all tokens "
-                    + "and the web app together (errorValues.limit 3000, errorValues.policy organization-reads-per-minute), or 2 lesson reads already running on this instance, of its user in "
+                    + "and the web app together (errorValues.limit 3000, errorValues.policy organization-reads-per-minute), or lesson reads already running on this instance, 2 of its user in "
                     + "all their organizations together (errorValues.limit 2, errorValues.policy user-reads-at-once) "
-                    + "or of its organization (errorValues.limit 2, errorValues.policy organization-reads-at-once); "
+                    + "or 3 of its organization (errorValues.limit 3, errorValues.policy organization-reads-at-once); "
                     + "Retry-After gives the seconds until the budget's window ends, or 1 for reads that run at once"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "503", description = "GEN_UPS_004: the read ran past its time limit of 5 "
@@ -194,9 +194,9 @@ public class LessonDeliveryController {
                     + "and searches) of the token in a minute (errorValues.limit 600, errorValues.policy "
                     + "token-reads-per-minute), more than 1200 of its user, all tokens and the web app together (errorValues.limit "
                     + "1200, errorValues.policy user-reads-per-minute), more than 3000 of its organization, all tokens "
-                    + "and the web app together (errorValues.limit 3000, errorValues.policy organization-reads-per-minute), or 2 lesson reads already running on this instance, of its user in "
+                    + "and the web app together (errorValues.limit 3000, errorValues.policy organization-reads-per-minute), or lesson reads already running on this instance, 2 of its user in "
                     + "all their organizations together (errorValues.limit 2, errorValues.policy user-reads-at-once) "
-                    + "or of its organization (errorValues.limit 2, errorValues.policy organization-reads-at-once); "
+                    + "or 3 of its organization (errorValues.limit 3, errorValues.policy organization-reads-at-once); "
                     + "Retry-After gives the seconds until the budget's window ends, or 1 for reads that run at once"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "503", description = "GEN_UPS_004: the read ran past its time limit of 5 "
