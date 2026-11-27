@@ -221,6 +221,24 @@ class AgentKayaAccessIT extends AbstractAgentIT {
     }
 
     @Test
+    void machineTokenOfTheAgent_afterItsKayaGrantIsRemoved_answers401AndIsRetired() throws Exception {
+        Tenant tenant = newTenant();
+        String agentId = routineAgent(tenant);
+        String machineToken = read(registerMachine(tenant, agentId), "$.data.token");
+
+        mockMvc.perform(in(tenant, put("/organizations/" + tenant.id() + "/agents/" + agentId), ownerJwt(tenant),
+                        "{\"name\":\"" + uniqueAgentName() + "\",\"role\":\"CYBERSECURITY_ENGINEER\","
+                                + "\"apps\":[\"KAZAN\"]}"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(ingestBatch(machineToken, "sess-" + uniqueSuffix()))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("KAY_SEC_003"));
+        assertEquals(0L, count("SELECT count(*) FROM kaya.machines WHERE user_id = ?::uuid AND status = 'ACTIVE'",
+                agentId));
+    }
+
+    @Test
     void machineOfTheAgent_rotatedByTheOwner_issuesANewTokenAndEndsTheOldOne() throws Exception {
         Tenant tenant = newTenant();
         MvcResult registered = registerMachine(tenant, routineAgent(tenant));

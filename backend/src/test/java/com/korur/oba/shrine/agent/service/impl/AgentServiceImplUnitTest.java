@@ -275,6 +275,46 @@ class AgentServiceImplUnitTest {
     }
 
     @Test
+    void updateAgent_kayaRemoved_retiresTheAgentsMachinesAndAuditsTheCount() {
+        User agent = agent(AgentFlow.ROUTINE, AgentProvider.ANTHROPIC);
+        UUID kayaGrantId = UUID.randomUUID();
+        when(agentQueryService.getAgentEntity(organizationId, agent.getId())).thenReturn(agent);
+        when(appAccessQueryService.listGrants(actor, organizationId)).thenReturn(List.of(
+                grant(UUID.randomUUID(), App.KAZAN, agent.getId()),
+                grant(kayaGrantId, App.KAYA, agent.getId())));
+        when(machineService.retireAllOfUser(organizationId, agent.getId())).thenReturn(1);
+
+        agentService.updateAgent(actor, organizationId, agent.getId(),
+                new AgentUpdateRequest("Renamed", AgentRole.SALES_ENGINEER, Set.of(App.KAZAN)));
+
+        InOrder order = inOrder(appAccessService, machineService);
+        order.verify(appAccessService).revoke(actor, organizationId, kayaGrantId);
+        order.verify(machineService).retireAllOfUser(organizationId, agent.getId());
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> newValues = ArgumentCaptor.forClass(Map.class);
+        verify(auditLogMapper).toRequest(eq(organizationId), eq(actor.getId()), eq("AGENT_UPDATED"), eq("Agent"),
+                eq(agent.getId()), any(), newValues.capture());
+        assertEquals(1, newValues.getValue().get("retiredMachines"));
+    }
+
+    @Test
+    void updateAgent_kayaKeptOrNeverGranted_retiresNothing() {
+        User agent = agent(AgentFlow.ROUTINE, AgentProvider.ANTHROPIC);
+        when(agentQueryService.getAgentEntity(organizationId, agent.getId())).thenReturn(agent);
+        when(appAccessQueryService.listGrants(actor, organizationId)).thenReturn(
+                List.of(grant(UUID.randomUUID(), App.KAYA, agent.getId()),
+                        grant(UUID.randomUUID(), App.KALKAN, agent.getId())),
+                List.of(grant(UUID.randomUUID(), App.KALKAN, agent.getId())));
+
+        agentService.updateAgent(actor, organizationId, agent.getId(),
+                new AgentUpdateRequest("Renamed", AgentRole.SALES_ENGINEER, Set.of(App.KAYA)));
+        agentService.updateAgent(actor, organizationId, agent.getId(),
+                new AgentUpdateRequest("Renamed", AgentRole.SALES_ENGINEER, Set.of(App.KAZAN)));
+
+        verifyNoInteractions(machineService);
+    }
+
+    @Test
     void updateAgent_nameOfAnotherAgent_throwsNameTaken() {
         User agent = agent(AgentFlow.API, AgentProvider.OPENAI);
         when(agentQueryService.getAgentEntity(organizationId, agent.getId())).thenReturn(agent);

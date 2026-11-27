@@ -81,8 +81,8 @@ public interface MachineService {
 
     /**
      * Retires every ACTIVE machine of a user in one organization and revokes the live token of each of
-     * the user's machines, so no machine token outlives an agent that is disabled or deleted. It writes
-     * no audit entry; the caller writes one for the whole action.
+     * the user's machines, so no machine token outlives an agent that is disabled, deleted or loses its
+     * Kaya grant. It writes no audit entry; the caller writes one for the whole action.
      *
      * @param organizationId the organization whose machines are retired
      * @param userId         the user whose machines are retired

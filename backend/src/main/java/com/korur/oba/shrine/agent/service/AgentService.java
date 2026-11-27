@@ -29,7 +29,8 @@ public interface AgentService {
     AgentResponse createAgent(User actor, UUID organizationId, AgentCreateRequest request);
 
     /**
-     * Changes the name, role and apps of an agent; the apps replace its USER grants.
+     * Changes the name, role and apps of an agent; the apps replace its USER grants. Removing KAYA
+     * also retires the agent's Kaya machines and revokes their tokens.
      *
      * @throws com.korur.oba.dojo.exception.internal.business.ConflictException AGT_STA_001 when another
      *         live agent of the organization has the name
