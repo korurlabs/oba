@@ -330,21 +330,24 @@ public class LessonQueryServiceImpl implements LessonQueryService {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_RATE_LIMITED,
                     principal.machineId(), principal.tokenId(), LessonConstant.DELIVERY_READS_PER_MINUTE);
             throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
-                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_READS_PER_MINUTE), tokenWait.get());
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_READS_PER_MINUTE,
+                            LessonConstant.FIELD_POLICY, LessonConstant.POLICY_TOKEN_READS_PER_MINUTE), tokenWait.get());
         }
         Optional<Duration> userWait = lessonDeliveryRateLimiter.tryChargeUserRead(principal.userId());
         if (userWait.isPresent()) {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_USER_RATE_LIMITED,
                     principal.machineId(), principal.userId(), LessonConstant.DELIVERY_USER_READS_PER_MINUTE);
             throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
-                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_USER_READS_PER_MINUTE), userWait.get());
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_USER_READS_PER_MINUTE,
+                            LessonConstant.FIELD_POLICY, LessonConstant.POLICY_USER_READS_PER_MINUTE), userWait.get());
         }
         Optional<Duration> organizationWait = lessonDeliveryRateLimiter.tryChargeOrganizationRead(principal.organizationId());
         if (organizationWait.isPresent()) {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_ORGANIZATION_RATE_LIMITED,
                     principal.machineId(), principal.organizationId(), LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE);
             throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
-                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE),
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE,
+                            LessonConstant.FIELD_POLICY, LessonConstant.POLICY_ORGANIZATION_READS_PER_MINUTE),
                     organizationWait.get());
         }
     }

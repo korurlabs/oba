@@ -25,9 +25,14 @@ public final class LessonConstant {
     public static final String FIELD_REMOTE_URL = "remoteUrl";
     public static final String FIELD_SINCE = "since";
     public static final String FIELD_LIMIT = "limit";
-    // Names the limit that refused a request, beside its number: the caps on reads at once of a user
-    // and of an organization share the number 2, and a count at once is not a number per minute.
+    // Names the limit that refused a request, beside its number. KAY_SEC_004 and its message are the
+    // same for every lesson limit, the caps on reads at once of a user and of an organization share
+    // the number 2, and a count at once is not a number per minute.
     public static final String FIELD_POLICY = "policy";
+    public static final String POLICY_TOKEN_READS_PER_MINUTE = "token-reads-per-minute";
+    public static final String POLICY_USER_READS_PER_MINUTE = "user-reads-per-minute";
+    public static final String POLICY_ORGANIZATION_READS_PER_MINUTE = "organization-reads-per-minute";
+    public static final String POLICY_TOKEN_LESSONS_PER_MINUTE = "token-lessons-per-minute";
     public static final String POLICY_USER_READS_AT_ONCE = "user-reads-at-once";
     public static final String POLICY_ORGANIZATION_READS_AT_ONCE = "organization-reads-at-once";
     public static final String POLICY_USER_LESSONS_PER_MINUTE = "user-lessons-per-minute";

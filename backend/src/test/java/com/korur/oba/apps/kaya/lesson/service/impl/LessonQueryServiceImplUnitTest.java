@@ -356,6 +356,7 @@ class LessonQueryServiceImplUnitTest {
             assertEquals(HttpStatus.TOO_MANY_REQUESTS, exception.getStatusCode());
             assertEquals("KAY_SEC_004", exception.getErrorCode());
             assertEquals(LessonConstant.DELIVERY_USER_READS_PER_MINUTE, exception.getErrorValues().get("limit"));
+            assertEquals(LessonConstant.POLICY_USER_READS_PER_MINUTE, exception.getErrorValues().get(LessonConstant.FIELD_POLICY));
             assertEquals(WAIT, exception.getRetryAfter());
             verifyNoInteractions(lessonRepository, repositoryQueryService);
             // A read the person may not make costs their colleagues nothing.
@@ -371,6 +372,7 @@ class LessonQueryServiceImplUnitTest {
 
             assertEquals("KAY_SEC_004", exception.getErrorCode());
             assertEquals(LessonConstant.DELIVERY_USER_READS_PER_MINUTE, exception.getErrorValues().get("limit"));
+            assertEquals(LessonConstant.POLICY_USER_READS_PER_MINUTE, exception.getErrorValues().get(LessonConstant.FIELD_POLICY));
             verifyNoInteractions(lessonRepository, repositoryQueryService);
             verify(lessonDeliveryRateLimiter, never()).tryChargeOrganizationRead(any());
         }
@@ -385,6 +387,7 @@ class LessonQueryServiceImplUnitTest {
             assertEquals(HttpStatus.TOO_MANY_REQUESTS, exception.getStatusCode());
             assertEquals("KAY_SEC_004", exception.getErrorCode());
             assertEquals(LessonConstant.DELIVERY_READS_PER_MINUTE, exception.getErrorValues().get("limit"));
+            assertEquals(LessonConstant.POLICY_TOKEN_READS_PER_MINUTE, exception.getErrorValues().get(LessonConstant.FIELD_POLICY));
             assertEquals(WAIT, exception.getRetryAfter());
             verifyNoInteractions(lessonRepository, repositoryQueryService);
             // A read the token may not make costs its colleagues nothing.
@@ -402,6 +405,7 @@ class LessonQueryServiceImplUnitTest {
             assertEquals(HttpStatus.TOO_MANY_REQUESTS, exception.getStatusCode());
             assertEquals("KAY_SEC_004", exception.getErrorCode());
             assertEquals(LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE, exception.getErrorValues().get("limit"));
+            assertEquals(LessonConstant.POLICY_ORGANIZATION_READS_PER_MINUTE, exception.getErrorValues().get(LessonConstant.FIELD_POLICY));
             assertEquals(WAIT, exception.getRetryAfter());
             verifyNoInteractions(lessonRepository, repositoryQueryService);
         }
@@ -415,6 +419,7 @@ class LessonQueryServiceImplUnitTest {
 
             assertEquals("KAY_SEC_004", exception.getErrorCode());
             assertEquals(LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE, exception.getErrorValues().get("limit"));
+            assertEquals(LessonConstant.POLICY_ORGANIZATION_READS_PER_MINUTE, exception.getErrorValues().get(LessonConstant.FIELD_POLICY));
             verifyNoInteractions(lessonRepository, repositoryQueryService);
         }
 
@@ -427,6 +432,7 @@ class LessonQueryServiceImplUnitTest {
 
             assertEquals("KAY_SEC_004", exception.getErrorCode());
             assertEquals(LessonConstant.DELIVERY_READS_PER_MINUTE, exception.getErrorValues().get("limit"));
+            assertEquals(LessonConstant.POLICY_TOKEN_READS_PER_MINUTE, exception.getErrorValues().get(LessonConstant.FIELD_POLICY));
             verifyNoInteractions(lessonRepository, repositoryQueryService);
         }
     }

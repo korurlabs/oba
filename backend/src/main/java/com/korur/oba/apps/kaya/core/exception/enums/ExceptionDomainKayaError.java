@@ -26,7 +26,7 @@ public enum ExceptionDomainKayaError implements ExceptionDomainError {
     // ── Security (KAY_SEC) ───────────────────────────────────────────────────
     SEC_MEMBERSHIP_DISABLED("KAY_SEC_002", "The membership of this user or its organization is disabled.", ExceptionCategory.SEC),
     SEC_MACHINE_TOKEN_INVALID("KAY_SEC_003", "The machine token is missing, unknown, revoked or expired, or its machine is retired.", ExceptionCategory.AUT),
-    SEC_RATE_LIMITED("KAY_SEC_004", "Too many requests for this machine token.", ExceptionCategory.API),
+    SEC_RATE_LIMITED("KAY_SEC_004", "Too many requests; try again later.", ExceptionCategory.API),
     // KAY_SEC_007 is retired: it refused a batch whose git email no user of the organization held; the token alone identifies the person.
 
     // ── Validation (KAY_VAL) ─────────────────────────────────────────────────

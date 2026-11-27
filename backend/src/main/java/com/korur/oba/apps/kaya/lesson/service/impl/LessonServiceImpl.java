@@ -143,7 +143,8 @@ public class LessonServiceImpl implements LessonService {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_PROPOSAL_RATE_LIMITED,
                     principal.machineId(), principal.tokenId(), LessonConstant.DELIVERY_PROPOSALS_PER_MINUTE);
             throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
-                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_PROPOSALS_PER_MINUTE), wait.get());
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_PROPOSALS_PER_MINUTE,
+                            LessonConstant.FIELD_POLICY, LessonConstant.POLICY_TOKEN_LESSONS_PER_MINUTE), wait.get());
         }
     }
 

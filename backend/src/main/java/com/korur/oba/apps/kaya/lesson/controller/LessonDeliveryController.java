@@ -106,9 +106,10 @@ public class LessonDeliveryController {
                     + "missing or too long, since unreadable, page or amount out of range, etag malformed or missing "
                     + "from page 2 on"),
             @ApiResponse(responseCode = "429", description = "KAY_SEC_004: more than 600 lesson reads (pages, 304s "
-                    + "and searches) of the token in a minute (errorValues.limit 600), more than 1200 of all tokens of "
-                    + "its user (errorValues.limit 1200), more than 3000 of all tokens of its organization "
-                    + "(errorValues.limit 3000), or 2 lesson reads already running on this instance, of its user in "
+                    + "and searches) of the token in a minute (errorValues.limit 600, errorValues.policy "
+                    + "token-reads-per-minute), more than 1200 of all tokens of its user (errorValues.limit 1200, "
+                    + "errorValues.policy user-reads-per-minute), more than 3000 of all tokens of its organization "
+                    + "(errorValues.limit 3000, errorValues.policy organization-reads-per-minute), or 2 lesson reads already running on this instance, of its user in "
                     + "all their organizations together (errorValues.limit 2, errorValues.policy user-reads-at-once) "
                     + "or of its organization (errorValues.limit 2, errorValues.policy organization-reads-at-once); "
                     + "Retry-After gives the seconds until the budget's window ends, or 1 for reads that run at once"),
@@ -158,7 +159,8 @@ public class LessonDeliveryController {
             @ApiResponse(responseCode = "422", description = "KAY_VAL_002: repository archived; GEN_VAL_001: a field "
                     + "missing or out of range, claudeSessionId not a session id"),
             @ApiResponse(responseCode = "429", description = "KAY_SEC_004: more than 60 lessons added by the token in a "
-                    + "minute (errorValues.limit 60); Retry-After gives the seconds until the window ends"),
+                    + "minute (errorValues.limit 60, errorValues.policy token-lessons-per-minute); Retry-After gives the "
+                    + "seconds until the window ends"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<CustomResponse<LessonDeliveryCreatedResponse>> addLesson(
@@ -186,9 +188,10 @@ public class LessonDeliveryController {
             @ApiResponse(responseCode = "422", description = "KAY_VAL_002: repository archived; GEN_VAL_001: remoteUrl "
                     + "or search missing or too long"),
             @ApiResponse(responseCode = "429", description = "KAY_SEC_004: more than 600 lesson reads (pages, 304s "
-                    + "and searches) of the token in a minute (errorValues.limit 600), more than 1200 of all tokens of "
-                    + "its user (errorValues.limit 1200), more than 3000 of all tokens of its organization "
-                    + "(errorValues.limit 3000), or 2 lesson reads already running on this instance, of its user in "
+                    + "and searches) of the token in a minute (errorValues.limit 600, errorValues.policy "
+                    + "token-reads-per-minute), more than 1200 of all tokens of its user (errorValues.limit 1200, "
+                    + "errorValues.policy user-reads-per-minute), more than 3000 of all tokens of its organization "
+                    + "(errorValues.limit 3000, errorValues.policy organization-reads-per-minute), or 2 lesson reads already running on this instance, of its user in "
                     + "all their organizations together (errorValues.limit 2, errorValues.policy user-reads-at-once) "
                     + "or of its organization (errorValues.limit 2, errorValues.policy organization-reads-at-once); "
                     + "Retry-After gives the seconds until the budget's window ends, or 1 for reads that run at once"),

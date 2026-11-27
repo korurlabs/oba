@@ -94,6 +94,8 @@ class LessonServiceImplUnitTest {
             assertEquals(HttpStatus.TOO_MANY_REQUESTS, exception.getStatusCode());
             assertEquals("KAY_SEC_004", exception.getErrorCode());
             assertEquals(LessonConstant.DELIVERY_PROPOSALS_PER_MINUTE, exception.getErrorValues().get(LessonConstant.FIELD_LIMIT));
+            assertEquals(LessonConstant.POLICY_TOKEN_LESSONS_PER_MINUTE,
+                    exception.getErrorValues().get(LessonConstant.FIELD_POLICY));
             assertEquals(Duration.ofSeconds(42), exception.getRetryAfter());
             verifyNoInteractions(lessonQueryService, repositoryQueryService, lessonRepository);
         }
