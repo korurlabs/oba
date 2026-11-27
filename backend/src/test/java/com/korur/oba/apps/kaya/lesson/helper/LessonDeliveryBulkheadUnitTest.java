@@ -101,6 +101,7 @@ class LessonDeliveryBulkheadUnitTest {
             assertEquals(ExceptionDomainKayaError.SEC_RATE_LIMITED.getCode(), refusal.getErrorCode());
             assertEquals(LessonConstant.DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX,
                     refusal.getErrorValues().get(LessonConstant.FIELD_LIMIT));
+            assertEquals(LessonConstant.DELIVERY_BUSY_RETRY_AFTER, refusal.getRetryAfter());
         }
 
         @Test
@@ -146,6 +147,7 @@ class LessonDeliveryBulkheadUnitTest {
 
             assertEquals(HttpStatus.SERVICE_UNAVAILABLE, refusal.getStatusCode());
             assertEquals(ExceptionUpstreamError.SERVER_BUSY.getCode(), refusal.getErrorCode());
+            assertEquals(LessonConstant.DELIVERY_BUSY_RETRY_AFTER, refusal.getRetryAfter());
         }
 
         @Test

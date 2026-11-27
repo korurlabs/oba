@@ -8,8 +8,10 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 
 // 3. Java SDK
+import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
@@ -121,11 +123,12 @@ public class LessonServiceImpl implements LessonService {
      * lesson costs no query.
      */
     private void chargeProposal(MachinePrincipal principal) {
-        if (!lessonDeliveryRateLimiter.tryChargeProposal(principal.tokenId())) {
+        Optional<Duration> wait = lessonDeliveryRateLimiter.tryChargeProposal(principal.tokenId());
+        if (wait.isPresent()) {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_PROPOSAL_RATE_LIMITED,
                     principal.machineId(), principal.tokenId(), LessonConstant.DELIVERY_PROPOSALS_PER_MINUTE);
             throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
-                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_PROPOSALS_PER_MINUTE));
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_PROPOSALS_PER_MINUTE), wait.get());
         }
     }
 

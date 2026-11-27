@@ -6,6 +6,7 @@ import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.core.MethodParameter;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.dao.QueryTimeoutException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +37,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 
 // 3. Java SDK
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -486,7 +488,8 @@ public class GlobalExceptionHandler {
 
     /**
      * Handles {@link ApplicationException} and all its subclasses — the business-level exceptions
-     * thrown deliberately by service-layer code throughout this application.
+     * thrown deliberately by service-layer code throughout this application. A refusal that lifts
+     * with time, see {@link ApplicationException#getRetryAfter()}, also carries Retry-After.
      *
      * @param ex the application exception carrying status code, error code, message, and details
      * @return error response with the status code and error metadata from the exception
@@ -500,10 +503,10 @@ public class GlobalExceptionHandler {
                 ex,
                 ex.getMessage()
         );
-        return asJson(ResponseUtil.error(
+        return withRetryAfter(asJson(ResponseUtil.error(
                 ex.getStatusCode(),
                 new ErrorResponse(ex.getErrorCode(), ex.getErrorMessage(), ex.getErrorValues())
-        ));
+        )), ex.getRetryAfter());
     }
 
     // ========= CONCURRENCY ========= //
@@ -638,6 +641,23 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(response.getStatusCode())
                 .headers(response.getHeaders())
                 .contentType(MediaType.APPLICATION_JSON)
+                .body(response.getBody());
+    }
+
+    /**
+     * Adds Retry-After in delay-seconds, the form RFC 9110 section 10.2.3 defines for 429 (RFC 6585
+     * section 4) and 503. Whole seconds are rounded up, never below one, so a client that waits that
+     * long does not meet the same limit again. Without a delay the answer is returned unchanged.
+     */
+    private static ResponseEntity<CustomResponse<Void>> withRetryAfter(ResponseEntity<CustomResponse<Void>> response,
+                                                                       Duration retryAfter) {
+        if (retryAfter == null) {
+            return response;
+        }
+        long wholeSeconds = retryAfter.toSeconds() + (retryAfter.toNanosPart() == 0 ? 0 : 1);
+        return ResponseEntity.status(response.getStatusCode())
+                .headers(response.getHeaders())
+                .header(HttpHeaders.RETRY_AFTER, Long.toString(Math.max(ExceptionConstant.RETRY_AFTER_MIN_SECONDS, wholeSeconds)))
                 .body(response.getBody());
     }
 }

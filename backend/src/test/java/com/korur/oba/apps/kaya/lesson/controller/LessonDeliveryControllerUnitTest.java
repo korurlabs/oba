@@ -19,6 +19,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.TransactionTimedOutException;
 import org.springframework.web.bind.ServletRequestDataBinder;
@@ -35,6 +37,8 @@ import jakarta.validation.Validator;
 
 // 3. Java SDK
 import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -83,6 +87,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -125,12 +130,57 @@ class LessonDeliveryControllerUnitTest {
 
     @BeforeEach
     void setUp() {
-        rateLimiter = new LessonDeliveryRateLimiter(Clock.systemUTC());
+        // A clock that stands still, so a refusal by a budget names exactly the whole window.
+        rateLimiter = new LessonDeliveryRateLimiter(Clock.fixed(Instant.parse("2026-11-25T09:00:00Z"), ZoneOffset.UTC));
         bulkhead = new LessonDeliveryBulkhead(loggingService);
         LessonQueryServiceImpl lessonQueryService = new LessonQueryServiceImpl(lessonRepository, sessionQueryService,
                 kayaUserQueryService, repositoryQueryService, organizationAccessQueryService,
                 rateLimiter, new LessonMapperImpl(), loggingService);
         controller = new LessonDeliveryController(lessonQueryService, lessonService, bulkhead, loggingService);
+    }
+
+    /**
+     * Runs the request while reads of other machines hold the given places: each is a read of its own
+     * organization, or of the principal's when sameOrganization is set. A held read is a call of run
+     * that is still inside its read, so no threads are needed.
+     */
+    private <T> T holdPlaces(int places, boolean sameOrganization, Supplier<T> request) {
+        if (places == 0) {
+            return request.get();
+        }
+        MachinePrincipal other = new MachinePrincipal(sameOrganization ? principal.organizationId() : UUID.randomUUID(),
+                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "other");
+        return bulkhead.run(other, () -> holdPlaces(places - 1, sameOrganization, request));
+    }
+
+    private <T> T whileTheInstanceIsFull(Supplier<T> request) {
+        return holdPlaces(LessonConstant.DELIVERY_CONCURRENT_READS_MAX, false, request);
+    }
+
+    private void spendTheTokenBudget() {
+        for (int read = 0; read < LessonConstant.DELIVERY_READS_PER_MINUTE; read++) {
+            rateLimiter.tryChargeRead(principal.tokenId());
+        }
+    }
+
+    /** A standalone MockMvc with the real exception handler, so an answer is the one the API serves. */
+    private MockMvc standaloneMockMvc() {
+        HandlerMethodArgumentResolver principalResolver = new HandlerMethodArgumentResolver() {
+            @Override
+            public boolean supportsParameter(MethodParameter parameter) {
+                return parameter.getParameterType().equals(MachinePrincipal.class);
+            }
+
+            @Override
+            public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer container,
+                                          NativeWebRequest request, WebDataBinderFactory binderFactory) {
+                return principal;
+            }
+        };
+        return MockMvcBuilders.standaloneSetup(controller)
+                .setCustomArgumentResolvers(principalResolver)
+                .setControllerAdvice(new GlobalExceptionHandler(loggingService))
+                .build();
     }
 
     /** What a CLI sees of one request: the status, the ETag header and how many lessons the body holds. */
@@ -256,25 +306,6 @@ class LessonDeliveryControllerUnitTest {
      */
     @Nested
     class Admission {
-
-        private <T> T whileTheInstanceIsFull(Supplier<T> request) {
-            return holdPlaces(LessonConstant.DELIVERY_CONCURRENT_READS_MAX, request);
-        }
-
-        private <T> T holdPlaces(int places, Supplier<T> request) {
-            if (places == 0) {
-                return request.get();
-            }
-            MachinePrincipal other = new MachinePrincipal(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
-                    UUID.randomUUID(), "other");
-            return bulkhead.run(other, () -> holdPlaces(places - 1, request));
-        }
-
-        private void spendTheTokenBudget() {
-            for (int read = 0; read < LessonConstant.DELIVERY_READS_PER_MINUTE; read++) {
-                rateLimiter.tryChargeRead(principal.tokenId());
-            }
-        }
 
         @Test
         void listOverTheTokenBudget_isRefusedByTheBudgetNotByTheFullInstance() {
@@ -405,22 +436,7 @@ class LessonDeliveryControllerUnitTest {
 
         @BeforeEach
         void setUpMockMvc() {
-            HandlerMethodArgumentResolver principalResolver = new HandlerMethodArgumentResolver() {
-                @Override
-                public boolean supportsParameter(MethodParameter parameter) {
-                    return parameter.getParameterType().equals(MachinePrincipal.class);
-                }
-
-                @Override
-                public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer container,
-                                              NativeWebRequest request, WebDataBinderFactory binderFactory) {
-                    return principal;
-                }
-            };
-            mockMvc = MockMvcBuilders.standaloneSetup(controller)
-                    .setCustomArgumentResolvers(principalResolver)
-                    .setControllerAdvice(new GlobalExceptionHandler(loggingService))
-                    .build();
+            mockMvc = standaloneMockMvc();
         }
 
         @Test
@@ -449,6 +465,77 @@ class LessonDeliveryControllerUnitTest {
             mockMvc.perform(get(DELIVERY + "/search").param(REMOTE_URL, REMOTE).param("search", "flyway"))
                     .andExpect(status().isServiceUnavailable())
                     .andExpect(jsonPath("$.error.code").value(READ_TIMED_OUT));
+        }
+    }
+
+    /**
+     * Retry-After on every refusal that lifts with time, through the real exception handler: the
+     * seconds until the window of a budget ends, and one second when too many reads run at once.
+     */
+    @Nested
+    class RetryAfter {
+
+        private MockMvc mockMvc;
+
+        @BeforeEach
+        void setUpMockMvc() {
+            mockMvc = standaloneMockMvc();
+        }
+
+        private ResultActions perform(MockHttpServletRequestBuilder request) {
+            try {
+                return mockMvc.perform(request);
+            } catch (Exception exception) {
+                throw new IllegalStateException(exception);
+            }
+        }
+
+        @Test
+        void listOverTheTokenBudget_namesTheSecondsUntilTheWindowEnds() throws Exception {
+            spendTheTokenBudget();
+
+            perform(get(DELIVERY).param(REMOTE_URL, REMOTE).param(PAGE, "1"))
+                    .andExpect(status().isTooManyRequests())
+                    .andExpect(jsonPath("$.error.errorValues.limit").value(LessonConstant.DELIVERY_READS_PER_MINUTE))
+                    .andExpect(header().string(HttpHeaders.RETRY_AFTER,
+                            Long.toString(LessonConstant.DELIVERY_RATE_WINDOW_SECONDS)));
+        }
+
+        @Test
+        void searchOverTheTokenBudget_namesTheSecondsUntilTheWindowEnds() throws Exception {
+            spendTheTokenBudget();
+
+            perform(get(DELIVERY + "/search").param(REMOTE_URL, REMOTE).param("search", "flyway"))
+                    .andExpect(status().isTooManyRequests())
+                    .andExpect(header().string(HttpHeaders.RETRY_AFTER,
+                            Long.toString(LessonConstant.DELIVERY_RATE_WINDOW_SECONDS)));
+        }
+
+        @Test
+        void organizationAtItsCap_answers429WithOneSecond() throws Exception {
+            ResultActions answer = holdPlaces(LessonConstant.DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX, true,
+                    () -> perform(get(DELIVERY).param(REMOTE_URL, REMOTE).param(PAGE, "1")));
+
+            answer.andExpect(status().isTooManyRequests())
+                    .andExpect(jsonPath("$.error.errorValues.limit").value(LessonConstant.DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX))
+                    .andExpect(header().string(HttpHeaders.RETRY_AFTER, "1"));
+        }
+
+        @Test
+        void fullInstance_answers503ServerBusyWithOneSecond() throws Exception {
+            ResultActions answer = whileTheInstanceIsFull(
+                    () -> perform(get(DELIVERY + "/search").param(REMOTE_URL, REMOTE).param("search", "flyway")));
+
+            answer.andExpect(status().isServiceUnavailable())
+                    .andExpect(jsonPath("$.error.code").value("GEN_UPS_005"))
+                    .andExpect(header().string(HttpHeaders.RETRY_AFTER, "1"));
+        }
+
+        @Test
+        void refusalThatTimeDoesNotLift_carriesNoRetryAfter() throws Exception {
+            perform(get(DELIVERY).param(REMOTE_URL, REMOTE).param(PAGE, "2"))
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(header().doesNotExist(HttpHeaders.RETRY_AFTER));
         }
     }
 }

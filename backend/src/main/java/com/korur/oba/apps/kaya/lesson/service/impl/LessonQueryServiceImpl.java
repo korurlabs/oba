@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 
 // 3. Java SDK
+import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.Collection;
@@ -318,23 +319,27 @@ public class LessonQueryServiceImpl implements LessonQueryService {
      * organizations.
      */
     private void chargeRead(MachinePrincipal principal) {
-        if (!lessonDeliveryRateLimiter.tryChargeRead(principal.tokenId())) {
+        Optional<Duration> tokenWait = lessonDeliveryRateLimiter.tryChargeRead(principal.tokenId());
+        if (tokenWait.isPresent()) {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_RATE_LIMITED,
                     principal.machineId(), principal.tokenId(), LessonConstant.DELIVERY_READS_PER_MINUTE);
             throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
-                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_READS_PER_MINUTE));
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_READS_PER_MINUTE), tokenWait.get());
         }
-        if (!lessonDeliveryRateLimiter.tryChargeUserRead(principal.userId())) {
+        Optional<Duration> userWait = lessonDeliveryRateLimiter.tryChargeUserRead(principal.userId());
+        if (userWait.isPresent()) {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_USER_RATE_LIMITED,
                     principal.machineId(), principal.userId(), LessonConstant.DELIVERY_USER_READS_PER_MINUTE);
             throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
-                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_USER_READS_PER_MINUTE));
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_USER_READS_PER_MINUTE), userWait.get());
         }
-        if (!lessonDeliveryRateLimiter.tryChargeOrganizationRead(principal.organizationId())) {
+        Optional<Duration> organizationWait = lessonDeliveryRateLimiter.tryChargeOrganizationRead(principal.organizationId());
+        if (organizationWait.isPresent()) {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_ORGANIZATION_RATE_LIMITED,
                     principal.machineId(), principal.organizationId(), LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE);
             throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
-                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE));
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE),
+                    organizationWait.get());
         }
     }
 

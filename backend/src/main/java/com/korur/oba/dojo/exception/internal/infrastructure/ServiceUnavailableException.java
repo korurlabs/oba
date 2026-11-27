@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 // 2. Third-party
 
 // 3. Java SDK
+import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 
@@ -33,6 +34,17 @@ public class ServiceUnavailableException extends ApplicationException {
 
     public ServiceUnavailableException(ExceptionError exceptionError, Map<String, Object> errorValues) {
         super(HttpStatus.SERVICE_UNAVAILABLE, exceptionError, errorValues);
+        assertCategory(exceptionError, ALLOWED_CATEGORIES);
+    }
+
+    /**
+     * A refusal that tells the client when to try again, sent as Retry-After.
+     *
+     * @param exceptionError the error code and message
+     * @param retryAfter     how long the client should wait before it tries again
+     */
+    public ServiceUnavailableException(ExceptionError exceptionError, Duration retryAfter) {
+        super(HttpStatus.SERVICE_UNAVAILABLE, exceptionError, null, retryAfter);
         assertCategory(exceptionError, ALLOWED_CATEGORIES);
     }
 }

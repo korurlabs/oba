@@ -8,7 +8,9 @@ import lombok.RequiredArgsConstructor;
 
 // 3. Java SDK
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -46,9 +48,10 @@ public class LessonDeliveryRateLimiter {
      * Charges one read, a page of the list or a search, to the token.
      *
      * @param tokenId the token that sent the read
-     * @return true when the read is within the budget, false when the token exhausted it
+     * @return empty when the read is within the budget; when the token exhausted it, how long until
+     *         its window ends and the budget is whole again
      */
-    public boolean tryChargeRead(UUID tokenId) {
+    public Optional<Duration> tryChargeRead(UUID tokenId) {
         return tokenReads.tryCharge(tokenId, Instant.now(clock));
     }
 
@@ -56,9 +59,10 @@ public class LessonDeliveryRateLimiter {
      * Charges one read to the user of the token, whatever organization the token belongs to.
      *
      * @param userId the user of the token that sent the read
-     * @return true when the read is within the budget, false when the user exhausted it
+     * @return empty when the read is within the budget; when the user exhausted it, how long until
+     *         their window ends
      */
-    public boolean tryChargeUserRead(UUID userId) {
+    public Optional<Duration> tryChargeUserRead(UUID userId) {
         return userReads.tryCharge(userId, Instant.now(clock));
     }
 
@@ -66,9 +70,10 @@ public class LessonDeliveryRateLimiter {
      * Charges one read to the organization of the token.
      *
      * @param organizationId the organization of the token that sent the read
-     * @return true when the read is within the budget, false when the organization exhausted it
+     * @return empty when the read is within the budget; when the organization exhausted it, how long
+     *         until its window ends
      */
-    public boolean tryChargeOrganizationRead(UUID organizationId) {
+    public Optional<Duration> tryChargeOrganizationRead(UUID organizationId) {
         return organizationReads.tryCharge(organizationId, Instant.now(clock));
     }
 
@@ -76,9 +81,10 @@ public class LessonDeliveryRateLimiter {
      * Charges one added lesson to the token.
      *
      * @param tokenId the token that sent the lesson
-     * @return true when the lesson is within the budget, false when the token exhausted it
+     * @return empty when the lesson is within the budget; when the token exhausted it, how long
+     *         until its window ends
      */
-    public boolean tryChargeProposal(UUID tokenId) {
+    public Optional<Duration> tryChargeProposal(UUID tokenId) {
         return proposals.tryCharge(tokenId, Instant.now(clock));
     }
 
@@ -98,11 +104,11 @@ public class LessonDeliveryRateLimiter {
             this.perMinute = perMinute;
         }
 
-        private boolean tryCharge(UUID key, Instant now) {
+        private Optional<Duration> tryCharge(UUID key, Instant now) {
             pruneWhenDue(now);
             Window charged = windows.compute(key, (id, window) ->
                     window == null || window.expired(now) ? new Window(now, 1) : new Window(window.start, window.count + 1));
-            return charged.count <= perMinute;
+            return charged.count <= perMinute ? Optional.empty() : Optional.of(charged.remaining(now));
         }
 
         /**
@@ -124,7 +130,16 @@ public class LessonDeliveryRateLimiter {
     private record Window(Instant start, int count) {
 
         boolean expired(Instant now) {
-            return !now.isBefore(start.plusSeconds(LessonConstant.DELIVERY_RATE_WINDOW_SECONDS));
+            return !now.isBefore(end());
+        }
+
+        /** The time until the window ends and its key starts a fresh one. */
+        Duration remaining(Instant now) {
+            return Duration.between(now, end());
+        }
+
+        private Instant end() {
+            return start.plusSeconds(LessonConstant.DELIVERY_RATE_WINDOW_SECONDS);
         }
     }
 }

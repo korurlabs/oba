@@ -11,7 +11,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 
 // 3. Java SDK
+import java.time.Duration;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
@@ -77,7 +79,7 @@ class LessonServiceImplUnitTest {
         @Test
         void createFromCheckout_tokenOverTheBudget_throwsTooManyRequestsBeforeAnyReadOrWrite() {
             // Arrange
-            when(lessonDeliveryRateLimiter.tryChargeProposal(principal.tokenId())).thenReturn(false);
+            when(lessonDeliveryRateLimiter.tryChargeProposal(principal.tokenId())).thenReturn(Optional.of(Duration.ofSeconds(42)));
 
             // Act
             TooManyRequestsException exception = assertThrows(TooManyRequestsException.class,
@@ -87,6 +89,7 @@ class LessonServiceImplUnitTest {
             assertEquals(HttpStatus.TOO_MANY_REQUESTS, exception.getStatusCode());
             assertEquals("KAY_SEC_004", exception.getErrorCode());
             assertEquals(LessonConstant.DELIVERY_PROPOSALS_PER_MINUTE, exception.getErrorValues().get(LessonConstant.FIELD_LIMIT));
+            assertEquals(Duration.ofSeconds(42), exception.getRetryAfter());
             verifyNoInteractions(lessonQueryService, repositoryQueryService, lessonRepository);
         }
 
@@ -96,7 +99,7 @@ class LessonServiceImplUnitTest {
             User user = User.builder().build();
             user.setId(principal.userId());
             UUID lessonId = UUID.randomUUID();
-            when(lessonDeliveryRateLimiter.tryChargeProposal(principal.tokenId())).thenReturn(true);
+            when(lessonDeliveryRateLimiter.tryChargeProposal(principal.tokenId())).thenReturn(Optional.empty());
             when(lessonQueryService.getActingUser(principal)).thenReturn(user);
             when(lessonRepository.save(any(Lesson.class))).thenAnswer(invocation -> {
                 Lesson lesson = invocation.getArgument(0);

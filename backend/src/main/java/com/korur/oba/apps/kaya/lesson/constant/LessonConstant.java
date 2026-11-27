@@ -5,6 +5,7 @@ package com.korur.oba.apps.kaya.lesson.constant;
 // 2. Third-party
 
 // 3. Java SDK
+import java.time.Duration;
 
 // 4. Internal
 
@@ -127,6 +128,10 @@ public final class LessonConstant {
     // of a team rarely read in the same milliseconds. Two lets that happen, and leaves the other half of
     // the instance's reads to the other organizations when the reads of one turn slow.
     public static final int DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX = 2;
+    // The Retry-After of a read refused because too many run at once. A healthy read ends within
+    // milliseconds, so a second later its place is most likely free again; a refusal by a budget
+    // instead names the time until the budget's window ends.
+    public static final Duration DELIVERY_BUSY_RETRY_AFTER = Duration.ofSeconds(1);
     public static final String FIELD_ETAG = "etag";
     // A CLI stores the ETag next to the file it wrote and sends it back in If-None-Match, so an ETag
     // must name exactly what that file holds; the form prefix says what one digest stands for. The

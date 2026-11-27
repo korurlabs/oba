@@ -22,6 +22,10 @@ public final class ExceptionConstant {
     // Map keys for error details
     public static final String FIELD_PATH = "path";
 
+    // The shortest Retry-After sent: a client told to wait zero seconds would come back at once and
+    // meet the same limit.
+    public static final long RETRY_AFTER_MIN_SECONDS = 1;
+
     // Client-facing response messages (used in CustomResponse.message)
     public static final String MSG_VALIDATION_ERROR = "One or more fields failed validation. Please check the error details and try again.";
     public static final String MSG_MALFORMED_JSON = "The request body contains malformed JSON. Please verify the syntax and try again.";

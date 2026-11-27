@@ -72,13 +72,14 @@ public class LessonDeliveryBulkhead {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_ORGANIZATION_BUSY,
                     principal.machineId(), organizationId, LessonConstant.DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX);
             throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
-                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX));
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX),
+                    LessonConstant.DELIVERY_BUSY_RETRY_AFTER);
         }
         try {
             if (!instanceReads.tryAcquire()) {
                 loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_INSTANCE_BUSY,
                         principal.machineId(), LessonConstant.DELIVERY_CONCURRENT_READS_MAX);
-                throw new ServiceUnavailableException(ExceptionUpstreamError.SERVER_BUSY);
+                throw new ServiceUnavailableException(ExceptionUpstreamError.SERVER_BUSY, LessonConstant.DELIVERY_BUSY_RETRY_AFTER);
             }
             try {
                 return read.get();

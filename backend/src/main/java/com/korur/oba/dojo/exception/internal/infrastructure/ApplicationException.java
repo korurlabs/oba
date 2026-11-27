@@ -12,6 +12,7 @@ import com.korur.oba.dojo.exception.enums.ExceptionInternalError;
 import lombok.Getter;
 
 // 3. Java SDK
+import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 
@@ -22,21 +23,35 @@ public class ApplicationException extends RuntimeException {
     private final String errorMessage;
     private final String errorCode;
     private final Map<String, Object> errorValues;
+    // How long the client should wait before it tries again, sent as Retry-After; null for a refusal
+    // that waiting does not lift.
+    private final Duration retryAfter;
 
     public ApplicationException(HttpStatus statusCode, ExceptionError exceptionError) {
-        super(exceptionError.getMessage());
-        this.statusCode = statusCode;
-        this.errorMessage = exceptionError.getMessage();
-        this.errorCode = exceptionError.getCode();
-        this.errorValues = null;
+        this(statusCode, exceptionError, null, null);
     }
 
     public ApplicationException(HttpStatus statusCode, ExceptionError exceptionError, Map<String, Object> errorValues) {
+        this(statusCode, exceptionError, errorValues, null);
+    }
+
+    /**
+     * A refusal that lifts with time, such as a rate limit or a busy server: the handler sends
+     * retryAfter as the Retry-After header of the answer.
+     *
+     * @param statusCode     the status of the answer, 429 or 503
+     * @param exceptionError the error code and message
+     * @param errorValues    the details of the error, or null
+     * @param retryAfter     how long the client should wait before it tries again, or null
+     */
+    protected ApplicationException(HttpStatus statusCode, ExceptionError exceptionError, Map<String, Object> errorValues,
+                                   Duration retryAfter) {
         super(exceptionError.getMessage());
         this.statusCode = statusCode;
         this.errorMessage = exceptionError.getMessage();
         this.errorCode = exceptionError.getCode();
         this.errorValues = errorValues;
+        this.retryAfter = retryAfter;
     }
 
     /**

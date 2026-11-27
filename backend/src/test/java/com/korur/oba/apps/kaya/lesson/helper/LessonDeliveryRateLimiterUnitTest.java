@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
@@ -51,7 +52,7 @@ class LessonDeliveryRateLimiterUnitTest {
 
     private void chargeBudget(UUID tokenId) {
         for (int charge = 0; charge < LessonConstant.DELIVERY_READS_PER_MINUTE; charge++) {
-            assertTrue(limiter.tryChargeRead(tokenId), "charge " + (charge + 1));
+            assertTrue(limiter.tryChargeRead(tokenId).isEmpty(), "charge " + (charge + 1));
         }
     }
 
@@ -68,17 +69,17 @@ class LessonDeliveryRateLimiterUnitTest {
             UUID tokenId = UUID.randomUUID();
             chargeBudget(tokenId);
 
-            assertFalse(limiter.tryChargeRead(tokenId));
-            assertFalse(limiter.tryChargeRead(tokenId));
+            assertFalse(limiter.tryChargeRead(tokenId).isEmpty());
+            assertFalse(limiter.tryChargeRead(tokenId).isEmpty());
         }
 
         @Test
         void tryChargeRead_budgetOfOneToken_doesNotCountForAnother() {
             UUID busy = UUID.randomUUID();
             chargeBudget(busy);
-            assertFalse(limiter.tryChargeRead(busy));
+            assertFalse(limiter.tryChargeRead(busy).isEmpty());
 
-            assertTrue(limiter.tryChargeRead(UUID.randomUUID()));
+            assertTrue(limiter.tryChargeRead(UUID.randomUUID()).isEmpty());
         }
 
         @Test
@@ -88,19 +89,30 @@ class LessonDeliveryRateLimiterUnitTest {
 
             clock.advance(Duration.ofSeconds(LessonConstant.DELIVERY_RATE_WINDOW_SECONDS - 1));
 
-            assertFalse(limiter.tryChargeRead(tokenId));
+            assertFalse(limiter.tryChargeRead(tokenId).isEmpty());
+        }
+
+        @Test
+        void tryChargeRead_overTheBudget_namesTheTimeUntilTheWindowEnds() {
+            UUID tokenId = UUID.randomUUID();
+            chargeBudget(tokenId);
+
+            clock.advance(Duration.ofMillis(20_400));
+
+            assertEquals(Optional.of(Duration.ofSeconds(LessonConstant.DELIVERY_RATE_WINDOW_SECONDS).minusMillis(20_400)),
+                    limiter.tryChargeRead(tokenId));
         }
 
         @Test
         void tryChargeRead_afterTheWindowEnds_startsAFreshBudget() {
             UUID tokenId = UUID.randomUUID();
             chargeBudget(tokenId);
-            assertFalse(limiter.tryChargeRead(tokenId));
+            assertFalse(limiter.tryChargeRead(tokenId).isEmpty());
 
             clock.advance(Duration.ofSeconds(LessonConstant.DELIVERY_RATE_WINDOW_SECONDS));
 
             chargeBudget(tokenId);
-            assertFalse(limiter.tryChargeRead(tokenId));
+            assertFalse(limiter.tryChargeRead(tokenId).isEmpty());
         }
     }
 
@@ -109,7 +121,7 @@ class LessonDeliveryRateLimiterUnitTest {
 
         private void chargeOrganizationBudget(UUID organizationId) {
             for (int charge = 0; charge < LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE; charge++) {
-                assertTrue(limiter.tryChargeOrganizationRead(organizationId), "charge " + (charge + 1));
+                assertTrue(limiter.tryChargeOrganizationRead(organizationId).isEmpty(), "charge " + (charge + 1));
             }
         }
 
@@ -127,19 +139,19 @@ class LessonDeliveryRateLimiterUnitTest {
             UUID busy = UUID.randomUUID();
             chargeOrganizationBudget(busy);
 
-            assertFalse(limiter.tryChargeOrganizationRead(busy));
-            assertTrue(limiter.tryChargeOrganizationRead(UUID.randomUUID()));
+            assertFalse(limiter.tryChargeOrganizationRead(busy).isEmpty());
+            assertTrue(limiter.tryChargeOrganizationRead(UUID.randomUUID()).isEmpty());
         }
 
         @Test
         void tryChargeOrganizationRead_afterTheWindowEnds_startsAFreshBudget() {
             UUID organizationId = UUID.randomUUID();
             chargeOrganizationBudget(organizationId);
-            assertFalse(limiter.tryChargeOrganizationRead(organizationId));
+            assertFalse(limiter.tryChargeOrganizationRead(organizationId).isEmpty());
 
             clock.advance(Duration.ofSeconds(LessonConstant.DELIVERY_RATE_WINDOW_SECONDS));
 
-            assertTrue(limiter.tryChargeOrganizationRead(organizationId));
+            assertTrue(limiter.tryChargeOrganizationRead(organizationId).isEmpty());
         }
 
         @Test
@@ -147,9 +159,9 @@ class LessonDeliveryRateLimiterUnitTest {
             // Organizations and tokens are both UUIDs; the budgets keep separate tables.
             UUID id = UUID.randomUUID();
             chargeBudget(id);
-            assertFalse(limiter.tryChargeRead(id));
+            assertFalse(limiter.tryChargeRead(id).isEmpty());
 
-            assertTrue(limiter.tryChargeOrganizationRead(id));
+            assertTrue(limiter.tryChargeOrganizationRead(id).isEmpty());
         }
     }
 
@@ -158,7 +170,7 @@ class LessonDeliveryRateLimiterUnitTest {
 
         private void chargeUserBudget(UUID userId) {
             for (int charge = 0; charge < LessonConstant.DELIVERY_USER_READS_PER_MINUTE; charge++) {
-                assertTrue(limiter.tryChargeUserRead(userId), "charge " + (charge + 1));
+                assertTrue(limiter.tryChargeUserRead(userId).isEmpty(), "charge " + (charge + 1));
             }
         }
 
@@ -173,8 +185,8 @@ class LessonDeliveryRateLimiterUnitTest {
             UUID busy = UUID.randomUUID();
             chargeUserBudget(busy);
 
-            assertFalse(limiter.tryChargeUserRead(busy));
-            assertTrue(limiter.tryChargeUserRead(UUID.randomUUID()));
+            assertFalse(limiter.tryChargeUserRead(busy).isEmpty());
+            assertTrue(limiter.tryChargeUserRead(UUID.randomUUID()).isEmpty());
         }
 
         @Test
@@ -186,20 +198,31 @@ class LessonDeliveryRateLimiterUnitTest {
             UUID freshOrganization = UUID.randomUUID();
             UUID freshToken = UUID.randomUUID();
 
-            assertTrue(limiter.tryChargeRead(freshToken));
-            assertFalse(limiter.tryChargeUserRead(userId));
-            assertTrue(limiter.tryChargeOrganizationRead(freshOrganization));
+            assertTrue(limiter.tryChargeRead(freshToken).isEmpty());
+            assertFalse(limiter.tryChargeUserRead(userId).isEmpty());
+            assertTrue(limiter.tryChargeOrganizationRead(freshOrganization).isEmpty());
+        }
+
+        @Test
+        void tryChargeUserRead_overTheBudget_namesTheTimeUntilTheWindowEnds() {
+            UUID userId = UUID.randomUUID();
+            chargeUserBudget(userId);
+
+            clock.advance(Duration.ofSeconds(45));
+
+            assertEquals(Optional.of(Duration.ofSeconds(LessonConstant.DELIVERY_RATE_WINDOW_SECONDS - 45)),
+                    limiter.tryChargeUserRead(userId));
         }
 
         @Test
         void tryChargeUserRead_afterTheWindowEnds_startsAFreshBudget() {
             UUID userId = UUID.randomUUID();
             chargeUserBudget(userId);
-            assertFalse(limiter.tryChargeUserRead(userId));
+            assertFalse(limiter.tryChargeUserRead(userId).isEmpty());
 
             clock.advance(Duration.ofSeconds(LessonConstant.DELIVERY_RATE_WINDOW_SECONDS));
 
-            assertTrue(limiter.tryChargeUserRead(userId));
+            assertTrue(limiter.tryChargeUserRead(userId).isEmpty());
         }
 
         @Test
@@ -207,8 +230,8 @@ class LessonDeliveryRateLimiterUnitTest {
             UUID key = UUID.randomUUID();
             chargeUserBudget(key);
 
-            assertTrue(limiter.tryChargeRead(key));
-            assertTrue(limiter.tryChargeOrganizationRead(key));
+            assertTrue(limiter.tryChargeRead(key).isEmpty());
+            assertTrue(limiter.tryChargeOrganizationRead(key).isEmpty());
         }
     }
 
@@ -217,7 +240,7 @@ class LessonDeliveryRateLimiterUnitTest {
 
         private void chargeProposalBudget(UUID tokenId) {
             for (int charge = 0; charge < LessonConstant.DELIVERY_PROPOSALS_PER_MINUTE; charge++) {
-                assertTrue(limiter.tryChargeProposal(tokenId), "charge " + (charge + 1));
+                assertTrue(limiter.tryChargeProposal(tokenId).isEmpty(), "charge " + (charge + 1));
             }
         }
 
@@ -231,15 +254,15 @@ class LessonDeliveryRateLimiterUnitTest {
             UUID tokenId = UUID.randomUUID();
             chargeProposalBudget(tokenId);
 
-            assertFalse(limiter.tryChargeProposal(tokenId));
-            assertTrue(limiter.tryChargeProposal(UUID.randomUUID()));
+            assertFalse(limiter.tryChargeProposal(tokenId).isEmpty());
+            assertTrue(limiter.tryChargeProposal(UUID.randomUUID()).isEmpty());
         }
 
         @Test
         void tryChargeProposal_overTheBudget_leavesTheReadsOfTheTokenAlone() {
             UUID tokenId = UUID.randomUUID();
             chargeProposalBudget(tokenId);
-            assertFalse(limiter.tryChargeProposal(tokenId));
+            assertFalse(limiter.tryChargeProposal(tokenId).isEmpty());
 
             chargeBudget(tokenId);
         }
@@ -248,12 +271,12 @@ class LessonDeliveryRateLimiterUnitTest {
         void tryChargeProposal_afterTheWindowEnds_startsAFreshBudget() {
             UUID tokenId = UUID.randomUUID();
             chargeProposalBudget(tokenId);
-            assertFalse(limiter.tryChargeProposal(tokenId));
+            assertFalse(limiter.tryChargeProposal(tokenId).isEmpty());
 
             clock.advance(Duration.ofSeconds(LessonConstant.DELIVERY_RATE_WINDOW_SECONDS));
 
             chargeProposalBudget(tokenId);
-            assertFalse(limiter.tryChargeProposal(tokenId));
+            assertFalse(limiter.tryChargeProposal(tokenId).isEmpty());
         }
     }
 
@@ -262,7 +285,7 @@ class LessonDeliveryRateLimiterUnitTest {
 
         private void chargeFreshTokens(int tokens) {
             for (int token = 0; token < tokens; token++) {
-                assertTrue(limiter.tryChargeRead(UUID.randomUUID()));
+                assertTrue(limiter.tryChargeRead(UUID.randomUUID()).isEmpty());
             }
         }
 

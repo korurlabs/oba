@@ -22,8 +22,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 // 3. Java SDK
 import java.lang.reflect.Method;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
@@ -72,6 +74,8 @@ class LessonQueryServiceImplUnitTest {
 
     private static final String REMOTE = "git@github.com:example/app.git";
     private static final int LESSONS = 123;
+    // The time a refusing budget names until its window ends.
+    private static final Duration WAIT = Duration.ofSeconds(17);
 
     @Mock
     private LessonRepository lessonRepository;
@@ -99,9 +103,9 @@ class LessonQueryServiceImplUnitTest {
                 loggingService);
         // Every read is within the budgets unless a test says otherwise; a read refused before the
         // charge never asks.
-        lenient().when(lessonDeliveryRateLimiter.tryChargeRead(principal.tokenId())).thenReturn(true);
-        lenient().when(lessonDeliveryRateLimiter.tryChargeUserRead(principal.userId())).thenReturn(true);
-        lenient().when(lessonDeliveryRateLimiter.tryChargeOrganizationRead(principal.organizationId())).thenReturn(true);
+        lenient().when(lessonDeliveryRateLimiter.tryChargeRead(principal.tokenId())).thenReturn(Optional.empty());
+        lenient().when(lessonDeliveryRateLimiter.tryChargeUserRead(principal.userId())).thenReturn(Optional.empty());
+        lenient().when(lessonDeliveryRateLimiter.tryChargeOrganizationRead(principal.organizationId())).thenReturn(Optional.empty());
     }
 
     private static LessonDeliveryQueryRequest request(Integer page, Integer amount, String etag) {
@@ -344,7 +348,7 @@ class LessonQueryServiceImplUnitTest {
 
         @Test
         void admitListForCheckout_userOverTheBudget_throwsTooManyRequestsWithItsLimit() {
-            when(lessonDeliveryRateLimiter.tryChargeUserRead(principal.userId())).thenReturn(false);
+            when(lessonDeliveryRateLimiter.tryChargeUserRead(principal.userId())).thenReturn(Optional.of(WAIT));
 
             TooManyRequestsException exception = assertThrows(TooManyRequestsException.class,
                     () -> service.admitListForCheckout(principal, request(1, null, null)));
@@ -352,6 +356,7 @@ class LessonQueryServiceImplUnitTest {
             assertEquals(HttpStatus.TOO_MANY_REQUESTS, exception.getStatusCode());
             assertEquals("KAY_SEC_004", exception.getErrorCode());
             assertEquals(LessonConstant.DELIVERY_USER_READS_PER_MINUTE, exception.getErrorValues().get("limit"));
+            assertEquals(WAIT, exception.getRetryAfter());
             verifyNoInteractions(lessonRepository, repositoryQueryService);
             // A read the person may not make costs their colleagues nothing.
             verify(lessonDeliveryRateLimiter, never()).tryChargeOrganizationRead(any());
@@ -359,7 +364,7 @@ class LessonQueryServiceImplUnitTest {
 
         @Test
         void admitSearchForCheckout_userOverTheBudget_throwsTooManyRequestsWithItsLimit() {
-            when(lessonDeliveryRateLimiter.tryChargeUserRead(principal.userId())).thenReturn(false);
+            when(lessonDeliveryRateLimiter.tryChargeUserRead(principal.userId())).thenReturn(Optional.of(WAIT));
 
             TooManyRequestsException exception = assertThrows(TooManyRequestsException.class,
                     () -> service.admitSearchForCheckout(principal));
@@ -372,7 +377,7 @@ class LessonQueryServiceImplUnitTest {
 
         @Test
         void admitListForCheckout_tokenOverTheBudget_throwsTooManyRequests() {
-            when(lessonDeliveryRateLimiter.tryChargeRead(principal.tokenId())).thenReturn(false);
+            when(lessonDeliveryRateLimiter.tryChargeRead(principal.tokenId())).thenReturn(Optional.of(WAIT));
 
             TooManyRequestsException exception = assertThrows(TooManyRequestsException.class,
                     () -> service.admitListForCheckout(principal, request(1, null, null)));
@@ -380,6 +385,7 @@ class LessonQueryServiceImplUnitTest {
             assertEquals(HttpStatus.TOO_MANY_REQUESTS, exception.getStatusCode());
             assertEquals("KAY_SEC_004", exception.getErrorCode());
             assertEquals(LessonConstant.DELIVERY_READS_PER_MINUTE, exception.getErrorValues().get("limit"));
+            assertEquals(WAIT, exception.getRetryAfter());
             verifyNoInteractions(lessonRepository, repositoryQueryService);
             // A read the token may not make costs its colleagues nothing.
             verify(lessonDeliveryRateLimiter, never()).tryChargeUserRead(any());
@@ -388,7 +394,7 @@ class LessonQueryServiceImplUnitTest {
 
         @Test
         void admitListForCheckout_organizationOverTheBudget_throwsTooManyRequestsWithItsLimit() {
-            when(lessonDeliveryRateLimiter.tryChargeOrganizationRead(principal.organizationId())).thenReturn(false);
+            when(lessonDeliveryRateLimiter.tryChargeOrganizationRead(principal.organizationId())).thenReturn(Optional.of(WAIT));
 
             TooManyRequestsException exception = assertThrows(TooManyRequestsException.class,
                     () -> service.admitListForCheckout(principal, request(1, null, null)));
@@ -396,12 +402,13 @@ class LessonQueryServiceImplUnitTest {
             assertEquals(HttpStatus.TOO_MANY_REQUESTS, exception.getStatusCode());
             assertEquals("KAY_SEC_004", exception.getErrorCode());
             assertEquals(LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE, exception.getErrorValues().get("limit"));
+            assertEquals(WAIT, exception.getRetryAfter());
             verifyNoInteractions(lessonRepository, repositoryQueryService);
         }
 
         @Test
         void admitSearchForCheckout_organizationOverTheBudget_throwsTooManyRequestsWithItsLimit() {
-            when(lessonDeliveryRateLimiter.tryChargeOrganizationRead(principal.organizationId())).thenReturn(false);
+            when(lessonDeliveryRateLimiter.tryChargeOrganizationRead(principal.organizationId())).thenReturn(Optional.of(WAIT));
 
             TooManyRequestsException exception = assertThrows(TooManyRequestsException.class,
                     () -> service.admitSearchForCheckout(principal));
@@ -413,7 +420,7 @@ class LessonQueryServiceImplUnitTest {
 
         @Test
         void admitSearchForCheckout_tokenOverTheBudget_throwsTooManyRequests() {
-            when(lessonDeliveryRateLimiter.tryChargeRead(principal.tokenId())).thenReturn(false);
+            when(lessonDeliveryRateLimiter.tryChargeRead(principal.tokenId())).thenReturn(Optional.of(WAIT));
 
             TooManyRequestsException exception = assertThrows(TooManyRequestsException.class,
                     () -> service.admitSearchForCheckout(principal));

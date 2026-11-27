@@ -109,10 +109,12 @@ public class LessonDeliveryController {
                     + "and searches) of the token in a minute (errorValues.limit 600), more than 1200 of all tokens of "
                     + "its user (errorValues.limit 1200), more than 3000 of all tokens of its organization "
                     + "(errorValues.limit 3000), or 2 lesson reads of the organization already "
-                    + "running on this instance (errorValues.limit 2)"),
+                    + "running on this instance (errorValues.limit 2); Retry-After gives the seconds until "
+                    + "the budget's window ends, or 1 for reads that run at once"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "503", description = "GEN_UPS_004: the read ran past its time limit of 5 "
-                    + "seconds; GEN_UPS_005: this instance already runs 4 lesson reads; try again later")
+                    + "seconds; GEN_UPS_005: this instance already runs 4 lesson reads, with Retry-After 1; try "
+                    + "again later")
     })
     public ResponseEntity<CustomResponse<List<LessonDeliveryResponse>>> getLessons(
             @Parameter(hidden = true) @AuthenticationPrincipal MachinePrincipal principal,
@@ -155,7 +157,7 @@ public class LessonDeliveryController {
             @ApiResponse(responseCode = "422", description = "KAY_VAL_002: repository archived; GEN_VAL_001: a field "
                     + "missing or out of range, claudeSessionId not a session id"),
             @ApiResponse(responseCode = "429", description = "KAY_SEC_004: more than 60 lessons added by the token in a "
-                    + "minute (errorValues.limit 60)"),
+                    + "minute (errorValues.limit 60); Retry-After gives the seconds until the window ends"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<CustomResponse<LessonDeliveryCreatedResponse>> addLesson(
@@ -186,10 +188,12 @@ public class LessonDeliveryController {
                     + "and searches) of the token in a minute (errorValues.limit 600), more than 1200 of all tokens of "
                     + "its user (errorValues.limit 1200), more than 3000 of all tokens of its organization "
                     + "(errorValues.limit 3000), or 2 lesson reads of the organization already "
-                    + "running on this instance (errorValues.limit 2)"),
+                    + "running on this instance (errorValues.limit 2); Retry-After gives the seconds until "
+                    + "the budget's window ends, or 1 for reads that run at once"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "503", description = "GEN_UPS_004: the read ran past its time limit of 5 "
-                    + "seconds; GEN_UPS_005: this instance already runs 4 lesson reads; try again later")
+                    + "seconds; GEN_UPS_005: this instance already runs 4 lesson reads, with Retry-After 1; try "
+                    + "again later")
     })
     public ResponseEntity<CustomResponse<List<LessonDeliverySearchResponse>>> searchLessons(
             @Parameter(hidden = true) @AuthenticationPrincipal MachinePrincipal principal,
