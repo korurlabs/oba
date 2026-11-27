@@ -254,6 +254,41 @@ class AgentKayaAccessIT extends AbstractAgentIT {
     }
 
     @Test
+    void machineTokenOfTheAgent_afterTheAgentIsDeleted_answers401AndIsRetired() throws Exception {
+        Tenant tenant = newTenant();
+        String agentId = routineAgent(tenant);
+        String machineToken = read(registerMachine(tenant, agentId), "$.data.token");
+
+        mockMvc.perform(in(tenant, delete("/organizations/" + tenant.id() + "/agents/" + agentId), ownerJwt(tenant),
+                        null))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(ingestBatch(machineToken, "sess-" + uniqueSuffix()))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("KAY_SEC_003"));
+        mockMvc.perform(bearer(get("/kaya/delivery/repositories"), machineToken))
+                .andExpect(status().isUnauthorized());
+        assertEquals(0L, count("SELECT count(*) FROM kaya.machines WHERE user_id = ?::uuid AND status = 'ACTIVE'",
+                agentId));
+    }
+
+    @Test
+    void machineOfTheAgent_rotatedByAMember_answers403AndKeepsTheToken() throws Exception {
+        Tenant tenant = newTenant();
+        MvcResult registered = registerMachine(tenant, routineAgent(tenant));
+        String machineId = read(registered, "$.data.machine.id");
+        String token = read(registered, "$.data.token");
+
+        mockMvc.perform(in(tenant, post("/kaya/machines/" + machineId + "/token"), jwtOf(tenant.member().getUser()),
+                        null))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("GEN_SEC_003"));
+
+        mockMvc.perform(bearer(get("/kaya/delivery/repositories"), token))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void machineOfTheAgent_rotatedByTheOwner_issuesANewTokenAndEndsTheOldOne() throws Exception {
         Tenant tenant = newTenant();
         MvcResult registered = registerMachine(tenant, routineAgent(tenant));
