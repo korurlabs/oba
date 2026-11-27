@@ -93,17 +93,32 @@ public interface MachineService {
     int retireAllOfUser(UUID organizationId, UUID userId);
 
     /**
+     * Locks the machine of a machine token until the caller's transaction ends and checks that it is
+     * still ACTIVE. The token was checked when the request was authenticated, but a retirement of the
+     * machine may have committed since, or may be running: the lock waits for a running one, and the
+     * check then refuses the request, so the caller's transaction rolls back and nothing it wrote lands
+     * after the machine was retired.
+     *
+     * @param principal the authenticated machine token
+     * @return the locked machine, with its user
+     * @throws com.korur.oba.dojo.exception.internal.auth.UnauthorizedException KAY_SEC_003 when the
+     *         machine is retired or not in the token's organization
+     */
+    Machine lockActiveMachine(MachinePrincipal principal);
+
+    /**
      * Records that the recorder of a machine sent a batch: the Claude Code version and the
      * account it reported, and lastSeenAt. The row is written only when a reported value changed
      * or lastSeenAt is a minute old, so steady batches do not rewrite it every time. A value the
      * batch does not report is kept.
      *
-     * @param principal         the authenticated machine token
+     * @param machine           the machine of the batch, locked by {@link #lockActiveMachine}, so the
+     *                          write cannot set a machine retired meanwhile back to ACTIVE
      * @param claudeCodeVersion the version the batch reported, or null
      * @param account           the account of the batch, or null
      * @return the machine, with its user and account
      */
-    Machine recordSeen(MachinePrincipal principal, String claudeCodeVersion, Account account);
+    Machine recordSeen(Machine machine, String claudeCodeVersion, Account account);
 
     /**
      * Stores the usage limits a batch carried as the machine's snapshot, unless the stored one was

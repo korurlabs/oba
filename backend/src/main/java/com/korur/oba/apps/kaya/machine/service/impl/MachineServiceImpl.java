@@ -2,6 +2,7 @@ package com.korur.oba.apps.kaya.machine.service.impl;
 
 // 1. Framework-level
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 // 2. Third-party
@@ -23,6 +24,7 @@ import java.util.UUID;
 import com.korur.oba.apps.kaya.core.exception.enums.ExceptionDomainKayaError;
 import com.korur.oba.dojo.exception.enums.ExceptionSecurityError;
 import com.korur.oba.dojo.exception.internal.auth.ForbiddenException;
+import com.korur.oba.dojo.exception.internal.auth.UnauthorizedException;
 import com.korur.oba.dojo.exception.internal.business.BadRequestException;
 import com.korur.oba.dojo.exception.internal.business.ConflictException;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
@@ -245,15 +247,21 @@ public class MachineServiceImpl implements MachineService {
     }
 
     @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Machine lockActiveMachine(MachinePrincipal principal) {
+        Optional<Machine> machine = machineRepository.findByIdAndOrganizationIdForUpdate(principal.machineId(),
+                principal.organizationId());
+        if (machine.isEmpty() || machine.get().getStatus() != MachineStatus.ACTIVE) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.MACHINE_NOT_ACTIVE_REFUSED,
+                    principal.machineId(), principal.organizationId(), principal.tokenId());
+            throw new UnauthorizedException(ExceptionDomainKayaError.SEC_MACHINE_TOKEN_INVALID);
+        }
+        return machine.get();
+    }
+
+    @Override
     @Transactional
-    public Machine recordSeen(MachinePrincipal principal, String claudeCodeVersion, Account account) {
-        Machine machine = machineRepository.findByIdAndOrganizationId(principal.machineId(), principal.organizationId())
-                .orElseThrow(() -> {
-                    loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.MACHINE_NOT_FOUND,
-                            principal.machineId(), principal.organizationId());
-                    return new NotFoundException(ExceptionDomainKayaError.NOT_RESOURCE_FOUND,
-                            Map.of(MachineConstant.FIELD_MACHINE_ID, principal.machineId().toString()));
-                });
+    public Machine recordSeen(Machine machine, String claudeCodeVersion, Account account) {
         Instant now = Instant.now(clock);
         boolean versionChanged = claudeCodeVersion != null && !claudeCodeVersion.equals(machine.getClaudeCodeVersion());
         boolean accountChanged = account != null

@@ -18,8 +18,8 @@ public interface IngestService {
 
     /**
      * Applies one recorder batch in one transaction: checks the token's budget, resolves the user
-     * of the git email, connects the repository, records the machine as seen, learns the Claude
-     * account, stores the usage snapshot and applies the batch to the session. The batch belongs to
+     * of the git email, connects the repository, learns the Claude account, applies the batch to the
+     * session, then locks the machine, records it as seen and stores the usage snapshot. The batch belongs to
      * the token's machine and user whatever machine name and git email it reports; a git email of
      * another member flags the session for review. A batch with usage but no events for a session
      * Kaya has not recorded yet creates no session. A handoff or plan whose content holds U+0000 is
@@ -38,6 +38,8 @@ public interface IngestService {
      *         out of range
      * @throws com.korur.oba.dojo.exception.internal.business.ValidationException KAY_VAL_002 when
      *         the repository is archived
+     * @throws com.korur.oba.dojo.exception.internal.auth.UnauthorizedException KAY_SEC_003 when the
+     *         machine was retired after the token was checked; nothing of the batch is stored
      */
     IngestBatchResponse ingestBatch(MachinePrincipal principal, IngestBatchRequest received);
 }

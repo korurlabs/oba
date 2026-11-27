@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -20,6 +21,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
+import com.korur.oba.dojo.exception.internal.auth.UnauthorizedException;
 import com.korur.oba.dojo.exception.internal.business.TooManyRequestsException;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.service.LoggingService;
@@ -36,7 +38,9 @@ import com.korur.oba.apps.kaya.ingest.dto.response.IngestBatchResponse;
 import com.korur.oba.apps.kaya.ingest.helper.IngestRateLimiter;
 import com.korur.oba.apps.kaya.ingest.helper.IngestTextSanitizer;
 import com.korur.oba.apps.kaya.ingest.mapper.IngestMapper;
+import com.korur.oba.apps.kaya.core.exception.enums.ExceptionDomainKayaError;
 import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
+import com.korur.oba.apps.kaya.machine.entity.Machine;
 import com.korur.oba.apps.kaya.machine.service.MachineService;
 import com.korur.oba.apps.kaya.plan.service.PlanIngestService;
 import com.korur.oba.apps.kaya.repository.entity.Repository;
@@ -44,10 +48,12 @@ import com.korur.oba.apps.kaya.repository.service.RepositoryService;
 import com.korur.oba.apps.kaya.session.entity.Session;
 import com.korur.oba.apps.kaya.session.service.SessionIngestService;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -178,6 +184,47 @@ class IngestServiceImplUnitTest {
 
             assertSame(expected, response);
             verifyNoInteractions(userGitEmailQueryService);
+        }
+    }
+
+    @Nested
+    class MachineLock {
+
+        @Test
+        void activeMachine_isLockedAfterTheSessionIsWrittenAndRecordedAsTheLockedInstance() {
+            IngestBatchRequest request = batch(null);
+            IngestBatchResponse expected = stubAcceptedBatch(request, null);
+            Machine locked = Machine.builder().machineName(MACHINE_NAME).build();
+            when(machineService.lockActiveMachine(principal)).thenReturn(locked);
+
+            IngestBatchResponse response = service.ingestBatch(principal, request);
+
+            assertSame(expected, response);
+            InOrder order = inOrder(sessionIngestService, planIngestService, machineService);
+            order.verify(sessionIngestService).applyBatch(session, request, null, null);
+            order.verify(planIngestService).storePlans(session, null);
+            order.verify(machineService).lockActiveMachine(principal);
+            order.verify(machineService).recordSeen(locked, null, null);
+        }
+
+        @Test
+        void machineRetiredAfterItsTokenWasChecked_refusesTheBatchAndRecordsNothingOnTheMachine() {
+            IngestBatchRequest request = batch(null);
+            when(ingestRateLimiter.tryCharge(principal.tokenId())).thenReturn(true);
+            when(repositoryService.connectRepository(principal.organizationId(), REMOTE_URL, REPOSITORY_NAME))
+                    .thenReturn(repository);
+            when(sessionIngestService.openSession(principal.organizationId(), repository.getId(), principal.userId(),
+                    principal.machineId(), SESSION_ID, NOW)).thenReturn(session);
+            when(machineService.lockActiveMachine(principal))
+                    .thenThrow(new UnauthorizedException(ExceptionDomainKayaError.SEC_MACHINE_TOKEN_INVALID));
+
+            UnauthorizedException exception = assertThrows(UnauthorizedException.class,
+                    () -> service.ingestBatch(principal, request));
+
+            assertEquals("KAY_SEC_003", exception.getErrorCode());
+            verify(machineService, never()).recordSeen(any(), any(), any());
+            verify(machineService, never()).recordUsage(any(), any(), any(), any());
+            verifyNoInteractions(ingestMapper);
         }
     }
 

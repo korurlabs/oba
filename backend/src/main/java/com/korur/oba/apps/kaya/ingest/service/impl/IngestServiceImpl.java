@@ -100,12 +100,19 @@ public class IngestServiceImpl implements IngestService {
                 request.repository().remoteUrl(), request.repository().name());
 
         Account account = learnAccount(principal, request.machine().account());
-        Machine machine = machineService.recordSeen(principal, request.machine().claudeCodeVersion(), account);
+        long acknowledgedSeq = applyToSession(principal, request, repository, conflictUserId, events);
+
+        // The machine may have been retired after its token was checked. Its row lock waits for a
+        // retirement that is still running, and a machine that is no longer ACTIVE refuses the whole
+        // batch, so nothing of it is stored after the retirement and the machine is never written back
+        // as ACTIVE. The lock is taken after the writes above, which lock the user or rows that
+        // reference it: retiring a user's machines locks the user first and the machines second, and
+        // taking the machine first here would let the two wait on each other.
+        Machine machine = machineService.recordSeen(machineService.lockActiveMachine(principal),
+                request.machine().claudeCodeVersion(), account);
         if (request.usage() != null) {
             machineService.recordUsage(machine, account, sessionId, request.usage());
         }
-
-        long acknowledgedSeq = applyToSession(principal, request, repository, conflictUserId, events);
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, IngestServiceLogConstant.BATCH_INGESTED,
                 sessionId, principal.machineId(), acknowledgedSeq);
         return ingestMapper.toBatchResponse(sessionId, acknowledgedSeq);
