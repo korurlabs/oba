@@ -64,6 +64,10 @@ import com.korur.oba.dojo.security.token.entity.ApiToken;
 import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
 import com.korur.oba.dojo.security.token.service.ApiTokenQueryService;
 import com.korur.oba.dojo.security.token.service.ApiTokenService;
+import com.korur.oba.shrine.organization.constant.OrganizationConstant;
+import com.korur.oba.shrine.organization.enums.OrganizationStatus;
+import com.korur.oba.shrine.organization.exception.ExceptionDomainOrganizationError;
+import com.korur.oba.shrine.organization.service.OrganizationQueryService;
 
 @Service
 @RequiredArgsConstructor
@@ -81,6 +85,7 @@ public class MachineServiceImpl implements MachineService {
     private final ApiTokenService apiTokenService;
     private final ApiTokenQueryService apiTokenQueryService;
     private final AgentValidator agentValidator;
+    private final OrganizationQueryService organizationQueryService;
     private final MachineMapper machineMapper;
     private final Clock clock;
     private final LoggingService loggingService;
@@ -268,6 +273,25 @@ public class MachineServiceImpl implements MachineService {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.MACHINE_TOKEN_NOT_LIVE_REFUSED,
                     principal.tokenId(), principal.machineId(), principal.organizationId());
             throw new UnauthorizedException(ExceptionDomainKayaError.SEC_MACHINE_TOKEN_INVALID);
+        }
+        // Ingest skips the request's organization check, so it is made here, last, which also refuses a
+        // batch that authenticated just before a disable or a deletion committed. A deleted organization
+        // never comes back, so its tokens are refused like a retired machine's. A disable retires no
+        // machine and revokes no token and can be undone, so it gets the 403 a member's delivery calls
+        // get, which the recorder retries with its queue kept, and not the 401 after which the recorder
+        // waits for a new token: recording resumes once the organization is enabled again.
+        Optional<OrganizationStatus> organizationStatus =
+                organizationQueryService.findOrganizationStatus(principal.organizationId());
+        if (organizationStatus.isEmpty()) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.MACHINE_ORGANIZATION_DELETED_REFUSED,
+                    principal.organizationId(), principal.machineId(), principal.tokenId());
+            throw new UnauthorizedException(ExceptionDomainKayaError.SEC_MACHINE_TOKEN_INVALID);
+        }
+        if (organizationStatus.get() != OrganizationStatus.ACTIVE) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.MACHINE_ORGANIZATION_DISABLED_REFUSED,
+                    principal.organizationId(), principal.machineId(), principal.tokenId());
+            throw new ForbiddenException(ExceptionDomainOrganizationError.SEC_ORGANIZATION_DISABLED,
+                    Map.of(OrganizationConstant.FIELD_ORGANIZATION_ID, principal.organizationId()));
         }
         return machine.get();
     }

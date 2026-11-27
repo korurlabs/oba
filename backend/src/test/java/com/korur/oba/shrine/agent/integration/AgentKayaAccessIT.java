@@ -33,7 +33,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * an admin registered for the agent still records sessions and reads delivery, but writes no lesson, proposes
  * no configuration, takes over no person's spec and ends when the agent is disabled, deleted or loses its Kaya
  * grant, on the Agents page or the app grants page. While the organization is disabled, its machine tokens, the
- * agent's and a person's, record nothing.
+ * agent's and a person's, record nothing but stay valid, and record again once it is enabled; once it is deleted,
+ * they are refused for good.
  */
 class AgentKayaAccessIT extends AbstractAgentIT {
 
@@ -256,7 +257,7 @@ class AgentKayaAccessIT extends AbstractAgentIT {
     }
 
     @Test
-    void machineTokens_whileTheOrganizationIsDisabled_answer401OnIngestAndWorkAgainOnceItIsEnabled()
+    void machineTokens_whileTheOrganizationIsDisabled_answer403AndRecordTheSameSessionsOnceItIsEnabled()
             throws Exception {
         Tenant tenant = newTenant();
         String agentToken = read(registerMachine(tenant, routineAgent(tenant)), "$.data.token");
@@ -264,28 +265,53 @@ class AgentKayaAccessIT extends AbstractAgentIT {
                         "{\"machineName\":\"laptop\"}"))
                 .andExpect(status().isCreated())
                 .andReturn(), "$.data.token");
+        List<String> machineTokens = List.of(agentToken, ownerToken);
+        List<String> sessionIds = List.of("sess-" + uniqueSuffix(), "sess-" + uniqueSuffix());
 
         mockMvc.perform(in(tenant, patch("/organizations/" + tenant.id() + "/status"), ownerJwt(tenant),
                         "{\"status\":\"DISABLED\"}"))
                 .andExpect(status().isOk());
 
-        for (String machineToken : List.of(agentToken, ownerToken)) {
-            mockMvc.perform(ingestBatch(machineToken, "sess-" + uniqueSuffix()))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.error.code").value("KAY_SEC_003"));
+        // A 403, not the 401 of a dead token: the recorder keeps the token and its queue and retries.
+        for (int i = 0; i < machineTokens.size(); i++) {
+            mockMvc.perform(ingestBatch(machineTokens.get(i), sessionIds.get(i)))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.error.code").value("ORG_SEC_005"));
+            mockMvc.perform(bearer(get("/kaya/delivery/repositories"), machineTokens.get(i)))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.error.code").value("ORG_SEC_005"));
         }
         assertEquals(0L, count("SELECT count(*) FROM kaya.sessions WHERE organization_id = ?::uuid", tenant.id()));
 
-        // The disable retired nothing, so enabling the organization again is all the tokens need.
+        // The disable retired nothing, so enabling the organization again is all the tokens need, and the
+        // batches refused meanwhile are taken when the recorders send them again.
         mockMvc.perform(in(tenant, patch("/organizations/" + tenant.id() + "/status"), ownerJwt(tenant),
                         "{\"status\":\"ACTIVE\"}"))
                 .andExpect(status().isOk());
 
-        for (String machineToken : List.of(agentToken, ownerToken)) {
-            mockMvc.perform(ingestBatch(machineToken, "sess-" + uniqueSuffix()))
+        for (int i = 0; i < machineTokens.size(); i++) {
+            mockMvc.perform(ingestBatch(machineTokens.get(i), sessionIds.get(i)))
                     .andExpect(status().isOk());
         }
         assertEquals(2L, count("SELECT count(*) FROM kaya.sessions WHERE organization_id = ?::uuid", tenant.id()));
+    }
+
+    @Test
+    void machineTokenOfAPerson_afterTheOrganizationIsDeleted_answers401OnIngest() throws Exception {
+        Tenant tenant = newTenant();
+        String ownerToken = read(mockMvc.perform(in(tenant, post("/kaya/machines"), ownerJwt(tenant),
+                        "{\"machineName\":\"laptop\"}"))
+                .andExpect(status().isCreated())
+                .andReturn(), "$.data.token");
+
+        mockMvc.perform(in(tenant, delete("/organizations/" + tenant.id()), ownerJwt(tenant), null))
+                .andExpect(status().isOk());
+
+        // A deletion is final, so the recorder is told that the token is dead rather than to retry.
+        mockMvc.perform(ingestBatch(ownerToken, "sess-" + uniqueSuffix()))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("KAY_SEC_003"));
+        assertEquals(0L, count("SELECT count(*) FROM kaya.sessions WHERE organization_id = ?::uuid", tenant.id()));
     }
 
     @Test

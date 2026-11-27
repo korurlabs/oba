@@ -50,6 +50,7 @@ import com.korur.oba.shrine.agent.validator.AgentValidator;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.identity.enums.UserKind;
 import com.korur.oba.shrine.identity.service.UserQueryService;
+import com.korur.oba.shrine.organization.service.OrganizationQueryService;
 
 /**
  * Runs the machine changes through the real {@link AgentValidator}: an agent never mints a Kaya
@@ -82,8 +83,8 @@ class MachineServiceImplUnitAgentTest {
                 mock(MachineUsageQueryService.class),
                 mock(MachineUsageSnapshotRepository.class), kayaUserQueryService,
                 mock(UserAuditRecorder.class), userAccessHelper, apiTokenService, mock(ApiTokenQueryService.class),
-                new AgentValidator(userQueryService, loggingService), mock(MachineMapper.class),
-                Clock.systemUTC(), loggingService);
+                new AgentValidator(userQueryService, loggingService), mock(OrganizationQueryService.class),
+                mock(MachineMapper.class), Clock.systemUTC(), loggingService);
     }
 
     @Test

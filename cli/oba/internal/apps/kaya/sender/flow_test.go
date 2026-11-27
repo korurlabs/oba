@@ -701,6 +701,33 @@ func TestForbiddenUnknownGitEmailBacksOffThenSendsAndKeepsTheSessionQueued(t *te
 	}
 }
 
+// Kaya answers the machine tokens of a disabled organization 403 ORG_SEC_005 on ingest. The token
+// stays valid, so the sender backs off with the session queued and sends it once the organization is
+// enabled again, instead of waiting for a new token as after a 401.
+func TestADisabledOrganizationBacksOffAndSendsOnceItIsEnabledAgain(t *testing.T) {
+	state := flowEnv(t)
+	dir := queueSession(t, state, flowSession, 1, false)
+	disabled := &client.APIError{Status: 403, Code: "ORG_SEC_005"}
+	poster := &scriptedPoster{answers: []error{disabled, disabled, nil}}
+	clock := &fakeClock{now: time.Unix(1_800_000_000, 0), limit: 3}
+	if err := Run(context.Background(), flowConfig(clock, poster)); !errors.Is(err, errStopLoop) {
+		t.Fatalf("Run = %v", err)
+	}
+	if !equalDurations(clock.sleeps, seconds(2, 4, 2)) {
+		t.Errorf("sleeps = %v, want the back-off 2 s, 4 s and then the 2 s round", clock.sleeps)
+	}
+	if poster.calls != 3 {
+		t.Errorf("calls = %d, want two refusals and the accepted batch", poster.calls)
+	}
+	if cur := (&run{}).readCursor(dir, flowSession); cur.AcknowledgedSeq != 1 || cur.Parked != nil {
+		t.Errorf("cursor = %+v, want seq 1 acknowledged and not parked", cur)
+	}
+	got := (&run{stateDir: state}).readState()
+	if got["token"] != tokenOK || got["refusedFingerprint"] != nil {
+		t.Errorf("state = %v, want the token ok and no refused fingerprint", got)
+	}
+}
+
 func TestBackoffResetsAfterAnAcceptedRound(t *testing.T) {
 	state := flowEnv(t)
 	queueSession(t, state, flowSession, 1, false)

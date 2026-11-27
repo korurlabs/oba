@@ -36,12 +36,11 @@ import com.korur.oba.shrine.identity.enums.UserStatus;
 import com.korur.oba.shrine.organization.entity.OrganizationMember;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberStatus;
 import com.korur.oba.shrine.organization.service.OrganizationMemberQueryService;
-import com.korur.oba.shrine.organization.service.OrganizationQueryService;
 
 /**
- * The machine token chain checks no user, membership or organization on ingest, so the principal itself
- * refuses the machine of an agent that, or whose membership, is no longer ACTIVE, and every machine of an
- * organization that is not ACTIVE, while a person's machine in an ACTIVE organization resolves as before.
+ * The machine token chain checks no user or membership on ingest, so the principal itself refuses the
+ * machine of an agent that, or whose membership, is no longer ACTIVE, while a person's machine resolves as
+ * before. The organization is not read here: ingest refuses a disabled one under the machine lock.
  */
 @ExtendWith(MockitoExtension.class)
 class MachineQueryServiceImplUnitAgentTest {
@@ -50,8 +49,6 @@ class MachineQueryServiceImplUnitAgentTest {
     private MachineRepository machineRepository;
     @Mock
     private MachineMapper machineMapper;
-    @Mock
-    private OrganizationQueryService organizationQueryService;
     @Mock
     private OrganizationMemberQueryService organizationMemberQueryService;
 
@@ -63,7 +60,7 @@ class MachineQueryServiceImplUnitAgentTest {
     @BeforeEach
     void setUp() {
         machineQueryService = new MachineQueryServiceImpl(machineRepository, mock(ApiTokenQueryService.class),
-                mock(MachineUsageQueryService.class), mock(SessionCountQueryService.class), organizationQueryService,
+                mock(MachineUsageQueryService.class), mock(SessionCountQueryService.class),
                 organizationMemberQueryService, machineMapper, Clock.systemUTC(), new LoggingService());
     }
 
@@ -87,7 +84,6 @@ class MachineQueryServiceImplUnitAgentTest {
         when(machineRepository.findByIdAndOrganizationId(machine.getId(), organizationId))
                 .thenReturn(Optional.of(machine));
         givenMembership(machine.getUser(), OrganizationMemberStatus.ACTIVE);
-        when(organizationQueryService.isOrganizationActive(organizationId)).thenReturn(true);
         when(machineMapper.toPrincipal(machine, tokenId)).thenReturn(expected);
 
         Optional<MachinePrincipal> principal = machineQueryService.findActivePrincipal(organizationId, machine.getId(),
@@ -102,7 +98,6 @@ class MachineQueryServiceImplUnitAgentTest {
         MachinePrincipal expected = principalOf(machine);
         when(machineRepository.findByIdAndOrganizationId(machine.getId(), organizationId))
                 .thenReturn(Optional.of(machine));
-        when(organizationQueryService.isOrganizationActive(organizationId)).thenReturn(true);
         when(machineMapper.toPrincipal(machine, tokenId)).thenReturn(expected);
 
         Optional<MachinePrincipal> principal = machineQueryService.findActivePrincipal(organizationId, machine.getId(),
@@ -112,12 +107,11 @@ class MachineQueryServiceImplUnitAgentTest {
     }
 
     @Test
-    void findActivePrincipal_personInAnActiveOrganization_returnsThePrincipalWithoutReadingTheMembership() {
+    void findActivePrincipal_activePerson_returnsThePrincipalWithoutReadingTheMembership() {
         Machine machine = machineOf(user(UserKind.HUMAN, UserStatus.ACTIVE));
         MachinePrincipal expected = principalOf(machine);
         when(machineRepository.findByIdAndOrganizationId(machine.getId(), organizationId))
                 .thenReturn(Optional.of(machine));
-        when(organizationQueryService.isOrganizationActive(organizationId)).thenReturn(true);
         when(machineMapper.toPrincipal(machine, tokenId)).thenReturn(expected);
 
         Optional<MachinePrincipal> principal = machineQueryService.findActivePrincipal(organizationId, machine.getId(),
@@ -125,35 +119,6 @@ class MachineQueryServiceImplUnitAgentTest {
 
         assertSame(expected, principal.orElseThrow());
         verifyNoInteractions(organizationMemberQueryService);
-    }
-
-    @Test
-    void findActivePrincipal_personInAnOrganizationThatIsNotActive_isEmpty() {
-        Machine machine = machineOf(user(UserKind.HUMAN, UserStatus.ACTIVE));
-        when(machineRepository.findByIdAndOrganizationId(machine.getId(), organizationId))
-                .thenReturn(Optional.of(machine));
-        when(organizationQueryService.isOrganizationActive(organizationId)).thenReturn(false);
-
-        Optional<MachinePrincipal> principal = machineQueryService.findActivePrincipal(organizationId, machine.getId(),
-                tokenId);
-
-        assertTrue(principal.isEmpty());
-        verify(machineMapper, never()).toPrincipal(any(), any());
-    }
-
-    @Test
-    void findActivePrincipal_activeAgentInAnOrganizationThatIsNotActive_isEmpty() {
-        Machine machine = machineOf(user(UserKind.AGENT, UserStatus.ACTIVE));
-        when(machineRepository.findByIdAndOrganizationId(machine.getId(), organizationId))
-                .thenReturn(Optional.of(machine));
-        givenMembership(machine.getUser(), OrganizationMemberStatus.ACTIVE);
-        when(organizationQueryService.isOrganizationActive(organizationId)).thenReturn(false);
-
-        Optional<MachinePrincipal> principal = machineQueryService.findActivePrincipal(organizationId, machine.getId(),
-                tokenId);
-
-        assertTrue(principal.isEmpty());
-        verify(machineMapper, never()).toPrincipal(any(), any());
     }
 
     @Test

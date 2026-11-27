@@ -53,7 +53,6 @@ import com.korur.oba.shrine.identity.enums.UserStatus;
 import com.korur.oba.shrine.organization.entity.OrganizationMember;
 import com.korur.oba.shrine.organization.enums.OrganizationMemberStatus;
 import com.korur.oba.shrine.organization.service.OrganizationMemberQueryService;
-import com.korur.oba.shrine.organization.service.OrganizationQueryService;
 
 @Service
 @RequiredArgsConstructor
@@ -66,7 +65,6 @@ public class MachineQueryServiceImpl implements MachineQueryService {
     private final ApiTokenQueryService apiTokenQueryService;
     private final MachineUsageQueryService machineUsageQueryService;
     private final SessionCountQueryService sessionCountQueryService;
-    private final OrganizationQueryService organizationQueryService;
     private final OrganizationMemberQueryService organizationMemberQueryService;
     private final MachineMapper machineMapper;
     private final Clock clock;
@@ -158,11 +156,12 @@ public class MachineQueryServiceImpl implements MachineQueryService {
             return Optional.empty();
         }
         User user = found.get().getUser();
-        // Ingest skips the request's user, membership and organization checks, so they are made here,
-        // before the token records anything: an agent that is disabled or no longer an active member, and
-        // every machine of a disabled organization, are refused. Each reads the current state, so the token
-        // works again once the agent or the organization is enabled. A person keeps the user and
-        // membership checks of each delivery call alone.
+        // Ingest skips the request's user and membership checks, so an agent that is disabled or no longer
+        // an active member is refused here, before its token records anything. The agent itself is off, so
+        // the 401, after which its recorder waits for a new token, is the right answer. A person keeps the
+        // user and membership checks of each delivery call alone. A disabled organization is refused by
+        // ingest instead, under the machine lock, with a 403 that the recorder retries: the disable is
+        // reversible, and every member's recorder has to resume once the organization is enabled again.
         if (AgentValidator.isAgent(user)) {
             if (user.getStatus() != UserStatus.ACTIVE) {
                 loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.MACHINE_USER_NOT_ACTIVE,
@@ -175,11 +174,6 @@ public class MachineQueryServiceImpl implements MachineQueryService {
                         MachineServiceLogConstant.MACHINE_MEMBERSHIP_NOT_ACTIVE, machineId, organizationId);
                 return Optional.empty();
             }
-        }
-        if (!organizationQueryService.isOrganizationActive(organizationId)) {
-            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.MACHINE_ORGANIZATION_NOT_ACTIVE,
-                    machineId, organizationId);
-            return Optional.empty();
         }
         return Optional.of(machineMapper.toPrincipal(found.get(), tokenId));
     }

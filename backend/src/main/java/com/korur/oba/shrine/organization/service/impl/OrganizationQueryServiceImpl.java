@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 
 // 3. Java SDK
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -73,8 +74,8 @@ public class OrganizationQueryServiceImpl implements OrganizationQueryService {
     }
 
     @Override
-    public boolean isOrganizationActive(UUID organizationId) {
-        return organizationRepository.existsByIdAndStatus(organizationId, OrganizationStatus.ACTIVE);
+    public Optional<OrganizationStatus> findOrganizationStatus(UUID organizationId) {
+        return organizationRepository.findStatusById(organizationId);
     }
 
     /**

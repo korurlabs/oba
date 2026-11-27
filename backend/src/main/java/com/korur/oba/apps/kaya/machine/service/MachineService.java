@@ -98,12 +98,16 @@ public interface MachineService {
      * machine may have committed since, or may be running: the lock waits for a running one, and the
      * check then refuses the request, so the caller's transaction rolls back and nothing it wrote lands
      * after the machine was retired. Under the same lock it checks that the request's token is still the
-     * machine's live token, because a rotation or revocation leaves the machine ACTIVE.
+     * machine's live token, because a rotation or revocation leaves the machine ACTIVE, and that the
+     * organization is ACTIVE, because ingest skips the request's organization check.
      *
      * @param principal the authenticated machine token
      * @return the locked machine, with its user
      * @throws com.korur.oba.dojo.exception.internal.auth.UnauthorizedException KAY_SEC_003 when the
-     *         machine is retired or not in the token's organization, or the token was rotated or revoked
+     *         machine is retired or not in the token's organization, the token was rotated or revoked, or
+     *         the organization is deleted
+     * @throws com.korur.oba.dojo.exception.internal.auth.ForbiddenException ORG_SEC_005 when the
+     *         organization is disabled; the token stays valid and works again once it is enabled
      */
     Machine lockActiveMachine(MachinePrincipal principal);
 

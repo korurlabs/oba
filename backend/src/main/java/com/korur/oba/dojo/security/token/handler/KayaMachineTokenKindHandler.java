@@ -34,9 +34,9 @@ import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
  * Its paths, {@link SecurityConstant#KAYA_MACHINE_TOKEN_PATHS}, take no other credential, and the token
  * opens nothing else. Delivery handlers declare their role, so the request access check applies the
  * user's membership and Kaya grant to every call. Ingest stays open to every live token of an ACTIVE
- * machine of an ACTIVE organization ({@link SecurityConstant#KAYA_MACHINE_TOKEN_EXEMPT_ENDPOINTS}):
- * it records sessions and serves no config. The body cap bounds what a caller may make the server
- * buffer before any controller runs.
+ * machine ({@link SecurityConstant#KAYA_MACHINE_TOKEN_EXEMPT_ENDPOINTS}): it records sessions and serves
+ * no config, and refuses a disabled or deleted organization itself, under the machine lock. The body
+ * cap bounds what a caller may make the server buffer before any controller runs.
  *
  * The principal is the {@link com.korur.oba.apps.kaya.machine.dto.MachinePrincipal} the Kaya
  * controllers read, built by {@link MachineQueryService#findActivePrincipal}, so a token of a machine
@@ -81,8 +81,8 @@ public class KayaMachineTokenKindHandler implements ApiTokenKindHandler {
 
     /**
      * @throws UnauthorizedException KAY_SEC_003 when the token's organization has no such machine, the
-     *                               machine or the organization is not ACTIVE, or its user is an agent
-     *                               that, or whose membership, is not ACTIVE
+     *                               machine is not ACTIVE, or its user is an agent that, or whose
+     *                               membership, is not ACTIVE
      */
     @Override
     public ApiTokenPrincipal resolvePrincipal(ApiToken token) {
