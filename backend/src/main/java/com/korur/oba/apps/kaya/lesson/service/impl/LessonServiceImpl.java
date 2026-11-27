@@ -84,6 +84,9 @@ public class LessonServiceImpl implements LessonService {
     @Override
     @Transactional
     public LessonDetailResponse create(User user, UUID organizationId, LessonRequest request, String claudeSessionId) {
+        // A lesson reaches every member's next session with no approval step, so an agent writes none,
+        // through the web API or its machine token, which both end here.
+        agentValidator.ensureCallerIsNotAgent(user, AgentConstant.ACTION_KAYA_LESSON_CREATE);
         requireWritableRepository(organizationId, request.repositoryId());
         Lesson lesson = lessonRepository.save(lessonMapper.toEntity(request, organizationId, user.getId(), claudeSessionId));
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.LESSON_CREATED,

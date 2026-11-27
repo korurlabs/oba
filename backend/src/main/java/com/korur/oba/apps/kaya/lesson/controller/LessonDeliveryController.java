@@ -154,7 +154,7 @@ public class LessonDeliveryController {
             @ApiResponse(responseCode = "401", description = "KAY_SEC_003: token refused"),
             @ApiResponse(responseCode = "403", description = "GEN_SEC_002, ORG_SEC_001 or ORG_SEC_005: the user no "
                     + "longer acts in the organization; ORG_SEC_003: the user is a GUEST; APP_SEC_001: the user has no Kaya "
-                    + "access"),
+                    + "access; AGT_SEC_002: the user is an agent"),
             @ApiResponse(responseCode = "404", description = "KAY_NF_001: no repository of the organization has this remote"),
             @ApiResponse(responseCode = "422", description = "KAY_VAL_002: repository archived; GEN_VAL_001: a field "
                     + "missing or out of range, claudeSessionId not a session id"),
@@ -249,7 +249,7 @@ public class LessonDeliveryController {
             @ApiResponse(responseCode = "401", description = "KAY_SEC_003: token refused"),
             @ApiResponse(responseCode = "403", description = "GEN_SEC_003: neither the author nor ADMIN or OWNER; "
                     + "GEN_SEC_002, ORG_SEC_001 or ORG_SEC_005: the user no longer acts in the organization; ORG_SEC_003: "
-                    + "the user is a GUEST; APP_SEC_001: the user has no Kaya access"),
+                    + "the user is a GUEST; APP_SEC_001: the user has no Kaya access; AGT_SEC_002: the user is an agent"),
             @ApiResponse(responseCode = "404", description = "KAY_NF_001: the organization has no such lesson"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })

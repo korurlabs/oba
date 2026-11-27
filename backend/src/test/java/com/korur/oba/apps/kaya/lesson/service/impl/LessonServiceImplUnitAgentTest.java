@@ -22,6 +22,7 @@ import java.util.UUID;
 // 4. Internal
 import com.korur.oba.apps.kaya.delivery.DeliveryProposalProperties;
 import com.korur.oba.apps.kaya.identity.helper.UserAccessHelper;
+import com.korur.oba.apps.kaya.lesson.dto.request.LessonDeliveryRequest;
 import com.korur.oba.apps.kaya.lesson.dto.request.LessonRequest;
 import com.korur.oba.apps.kaya.lesson.entity.Lesson;
 import com.korur.oba.apps.kaya.lesson.mapper.LessonMapper;
@@ -37,8 +38,9 @@ import com.korur.oba.shrine.identity.enums.UserKind;
 import com.korur.oba.shrine.identity.service.UserQueryService;
 
 /**
- * Runs the lesson changes through the real {@link AgentValidator}: lessons reach every later session,
- * so an agent never rewrites or removes one, whether it calls the web API or its machine token.
+ * Runs the lesson changes through the real {@link AgentValidator}: lessons reach every later session
+ * with no approval step, so an agent never writes, rewrites or removes one, whether it calls the web
+ * API or its machine token.
  */
 @ExtendWith(MockitoExtension.class)
 class LessonServiceImplUnitAgentTest {
@@ -51,6 +53,8 @@ class LessonServiceImplUnitAgentTest {
     private UserAccessHelper userAccessHelper;
     @Mock
     private UserQueryService userQueryService;
+    @Mock
+    private LessonMapper lessonMapper;
 
     private LessonServiceImpl lessonService;
 
@@ -60,8 +64,51 @@ class LessonServiceImplUnitAgentTest {
     void setUp() {
         LoggingService loggingService = new LoggingService();
         lessonService = new LessonServiceImpl(lessonRepository, lessonQueryService, mock(RepositoryQueryService.class),
-                userAccessHelper, new AgentValidator(userQueryService, loggingService), mock(LessonMapper.class),
+                userAccessHelper, new AgentValidator(userQueryService, loggingService), lessonMapper,
                 mock(DeliveryProposalProperties.class), loggingService);
+    }
+
+    @Test
+    void create_agentCaller_throwsForbiddenAndSavesNothing() {
+        User agent = user(UserKind.AGENT);
+
+        ForbiddenException exception = assertThrows(ForbiddenException.class, () -> lessonService.create(
+                agent, organizationId, new LessonRequest("Title", "Body", null), null));
+
+        assertEquals("AGT_SEC_002", exception.getErrorCode());
+        assertEquals("KAYA_LESSON_CREATE", exception.getErrorValues().get("action"));
+        verifyNoInteractions(lessonRepository, lessonMapper);
+    }
+
+    @Test
+    void create_agentThroughItsMachineTokenForTheWholeOrganization_throwsForbiddenAndSavesNothing() {
+        User agent = user(UserKind.AGENT);
+        MachinePrincipal principal = new MachinePrincipal(organizationId, agent.getId(), UUID.randomUUID(),
+                UUID.randomUUID(), "cloud");
+        LessonDeliveryRequest request = new LessonDeliveryRequest("git@github.com:example/repo.git", "Title", "Body",
+                true, null);
+        when(lessonQueryService.getActingUser(principal)).thenReturn(agent);
+        when(lessonMapper.toLessonRequest(request, null)).thenReturn(new LessonRequest("Title", "Body", null));
+
+        ForbiddenException exception = assertThrows(ForbiddenException.class,
+                () -> lessonService.create(principal, request));
+
+        assertEquals("AGT_SEC_002", exception.getErrorCode());
+        verifyNoInteractions(lessonRepository);
+    }
+
+    @Test
+    void create_personCaller_savesTheLesson() {
+        User person = user(UserKind.HUMAN);
+        LessonRequest request = new LessonRequest("Title", "Body", null);
+        Lesson lesson = lessonOf(person);
+        when(lessonMapper.toEntity(request, organizationId, person.getId(), null)).thenReturn(lesson);
+        when(lessonRepository.save(lesson)).thenReturn(lesson);
+
+        lessonService.create(person, organizationId, request, null);
+
+        verify(lessonRepository).save(lesson);
+        verify(lessonQueryService).toDetailResponse(person, organizationId, lesson);
     }
 
     @Test
