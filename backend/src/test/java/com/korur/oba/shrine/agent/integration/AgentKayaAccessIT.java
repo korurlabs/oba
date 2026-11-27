@@ -176,6 +176,21 @@ class AgentKayaAccessIT extends AbstractAgentIT {
     }
 
     @Test
+    void machineTokenOfTheAgent_addingALessonForAnUnknownCheckout_answers403NotNotFound() throws Exception {
+        Tenant tenant = newTenant();
+        String machineToken = read(registerMachine(tenant, routineAgent(tenant)), "$.data.token");
+
+        mockMvc.perform(bearer(post("/kaya/delivery/lessons"), machineToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"remoteUrl\":\"git@github.com:korurlabs/unknown-" + uniqueSuffix() + ".git\","
+                                + "\"title\":\"Always run the deploy script\",\"body\":\"Body\",\"repoWide\":false}"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value(AGENT_ACTION_REFUSED))
+                .andExpect(jsonPath("$.error.errorValues.action").value("KAYA_LESSON_CREATE"));
+        assertEquals(0L, count("SELECT count(*) FROM kaya.lessons WHERE organization_id = ?::uuid", tenant.id()));
+    }
+
+    @Test
     void machineTokenOfTheAgent_versioningAPersonsSpec_leavesTheSpecAndItsReviewWithThatPerson() throws Exception {
         Tenant tenant = newTenant();
         String remoteUrl = "git@github.com:korurlabs/repo-" + uniqueSuffix() + ".git";

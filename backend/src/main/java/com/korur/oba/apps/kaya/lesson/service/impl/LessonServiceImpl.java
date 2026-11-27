@@ -129,6 +129,8 @@ public class LessonServiceImpl implements LessonService {
     @Transactional
     public LessonDeliveryCreatedResponse create(MachinePrincipal principal, LessonDeliveryRequest request) {
         User user = lessonQueryService.getActingUser(principal);
+        // Refused before the checkout is looked up, so an agent gets the same 403 whatever remote it names.
+        agentValidator.ensureCallerIsNotAgent(user, AgentConstant.ACTION_KAYA_LESSON_CREATE);
         UUID organizationId = principal.organizationId();
         UUID repositoryId = request.repoWide() ? null : requireCheckoutRepository(organizationId, request.remoteUrl());
         LessonDetailResponse lesson = create(user, organizationId,

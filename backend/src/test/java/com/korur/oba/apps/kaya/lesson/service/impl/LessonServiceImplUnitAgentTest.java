@@ -88,13 +88,30 @@ class LessonServiceImplUnitAgentTest {
         LessonDeliveryRequest request = new LessonDeliveryRequest("git@github.com:example/repo.git", "Title", "Body",
                 true, null);
         when(lessonQueryService.getActingUser(principal)).thenReturn(agent);
-        when(lessonMapper.toLessonRequest(request, null)).thenReturn(new LessonRequest("Title", "Body", null));
 
         ForbiddenException exception = assertThrows(ForbiddenException.class,
                 () -> lessonService.create(principal, request));
 
         assertEquals("AGT_SEC_002", exception.getErrorCode());
-        verifyNoInteractions(lessonRepository);
+        verifyNoInteractions(lessonRepository, lessonMapper);
+    }
+
+    @Test
+    void create_agentThroughItsMachineTokenForAnUnknownCheckout_throwsForbiddenBeforeTheCheckoutLookup() {
+        User agent = user(UserKind.AGENT);
+        MachinePrincipal principal = new MachinePrincipal(organizationId, agent.getId(), UUID.randomUUID(),
+                UUID.randomUUID(), "cloud");
+        LessonDeliveryRequest request = new LessonDeliveryRequest("git@github.com:example/unknown.git", "Title",
+                "Body", false, null);
+        when(lessonQueryService.getActingUser(principal)).thenReturn(agent);
+
+        ForbiddenException exception = assertThrows(ForbiddenException.class,
+                () -> lessonService.create(principal, request));
+
+        assertEquals("AGT_SEC_002", exception.getErrorCode());
+        assertEquals("KAYA_LESSON_CREATE", exception.getErrorValues().get("action"));
+        verify(lessonQueryService, never()).findCheckoutRepository(any(), any());
+        verifyNoInteractions(lessonRepository, lessonMapper);
     }
 
     @Test
