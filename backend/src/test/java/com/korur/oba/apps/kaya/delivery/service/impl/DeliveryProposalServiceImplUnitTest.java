@@ -20,6 +20,7 @@ import com.korur.oba.apps.kaya.delivery.DeliveryProposalProperties;
 import com.korur.oba.apps.kaya.delivery.dto.request.DeliveryProposalRequest;
 import com.korur.oba.apps.kaya.delivery.mapper.DeliveryMapper;
 import com.korur.oba.apps.kaya.delivery.service.DeliveryQueryService;
+import com.korur.oba.apps.kaya.identity.service.KayaUserQueryService;
 import com.korur.oba.apps.kaya.pack.entity.Pack;
 import com.korur.oba.apps.kaya.pack.service.PackQueryService;
 import com.korur.oba.apps.kaya.release.dto.embedded.PackVersionEntry;
@@ -34,6 +35,7 @@ import com.korur.oba.apps.kaya.version.dto.request.ProposalFileRequest;
 import com.korur.oba.apps.kaya.version.dto.response.VersionResponse;
 import com.korur.oba.apps.kaya.version.service.VersionQueryService;
 import com.korur.oba.apps.kaya.version.service.VersionService;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -70,6 +72,10 @@ class DeliveryProposalServiceImplUnitTest {
     @Mock
     private DeliveryMapper deliveryMapper;
     @Mock
+    private KayaUserQueryService kayaUserQueryService;
+    @Mock
+    private AgentValidator agentValidator;
+    @Mock
     private LoggingService loggingService;
 
     private DeliveryProposalServiceImpl service;
@@ -82,7 +88,8 @@ class DeliveryProposalServiceImplUnitTest {
     void setUp() {
         service = new DeliveryProposalServiceImpl(deliveryQueryService, releaseQueryService, packQueryService,
                 versionService, versionQueryService, validationQueryService, deliveryMapper,
-                new DeliveryProposalProperties("https://kaya.test/"), loggingService);
+                new DeliveryProposalProperties("https://kaya.test/"), kayaUserQueryService, agentValidator,
+                loggingService);
         organizationId = UUID.randomUUID();
         userId = UUID.randomUUID();
         repositoryId = UUID.randomUUID();

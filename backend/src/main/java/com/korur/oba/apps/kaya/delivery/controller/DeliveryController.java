@@ -251,7 +251,7 @@ public class DeliveryController {
             @ApiResponse(responseCode = "401", description = "KAY_SEC_003: token refused"),
             @ApiResponse(responseCode = "403", description = "GEN_SEC_002: the user is not ACTIVE; ORG_SEC_001: not a "
                     + "member, or the membership is not ACTIVE; ORG_SEC_005: the organization is not ACTIVE; ORG_SEC_003: "
-                    + "the user is a GUEST; APP_SEC_001: the user has no Kaya access"),
+                    + "the user is a GUEST; APP_SEC_001: the user has no Kaya access; AGT_SEC_002: the user is an agent"),
             @ApiResponse(responseCode = "404", description = "KAY_NF_001: unknown repository or release number"),
             @ApiResponse(responseCode = "409", description = "KAY_CFG_002 {currentVersionId, conflicts}: the pack "
                     + "changed a proposed path since the release; KAY_CFG_015: another version of it is in review; "

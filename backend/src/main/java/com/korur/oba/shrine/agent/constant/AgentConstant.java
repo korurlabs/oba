@@ -51,6 +51,10 @@ public final class AgentConstant {
     public static final String ACTION_KAYA_SESSION_DELETE = "KAYA_SESSION_DELETE";
     public static final String ACTION_KAYA_TOKEN_REVOKE = "KAYA_TOKEN_REVOKE";
     public static final String ACTION_KAYA_MACHINE_RETIRE = "KAYA_MACHINE_RETIRE";
+    // Nor does an agent propose configuration: an approved version releases hooks and settings that
+    // run on every machine of the organization, so only a person drafts and proposes one.
+    public static final String ACTION_KAYA_CONFIG_DRAFT = "KAYA_CONFIG_DRAFT";
+    public static final String ACTION_KAYA_CONFIG_PROPOSE = "KAYA_CONFIG_PROPOSE";
     // Nor does an agent assign a ticket to another agent: the assignment starts that agent's run, and
     // only a person starts an agent.
     public static final String ACTION_TICKET_AGENT_ASSIGNEE = "TICKET_AGENT_ASSIGNEE";

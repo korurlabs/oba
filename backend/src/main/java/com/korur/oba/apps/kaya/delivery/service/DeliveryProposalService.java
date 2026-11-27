@@ -32,11 +32,14 @@ public interface DeliveryProposalService {
      * as AGENTS.md.
      *
      * The machine token chain has already refused a token whose user no longer acts in the
-     * organization with the Kaya app, so the user of the token is the proposer.
+     * organization with the Kaya app, so the user of the token is the proposer. An agent is refused
+     * before anything is looked up or written.
      *
      * @param principal the machine token's principal
      * @param request   the remote, the release number, the reason and the files
      * @return the proposal in review with its review page
+     * @throws com.korur.oba.dojo.exception.internal.auth.ForbiddenException AGT_SEC_002 when the
+     *         user of the token is an agent
      * @throws com.korur.oba.dojo.exception.internal.business.NotFoundException KAY_NF_001 for an
      *         unknown repository or release number
      * @throws com.korur.oba.dojo.exception.internal.business.ValidationException KAY_CFG_019 when

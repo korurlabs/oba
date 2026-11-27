@@ -28,7 +28,10 @@ import com.korur.oba.apps.kaya.core.exception.enums.ExceptionDomainKayaError;
 import com.korur.oba.dojo.exception.internal.auth.ForbiddenException;
 import com.korur.oba.dojo.exception.internal.business.ValidationException;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
 import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.shrine.identity.enums.UserKind;
+import com.korur.oba.shrine.identity.service.UserQueryService;
 import com.korur.oba.apps.kaya.pack.entity.Pack;
 import com.korur.oba.apps.kaya.pack.service.PackQueryService;
 import com.korur.oba.apps.kaya.pack.service.PackService;
@@ -63,6 +66,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -116,8 +120,9 @@ class VersionServiceImplUnitTest {
         service = new VersionServiceImpl(versionRepository, versionQueryService, packQueryService, packService,
                 renderService, validationQueryService, releaseQueryService, executableChangeDetector,
                 versionMapper, itemOverrideRepository, itemOverrideQueryService, itemOverrideMapper,
-                Clock.fixed(NOW, ZoneOffset.UTC), loggingService, entityManager);
-        user = User.builder().id(UUID.randomUUID()).build();
+                new AgentValidator(mock(UserQueryService.class), loggingService), Clock.fixed(NOW, ZoneOffset.UTC),
+                loggingService, entityManager);
+        user = User.builder().id(UUID.randomUUID()).kind(UserKind.HUMAN).build();
         current = version(UUID.randomUUID(), 3, VersionStatus.APPROVED, null);
         when(versionRepository.saveAndFlush(any(Version.class))).thenAnswer(invocation -> {
             Version saved = invocation.getArgument(0);

@@ -30,8 +30,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Kaya and the agent: an {@code oat_} agent token is refused on the Kaya web API even with the Kaya grant,
  * however the path is spelled, so a run cannot rewrite lessons, give plan feedback, read transcripts, delete
  * its sessions or cut off its machine. A person's JWT keeps working there, and the {@code kyt_} machine token
- * an admin registered for the agent still records sessions and reads delivery, but writes no lesson, takes
- * over no person's spec and ends when the agent is disabled.
+ * an admin registered for the agent still records sessions and reads delivery, but writes no lesson, proposes
+ * no configuration, takes over no person's spec and ends when the agent is disabled.
  */
 class AgentKayaAccessIT extends AbstractAgentIT {
 
@@ -188,6 +188,24 @@ class AgentKayaAccessIT extends AbstractAgentIT {
                 .andExpect(jsonPath("$.error.code").value(AGENT_ACTION_REFUSED))
                 .andExpect(jsonPath("$.error.errorValues.action").value("KAYA_LESSON_CREATE"));
         assertEquals(0L, count("SELECT count(*) FROM kaya.lessons WHERE organization_id = ?::uuid", tenant.id()));
+    }
+
+    @Test
+    void machineTokenOfTheAgent_proposingConfiguration_answers403AndStoresNoVersion() throws Exception {
+        Tenant tenant = newTenant();
+        String machineToken = read(registerMachine(tenant, routineAgent(tenant)), "$.data.token");
+
+        // The remote is unknown: the refusal comes before the repository lookup, so it answers 403, not 404.
+        mockMvc.perform(bearer(post("/kaya/delivery/proposals"), machineToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"remoteUrl\":\"git@github.com:korurlabs/repo-" + uniqueSuffix() + ".git\","
+                                + "\"releaseNumber\":1,\"reason\":\"Allow every command in hooks\","
+                                + "\"files\":[{\"path\":\".claude/settings.json\",\"mode\":\"FILE\","
+                                + "\"content\":\"{}\"}]}"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value(AGENT_ACTION_REFUSED))
+                .andExpect(jsonPath("$.error.errorValues.action").value("KAYA_CONFIG_PROPOSE"));
+        assertEquals(0L, count("SELECT count(*) FROM kaya.versions WHERE organization_id = ?::uuid", tenant.id()));
     }
 
     @Test

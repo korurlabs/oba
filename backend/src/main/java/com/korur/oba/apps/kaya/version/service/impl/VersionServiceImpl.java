@@ -41,6 +41,8 @@ import com.korur.oba.dojo.exception.internal.business.ValidationException;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.shrine.agent.constant.AgentConstant;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.apps.kaya.pack.entity.Pack;
 import com.korur.oba.apps.kaya.pack.service.PackQueryService;
@@ -110,6 +112,7 @@ public class VersionServiceImpl implements VersionService {
     private final ItemOverrideRepository itemOverrideRepository;
     private final ItemOverrideQueryService itemOverrideQueryService;
     private final ItemOverrideMapper itemOverrideMapper;
+    private final AgentValidator agentValidator;
     private final Clock clock;
     private final LoggingService loggingService;
     private final EntityManager entityManager;
@@ -172,6 +175,10 @@ public class VersionServiceImpl implements VersionService {
     @Override
     @Transactional
     public VersionResponse createDraft(User user, UUID organizationId, DraftCreateRequest request) {
+        // An approved version releases hooks and settings to every machine of the organization, so an
+        // agent starts no draft, here or through a restore, and submits none; the machine proposal of
+        // the delivery domain refuses it as well.
+        agentValidator.ensureCallerIsNotAgent(user, AgentConstant.ACTION_KAYA_CONFIG_DRAFT);
         Owner owner = lockOwner(organizationId, request.packId());
         Version current = currentOf(organizationId, owner);
         Version draft = newVersion(organizationId, owner, current, user.getId(), VersionSource.MANUAL);
@@ -340,6 +347,7 @@ public class VersionServiceImpl implements VersionService {
     @Override
     @Transactional
     public VersionResponse restore(User user, UUID organizationId, UUID versionId) {
+        agentValidator.ensureCallerIsNotAgent(user, AgentConstant.ACTION_KAYA_CONFIG_DRAFT);
         Version restored = versionQueryService.getEntityById(organizationId, versionId);
         if (restored.getStatus() != VersionStatus.APPROVED && restored.getStatus() != VersionStatus.SUPERSEDED) {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, VersionServiceLogConstant.RESTORE_NOT_RELEASED,
@@ -370,6 +378,9 @@ public class VersionServiceImpl implements VersionService {
     @Override
     @Transactional
     public Version submit(User user, UUID organizationId, UUID draftId, String reason) {
+        // A rejected proposal returns to its proposer as a draft, so an agent can still own one; it
+        // does not go to review again.
+        agentValidator.ensureCallerIsNotAgent(user, AgentConstant.ACTION_KAYA_CONFIG_PROPOSE);
         Version draft = ownDraft(user, organizationId, draftId);
         Owner owner = lockOwner(organizationId, draft.getPackId());
         UUID baseId = draft.getBaseVersion() == null ? null : draft.getBaseVersion().getId();
