@@ -20,8 +20,10 @@ import com.korur.oba.shrine.access.enums.App;
  *
  * The end of the whole organization access is a different event,
  * {@link com.korur.oba.shrine.organization.event.AccessRevokedEvent}, which covers every app at once.
- * A consumer that holds state built on one app listens to both. Consumers act after the transaction
- * commits, so a change that rolls back revokes nothing. Each consumer decides which apps concern it; the
+ * A consumer that holds state built on one app listens to both. Most consumers act after the transaction
+ * commits, so a change that rolls back revokes nothing. A consumer that must end a credential together
+ * with the grant, as Kaya does with an agent's machines, listens synchronously instead: it runs inside
+ * the publishing transaction and rolls back with it. Each consumer decides which apps concern it; the
  * publisher names the app and nothing more.
  *
  * @param userId         the user who lost the app

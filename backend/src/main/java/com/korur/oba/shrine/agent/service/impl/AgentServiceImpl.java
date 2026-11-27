@@ -73,7 +73,9 @@ import com.korur.oba.shrine.organization.service.OrganizationMemberService;
  * once the change commits. Both also retire the agent's Kaya machines and revoke their tokens through
  * {@link MachineService#retireAllOfUser}, because Kaya ingest does not check the user of each call and a
  * token suspected of a leak must not come back when the agent is enabled again. Removing the agent's Kaya
- * grant retires them as well, because ingest does not read grants either.
+ * grant retires them as well, because ingest does not read grants either; that happens on the
+ * {@link com.korur.oba.shrine.access.event.AppAccessRevokedEvent} the revoke publishes, so the generic app
+ * grants page ends them the same way.
  */
 @Service
 @RequiredArgsConstructor
@@ -165,11 +167,6 @@ public class AgentServiceImpl implements AgentService {
             }
         }
         Map<String, Object> newValues = agentHelper.describe(agent, apps);
-        if (currentGrants.containsValue(App.KAYA) && !apps.contains(App.KAYA)) {
-            // Kaya ingest does not read the grants, so the machines must end with the grant itself.
-            int retiredMachines = machineService.retireAllOfUser(organizationId, agentId);
-            newValues.put(AgentConstant.FIELD_RETIRED_MACHINES, retiredMachines);
-        }
 
         agentHelper.audit(organizationId, actor, AgentConstant.AUDIT_ACTION_AGENT_UPDATED, agentId, oldValues,
                 newValues);

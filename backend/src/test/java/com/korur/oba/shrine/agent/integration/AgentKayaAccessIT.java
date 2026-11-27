@@ -31,7 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * however the path is spelled, so a run cannot rewrite lessons, give plan feedback, read transcripts, delete
  * its sessions or cut off its machine. A person's JWT keeps working there, and the {@code kyt_} machine token
  * an admin registered for the agent still records sessions and reads delivery, but writes no lesson, proposes
- * no configuration, takes over no person's spec and ends when the agent is disabled.
+ * no configuration, takes over no person's spec and ends when the agent is disabled, deleted or loses its Kaya
+ * grant, on the Agents page or the app grants page.
  */
 class AgentKayaAccessIT extends AbstractAgentIT {
 
@@ -267,6 +268,28 @@ class AgentKayaAccessIT extends AbstractAgentIT {
         mockMvc.perform(ingestBatch(machineToken, "sess-" + uniqueSuffix()))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error.code").value("KAY_SEC_003"));
+        assertEquals(0L, count("SELECT count(*) FROM kaya.machines WHERE user_id = ?::uuid AND status = 'ACTIVE'",
+                agentId));
+    }
+
+    @Test
+    void machineTokenOfTheAgent_afterItsKayaGrantIsDeletedOnTheAppGrantsPage_answers401AndIsRetired()
+            throws Exception {
+        Tenant tenant = newTenant();
+        String agentId = routineAgent(tenant);
+        String machineToken = read(registerMachine(tenant, agentId), "$.data.token");
+        String grantId = jdbcTemplate.queryForObject("SELECT id::text FROM shrine.organization_app_grants "
+                + "WHERE user_id = ?::uuid AND app = 'KAYA' AND deleted = FALSE", String.class, agentId);
+
+        mockMvc.perform(in(tenant, delete("/organizations/" + tenant.id() + "/app-grants/" + grantId),
+                        ownerJwt(tenant), null))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(ingestBatch(machineToken, "sess-" + uniqueSuffix()))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("KAY_SEC_003"));
+        mockMvc.perform(bearer(get("/kaya/delivery/repositories"), machineToken))
+                .andExpect(status().isUnauthorized());
         assertEquals(0L, count("SELECT count(*) FROM kaya.machines WHERE user_id = ?::uuid AND status = 'ACTIVE'",
                 agentId));
     }
