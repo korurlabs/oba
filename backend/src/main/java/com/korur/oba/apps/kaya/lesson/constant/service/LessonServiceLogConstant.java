@@ -23,6 +23,10 @@ public final class LessonServiceLogConstant {
     public static final String READING_FILTERS = "Reading lesson filter options of organization {}";
     public static final String READING_LESSON = "Reading lesson {} of organization {}";
     public static final String LESSON_NOT_FOUND = "Lesson {} not found in organization {}";
+    public static final String READ_USER_RATE_LIMITED =
+            "Refused a lesson read of user {} in organization {}: the user made more than {} reads in a minute";
+    public static final String READ_ORGANIZATION_RATE_LIMITED =
+            "Refused a lesson read of user {} in organization {}: the organization made more than {} reads in a minute";
 
     // --- Changes ---
     public static final String LESSON_CREATED = "User {} created lesson {} in organization {}";

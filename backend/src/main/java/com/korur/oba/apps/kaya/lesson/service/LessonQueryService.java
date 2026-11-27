@@ -44,6 +44,24 @@ public interface LessonQueryService {
     Page<LessonListResponse> listLessons(User user, UUID organizationId, LessonQueryRequest request);
 
     /**
+     * Admits a page of the web list or the filter options before it asks for a place among the
+     * lesson reads that run at once, as {@link #admitListForCheckout} admits a page of the CLI: it
+     * charges the read to the budgets of the member and of the organization, which the reads of the
+     * CLI share. It runs outside any transaction, so a request it refuses holds neither a place nor
+     * a pooled connection, and the budgets bound how often a member asks for a place at all.
+     *
+     * @param user           the signed-in member
+     * @param organizationId the organization of the request
+     * @throws com.korur.oba.dojo.exception.internal.business.TooManyRequestsException KAY_SEC_004
+     *         when the member made more lesson reads in a minute than
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_USER_READS_PER_MINUTE},
+     *         or the organization more than
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_ORGANIZATION_READS_PER_MINUTE},
+     *         the reads of the web app and the CLI together
+     */
+    void admitRead(User user, UUID organizationId);
+
+    /**
      * The options of the list's repository and user filters: the values the organization's
      * lessons hold.
      *

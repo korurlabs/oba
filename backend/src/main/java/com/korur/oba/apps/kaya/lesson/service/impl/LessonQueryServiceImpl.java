@@ -120,6 +120,33 @@ public class LessonQueryServiceImpl implements LessonQueryService {
     }
 
     /**
+     * Without a transaction, for the reasons of {@link #admitListForCheckout}. The member is charged
+     * before the organization, so the refused reads of one person never use up the reads of their
+     * colleagues.
+     */
+    @Override
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void admitRead(User user, UUID organizationId) {
+        Optional<Duration> userWait = lessonDeliveryRateLimiter.tryChargeUserRead(user.getId());
+        if (userWait.isPresent()) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.READ_USER_RATE_LIMITED,
+                    user.getId(), organizationId, LessonConstant.DELIVERY_USER_READS_PER_MINUTE);
+            throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_USER_READS_PER_MINUTE,
+                            LessonConstant.FIELD_POLICY, LessonConstant.POLICY_USER_READS_PER_MINUTE), userWait.get());
+        }
+        Optional<Duration> organizationWait = lessonDeliveryRateLimiter.tryChargeOrganizationRead(organizationId);
+        if (organizationWait.isPresent()) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.READ_ORGANIZATION_RATE_LIMITED,
+                    user.getId(), organizationId, LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE);
+            throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE,
+                            LessonConstant.FIELD_POLICY, LessonConstant.POLICY_ORGANIZATION_READS_PER_MINUTE),
+                    organizationWait.get());
+        }
+    }
+
+    /**
      * The filter options pass over the lessons of the organization for their distinct repositories
      * and authors, so they end at the time limit of a page of the list.
      */

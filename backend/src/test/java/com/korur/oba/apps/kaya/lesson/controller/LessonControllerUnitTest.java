@@ -44,12 +44,13 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 /**
- * The web list and its filter options run within the caps on lesson reads at once, which they share
- * with the reads of the CLI, and a lesson added in the web app is charged before it is written.
+ * The web list and its filter options are charged to the read budgets before they ask for a place,
+ * and run within the caps on lesson reads at once, both of which they share with the reads of the
+ * CLI; a lesson added in the web app is charged before it is written.
  */
 @ExtendWith(MockitoExtension.class)
 class LessonControllerUnitTest {
@@ -98,6 +99,18 @@ class LessonControllerUnitTest {
                 .toList();
     }
 
+    /** The request was charged, but refused when it asked for a place, so it read nothing. */
+    private void verifyChargedButNotRead() {
+        verify(lessonQueryService).admitRead(user, organizationId);
+        verifyNoMoreInteractions(lessonQueryService);
+    }
+
+    private static TooManyRequestsException overTheUserReadBudget() {
+        return new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
+                Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_USER_READS_PER_MINUTE,
+                        LessonConstant.FIELD_POLICY, LessonConstant.POLICY_USER_READS_PER_MINUTE), Duration.ofSeconds(30));
+    }
+
     /** The CLI reads of colleagues in the same organization that fill the organization's cap. */
     private List<MachinePrincipal> theOrganizationAtItsCap() {
         return IntStream.range(0, LessonConstant.DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX)
@@ -121,12 +134,36 @@ class LessonControllerUnitTest {
         }
 
         @Test
+        void getLessons_chargesTheMemberBeforeTheRead() {
+            LessonQueryRequest request = new LessonQueryRequest();
+            when(lessonQueryService.listLessons(user, organizationId, request)).thenReturn(Page.empty());
+
+            controller.getLessons(user, organizationId, request);
+
+            InOrder order = inOrder(lessonQueryService);
+            order.verify(lessonQueryService).admitRead(user, organizationId);
+            order.verify(lessonQueryService).listLessons(user, organizationId, request);
+        }
+
+        @Test
+        void getLessons_overABudgetOnAFullInstance_answersTheBudgetsRefusalWithoutAskingForAPlace() {
+            // Charged after asking for a place, the request would meet the full instance and answer 503.
+            TooManyRequestsException refusal = overTheUserReadBudget();
+            doThrow(refusal).when(lessonQueryService).admitRead(user, organizationId);
+
+            assertSame(refusal, assertThrows(TooManyRequestsException.class,
+                    () -> whileReading(aFullInstance(), () -> controller.getLessons(user, organizationId, new LessonQueryRequest()))));
+
+            verify(lessonQueryService, never()).listLessons(any(User.class), any(UUID.class), any(LessonQueryRequest.class));
+        }
+
+        @Test
         void getLessons_onAFullInstance_refuses503BeforeAnyRead() {
             ServiceUnavailableException refusal = assertThrows(ServiceUnavailableException.class,
                     () -> whileReading(aFullInstance(), () -> controller.getLessons(user, organizationId, new LessonQueryRequest())));
 
             assertEquals(LessonConstant.DELIVERY_BUSY_RETRY_AFTER, refusal.getRetryAfter());
-            verifyNoInteractions(lessonQueryService);
+            verifyChargedButNotRead();
         }
 
         @Test
@@ -137,7 +174,7 @@ class LessonControllerUnitTest {
 
             assertEquals(ExceptionDomainKayaError.SEC_RATE_LIMITED.getCode(), refusal.getErrorCode());
             assertEquals(LessonConstant.POLICY_USER_READS_AT_ONCE, refusal.getErrorValues().get(LessonConstant.FIELD_POLICY));
-            verifyNoInteractions(lessonQueryService);
+            verifyChargedButNotRead();
         }
 
         @Test
@@ -167,11 +204,33 @@ class LessonControllerUnitTest {
         }
 
         @Test
+        void getFilters_chargesTheMemberBeforeTheRead() {
+            when(lessonQueryService.getFilters(organizationId)).thenReturn(new LessonFiltersResponse(List.of(), List.of()));
+
+            controller.getFilters(user, organizationId);
+
+            InOrder order = inOrder(lessonQueryService);
+            order.verify(lessonQueryService).admitRead(user, organizationId);
+            order.verify(lessonQueryService).getFilters(organizationId);
+        }
+
+        @Test
+        void getFilters_overABudgetOnAFullInstance_answersTheBudgetsRefusalWithoutAskingForAPlace() {
+            TooManyRequestsException refusal = overTheUserReadBudget();
+            doThrow(refusal).when(lessonQueryService).admitRead(user, organizationId);
+
+            assertSame(refusal, assertThrows(TooManyRequestsException.class,
+                    () -> whileReading(aFullInstance(), () -> controller.getFilters(user, organizationId))));
+
+            verify(lessonQueryService, never()).getFilters(any(UUID.class));
+        }
+
+        @Test
         void getFilters_onAFullInstance_refuses503BeforeAnyRead() {
             assertThrows(ServiceUnavailableException.class,
                     () -> whileReading(aFullInstance(), () -> controller.getFilters(user, organizationId)));
 
-            verifyNoInteractions(lessonQueryService);
+            verifyChargedButNotRead();
         }
 
         @Test
@@ -181,7 +240,7 @@ class LessonControllerUnitTest {
 
             assertEquals(LessonConstant.POLICY_ORGANIZATION_READS_AT_ONCE,
                     refusal.getErrorValues().get(LessonConstant.FIELD_POLICY));
-            verifyNoInteractions(lessonQueryService);
+            verifyChargedButNotRead();
         }
 
         @Test

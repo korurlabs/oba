@@ -437,6 +437,72 @@ class LessonQueryServiceImplUnitTest {
         }
     }
 
+    /**
+     * A page of the web list or its filter options is charged before it asks for a place, to the
+     * budgets of the member and of the organization, which the reads of the CLI share.
+     */
+    @Nested
+    class WebRateLimit {
+
+        private final User user = User.builder().id(UUID.randomUUID()).build();
+        private final UUID organizationId = UUID.randomUUID();
+
+        @Test
+        void admitRead_withinTheBudget_chargesOneReadToTheMemberAndThenTheOrganization() {
+            when(lessonDeliveryRateLimiter.tryChargeUserRead(user.getId())).thenReturn(Optional.empty());
+            when(lessonDeliveryRateLimiter.tryChargeOrganizationRead(organizationId)).thenReturn(Optional.empty());
+
+            service.admitRead(user, organizationId);
+
+            InOrder charges = inOrder(lessonDeliveryRateLimiter);
+            charges.verify(lessonDeliveryRateLimiter).tryChargeUserRead(user.getId());
+            charges.verify(lessonDeliveryRateLimiter).tryChargeOrganizationRead(organizationId);
+            verify(lessonDeliveryRateLimiter, never()).tryChargeRead(any());
+            verifyNoInteractions(lessonRepository, repositoryQueryService);
+        }
+
+        @Test
+        void admitRead_memberOverTheBudget_throwsTooManyRequestsWithItsLimitAndChargesNoOrganization() {
+            when(lessonDeliveryRateLimiter.tryChargeUserRead(user.getId())).thenReturn(Optional.of(WAIT));
+
+            TooManyRequestsException exception = assertThrows(TooManyRequestsException.class,
+                    () -> service.admitRead(user, organizationId));
+
+            assertEquals(HttpStatus.TOO_MANY_REQUESTS, exception.getStatusCode());
+            assertEquals("KAY_SEC_004", exception.getErrorCode());
+            assertEquals(LessonConstant.DELIVERY_USER_READS_PER_MINUTE, exception.getErrorValues().get("limit"));
+            assertEquals(LessonConstant.POLICY_USER_READS_PER_MINUTE, exception.getErrorValues().get(LessonConstant.FIELD_POLICY));
+            assertEquals(WAIT, exception.getRetryAfter());
+            // A read the person may not make costs their colleagues nothing.
+            verify(lessonDeliveryRateLimiter, never()).tryChargeOrganizationRead(any());
+            verifyNoInteractions(lessonRepository, repositoryQueryService);
+        }
+
+        @Test
+        void admitRead_organizationOverTheBudget_throwsTooManyRequestsWithItsLimit() {
+            when(lessonDeliveryRateLimiter.tryChargeUserRead(user.getId())).thenReturn(Optional.empty());
+            when(lessonDeliveryRateLimiter.tryChargeOrganizationRead(organizationId)).thenReturn(Optional.of(WAIT));
+
+            TooManyRequestsException exception = assertThrows(TooManyRequestsException.class,
+                    () -> service.admitRead(user, organizationId));
+
+            assertEquals("KAY_SEC_004", exception.getErrorCode());
+            assertEquals(LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE, exception.getErrorValues().get("limit"));
+            assertEquals(LessonConstant.POLICY_ORGANIZATION_READS_PER_MINUTE, exception.getErrorValues().get(LessonConstant.FIELD_POLICY));
+            assertEquals(WAIT, exception.getRetryAfter());
+            verifyNoInteractions(lessonRepository, repositoryQueryService);
+        }
+
+        @Test
+        void admitRead_runsOutsideAnyTransaction() throws NoSuchMethodException {
+            // A transaction of its own would take a pooled connection at its start, refused or not.
+            Transactional admission = LessonQueryServiceImpl.class.getMethod("admitRead", User.class, UUID.class)
+                    .getAnnotation(Transactional.class);
+
+            assertEquals(Propagation.NOT_SUPPORTED, admission.propagation());
+        }
+    }
+
     @Nested
     class EtagMatching {
 

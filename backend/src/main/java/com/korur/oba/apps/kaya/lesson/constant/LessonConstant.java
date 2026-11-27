@@ -97,6 +97,7 @@ public final class LessonConstant {
     // list from scratch in the same minute, 100 pages and two restarts each, makes 3000 reads, so a
     // team at work never meets it; it is five tokens at their full budget. A read is charged here only
     // once the token's own budget allows it, so one runaway token cannot use up its colleagues' reads.
+    // A page of the web list and its filter options are charged here too, two reads a page load.
     public static final int DELIVERY_ORGANIZATION_READS_PER_MINUTE = 3_000;
     // Reads of all tokens of one user per minute, in every organization the user belongs to, charged
     // beside the budgets of the token and the organization. Any signed-in user can create organizations,
@@ -104,7 +105,9 @@ public final class LessonConstant {
     // reads by creating organizations. A person works on a few machines: four that each read the list
     // from scratch in the same minute, 100 pages and two restarts each, make 1200, so a person at work
     // never meets it; it is two tokens at their full budget. A read is charged here only once the token
-    // allows it, and to the organization only once the user does.
+    // allows it, and to the organization only once the user does. A page of the web list and its filter
+    // options are charged here too, before the organization: without a budget the web reads would take
+    // places among the reads at once as fast as a client could ask.
     public static final int DELIVERY_USER_READS_PER_MINUTE = 1_200;
     // Lessons a token adds per minute. A lesson is added by hand with oba kaya lessons add, or by oba
     // kaya lessons import, one after another for each title of a file its scope does not hold yet; real

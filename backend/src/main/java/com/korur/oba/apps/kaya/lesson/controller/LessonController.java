@@ -83,10 +83,14 @@ public class LessonController {
             @ApiResponse(responseCode = "401", description = "No valid JWT"),
             @ApiResponse(responseCode = "403", description = "Not a member with access to the organization"),
             @ApiResponse(responseCode = "422", description = "GEN_VAL_001: a paging or filter value is invalid"),
-            @ApiResponse(responseCode = "429", description = "KAY_SEC_004: 2 lesson reads already running on this "
-                    + "instance, of the user in all their organizations together (errorValues.limit 2, "
-                    + "errorValues.policy user-reads-at-once) or of the organization (errorValues.limit 2, "
-                    + "errorValues.policy organization-reads-at-once); Retry-After 1"),
+            @ApiResponse(responseCode = "429", description = "KAY_SEC_004: more than 1200 lesson reads of the user "
+                    + "in a minute, in all their organizations and with the CLI together (errorValues.limit 1200, "
+                    + "errorValues.policy user-reads-per-minute), more than 3000 of the organization, with the CLI "
+                    + "together (errorValues.limit 3000, errorValues.policy organization-reads-per-minute), or 2 "
+                    + "lesson reads already running on this instance, of the user in all their organizations together "
+                    + "(errorValues.limit 2, errorValues.policy user-reads-at-once) or of the organization "
+                    + "(errorValues.limit 2, errorValues.policy organization-reads-at-once); Retry-After gives the "
+                    + "seconds until the budget's window ends, or 1 for reads that run at once"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "503", description = "GEN_UPS_004: the read ran past its time limit of 5 "
                     + "seconds; GEN_UPS_005: this instance already runs 4 lesson reads, with Retry-After 1; try "
@@ -97,6 +101,9 @@ public class LessonController {
             @RequestHeader(CommonConstant.HEADER_ORGANIZATION_ID) UUID organizationId,
             @Valid @ModelAttribute @ParameterObject LessonQueryRequest request) {
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, LessonControllerLogConstant.LESSON_LIST_REQUEST, organizationId);
+        // Charged before the read asks for a place among the reads that run at once, so a member asks
+        // for places no more often than the budgets allow, and a refused read never takes one.
+        lessonQueryService.admitRead(user, organizationId);
         Page<LessonListResponse> response = lessonDeliveryBulkhead.run(user, organizationId,
                 () -> lessonQueryService.listLessons(user, organizationId, request));
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, LessonControllerLogConstant.LESSON_LIST_COMPLETED,
@@ -116,10 +123,14 @@ public class LessonController {
             @ApiResponse(responseCode = "400", description = "X-Organization-ID missing or not a UUID"),
             @ApiResponse(responseCode = "401", description = "No valid JWT"),
             @ApiResponse(responseCode = "403", description = "Not a member with access to the organization"),
-            @ApiResponse(responseCode = "429", description = "KAY_SEC_004: 2 lesson reads already running on this "
-                    + "instance, of the user in all their organizations together (errorValues.limit 2, "
-                    + "errorValues.policy user-reads-at-once) or of the organization (errorValues.limit 2, "
-                    + "errorValues.policy organization-reads-at-once); Retry-After 1"),
+            @ApiResponse(responseCode = "429", description = "KAY_SEC_004: more than 1200 lesson reads of the user "
+                    + "in a minute, in all their organizations and with the CLI together (errorValues.limit 1200, "
+                    + "errorValues.policy user-reads-per-minute), more than 3000 of the organization, with the CLI "
+                    + "together (errorValues.limit 3000, errorValues.policy organization-reads-per-minute), or 2 "
+                    + "lesson reads already running on this instance, of the user in all their organizations together "
+                    + "(errorValues.limit 2, errorValues.policy user-reads-at-once) or of the organization "
+                    + "(errorValues.limit 2, errorValues.policy organization-reads-at-once); Retry-After gives the "
+                    + "seconds until the budget's window ends, or 1 for reads that run at once"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "503", description = "GEN_UPS_004: the read ran past its time limit of 5 "
                     + "seconds; GEN_UPS_005: this instance already runs 4 lesson reads, with Retry-After 1; try "
@@ -129,6 +140,8 @@ public class LessonController {
             @Parameter(hidden = true) @GetUser User user,
             @RequestHeader(CommonConstant.HEADER_ORGANIZATION_ID) UUID organizationId) {
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, LessonControllerLogConstant.FILTERS_REQUEST, organizationId);
+        // Charged like a page of the list, before it asks for a place.
+        lessonQueryService.admitRead(user, organizationId);
         LessonFiltersResponse response = lessonDeliveryBulkhead.run(user, organizationId,
                 () -> lessonQueryService.getFilters(organizationId));
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, LessonControllerLogConstant.FILTERS_COMPLETED, organizationId);

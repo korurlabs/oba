@@ -20,9 +20,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.korur.oba.apps.kaya.lesson.constant.LessonConstant;
 
 /**
- * The lesson budgets: of the machine tokens, reads per token, reads per user, reads per organization
- * and added lessons per token, and of the web app, added lessons per user, each a fixed one-minute
- * window per key, held in memory. Every page of the
+ * The lesson budgets: of the machine tokens, reads per token and added lessons per token; of the
+ * web app, added lessons per user; and of both together, reads per user and reads per organization,
+ * each a fixed one-minute window per key, held in memory. Every page of the
  * list and every search makes PostgreSQL pass over all lessons that apply to the checkout, and
  * every added lesson makes each later read longer, so a client that reads or adds without pause
  * could keep the connection pool busy for every tenant. Each budget is far above what the CLI
@@ -58,9 +58,10 @@ public class LessonDeliveryRateLimiter {
     }
 
     /**
-     * Charges one read to the user of the token, whatever organization the token belongs to.
+     * Charges one read to the user, of one of their tokens or of the web app, whatever organization
+     * it reads.
      *
-     * @param userId the user of the token that sent the read
+     * @param userId the user who sent the read
      * @return empty when the read is within the budget; when the user exhausted it, how long until
      *         their window ends
      */
@@ -69,9 +70,9 @@ public class LessonDeliveryRateLimiter {
     }
 
     /**
-     * Charges one read to the organization of the token.
+     * Charges one read to the organization it reads, of a token or of the web app.
      *
-     * @param organizationId the organization of the token that sent the read
+     * @param organizationId the organization the read is of
      * @return empty when the read is within the budget; when the organization exhausted it, how long
      *         until its window ends
      */
