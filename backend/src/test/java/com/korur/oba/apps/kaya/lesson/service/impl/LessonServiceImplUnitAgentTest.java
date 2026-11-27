@@ -25,6 +25,7 @@ import com.korur.oba.apps.kaya.identity.helper.UserAccessHelper;
 import com.korur.oba.apps.kaya.lesson.dto.request.LessonDeliveryRequest;
 import com.korur.oba.apps.kaya.lesson.dto.request.LessonRequest;
 import com.korur.oba.apps.kaya.lesson.entity.Lesson;
+import com.korur.oba.apps.kaya.lesson.helper.LessonDeliveryRateLimiter;
 import com.korur.oba.apps.kaya.lesson.mapper.LessonMapper;
 import com.korur.oba.apps.kaya.lesson.repository.LessonRepository;
 import com.korur.oba.apps.kaya.lesson.service.LessonQueryService;
@@ -65,7 +66,7 @@ class LessonServiceImplUnitAgentTest {
         LoggingService loggingService = new LoggingService();
         lessonService = new LessonServiceImpl(lessonRepository, lessonQueryService, mock(RepositoryQueryService.class),
                 userAccessHelper, new AgentValidator(userQueryService, loggingService), lessonMapper,
-                mock(DeliveryProposalProperties.class), loggingService);
+                mock(DeliveryProposalProperties.class), mock(LessonDeliveryRateLimiter.class), loggingService);
     }
 
     @Test
