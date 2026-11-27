@@ -37,6 +37,19 @@ public interface LessonService {
     LessonDetailResponse create(User user, UUID organizationId, LessonRequest request);
 
     /**
+     * Charges one lesson a member adds in the web app to the member's budget. It runs before the
+     * transaction of {@link #create(User, UUID, LessonRequest)}, so a refused lesson takes no
+     * connection of the pool.
+     *
+     * @param user the signed-in member
+     * @throws com.korur.oba.dojo.exception.internal.business.TooManyRequestsException KAY_SEC_004 when
+     *         the member added more than
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#USER_LESSONS_PER_MINUTE}
+     *         lessons in the minute
+     */
+    void admitCreate(User user);
+
+    /**
      * Creates a lesson recorded by a Claude Code session.
      *
      * @param user            the author

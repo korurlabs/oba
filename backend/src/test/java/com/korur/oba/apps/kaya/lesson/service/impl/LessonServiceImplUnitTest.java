@@ -9,6 +9,8 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 // 3. Java SDK
 import java.time.Duration;
@@ -39,7 +41,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -119,6 +124,59 @@ class LessonServiceImplUnitTest {
             order.verify(lessonDeliveryRateLimiter).tryChargeProposal(principal.tokenId());
             order.verify(lessonQueryService).getActingUser(principal);
             order.verify(lessonRepository).save(any(Lesson.class));
+        }
+    }
+
+    @Nested
+    class WebCreateRateLimit {
+
+        private final User user = User.builder().id(UUID.randomUUID()).build();
+
+        @Test
+        void admitCreate_memberOverTheBudget_throwsTooManyRequestsWithTheWaitAndTouchesNothing() {
+            // Arrange
+            when(lessonDeliveryRateLimiter.tryChargeUserLesson(user.getId())).thenReturn(Optional.of(Duration.ofSeconds(25)));
+
+            // Act
+            TooManyRequestsException exception = assertThrows(TooManyRequestsException.class, () -> service.admitCreate(user));
+
+            // Assert
+            assertEquals(HttpStatus.TOO_MANY_REQUESTS, exception.getStatusCode());
+            assertEquals("KAY_SEC_004", exception.getErrorCode());
+            assertEquals(LessonConstant.USER_LESSONS_PER_MINUTE, exception.getErrorValues().get(LessonConstant.FIELD_LIMIT));
+            assertEquals(LessonConstant.POLICY_USER_LESSONS_PER_MINUTE,
+                    exception.getErrorValues().get(LessonConstant.FIELD_POLICY));
+            assertEquals(Duration.ofSeconds(25), exception.getRetryAfter());
+            verifyNoInteractions(lessonQueryService, repositoryQueryService, lessonRepository);
+        }
+
+        @Test
+        void admitCreate_withinTheBudget_chargesTheMemberOnly() {
+            when(lessonDeliveryRateLimiter.tryChargeUserLesson(user.getId())).thenReturn(Optional.empty());
+
+            service.admitCreate(user);
+
+            verify(lessonDeliveryRateLimiter).tryChargeUserLesson(user.getId());
+            verifyNoMoreInteractions(lessonDeliveryRateLimiter);
+            verifyNoInteractions(lessonQueryService, repositoryQueryService, lessonRepository);
+        }
+
+        @Test
+        void admitCreate_runsOutsideAnyTransaction() throws NoSuchMethodException {
+            // A refused lesson must not take a connection of the pool, which a transaction takes when it begins.
+            Transactional transactional = LessonServiceImpl.class.getMethod("admitCreate", User.class)
+                    .getAnnotation(Transactional.class);
+
+            assertEquals(Propagation.NOT_SUPPORTED, transactional.propagation());
+        }
+
+        @Test
+        void createFromCheckout_chargesTheTokenNotTheMembersWebBudget() {
+            when(lessonDeliveryRateLimiter.tryChargeProposal(principal.tokenId())).thenReturn(Optional.of(Duration.ofSeconds(1)));
+
+            assertThrows(TooManyRequestsException.class, () -> service.create(principal, repoWideLesson));
+
+            verify(lessonDeliveryRateLimiter, never()).tryChargeUserLesson(any());
         }
     }
 }

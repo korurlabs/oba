@@ -30,6 +30,7 @@ public final class LessonConstant {
     public static final String FIELD_POLICY = "policy";
     public static final String POLICY_USER_READS_AT_ONCE = "user-reads-at-once";
     public static final String POLICY_ORGANIZATION_READS_AT_ONCE = "organization-reads-at-once";
+    public static final String POLICY_USER_LESSONS_PER_MINUTE = "user-lessons-per-minute";
 
     // --- Entity attributes read by the list filters ---
     public static final String FIELD_ORGANIZATION_ID = "organizationId";
@@ -106,12 +107,17 @@ public final class LessonConstant {
     // a runaway or hostile token is held to a tenth of its reads. An import of more than 60 new lessons
     // stops at the refusal; run again a minute later, it skips the titles already added and goes on.
     public static final int DELIVERY_PROPOSALS_PER_MINUTE = 60;
+    // Lessons a member adds per minute in the web app, in all their organizations together. A person
+    // writes a lesson in a form, a few a day; every added lesson makes each later read of the
+    // organization longer, so a script that posts with the member's session is held to the budget of
+    // a machine token.
+    public static final int USER_LESSONS_PER_MINUTE = 60;
     public static final long DELIVERY_RATE_WINDOW_SECONDS = 60;
     // Windows of tokens or organizations idle for a while are dropped once a table holds this many, at
     // most once per window.
     public static final int DELIVERY_RATE_TABLE_PRUNE_SIZE = 10_000;
-    // The time limit of one lesson read, a page of the list or a search of the CLI or a page of the web
-    // list, counted from the start of its transaction. A healthy read takes milliseconds, even over
+    // The time limit of one lesson read, a page of the list or a search of the CLI, or a page of the web
+    // list or its filter options, counted from the start of its transaction. A healthy read takes milliseconds, even over
     // thousands of lessons; one that runs for seconds waits on a lock or on a database under strain.
     // Ending it frees its connection of the small pool every request shares, and the CLI at a session
     // start has stopped waiting by then anyway.
@@ -121,8 +127,8 @@ public final class LessonConstant {
     // starts with less than half a second left would get no limit at all; PostgreSQL enforces this one
     // itself, on every statement.
     public static final String DELIVERY_STATEMENT_TIMEOUT = DELIVERY_READ_TIMEOUT_SECONDS + "s";
-    // Lesson reads, pages of the list and searches, that run at the same time on one backend instance,
-    // all organizations together. The budgets above bound the reads that start in a minute, not the
+    // Lesson reads that run at the same time on one backend instance, all organizations together: pages
+    // of the list and searches of the CLI, and pages of the web list and its filter options. The budgets above bound the reads that start in a minute, not the
     // reads that hold a connection at once. A healthy read holds its connection for milliseconds, so
     // this cap only matters once reads slow down; it then keeps them to 4 of the 10 pooled connections
     // (spring.datasource.hikari.maximum-pool-size), and the web app, ingest and every other request

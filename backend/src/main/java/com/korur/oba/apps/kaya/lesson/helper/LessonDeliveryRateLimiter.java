@@ -20,15 +20,16 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.korur.oba.apps.kaya.lesson.constant.LessonConstant;
 
 /**
- * The lesson budgets of the machine tokens: reads per token, reads per user, reads per organization
- * and added lessons per token, each a fixed one-minute window per key, held in memory. Every page of the
+ * The lesson budgets: of the machine tokens, reads per token, reads per user, reads per organization
+ * and added lessons per token, and of the web app, added lessons per user, each a fixed one-minute
+ * window per key, held in memory. Every page of the
  * list and every search makes PostgreSQL pass over all lessons that apply to the checkout, and
  * every added lesson makes each later read longer, so a client that reads or adds without pause
  * could keep the connection pool busy for every tenant. Each budget is far above what the CLI
  * needs; the numbers and their reasons are {@link LessonConstant#DELIVERY_READS_PER_MINUTE},
  * {@link LessonConstant#DELIVERY_USER_READS_PER_MINUTE},
- * {@link LessonConstant#DELIVERY_ORGANIZATION_READS_PER_MINUTE} and
- * {@link LessonConstant#DELIVERY_PROPOSALS_PER_MINUTE}.
+ * {@link LessonConstant#DELIVERY_ORGANIZATION_READS_PER_MINUTE},
+ * {@link LessonConstant#DELIVERY_PROPOSALS_PER_MINUTE} and {@link LessonConstant#USER_LESSONS_PER_MINUTE}.
  *
  * Like the batch budget of {@link com.korur.oba.apps.kaya.ingest.helper.IngestRateLimiter}, every
  * table is per backend instance, with no shared store: each instance grants the whole budget, and
@@ -43,6 +44,7 @@ public class LessonDeliveryRateLimiter {
     private final Budget userReads = new Budget(LessonConstant.DELIVERY_USER_READS_PER_MINUTE);
     private final Budget organizationReads = new Budget(LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE);
     private final Budget proposals = new Budget(LessonConstant.DELIVERY_PROPOSALS_PER_MINUTE);
+    private final Budget userLessons = new Budget(LessonConstant.USER_LESSONS_PER_MINUTE);
 
     /**
      * Charges one read, a page of the list or a search, to the token.
@@ -86,6 +88,17 @@ public class LessonDeliveryRateLimiter {
      */
     public Optional<Duration> tryChargeProposal(UUID tokenId) {
         return proposals.tryCharge(tokenId, Instant.now(clock));
+    }
+
+    /**
+     * Charges one lesson a member adds in the web app to the member, whatever organization it is for.
+     *
+     * @param userId the member who sent the lesson
+     * @return empty when the lesson is within the budget; when the member exhausted it, how long
+     *         until their window ends
+     */
+    public Optional<Duration> tryChargeUserLesson(UUID userId) {
+        return userLessons.tryCharge(userId, Instant.now(clock));
     }
 
     /** The windows the table of token reads holds, expired ones included until they are pruned. */

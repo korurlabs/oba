@@ -22,14 +22,15 @@ import com.korur.oba.dojo.exception.internal.infrastructure.ServiceUnavailableEx
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.apps.kaya.core.exception.enums.ExceptionDomainKayaError;
 import com.korur.oba.apps.kaya.lesson.constant.LessonConstant;
 import com.korur.oba.apps.kaya.lesson.constant.service.LessonServiceLogConstant;
 import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
 
 /**
- * Caps the lesson reads of the machine tokens, pages of the list and searches, that run at the same
- * time on this backend instance. The budgets of {@link LessonDeliveryRateLimiter} bound the reads
+ * Caps the lesson reads that run at the same time on this backend instance: the pages of the list and
+ * the searches of the machine tokens, and the pages of the web list and its filter options. The budgets of {@link LessonDeliveryRateLimiter} bound the reads
  * that start in a minute, not the reads that hold a connection at once: once reads take seconds, a
  * few a second of one organization would hold the whole pool every tenant shares. A read therefore
  * takes a permit of its user ({@link LessonConstant#DELIVERY_USER_CONCURRENT_READS_MAX}), one of its
@@ -49,6 +50,12 @@ import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
  * 429, which names who is over the cap. A user or an organization keeps its entry in its table only
  * while one of its reads runs, so a table never holds more entries than requests in this method.
  * Like the budgets, the caps are per instance.
+ *
+ * The reads of the web app share every cap with those of the machine tokens instead of holding caps
+ * of their own. The instance cap exists to keep lesson reads to a part of the connection pool every
+ * request shares; a second cap for the web would let both kinds together hold more of it, and a web
+ * page of lessons is the same pass over them as a page of the CLI. A member who opens the list asks
+ * for its page and its filter options at once, which the user's cap of two allows.
  */
 @Component
 @RequiredArgsConstructor
@@ -76,6 +83,25 @@ public class LessonDeliveryBulkhead {
      */
     public <T> T run(MachinePrincipal principal, Supplier<T> read) {
         return run(principal.userId(), principal.organizationId(), read);
+    }
+
+    /**
+     * Runs one lesson read of a member in the web app, a page of the list or the filter options,
+     * within the same caps as the reads of the machine tokens.
+     *
+     * @param user           the signed-in member
+     * @param organizationId the organization of the request
+     * @param read           the read, which opens its own transaction
+     * @param <T>            the answer of the read
+     * @return the answer of the read
+     * @throws TooManyRequestsException KAY_SEC_004 when the member already runs
+     *         {@link LessonConstant#DELIVERY_USER_CONCURRENT_READS_MAX} reads on this instance, or the
+     *         organization {@link LessonConstant#DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX}
+     * @throws ServiceUnavailableException GEN_UPS_005 when the instance already runs
+     *         {@link LessonConstant#DELIVERY_CONCURRENT_READS_MAX} reads
+     */
+    public <T> T run(User user, UUID organizationId, Supplier<T> read) {
+        return run(user.getId(), organizationId, read);
     }
 
     private <T> T run(UUID userId, UUID organizationId, Supplier<T> read) {

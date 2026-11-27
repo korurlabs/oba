@@ -537,6 +537,28 @@ class LessonQueryServiceImplUnitTest {
             statements.verify(lessonRepository).findAll(any(Specification.class), any(Pageable.class));
         }
 
+        @Test
+        void getFilters_endsAtTheReadTimeLimit() throws NoSuchMethodException {
+            Transactional filters = transactionOf(LessonQueryServiceImpl.class.getMethod("getFilters", UUID.class));
+
+            assertEquals(LessonConstant.DELIVERY_READ_TIMEOUT_SECONDS, filters.timeout());
+            assertTrue(filters.readOnly());
+        }
+
+        @Test
+        void getFilters_limitsTheStatementTimeBeforeItsFirstQueryAndPassesTheCancelOn() {
+            QueryTimeoutException cancel = new QueryTimeoutException("canceling statement due to statement timeout");
+            when(lessonRepository.findDistinctUserIds(principal.organizationId())).thenThrow(cancel);
+
+            QueryTimeoutException thrown = assertThrows(QueryTimeoutException.class,
+                    () -> service.getFilters(principal.organizationId()));
+
+            assertEquals(cancel, thrown);
+            InOrder statements = inOrder(lessonRepository);
+            statements.verify(lessonRepository).limitStatementTime(LessonConstant.DELIVERY_STATEMENT_TIMEOUT);
+            statements.verify(lessonRepository).findDistinctUserIds(principal.organizationId());
+        }
+
         private static Transactional transactionOf(Method method) {
             Transactional transactional = method.getAnnotation(Transactional.class);
             assertTrue(transactional != null, method.getName() + " has a transaction of its own");

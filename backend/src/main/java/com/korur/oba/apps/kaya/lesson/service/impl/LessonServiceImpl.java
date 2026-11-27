@@ -2,6 +2,7 @@ package com.korur.oba.apps.kaya.lesson.service.impl;
 
 // 1. Framework-level
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 // 2. Third-party
@@ -61,6 +62,20 @@ public class LessonServiceImpl implements LessonService {
     @Transactional
     public LessonDetailResponse create(User user, UUID organizationId, LessonRequest request) {
         return create(user, organizationId, request, null);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void admitCreate(User user) {
+        Optional<Duration> wait = lessonDeliveryRateLimiter.tryChargeUserLesson(user.getId());
+        if (wait.isPresent()) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.LESSON_CREATE_RATE_LIMITED,
+                    user.getId(), LessonConstant.USER_LESSONS_PER_MINUTE);
+            throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.USER_LESSONS_PER_MINUTE,
+                            LessonConstant.FIELD_POLICY, LessonConstant.POLICY_USER_LESSONS_PER_MINUTE),
+                    wait.get());
+        }
     }
 
     @Override

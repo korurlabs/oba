@@ -51,6 +51,8 @@ public final class LessonServiceLogConstant {
             "Refused a lesson read of user {} in organization {}: the organization already runs {} reads on this instance";
     public static final String DELIVERY_INSTANCE_BUSY =
             "Refused a lesson read of user {} in organization {}: this instance already runs {} lesson reads";
+    public static final String LESSON_CREATE_RATE_LIMITED =
+            "Refused a lesson of user {}: they added more than {} lessons in a minute";
     public static final String DELIVERY_PROPOSAL_RATE_LIMITED =
             "Refused a lesson of machine {}: token {} added more than {} lessons in a minute";
 }

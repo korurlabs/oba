@@ -281,6 +281,57 @@ class LessonDeliveryRateLimiterUnitTest {
     }
 
     @Nested
+    class UserLessons {
+
+        @Test
+        void tryChargeUserLesson_withinTheBudget_allowsEveryLesson() {
+            UUID userId = UUID.randomUUID();
+
+            for (int lesson = 0; lesson < LessonConstant.USER_LESSONS_PER_MINUTE; lesson++) {
+                assertTrue(limiter.tryChargeUserLesson(userId).isEmpty());
+            }
+        }
+
+        @Test
+        void tryChargeUserLesson_overTheBudget_refusesThatUserOnlyAndNamesTheWait() {
+            UUID userId = UUID.randomUUID();
+            for (int lesson = 0; lesson < LessonConstant.USER_LESSONS_PER_MINUTE; lesson++) {
+                limiter.tryChargeUserLesson(userId);
+            }
+
+            clock.advance(Duration.ofSeconds(15));
+
+            assertEquals(Optional.of(Duration.ofSeconds(LessonConstant.DELIVERY_RATE_WINDOW_SECONDS - 15)),
+                    limiter.tryChargeUserLesson(userId));
+            assertTrue(limiter.tryChargeUserLesson(UUID.randomUUID()).isEmpty());
+        }
+
+        @Test
+        void tryChargeUserLesson_afterTheWindowEnds_startsAFreshBudget() {
+            UUID userId = UUID.randomUUID();
+            for (int lesson = 0; lesson <= LessonConstant.USER_LESSONS_PER_MINUTE; lesson++) {
+                limiter.tryChargeUserLesson(userId);
+            }
+
+            clock.advance(Duration.ofSeconds(LessonConstant.DELIVERY_RATE_WINDOW_SECONDS));
+
+            assertTrue(limiter.tryChargeUserLesson(userId).isEmpty());
+        }
+
+        @Test
+        void tryChargeUserLesson_keyedLikeAUserOrToken_sharesNothingWithTheOtherBudgets() {
+            UUID id = UUID.randomUUID();
+            for (int lesson = 0; lesson <= LessonConstant.USER_LESSONS_PER_MINUTE; lesson++) {
+                limiter.tryChargeUserLesson(id);
+            }
+
+            assertTrue(limiter.tryChargeProposal(id).isEmpty());
+            assertTrue(limiter.tryChargeUserRead(id).isEmpty());
+            assertTrue(limiter.tryChargeRead(id).isEmpty());
+        }
+    }
+
+    @Nested
     class Pruning {
 
         private void chargeFreshTokens(int tokens) {

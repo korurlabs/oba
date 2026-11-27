@@ -119,8 +119,14 @@ public class LessonQueryServiceImpl implements LessonQueryService {
                 canEdit(user, lesson, admin)));
     }
 
+    /**
+     * The filter options pass over the lessons of the organization for their distinct repositories
+     * and authors, so they end at the time limit of a page of the list.
+     */
     @Override
+    @Transactional(readOnly = true, timeout = LessonConstant.DELIVERY_READ_TIMEOUT_SECONDS)
     public LessonFiltersResponse getFilters(UUID organizationId) {
+        lessonRepository.limitStatementTime(LessonConstant.DELIVERY_STATEMENT_TIMEOUT);
         loggingService.debug(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.READING_FILTERS, organizationId);
         List<UUID> userIds = lessonRepository.findDistinctUserIds(organizationId);
         return lessonMapper.toFiltersResponse(
