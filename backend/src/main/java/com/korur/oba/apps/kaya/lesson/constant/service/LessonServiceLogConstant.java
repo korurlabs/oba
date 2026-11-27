@@ -59,4 +59,6 @@ public final class LessonServiceLogConstant {
             "Refused a lesson of user {}: they added more than {} lessons in a minute";
     public static final String DELIVERY_PROPOSAL_RATE_LIMITED =
             "Refused a lesson of machine {}: token {} added more than {} lessons in a minute";
+    public static final String DELIVERY_PROPOSAL_USER_RATE_LIMITED =
+            "Refused a lesson of machine {}: user {} added more than {} lessons in a minute";
 }

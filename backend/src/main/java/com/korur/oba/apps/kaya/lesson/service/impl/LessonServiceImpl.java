@@ -118,7 +118,6 @@ public class LessonServiceImpl implements LessonService {
     @Override
     @Transactional
     public LessonDeliveryCreatedResponse create(MachinePrincipal principal, LessonDeliveryRequest request) {
-        chargeProposal(principal);
         User user = lessonQueryService.getActingUser(principal);
         UUID organizationId = principal.organizationId();
         UUID repositoryId = request.repoWide() ? null : requireCheckoutRepository(organizationId, request.remoteUrl());
@@ -134,17 +133,28 @@ public class LessonServiceImpl implements LessonService {
     }
 
     /**
-     * Charges one added lesson to the token before anything is read or written, so a refused
-     * lesson costs no query.
+     * Without a transaction, for the reasons of {@link #admitCreate(User)}. The token is charged
+     * before its user, so the refused lessons of one runaway token never use up the lessons of its
+     * user's other machines.
      */
-    private void chargeProposal(MachinePrincipal principal) {
-        Optional<Duration> wait = lessonDeliveryRateLimiter.tryChargeProposal(principal.tokenId());
-        if (wait.isPresent()) {
+    @Override
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void admitCreate(MachinePrincipal principal) {
+        Optional<Duration> tokenWait = lessonDeliveryRateLimiter.tryChargeProposal(principal.tokenId());
+        if (tokenWait.isPresent()) {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_PROPOSAL_RATE_LIMITED,
                     principal.machineId(), principal.tokenId(), LessonConstant.DELIVERY_PROPOSALS_PER_MINUTE);
             throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
                     Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_PROPOSALS_PER_MINUTE,
-                            LessonConstant.FIELD_POLICY, LessonConstant.POLICY_TOKEN_LESSONS_PER_MINUTE), wait.get());
+                            LessonConstant.FIELD_POLICY, LessonConstant.POLICY_TOKEN_LESSONS_PER_MINUTE), tokenWait.get());
+        }
+        Optional<Duration> userWait = lessonDeliveryRateLimiter.tryChargeUserLesson(principal.userId());
+        if (userWait.isPresent()) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_PROPOSAL_USER_RATE_LIMITED,
+                    principal.machineId(), principal.userId(), LessonConstant.USER_LESSONS_PER_MINUTE);
+            throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.USER_LESSONS_PER_MINUTE,
+                            LessonConstant.FIELD_POLICY, LessonConstant.POLICY_USER_LESSONS_PER_MINUTE), userWait.get());
         }
     }
 

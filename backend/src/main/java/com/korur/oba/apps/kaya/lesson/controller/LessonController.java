@@ -192,8 +192,8 @@ public class LessonController {
             @ApiResponse(responseCode = "422", description = "GEN_VAL_001: a field is invalid; KAY_VAL_002: the repository is "
                     + "archived"),
             @ApiResponse(responseCode = "429", description = "KAY_SEC_004: more than 60 lessons added by the user in a "
-                    + "minute, in all their organizations together (errorValues.limit 60, errorValues.policy "
-                    + "user-lessons-per-minute); Retry-After gives the seconds until the window ends"),
+                    + "minute, in all their organizations and with the CLI together (errorValues.limit 60, "
+                    + "errorValues.policy user-lessons-per-minute); Retry-After gives the seconds until the window ends"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<CustomResponse<LessonDetailResponse>> createLesson(

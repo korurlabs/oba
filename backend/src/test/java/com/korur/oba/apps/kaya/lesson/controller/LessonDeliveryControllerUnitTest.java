@@ -5,6 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.MethodParameter;
@@ -37,9 +38,11 @@ import jakarta.validation.Validator;
 
 // 3. Java SDK
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -55,12 +58,15 @@ import com.korur.oba.dojo.exception.handler.mvc_layer.GlobalExceptionHandler;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.apps.kaya.core.exception.enums.ExceptionDomainKayaError;
 import com.korur.oba.apps.kaya.identity.service.KayaUserQueryService;
 import com.korur.oba.apps.kaya.identity.service.OrganizationAccessQueryService;
 import com.korur.oba.apps.kaya.lesson.constant.LessonConstant;
 import com.korur.oba.apps.kaya.lesson.dto.projection.LessonDeliveryProjection;
 import com.korur.oba.apps.kaya.lesson.dto.request.LessonDeliveryQueryRequest;
+import com.korur.oba.apps.kaya.lesson.dto.request.LessonDeliveryRequest;
 import com.korur.oba.apps.kaya.lesson.dto.request.LessonDeliverySearchRequest;
+import com.korur.oba.apps.kaya.lesson.dto.response.LessonDeliveryCreatedResponse;
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDeliveryResponse;
 import com.korur.oba.apps.kaya.lesson.helper.LessonDeliveryBulkhead;
 import com.korur.oba.apps.kaya.lesson.helper.LessonDeliveryRateLimiter;
@@ -78,11 +84,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -296,6 +306,41 @@ class LessonDeliveryControllerUnitTest {
             assertEquals(HttpStatus.OK.value(), unpaged.status());
             assertEquals(100, unpaged.lessons());
             assertNotEquals(paged, unpaged.etag());
+        }
+    }
+
+    /**
+     * A lesson added from a checkout is charged before the transaction that writes it, so a refused
+     * one takes no connection of the pool.
+     */
+    @Nested
+    class AddLesson {
+
+        private final LessonDeliveryRequest request =
+                new LessonDeliveryRequest(REMOTE, "Run the migration first", "The entity landed first.", false, null);
+
+        @Test
+        void addLesson_chargesBeforeTheLessonIsWritten() {
+            when(lessonService.create(principal, request))
+                    .thenReturn(new LessonDeliveryCreatedResponse(UUID.randomUUID(), "https://kaya.example.com/lessons/1"));
+
+            assertEquals(201, controller.addLesson(principal, request).getStatusCode().value());
+
+            InOrder order = inOrder(lessonService);
+            order.verify(lessonService).admitCreate(principal);
+            order.verify(lessonService).create(principal, request);
+        }
+
+        @Test
+        void addLesson_overABudget_writesNothing() {
+            TooManyRequestsException refusal = new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.USER_LESSONS_PER_MINUTE,
+                            LessonConstant.FIELD_POLICY, LessonConstant.POLICY_USER_LESSONS_PER_MINUTE), Duration.ofSeconds(30));
+            doThrow(refusal).when(lessonService).admitCreate(principal);
+
+            assertSame(refusal, assertThrows(TooManyRequestsException.class, () -> controller.addLesson(principal, request)));
+
+            verify(lessonService, never()).create(any(MachinePrincipal.class), any(LessonDeliveryRequest.class));
         }
     }
 

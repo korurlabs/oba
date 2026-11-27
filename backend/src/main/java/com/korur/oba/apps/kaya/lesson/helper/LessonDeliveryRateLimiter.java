@@ -20,8 +20,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.korur.oba.apps.kaya.lesson.constant.LessonConstant;
 
 /**
- * The lesson budgets: of the machine tokens, reads per token and added lessons per token; of the
- * web app, added lessons per user; and of both together, reads per user and reads per organization,
+ * The lesson budgets: of the machine tokens, reads per token and added lessons per token; and of the
+ * tokens and the web app together, reads per user, reads per organization and added lessons per user,
  * each a fixed one-minute window per key, held in memory. Every page of the
  * list and every search makes PostgreSQL pass over all lessons that apply to the checkout, and
  * every added lesson makes each later read longer, so a client that reads or adds without pause
@@ -92,7 +92,8 @@ public class LessonDeliveryRateLimiter {
     }
 
     /**
-     * Charges one lesson a member adds in the web app to the member, whatever organization it is for.
+     * Charges one lesson a member adds, in the web app or with one of their tokens, to the member,
+     * whatever organization it is for.
      *
      * @param userId the member who sent the lesson
      * @return empty when the lesson is within the budget; when the member exhausted it, how long

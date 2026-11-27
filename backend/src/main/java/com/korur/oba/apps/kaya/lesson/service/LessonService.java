@@ -37,9 +37,9 @@ public interface LessonService {
     LessonDetailResponse create(User user, UUID organizationId, LessonRequest request);
 
     /**
-     * Charges one lesson a member adds in the web app to the member's budget. It runs before the
-     * transaction of {@link #create(User, UUID, LessonRequest)}, so a refused lesson takes no
-     * connection of the pool.
+     * Charges one lesson a member adds in the web app to the member's budget, which the lessons
+     * their machine tokens add share. It runs before the transaction of
+     * {@link #create(User, UUID, LessonRequest)}, so a refused lesson takes no connection of the pool.
      *
      * @param user the signed-in member
      * @throws com.korur.oba.dojo.exception.internal.business.TooManyRequestsException KAY_SEC_004 when
@@ -106,11 +106,25 @@ public interface LessonService {
      *         lesson of the repository names a remote the organization does not have
      * @throws com.korur.oba.dojo.exception.internal.business.ValidationException KAY_VAL_002 for
      *         an archived repository
-     * @throws com.korur.oba.dojo.exception.internal.business.TooManyRequestsException KAY_SEC_004
-     *         when the token added more lessons in a minute than
-     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_PROPOSALS_PER_MINUTE}
      */
     LessonDeliveryCreatedResponse create(MachinePrincipal principal, LessonDeliveryRequest request);
+
+    /**
+     * Charges one lesson a machine adds to the budget of its token and then to the budget of its
+     * user, which the lessons the user adds in the web app share, so more tokens give a person no
+     * more lessons. It runs before the transaction of
+     * {@link #create(MachinePrincipal, LessonDeliveryRequest)}, so a refused lesson takes no
+     * connection of the pool.
+     *
+     * @param principal the machine token
+     * @throws com.korur.oba.dojo.exception.internal.business.TooManyRequestsException KAY_SEC_004
+     *         when the token added more lessons in a minute than
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_PROPOSALS_PER_MINUTE},
+     *         or its user more than
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#USER_LESSONS_PER_MINUTE}, from
+     *         every token and the web app together
+     */
+    void admitCreate(MachinePrincipal principal);
 
     /**
      * Deletes a lesson for good, under the same rule as a member's delete, for the user of the token.

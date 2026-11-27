@@ -118,7 +118,9 @@ public final class LessonConstant {
     // Lessons a member adds per minute in the web app, in all their organizations together. A person
     // writes a lesson in a form, a few a day; every added lesson makes each later read of the
     // organization longer, so a script that posts with the member's session is held to the budget of
-    // a machine token.
+    // a machine token. The lessons of the member's machine tokens are charged here too, once their
+    // token allows them: a member may register any number of machines, and without it each would add
+    // 60 more lessons a minute.
     public static final int USER_LESSONS_PER_MINUTE = 60;
     public static final long DELIVERY_RATE_WINDOW_SECONDS = 60;
     // Windows of tokens or organizations idle for a while are dropped once a table holds this many, at

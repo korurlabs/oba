@@ -78,17 +78,21 @@ class LessonServiceImplUnitTest {
                 new LessonMapperImpl(), new DeliveryProposalProperties(WEB_URL), lessonDeliveryRateLimiter, loggingService);
     }
 
+    /**
+     * A lesson added from a checkout is charged before its transaction, to its token and then to its
+     * user, whose budget the lessons added in the web app share.
+     */
     @Nested
     class ProposalRateLimit {
 
         @Test
-        void createFromCheckout_tokenOverTheBudget_throwsTooManyRequestsBeforeAnyReadOrWrite() {
+        void admitCreateFromCheckout_tokenOverTheBudget_throwsTooManyRequestsAndChargesNoUser() {
             // Arrange
             when(lessonDeliveryRateLimiter.tryChargeProposal(principal.tokenId())).thenReturn(Optional.of(Duration.ofSeconds(42)));
 
             // Act
             TooManyRequestsException exception = assertThrows(TooManyRequestsException.class,
-                    () -> service.create(principal, repoWideLesson));
+                    () -> service.admitCreate(principal));
 
             // Assert
             assertEquals(HttpStatus.TOO_MANY_REQUESTS, exception.getStatusCode());
@@ -97,16 +101,59 @@ class LessonServiceImplUnitTest {
             assertEquals(LessonConstant.POLICY_TOKEN_LESSONS_PER_MINUTE,
                     exception.getErrorValues().get(LessonConstant.FIELD_POLICY));
             assertEquals(Duration.ofSeconds(42), exception.getRetryAfter());
+            // A lesson the token may not add costs its user's other machines nothing.
+            verify(lessonDeliveryRateLimiter, never()).tryChargeUserLesson(any());
             verifyNoInteractions(lessonQueryService, repositoryQueryService, lessonRepository);
         }
 
         @Test
-        void createFromCheckout_withinTheBudget_chargesTheTokenOnceAndThenAddsTheLesson() {
+        void admitCreateFromCheckout_userOverTheBudget_throwsTooManyRequestsWithTheUsersLimit() {
+            // Arrange: the user's other tokens or the web app used up the budget this token still has.
+            when(lessonDeliveryRateLimiter.tryChargeProposal(principal.tokenId())).thenReturn(Optional.empty());
+            when(lessonDeliveryRateLimiter.tryChargeUserLesson(principal.userId())).thenReturn(Optional.of(Duration.ofSeconds(25)));
+
+            // Act
+            TooManyRequestsException exception = assertThrows(TooManyRequestsException.class,
+                    () -> service.admitCreate(principal));
+
+            // Assert
+            assertEquals("KAY_SEC_004", exception.getErrorCode());
+            assertEquals(LessonConstant.USER_LESSONS_PER_MINUTE, exception.getErrorValues().get(LessonConstant.FIELD_LIMIT));
+            assertEquals(LessonConstant.POLICY_USER_LESSONS_PER_MINUTE,
+                    exception.getErrorValues().get(LessonConstant.FIELD_POLICY));
+            assertEquals(Duration.ofSeconds(25), exception.getRetryAfter());
+            verifyNoInteractions(lessonQueryService, repositoryQueryService, lessonRepository);
+        }
+
+        @Test
+        void admitCreateFromCheckout_withinTheBudgets_chargesTheTokenAndThenItsUser() {
+            when(lessonDeliveryRateLimiter.tryChargeProposal(principal.tokenId())).thenReturn(Optional.empty());
+            when(lessonDeliveryRateLimiter.tryChargeUserLesson(principal.userId())).thenReturn(Optional.empty());
+
+            service.admitCreate(principal);
+
+            InOrder charges = inOrder(lessonDeliveryRateLimiter);
+            charges.verify(lessonDeliveryRateLimiter).tryChargeProposal(principal.tokenId());
+            charges.verify(lessonDeliveryRateLimiter).tryChargeUserLesson(principal.userId());
+            verifyNoMoreInteractions(lessonDeliveryRateLimiter);
+            verifyNoInteractions(lessonQueryService, repositoryQueryService, lessonRepository);
+        }
+
+        @Test
+        void admitCreateFromCheckout_runsOutsideAnyTransaction() throws NoSuchMethodException {
+            // A refused lesson must not take a connection of the pool, which a transaction takes when it begins.
+            Transactional transactional = LessonServiceImpl.class.getMethod("admitCreate", MachinePrincipal.class)
+                    .getAnnotation(Transactional.class);
+
+            assertEquals(Propagation.NOT_SUPPORTED, transactional.propagation());
+        }
+
+        @Test
+        void createFromCheckout_addsTheLessonWithoutACharge_becauseItsAdmissionCharged() {
             // Arrange
             User user = User.builder().build();
             user.setId(principal.userId());
             UUID lessonId = UUID.randomUUID();
-            when(lessonDeliveryRateLimiter.tryChargeProposal(principal.tokenId())).thenReturn(Optional.empty());
             when(lessonQueryService.getActingUser(principal)).thenReturn(user);
             when(lessonRepository.save(any(Lesson.class))).thenAnswer(invocation -> {
                 Lesson lesson = invocation.getArgument(0);
@@ -122,10 +169,8 @@ class LessonServiceImplUnitTest {
 
             // Assert
             assertEquals(lessonId, created.id());
-            InOrder order = inOrder(lessonDeliveryRateLimiter, lessonQueryService, lessonRepository);
-            order.verify(lessonDeliveryRateLimiter).tryChargeProposal(principal.tokenId());
-            order.verify(lessonQueryService).getActingUser(principal);
-            order.verify(lessonRepository).save(any(Lesson.class));
+            verify(lessonRepository).save(any(Lesson.class));
+            verifyNoInteractions(lessonDeliveryRateLimiter);
         }
     }
 
@@ -170,15 +215,6 @@ class LessonServiceImplUnitTest {
                     .getAnnotation(Transactional.class);
 
             assertEquals(Propagation.NOT_SUPPORTED, transactional.propagation());
-        }
-
-        @Test
-        void createFromCheckout_chargesTheTokenNotTheMembersWebBudget() {
-            when(lessonDeliveryRateLimiter.tryChargeProposal(principal.tokenId())).thenReturn(Optional.of(Duration.ofSeconds(1)));
-
-            assertThrows(TooManyRequestsException.class, () -> service.create(principal, repoWideLesson));
-
-            verify(lessonDeliveryRateLimiter, never()).tryChargeUserLesson(any());
         }
     }
 }

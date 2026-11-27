@@ -159,8 +159,9 @@ public class LessonDeliveryController {
             @ApiResponse(responseCode = "422", description = "KAY_VAL_002: repository archived; GEN_VAL_001: a field "
                     + "missing or out of range, claudeSessionId not a session id"),
             @ApiResponse(responseCode = "429", description = "KAY_SEC_004: more than 60 lessons added by the token in a "
-                    + "minute (errorValues.limit 60, errorValues.policy token-lessons-per-minute); Retry-After gives the "
-                    + "seconds until the window ends"),
+                    + "minute (errorValues.limit 60, errorValues.policy token-lessons-per-minute), or more than 60 by its "
+                    + "user, all tokens and the web app together (errorValues.limit 60, errorValues.policy "
+                    + "user-lessons-per-minute); Retry-After gives the seconds until the window ends"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<CustomResponse<LessonDeliveryCreatedResponse>> addLesson(
@@ -168,6 +169,8 @@ public class LessonDeliveryController {
             @Valid @RequestBody LessonDeliveryRequest request) {
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, LessonControllerLogConstant.DELIVERY_CREATE_REQUEST,
                 principal.machineId());
+        // Charged before the transaction of the lesson, so a refused one takes no connection.
+        lessonService.admitCreate(principal);
         LessonDeliveryCreatedResponse response = lessonService.create(principal, request);
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, LessonControllerLogConstant.DELIVERY_CREATE_COMPLETED,
                 response.id(), principal.machineId());
