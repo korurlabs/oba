@@ -42,6 +42,8 @@ public interface MachineRepository extends JpaRepository<Machine, UUID>, JpaSpec
     /**
      * Loads a machine of the organization with a row lock held until the transaction ends, so a
      * rotation, a revocation, a retirement and a revoke all of its user run one after the other.
+     * On PostgreSQL Hibernate takes this write lock as FOR NO KEY UPDATE: it waits for the other
+     * write locks on the machine, but not for the FOR KEY SHARE that a foreign key check takes on it.
      * The user is not fetched here, because a join would lock the user row as well.
      *
      * @param id             the machine id

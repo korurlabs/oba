@@ -251,6 +251,10 @@ public class MachineServiceImpl implements MachineService {
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public Machine lockActiveMachine(MachinePrincipal principal) {
+        // A batch that opens a session has already inserted it, and the insert's foreign key check holds
+        // FOR KEY SHARE on this machine. The lock here is FOR NO KEY UPDATE, which that share does not
+        // block, so two sessions a machine opens at once are stored one after the other instead of
+        // deadlocking, while a rotation, a revocation or a retirement still waits for the batch.
         Optional<Machine> machine = machineRepository.findByIdAndOrganizationIdForUpdate(principal.machineId(),
                 principal.organizationId());
         if (machine.isEmpty() || machine.get().getStatus() != MachineStatus.ACTIVE) {
