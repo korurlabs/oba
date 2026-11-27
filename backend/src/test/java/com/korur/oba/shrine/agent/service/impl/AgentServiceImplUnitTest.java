@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
@@ -25,6 +26,7 @@ import java.util.Set;
 import java.util.UUID;
 
 // 4. Internal
+import com.korur.oba.apps.kaya.machine.service.MachineService;
 import com.korur.oba.dojo.audit.dto.request.AuditLogRequest;
 import com.korur.oba.dojo.audit.mapper.AuditLogMapper;
 import com.korur.oba.dojo.audit.service.AuditService;
@@ -81,6 +83,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -111,6 +114,8 @@ class AgentServiceImplUnitTest {
     @Mock
     private AgentRoutineService agentRoutineService;
     @Mock
+    private MachineService machineService;
+    @Mock
     private AuditLogMapper auditLogMapper;
     @Mock
     private AuditService auditService;
@@ -131,7 +136,7 @@ class AgentServiceImplUnitTest {
         AgentHelper agentHelper = new AgentHelper(appAccessQueryService, auditLogMapper, auditService);
         AgentValidator agentValidator = new AgentValidator(userQueryService, loggingService);
         agentService = new AgentServiceImpl(userService, agentQueryService, organizationMemberService,
-                organizationMemberQueryService, appAccessService, apiTokenService, agentRoutineService,
+                organizationMemberQueryService, appAccessService, apiTokenService, agentRoutineService, machineService,
                 new AgentFlowHelper(), agentHelper, agentValidator, agentMapper, applicationEventPublisher,
                 loggingService);
         actor = User.builder().id(UUID.randomUUID()).email("admin@example.com").build();
@@ -301,6 +306,7 @@ class AgentServiceImplUnitTest {
                 .status(OrganizationMemberStatus.ACTIVE).build();
         when(agentQueryService.getAgentEntity(organizationId, agent.getId())).thenReturn(agent);
         when(organizationMemberQueryService.findMember(organizationId, agent.getId())).thenReturn(Optional.of(member));
+        when(machineService.retireAllOfUser(organizationId, agent.getId())).thenReturn(2);
 
         agentService.updateStatus(actor, organizationId, agent.getId(),
                 new AgentStatusUpdateRequest(OrganizationMemberStatus.DISABLED));
@@ -309,8 +315,12 @@ class AgentServiceImplUnitTest {
         assertEquals(OrganizationMemberStatus.DISABLED, member.getStatus());
         verify(organizationMemberService).saveMember(member);
         verify(apiTokenService, never()).revoke(any(), any());
+        verify(machineService).retireAllOfUser(organizationId, agent.getId());
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> newValues = ArgumentCaptor.forClass(Map.class);
         verify(auditLogMapper).toRequest(eq(organizationId), eq(actor.getId()), eq("AGENT_STATUS_CHANGED"), eq("Agent"),
-                eq(agent.getId()), any(), any());
+                eq(agent.getId()), any(), newValues.capture());
+        assertEquals(Map.of("status", "DISABLED", "retiredMachines", 2), newValues.getValue());
         verify(applicationEventPublisher).publishEvent(AccessRevokedEvent.member(agent.getId(), organizationId));
     }
 
@@ -328,7 +338,7 @@ class AgentServiceImplUnitTest {
 
         verify(userService).updateAgentUser(agent, null, null, UserStatus.ACTIVE);
         assertEquals(OrganizationMemberStatus.ACTIVE, member.getStatus());
-        verifyNoInteractions(applicationEventPublisher);
+        verifyNoInteractions(applicationEventPublisher, machineService);
     }
 
     @Test
@@ -366,9 +376,13 @@ class AgentServiceImplUnitTest {
         ApiToken token = token(agent.getId());
         when(agentQueryService.getAgentEntity(organizationId, agent.getId())).thenReturn(agent);
         when(apiTokenService.revoke(ApiTokenKind.AGENT, agent.getId())).thenReturn(Optional.of(token));
+        when(machineService.retireAllOfUser(organizationId, agent.getId())).thenReturn(1);
 
         agentService.deleteAgent(actor, organizationId, agent.getId());
 
+        InOrder order = inOrder(machineService, userService);
+        order.verify(machineService).retireAllOfUser(organizationId, agent.getId());
+        order.verify(userService).deleteAgentUser(agent);
         verify(agentRoutineService).remove(actor, organizationId, agent.getId());
         verify(appAccessService).removeMemberAccess(actor, organizationId, agent.getId());
         verify(userService).deleteAgentUser(agent);
@@ -377,6 +391,7 @@ class AgentServiceImplUnitTest {
         verify(auditLogMapper).toRequest(eq(organizationId), eq(actor.getId()), eq("AGENT_DELETED"), eq("Agent"),
                 eq(agent.getId()), any(), newValues.capture());
         assertEquals(token.getId().toString(), newValues.getValue().get("revokedTokenId"));
+        assertEquals(1, newValues.getValue().get("retiredMachines"));
         verify(applicationEventPublisher).publishEvent(AccessRevokedEvent.member(agent.getId(), organizationId));
     }
 

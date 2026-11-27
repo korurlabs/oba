@@ -74,12 +74,14 @@ public interface MachineQueryService {
 
     /**
      * Builds the caller of a live machine token, for the token chain. A token outlives the retirement of
-     * its machine only as a row: a machine that is no longer ACTIVE may not record or read anything.
+     * its machine only as a row: a machine that is no longer ACTIVE may not record or read anything, and
+     * neither may the machine of an agent that is no longer ACTIVE.
      *
      * @param organizationId the organization of the token
      * @param machineId      the machine the token was issued to
      * @param tokenId        the token that authenticated the request
-     * @return the principal, or empty when the organization has no such machine or it is not ACTIVE
+     * @return the principal, or empty when the organization has no such machine, it is not ACTIVE, or
+     *         its user is an agent that is not ACTIVE
      */
     Optional<MachinePrincipal> findActivePrincipal(UUID organizationId, UUID machineId, UUID tokenId);
 }

@@ -47,6 +47,9 @@ import com.korur.oba.apps.kaya.session.service.SessionCountQueryService;
 import com.korur.oba.dojo.security.token.entity.ApiToken;
 import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
 import com.korur.oba.dojo.security.token.service.ApiTokenQueryService;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
+import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.shrine.identity.enums.UserStatus;
 
 @Service
 @RequiredArgsConstructor
@@ -146,6 +149,14 @@ public class MachineQueryServiceImpl implements MachineQueryService {
     public Optional<MachinePrincipal> findActivePrincipal(UUID organizationId, UUID machineId, UUID tokenId) {
         Optional<Machine> found = machineRepository.findByIdAndOrganizationId(machineId, organizationId);
         if (found.isEmpty() || found.get().getStatus() != MachineStatus.ACTIVE) {
+            return Optional.empty();
+        }
+        User user = found.get().getUser();
+        // Ingest skips the request's user check, so a disabled agent is refused here, before its token
+        // records anything. A person keeps the user check of each delivery call alone.
+        if (AgentValidator.isAgent(user) && user.getStatus() != UserStatus.ACTIVE) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.MACHINE_USER_NOT_ACTIVE,
+                    machineId, organizationId);
             return Optional.empty();
         }
         return Optional.of(machineMapper.toPrincipal(found.get(), tokenId));

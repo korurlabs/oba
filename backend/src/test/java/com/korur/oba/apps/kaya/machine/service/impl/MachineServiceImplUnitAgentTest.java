@@ -4,6 +4,7 @@ package com.korur.oba.apps.kaya.machine.service.impl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -11,7 +12,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -19,6 +22,7 @@ import static org.mockito.Mockito.when;
 // 3. Java SDK
 import java.time.Clock;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -49,7 +53,8 @@ import com.korur.oba.shrine.identity.service.UserQueryService;
 /**
  * Runs the machine changes through the real {@link AgentValidator}: an agent never mints a Kaya
  * credential itself, nor revokes or retires the machine its runs record with, while an admin may
- * register a machine for an agent, whose hosted runs record their sessions with its token.
+ * register a machine for an agent and rotate its token, whose hosted runs record their sessions with it.
+ * The agent's machines end with the agent.
  */
 @ExtendWith(MockitoExtension.class)
 class MachineServiceImplUnitAgentTest {
@@ -124,6 +129,64 @@ class MachineServiceImplUnitAgentTest {
     }
 
     @Test
+    void rotateToken_adminForAgentsMachine_issuesTheAgentsMachineToken() {
+        User admin = user(UserKind.HUMAN);
+        User agent = user(UserKind.AGENT);
+        Machine machine = machineOf(agent);
+        when(machineRepository.findByIdAndOrganizationIdForUpdate(machine.getId(), organizationId))
+                .thenReturn(Optional.of(machine));
+        ApiToken token = ApiToken.builder().tokenPrefix("kyt_abcd").expiresAt(Instant.now()).build();
+        token.setId(UUID.randomUUID());
+        when(apiTokenService.issue(ApiTokenKind.KAYA_MACHINE, machine.getId(), agent, organizationId))
+                .thenReturn(new IssuedApiToken(token, "kyt_plaintext", UUID.randomUUID()));
+
+        machineService.rotateToken(admin, organizationId, machine.getId());
+
+        verify(userAccessHelper).requireAdminOrSelf(admin, organizationId, agent.getId());
+        verify(apiTokenService).issue(ApiTokenKind.KAYA_MACHINE, machine.getId(), agent, organizationId);
+    }
+
+    @Test
+    void rotateToken_adminForAPersonsMachine_throwsForbiddenAndIssuesNothing() {
+        User admin = user(UserKind.HUMAN);
+        User person = user(UserKind.HUMAN);
+        Machine machine = machineOf(person);
+        when(machineRepository.findByIdAndOrganizationIdForUpdate(machine.getId(), organizationId))
+                .thenReturn(Optional.of(machine));
+
+        ForbiddenException exception = assertThrows(ForbiddenException.class,
+                () -> machineService.rotateToken(admin, organizationId, machine.getId()));
+
+        assertEquals("GEN_SEC_003", exception.getErrorCode());
+        verifyNoInteractions(userAccessHelper, apiTokenService);
+    }
+
+    @Test
+    void retireAllOfUser_revokesEveryMachineTokenAndRetiresTheActiveMachines() {
+        User agent = user(UserKind.AGENT);
+        Machine withToken = machineOf(agent);
+        Machine withoutToken = machineOf(agent);
+        when(machineRepository.findByOrganizationIdAndUserIdForUpdate(organizationId, agent.getId()))
+                .thenReturn(List.of(withToken, withoutToken));
+        ApiToken token = ApiToken.builder().tokenPrefix("kyt_abcd").expiresAt(Instant.now()).build();
+        token.setId(UUID.randomUUID());
+        when(apiTokenService.revoke(ApiTokenKind.KAYA_MACHINE, withToken.getId())).thenReturn(Optional.of(token));
+        when(apiTokenService.revoke(ApiTokenKind.KAYA_MACHINE, withoutToken.getId())).thenReturn(Optional.empty());
+        when(machineRepository.retireActiveByOrganizationIdAndUserId(organizationId, agent.getId())).thenReturn(2);
+
+        int retired = machineService.retireAllOfUser(organizationId, agent.getId());
+
+        assertEquals(2, retired);
+        InOrder order = inOrder(kayaUserQueryService, machineRepository);
+        order.verify(kayaUserQueryService).getMemberEntityForUpdate(organizationId, agent.getId());
+        order.verify(machineRepository).findByOrganizationIdAndUserIdForUpdate(organizationId, agent.getId());
+        order.verify(machineRepository).retireActiveByOrganizationIdAndUserId(organizationId, agent.getId());
+        verify(apiTokenService).revoke(ApiTokenKind.KAYA_MACHINE, withToken.getId());
+        verify(apiTokenService).revoke(ApiTokenKind.KAYA_MACHINE, withoutToken.getId());
+        verify(apiTokenService, never()).revoke(ApiTokenKind.AGENT, agent.getId());
+    }
+
+    @Test
     void revokeToken_agentCaller_throwsForbiddenAndRevokesNothing() {
         User agent = user(UserKind.AGENT);
 
@@ -158,6 +221,13 @@ class MachineServiceImplUnitAgentTest {
 
         assertEquals("AGT_SEC_002", exception.getErrorCode());
         verifyNoInteractions(machineRepository, apiTokenService);
+    }
+
+    private Machine machineOf(User owner) {
+        Machine machine = Machine.builder().organizationId(organizationId).user(owner).machineName("cloud")
+                .status(MachineStatus.ACTIVE).build();
+        machine.setId(UUID.randomUUID());
+        return machine;
     }
 
     private static User user(UserKind kind) {

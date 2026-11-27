@@ -29,6 +29,7 @@ public final class AgentConstant {
     public static final String FIELD_TOKEN_PREFIX = "tokenPrefix";
     public static final String FIELD_EXPIRES_AT = "expiresAt";
     public static final String FIELD_REVOKED_TOKEN_ID = "revokedTokenId";
+    public static final String FIELD_RETIRED_MACHINES = "retiredMachines";
     public static final String FIELD_SOFT_DELETED = "softDeleted";
     public static final String FIELD_ACTION = "action";
     public static final String FIELD_USER_ID = "userId";

@@ -45,9 +45,10 @@ public interface MachineService {
     /**
      * Issues a new token to a machine and revokes its live one in the same transaction, audited as
      * TOKEN_ROTATED, or TOKEN_ISSUED when the machine had no live token. Only the machine's own user
-     * may do this, because only they can put the token on the machine.
+     * may do this, because only they can put the token on the machine. An agent's machine is rotated
+     * by an ADMIN instead, because an agent never mints a credential.
      *
-     * @param actor          the user of the machine
+     * @param actor          the user of the machine, or an ADMIN when that user is an agent
      * @param organizationId the organization of the request
      * @param machineId        the machine
      * @return the new plaintext token, shown only here
@@ -77,6 +78,19 @@ public interface MachineService {
      * @return the machine
      */
     MachineResponse updateMachine(User actor, UUID organizationId, UUID machineId, MachineUpdateRequest request);
+
+    /**
+     * Retires every ACTIVE machine of a user in one organization and revokes the live token of each of
+     * the user's machines, so no machine token outlives an agent that is disabled or deleted. It writes
+     * no audit entry; the caller writes one for the whole action.
+     *
+     * @param organizationId the organization whose machines are retired
+     * @param userId         the user whose machines are retired
+     * @return the number of machines retired
+     * @throws com.korur.oba.dojo.exception.internal.business.NotFoundException KAY_NF_001 when the
+     *         user is not a member of the organization
+     */
+    int retireAllOfUser(UUID organizationId, UUID userId);
 
     /**
      * Records that the recorder of a machine sent a batch: the Claude Code version and the

@@ -151,13 +151,15 @@ public class MachineController {
     @PostMapping("/{id}/token")
     @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "Issue a new token to a machine",
-            description = "Only the machine's own user; the live token is revoked in the same transaction. "
-                    + "Audited as TOKEN_ROTATED, or TOKEN_ISSUED when there was no live token")
+            description = "Only the machine's own user, or an ADMIN or OWNER for an agent's machine; the live token "
+                    + "is revoked in the same transaction. Audited as TOKEN_ROTATED, or TOKEN_ISSUED when there was no "
+                    + "live token")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Token issued"),
             @ApiResponse(responseCode = "400", description = "X-Organization-ID missing or not a UUID"),
             @ApiResponse(responseCode = "401", description = "No valid JWT"),
-            @ApiResponse(responseCode = "403", description = "GEN_SEC_003: the caller is not the machine's user"),
+            @ApiResponse(responseCode = "403", description = "GEN_SEC_003: the caller is not the machine's user, nor "
+                    + "an ADMIN or OWNER for an agent's machine; AGT_SEC_002: the caller is an agent"),
             @ApiResponse(responseCode = "404", description = "KAY_NF_001: no such machine in the organization"),
             @ApiResponse(responseCode = "409", description = "KAY_VAL_011: the machine is retired"),
             @ApiResponse(responseCode = "500", description = "Internal server error")

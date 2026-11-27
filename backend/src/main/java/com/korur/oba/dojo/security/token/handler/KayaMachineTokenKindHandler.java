@@ -79,8 +79,8 @@ public class KayaMachineTokenKindHandler implements ApiTokenKindHandler {
     }
 
     /**
-     * @throws UnauthorizedException KAY_SEC_003 when the token's organization has no such machine or the
-     *                               machine is not ACTIVE
+     * @throws UnauthorizedException KAY_SEC_003 when the token's organization has no such machine, the
+     *                               machine is not ACTIVE, or its user is an agent that is not ACTIVE
      */
     @Override
     public ApiTokenPrincipal resolvePrincipal(ApiToken token) {
