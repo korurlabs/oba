@@ -18,6 +18,7 @@ import com.korur.oba.shrine.organization.dto.response.OrganizationDetailResponse
 import com.korur.oba.shrine.organization.dto.response.OrganizationListResponse;
 import com.korur.oba.shrine.organization.entity.Organization;
 import com.korur.oba.shrine.organization.entity.OrganizationMember;
+import com.korur.oba.shrine.organization.enums.OrganizationStatus;
 import com.korur.oba.shrine.organization.mapper.OrganizationMapper;
 import com.korur.oba.shrine.organization.repository.OrganizationMemberRepository;
 import com.korur.oba.shrine.organization.repository.OrganizationRepository;
@@ -69,6 +70,11 @@ public class OrganizationQueryServiceImpl implements OrganizationQueryService {
     @Override
     public Organization getOrganizationEntityById(UUID organizationId) {
         return organizationValidator.ensureOrganizationExists(organizationId);
+    }
+
+    @Override
+    public boolean isOrganizationActive(UUID organizationId) {
+        return organizationRepository.existsByIdAndStatus(organizationId, OrganizationStatus.ACTIVE);
     }
 
     /**

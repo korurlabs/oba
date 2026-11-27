@@ -40,6 +40,15 @@ public interface OrganizationQueryService {
     Organization getOrganizationEntityById(UUID organizationId);
 
     /**
+     * Tells whether the organization is ACTIVE, for a caller that refuses a request in an organization
+     * that is disabled or deleted instead of failing on it.
+     *
+     * @param organizationId the organization ID
+     * @return true when the organization exists, is not deleted and is ACTIVE
+     */
+    boolean isOrganizationActive(UUID organizationId);
+
+    /**
      * Retrieves all organization IDs.
      * Used by scheduled tasks that need to iterate over all organizations.
      *

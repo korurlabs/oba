@@ -50,6 +50,10 @@ import com.korur.oba.dojo.security.token.service.ApiTokenQueryService;
 import com.korur.oba.shrine.agent.validator.AgentValidator;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.identity.enums.UserStatus;
+import com.korur.oba.shrine.organization.entity.OrganizationMember;
+import com.korur.oba.shrine.organization.enums.OrganizationMemberStatus;
+import com.korur.oba.shrine.organization.service.OrganizationMemberQueryService;
+import com.korur.oba.shrine.organization.service.OrganizationQueryService;
 
 @Service
 @RequiredArgsConstructor
@@ -62,6 +66,8 @@ public class MachineQueryServiceImpl implements MachineQueryService {
     private final ApiTokenQueryService apiTokenQueryService;
     private final MachineUsageQueryService machineUsageQueryService;
     private final SessionCountQueryService sessionCountQueryService;
+    private final OrganizationQueryService organizationQueryService;
+    private final OrganizationMemberQueryService organizationMemberQueryService;
     private final MachineMapper machineMapper;
     private final Clock clock;
     private final LoggingService loggingService;
@@ -152,10 +158,26 @@ public class MachineQueryServiceImpl implements MachineQueryService {
             return Optional.empty();
         }
         User user = found.get().getUser();
-        // Ingest skips the request's user check, so a disabled agent is refused here, before its token
-        // records anything. A person keeps the user check of each delivery call alone.
-        if (AgentValidator.isAgent(user) && user.getStatus() != UserStatus.ACTIVE) {
-            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.MACHINE_USER_NOT_ACTIVE,
+        // Ingest skips the request's user, membership and organization checks, so they are made here,
+        // before the token records anything: an agent that is disabled or no longer an active member, and
+        // every machine of a disabled organization, are refused. Each reads the current state, so the token
+        // works again once the agent or the organization is enabled. A person keeps the user and
+        // membership checks of each delivery call alone.
+        if (AgentValidator.isAgent(user)) {
+            if (user.getStatus() != UserStatus.ACTIVE) {
+                loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.MACHINE_USER_NOT_ACTIVE,
+                        machineId, organizationId);
+                return Optional.empty();
+            }
+            Optional<OrganizationMember> member = organizationMemberQueryService.findMember(organizationId, user.getId());
+            if (member.isEmpty() || member.get().getStatus() != OrganizationMemberStatus.ACTIVE) {
+                loggingService.warn(LOG_PREFIX, LogLayer.SERVICE,
+                        MachineServiceLogConstant.MACHINE_MEMBERSHIP_NOT_ACTIVE, machineId, organizationId);
+                return Optional.empty();
+            }
+        }
+        if (!organizationQueryService.isOrganizationActive(organizationId)) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.MACHINE_ORGANIZATION_NOT_ACTIVE,
                     machineId, organizationId);
             return Optional.empty();
         }

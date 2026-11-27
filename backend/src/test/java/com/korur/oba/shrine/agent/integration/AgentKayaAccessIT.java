@@ -32,7 +32,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * its sessions or cut off its machine. A person's JWT keeps working there, and the {@code kyt_} machine token
  * an admin registered for the agent still records sessions and reads delivery, but writes no lesson, proposes
  * no configuration, takes over no person's spec and ends when the agent is disabled, deleted or loses its Kaya
- * grant, on the Agents page or the app grants page.
+ * grant, on the Agents page or the app grants page. While the organization is disabled, its machine tokens, the
+ * agent's and a person's, record nothing.
  */
 class AgentKayaAccessIT extends AbstractAgentIT {
 
@@ -252,6 +253,39 @@ class AgentKayaAccessIT extends AbstractAgentIT {
                 .andExpect(status().isOk());
         mockMvc.perform(ingestBatch(machineToken, "sess-" + uniqueSuffix()))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void machineTokens_whileTheOrganizationIsDisabled_answer401OnIngestAndWorkAgainOnceItIsEnabled()
+            throws Exception {
+        Tenant tenant = newTenant();
+        String agentToken = read(registerMachine(tenant, routineAgent(tenant)), "$.data.token");
+        String ownerToken = read(mockMvc.perform(in(tenant, post("/kaya/machines"), ownerJwt(tenant),
+                        "{\"machineName\":\"laptop\"}"))
+                .andExpect(status().isCreated())
+                .andReturn(), "$.data.token");
+
+        mockMvc.perform(in(tenant, patch("/organizations/" + tenant.id() + "/status"), ownerJwt(tenant),
+                        "{\"status\":\"DISABLED\"}"))
+                .andExpect(status().isOk());
+
+        for (String machineToken : List.of(agentToken, ownerToken)) {
+            mockMvc.perform(ingestBatch(machineToken, "sess-" + uniqueSuffix()))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.error.code").value("KAY_SEC_003"));
+        }
+        assertEquals(0L, count("SELECT count(*) FROM kaya.sessions WHERE organization_id = ?::uuid", tenant.id()));
+
+        // The disable retired nothing, so enabling the organization again is all the tokens need.
+        mockMvc.perform(in(tenant, patch("/organizations/" + tenant.id() + "/status"), ownerJwt(tenant),
+                        "{\"status\":\"ACTIVE\"}"))
+                .andExpect(status().isOk());
+
+        for (String machineToken : List.of(agentToken, ownerToken)) {
+            mockMvc.perform(ingestBatch(machineToken, "sess-" + uniqueSuffix()))
+                    .andExpect(status().isOk());
+        }
+        assertEquals(2L, count("SELECT count(*) FROM kaya.sessions WHERE organization_id = ?::uuid", tenant.id()));
     }
 
     @Test

@@ -23,6 +23,8 @@ public final class MachineServiceLogConstant {
     public static final String READING_MACHINE = "Reading machine {} of organization {}";
     public static final String MACHINE_NOT_FOUND = "Machine {} not found in organization {}";
     public static final String MACHINE_USER_NOT_ACTIVE = "Refused: the agent of machine {} of organization {} is not active";
+    public static final String MACHINE_MEMBERSHIP_NOT_ACTIVE = "Refused: the agent of machine {} has no active membership of organization {}";
+    public static final String MACHINE_ORGANIZATION_NOT_ACTIVE = "Refused: machine {} belongs to organization {}, which is not active";
 
     // --- Access ---
     public static final String SELF_REQUIRED = "Refused: user {} is not user {}, which owns machine {}";
