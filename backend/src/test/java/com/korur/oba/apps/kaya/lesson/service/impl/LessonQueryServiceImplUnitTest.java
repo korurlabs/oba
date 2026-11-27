@@ -30,6 +30,7 @@ import java.util.UUID;
 import java.util.stream.IntStream;
 
 // 4. Internal
+import com.korur.oba.dojo.constant.CommonConstant;
 import com.korur.oba.dojo.exception.internal.business.ConflictException;
 import com.korur.oba.dojo.exception.internal.business.TooManyRequestsException;
 import com.korur.oba.dojo.exception.internal.business.ValidationException;
@@ -330,6 +331,71 @@ class LessonQueryServiceImplUnitTest {
 
             assertEquals(Propagation.NOT_SUPPORTED, list.propagation());
             assertEquals(Propagation.NOT_SUPPORTED, search.propagation());
+        }
+    }
+
+    /**
+     * The service refuses a page or a size out of range by itself, with the field and message of the
+     * request check, so the page number it subtracts from never depends on that check alone.
+     */
+    @Nested
+    class Paging {
+
+        @Test
+        void listForCheckout_pageBelowTheFirst_isRefusedBeforeAnyLookup() {
+            for (int page : new int[] {0, -1, Integer.MIN_VALUE}) {
+                ValidationException exception = assertThrows(ValidationException.class,
+                        () -> service.listForCheckout(principal, request(page, null, null)));
+
+                assertEquals("GEN_VAL_001", exception.getErrorCode());
+                assertEquals(CommonConstant.PAGE_MIN_MESSAGE, exception.getErrorValues().get("page"));
+            }
+            verifyNoInteractions(repositoryQueryService);
+            verify(lessonRepository, never()).findDeliveryState(any(), any());
+            verify(lessonRepository, never()).findDeliveryLessons(any(), any(), any());
+        }
+
+        @Test
+        void listForCheckout_amountOutOfRange_isRefusedBeforeAnyLookup() {
+            ValidationException none = assertThrows(ValidationException.class,
+                    () -> service.listForCheckout(principal, request(1, 0, null)));
+            ValidationException tooMany = assertThrows(ValidationException.class,
+                    () -> service.listForCheckout(principal, request(1, LessonConstant.DELIVERY_MAX_AMOUNT + 1, null)));
+
+            assertEquals(CommonConstant.AMOUNT_MIN_MESSAGE, none.getErrorValues().get("amount"));
+            assertEquals(LessonConstant.AMOUNT_MAX_MESSAGE, tooMany.getErrorValues().get("amount"));
+            verifyNoInteractions(repositoryQueryService);
+            verify(lessonRepository, never()).findDeliveryState(any(), any());
+        }
+
+        @Test
+        void listForCheckout_firstPageAndLargestAmount_areRead() {
+            givenLessons(rows(3));
+
+            Page<LessonDeliveryResponse> page = service.listForCheckout(principal,
+                    request(LessonConstant.MIN_PAGE, LessonConstant.DELIVERY_MAX_AMOUNT, null)).lessons();
+
+            assertEquals(3, page.getNumberOfElements());
+            assertEquals(LessonConstant.DELIVERY_MAX_AMOUNT, page.getSize());
+        }
+
+        @Test
+        void listLessons_pageOrAmountOutOfRange_isRefusedWithoutAQuery() {
+            User user = User.builder().id(UUID.randomUUID()).build();
+            LessonQueryRequest belowFirst = new LessonQueryRequest();
+            belowFirst.setPage(0);
+            LessonQueryRequest tooMany = new LessonQueryRequest();
+            tooMany.setAmount(LessonConstant.LIST_MAX_AMOUNT + 1);
+
+            ValidationException page = assertThrows(ValidationException.class,
+                    () -> service.listLessons(user, principal.organizationId(), belowFirst));
+            ValidationException amount = assertThrows(ValidationException.class,
+                    () -> service.listLessons(user, principal.organizationId(), tooMany));
+
+            assertEquals("GEN_VAL_001", page.getErrorCode());
+            assertEquals(CommonConstant.PAGE_MIN_MESSAGE, page.getErrorValues().get("page"));
+            assertEquals(LessonConstant.AMOUNT_MAX_MESSAGE, amount.getErrorValues().get("amount"));
+            verify(lessonRepository, never()).findAll(any(Specification.class), any(Pageable.class));
         }
     }
 

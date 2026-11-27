@@ -25,6 +25,8 @@ public final class LessonConstant {
     public static final String FIELD_REMOTE_URL = "remoteUrl";
     public static final String FIELD_SINCE = "since";
     public static final String FIELD_LIMIT = "limit";
+    public static final String FIELD_PAGE = "page";
+    public static final String FIELD_AMOUNT = "amount";
     // Names the limit that refused a request, beside its number. KAY_SEC_004 and its message are the
     // same for every lesson limit, the caps on reads at once of a user and of an organization share
     // the number 2, and a count at once is not a number per minute.
@@ -50,6 +52,9 @@ public final class LessonConstant {
     public static final String FIELD_ID = "id";
 
     // --- List paging and search ---
+    // The lowest page number and page size of the web list and of the CLI, as their requests check them.
+    public static final int MIN_PAGE = 1;
+    public static final int MIN_AMOUNT = 1;
     public static final int LIST_DEFAULT_AMOUNT = 25;
     public static final int LIST_MAX_AMOUNT = 100;
     public static final String AMOUNT_MAX_MESSAGE = "amount cannot exceed 100";

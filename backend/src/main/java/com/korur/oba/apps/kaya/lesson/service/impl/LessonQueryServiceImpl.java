@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 
 // 4. Internal
 import com.korur.oba.apps.kaya.core.exception.enums.ExceptionDomainKayaError;
+import com.korur.oba.dojo.constant.CommonConstant;
 import com.korur.oba.dojo.exception.enums.ExceptionValidationError;
 import com.korur.oba.dojo.exception.internal.business.ConflictException;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
@@ -101,7 +102,7 @@ public class LessonQueryServiceImpl implements LessonQueryService {
         lessonRepository.limitStatementTime(LessonConstant.DELIVERY_STATEMENT_TIMEOUT);
         loggingService.debug(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.LISTING_LESSONS, organizationId, request);
 
-        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getAmount(), NEWEST_FIRST);
+        Pageable pageable = newestFirst(organizationId, request.getPage(), request.getAmount(), LessonConstant.LIST_MAX_AMOUNT);
         Page<Lesson> lessons = lessonRepository.findAll(LessonSpecification.filterBy(organizationId, request), pageable);
 
         // The names, the sessions and the role come once for the whole page instead of once per lesson.
@@ -210,6 +211,7 @@ public class LessonQueryServiceImpl implements LessonQueryService {
         Instant seenAt = parseSince(principal, request.getSince());
         boolean paged = request.getPage() != null;
         int page = paged ? request.getPage() : LessonConstant.DELIVERY_FIRST_PAGE;
+        Pageable pageable = newestFirst(organizationId, page, request.getAmount(), LessonConstant.DELIVERY_MAX_AMOUNT);
         Optional<RepositoryResponse> repository = findCheckoutRepository(organizationId, request.getRemoteUrl());
         UUID repositoryId = repository.map(RepositoryResponse::id).orElse(null);
         String repositoryName = repository.map(RepositoryResponse::name).orElse(null);
@@ -222,7 +224,6 @@ public class LessonQueryServiceImpl implements LessonQueryService {
                     repositoryId, organizationId, page, principal.machineId());
             throw new ConflictException(ExceptionDomainKayaError.VAL_LESSONS_CHANGED);
         }
-        Pageable pageable = PageRequest.of(page - 1, request.getAmount(), NEWEST_FIRST);
         // A page at or past the end is empty without a query, which also keeps a page number far past
         // the end from reaching the database as an offset beyond the int range.
         List<LessonDeliveryProjection> rows = pageable.getOffset() >= state.getTotal() ? List.of()
@@ -313,6 +314,27 @@ public class LessonQueryServiceImpl implements LessonQueryService {
                     Map.of(LessonConstant.FIELD_REPOSITORY_ID, repository.get().id().toString()));
         }
         return repository;
+    }
+
+    /**
+     * A page of lessons, newest first. The request already checks the page and its size, but the
+     * page number is subtracted from here, so it is checked again where it is used: a page below the
+     * first can never turn into a negative page index, whatever reaches the service, and a page or a
+     * size out of range is refused with the field and message of that request check.
+     */
+    private Pageable newestFirst(UUID organizationId, int page, int amount, int maxAmount) {
+        if (page < LessonConstant.MIN_PAGE) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.PAGE_OUT_OF_RANGE, page, amount, organizationId);
+            throw new ValidationException(ExceptionValidationError.VALIDATION,
+                    Map.of(LessonConstant.FIELD_PAGE, CommonConstant.PAGE_MIN_MESSAGE));
+        }
+        if (amount < LessonConstant.MIN_AMOUNT || amount > maxAmount) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.PAGE_OUT_OF_RANGE, page, amount, organizationId);
+            throw new ValidationException(ExceptionValidationError.VALIDATION,
+                    Map.of(LessonConstant.FIELD_AMOUNT,
+                            amount < LessonConstant.MIN_AMOUNT ? CommonConstant.AMOUNT_MIN_MESSAGE : LessonConstant.AMOUNT_MAX_MESSAGE));
+        }
+        return PageRequest.of(page - 1, amount, NEWEST_FIRST);
     }
 
     private Instant parseSince(MachinePrincipal principal, String since) {

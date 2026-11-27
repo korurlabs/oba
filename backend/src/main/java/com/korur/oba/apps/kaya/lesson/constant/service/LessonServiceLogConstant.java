@@ -28,6 +28,9 @@ public final class LessonServiceLogConstant {
     public static final String READ_ORGANIZATION_RATE_LIMITED =
             "Refused a lesson read of user {} in organization {}: the organization made more than {} reads in a minute";
 
+    // --- Paging ---
+    public static final String PAGE_OUT_OF_RANGE = "Refused page {} of {} lessons in organization {}";
+
     // --- Changes ---
     public static final String LESSON_CREATED = "User {} created lesson {} in organization {}";
     public static final String LESSON_UPDATED = "User {} updated lesson {} in organization {}";
