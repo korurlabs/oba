@@ -13,6 +13,7 @@ import java.util.UUID;
 // 4. Internal
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.apps.kaya.lesson.dto.derived.LessonDelivery;
+import com.korur.oba.apps.kaya.lesson.dto.request.LessonDeliveryQueryRequest;
 import com.korur.oba.apps.kaya.lesson.dto.request.LessonQueryRequest;
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDeliverySearchResponse;
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDetailResponse;
@@ -36,8 +37,29 @@ public interface LessonQueryService {
      * @param organizationId the organization of the request
      * @param request        paging (25 by default, at most 100) and filters
      * @return one page of lessons with the names of their repository and author and their sessions
+     * @throws org.springframework.dao.QueryTimeoutException when the read runs past
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_READ_TIMEOUT_SECONDS},
+     *         answered 503 GEN_UPS_004
      */
     Page<LessonListResponse> listLessons(User user, UUID organizationId, LessonQueryRequest request);
+
+    /**
+     * Admits a page of the web list or the filter options before it asks for a place among the
+     * lesson reads that run at once, as {@link #admitListForCheckout} admits a page of the CLI: it
+     * charges the read to the budgets of the member and of the organization, which the reads of the
+     * CLI share. It runs outside any transaction, so a request it refuses holds neither a place nor
+     * a pooled connection, and the budgets bound how often a member asks for a place at all.
+     *
+     * @param user           the signed-in member
+     * @param organizationId the organization of the request
+     * @throws com.korur.oba.dojo.exception.internal.business.TooManyRequestsException KAY_SEC_004
+     *         when the member made more lesson reads in a minute than
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_USER_READS_PER_MINUTE},
+     *         or the organization more than
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_ORGANIZATION_READS_PER_MINUTE},
+     *         the reads of the web app and the CLI together
+     */
+    void admitRead(User user, UUID organizationId);
 
     /**
      * The options of the list's repository and user filters: the values the organization's
@@ -82,23 +104,67 @@ public interface LessonQueryService {
     Lesson getEntity(UUID organizationId, UUID lessonId);
 
     /**
-     * The titles a checkout reads at session start: those of its repository plus the
-     * organization-wide ones, newest first, at most 100, with the ETag of every applicable lesson.
-     * The ETag ignores since, so a CLI that asks with a newer since still gets 304.
+     * One page of the titles a checkout reads at session start: those of its repository plus the
+     * organization-wide ones, newest first with the id as tie-breaker, with the ETag of every
+     * applicable lesson. The ETag ignores since and the page, so a CLI that asks with a newer since
+     * still gets 304, and every page of one state of the lessons carries the same ETag.
+     *
+     * A CLI that reads several pages sends the ETag of page 1 with every later page. The ETag and
+     * the page come from one snapshot, so a page whose ETag matches belongs to the same state as page
+     * 1; a set that changed in between is refused, so the CLI never stores pages of two states
+     * under one ETag.
+     *
+     * A request without page reads page 1, but a CLI that sends none stores only that page, so its
+     * answer carries the same digest under the unpaged form. An ETag stored next to the newest 100
+     * then never answers 304 to a CLI that reads every page, and etag accepts only the paged form.
+     *
+     * The request is checked and charged first by {@link #admitListForCheckout}, which the caller
+     * runs before the read takes its place among the reads that run at once.
      *
      * @param principal the machine token
-     * @param remoteUrl the checkout's git remote, raw; an unknown or unreadable one gives the
-     *                  organization-wide lessons only
-     * @param since     an ISO-8601 instant, or null; a lesson created or updated after it is marked
-     *                  changed
-     * @return the titles and the ETag
-     * @throws com.korur.oba.dojo.exception.internal.business.ValidationException GEN_VAL_001 for an
-     *         unreadable since, KAY_VAL_002 for an archived repository
+     * @param request   the checkout's git remote, raw (an unknown or unreadable one gives the
+     *                  organization-wide lessons only); since, an ISO-8601 instant or null, after
+     *                  which a created or updated lesson is marked changed; the page (1-based, null
+     *                  when the request names none) and amount (100 by default and at most); and
+     *                  etag, the paged ETag of page 1, required from page 2 on
+     * @return the page and the ETag, of the paged form when the request names a page and of the
+     *         unpaged form otherwise
+     * @throws com.korur.oba.dojo.exception.internal.business.ValidationException KAY_VAL_002 for an
+     *         archived repository
+     * @throws com.korur.oba.dojo.exception.internal.business.ConflictException KAY_VAL_017 when etag
+     *         no longer names the lessons
+     * @throws org.springframework.dao.QueryTimeoutException when the read runs past
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_READ_TIMEOUT_SECONDS},
+     *         answered 503 GEN_UPS_004
      */
-    LessonDelivery listForCheckout(MachinePrincipal principal, String remoteUrl, String since);
+    LessonDelivery listForCheckout(MachinePrincipal principal, LessonDeliveryQueryRequest request);
+
+    /**
+     * Admits a page of the list before it asks for a place among the lesson reads that run at once:
+     * checks what needs no database and charges the read to the budgets of the token, its user and
+     * its organization. It runs outside any transaction, so a request it refuses holds neither a
+     * place nor a pooled connection, and the budgets bound how often a client asks for a place at
+     * all.
+     *
+     * @param principal the machine token
+     * @param request   the request of {@link #listForCheckout}
+     * @throws com.korur.oba.dojo.exception.internal.business.ValidationException GEN_VAL_001 for an
+     *         unreadable since or a later page without etag; such a request is not charged
+     * @throws com.korur.oba.dojo.exception.internal.business.TooManyRequestsException KAY_SEC_004
+     *         when the token made more lesson reads in a minute than
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_READS_PER_MINUTE},
+     *         the tokens of its user together more than
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_USER_READS_PER_MINUTE},
+     *         or the tokens of its organization together more than
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_ORGANIZATION_READS_PER_MINUTE}
+     */
+    void admitListForCheckout(MachinePrincipal principal, LessonDeliveryQueryRequest request);
 
     /**
      * Searches the lessons of a checkout by title and text, newest first, at most 100.
+     *
+     * The search is charged first by {@link #admitSearchForCheckout}, which the caller runs before
+     * the search takes its place among the reads that run at once.
      *
      * @param principal the machine token
      * @param remoteUrl the checkout's git remote, raw; an unknown or unreadable one searches the
@@ -107,8 +173,21 @@ public interface LessonQueryService {
      * @return the matching lessons with their text
      * @throws com.korur.oba.dojo.exception.internal.business.ValidationException KAY_VAL_002 for
      *         an archived repository
+     * @throws org.springframework.dao.QueryTimeoutException when the search runs past
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_READ_TIMEOUT_SECONDS},
+     *         answered 503 GEN_UPS_004
      */
     List<LessonDeliverySearchResponse> searchForCheckout(MachinePrincipal principal, String remoteUrl, String search);
+
+    /**
+     * Admits a search like {@link #admitListForCheckout} admits a page: a search counts as a read
+     * like a page of the list and is charged to the same budgets, outside any transaction.
+     *
+     * @param principal the machine token
+     * @throws com.korur.oba.dojo.exception.internal.business.TooManyRequestsException KAY_SEC_004
+     *         on the budgets named by {@link #admitListForCheckout}
+     */
+    void admitSearchForCheckout(MachinePrincipal principal);
 
     /**
      * Reads one lesson for the CLI.

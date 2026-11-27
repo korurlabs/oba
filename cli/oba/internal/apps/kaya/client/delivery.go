@@ -148,6 +148,13 @@ func (c *Client) raw(ctx context.Context, path string, header http.Header, limit
 
 // decodeData turns a non-2xx answer into an APIError and decodes the envelope's data into out.
 func decodeData(resp *http.Response, raw []byte, path string, out any) error {
+	_, err := decodePage(resp, raw, path, out)
+	return err
+}
+
+// decodePage is decodeData for a list answer: it also returns the envelope's paging details,
+// nil when the answer carries none.
+func decodePage(resp *http.Response, raw []byte, path string, out any) (*Pagination, error) {
 	var env envelope
 	decodeErr := json.Unmarshal(raw, &env)
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
@@ -157,18 +164,18 @@ func decodeData(resp *http.Response, raw []byte, path string, out any) error {
 			apiErr.Message = env.Error.Message
 			apiErr.ErrorValues = env.Error.ErrorValues
 		}
-		return apiErr
+		return nil, apiErr
 	}
 	if decodeErr != nil {
-		return fmt.Errorf("parse the answer of GET %s: %w", path, decodeErr)
+		return nil, fmt.Errorf("parse the answer of GET %s: %w", path, decodeErr)
 	}
 	if out == nil || len(env.Data) == 0 || string(env.Data) == "null" {
-		return nil
+		return env.Pagination, nil
 	}
 	if err := json.Unmarshal(env.Data, out); err != nil {
-		return fmt.Errorf("parse the data of GET %s: %w", path, err)
+		return nil, fmt.Errorf("parse the data of GET %s: %w", path, err)
 	}
-	return nil
+	return env.Pagination, nil
 }
 
 // SigningKey is a public key Kaya signs releases with, or still trusts during a key rotation.

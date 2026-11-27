@@ -2,19 +2,23 @@ package com.korur.oba.apps.kaya.lesson.service.impl;
 
 // 1. Framework-level
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 // 2. Third-party
 import lombok.RequiredArgsConstructor;
 
 // 3. Java SDK
+import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
 import com.korur.oba.apps.kaya.core.exception.enums.ExceptionDomainKayaError;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
+import com.korur.oba.dojo.exception.internal.business.TooManyRequestsException;
 import com.korur.oba.dojo.exception.internal.business.ValidationException;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
@@ -29,6 +33,7 @@ import com.korur.oba.apps.kaya.lesson.dto.request.LessonRequest;
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDeliveryCreatedResponse;
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDetailResponse;
 import com.korur.oba.apps.kaya.lesson.entity.Lesson;
+import com.korur.oba.apps.kaya.lesson.helper.LessonDeliveryRateLimiter;
 import com.korur.oba.apps.kaya.lesson.mapper.LessonMapper;
 import com.korur.oba.apps.kaya.lesson.repository.LessonRepository;
 import com.korur.oba.apps.kaya.lesson.service.LessonQueryService;
@@ -50,12 +55,27 @@ public class LessonServiceImpl implements LessonService {
     private final UserAccessHelper userAccessHelper;
     private final LessonMapper lessonMapper;
     private final DeliveryProposalProperties deliveryProposalProperties;
+    private final LessonDeliveryRateLimiter lessonDeliveryRateLimiter;
     private final LoggingService loggingService;
 
     @Override
     @Transactional
     public LessonDetailResponse create(User user, UUID organizationId, LessonRequest request) {
         return create(user, organizationId, request, null);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void admitCreate(User user) {
+        Optional<Duration> wait = lessonDeliveryRateLimiter.tryChargeUserLesson(user.getId());
+        if (wait.isPresent()) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.LESSON_CREATE_RATE_LIMITED,
+                    user.getId(), LessonConstant.USER_LESSONS_PER_MINUTE);
+            throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.USER_LESSONS_PER_MINUTE,
+                            LessonConstant.FIELD_POLICY, LessonConstant.POLICY_USER_LESSONS_PER_MINUTE),
+                    wait.get());
+        }
     }
 
     @Override
@@ -110,6 +130,32 @@ public class LessonServiceImpl implements LessonService {
     @Transactional
     public void delete(MachinePrincipal principal, UUID lessonId) {
         delete(lessonQueryService.getActingUser(principal), principal.organizationId(), lessonId);
+    }
+
+    /**
+     * Without a transaction, for the reasons of {@link #admitCreate(User)}. The token is charged
+     * before its user, so the refused lessons of one runaway token never use up the lessons of its
+     * user's other machines.
+     */
+    @Override
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void admitCreate(MachinePrincipal principal) {
+        Optional<Duration> tokenWait = lessonDeliveryRateLimiter.tryChargeProposal(principal.tokenId());
+        if (tokenWait.isPresent()) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_PROPOSAL_RATE_LIMITED,
+                    principal.machineId(), principal.tokenId(), LessonConstant.DELIVERY_PROPOSALS_PER_MINUTE);
+            throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_PROPOSALS_PER_MINUTE,
+                            LessonConstant.FIELD_POLICY, LessonConstant.POLICY_TOKEN_LESSONS_PER_MINUTE), tokenWait.get());
+        }
+        Optional<Duration> userWait = lessonDeliveryRateLimiter.tryChargeUserLesson(principal.userId());
+        if (userWait.isPresent()) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_PROPOSAL_USER_RATE_LIMITED,
+                    principal.machineId(), principal.userId(), LessonConstant.USER_LESSONS_PER_MINUTE);
+            throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.USER_LESSONS_PER_MINUTE,
+                            LessonConstant.FIELD_POLICY, LessonConstant.POLICY_USER_LESSONS_PER_MINUTE), userWait.get());
+        }
     }
 
     /**

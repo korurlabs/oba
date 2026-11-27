@@ -33,7 +33,7 @@ public final class LessonControllerLogConstant {
 
     // --- Machine delivery ---
     public static final String DELIVERY_LIST_REQUEST = "Request of machine {} for the lessons of a checkout";
-    public static final String DELIVERY_LIST_COMPLETED = "Returned {} lessons to machine {}";
+    public static final String DELIVERY_LIST_COMPLETED = "Returned {} lessons of page {} of {} to machine {}";
     public static final String DELIVERY_NOT_MODIFIED = "The lessons of machine {} are unchanged";
     public static final String DELIVERY_SEARCH_REQUEST = "Request of machine {} to search the lessons of a checkout";
     public static final String DELIVERY_SEARCH_COMPLETED = "Returned {} lessons of a search to machine {}";

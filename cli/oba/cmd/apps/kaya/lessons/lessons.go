@@ -3,10 +3,12 @@
 package lessons
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -15,6 +17,11 @@ import (
 	"github.com/korurlabs/oba-cli/internal/apps/kaya/lessons"
 	"github.com/korurlabs/oba-cli/internal/dojo/jsonout"
 )
+
+// listTimeout bounds the read of a list typed by hand, every page and restart together: it waits
+// longer for Kaya than a session start does, but a Kaya that keeps answering never holds it
+// without end.
+const listTimeout = 60 * time.Second
 
 type lessonsOptions struct {
 	title    string
@@ -61,9 +68,9 @@ the only live session of this checkout; with none known the lesson has no sessio
 	var lessonsListCmd = &cobra.Command{
 		Use:   "list [--search <topic>]",
 		Short: "List the lessons of this checkout, or search their full text",
-		Long: `Lists the lessons of this checkout's repository and the organization-wide ones, newest first, at
-most 100, as - <id> <title> lines. --search keeps those whose title or text holds the topic and
-prints the text under each title. --json prints the rows as a JSON array.`,
+		Long: `Lists every lesson of this checkout's repository and every organization-wide one, newest first,
+as - <id> <title> lines. --search keeps at most the 100 newest of those whose title or text holds
+the topic and prints the text under each title. --json prints the rows as one JSON array.`,
 		Args: cobra.NoArgs,
 		RunE: runLessonsList,
 	}
@@ -163,11 +170,13 @@ func runLessonsList(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
+	ctx, cancel := context.WithTimeout(cmd.Context(), listTimeout)
+	defer cancel()
 	var rows []client.Lesson
 	if searching {
-		rows, err = api.SearchLessons(cmd.Context(), remote, topic)
+		rows, err = api.SearchLessons(ctx, remote, topic)
 	} else {
-		rows, err = api.Lessons(cmd.Context(), remote)
+		rows, err = api.Lessons(ctx, remote)
 	}
 	if err != nil {
 		return err

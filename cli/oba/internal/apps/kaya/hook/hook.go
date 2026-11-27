@@ -33,9 +33,6 @@ const (
 	// feedbackTimeout bounds the session start's call for the plan feedback a session that ended
 	// on the branch left: past it the session starts without that feedback, which stays pending.
 	feedbackTimeout = 2 * time.Second
-	// lessonsTimeout bounds the session start's call for the checkout's lessons: past it the session
-	// starts on the cached .kaya/lessons.md.
-	lessonsTimeout = 2 * time.Second
 	// inboxLockTimeout bounds a hook's wait for the watcher's short hold of the inbox.
 	inboxLockTimeout = time.Second
 	// minFeedbackContext is the least room a cut feedback item is still given in.
@@ -50,6 +47,11 @@ const (
 	// gives the launcher copy in the user settings, so it must match that name, not the org.
 	userLauncher = "senseylabs-agents-guards"
 )
+
+// lessonsTimeout bounds the session start's read of the checkout's lessons, every page and every
+// fresh start of it included: past it the session starts on the cached .kaya/lessons.md and its
+// stored ETag. A variable so that a test can run out of it quickly.
+var lessonsTimeout = 2 * time.Second
 
 // guardedTools are refused while the checkout has no verified release: the tools that run
 // commands, change files or start work from skills and agents.
@@ -358,9 +360,9 @@ func branchFeedback(ctx context.Context, checkout *delivery.Checkout, in hookInp
 }
 
 // fetchLessons asks Kaya, for at most lessonsTimeout, whether the checkout's lessons changed. It
-// answers nil when they did not. Any failure, an archived repository's refusal included, leaves
-// the cached .kaya/lessons.md and the stored values as they are, so the next session asks again
-// and nothing is lost.
+// answers nil when they did not. Any failure, an archived repository's refusal and a budget that
+// runs out between two pages included, leaves the cached .kaya/lessons.md and the stored values as
+// they are, so the next session asks again and nothing is lost.
 func fetchLessons(ctx context.Context, checkout *delivery.Checkout, api *hookAPI) (*delivery.LessonsUpdate, error) {
 	ctx, cancel := context.WithTimeout(ctx, lessonsTimeout)
 	defer cancel()

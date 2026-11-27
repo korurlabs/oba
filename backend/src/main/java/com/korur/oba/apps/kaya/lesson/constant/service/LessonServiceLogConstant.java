@@ -23,6 +23,13 @@ public final class LessonServiceLogConstant {
     public static final String READING_FILTERS = "Reading lesson filter options of organization {}";
     public static final String READING_LESSON = "Reading lesson {} of organization {}";
     public static final String LESSON_NOT_FOUND = "Lesson {} not found in organization {}";
+    public static final String READ_USER_RATE_LIMITED =
+            "Refused a lesson read of user {} in organization {}: the user made more than {} reads in a minute";
+    public static final String READ_ORGANIZATION_RATE_LIMITED =
+            "Refused a lesson read of user {} in organization {}: the organization made more than {} reads in a minute";
+
+    // --- Paging ---
+    public static final String PAGE_OUT_OF_RANGE = "Refused page {} of {} lessons in organization {}";
 
     // --- Changes ---
     public static final String LESSON_CREATED = "User {} created lesson {} in organization {}";
@@ -36,4 +43,25 @@ public final class LessonServiceLogConstant {
     public static final String SEARCHING_DELIVERY = "Searching the lessons of repository {} of organization {} for delivery";
     public static final String DELIVERY_REPOSITORY_UNKNOWN = "No repository of organization {} has the remote of the request";
     public static final String DELIVERY_SINCE_INVALID = "Refused an unreadable since from machine {}";
+    public static final String DELIVERY_ETAG_MISSING = "Refused page {} without the ETag of page 1 from machine {}";
+    public static final String DELIVERY_LESSONS_CHANGED =
+            "The lessons of repository {} of organization {} changed before page {} of machine {}";
+    public static final String DELIVERY_RATE_LIMITED =
+            "Refused a lesson read of machine {}: token {} made more than {} reads in a minute";
+    public static final String DELIVERY_USER_RATE_LIMITED =
+            "Refused a lesson read of machine {}: user {} made more than {} reads in a minute";
+    public static final String DELIVERY_ORGANIZATION_RATE_LIMITED =
+            "Refused a lesson read of machine {}: organization {} made more than {} reads in a minute";
+    public static final String DELIVERY_USER_BUSY =
+            "Refused a lesson read of user {} in organization {}: the user already runs {} reads on this instance";
+    public static final String DELIVERY_ORGANIZATION_BUSY =
+            "Refused a lesson read of user {} in organization {}: the organization already runs {} reads on this instance";
+    public static final String DELIVERY_INSTANCE_BUSY =
+            "Refused a lesson read of user {} in organization {}: this instance already runs {} lesson reads";
+    public static final String LESSON_CREATE_RATE_LIMITED =
+            "Refused a lesson of user {}: they added more than {} lessons in a minute";
+    public static final String DELIVERY_PROPOSAL_RATE_LIMITED =
+            "Refused a lesson of machine {}: token {} added more than {} lessons in a minute";
+    public static final String DELIVERY_PROPOSAL_USER_RATE_LIMITED =
+            "Refused a lesson of machine {}: user {} added more than {} lessons in a minute";
 }

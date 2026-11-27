@@ -6,12 +6,27 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+
+// 2. Third-party
+import com.jayway.jsonpath.JsonPath;
 
 // 3. Java SDK
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 // 4. Internal
+import com.korur.oba.apps.kaya.delivery.helper.DeliveryEtagHelper;
+import com.korur.oba.apps.kaya.lesson.constant.LessonConstant;
 
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.containsString;
@@ -31,18 +46,73 @@ class LessonDeliveryIT extends AbstractLessonIT {
     private static final String DELIVERY = "/kaya/delivery/lessons";
     private static final String ERROR_CODE = "$.error.code";
     private static final String REMOTE_URL = "remoteUrl";
+    private static final String PAGE = "page";
+    private static final String AMOUNT = "amount";
+    private static final String ETAG = "etag";
+    private static final String LESSONS_CHANGED = "KAY_VAL_017";
+    private static final String PAGED_ETAG = "\"v2-[0-9a-f]{64}\"";
+    private static final String UNPAGED_ETAG = "\"v2u-[0-9a-f]{64}\"";
 
-    private String etagOf(Fixture fixture, String token) throws Exception {
+    /** The ETag of a request without page, as the CLIs released before paging send it. */
+    private String unpagedEtagOf(Fixture fixture, String token) throws Exception {
         MvcResult result = machine(token, get(DELIVERY).param(REMOTE_URL, fixture.remote()))
                 .andExpect(status().isOk())
                 .andReturn();
         String etag = result.getResponse().getHeader(HttpHeaders.ETAG);
-        assertTrue(etag != null && etag.startsWith("\"") && etag.endsWith("\""), "ETag is quoted: " + etag);
+        assertTrue(etag != null && etag.matches(UNPAGED_ETAG), "ETag is quoted and of the unpaged form: " + etag);
         return etag;
+    }
+
+    /** The ETag of page 1, as a CLI that reads every page receives it. */
+    private static String pagedEtagOf(MvcResult page) {
+        String etag = page.getResponse().getHeader(HttpHeaders.ETAG);
+        assertTrue(etag != null && etag.matches(PAGED_ETAG), "ETag is quoted and of the paged form: " + etag);
+        return etag;
+    }
+
+    /**
+     * The ETag the server answered before its ETag took the v2 form, as a CLI may still hold it: the
+     * SHA-256 of every applicable lesson's id and updatedAt, sorted, one per line, without a prefix.
+     */
+    private String earlierFormEtagOf(Fixture fixture) {
+        List<String> lines = jdbcTemplate.query("""
+                SELECT id, updated_at FROM kaya.lessons
+                WHERE organization_id = ? AND (repository_id = ?::uuid OR repository_id IS NULL)
+                """, (row, number) -> row.getObject("id", UUID.class) + ":"
+                        + row.getObject("updated_at", Timestamp.class).toInstant(),
+                fixture.tenant().organization().getId(), fixture.repositoryId());
+        return "\"" + DeliveryEtagHelper.sha256Hex(lines.stream().sorted().collect(Collectors.joining("\n"))) + "\"";
     }
 
     private long rows(String lessonId) {
         return count("SELECT count(*) FROM kaya.lessons WHERE id = ?::uuid", lessonId);
+    }
+
+    /**
+     * Inserts organization-wide lessons titled "bulk 1" to "bulk n", created minutesApart minutes
+     * apart, so 0 gives them all one creation time.
+     */
+    private void insertBulk(Fixture fixture, int lessons, int minutesApart) {
+        jdbcTemplate.update("""
+                INSERT INTO kaya.lessons (title, body, organization_id, user_id, created_at, updated_at)
+                SELECT 'bulk ' || n, 'body', ?, ?, TIMESTAMPTZ '2026-09-01' + n * ?::int * INTERVAL '1 minute',
+                       TIMESTAMPTZ '2026-09-01'
+                FROM generate_series(1, ?::int) AS n
+                """, fixture.tenant().organization().getId(), fixture.ada().user().getId(), minutesApart, lessons);
+    }
+
+    private static MockHttpServletRequestBuilder pageOf(Fixture fixture, int page, String etag) {
+        MockHttpServletRequestBuilder request = get(DELIVERY).param(REMOTE_URL, fixture.remote())
+                .param(PAGE, String.valueOf(page));
+        return etag == null ? request : request.param(ETAG, etag);
+    }
+
+    private MvcResult okPage(Fixture fixture, MockHttpServletRequestBuilder request) throws Exception {
+        return machine(fixture.adaMachine().token(), request).andExpect(status().isOk()).andReturn();
+    }
+
+    private static List<String> idsOf(MvcResult result) throws Exception {
+        return JsonPath.read(result.getResponse().getContentAsString(), "$.data[*].id");
     }
 
     @Nested
@@ -188,7 +258,7 @@ class LessonDeliveryIT extends AbstractLessonIT {
         void getLessons_matchingIfNoneMatch_returns304WithoutBody() throws Exception {
             Fixture fixture = newFixture();
             createLesson(fixture, fixture.ada().jwt(), "One", fixture.repositoryId());
-            String etag = etagOf(fixture, fixture.adaMachine().token());
+            String etag = unpagedEtagOf(fixture, fixture.adaMachine().token());
 
             machine(fixture.adaMachine().token(), get(DELIVERY).param(REMOTE_URL, fixture.remote())
                     .header(HttpHeaders.IF_NONE_MATCH, etag))
@@ -201,19 +271,44 @@ class LessonDeliveryIT extends AbstractLessonIT {
         }
 
         @Test
+        void getLessons_ifNoneMatchOfTheEarlierEtagForm_returnsTheLessonsAndTheNewForm() throws Exception {
+            Fixture fixture = newFixture();
+            insertBulk(fixture, 3, 1);
+            createLesson(fixture, fixture.ada().jwt(), "scoped", fixture.repositoryId());
+            String earlier = earlierFormEtagOf(fixture);
+            String token = fixture.adaMachine().token();
+
+            // An older CLI asks without paging, a paging CLI with page 1: both read the lessons again.
+            MvcResult unpaged = machine(token, get(DELIVERY).param(REMOTE_URL, fixture.remote())
+                    .header(HttpHeaders.IF_NONE_MATCH, earlier))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(4))
+                    .andReturn();
+            machine(token, pageOf(fixture, 1, null).param(AMOUNT, "100").header(HttpHeaders.IF_NONE_MATCH, earlier))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(4));
+
+            String current = unpaged.getResponse().getHeader(HttpHeaders.ETAG);
+            assertNotEquals(earlier, current);
+            assertEquals(current, unpagedEtagOf(fixture, token));
+            machine(token, get(DELIVERY).param(REMOTE_URL, fixture.remote()).header(HttpHeaders.IF_NONE_MATCH, current))
+                    .andExpect(status().isNotModified());
+        }
+
+        @Test
         void getLessons_addEditAndDelete_eachChangeTheEtag() throws Exception {
             Fixture fixture = newFixture();
             String token = fixture.adaMachine().token();
-            String initial = etagOf(fixture, token);
+            String initial = unpagedEtagOf(fixture, token);
 
             String id = createLesson(fixture, fixture.ada().jwt(), "One", fixture.repositoryId());
-            String afterAdd = etagOf(fixture, token);
+            String afterAdd = unpagedEtagOf(fixture, token);
             mockMvc.perform(in(fixture.tenant(), put("/kaya/lessons/" + id), fixture.ada().jwt(),
                     lessonBody("One edited", "Body.", fixture.repositoryId()))).andExpect(status().isOk());
-            String afterEdit = etagOf(fixture, token);
+            String afterEdit = unpagedEtagOf(fixture, token);
             mockMvc.perform(in(fixture.tenant(), delete("/kaya/lessons/" + id), fixture.ada().jwt(), null))
                     .andExpect(status().isOk());
-            String afterDelete = etagOf(fixture, token);
+            String afterDelete = unpagedEtagOf(fixture, token);
 
             assertNotEquals(initial, afterAdd);
             assertNotEquals(afterAdd, afterEdit);
@@ -225,29 +320,36 @@ class LessonDeliveryIT extends AbstractLessonIT {
         void getLessons_lessonOfAnotherRepository_doesNotMoveTheEtag() throws Exception {
             Fixture fixture = newFixture();
             String elsewhere = secondRepository(fixture, remote());
-            String before = etagOf(fixture, fixture.adaMachine().token());
+            String before = unpagedEtagOf(fixture, fixture.adaMachine().token());
 
             createLesson(fixture, fixture.ada().jwt(), "Elsewhere", elsewhere);
 
-            assertEquals(before, etagOf(fixture, fixture.adaMachine().token()));
+            assertEquals(before, unpagedEtagOf(fixture, fixture.adaMachine().token()));
         }
 
         @Test
-        void getLessons_past100_capsTheListButStillTracksEveryLesson() throws Exception {
+        void getLessons_withoutPaging_returnsTheNewest100AndStillTracksEveryLesson() throws Exception {
             Fixture fixture = newFixture();
-            jdbcTemplate.update("""
-                    INSERT INTO kaya.lessons (title, body, organization_id, user_id, created_at, updated_at)
-                    SELECT 'bulk ' || n, 'body', ?, ?, TIMESTAMPTZ '2026-09-01' + n * INTERVAL '1 minute', TIMESTAMPTZ '2026-09-01'
-                    FROM generate_series(1, 105) AS n
-                    """, fixture.tenant().organization().getId(), fixture.ada().user().getId());
+            insertBulk(fixture, 105, 1);
             String token = fixture.adaMachine().token();
-            String before = etagOf(fixture, token);
+            String before = unpagedEtagOf(fixture, token);
+
+            // The request of the CLIs released before paging: remoteUrl only, data read as a list.
             machine(token, get(DELIVERY).param(REMOTE_URL, fixture.remote()))
-                    .andExpect(jsonPath("$.data.length()").value(100));
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true))
+                    .andExpect(jsonPath("$.data.length()").value(100))
+                    .andExpect(jsonPath("$.data[0].title").value("bulk 105"))
+                    .andExpect(jsonPath("$.data[99].title").value("bulk 6"))
+                    .andExpect(jsonPath("$.pagination.totalElements").value(105))
+                    .andExpect(jsonPath("$.pagination.last").value(false));
+            machine(token, get(DELIVERY).param(REMOTE_URL, fixture.remote()).header(HttpHeaders.IF_NONE_MATCH, before))
+                    .andExpect(status().isNotModified());
 
-            jdbcTemplate.update("UPDATE kaya.lessons SET updated_at = TIMESTAMPTZ '2026-09-02' WHERE title = 'bulk 1'");
+            jdbcTemplate.update("UPDATE kaya.lessons SET updated_at = TIMESTAMPTZ '2026-09-02' "
+                    + "WHERE organization_id = ? AND title = 'bulk 1'", fixture.tenant().organization().getId());
 
-            assertNotEquals(before, etagOf(fixture, token));
+            assertNotEquals(before, unpagedEtagOf(fixture, token));
         }
 
         @Test
@@ -322,6 +424,235 @@ class LessonDeliveryIT extends AbstractLessonIT {
     }
 
     @Nested
+    class Paging {
+
+        @Test
+        void getLessons_pages_deliverEveryLessonOnceInOrderWithOneEtag() throws Exception {
+            Fixture fixture = newFixture();
+            // One creation time for every lesson, so only the id tie-breaker keeps the pages apart.
+            insertBulk(fixture, 205, 0);
+            insertLesson(fixture, fixture.ada(), "scoped", fixture.repositoryId(), "2026-09-01T00:00:00Z",
+                    "2026-09-01T00:00:00Z");
+
+            MvcResult first = okPage(fixture, pageOf(fixture, 1, null));
+            String etag = pagedEtagOf(first);
+            MvcResult second = okPage(fixture, pageOf(fixture, 2, etag));
+            MvcResult third = okPage(fixture, pageOf(fixture, 3, etag));
+            MvcResult beyond = okPage(fixture, pageOf(fixture, 4, etag));
+
+            List<String> delivered = new ArrayList<>(idsOf(first));
+            delivered.addAll(idsOf(second));
+            delivered.addAll(idsOf(third));
+            List<String> expected = jdbcTemplate.queryForList(
+                    "SELECT id::text FROM kaya.lessons WHERE organization_id = ? ORDER BY created_at DESC, id DESC",
+                    String.class, fixture.tenant().organization().getId());
+            assertEquals(206, expected.size());
+            assertEquals(expected, delivered);
+            assertEquals(206, new HashSet<>(delivered).size());
+            assertEquals(List.of(100, 100, 6), List.of(idsOf(first).size(), idsOf(second).size(), idsOf(third).size()));
+            assertEquals(etag, second.getResponse().getHeader(HttpHeaders.ETAG));
+            assertEquals(etag, third.getResponse().getHeader(HttpHeaders.ETAG));
+            assertEquals(etag, beyond.getResponse().getHeader(HttpHeaders.ETAG));
+            // A request without page holds only the newest 100, so it is named by another form.
+            assertNotEquals(etag, unpagedEtagOf(fixture, fixture.adaMachine().token()));
+
+            assertEquals("206", read(first, "$.pagination.totalElements"));
+            assertEquals("3", read(first, "$.pagination.totalPages"));
+            assertEquals("1", read(first, "$.pagination.currentPage"));
+            assertEquals("100", read(first, "$.pagination.pageSize"));
+            assertEquals("false", read(first, "$.pagination.last"));
+            assertEquals("3", read(third, "$.pagination.currentPage"));
+            assertEquals("true", read(third, "$.pagination.last"));
+            assertEquals("true", read(beyond, "$.pagination.empty"));
+            assertEquals(0, idsOf(beyond).size());
+            assertEquals(0, idsOf(okPage(fixture, pageOf(fixture, Integer.MAX_VALUE, etag))).size());
+        }
+
+        @Test
+        void getLessons_amount_setsThePageSize() throws Exception {
+            Fixture fixture = newFixture();
+            insertBulk(fixture, 5, 1);
+
+            MvcResult first = okPage(fixture, pageOf(fixture, 1, null).param(AMOUNT, "2"));
+            MvcResult last = okPage(fixture, pageOf(fixture, 3, first.getResponse().getHeader(HttpHeaders.ETAG))
+                    .param(AMOUNT, "2"));
+
+            assertEquals(List.of("bulk 5", "bulk 4"),
+                    JsonPath.read(first.getResponse().getContentAsString(), "$.data[*].title"));
+            assertEquals(List.of("bulk 1"), JsonPath.read(last.getResponse().getContentAsString(), "$.data[*].title"));
+            assertEquals("3", read(first, "$.pagination.totalPages"));
+            assertEquals("true", read(last, "$.pagination.last"));
+        }
+
+        @Test
+        void getLessons_lessonsChangedAfterPage1_laterPageAnswers409UntilPage1IsReadAgain() throws Exception {
+            Fixture fixture = newFixture();
+            String token = fixture.adaMachine().token();
+            insertBulk(fixture, 150, 1);
+            String etag = okPage(fixture, pageOf(fixture, 1, null)).getResponse().getHeader(HttpHeaders.ETAG);
+
+            createLesson(fixture, fixture.ada().jwt(), "Added between pages", null);
+
+            machine(token, pageOf(fixture, 2, etag))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath(ERROR_CODE).value(LESSONS_CHANGED));
+            String fresh = okPage(fixture, pageOf(fixture, 1, null)).getResponse().getHeader(HttpHeaders.ETAG);
+            assertNotEquals(etag, fresh);
+            machine(token, pageOf(fixture, 2, fresh))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(51));
+
+            jdbcTemplate.update("UPDATE kaya.lessons SET updated_at = TIMESTAMPTZ '2026-09-02' "
+                    + "WHERE organization_id = ? AND title = 'bulk 1'", fixture.tenant().organization().getId());
+
+            machine(token, pageOf(fixture, 2, fresh))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath(ERROR_CODE).value(LESSONS_CHANGED));
+        }
+
+        @Test
+        void getLessons_lessonDeletedAfterPage1_laterPageAnswers409() throws Exception {
+            Fixture fixture = newFixture();
+            String token = fixture.adaMachine().token();
+            insertBulk(fixture, 150, 1);
+            String doomed = createLesson(fixture, fixture.ada().jwt(), "Deleted between pages", fixture.repositoryId());
+            String etag = okPage(fixture, pageOf(fixture, 1, null)).getResponse().getHeader(HttpHeaders.ETAG);
+
+            mockMvc.perform(in(fixture.tenant(), delete("/kaya/lessons/" + doomed), fixture.ada().jwt(), null))
+                    .andExpect(status().isOk());
+
+            machine(token, pageOf(fixture, 2, etag))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath(ERROR_CODE).value(LESSONS_CHANGED));
+            String fresh = okPage(fixture, pageOf(fixture, 1, null)).getResponse().getHeader(HttpHeaders.ETAG);
+            assertNotEquals(etag, fresh);
+            machine(token, pageOf(fixture, 2, fresh))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(50));
+        }
+
+        @Test
+        void getLessons_etagQuotedOrBare_isAccepted() throws Exception {
+            Fixture fixture = newFixture();
+            insertBulk(fixture, 3, 1);
+            String quoted = okPage(fixture, pageOf(fixture, 1, null)).getResponse().getHeader(HttpHeaders.ETAG);
+            String bare = quoted.substring(1, quoted.length() - 1);
+
+            machine(fixture.adaMachine().token(), pageOf(fixture, 2, quoted).param(AMOUNT, "2"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(1));
+            machine(fixture.adaMachine().token(), pageOf(fixture, 2, bare).param(AMOUNT, "2"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(1));
+        }
+
+        @Test
+        void getLessons_weakEtagOfPage1_isAcceptedUntilTheLessonsChange() throws Exception {
+            Fixture fixture = newFixture();
+            String token = fixture.adaMachine().token();
+            insertBulk(fixture, 3, 1);
+            // A proxy that compresses the answer hands the CLI the ETag header of page 1 as W/"v2-...".
+            String weak = "W/" + pagedEtagOf(okPage(fixture, pageOf(fixture, 1, null)));
+
+            machine(token, pageOf(fixture, 1, null).header(HttpHeaders.IF_NONE_MATCH, weak))
+                    .andExpect(status().isNotModified());
+            machine(token, pageOf(fixture, 2, weak).param(AMOUNT, "2"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(1));
+            machine(token, pageOf(fixture, 2, "W/" + unpagedEtagOf(fixture, token)).param(AMOUNT, "2"))
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.error.errorValues.etag").exists());
+
+            createLesson(fixture, fixture.ada().jwt(), "Added between pages", null);
+
+            machine(token, pageOf(fixture, 2, weak).param(AMOUNT, "2"))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath(ERROR_CODE).value(LESSONS_CHANGED));
+        }
+
+        @Test
+        void getLessons_laterPageWithoutEtagOrPagingOutOfRange_returns422() throws Exception {
+            Fixture fixture = newFixture();
+            String token = fixture.adaMachine().token();
+
+            machine(token, pageOf(fixture, 2, null))
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath(ERROR_CODE).value("GEN_VAL_001"))
+                    .andExpect(jsonPath("$.error.errorValues.etag").exists());
+            machine(token, pageOf(fixture, 2, "\"stale\""))
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.error.errorValues.etag").exists());
+            machine(token, pageOf(fixture, 2, earlierFormEtagOf(fixture)))
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.error.errorValues.etag").exists());
+            machine(token, pageOf(fixture, 2, unpagedEtagOf(fixture, token)))
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.error.errorValues.etag").exists());
+            machine(token, pageOf(fixture, 0, null))
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.error.errorValues.page").exists());
+            machine(token, pageOf(fixture, 1, null).param(AMOUNT, "101"))
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.error.errorValues.amount").exists());
+            machine(token, pageOf(fixture, 1, null).param(AMOUNT, "0"))
+                    .andExpect(status().isUnprocessableEntity())
+                    .andExpect(jsonPath("$.error.errorValues.amount").exists());
+        }
+    }
+
+    @Nested
+    class EtagForms {
+
+        @Test
+        void getLessons_page1WithTheEtagOfAnUnpagedRequest_returnsEveryLesson() throws Exception {
+            Fixture fixture = newFixture();
+            String token = fixture.adaMachine().token();
+            insertBulk(fixture, 123, 1);
+            // A CLI that sends no page stores this ETag next to the newest 100.
+            String unpaged = unpagedEtagOf(fixture, token);
+
+            MvcResult first = machine(token, pageOf(fixture, 1, null).param(AMOUNT, "100")
+                    .header(HttpHeaders.IF_NONE_MATCH, unpaged))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(100))
+                    .andExpect(jsonPath("$.pagination.totalElements").value(123))
+                    .andReturn();
+            String paged = pagedEtagOf(first);
+            machine(token, pageOf(fixture, 2, paged).param(AMOUNT, "100"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(23));
+
+            assertNotEquals(unpaged, paged);
+        }
+
+        @Test
+        void getLessons_unpagedRequestWithItsOwnEtag_returns304() throws Exception {
+            Fixture fixture = newFixture();
+            String token = fixture.adaMachine().token();
+            insertBulk(fixture, 123, 1);
+            String unpaged = unpagedEtagOf(fixture, token);
+
+            machine(token, get(DELIVERY).param(REMOTE_URL, fixture.remote()).header(HttpHeaders.IF_NONE_MATCH, unpaged))
+                    .andExpect(status().isNotModified())
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().string(HttpHeaders.ETAG, unpaged))
+                    .andExpect(content().string(""));
+        }
+
+        @Test
+        void getLessons_page1WithItsOwnEtag_returns304() throws Exception {
+            Fixture fixture = newFixture();
+            String token = fixture.adaMachine().token();
+            insertBulk(fixture, 123, 1);
+            String paged = pagedEtagOf(okPage(fixture, pageOf(fixture, 1, null).param(AMOUNT, "100")));
+
+            machine(token, pageOf(fixture, 1, null).param(AMOUNT, "100").header(HttpHeaders.IF_NONE_MATCH, paged))
+                    .andExpect(status().isNotModified())
+                    .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().string(HttpHeaders.ETAG, paged))
+                    .andExpect(content().string(""));
+        }
+    }
+
+    @Nested
     class Search {
 
         @Test
@@ -352,6 +683,126 @@ class LessonDeliveryIT extends AbstractLessonIT {
                     .andExpect(jsonPath(ERROR_CODE).value("GEN_VAL_001"));
             machine(fixture.adaMachine().token(), get(DELIVERY + "/search").param(REMOTE_URL, fixture.remote()).param("search", " "))
                     .andExpect(status().isUnprocessableEntity());
+        }
+    }
+
+    @Nested
+    class RateLimit {
+
+        private static final int READS_PER_MINUTE = 600;
+
+        private MockHttpServletRequestBuilder searchOf(Fixture fixture) {
+            return get(DELIVERY + "/search").param(REMOTE_URL, fixture.remote()).param("search", "flyway");
+        }
+
+        @Test
+        void getLessons_after600ReadsOfOneToken_answers429ToTheListAndTheSearchButNotToAnotherToken() throws Exception {
+            Fixture fixture = newFixture();
+            String token = fixture.adaMachine().token();
+            insertLesson(fixture, fixture.ada(), "Flyway first", fixture.repositoryId(), "2026-10-02T00:00:00Z", "2026-10-02T00:00:00Z");
+            String paged = pagedEtagOf(okPage(fixture, pageOf(fixture, 1, null)));
+            // A search is charged like a page of the list, and so is a 304.
+            machine(token, searchOf(fixture)).andExpect(status().isOk());
+            for (int read = 3; read <= READS_PER_MINUTE; read++) {
+                machine(token, pageOf(fixture, 1, null).header(HttpHeaders.IF_NONE_MATCH, paged))
+                        .andExpect(status().isNotModified());
+            }
+
+            machine(token, pageOf(fixture, 1, null).header(HttpHeaders.IF_NONE_MATCH, paged))
+                    .andExpect(status().isTooManyRequests())
+                    .andExpect(jsonPath(ERROR_CODE).value("KAY_SEC_004"))
+                    .andExpect(jsonPath("$.error.errorValues.limit").value(READS_PER_MINUTE));
+            machine(token, pageOf(fixture, 2, paged))
+                    .andExpect(status().isTooManyRequests())
+                    .andExpect(jsonPath(ERROR_CODE).value("KAY_SEC_004"));
+            machine(token, searchOf(fixture))
+                    .andExpect(status().isTooManyRequests())
+                    .andExpect(jsonPath(ERROR_CODE).value("KAY_SEC_004"));
+            machine(fixture.boMachine().token(), pageOf(fixture, 1, null))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(1));
+        }
+
+        @Test
+        void addLesson_after60LessonsOfOneToken_answers429WithoutAddingButNotToAnotherToken() throws Exception {
+            Fixture fixture = newFixture();
+            String token = fixture.adaMachine().token();
+            for (int lesson = 1; lesson <= LessonConstant.DELIVERY_PROPOSALS_PER_MINUTE; lesson++) {
+                addFromCheckout(token, checkoutLesson(fixture.remote(), "Proposal " + lesson, false))
+                        .andExpect(status().isCreated());
+            }
+
+            addFromCheckout(token, checkoutLesson(fixture.remote(), "One too many", false))
+                    .andExpect(status().isTooManyRequests())
+                    .andExpect(jsonPath(ERROR_CODE).value("KAY_SEC_004"))
+                    .andExpect(jsonPath("$.error.errorValues.limit").value(LessonConstant.DELIVERY_PROPOSALS_PER_MINUTE));
+            assertEquals(0L, count("SELECT count(*) FROM kaya.lessons WHERE organization_id = ? AND title = 'One too many'",
+                    fixture.tenant().organization().getId()));
+            // The proposals of a token leave its reads and the proposals of another token alone.
+            okPage(fixture, pageOf(fixture, 1, null));
+            addFromCheckout(fixture.boMachine().token(), checkoutLesson(fixture.remote(), "From Bo", false))
+                    .andExpect(status().isCreated());
+        }
+    }
+
+    @Nested
+    class ReadTimeLimit {
+
+        private static final String READ_TIMED_OUT = "GEN_UPS_004";
+        // The limit plus the time the database takes to cancel the statement and the request to end.
+        private static final Duration ANSWERED_WITHIN = Duration.ofSeconds(LessonConstant.DELIVERY_READ_TIMEOUT_SECONDS + 3);
+
+        /**
+         * Takes an ACCESS EXCLUSIVE lock on the lessons, which even a read waits for, as a long
+         * migration or a stuck transaction holds it. The session ends itself after 20 seconds idle,
+         * so a read without a time limit makes the test fail instead of hang.
+         */
+        private Connection lockLessons() throws SQLException {
+            Connection lock = jdbcTemplate.getDataSource().getConnection();
+            lock.setAutoCommit(false);
+            try (Statement statement = lock.createStatement()) {
+                statement.execute("SET idle_in_transaction_session_timeout = '20s'");
+                statement.execute("LOCK TABLE kaya.lessons IN ACCESS EXCLUSIVE MODE");
+            }
+            return lock;
+        }
+
+        private Duration answerWhileLocked(String token, MockHttpServletRequestBuilder request) throws Exception {
+            try (Connection lock = lockLessons()) {
+                long started = System.nanoTime();
+                try {
+                    machine(token, request)
+                            .andExpect(status().isServiceUnavailable())
+                            .andExpect(jsonPath(ERROR_CODE).value(READ_TIMED_OUT));
+                    return Duration.ofNanos(System.nanoTime() - started);
+                } finally {
+                    lock.rollback();
+                }
+            }
+        }
+
+        @Test
+        void getLessons_lessonsLockedPastTheLimit_answers503InTimeAndReadsAgainOnceFree() throws Exception {
+            Fixture fixture = newFixture();
+            insertBulk(fixture, 3, 1);
+
+            Duration waited = answerWhileLocked(fixture.adaMachine().token(), pageOf(fixture, 1, null));
+
+            assertTrue(waited.compareTo(ANSWERED_WITHIN) < 0, "The read ended after " + waited);
+            machine(fixture.adaMachine().token(), pageOf(fixture, 1, null))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.length()").value(3));
+        }
+
+        @Test
+        void searchLessons_lessonsLockedPastTheLimit_answers503InTime() throws Exception {
+            Fixture fixture = newFixture();
+            insertBulk(fixture, 3, 1);
+
+            Duration waited = answerWhileLocked(fixture.adaMachine().token(),
+                    get(DELIVERY + "/search").param(REMOTE_URL, fixture.remote()).param("search", "bulk"));
+
+            assertTrue(waited.compareTo(ANSWERED_WITHIN) < 0, "The search ended after " + waited);
         }
     }
 

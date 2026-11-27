@@ -15,6 +15,8 @@ import (
 const lessonsHeader = "Derived from Kaya. Do not edit; run oba kaya lessons list for the text."
 
 // LessonSource is the part of the Kaya API a session start reads the checkout's lessons from.
+// LessonsSince answers every page of the list or an error, never a part, so that an ETag is
+// stored only with the whole list it names.
 type LessonSource interface {
 	LessonsSince(ctx context.Context, remoteURL, etag, since string) ([]client.Lesson, string, bool, error)
 }

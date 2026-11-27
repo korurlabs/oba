@@ -13,6 +13,7 @@ public final class ExceptionHandlerLogConstant {
     public static final String LOG_APPLICATION_ERROR = "Application error: {}";
     public static final String LOG_UNEXPECTED_ERROR = "Unexpected error: {}";
     public static final String LOG_UNHANDLED_SYNC_ERROR = "Unhandled sync error: {}";
+    public static final String LOG_DATABASE_TIMEOUT = "Database work ended at the time limit of its transaction: {}";
 
     // Warn log messages
     public static final String LOG_CONCURRENT_UPDATE = "Concurrent update rejected by optimistic locking: {}";

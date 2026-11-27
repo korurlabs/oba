@@ -44,6 +44,7 @@ import com.korur.oba.apps.kaya.lesson.dto.response.LessonDeliveryCreatedResponse
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDeliveryResponse;
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDeliverySearchResponse;
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDetailResponse;
+import com.korur.oba.apps.kaya.lesson.helper.LessonDeliveryBulkhead;
 import com.korur.oba.apps.kaya.lesson.service.LessonQueryService;
 import com.korur.oba.apps.kaya.lesson.service.LessonService;
 import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
@@ -65,30 +66,57 @@ public class LessonDeliveryController {
 
     private final LessonQueryService lessonQueryService;
     private final LessonService lessonService;
+    private final LessonDeliveryBulkhead lessonDeliveryBulkhead;
     private final LoggingService loggingService;
 
     /**
      * Answers 304 when the CLI's If-None-Match already names the current lessons, so an unchanged
      * session start downloads nothing.
+     *
+     * Paged, but every page carries the ETag of all applicable lessons: the CLI sends it in
+     * If-None-Match with page 1 to skip every page while nothing changed, and with etag on each later
+     * page, which answers 409 KAY_VAL_017 once the lessons changed after page 1. The CLI then starts
+     * again at page 1, so it never stores pages of two states under one ETag. A request without
+     * paging gets page 1 of 100, the newest 100, in the shape of the unpaged list plus pagination,
+     * under an ETag of the unpaged form: a CLI that stored only those 100 must not get 304 once it
+     * reads every page.
      */
     @GetMapping
     @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "List the lessons of a checkout",
             description = "Bearer machine token. The titles of the lessons of the checkout's repository plus the "
-                    + "organization-wide ones, newest first, at most 100; an unknown or unreadable remote gives the "
-                    + "organization-wide ones only. The ETag covers every applicable lesson, also past the 100, and "
-                    + "ignores since; send it back in If-None-Match to get 304 while nothing changed")
+                    + "organization-wide ones, newest first; an unknown or unreadable remote gives the organization-wide "
+                    + "ones only. Paged, 100 by default and 100 at most; pagination.last marks the last page. The ETag "
+                    + "covers every applicable lesson, on every page the same, and ignores since and the page; send it "
+                    + "back in If-None-Match with page 1 to get 304 while nothing changed, and as etag with every later "
+                    + "page to get 409 KAY_VAL_017 once the lessons changed after page 1. A request without page gets "
+                    + "page 1 under an ETag of the unpaged form v2u-, which matches no paged request; a request with "
+                    + "page gets the paged form v2-, the only form etag accepts")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "The lessons, possibly none"),
+            @ApiResponse(responseCode = "200", description = "One page of the lessons, possibly empty"),
             @ApiResponse(responseCode = "304", description = "If-None-Match matches the current ETag; no body"),
             @ApiResponse(responseCode = "401", description = "KAY_SEC_003: token missing, unknown, revoked or expired, "
                     + "or machine retired"),
             @ApiResponse(responseCode = "403", description = "GEN_SEC_002: the user is not ACTIVE; ORG_SEC_001: not a "
                     + "member, or the membership is not ACTIVE; ORG_SEC_005: the organization is not ACTIVE; ORG_SEC_003: "
                     + "the user is a GUEST; APP_SEC_001: the user has no Kaya access"),
+            @ApiResponse(responseCode = "409", description = "KAY_VAL_017: etag no longer names the lessons; read them "
+                    + "again from page 1"),
             @ApiResponse(responseCode = "422", description = "KAY_VAL_002: repository archived; GEN_VAL_001: remoteUrl "
-                    + "missing or too long, since unreadable"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+                    + "missing or too long, since unreadable, page or amount out of range, etag malformed or missing "
+                    + "from page 2 on"),
+            @ApiResponse(responseCode = "429", description = "KAY_SEC_004: more than 600 lesson reads (pages, 304s "
+                    + "and searches) of the token in a minute (errorValues.limit 600, errorValues.policy "
+                    + "token-reads-per-minute), more than 1200 of its user, all tokens and the web app together (errorValues.limit "
+                    + "1200, errorValues.policy user-reads-per-minute), more than 3000 of its organization, all tokens "
+                    + "and the web app together (errorValues.limit 3000, errorValues.policy organization-reads-per-minute), or 2 lesson reads already running on this instance, of its user in "
+                    + "all their organizations together (errorValues.limit 2, errorValues.policy user-reads-at-once) "
+                    + "or of its organization (errorValues.limit 2, errorValues.policy organization-reads-at-once); "
+                    + "Retry-After gives the seconds until the budget's window ends, or 1 for reads that run at once"),
+            @ApiResponse(responseCode = "500", description = "Internal server error"),
+            @ApiResponse(responseCode = "503", description = "GEN_UPS_004: the read ran past its time limit of 5 "
+                    + "seconds, with Retry-After 5; GEN_UPS_005: this instance already runs 4 lesson reads, with "
+                    + "Retry-After 1; try again later")
     })
     public ResponseEntity<CustomResponse<List<LessonDeliveryResponse>>> getLessons(
             @Parameter(hidden = true) @AuthenticationPrincipal MachinePrincipal principal,
@@ -96,7 +124,12 @@ public class LessonDeliveryController {
             @Parameter(hidden = true) WebRequest webRequest) {
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, LessonControllerLogConstant.DELIVERY_LIST_REQUEST,
                 principal.machineId());
-        LessonDelivery delivery = lessonQueryService.listForCheckout(principal, request.getRemoteUrl(), request.getSince());
+        // The request is checked and charged first and the cap on reads at the same time taken next,
+        // both outside the transaction of the read: a refused request never takes a pooled connection,
+        // and one refused by a check or a budget never takes a place among the reads either.
+        lessonQueryService.admitListForCheckout(principal, request);
+        LessonDelivery delivery = lessonDeliveryBulkhead.run(principal,
+                () -> lessonQueryService.listForCheckout(principal, request));
         // checkNotModified sets the ETag header and, on a match, the 304 status; a null return
         // then sends no body.
         if (webRequest.checkNotModified(delivery.etag())) {
@@ -105,7 +138,8 @@ public class LessonDeliveryController {
             return null;
         }
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, LessonControllerLogConstant.DELIVERY_LIST_COMPLETED,
-                delivery.lessons().size(), principal.machineId());
+                delivery.lessons().getNumberOfElements(), delivery.lessons().getNumber() + 1,
+                delivery.lessons().getTotalPages(), principal.machineId());
         return ResponseUtil.ok(LessonControllerResponseConstant.RESPONSE_LESSONS_RETRIEVED, delivery.lessons());
     }
 
@@ -124,6 +158,10 @@ public class LessonDeliveryController {
             @ApiResponse(responseCode = "404", description = "KAY_NF_001: no repository of the organization has this remote"),
             @ApiResponse(responseCode = "422", description = "KAY_VAL_002: repository archived; GEN_VAL_001: a field "
                     + "missing or out of range, claudeSessionId not a session id"),
+            @ApiResponse(responseCode = "429", description = "KAY_SEC_004: more than 60 lessons added by the token in a "
+                    + "minute (errorValues.limit 60, errorValues.policy token-lessons-per-minute), or more than 60 by its "
+                    + "user, all tokens and the web app together (errorValues.limit 60, errorValues.policy "
+                    + "user-lessons-per-minute); Retry-After gives the seconds until the window ends"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     public ResponseEntity<CustomResponse<LessonDeliveryCreatedResponse>> addLesson(
@@ -131,6 +169,8 @@ public class LessonDeliveryController {
             @Valid @RequestBody LessonDeliveryRequest request) {
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, LessonControllerLogConstant.DELIVERY_CREATE_REQUEST,
                 principal.machineId());
+        // Charged before the transaction of the lesson, so a refused one takes no connection.
+        lessonService.admitCreate(principal);
         LessonDeliveryCreatedResponse response = lessonService.create(principal, request);
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, LessonControllerLogConstant.DELIVERY_CREATE_COMPLETED,
                 response.id(), principal.machineId());
@@ -150,15 +190,27 @@ public class LessonDeliveryController {
                     + "access"),
             @ApiResponse(responseCode = "422", description = "KAY_VAL_002: repository archived; GEN_VAL_001: remoteUrl "
                     + "or search missing or too long"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "429", description = "KAY_SEC_004: more than 600 lesson reads (pages, 304s "
+                    + "and searches) of the token in a minute (errorValues.limit 600, errorValues.policy "
+                    + "token-reads-per-minute), more than 1200 of its user, all tokens and the web app together (errorValues.limit "
+                    + "1200, errorValues.policy user-reads-per-minute), more than 3000 of its organization, all tokens "
+                    + "and the web app together (errorValues.limit 3000, errorValues.policy organization-reads-per-minute), or 2 lesson reads already running on this instance, of its user in "
+                    + "all their organizations together (errorValues.limit 2, errorValues.policy user-reads-at-once) "
+                    + "or of its organization (errorValues.limit 2, errorValues.policy organization-reads-at-once); "
+                    + "Retry-After gives the seconds until the budget's window ends, or 1 for reads that run at once"),
+            @ApiResponse(responseCode = "500", description = "Internal server error"),
+            @ApiResponse(responseCode = "503", description = "GEN_UPS_004: the read ran past its time limit of 5 "
+                    + "seconds, with Retry-After 5; GEN_UPS_005: this instance already runs 4 lesson reads, with "
+                    + "Retry-After 1; try again later")
     })
     public ResponseEntity<CustomResponse<List<LessonDeliverySearchResponse>>> searchLessons(
             @Parameter(hidden = true) @AuthenticationPrincipal MachinePrincipal principal,
             @Valid @ModelAttribute @ParameterObject LessonDeliverySearchRequest request) {
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, LessonControllerLogConstant.DELIVERY_SEARCH_REQUEST,
                 principal.machineId());
-        List<LessonDeliverySearchResponse> response =
-                lessonQueryService.searchForCheckout(principal, request.getRemoteUrl(), request.getSearch());
+        lessonQueryService.admitSearchForCheckout(principal);
+        List<LessonDeliverySearchResponse> response = lessonDeliveryBulkhead.run(principal,
+                () -> lessonQueryService.searchForCheckout(principal, request.getRemoteUrl(), request.getSearch()));
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, LessonControllerLogConstant.DELIVERY_SEARCH_COMPLETED,
                 response.size(), principal.machineId());
         return ResponseUtil.ok(LessonControllerResponseConstant.RESPONSE_LESSONS_RETRIEVED, response);

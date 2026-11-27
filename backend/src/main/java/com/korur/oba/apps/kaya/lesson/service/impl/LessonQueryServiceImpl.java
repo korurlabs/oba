@@ -2,16 +2,20 @@ package com.korur.oba.apps.kaya.lesson.service.impl;
 
 // 1. Framework-level
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 // 2. Third-party
 import lombok.RequiredArgsConstructor;
 
 // 3. Java SDK
+import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.Collection;
@@ -25,8 +29,11 @@ import java.util.stream.Collectors;
 
 // 4. Internal
 import com.korur.oba.apps.kaya.core.exception.enums.ExceptionDomainKayaError;
+import com.korur.oba.dojo.constant.CommonConstant;
 import com.korur.oba.dojo.exception.enums.ExceptionValidationError;
+import com.korur.oba.dojo.exception.internal.business.ConflictException;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
+import com.korur.oba.dojo.exception.internal.business.TooManyRequestsException;
 import com.korur.oba.dojo.exception.internal.business.ValidationException;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
@@ -39,6 +46,8 @@ import com.korur.oba.apps.kaya.lesson.constant.LessonConstant;
 import com.korur.oba.apps.kaya.lesson.constant.service.LessonServiceLogConstant;
 import com.korur.oba.apps.kaya.lesson.dto.derived.LessonDelivery;
 import com.korur.oba.apps.kaya.lesson.dto.projection.LessonDeliveryProjection;
+import com.korur.oba.apps.kaya.lesson.dto.projection.LessonDeliveryStateProjection;
+import com.korur.oba.apps.kaya.lesson.dto.request.LessonDeliveryQueryRequest;
 import com.korur.oba.apps.kaya.lesson.dto.request.LessonQueryRequest;
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDeliveryResponse;
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDeliverySearchResponse;
@@ -48,6 +57,7 @@ import com.korur.oba.apps.kaya.lesson.dto.response.LessonListResponse;
 import com.korur.oba.apps.kaya.lesson.dto.response.embedded.LessonReferenceResponse;
 import com.korur.oba.apps.kaya.lesson.dto.response.embedded.LessonSessionResponse;
 import com.korur.oba.apps.kaya.lesson.entity.Lesson;
+import com.korur.oba.apps.kaya.lesson.helper.LessonDeliveryRateLimiter;
 import com.korur.oba.apps.kaya.lesson.helper.LessonEtagHelper;
 import com.korur.oba.apps.kaya.lesson.mapper.LessonMapper;
 import com.korur.oba.apps.kaya.lesson.repository.LessonRepository;
@@ -77,14 +87,22 @@ public class LessonQueryServiceImpl implements LessonQueryService {
     private final KayaUserQueryService kayaUserQueryService;
     private final RepositoryQueryService repositoryQueryService;
     private final OrganizationAccessQueryService organizationAccessQueryService;
+    private final LessonDeliveryRateLimiter lessonDeliveryRateLimiter;
     private final LessonMapper lessonMapper;
     private final LoggingService loggingService;
 
+    /**
+     * A page of the web list, above all one with a search, passes over the lessons of the
+     * organization like a read of the CLI, so it ends at the same time limit, in the transaction and
+     * in PostgreSQL.
+     */
     @Override
+    @Transactional(readOnly = true, timeout = LessonConstant.DELIVERY_READ_TIMEOUT_SECONDS)
     public Page<LessonListResponse> listLessons(User user, UUID organizationId, LessonQueryRequest request) {
+        lessonRepository.limitStatementTime(LessonConstant.DELIVERY_STATEMENT_TIMEOUT);
         loggingService.debug(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.LISTING_LESSONS, organizationId, request);
 
-        Pageable pageable = PageRequest.of(request.getPage() - 1, request.getAmount(), NEWEST_FIRST);
+        Pageable pageable = newestFirst(organizationId, request.getPage(), request.getAmount(), LessonConstant.LIST_MAX_AMOUNT);
         Page<Lesson> lessons = lessonRepository.findAll(LessonSpecification.filterBy(organizationId, request), pageable);
 
         // The names, the sessions and the role come once for the whole page instead of once per lesson.
@@ -102,8 +120,41 @@ public class LessonQueryServiceImpl implements LessonQueryService {
                 canEdit(user, lesson, admin)));
     }
 
+    /**
+     * Without a transaction, for the reasons of {@link #admitListForCheckout}. The member is charged
+     * before the organization, so the refused reads of one person never use up the reads of their
+     * colleagues.
+     */
     @Override
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void admitRead(User user, UUID organizationId) {
+        Optional<Duration> userWait = lessonDeliveryRateLimiter.tryChargeUserRead(user.getId());
+        if (userWait.isPresent()) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.READ_USER_RATE_LIMITED,
+                    user.getId(), organizationId, LessonConstant.DELIVERY_USER_READS_PER_MINUTE);
+            throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_USER_READS_PER_MINUTE,
+                            LessonConstant.FIELD_POLICY, LessonConstant.POLICY_USER_READS_PER_MINUTE), userWait.get());
+        }
+        Optional<Duration> organizationWait = lessonDeliveryRateLimiter.tryChargeOrganizationRead(organizationId);
+        if (organizationWait.isPresent()) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.READ_ORGANIZATION_RATE_LIMITED,
+                    user.getId(), organizationId, LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE);
+            throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE,
+                            LessonConstant.FIELD_POLICY, LessonConstant.POLICY_ORGANIZATION_READS_PER_MINUTE),
+                    organizationWait.get());
+        }
+    }
+
+    /**
+     * The filter options pass over the lessons of the organization for their distinct repositories
+     * and authors, so they end at the time limit of a page of the list.
+     */
+    @Override
+    @Transactional(readOnly = true, timeout = LessonConstant.DELIVERY_READ_TIMEOUT_SECONDS)
     public LessonFiltersResponse getFilters(UUID organizationId) {
+        lessonRepository.limitStatementTime(LessonConstant.DELIVERY_STATEMENT_TIMEOUT);
         loggingService.debug(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.READING_FILTERS, organizationId);
         List<UUID> userIds = lessonRepository.findDistinctUserIds(organizationId);
         return lessonMapper.toFiltersResponse(
@@ -138,27 +189,79 @@ public class LessonQueryServiceImpl implements LessonQueryService {
         });
     }
 
+    /**
+     * Reads the ETag and the page in two statements of one snapshot. Under READ COMMITTED each
+     * statement sees the lessons as they are when it starts, so a change between the two would pair
+     * a page with the ETag of another state; REPEATABLE READ keeps the snapshot of the first
+     * statement for the whole transaction. A transaction that only reads never fails its
+     * serialization check in PostgreSQL, so nothing has to be retried.
+     *
+     * Both statements pass over every applicable lesson, so the transaction ends at
+     * {@link LessonConstant#DELIVERY_READ_TIMEOUT_SECONDS}: a read stuck on a lock or on a slow
+     * database then answers 503 instead of holding a pooled connection. Its first statement sets
+     * {@link LessonConstant#DELIVERY_STATEMENT_TIMEOUT} in PostgreSQL, which also bounds a statement
+     * that starts too close to the end for the JDBC limit.
+     */
     @Override
-    public LessonDelivery listForCheckout(MachinePrincipal principal, String remoteUrl, String since) {
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ,
+            timeout = LessonConstant.DELIVERY_READ_TIMEOUT_SECONDS)
+    public LessonDelivery listForCheckout(MachinePrincipal principal, LessonDeliveryQueryRequest request) {
+        lessonRepository.limitStatementTime(LessonConstant.DELIVERY_STATEMENT_TIMEOUT);
         UUID organizationId = principal.organizationId();
-        Instant seenAt = parseSince(principal, since);
-        Optional<RepositoryResponse> repository = findCheckoutRepository(organizationId, remoteUrl);
+        Instant seenAt = parseSince(principal, request.getSince());
+        boolean paged = request.getPage() != null;
+        int page = paged ? request.getPage() : LessonConstant.DELIVERY_FIRST_PAGE;
+        Pageable pageable = newestFirst(organizationId, page, request.getAmount(), LessonConstant.DELIVERY_MAX_AMOUNT);
+        Optional<RepositoryResponse> repository = findCheckoutRepository(organizationId, request.getRemoteUrl());
         UUID repositoryId = repository.map(RepositoryResponse::id).orElse(null);
         String repositoryName = repository.map(RepositoryResponse::name).orElse(null);
         loggingService.debug(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.READING_DELIVERY, repositoryId, organizationId);
 
-        List<LessonDeliveryProjection> applicable = lessonRepository.findDeliveryLessons(organizationId, repositoryId);
-        List<LessonDeliveryResponse> lessons = applicable.stream()
-                .limit(LessonConstant.DELIVERY_ITEMS_MAX)
+        LessonDeliveryStateProjection state = lessonRepository.findDeliveryState(organizationId, repositoryId);
+        String pagedEtag = LessonEtagHelper.pagedEtagOf(state);
+        if (request.getEtag() != null && !LessonEtagHelper.matches(request.getEtag(), pagedEtag)) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_LESSONS_CHANGED,
+                    repositoryId, organizationId, page, principal.machineId());
+            throw new ConflictException(ExceptionDomainKayaError.VAL_LESSONS_CHANGED);
+        }
+        // A page at or past the end is empty without a query, which also keeps a page number far past
+        // the end from reaching the database as an offset beyond the int range.
+        List<LessonDeliveryProjection> rows = pageable.getOffset() >= state.getTotal() ? List.of()
+                : lessonRepository.findDeliveryLessons(organizationId, repositoryId,
+                        PageRequest.of(pageable.getPageNumber(), pageable.getPageSize()));
+        List<LessonDeliveryResponse> lessons = rows.stream()
                 .map(lesson -> lessonMapper.toDeliveryResponse(lesson,
                         lesson.getRepositoryId() == null ? null : repositoryName,
                         seenAt != null && lesson.getUpdatedAt().isAfter(seenAt)))
                 .toList();
-        return lessonMapper.toDelivery(lessons, LessonEtagHelper.etagOf(applicable));
+        // A CLI that sends no page stores only this page; one that reads every page stores the whole
+        // set. Each answer is named by its own form, so an If-None-Match of one never matches the other.
+        String etag = paged ? pagedEtag : LessonEtagHelper.unpagedEtagOf(state);
+        return lessonMapper.toDelivery(new PageImpl<>(lessons, pageable, state.getTotal()), etag);
     }
 
+    /**
+     * Without a transaction: nothing here reads the database, so a refused request never takes a
+     * pooled connection, and it is refused before it asks for a place among the reads that run at
+     * once. A request refused by a check is not charged.
+     */
     @Override
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void admitListForCheckout(MachinePrincipal principal, LessonDeliveryQueryRequest request) {
+        parseSince(principal, request.getSince());
+        int page = request.getPage() != null ? request.getPage() : LessonConstant.DELIVERY_FIRST_PAGE;
+        requireEtagAfterFirstPage(principal, page, request.getEtag());
+        chargeRead(principal);
+    }
+
+    /**
+     * A search matches the title and text of every applicable lesson, so it ends at the same time
+     * limit as a page of the list, in the transaction and in PostgreSQL.
+     */
+    @Override
+    @Transactional(readOnly = true, timeout = LessonConstant.DELIVERY_READ_TIMEOUT_SECONDS)
     public List<LessonDeliverySearchResponse> searchForCheckout(MachinePrincipal principal, String remoteUrl, String search) {
+        lessonRepository.limitStatementTime(LessonConstant.DELIVERY_STATEMENT_TIMEOUT);
         UUID organizationId = principal.organizationId();
         Optional<RepositoryResponse> repository = findCheckoutRepository(organizationId, remoteUrl);
         UUID repositoryId = repository.map(RepositoryResponse::id).orElse(null);
@@ -172,6 +275,13 @@ public class LessonQueryServiceImpl implements LessonQueryService {
                 .map(lesson -> lessonMapper.toDeliverySearchResponse(lesson,
                         lesson.getRepositoryId() == null ? null : repositoryName))
                 .getContent();
+    }
+
+    /** Without a transaction, for the reasons of {@link #admitListForCheckout}. */
+    @Override
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void admitSearchForCheckout(MachinePrincipal principal) {
+        chargeRead(principal);
     }
 
     @Override
@@ -206,6 +316,27 @@ public class LessonQueryServiceImpl implements LessonQueryService {
         return repository;
     }
 
+    /**
+     * A page of lessons, newest first. The request already checks the page and its size, but the
+     * page number is subtracted from here, so it is checked again where it is used: a page below the
+     * first can never turn into a negative page index, whatever reaches the service, and a page or a
+     * size out of range is refused with the field and message of that request check.
+     */
+    private Pageable newestFirst(UUID organizationId, int page, int amount, int maxAmount) {
+        if (page < LessonConstant.MIN_PAGE) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.PAGE_OUT_OF_RANGE, page, amount, organizationId);
+            throw new ValidationException(ExceptionValidationError.VALIDATION,
+                    Map.of(LessonConstant.FIELD_PAGE, CommonConstant.PAGE_MIN_MESSAGE));
+        }
+        if (amount < LessonConstant.MIN_AMOUNT || amount > maxAmount) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.PAGE_OUT_OF_RANGE, page, amount, organizationId);
+            throw new ValidationException(ExceptionValidationError.VALIDATION,
+                    Map.of(LessonConstant.FIELD_AMOUNT,
+                            amount < LessonConstant.MIN_AMOUNT ? CommonConstant.AMOUNT_MIN_MESSAGE : LessonConstant.AMOUNT_MAX_MESSAGE));
+        }
+        return PageRequest.of(page - 1, amount, NEWEST_FIRST);
+    }
+
     private Instant parseSince(MachinePrincipal principal, String since) {
         if (since == null || since.isBlank()) {
             return null;
@@ -216,6 +347,57 @@ public class LessonQueryServiceImpl implements LessonQueryService {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_SINCE_INVALID, principal.machineId());
             throw new ValidationException(ExceptionValidationError.VALIDATION,
                     Map.of(LessonConstant.FIELD_SINCE, LessonConstant.SINCE_INVALID_MESSAGE));
+        }
+    }
+
+    /**
+     * Refuses a page after the first without the ETag of page 1: without it a change between the
+     * requests would go unnoticed, and the CLI would store pages of two states of the lessons.
+     */
+    private void requireEtagAfterFirstPage(MachinePrincipal principal, int page, String etag) {
+        if (page > LessonConstant.DELIVERY_FIRST_PAGE && etag == null) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_ETAG_MISSING,
+                    page, principal.machineId());
+            throw new ValidationException(ExceptionValidationError.VALIDATION,
+                    Map.of(LessonConstant.FIELD_ETAG, LessonConstant.ETAG_REQUIRED_MESSAGE));
+        }
+    }
+
+    /**
+     * Charges one read to the token, then to its user and then to its organization, before the read
+     * asks for a place among the reads that run at once, so a refused read costs neither a place nor
+     * a pass over the lessons, and a client asks for places no more often than its budgets allow.
+     * Each budget is charged only
+     * once the one before allows the read, so the refused reads of one runaway token never use up
+     * the reads of its user's other machines, and those of one person never use up the reads of
+     * their colleagues. The user budget is the one a person cannot multiply by creating
+     * organizations.
+     */
+    private void chargeRead(MachinePrincipal principal) {
+        Optional<Duration> tokenWait = lessonDeliveryRateLimiter.tryChargeRead(principal.tokenId());
+        if (tokenWait.isPresent()) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_RATE_LIMITED,
+                    principal.machineId(), principal.tokenId(), LessonConstant.DELIVERY_READS_PER_MINUTE);
+            throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_READS_PER_MINUTE,
+                            LessonConstant.FIELD_POLICY, LessonConstant.POLICY_TOKEN_READS_PER_MINUTE), tokenWait.get());
+        }
+        Optional<Duration> userWait = lessonDeliveryRateLimiter.tryChargeUserRead(principal.userId());
+        if (userWait.isPresent()) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_USER_RATE_LIMITED,
+                    principal.machineId(), principal.userId(), LessonConstant.DELIVERY_USER_READS_PER_MINUTE);
+            throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_USER_READS_PER_MINUTE,
+                            LessonConstant.FIELD_POLICY, LessonConstant.POLICY_USER_READS_PER_MINUTE), userWait.get());
+        }
+        Optional<Duration> organizationWait = lessonDeliveryRateLimiter.tryChargeOrganizationRead(principal.organizationId());
+        if (organizationWait.isPresent()) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_ORGANIZATION_RATE_LIMITED,
+                    principal.machineId(), principal.organizationId(), LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE);
+            throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
+                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_ORGANIZATION_READS_PER_MINUTE,
+                            LessonConstant.FIELD_POLICY, LessonConstant.POLICY_ORGANIZATION_READS_PER_MINUTE),
+                    organizationWait.get());
         }
     }
 

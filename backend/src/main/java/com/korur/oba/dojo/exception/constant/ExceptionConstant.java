@@ -1,5 +1,14 @@
 package com.korur.oba.dojo.exception.constant;
 
+// 1. Framework-level
+
+// 2. Third-party
+
+// 3. Java SDK
+import java.time.Duration;
+
+// 4. Internal
+
 /**
  * Central place to hold commonly used exception-related constants.
  */
@@ -22,6 +31,14 @@ public final class ExceptionConstant {
     // Map keys for error details
     public static final String FIELD_PATH = "path";
 
+    // The shortest Retry-After sent: a client told to wait zero seconds would come back at once and
+    // meet the same limit.
+    public static final long RETRY_AFTER_MIN_SECONDS = 1;
+    // The Retry-After of database work that ran out of time (GEN_UPS_004). It met a lock or a database
+    // under strain, which seldom clears within a second; a client that waits a few seconds gives it
+    // that time instead of adding to the strain.
+    public static final Duration DATABASE_TIMEOUT_RETRY_AFTER = Duration.ofSeconds(5);
+
     // Client-facing response messages (used in CustomResponse.message)
     public static final String MSG_VALIDATION_ERROR = "One or more fields failed validation. Please check the error details and try again.";
     public static final String MSG_MALFORMED_JSON = "The request body contains malformed JSON. Please verify the syntax and try again.";
@@ -34,6 +51,7 @@ public final class ExceptionConstant {
     public static final String MSG_MISSING_HEADER = "A required request header is missing. Please include it and try again.";
     public static final String MSG_METHOD_NOT_ALLOWED = "The HTTP method is not supported for this endpoint. Please check the allowed methods.";
     public static final String MSG_CONCURRENT_UPDATE = "This record was changed by another request at the same time. Please reload it and try again.";
+    public static final String MSG_DATABASE_TIMEOUT = "The data could not be read in time. Please try again in a moment.";
 
     // Client-facing error detail values (inside errorValues maps)
     public static final String MSG_INVALID_ENUM_VALUE = "The provided enum value is not a valid option for this field.";

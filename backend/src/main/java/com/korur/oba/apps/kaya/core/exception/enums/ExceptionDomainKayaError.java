@@ -26,7 +26,7 @@ public enum ExceptionDomainKayaError implements ExceptionDomainError {
     // ── Security (KAY_SEC) ───────────────────────────────────────────────────
     SEC_MEMBERSHIP_DISABLED("KAY_SEC_002", "The membership of this user or its organization is disabled.", ExceptionCategory.SEC),
     SEC_MACHINE_TOKEN_INVALID("KAY_SEC_003", "The machine token is missing, unknown, revoked or expired, or its machine is retired.", ExceptionCategory.AUT),
-    SEC_RATE_LIMITED("KAY_SEC_004", "Too many requests for this machine token.", ExceptionCategory.API),
+    SEC_RATE_LIMITED("KAY_SEC_004", "Too many requests; try again later.", ExceptionCategory.API),
     // KAY_SEC_007 is retired: it refused a batch whose git email no user of the organization held; the token alone identifies the person.
 
     // ── Validation (KAY_VAL) ─────────────────────────────────────────────────
@@ -43,6 +43,7 @@ public enum ExceptionDomainKayaError implements ExceptionDomainError {
     VAL_BATCH_EMPTY("KAY_VAL_014", "A batch needs events or usage.", ExceptionCategory.API),
     VAL_LINK_REFERENCE_INVALID("KAY_VAL_015", "A Kazan ticket must be a key such as SEN-42, a pull request a https://github.com/ URL.", ExceptionCategory.VAL),
     VAL_ACCOUNT_LEARNED_CONCURRENTLY("KAY_VAL_016", "The account was recorded by a concurrent batch; send the batch again.", ExceptionCategory.STA),
+    VAL_LESSONS_CHANGED("KAY_VAL_017", "The lessons changed while they were read page by page; read them again from page 1.", ExceptionCategory.STA),
 
     // ── Not Found (KAY_NF) ───────────────────────────────────────────────────
     NOT_RESOURCE_FOUND("KAY_NF_001", "The session, machine, user or repository was not found.", ExceptionCategory.NOT),

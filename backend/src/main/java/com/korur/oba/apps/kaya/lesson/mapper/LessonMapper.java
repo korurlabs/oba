@@ -1,6 +1,7 @@
 package com.korur.oba.apps.kaya.lesson.mapper;
 
 // 1. Framework-level
+import org.springframework.data.domain.Page;
 
 // 2. Third-party
 import org.mapstruct.Mapper;
@@ -61,7 +62,7 @@ public interface LessonMapper {
 
     LessonDeliveryResponse toDeliveryResponse(LessonDeliveryProjection lesson, String repository, boolean changed);
 
-    LessonDelivery toDelivery(List<LessonDeliveryResponse> lessons, String etag);
+    LessonDelivery toDelivery(Page<LessonDeliveryResponse> lessons, String etag);
 
     LessonDeliverySearchResponse toDeliverySearchResponse(Lesson lesson, String repository);
 
