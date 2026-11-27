@@ -304,6 +304,8 @@ class TicketServiceImplUnitAgentTest {
         assertThat(event.ticketId()).isEqualTo(ticket.getId());
         assertThat(event.ticketKey()).isEqualTo("B-7");
         assertThat(event.addedUserIds()).containsExactly(agent.getId());
+        assertThat(event.actorId()).isEqualTo(person.getId());
+        assertThat(event.actorKind()).isEqualTo(UserKind.HUMAN);
     }
 
     @Test
