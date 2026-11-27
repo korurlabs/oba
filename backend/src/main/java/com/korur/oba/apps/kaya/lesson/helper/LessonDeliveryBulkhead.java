@@ -32,17 +32,23 @@ import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
  * time on this backend instance. The budgets of {@link LessonDeliveryRateLimiter} bound the reads
  * that start in a minute, not the reads that hold a connection at once: once reads take seconds, a
  * few a second of one organization would hold the whole pool every tenant shares. A read therefore
- * takes a permit of its organization ({@link LessonConstant#DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX})
- * and then one of the instance ({@link LessonConstant#DELIVERY_CONCURRENT_READS_MAX}) before its
- * transaction takes a connection, and gives both back when it ends, however it ends. Neither waits:
- * a read that finds no permit is refused at once, without a connection and without queueing. A read
- * is checked and charged to its budgets before it asks, so a request refused there never takes a
- * permit, and the budgets bound how often a client asks.
+ * takes a permit of its user ({@link LessonConstant#DELIVERY_USER_CONCURRENT_READS_MAX}), one of its
+ * organization ({@link LessonConstant#DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX}) and then one of
+ * the instance ({@link LessonConstant#DELIVERY_CONCURRENT_READS_MAX}) before its transaction takes a
+ * connection, and gives all three back when it ends, however it ends. None waits: a read that finds
+ * no permit is refused at once, without a connection and without queueing. A read is checked and
+ * charged to its budgets before it asks, so a request refused there never takes a permit, and the
+ * budgets bound how often a client asks.
  *
- * The organization is asked first, so an organization past its own cap is answered 429, which names
- * it, and its surplus reads never take a permit of the instance from another organization. An
- * organization keeps its entry in the table only while one of its reads runs, so the table never
- * holds more entries than requests in this method. Like the budgets, the caps are per instance.
+ * The user's cap counts their reads in every organization together. Any signed-in user can create
+ * organizations, so without it one person could fill the instance with the reads of two
+ * organizations of their own and lock every other tenant's reads out; with it, that takes two
+ * accounts. The user is asked first and the organization next, as the budgets are charged, so the
+ * surplus reads of one person never hold a permit their colleagues need, and those of one
+ * organization never hold a permit of the instance another organization needs; both are answered
+ * 429, which names who is over the cap. A user or an organization keeps its entry in its table only
+ * while one of its reads runs, so a table never holds more entries than requests in this method.
+ * Like the budgets, the caps are per instance.
  */
 @Component
 @RequiredArgsConstructor
@@ -52,71 +58,109 @@ public class LessonDeliveryBulkhead {
 
     private final LoggingService loggingService;
     private final Semaphore instanceReads = new Semaphore(LessonConstant.DELIVERY_CONCURRENT_READS_MAX);
-    private final ConcurrentMap<UUID, Semaphore> organizationReads = new ConcurrentHashMap<>();
+    private final KeyedPermits userReads = new KeyedPermits(LessonConstant.DELIVERY_USER_CONCURRENT_READS_MAX);
+    private final KeyedPermits organizationReads = new KeyedPermits(LessonConstant.DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX);
 
     /**
-     * Runs one lesson read within both caps.
+     * Runs one lesson read of a machine token within the caps.
      *
      * @param principal the machine token that sent the read
      * @param read      the read, which opens its own transaction
      * @param <T>       the answer of the read
      * @return the answer of the read
-     * @throws TooManyRequestsException KAY_SEC_004 when the organization already runs
-     *         {@link LessonConstant#DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX} reads on this instance
+     * @throws TooManyRequestsException KAY_SEC_004 when the user of the token already runs
+     *         {@link LessonConstant#DELIVERY_USER_CONCURRENT_READS_MAX} reads on this instance, or its
+     *         organization {@link LessonConstant#DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX}
      * @throws ServiceUnavailableException GEN_UPS_005 when the instance already runs
      *         {@link LessonConstant#DELIVERY_CONCURRENT_READS_MAX} reads
      */
     public <T> T run(MachinePrincipal principal, Supplier<T> read) {
-        UUID organizationId = principal.organizationId();
-        if (!tryAcquireOrganization(organizationId)) {
-            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_ORGANIZATION_BUSY,
-                    principal.machineId(), organizationId, LessonConstant.DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX);
-            throw new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
-                    Map.of(LessonConstant.FIELD_LIMIT, LessonConstant.DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX),
-                    LessonConstant.DELIVERY_BUSY_RETRY_AFTER);
+        return run(principal.userId(), principal.organizationId(), read);
+    }
+
+    private <T> T run(UUID userId, UUID organizationId, Supplier<T> read) {
+        if (!userReads.tryAcquire(userId)) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_USER_BUSY,
+                    userId, organizationId, LessonConstant.DELIVERY_USER_CONCURRENT_READS_MAX);
+            throw busy(LessonConstant.DELIVERY_USER_CONCURRENT_READS_MAX, LessonConstant.POLICY_USER_READS_AT_ONCE);
         }
         try {
-            if (!instanceReads.tryAcquire()) {
-                loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_INSTANCE_BUSY,
-                        principal.machineId(), LessonConstant.DELIVERY_CONCURRENT_READS_MAX);
-                throw new ServiceUnavailableException(ExceptionUpstreamError.SERVER_BUSY, LessonConstant.DELIVERY_BUSY_RETRY_AFTER);
+            if (!organizationReads.tryAcquire(organizationId)) {
+                loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_ORGANIZATION_BUSY,
+                        userId, organizationId, LessonConstant.DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX);
+                throw busy(LessonConstant.DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX,
+                        LessonConstant.POLICY_ORGANIZATION_READS_AT_ONCE);
             }
             try {
-                return read.get();
+                if (!instanceReads.tryAcquire()) {
+                    loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.DELIVERY_INSTANCE_BUSY,
+                            userId, organizationId, LessonConstant.DELIVERY_CONCURRENT_READS_MAX);
+                    throw new ServiceUnavailableException(ExceptionUpstreamError.SERVER_BUSY,
+                            LessonConstant.DELIVERY_BUSY_RETRY_AFTER);
+                }
+                try {
+                    return read.get();
+                } finally {
+                    instanceReads.release();
+                }
             } finally {
-                instanceReads.release();
+                organizationReads.release(organizationId);
             }
         } finally {
-            releaseOrganization(organizationId);
+            userReads.release(userId);
         }
     }
 
     /** The organizations with a read running on this instance; the table holds no other entry. */
     int organizationsReading() {
-        return organizationReads.size();
+        return organizationReads.holders();
     }
 
-    /**
-     * Takes a permit of the organization. The permit is taken and given back only inside an atomic
-     * update of the organization's entry, so an entry is never dropped while another read takes a
-     * permit from it.
-     */
-    private boolean tryAcquireOrganization(UUID organizationId) {
-        AtomicBoolean acquired = new AtomicBoolean();
-        organizationReads.compute(organizationId, (id, permits) -> {
-            Semaphore held = permits == null
-                    ? new Semaphore(LessonConstant.DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX) : permits;
-            acquired.set(held.tryAcquire());
-            return held;
-        });
-        return acquired.get();
+    /** The users with a read running on this instance; the table holds no other entry. */
+    int usersReading() {
+        return userReads.holders();
     }
 
-    /** Gives a permit back and drops the entry once the organization runs no read. */
-    private void releaseOrganization(UUID organizationId) {
-        organizationReads.computeIfPresent(organizationId, (id, permits) -> {
-            permits.release();
-            return permits.availablePermits() == LessonConstant.DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX ? null : permits;
-        });
+    private static TooManyRequestsException busy(int limit, String policy) {
+        return new TooManyRequestsException(ExceptionDomainKayaError.SEC_RATE_LIMITED,
+                Map.of(LessonConstant.FIELD_LIMIT, limit, LessonConstant.FIELD_POLICY, policy),
+                LessonConstant.DELIVERY_BUSY_RETRY_AFTER);
+    }
+
+    /** A cap per key, a user or an organization, with an entry only while the key holds a permit. */
+    private static final class KeyedPermits {
+
+        private final int max;
+        private final ConcurrentMap<UUID, Semaphore> permits = new ConcurrentHashMap<>();
+
+        private KeyedPermits(int max) {
+            this.max = max;
+        }
+
+        /**
+         * Takes a permit of the key. The permit is taken and given back only inside an atomic update
+         * of the key's entry, so an entry is never dropped while another read takes a permit from it.
+         */
+        private boolean tryAcquire(UUID key) {
+            AtomicBoolean acquired = new AtomicBoolean();
+            permits.compute(key, (id, held) -> {
+                Semaphore entry = held == null ? new Semaphore(max) : held;
+                acquired.set(entry.tryAcquire());
+                return entry;
+            });
+            return acquired.get();
+        }
+
+        /** Gives a permit back and drops the entry once the key holds none. */
+        private void release(UUID key) {
+            permits.computeIfPresent(key, (id, held) -> {
+                held.release();
+                return held.availablePermits() == max ? null : held;
+            });
+        }
+
+        private int holders() {
+            return permits.size();
+        }
     }
 }

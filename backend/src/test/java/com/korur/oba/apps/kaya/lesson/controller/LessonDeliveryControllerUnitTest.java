@@ -522,6 +522,22 @@ class LessonDeliveryControllerUnitTest {
         }
 
         @Test
+        void userAtItsCapInOtherOrganizations_answers429NamingTheUserWithOneSecond() throws Exception {
+            MachinePrincipal laptop = new MachinePrincipal(UUID.randomUUID(), principal.userId(), UUID.randomUUID(),
+                    UUID.randomUUID(), "laptop");
+            MachinePrincipal desktop = new MachinePrincipal(UUID.randomUUID(), principal.userId(), UUID.randomUUID(),
+                    UUID.randomUUID(), "desktop");
+
+            ResultActions answer = bulkhead.run(laptop, () -> bulkhead.run(desktop,
+                    () -> perform(get(DELIVERY).param(REMOTE_URL, REMOTE).param(PAGE, "1"))));
+
+            answer.andExpect(status().isTooManyRequests())
+                    .andExpect(jsonPath("$.error.errorValues.limit").value(LessonConstant.DELIVERY_USER_CONCURRENT_READS_MAX))
+                    .andExpect(jsonPath("$.error.errorValues.policy").value(LessonConstant.POLICY_USER_READS_AT_ONCE))
+                    .andExpect(header().string(HttpHeaders.RETRY_AFTER, "1"));
+        }
+
+        @Test
         void fullInstance_answers503ServerBusyWithOneSecond() throws Exception {
             ResultActions answer = whileTheInstanceIsFull(
                     () -> perform(get(DELIVERY + "/search").param(REMOTE_URL, REMOTE).param("search", "flyway")));

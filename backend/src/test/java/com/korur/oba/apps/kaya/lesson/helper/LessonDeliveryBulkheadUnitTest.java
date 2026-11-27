@@ -46,7 +46,20 @@ class LessonDeliveryBulkheadUnitTest {
     }
 
     private static MachinePrincipal machineOf(UUID organizationId) {
-        return new MachinePrincipal(organizationId, UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "laptop");
+        return machineOf(organizationId, UUID.randomUUID());
+    }
+
+    private static MachinePrincipal machineOf(UUID organizationId, UUID userId) {
+        return new MachinePrincipal(organizationId, userId, UUID.randomUUID(), UUID.randomUUID(), "laptop");
+    }
+
+    /** The machines of one user, each in an organization of its own, as many as the user may run reads. */
+    private static List<MachinePrincipal> fillTheUser(UUID userId) {
+        List<MachinePrincipal> machines = new ArrayList<>();
+        for (int read = 0; read < LessonConstant.DELIVERY_USER_CONCURRENT_READS_MAX; read++) {
+            machines.add(machineOf(UUID.randomUUID(), userId));
+        }
+        return machines;
     }
 
     /**
@@ -79,6 +92,102 @@ class LessonDeliveryBulkheadUnitTest {
     }
 
     @Nested
+    class UserCap {
+
+        @Test
+        void run_atTheCapOfTheUser_runsEveryRead() {
+            assertEquals(ANSWER, runNested(bulkhead(), fillTheUser(UUID.randomUUID()), () -> ANSWER));
+        }
+
+        @Test
+        void run_overTheCapOfTheUserInAnotherOrganization_refuses429NamingTheUser() {
+            LessonDeliveryBulkhead bulkhead = bulkhead();
+            UUID userId = UUID.randomUUID();
+
+            // The reads run in three organizations, none at its own cap: only the user's cap refuses.
+            TooManyRequestsException refusal = assertThrows(TooManyRequestsException.class,
+                    () -> runNested(bulkhead, fillTheUser(userId),
+                            () -> bulkhead.run(machineOf(UUID.randomUUID(), userId), () -> ANSWER)));
+
+            assertEquals(HttpStatus.TOO_MANY_REQUESTS, refusal.getStatusCode());
+            assertEquals(ExceptionDomainKayaError.SEC_RATE_LIMITED.getCode(), refusal.getErrorCode());
+            assertEquals(LessonConstant.DELIVERY_USER_CONCURRENT_READS_MAX,
+                    refusal.getErrorValues().get(LessonConstant.FIELD_LIMIT));
+            assertEquals(LessonConstant.POLICY_USER_READS_AT_ONCE, refusal.getErrorValues().get(LessonConstant.FIELD_POLICY));
+            assertEquals(LessonConstant.DELIVERY_BUSY_RETRY_AFTER, refusal.getRetryAfter());
+        }
+
+        @Test
+        void run_userAtItsCap_leavesAnotherUserOfTheSameOrganizationAlone() {
+            LessonDeliveryBulkhead bulkhead = bulkhead();
+            UUID organizationId = UUID.randomUUID();
+            UUID userId = UUID.randomUUID();
+            List<MachinePrincipal> machines = List.of(machineOf(organizationId, userId), machineOf(UUID.randomUUID(), userId));
+
+            String answer = runNested(bulkhead, machines, () -> bulkhead.run(machineOf(organizationId), () -> ANSWER));
+
+            assertEquals(ANSWER, answer);
+        }
+
+        @Test
+        void run_refusedByTheUser_takesNoPermitOfTheOrganizationOrTheInstance() {
+            LessonDeliveryBulkhead bulkhead = bulkhead();
+            UUID organizationId = UUID.randomUUID();
+            UUID userId = UUID.randomUUID();
+
+            runNested(bulkhead, fillTheUser(userId), () -> {
+                for (int attempt = 0; attempt <= LessonConstant.DELIVERY_CONCURRENT_READS_MAX; attempt++) {
+                    assertThrows(TooManyRequestsException.class,
+                            () -> bulkhead.run(machineOf(organizationId, userId), () -> ANSWER));
+                }
+                // The user holds two places of the instance; the organization and the other two are free.
+                assertEquals(ANSWER, runNested(bulkhead, fillTheOrganization(organizationId), () -> ANSWER));
+                return ANSWER;
+            });
+
+            assertEquals(0, bulkhead.usersReading());
+            assertEquals(0, bulkhead.organizationsReading());
+        }
+
+        @Test
+        void run_refusedByTheOrganization_givesThePermitOfTheUserBack() {
+            LessonDeliveryBulkhead bulkhead = bulkhead();
+            UUID organizationId = UUID.randomUUID();
+            UUID userId = UUID.randomUUID();
+
+            runNested(bulkhead, fillTheOrganization(organizationId), () -> {
+                for (int attempt = 0; attempt <= LessonConstant.DELIVERY_USER_CONCURRENT_READS_MAX; attempt++) {
+                    // Each refusal must name the organization: a permit of the user kept by an earlier
+                    // refusal would make a later one name the user.
+                    TooManyRequestsException refusal = assertThrows(TooManyRequestsException.class,
+                            () -> bulkhead.run(machineOf(organizationId, userId), () -> ANSWER));
+                    assertEquals(LessonConstant.POLICY_ORGANIZATION_READS_AT_ONCE,
+                            refusal.getErrorValues().get(LessonConstant.FIELD_POLICY));
+                }
+                return ANSWER;
+            });
+
+            assertEquals(0, bulkhead.usersReading());
+        }
+
+        @Test
+        void run_refusedByTheInstance_givesThePermitOfTheUserBack() {
+            LessonDeliveryBulkhead bulkhead = bulkhead();
+            UUID userId = UUID.randomUUID();
+
+            runNested(bulkhead, fillTheInstance(), () -> {
+                for (int attempt = 0; attempt <= LessonConstant.DELIVERY_USER_CONCURRENT_READS_MAX; attempt++) {
+                    assertThrows(ServiceUnavailableException.class,
+                            () -> bulkhead.run(machineOf(UUID.randomUUID(), userId), () -> ANSWER));
+                }
+                return ANSWER;
+            });
+
+            assertEquals(0, bulkhead.usersReading());
+        }
+    }
+
+    @Nested
     class OrganizationCap {
 
         @Test
@@ -101,6 +210,8 @@ class LessonDeliveryBulkheadUnitTest {
             assertEquals(ExceptionDomainKayaError.SEC_RATE_LIMITED.getCode(), refusal.getErrorCode());
             assertEquals(LessonConstant.DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX,
                     refusal.getErrorValues().get(LessonConstant.FIELD_LIMIT));
+            assertEquals(LessonConstant.POLICY_ORGANIZATION_READS_AT_ONCE,
+                    refusal.getErrorValues().get(LessonConstant.FIELD_POLICY));
             assertEquals(LessonConstant.DELIVERY_BUSY_RETRY_AFTER, refusal.getRetryAfter());
         }
 
@@ -171,10 +282,12 @@ class LessonDeliveryBulkheadUnitTest {
     @Nested
     class Release {
 
-        private void assertBothCapsAreFree(LessonDeliveryBulkhead bulkhead) {
+        private void assertEveryCapIsFree(LessonDeliveryBulkhead bulkhead) {
+            assertEquals(0, bulkhead.usersReading());
             assertEquals(0, bulkhead.organizationsReading());
             assertEquals(ANSWER, runNested(bulkhead, fillTheInstance(), () -> ANSWER));
             assertEquals(ANSWER, runNested(bulkhead, fillTheOrganization(UUID.randomUUID()), () -> ANSWER));
+            assertEquals(ANSWER, runNested(bulkhead, fillTheUser(UUID.randomUUID()), () -> ANSWER));
         }
 
         @Test
@@ -185,7 +298,7 @@ class LessonDeliveryBulkheadUnitTest {
                 assertEquals(ANSWER, bulkhead.run(machineOf(organizationId), () -> ANSWER));
             }
 
-            assertBothCapsAreFree(bulkhead);
+            assertEveryCapIsFree(bulkhead);
             assertEquals(ANSWER, runNested(bulkhead, fillTheOrganization(organizationId), () -> ANSWER));
         }
 
@@ -202,7 +315,7 @@ class LessonDeliveryBulkheadUnitTest {
                 assertSame(failure, thrown);
             }
 
-            assertBothCapsAreFree(bulkhead);
+            assertEveryCapIsFree(bulkhead);
         }
 
         @Test
@@ -216,8 +329,23 @@ class LessonDeliveryBulkheadUnitTest {
                 }));
             }
 
-            assertBothCapsAreFree(bulkhead);
+            assertEveryCapIsFree(bulkhead);
             assertEquals(ANSWER, runNested(bulkhead, fillTheOrganization(organizationId), () -> ANSWER));
+        }
+
+        @Test
+        void run_afterReadsOfOneUserThatFailed_givesEveryPermitOfTheUserBack() {
+            LessonDeliveryBulkhead bulkhead = bulkhead();
+            UUID userId = UUID.randomUUID();
+
+            for (int read = 0; read < LessonConstant.DELIVERY_CONCURRENT_READS_MAX * 3; read++) {
+                assertThrows(QueryTimeoutException.class, () -> runNested(bulkhead, fillTheUser(userId), () -> {
+                    throw new QueryTimeoutException("canceling statement due to statement timeout");
+                }));
+            }
+
+            assertEveryCapIsFree(bulkhead);
+            assertEquals(ANSWER, runNested(bulkhead, fillTheUser(userId), () -> ANSWER));
         }
 
         @Test
@@ -228,6 +356,7 @@ class LessonDeliveryBulkheadUnitTest {
                 bulkhead.run(machineOf(UUID.randomUUID()), () -> ANSWER);
             }
 
+            assertEquals(0, bulkhead.usersReading());
             assertEquals(0, bulkhead.organizationsReading());
         }
     }

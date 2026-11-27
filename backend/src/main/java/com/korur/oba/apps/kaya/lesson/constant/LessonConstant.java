@@ -25,6 +25,11 @@ public final class LessonConstant {
     public static final String FIELD_REMOTE_URL = "remoteUrl";
     public static final String FIELD_SINCE = "since";
     public static final String FIELD_LIMIT = "limit";
+    // Names the limit that refused a request, beside its number: the caps on reads at once of a user
+    // and of an organization share the number 2, and a count at once is not a number per minute.
+    public static final String FIELD_POLICY = "policy";
+    public static final String POLICY_USER_READS_AT_ONCE = "user-reads-at-once";
+    public static final String POLICY_ORGANIZATION_READS_AT_ONCE = "organization-reads-at-once";
 
     // --- Entity attributes read by the list filters ---
     public static final String FIELD_ORGANIZATION_ID = "organizationId";
@@ -128,6 +133,11 @@ public final class LessonConstant {
     // of a team rarely read in the same milliseconds. Two lets that happen, and leaves the other half of
     // the instance's reads to the other organizations when the reads of one turn slow.
     public static final int DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX = 2;
+    // Lesson reads of one user that run at the same time on one instance, in all their organizations
+    // together. A person reads from a few machines, each one page after another, so two at once is
+    // already rare. Without it, one person with two organizations of their own would hold all four
+    // places of the instance; with it, that takes two accounts.
+    public static final int DELIVERY_USER_CONCURRENT_READS_MAX = 2;
     // The Retry-After of a read refused because too many run at once. A healthy read ends within
     // milliseconds, so a second later its place is most likely free again; a refusal by a budget
     // instead names the time until the budget's window ends.
