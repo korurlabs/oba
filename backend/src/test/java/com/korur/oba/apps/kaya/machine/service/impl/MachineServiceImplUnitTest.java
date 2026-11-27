@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,6 +32,9 @@ import com.korur.oba.apps.kaya.machine.service.MachineQueryService;
 import com.korur.oba.apps.kaya.machine.service.MachineUsageQueryService;
 import com.korur.oba.dojo.exception.internal.auth.UnauthorizedException;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.dojo.security.token.entity.ApiToken;
+import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
+import com.korur.oba.dojo.security.token.service.ApiTokenQueryService;
 import com.korur.oba.dojo.security.token.service.ApiTokenService;
 import com.korur.oba.shrine.agent.validator.AgentValidator;
 import com.korur.oba.shrine.identity.service.UserQueryService;
@@ -46,7 +50,8 @@ import static org.mockito.Mockito.when;
 
 /**
  * The recorder's contact with its machine: a batch locks the token's machine and is refused when the
- * machine was retired after the token was checked, and the batch records itself on that locked instance.
+ * machine was retired, or its token rotated or revoked, after the token was checked, and the batch records
+ * itself on that locked instance.
  */
 @ExtendWith(MockitoExtension.class)
 class MachineServiceImplUnitTest {
@@ -55,6 +60,8 @@ class MachineServiceImplUnitTest {
 
     @Mock
     private MachineRepository machineRepository;
+    @Mock
+    private ApiTokenQueryService apiTokenQueryService;
 
     private MachineServiceImpl machineService;
     private MachinePrincipal principal;
@@ -65,7 +72,8 @@ class MachineServiceImplUnitTest {
         machineService = new MachineServiceImpl(machineRepository, mock(MachineQueryService.class),
                 mock(MachineUsageQueryService.class), mock(MachineUsageSnapshotRepository.class),
                 mock(KayaUserQueryService.class), mock(UserAuditRecorder.class), mock(UserAccessHelper.class),
-                mock(ApiTokenService.class), new AgentValidator(mock(UserQueryService.class), loggingService),
+                mock(ApiTokenService.class), apiTokenQueryService,
+                new AgentValidator(mock(UserQueryService.class), loggingService),
                 mock(MachineMapper.class), Clock.fixed(NOW, ZoneOffset.UTC), loggingService);
         principal = new MachinePrincipal(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
                 "laptop");
@@ -79,10 +87,38 @@ class MachineServiceImplUnitTest {
             Machine machine = machine(MachineStatus.ACTIVE);
             when(machineRepository.findByIdAndOrganizationIdForUpdate(principal.machineId(), principal.organizationId()))
                     .thenReturn(Optional.of(machine));
+            when(apiTokenQueryService.findLive(ApiTokenKind.KAYA_MACHINE, List.of(principal.machineId())))
+                    .thenReturn(List.of(token(principal.tokenId())));
 
             Machine locked = machineService.lockActiveMachine(principal);
 
             assertSame(machine, locked);
+        }
+
+        @Test
+        void tokenRotatedAfterItWasChecked_throwsUnauthorized() {
+            when(machineRepository.findByIdAndOrganizationIdForUpdate(principal.machineId(), principal.organizationId()))
+                    .thenReturn(Optional.of(machine(MachineStatus.ACTIVE)));
+            when(apiTokenQueryService.findLive(ApiTokenKind.KAYA_MACHINE, List.of(principal.machineId())))
+                    .thenReturn(List.of(token(UUID.randomUUID())));
+
+            UnauthorizedException exception = assertThrows(UnauthorizedException.class,
+                    () -> machineService.lockActiveMachine(principal));
+
+            assertEquals("KAY_SEC_003", exception.getErrorCode());
+        }
+
+        @Test
+        void tokenRevokedAfterItWasChecked_throwsUnauthorized() {
+            when(machineRepository.findByIdAndOrganizationIdForUpdate(principal.machineId(), principal.organizationId()))
+                    .thenReturn(Optional.of(machine(MachineStatus.ACTIVE)));
+            when(apiTokenQueryService.findLive(ApiTokenKind.KAYA_MACHINE, List.of(principal.machineId())))
+                    .thenReturn(List.of());
+
+            UnauthorizedException exception = assertThrows(UnauthorizedException.class,
+                    () -> machineService.lockActiveMachine(principal));
+
+            assertEquals("KAY_SEC_003", exception.getErrorCode());
         }
 
         @Test
@@ -137,6 +173,12 @@ class MachineServiceImplUnitTest {
             assertSame(machine, recorded);
             verify(machineRepository, never()).saveAndFlush(any());
         }
+    }
+
+    private static ApiToken token(UUID tokenId) {
+        ApiToken token = ApiToken.builder().kind(ApiTokenKind.KAYA_MACHINE).build();
+        token.setId(tokenId);
+        return token;
     }
 
     private Machine machine(MachineStatus status) {

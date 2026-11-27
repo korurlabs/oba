@@ -62,6 +62,7 @@ import com.korur.oba.apps.kaya.machine.service.MachineUsageQueryService;
 import com.korur.oba.dojo.security.token.dto.IssuedApiToken;
 import com.korur.oba.dojo.security.token.entity.ApiToken;
 import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
+import com.korur.oba.dojo.security.token.service.ApiTokenQueryService;
 import com.korur.oba.dojo.security.token.service.ApiTokenService;
 
 @Service
@@ -78,6 +79,7 @@ public class MachineServiceImpl implements MachineService {
     private final UserAuditRecorder userAuditRecorder;
     private final UserAccessHelper userAccessHelper;
     private final ApiTokenService apiTokenService;
+    private final ApiTokenQueryService apiTokenQueryService;
     private final AgentValidator agentValidator;
     private final MachineMapper machineMapper;
     private final Clock clock;
@@ -256,7 +258,23 @@ public class MachineServiceImpl implements MachineService {
                     principal.machineId(), principal.organizationId(), principal.tokenId());
             throw new UnauthorizedException(ExceptionDomainKayaError.SEC_MACHINE_TOKEN_INVALID);
         }
+        // A rotation or revocation locks the machine as well but leaves it ACTIVE, so a token replaced or
+        // revoked while the request ran is refused here, under the same lock, like a retired machine.
+        if (!isLiveToken(principal)) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.MACHINE_TOKEN_NOT_LIVE_REFUSED,
+                    principal.tokenId(), principal.machineId(), principal.organizationId());
+            throw new UnauthorizedException(ExceptionDomainKayaError.SEC_MACHINE_TOKEN_INVALID);
+        }
         return machine.get();
+    }
+
+    private boolean isLiveToken(MachinePrincipal principal) {
+        for (ApiToken token : apiTokenQueryService.findLive(ApiTokenKind.KAYA_MACHINE, List.of(principal.machineId()))) {
+            if (token.getId().equals(principal.tokenId())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

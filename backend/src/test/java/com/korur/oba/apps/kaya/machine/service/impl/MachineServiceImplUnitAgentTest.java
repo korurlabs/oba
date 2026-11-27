@@ -44,6 +44,7 @@ import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.dojo.security.token.dto.IssuedApiToken;
 import com.korur.oba.dojo.security.token.entity.ApiToken;
 import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
+import com.korur.oba.dojo.security.token.service.ApiTokenQueryService;
 import com.korur.oba.dojo.security.token.service.ApiTokenService;
 import com.korur.oba.shrine.agent.validator.AgentValidator;
 import com.korur.oba.shrine.identity.entity.User;
@@ -80,7 +81,7 @@ class MachineServiceImplUnitAgentTest {
         machineService = new MachineServiceImpl(machineRepository, mock(MachineQueryService.class),
                 mock(MachineUsageQueryService.class),
                 mock(MachineUsageSnapshotRepository.class), kayaUserQueryService,
-                mock(UserAuditRecorder.class), userAccessHelper, apiTokenService,
+                mock(UserAuditRecorder.class), userAccessHelper, apiTokenService, mock(ApiTokenQueryService.class),
                 new AgentValidator(userQueryService, loggingService), mock(MachineMapper.class),
                 Clock.systemUTC(), loggingService);
     }

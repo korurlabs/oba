@@ -49,6 +49,7 @@ public final class MachineServiceLogConstant {
 
     // --- Recorder contact ---
     public static final String MACHINE_NOT_ACTIVE_REFUSED = "Refused: machine {} of organization {} is no longer active, so token {} may not record";
+    public static final String MACHINE_TOKEN_NOT_LIVE_REFUSED = "Refused: token {} is no longer the live token of machine {} of organization {}, so it may not record";
     public static final String MACHINE_SEEN = "Machine {} reported Claude Code {} and account {}";
     public static final String RECORDING_USAGE = "Recording the usage snapshot of machine {} captured at {} from session {}";
     public static final String USAGE_RECORDED = "Stored the usage snapshot of machine {} captured at {}";
