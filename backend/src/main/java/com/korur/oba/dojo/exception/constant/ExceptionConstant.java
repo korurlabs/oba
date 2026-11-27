@@ -1,5 +1,14 @@
 package com.korur.oba.dojo.exception.constant;
 
+// 1. Framework-level
+
+// 2. Third-party
+
+// 3. Java SDK
+import java.time.Duration;
+
+// 4. Internal
+
 /**
  * Central place to hold commonly used exception-related constants.
  */
@@ -25,6 +34,10 @@ public final class ExceptionConstant {
     // The shortest Retry-After sent: a client told to wait zero seconds would come back at once and
     // meet the same limit.
     public static final long RETRY_AFTER_MIN_SECONDS = 1;
+    // The Retry-After of database work that ran out of time (GEN_UPS_004). It met a lock or a database
+    // under strain, which seldom clears within a second; a client that waits a few seconds gives it
+    // that time instead of adding to the strain.
+    public static final Duration DATABASE_TIMEOUT_RETRY_AFTER = Duration.ofSeconds(5);
 
     // Client-facing response messages (used in CustomResponse.message)
     public static final String MSG_VALIDATION_ERROR = "One or more fields failed validation. Please check the error details and try again.";

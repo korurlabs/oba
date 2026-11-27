@@ -93,8 +93,8 @@ public class LessonController {
                     + "seconds until the budget's window ends, or 1 for reads that run at once"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "503", description = "GEN_UPS_004: the read ran past its time limit of 5 "
-                    + "seconds; GEN_UPS_005: this instance already runs 4 lesson reads, with Retry-After 1; try "
-                    + "again later")
+                    + "seconds, with Retry-After 5; GEN_UPS_005: this instance already runs 4 lesson reads, with "
+                    + "Retry-After 1; try again later")
     })
     public ResponseEntity<CustomResponse<List<LessonListResponse>>> getLessons(
             @Parameter(hidden = true) @GetUser User user,
@@ -133,8 +133,8 @@ public class LessonController {
                     + "seconds until the budget's window ends, or 1 for reads that run at once"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "503", description = "GEN_UPS_004: the read ran past its time limit of 5 "
-                    + "seconds; GEN_UPS_005: this instance already runs 4 lesson reads, with Retry-After 1; try "
-                    + "again later")
+                    + "seconds, with Retry-After 5; GEN_UPS_005: this instance already runs 4 lesson reads, with "
+                    + "Retry-After 1; try again later")
     })
     public ResponseEntity<CustomResponse<LessonFiltersResponse>> getFilters(
             @Parameter(hidden = true) @GetUser User user,

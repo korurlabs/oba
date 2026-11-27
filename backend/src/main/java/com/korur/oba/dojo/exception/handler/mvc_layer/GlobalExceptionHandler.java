@@ -541,20 +541,22 @@ public class GlobalExceptionHandler {
      * the statement that runs at the limit, which Spring reports as {@link QueryTimeoutException};
      * a statement that would start after it is refused before it reaches the database with
      * {@link TransactionTimedOutException}. The database, not the request, was slow, so the client
-     * is told to try again later instead of getting the 500 of a bug. It is logged at error level
-     * with the exception: a timeout means a lock or a database under strain that someone should see.
+     * is told to try again later, with {@link ExceptionConstant#DATABASE_TIMEOUT_RETRY_AFTER} as
+     * Retry-After, instead of getting the 500 of a bug. It is logged at error level with the
+     * exception: a timeout means a lock or a database under strain that someone should see.
      *
      * @param ex the timeout
-     * @return 503 SERVICE UNAVAILABLE with GEN_UPS_004 and no details exposed
+     * @return 503 SERVICE UNAVAILABLE with GEN_UPS_004, Retry-After and no details exposed
      */
     @ExceptionHandler({QueryTimeoutException.class, TransactionTimedOutException.class})
     public ResponseEntity<CustomResponse<Void>> handleDatabaseTimeout(Exception ex) {
         loggingService.error(LOG_PREFIX, LogLayer.HANDLER, ExceptionHandlerLogConstant.LOG_DATABASE_TIMEOUT, ex, ex.getMessage());
-        return asJson(ResponseUtil.error(HttpStatus.SERVICE_UNAVAILABLE, ExceptionConstant.MSG_DATABASE_TIMEOUT, new ErrorResponse(
-                ExceptionUpstreamError.DATABASE_TIMEOUT.getCode(),
-                ExceptionUpstreamError.DATABASE_TIMEOUT.getMessage(),
-                Map.of()
-        )));
+        return withRetryAfter(asJson(ResponseUtil.error(HttpStatus.SERVICE_UNAVAILABLE, ExceptionConstant.MSG_DATABASE_TIMEOUT,
+                new ErrorResponse(
+                        ExceptionUpstreamError.DATABASE_TIMEOUT.getCode(),
+                        ExceptionUpstreamError.DATABASE_TIMEOUT.getMessage(),
+                        Map.of()
+                ))), ExceptionConstant.DATABASE_TIMEOUT_RETRY_AFTER);
     }
 
     // ========= GENERIC / FALLBACK ========= //

@@ -425,7 +425,8 @@ class LessonDeliveryControllerUnitTest {
 
     /**
      * A read that runs past its time limit, dispatched through a standalone MockMvc with the real
-     * exception handler, so the answer is the one the API serves.
+     * exception handler, so the answer is the one the API serves: 503 with a Retry-After of a few
+     * seconds, for the lock or the strain on the database to clear.
      */
     @Nested
     class ReadTimeLimit {
@@ -449,7 +450,8 @@ class LessonDeliveryControllerUnitTest {
             // Act and assert
             mockMvc.perform(get(DELIVERY).param(REMOTE_URL, REMOTE).param(PAGE, "1"))
                     .andExpect(status().isServiceUnavailable())
-                    .andExpect(jsonPath("$.error.code").value(READ_TIMED_OUT));
+                    .andExpect(jsonPath("$.error.code").value(READ_TIMED_OUT))
+                    .andExpect(header().string(HttpHeaders.RETRY_AFTER, "5"));
             verify(loggingService).error(any(LogPrefix.class), eq(LogLayer.HANDLER),
                     eq(ExceptionHandlerLogConstant.LOG_DATABASE_TIMEOUT), any(QueryTimeoutException.class), any());
         }
@@ -464,7 +466,8 @@ class LessonDeliveryControllerUnitTest {
             // Act and assert
             mockMvc.perform(get(DELIVERY + "/search").param(REMOTE_URL, REMOTE).param("search", "flyway"))
                     .andExpect(status().isServiceUnavailable())
-                    .andExpect(jsonPath("$.error.code").value(READ_TIMED_OUT));
+                    .andExpect(jsonPath("$.error.code").value(READ_TIMED_OUT))
+                    .andExpect(header().string(HttpHeaders.RETRY_AFTER, "5"));
         }
     }
 

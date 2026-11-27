@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.QueryTimeoutException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -68,6 +69,17 @@ class GlobalExceptionHandlerUnitTest {
             assertEquals("1", response.getHeaders().getFirst(HttpHeaders.RETRY_AFTER));
             assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType());
             assertEquals(ExceptionUpstreamError.SERVER_BUSY.getCode(), response.getBody().error().code());
+        }
+
+        @Test
+        void databaseTimeout_carriesItsFixedDelayAndStaysJson() {
+            ResponseEntity<CustomResponse<Void>> response = new GlobalExceptionHandler(loggingService).handleDatabaseTimeout(
+                    new QueryTimeoutException("canceling statement due to statement timeout"));
+
+            assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode());
+            assertEquals("5", response.getHeaders().getFirst(HttpHeaders.RETRY_AFTER));
+            assertEquals(MediaType.APPLICATION_JSON, response.getHeaders().getContentType());
+            assertEquals(ExceptionUpstreamError.DATABASE_TIMEOUT.getCode(), response.getBody().error().code());
         }
 
         @Test
