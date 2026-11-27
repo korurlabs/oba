@@ -15,6 +15,7 @@ import java.util.UUID;
 // 4. Internal
 import com.korur.oba.apps.kaya.lesson.constant.LessonConstant;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -253,6 +254,37 @@ class LessonDeliveryRateLimiterUnitTest {
 
             chargeProposalBudget(tokenId);
             assertFalse(limiter.tryChargeProposal(tokenId));
+        }
+    }
+
+    @Nested
+    class Pruning {
+
+        private void chargeFreshTokens(int tokens) {
+            for (int token = 0; token < tokens; token++) {
+                assertTrue(limiter.tryChargeRead(UUID.randomUUID()));
+            }
+        }
+
+        @Test
+        void tryCharge_tableOverItsPruneSize_dropsExpiredWindowsAtMostOncePerWindow() {
+            long halfWindow = LessonConstant.DELIVERY_RATE_WINDOW_SECONDS / 2;
+            int half = LessonConstant.DELIVERY_RATE_TABLE_PRUNE_SIZE / 2 + 1;
+            chargeFreshTokens(half);
+            clock.advance(Duration.ofSeconds(halfWindow));
+            // The table outgrows its prune size here; nothing has expired yet.
+            chargeFreshTokens(half);
+            assertEquals(2 * half, limiter.tokenReadWindows());
+
+            clock.advance(Duration.ofSeconds(halfWindow));
+            chargeFreshTokens(1);
+            // The first half has expired, but the table was scanned less than a window ago.
+            assertEquals(2 * half + 1, limiter.tokenReadWindows());
+
+            clock.advance(Duration.ofSeconds(halfWindow));
+            chargeFreshTokens(1);
+            // A window after the last scan both halves are dropped; the two latest windows stay.
+            assertEquals(2, limiter.tokenReadWindows());
         }
     }
 }

@@ -100,6 +100,9 @@ public interface LessonQueryService {
      * answer carries the same digest under the unpaged form. An ETag stored next to the newest 100
      * then never answers 304 to a CLI that reads every page, and etag accepts only the paged form.
      *
+     * The request is checked and charged first by {@link #admitListForCheckout}, which the caller
+     * runs before the read takes its place among the reads that run at once.
+     *
      * @param principal the machine token
      * @param request   the checkout's git remote, raw (an unknown or unreadable one gives the
      *                  organization-wide lessons only); since, an ISO-8601 instant or null, after
@@ -108,17 +111,10 @@ public interface LessonQueryService {
      *                  etag, the paged ETag of page 1, required from page 2 on
      * @return the page and the ETag, of the paged form when the request names a page and of the
      *         unpaged form otherwise
-     * @throws com.korur.oba.dojo.exception.internal.business.ValidationException GEN_VAL_001 for an
-     *         unreadable since or a later page without etag, KAY_VAL_002 for an archived repository
+     * @throws com.korur.oba.dojo.exception.internal.business.ValidationException KAY_VAL_002 for an
+     *         archived repository
      * @throws com.korur.oba.dojo.exception.internal.business.ConflictException KAY_VAL_017 when etag
      *         no longer names the lessons
-     * @throws com.korur.oba.dojo.exception.internal.business.TooManyRequestsException KAY_SEC_004
-     *         when the token made more lesson reads in a minute than
-     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_READS_PER_MINUTE},
-     *         the tokens of its user together more than
-     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_USER_READS_PER_MINUTE},
-     *         or the tokens of its organization together more than
-     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_ORGANIZATION_READS_PER_MINUTE}
      * @throws org.springframework.dao.QueryTimeoutException when the read runs past
      *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_READ_TIMEOUT_SECONDS},
      *         answered 503 GEN_UPS_004
@@ -126,7 +122,31 @@ public interface LessonQueryService {
     LessonDelivery listForCheckout(MachinePrincipal principal, LessonDeliveryQueryRequest request);
 
     /**
+     * Admits a page of the list before it asks for a place among the lesson reads that run at once:
+     * checks what needs no database and charges the read to the budgets of the token, its user and
+     * its organization. It runs outside any transaction, so a request it refuses holds neither a
+     * place nor a pooled connection, and the budgets bound how often a client asks for a place at
+     * all.
+     *
+     * @param principal the machine token
+     * @param request   the request of {@link #listForCheckout}
+     * @throws com.korur.oba.dojo.exception.internal.business.ValidationException GEN_VAL_001 for an
+     *         unreadable since or a later page without etag; such a request is not charged
+     * @throws com.korur.oba.dojo.exception.internal.business.TooManyRequestsException KAY_SEC_004
+     *         when the token made more lesson reads in a minute than
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_READS_PER_MINUTE},
+     *         the tokens of its user together more than
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_USER_READS_PER_MINUTE},
+     *         or the tokens of its organization together more than
+     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_ORGANIZATION_READS_PER_MINUTE}
+     */
+    void admitListForCheckout(MachinePrincipal principal, LessonDeliveryQueryRequest request);
+
+    /**
      * Searches the lessons of a checkout by title and text, newest first, at most 100.
+     *
+     * The search is charged first by {@link #admitSearchForCheckout}, which the caller runs before
+     * the search takes its place among the reads that run at once.
      *
      * @param principal the machine token
      * @param remoteUrl the checkout's git remote, raw; an unknown or unreadable one searches the
@@ -135,19 +155,21 @@ public interface LessonQueryService {
      * @return the matching lessons with their text
      * @throws com.korur.oba.dojo.exception.internal.business.ValidationException KAY_VAL_002 for
      *         an archived repository
-     * @throws com.korur.oba.dojo.exception.internal.business.TooManyRequestsException KAY_SEC_004
-     *         when the token made more lesson reads in a minute than
-     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_READS_PER_MINUTE},
-     *         the tokens of its user together more than
-     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_USER_READS_PER_MINUTE},
-     *         or the tokens of its organization together more than
-     *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_ORGANIZATION_READS_PER_MINUTE};
-     *         a search counts as a read like a page of the list
      * @throws org.springframework.dao.QueryTimeoutException when the search runs past
      *         {@link com.korur.oba.apps.kaya.lesson.constant.LessonConstant#DELIVERY_READ_TIMEOUT_SECONDS},
      *         answered 503 GEN_UPS_004
      */
     List<LessonDeliverySearchResponse> searchForCheckout(MachinePrincipal principal, String remoteUrl, String search);
+
+    /**
+     * Admits a search like {@link #admitListForCheckout} admits a page: a search counts as a read
+     * like a page of the list and is charged to the same budgets, outside any transaction.
+     *
+     * @param principal the machine token
+     * @throws com.korur.oba.dojo.exception.internal.business.TooManyRequestsException KAY_SEC_004
+     *         on the budgets named by {@link #admitListForCheckout}
+     */
+    void admitSearchForCheckout(MachinePrincipal principal);
 
     /**
      * Reads one lesson for the CLI.

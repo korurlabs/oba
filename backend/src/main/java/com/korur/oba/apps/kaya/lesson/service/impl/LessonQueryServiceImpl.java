@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 // 2. Third-party
@@ -175,8 +176,6 @@ public class LessonQueryServiceImpl implements LessonQueryService {
         Instant seenAt = parseSince(principal, request.getSince());
         boolean paged = request.getPage() != null;
         int page = paged ? request.getPage() : LessonConstant.DELIVERY_FIRST_PAGE;
-        requireEtagAfterFirstPage(principal, page, request.getEtag());
-        chargeRead(principal);
         Optional<RepositoryResponse> repository = findCheckoutRepository(organizationId, request.getRemoteUrl());
         UUID repositoryId = repository.map(RepositoryResponse::id).orElse(null);
         String repositoryName = repository.map(RepositoryResponse::name).orElse(null);
@@ -207,6 +206,20 @@ public class LessonQueryServiceImpl implements LessonQueryService {
     }
 
     /**
+     * Without a transaction: nothing here reads the database, so a refused request never takes a
+     * pooled connection, and it is refused before it asks for a place among the reads that run at
+     * once. A request refused by a check is not charged.
+     */
+    @Override
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void admitListForCheckout(MachinePrincipal principal, LessonDeliveryQueryRequest request) {
+        parseSince(principal, request.getSince());
+        int page = request.getPage() != null ? request.getPage() : LessonConstant.DELIVERY_FIRST_PAGE;
+        requireEtagAfterFirstPage(principal, page, request.getEtag());
+        chargeRead(principal);
+    }
+
+    /**
      * A search matches the title and text of every applicable lesson, so it ends at the same time
      * limit as a page of the list, in the transaction and in PostgreSQL.
      */
@@ -215,7 +228,6 @@ public class LessonQueryServiceImpl implements LessonQueryService {
     public List<LessonDeliverySearchResponse> searchForCheckout(MachinePrincipal principal, String remoteUrl, String search) {
         lessonRepository.limitStatementTime(LessonConstant.DELIVERY_STATEMENT_TIMEOUT);
         UUID organizationId = principal.organizationId();
-        chargeRead(principal);
         Optional<RepositoryResponse> repository = findCheckoutRepository(organizationId, remoteUrl);
         UUID repositoryId = repository.map(RepositoryResponse::id).orElse(null);
         String repositoryName = repository.map(RepositoryResponse::name).orElse(null);
@@ -228,6 +240,13 @@ public class LessonQueryServiceImpl implements LessonQueryService {
                 .map(lesson -> lessonMapper.toDeliverySearchResponse(lesson,
                         lesson.getRepositoryId() == null ? null : repositoryName))
                 .getContent();
+    }
+
+    /** Without a transaction, for the reasons of {@link #admitListForCheckout}. */
+    @Override
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public void admitSearchForCheckout(MachinePrincipal principal) {
+        chargeRead(principal);
     }
 
     @Override
@@ -289,8 +308,10 @@ public class LessonQueryServiceImpl implements LessonQueryService {
     }
 
     /**
-     * Charges one read to the token, then to its user and then to its organization, before any
-     * lesson is read, so a refused read costs no pass over the lessons. Each budget is charged only
+     * Charges one read to the token, then to its user and then to its organization, before the read
+     * asks for a place among the reads that run at once, so a refused read costs neither a place nor
+     * a pass over the lessons, and a client asks for places no more often than its budgets allow.
+     * Each budget is charged only
      * once the one before allows the read, so the refused reads of one runaway token never use up
      * the reads of its user's other machines, and those of one person never use up the reads of
      * their colleagues. The user budget is the one a person cannot multiply by creating

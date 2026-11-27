@@ -120,8 +120,10 @@ public class LessonDeliveryController {
             @Parameter(hidden = true) WebRequest webRequest) {
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, LessonControllerLogConstant.DELIVERY_LIST_REQUEST,
                 principal.machineId());
-        // The cap on reads at the same time is taken here, outside the transaction of the read, so a
-        // refused read never takes a pooled connection.
+        // The request is checked and charged first and the cap on reads at the same time taken next,
+        // both outside the transaction of the read: a refused request never takes a pooled connection,
+        // and one refused by a check or a budget never takes a place among the reads either.
+        lessonQueryService.admitListForCheckout(principal, request);
         LessonDelivery delivery = lessonDeliveryBulkhead.run(principal,
                 () -> lessonQueryService.listForCheckout(principal, request));
         // checkNotModified sets the ETag header and, on a match, the 304 status; a null return
@@ -194,6 +196,7 @@ public class LessonDeliveryController {
             @Valid @ModelAttribute @ParameterObject LessonDeliverySearchRequest request) {
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, LessonControllerLogConstant.DELIVERY_SEARCH_REQUEST,
                 principal.machineId());
+        lessonQueryService.admitSearchForCheckout(principal);
         List<LessonDeliverySearchResponse> response = lessonDeliveryBulkhead.run(principal,
                 () -> lessonQueryService.searchForCheckout(principal, request.getRemoteUrl(), request.getSearch()));
         loggingService.observe(LOG_PREFIX, LogLayer.CONTROLLER, LessonControllerLogConstant.DELIVERY_SEARCH_COMPLETED,

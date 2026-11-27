@@ -101,7 +101,8 @@ public final class LessonConstant {
     // stops at the refusal; run again a minute later, it skips the titles already added and goes on.
     public static final int DELIVERY_PROPOSALS_PER_MINUTE = 60;
     public static final long DELIVERY_RATE_WINDOW_SECONDS = 60;
-    // Windows of tokens or organizations idle for a while are dropped once a table holds this many.
+    // Windows of tokens or organizations idle for a while are dropped once a table holds this many, at
+    // most once per window.
     public static final int DELIVERY_RATE_TABLE_PRUNE_SIZE = 10_000;
     // The time limit of one lesson read, a page of the list or a search of the CLI or a page of the web
     // list, counted from the start of its transaction. A healthy read takes milliseconds, even over

@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 // 4. Internal
 import com.korur.oba.apps.kaya.lesson.constant.LessonConstant;
@@ -81,23 +82,42 @@ public class LessonDeliveryRateLimiter {
         return proposals.tryCharge(tokenId, Instant.now(clock));
     }
 
+    /** The windows the table of token reads holds, expired ones included until they are pruned. */
+    int tokenReadWindows() {
+        return tokenReads.windows.size();
+    }
+
     /** One budget: a window per key, in a table of its own. */
     private static final class Budget {
 
         private final int perMinute;
         private final ConcurrentMap<UUID, Window> windows = new ConcurrentHashMap<>();
+        private final AtomicReference<Instant> nextPrune = new AtomicReference<>(Instant.MIN);
 
         private Budget(int perMinute) {
             this.perMinute = perMinute;
         }
 
         private boolean tryCharge(UUID key, Instant now) {
-            if (windows.size() > LessonConstant.DELIVERY_RATE_TABLE_PRUNE_SIZE) {
-                windows.values().removeIf(window -> window.expired(now));
-            }
+            pruneWhenDue(now);
             Window charged = windows.compute(key, (id, window) ->
                     window == null || window.expired(now) ? new Window(now, 1) : new Window(window.start, window.count + 1));
             return charged.count <= perMinute;
+        }
+
+        /**
+         * Drops the expired windows once the table holds more than
+         * {@link LessonConstant#DELIVERY_RATE_TABLE_PRUNE_SIZE}, at most once per window. Every request
+         * is charged, refused ones too, so a table of that many live keys would otherwise be scanned
+         * on every charge. Between two prunes the table holds at most the keys charged in the last
+         * two windows, or that many keys.
+         */
+        private void pruneWhenDue(Instant now) {
+            Instant due = nextPrune.get();
+            if (windows.size() > LessonConstant.DELIVERY_RATE_TABLE_PRUNE_SIZE && !now.isBefore(due)
+                    && nextPrune.compareAndSet(due, now.plusSeconds(LessonConstant.DELIVERY_RATE_WINDOW_SECONDS))) {
+                windows.values().removeIf(window -> window.expired(now));
+            }
         }
     }
 

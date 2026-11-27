@@ -38,10 +38,14 @@ import java.time.Clock;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 // 4. Internal
 import com.korur.oba.dojo.dto.CustomResponse;
+import com.korur.oba.dojo.exception.internal.business.TooManyRequestsException;
+import com.korur.oba.dojo.exception.internal.business.ValidationException;
+import com.korur.oba.dojo.exception.internal.infrastructure.ServiceUnavailableException;
 import com.korur.oba.dojo.exception.constant.ExceptionHandlerLogConstant;
 import com.korur.oba.dojo.exception.handler.mvc_layer.GlobalExceptionHandler;
 import com.korur.oba.dojo.logging.enums.LogLayer;
@@ -49,8 +53,10 @@ import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.apps.kaya.identity.service.KayaUserQueryService;
 import com.korur.oba.apps.kaya.identity.service.OrganizationAccessQueryService;
+import com.korur.oba.apps.kaya.lesson.constant.LessonConstant;
 import com.korur.oba.apps.kaya.lesson.dto.projection.LessonDeliveryProjection;
 import com.korur.oba.apps.kaya.lesson.dto.request.LessonDeliveryQueryRequest;
+import com.korur.oba.apps.kaya.lesson.dto.request.LessonDeliverySearchRequest;
 import com.korur.oba.apps.kaya.lesson.dto.response.LessonDeliveryResponse;
 import com.korur.oba.apps.kaya.lesson.helper.LessonDeliveryBulkhead;
 import com.korur.oba.apps.kaya.lesson.helper.LessonDeliveryRateLimiter;
@@ -68,11 +74,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -111,15 +119,18 @@ class LessonDeliveryControllerUnitTest {
 
     private final MachinePrincipal principal =
             new MachinePrincipal(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "laptop");
+    private LessonDeliveryRateLimiter rateLimiter;
+    private LessonDeliveryBulkhead bulkhead;
     private LessonDeliveryController controller;
 
     @BeforeEach
     void setUp() {
+        rateLimiter = new LessonDeliveryRateLimiter(Clock.systemUTC());
+        bulkhead = new LessonDeliveryBulkhead(loggingService);
         LessonQueryServiceImpl lessonQueryService = new LessonQueryServiceImpl(lessonRepository, sessionQueryService,
                 kayaUserQueryService, repositoryQueryService, organizationAccessQueryService,
-                new LessonDeliveryRateLimiter(Clock.systemUTC()), new LessonMapperImpl(), loggingService);
-        controller = new LessonDeliveryController(lessonQueryService, lessonService,
-                new LessonDeliveryBulkhead(loggingService), loggingService);
+                rateLimiter, new LessonMapperImpl(), loggingService);
+        controller = new LessonDeliveryController(lessonQueryService, lessonService, bulkhead, loggingService);
     }
 
     /** What a CLI sees of one request: the status, the ETag header and how many lessons the body holds. */
@@ -235,6 +246,94 @@ class LessonDeliveryControllerUnitTest {
             assertEquals(HttpStatus.OK.value(), unpaged.status());
             assertEquals(100, unpaged.lessons());
             assertNotEquals(paged, unpaged.etag());
+        }
+    }
+
+    /**
+     * A request refused by a check or a budget is refused before it asks for a place among the reads
+     * that run at once. Each test holds every place of the instance with reads of other organizations,
+     * so a request that asked for one would hear 503 instead of its own refusal.
+     */
+    @Nested
+    class Admission {
+
+        private <T> T whileTheInstanceIsFull(Supplier<T> request) {
+            return holdPlaces(LessonConstant.DELIVERY_CONCURRENT_READS_MAX, request);
+        }
+
+        private <T> T holdPlaces(int places, Supplier<T> request) {
+            if (places == 0) {
+                return request.get();
+            }
+            MachinePrincipal other = new MachinePrincipal(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
+                    UUID.randomUUID(), "other");
+            return bulkhead.run(other, () -> holdPlaces(places - 1, request));
+        }
+
+        private void spendTheTokenBudget() {
+            for (int read = 0; read < LessonConstant.DELIVERY_READS_PER_MINUTE; read++) {
+                rateLimiter.tryChargeRead(principal.tokenId());
+            }
+        }
+
+        @Test
+        void listOverTheTokenBudget_isRefusedByTheBudgetNotByTheFullInstance() {
+            spendTheTokenBudget();
+            LessonDeliveryQueryRequest request = bind(query("1"));
+            ServletWebRequest webRequest = new ServletWebRequest(query("1"), new MockHttpServletResponse());
+
+            TooManyRequestsException refusal = assertThrows(TooManyRequestsException.class,
+                    () -> whileTheInstanceIsFull(() -> controller.getLessons(principal, request, webRequest)));
+
+            assertEquals(LessonConstant.DELIVERY_READS_PER_MINUTE, refusal.getErrorValues().get(LessonConstant.FIELD_LIMIT));
+            verifyNoInteractions(lessonRepository, repositoryQueryService);
+        }
+
+        @Test
+        void searchOverTheTokenBudget_isRefusedByTheBudgetNotByTheFullInstance() {
+            spendTheTokenBudget();
+            LessonDeliverySearchRequest request = new LessonDeliverySearchRequest();
+            request.setRemoteUrl(REMOTE);
+            request.setSearch("flyway");
+
+            assertThrows(TooManyRequestsException.class,
+                    () -> whileTheInstanceIsFull(() -> controller.searchLessons(principal, request)));
+            verifyNoInteractions(lessonRepository, repositoryQueryService);
+        }
+
+        @Test
+        void laterPageWithoutEtag_isRefusedByTheCheckNotByTheFullInstance() {
+            LessonDeliveryQueryRequest request = bind(query("2"));
+            ServletWebRequest webRequest = new ServletWebRequest(query("2"), new MockHttpServletResponse());
+
+            ValidationException refusal = assertThrows(ValidationException.class,
+                    () -> whileTheInstanceIsFull(() -> controller.getLessons(principal, request, webRequest)));
+
+            assertTrue(refusal.getErrorValues().containsKey(ETAG));
+            verifyNoInteractions(lessonRepository, repositoryQueryService);
+        }
+
+        @Test
+        void unreadableSince_isRefusedByTheCheckNotByTheFullInstance() {
+            MockHttpServletRequest http = query("1");
+            http.setParameter("since", "yesterday");
+            LessonDeliveryQueryRequest request = bind(http);
+            ServletWebRequest webRequest = new ServletWebRequest(http, new MockHttpServletResponse());
+
+            ValidationException refusal = assertThrows(ValidationException.class,
+                    () -> whileTheInstanceIsFull(() -> controller.getLessons(principal, request, webRequest)));
+
+            assertTrue(refusal.getErrorValues().containsKey("since"));
+        }
+
+        @Test
+        void admittedListOnAFullInstance_isRefusedByTheInstanceAfterItsCharge() {
+            LessonDeliveryQueryRequest request = bind(query("1"));
+            ServletWebRequest webRequest = new ServletWebRequest(query("1"), new MockHttpServletResponse());
+
+            assertThrows(ServiceUnavailableException.class,
+                    () -> whileTheInstanceIsFull(() -> controller.getLessons(principal, request, webRequest)));
+            verifyNoInteractions(lessonRepository, repositoryQueryService);
         }
     }
 

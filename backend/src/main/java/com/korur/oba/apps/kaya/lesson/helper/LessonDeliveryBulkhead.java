@@ -35,7 +35,9 @@ import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
  * takes a permit of its organization ({@link LessonConstant#DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX})
  * and then one of the instance ({@link LessonConstant#DELIVERY_CONCURRENT_READS_MAX}) before its
  * transaction takes a connection, and gives both back when it ends, however it ends. Neither waits:
- * a read that finds no permit is refused at once, without a connection and without queueing.
+ * a read that finds no permit is refused at once, without a connection and without queueing. A read
+ * is checked and charged to its budgets before it asks, so a request refused there never takes a
+ * permit, and the budgets bound how often a client asks.
  *
  * The organization is asked first, so an organization past its own cap is answered 429, which names
  * it, and its surplus reads never take a permit of the instance from another organization. An
