@@ -21,7 +21,8 @@ public interface SessionIngestService {
 
     /**
      * Returns the session row of a Claude Code session, created when the organization has none, locked until the
-     * transaction ends.
+     * transaction ends. Creating it first locks the user as a foreign key check does, so the user is locked
+     * before the machine; an existing session takes no lock on the user.
      *
      * @param organizationId the organization of the token
      * @param repositoryId   the repository of the batch, used only when the session is created

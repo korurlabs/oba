@@ -76,6 +76,18 @@ public interface KayaUserQueryService {
     User getMemberEntityForUpdate(UUID organizationId, UUID userId);
 
     /**
+     * Locks the user row as a foreign key check does (FOR KEY SHARE) until the caller's transaction ends,
+     * for a write that inserts a row referencing the user and one of the user's machines. Retiring a
+     * user's machines locks the user before the machines, and taking this first keeps the write in the
+     * same order. Ordinary updates of the user are not blocked.
+     *
+     * @param userId the user, already known to the caller through an authenticated token
+     * @throws com.korur.oba.dojo.exception.internal.business.NotFoundException when no user has the id
+     * @throws org.springframework.transaction.IllegalTransactionStateException without a caller transaction
+     */
+    void lockUserForKeyShare(UUID userId);
+
+    /**
      * Resolves the display names of users, for lists of another domain that show who a row of the
      * organization belongs to.
      *

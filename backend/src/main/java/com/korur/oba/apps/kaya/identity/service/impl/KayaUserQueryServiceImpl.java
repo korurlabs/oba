@@ -76,6 +76,12 @@ public class KayaUserQueryServiceImpl implements KayaUserQueryService {
     }
 
     @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void lockUserForKeyShare(UUID userId) {
+        userQueryService.lockUserForKeyShare(userId);
+    }
+
+    @Override
     public Map<UUID, String> getDisplayNames(UUID organizationId, Collection<UUID> userIds) {
         if (userIds.isEmpty()) {
             return Map.of();
