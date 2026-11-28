@@ -113,19 +113,13 @@
     },
     "filters": {
       "searchPlaceholder": "Search by name",
-      "stagePlaceholder": "Open stages",
-      "stagePlaceholderCustomers": "Every stage",
-      "ownerPlaceholder": "Any owner",
       "clear": "Clear filters",
       "ownersLoadError": "The owners could not be loaded.",
-      "searchLabel": "Search",
       "stageLabel": "Stage",
       "ownerLabel": "Owner",
       "eventLabel": "Event",
-      "eventPlaceholder": "Any event",
       "eventsLoadError": "The events could not be loaded.",
       "campaignLabel": "Campaign",
-      "campaignPlaceholder": "Any campaign",
       "campaignsLoadError": "The campaigns could not be loaded."
     },
     "form": {
@@ -435,7 +429,6 @@
       "actions": "Actions"
     },
     "filters": {
-      "searchLabel": "Search",
       "searchPlaceholder": "Search by name",
       "clear": "Clear search"
     },
@@ -574,18 +567,14 @@
       "snapshotCount": "Sent copies"
     },
     "filters": {
-      "searchLabel": "Search",
       "searchPlaceholder": "Search by title",
       "relationLabel": "Relation",
-      "relationAll": "All relations",
       "legalEntityLabel": "Legal entity",
-      "legalEntityAll": "All legal entities",
       "legalEntityUnknown": "Selected legal entity",
       "typeLabel": "Type",
-      "typeAll": "All types",
       "languageLabel": "Language",
-      "languageAll": "All languages",
-      "clear": "Clear filters"
+      "clear": "Clear filters",
+      "legalEntitiesLoadError": "The legal entities could not be loaded."
     },
     "pagination": {
       "label": "Pages",
@@ -751,16 +740,13 @@
       "actions": "Actions"
     },
     "filters": {
-      "searchLabel": "Search",
       "searchPlaceholder": "Search by name",
       "typeLabel": "Type",
-      "typeAll": "All types",
       "languageLabel": "Language",
-      "languageAll": "All languages",
       "legalEntityLabel": "Legal entity",
-      "legalEntityAll": "All legal entities",
       "legalEntityUnknown": "Selected legal entity",
-      "clear": "Clear filters"
+      "clear": "Clear filters",
+      "legalEntitiesLoadError": "The legal entities could not be loaded."
     },
     "pagination": {
       "label": "Pages",
@@ -852,7 +838,6 @@
       "searchLabel": "Search",
       "searchPlaceholder": "Search by name",
       "languageLabel": "Language",
-      "languageAll": "All languages",
       "clear": "Clear filters"
     },
     "pagination": {
@@ -962,10 +947,8 @@
     },
     "filters": {
       "statusLabel": "Status",
-      "statusAll": "All statuses",
       "clear": "Clear filter",
       "campaignLabel": "Campaign",
-      "campaignAll": "All campaigns",
       "campaignsLoadError": "The campaigns could not be loaded."
     },
     "pagination": {
@@ -1258,7 +1241,6 @@
       "actions": "Actions"
     },
     "filters": {
-      "searchLabel": "Search",
       "searchPlaceholder": "Search by name",
       "clear": "Clear search"
     },
@@ -1389,7 +1371,6 @@
       "contentCount": "Contents"
     },
     "filters": {
-      "searchLabel": "Search",
       "searchPlaceholder": "Search by name",
       "clear": "Clear filters"
     },
@@ -1552,5 +1533,13 @@
         "publishedAtInFuture": "The published date cannot be in the future; schedule the content instead"
       }
     }
+  },
+  "filterPopover": {
+    "trigger": "Filter",
+    "chooseCategory": "Select a filter field to start",
+    "searchOptions": "Search...",
+    "noOptions": "No options",
+    "loading": "Loading",
+    "clear": "Clear all"
   }
 }

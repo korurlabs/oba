@@ -113,19 +113,13 @@
     },
     "filters": {
       "searchPlaceholder": "Zoek op naam",
-      "stagePlaceholder": "Open fasen",
-      "stagePlaceholderCustomers": "Elke fase",
-      "ownerPlaceholder": "Elke eigenaar",
       "clear": "Filters wissen",
       "ownersLoadError": "De eigenaren konden niet worden geladen.",
-      "searchLabel": "Zoeken",
       "stageLabel": "Fase",
       "ownerLabel": "Eigenaar",
       "eventLabel": "Evenement",
-      "eventPlaceholder": "Elk evenement",
       "eventsLoadError": "De evenementen konden niet worden geladen.",
       "campaignLabel": "Campagne",
-      "campaignPlaceholder": "Elke campagne",
       "campaignsLoadError": "De campagnes konden niet worden geladen."
     },
     "form": {
@@ -435,7 +429,6 @@
       "actions": "Acties"
     },
     "filters": {
-      "searchLabel": "Zoeken",
       "searchPlaceholder": "Zoeken op naam",
       "clear": "Zoekopdracht wissen"
     },
@@ -574,18 +567,14 @@
       "snapshotCount": "Verstuurde kopieën"
     },
     "filters": {
-      "searchLabel": "Zoeken",
       "searchPlaceholder": "Zoeken op titel",
       "relationLabel": "Relatie",
-      "relationAll": "Alle relaties",
       "legalEntityLabel": "Rechtspersoon",
-      "legalEntityAll": "Alle rechtspersonen",
       "legalEntityUnknown": "Gekozen rechtspersoon",
       "typeLabel": "Type",
-      "typeAll": "Alle typen",
       "languageLabel": "Taal",
-      "languageAll": "Alle talen",
-      "clear": "Filters wissen"
+      "clear": "Filters wissen",
+      "legalEntitiesLoadError": "De juridische entiteiten konden niet worden geladen."
     },
     "pagination": {
       "label": "Pagina's",
@@ -751,16 +740,13 @@
       "actions": "Acties"
     },
     "filters": {
-      "searchLabel": "Zoeken",
       "searchPlaceholder": "Zoeken op naam",
       "typeLabel": "Type",
-      "typeAll": "Alle typen",
       "languageLabel": "Taal",
-      "languageAll": "Alle talen",
       "legalEntityLabel": "Rechtspersoon",
-      "legalEntityAll": "Alle rechtspersonen",
       "legalEntityUnknown": "Gekozen rechtspersoon",
-      "clear": "Filters wissen"
+      "clear": "Filters wissen",
+      "legalEntitiesLoadError": "De juridische entiteiten konden niet worden geladen."
     },
     "pagination": {
       "label": "Pagina's",
@@ -852,7 +838,6 @@
       "searchLabel": "Zoeken",
       "searchPlaceholder": "Zoeken op naam",
       "languageLabel": "Taal",
-      "languageAll": "Alle talen",
       "clear": "Filters wissen"
     },
     "pagination": {
@@ -962,10 +947,8 @@
     },
     "filters": {
       "statusLabel": "Status",
-      "statusAll": "Alle statussen",
       "clear": "Filter wissen",
       "campaignLabel": "Campagne",
-      "campaignAll": "Alle campagnes",
       "campaignsLoadError": "De campagnes konden niet worden geladen."
     },
     "pagination": {
@@ -1258,7 +1241,6 @@
       "actions": "Acties"
     },
     "filters": {
-      "searchLabel": "Zoeken",
       "searchPlaceholder": "Zoeken op naam",
       "clear": "Zoekopdracht wissen"
     },
@@ -1389,7 +1371,6 @@
       "contentCount": "Inhoud"
     },
     "filters": {
-      "searchLabel": "Zoeken",
       "searchPlaceholder": "Zoek op naam",
       "clear": "Filters wissen"
     },
@@ -1552,5 +1533,13 @@
         "publishedAtInFuture": "De publicatiedatum kan niet in de toekomst liggen; plan de inhoud in"
       }
     }
+  },
+  "filterPopover": {
+    "trigger": "Filteren",
+    "chooseCategory": "Selecteer een filterveld om te beginnen",
+    "searchOptions": "Zoeken...",
+    "noOptions": "Geen opties",
+    "loading": "Laden",
+    "clear": "Alles wissen"
   }
 }

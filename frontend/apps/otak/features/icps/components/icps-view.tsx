@@ -5,10 +5,11 @@ import { useTranslations } from "next-intl";
 import { AlertTriangle, Plus, X } from "lucide-react";
 import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
 import { Button } from "@oba/ui/sky/button";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { DataTable, TablePagination } from "@/components/data-table";
-import { ActionEmptyState, FilterLabel, PageHeading } from "@/components/page-states";
+import { ActionEmptyState, PageHeading } from "@/components/page-states";
 import { useIsOrganizationAdmin } from "@/hooks/use-is-organization-admin";
 import { useIcpColumns } from "../hooks/use-icp-columns";
 import { useIcpFilterParams } from "../hooks/use-icp-filter-params";
@@ -58,18 +59,19 @@ export function IcpsView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeading title={t("title")} description={t("subtitle")} actions={newButton} />
+      <PageHeading title={t("title")} description={t("subtitle")} />
 
-      <div className="flex flex-wrap items-end gap-3">
-        <FilterLabel label={t("filters.searchLabel")} className="w-full sm:w-64">
+      <ListToolbar
+        search={
           <SenseySearchInput
             value={filters.search}
             placeholder={t("filters.searchPlaceholder")}
             onSearchChange={(search) => void setFilters({ search: search ?? null, page: 1 })}
-            className="w-full"
+            className="w-40 sm:w-56"
           />
-        </FilterLabel>
-      </div>
+        }
+        create={newButton}
+      />
 
       {icps.isError && icps.data === undefined ? (
         <LoadError

@@ -1,15 +1,16 @@
 "use client";
 
-import { useCallback, useId, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { AlertTriangle, Plus, X } from "lucide-react";
 import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
 import { Button } from "@oba/ui/sky/button";
-import { NativeSelect } from "@oba/ui/sky/field";
+import { FilterPopover, type FilterCategory } from "@oba/ui/sky/filter-popover";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { DataTable, TablePagination } from "@/components/data-table";
-import { ActionEmptyState, FilterLabel, PageHeading } from "@/components/page-states";
+import { ActionEmptyState, PageHeading, useFilterPopoverLabels } from "@/components/page-states";
 import { useLegalEntities } from "@/features/documents/hooks/use-legal-entities";
 import { useIsOrganizationAdmin } from "@/hooks/use-is-organization-admin";
 import { useDocumentTemplateColumns } from "../hooks/use-document-template-columns";
@@ -31,6 +32,9 @@ import { DocumentTemplatePreviewDialog } from "./document-template-preview-dialo
 /** Every filter cleared; the list goes back to its first page. */
 const CLEARED_FILTERS = { search: null, type: null, language: null, legalEntity: null, page: 1 };
 
+/** The filters of the popover cleared; the search stays and the list goes back to its first page. */
+const CLEARED_POPOVER_FILTERS = { type: null, language: null, legalEntity: null, page: 1 };
+
 /**
  * The organization's document templates by name, with a search on name,
  * type, language and legal entity filters and paging in the URL. The legal
@@ -43,9 +47,7 @@ export function DocumentTemplatesView() {
   const t = useTranslations("documentTemplates");
   const tErrors = useTranslations("errors");
   const isAdmin = useIsOrganizationAdmin();
-  const typeId = useId();
-  const languageId = useId();
-  const legalEntityId = useId();
+  const filterLabels = useFilterPopoverLabels();
   const legalEntities = useLegalEntities();
   const [filters, setFilters] = useDocumentTemplateFilterParams();
   const query = useMemo(() => toDocumentTemplateQuery(filters), [filters]);
@@ -87,6 +89,52 @@ export function DocumentTemplatesView() {
       DocumentLanguageSchema.options.map((value) => ({ value, label: t(`languages.${value}`) })),
     [t]
   );
+  const legalEntityOptions = useMemo(() => {
+    const options = (legalEntities.data?.data ?? []).map((entity) => ({
+      value: entity.id,
+      label: entity.shortName,
+    }));
+    // A legal entity from a shared URL stays selectable until the list has loaded.
+    if (filters.legalEntity && !options.some((option) => option.value === filters.legalEntity)) {
+      options.unshift({ value: filters.legalEntity, label: t("filters.legalEntityUnknown") });
+    }
+    return options;
+  }, [legalEntities.data?.data, filters.legalEntity, t]);
+
+  const filterCategories: FilterCategory[] = [
+    {
+      key: "type",
+      label: t("filters.typeLabel"),
+      mode: "single",
+      value: filters.type,
+      onChange: (value) => {
+        const type = DocumentTypeSchema.safeParse(value);
+        void setFilters({ type: type.success ? type.data : null, page: 1 });
+      },
+      options: typeOptions,
+    },
+    {
+      key: "language",
+      label: t("filters.languageLabel"),
+      mode: "single",
+      value: filters.language,
+      onChange: (value) => {
+        const language = DocumentLanguageSchema.safeParse(value);
+        void setFilters({ language: language.success ? language.data : null, page: 1 });
+      },
+      options: languageOptions,
+    },
+    {
+      key: "legalEntity",
+      label: t("filters.legalEntityLabel"),
+      mode: "single",
+      value: filters.legalEntity,
+      onChange: (legalEntity) => void setFilters({ legalEntity, page: 1 }),
+      options: legalEntityOptions,
+      isLoading: legalEntities.isPending && legalEntities.fetchStatus !== "idle",
+      error: legalEntities.isError ? t("filters.legalEntitiesLoadError") : null,
+    },
+  ];
 
   const rows = useMemo(
     (): DocumentTemplateListItem[] => templates.data?.data ?? [],
@@ -104,90 +152,26 @@ export function DocumentTemplatesView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeading title={t("title")} description={t("subtitle")} actions={newButton} />
+      <PageHeading title={t("title")} description={t("subtitle")} />
 
-      <div className="flex flex-wrap items-end gap-3">
-        <FilterLabel label={t("filters.searchLabel")} className="w-full sm:w-64">
+      <ListToolbar
+        search={
           <SenseySearchInput
             value={filters.search}
             placeholder={t("filters.searchPlaceholder")}
             onSearchChange={(search) => void setFilters({ search: search ?? null, page: 1 })}
-            className="w-full"
+            className="w-40 sm:w-56"
           />
-        </FilterLabel>
-        <FilterLabel label={t("filters.typeLabel")} htmlFor={typeId} className="w-full sm:w-48">
-          <NativeSelect
-            id={typeId}
-            value={filters.type ?? ""}
-            onChange={(event) => {
-              const type = DocumentTypeSchema.safeParse(event.target.value);
-              void setFilters({ type: type.success ? type.data : null, page: 1 });
-            }}
-            className="w-full"
-          >
-            <option value="">{t("filters.typeAll")}</option>
-            {typeOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </NativeSelect>
-        </FilterLabel>
-        <FilterLabel
-          label={t("filters.languageLabel")}
-          htmlFor={languageId}
-          className="w-full sm:w-40"
-        >
-          <NativeSelect
-            id={languageId}
-            value={filters.language ?? ""}
-            onChange={(event) => {
-              const language = DocumentLanguageSchema.safeParse(event.target.value);
-              void setFilters({ language: language.success ? language.data : null, page: 1 });
-            }}
-            className="w-full"
-          >
-            <option value="">{t("filters.languageAll")}</option>
-            {languageOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </NativeSelect>
-        </FilterLabel>
-        <FilterLabel
-          label={t("filters.legalEntityLabel")}
-          htmlFor={legalEntityId}
-          className="w-full sm:w-48"
-        >
-          <NativeSelect
-            id={legalEntityId}
-            value={filters.legalEntity ?? ""}
-            onChange={(event) =>
-              void setFilters({ legalEntity: event.target.value || null, page: 1 })
-            }
-            className="w-full"
-          >
-            <option value="">{t("filters.legalEntityAll")}</option>
-            {/* A legal entity from a shared URL stays selectable until the list has loaded. */}
-            {filters.legalEntity &&
-              !legalEntities.data?.data?.some((entity) => entity.id === filters.legalEntity) && (
-                <option value={filters.legalEntity}>{t("filters.legalEntityUnknown")}</option>
-              )}
-            {(legalEntities.data?.data ?? []).map((entity) => (
-              <option key={entity.id} value={entity.id}>
-                {entity.shortName}
-              </option>
-            ))}
-          </NativeSelect>
-        </FilterLabel>
-        {isFiltered && (
-          <Button variant="ghost" className="h-9" onClick={() => void setFilters(CLEARED_FILTERS)}>
-            <X aria-hidden="true" />
-            {t("filters.clear")}
-          </Button>
-        )}
-      </div>
+        }
+        filters={
+          <FilterPopover
+            categories={filterCategories}
+            onClear={() => void setFilters(CLEARED_POPOVER_FILTERS)}
+            labels={filterLabels}
+          />
+        }
+        create={newButton}
+      />
 
       {templates.isError && templates.data === undefined ? (
         <LoadError

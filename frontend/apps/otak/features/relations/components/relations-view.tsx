@@ -3,8 +3,10 @@
 import { useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { AlertTriangle, Plus, X } from "lucide-react";
+import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
 import { Link, useRouter } from "@oba/shared/libs/i18n/navigation";
 import { Button } from "@oba/ui/sky/button";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { Tabs, TabsList, TabsTrigger } from "@oba/ui/sky/tabs";
 import { DataTable, TablePagination } from "@/components/data-table";
@@ -58,6 +60,14 @@ export function RelationsView() {
     [relations.data?.data]
   );
   const pagination = relations.data?.pagination;
+  const newButton = (
+    <Button asChild>
+      <Link href={newRelationHref}>
+        <Plus aria-hidden="true" />
+        {t("new")}
+      </Link>
+    </Button>
+  );
 
   const handleFilterChange = useCallback(
     (change: Partial<RelationFilterParams>) => void setFilters({ ...change, page: 1 }),
@@ -74,31 +84,31 @@ export function RelationsView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeading
-        title={t("title")}
-        description={t("subtitle")}
-        actions={
-          <Button asChild>
-            <Link href={newRelationHref}>
-              <Plus aria-hidden="true" />
-              {t("new")}
-            </Link>
-          </Button>
-        }
-      />
+      <PageHeading title={t("title")} description={t("subtitle")} />
 
-      <div className="flex flex-wrap items-end gap-3">
-        <Tabs value={filters.tab} onValueChange={handleTabChange}>
-          <TabsList aria-label={t("tabsLabel")}>
-            {RELATION_TABS.map((tab) => (
-              <TabsTrigger key={tab} value={tab}>
-                {t(`tabs.${tab}`)}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-        <RelationFilterPanel filters={filters} onChange={handleFilterChange} />
-      </div>
+      <ListToolbar
+        tabs={
+          <Tabs value={filters.tab} onValueChange={handleTabChange}>
+            <TabsList aria-label={t("tabsLabel")}>
+              {RELATION_TABS.map((tab) => (
+                <TabsTrigger key={tab} value={tab}>
+                  {t(`tabs.${tab}`)}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        }
+        search={
+          <SenseySearchInput
+            value={filters.search}
+            placeholder={t("filters.searchPlaceholder")}
+            onSearchChange={(search) => handleFilterChange({ search: search ?? null })}
+            className="w-40 sm:w-56"
+          />
+        }
+        filters={<RelationFilterPanel filters={filters} onChange={handleFilterChange} />}
+        create={newButton}
+      />
 
       {relations.isError && relations.data === undefined ? (
         <LoadError
@@ -125,14 +135,7 @@ export function RelationsView() {
           <ActionEmptyState
             title={t(`emptyByTab.${filters.tab}`)}
             description={t(`emptyHintByTab.${filters.tab}`)}
-            action={
-              <Button asChild>
-                <Link href={newRelationHref}>
-                  <Plus aria-hidden="true" />
-                  {t("new")}
-                </Link>
-              </Button>
-            }
+            action={newButton}
           />
         )
       ) : (

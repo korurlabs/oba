@@ -6,10 +6,11 @@ import { AlertTriangle, Plus, X } from "lucide-react";
 import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
 import { useRouter } from "@oba/shared/libs/i18n/navigation";
 import { Button } from "@oba/ui/sky/button";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { DataTable } from "@/components/data-table";
-import { ActionEmptyState, FilterLabel, PageHeading } from "@/components/page-states";
+import { ActionEmptyState, PageHeading } from "@/components/page-states";
 import { useIsOrganizationAdmin } from "@/hooks/use-is-organization-admin";
 import { useCampaignColumns } from "../hooks/use-campaign-columns";
 import { useCampaignFilterParams } from "../hooks/use-campaign-filter-params";
@@ -67,18 +68,19 @@ export function CampaignsView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeading title={t("title")} description={t("subtitle")} actions={newButton} />
+      <PageHeading title={t("title")} description={t("subtitle")} />
 
-      <div className="flex flex-wrap items-end gap-3">
-        <FilterLabel label={t("filters.searchLabel")} className="w-full sm:w-64">
+      <ListToolbar
+        search={
           <SenseySearchInput
             value={filters.search}
             placeholder={t("filters.searchPlaceholder")}
             onSearchChange={(search) => void setFilters({ search: search ?? null })}
-            className="w-full"
+            className="w-40 sm:w-56"
           />
-        </FilterLabel>
-      </div>
+        }
+        create={newButton}
+      />
 
       {campaigns.isError && campaigns.data === undefined ? (
         <LoadError
@@ -95,21 +97,14 @@ export function CampaignsView() {
             title={t("emptyFiltered")}
             description={t("emptyFilteredHint")}
             action={
-              <Button
-                variant="outline"
-                onClick={() => void setFilters({ search: null })}
-              >
+              <Button variant="outline" onClick={() => void setFilters({ search: null })}>
                 <X aria-hidden="true" />
                 {t("filters.clear")}
               </Button>
             }
           />
         ) : (
-          <ActionEmptyState
-            title={t("empty")}
-            description={t("emptyHint")}
-            action={newButton}
-          />
+          <ActionEmptyState title={t("empty")} description={t("emptyHint")} action={newButton} />
         )
       ) : (
         <>

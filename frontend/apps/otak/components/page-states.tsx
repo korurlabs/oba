@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { useTranslations } from "next-intl";
+import type { FilterPopoverLabels } from "@oba/ui/sky/filter-popover";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@oba/ui/sky/card";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +51,19 @@ export function PageHeading({
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </div>
   );
+}
+
+/** The texts of every Otak list's filter popover, the same on each list. */
+export function useFilterPopoverLabels(): FilterPopoverLabels {
+  const t = useTranslations("filterPopover");
+  return {
+    trigger: t("trigger"),
+    chooseCategory: t("chooseCategory"),
+    searchOptions: t("searchOptions"),
+    noOptions: t("noOptions"),
+    loading: t("loading"),
+    clear: t("clear"),
+  };
 }
 
 /** A labelled control of a filter row, with its label above it in Kaya's small caption. */

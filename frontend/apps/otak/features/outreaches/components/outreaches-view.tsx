@@ -1,14 +1,15 @@
 "use client";
 
-import { useId, useMemo, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { AlertTriangle, FileText, X } from "lucide-react";
 import { Link } from "@oba/shared/libs/i18n/navigation";
 import { Button } from "@oba/ui/sky/button";
-import { NativeSelect } from "@oba/ui/sky/field";
+import { FilterPopover, type FilterCategory } from "@oba/ui/sky/filter-popover";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { DataTable, TablePagination } from "@/components/data-table";
-import { ActionEmptyState, FilterLabel, PageHeading } from "@/components/page-states";
+import { ActionEmptyState, PageHeading, useFilterPopoverLabels } from "@/components/page-states";
 import { useCampaignOptions } from "@/features/campaigns/hooks/use-campaigns";
 import { useIsOrganizationAdmin } from "@/hooks/use-is-organization-admin";
 import { useOutreachColumns } from "../hooks/use-outreach-columns";
@@ -33,8 +34,7 @@ export function OutreachesView({ tabs }: OutreachesViewProps) {
   const t = useTranslations("outreaches");
   const tErrors = useTranslations("errors");
   const isAdmin = useIsOrganizationAdmin();
-  const statusId = useId();
-  const campaignId = useId();
+  const filterLabels = useFilterPopoverLabels();
   const campaigns = useCampaignOptions();
   const [filters, setFilters] = useOutreachFilterParams();
   const query = useMemo(() => toOutreachQuery(filters), [filters]);
@@ -62,6 +62,34 @@ export function OutreachesView({ tabs }: OutreachesViewProps) {
     return options;
   }, [campaigns.data, filteredCampaignId]);
 
+  const filterCategories: FilterCategory[] = [
+    {
+      key: "status",
+      label: t("filters.statusLabel"),
+      mode: "single",
+      value: filters.status,
+      onChange: (value) => {
+        const status = OutreachStatusSchema.safeParse(value);
+        void setFilters({ status: status.success ? status.data : null, page: 1 });
+      },
+      options: OutreachStatusSchema.options.map((status) => ({
+        value: status,
+        label: t(`statuses.${status}`),
+      })),
+    },
+    {
+      key: "campaign",
+      label: t("filters.campaignLabel"),
+      mode: "single",
+      value: filters.campaign,
+      onChange: (campaign) => void setFilters({ campaign, page: 1 }),
+      options: campaignOptions,
+      searchable: true,
+      isLoading: campaigns.isPending && campaigns.fetchStatus !== "idle",
+      error: campaigns.isError ? t("filters.campaignsLoadError") : null,
+    },
+  ];
+
   const templatesLink = (
     <Button asChild variant="outline">
       <Link href="/mail">
@@ -75,52 +103,16 @@ export function OutreachesView({ tabs }: OutreachesViewProps) {
     <div className="flex flex-col gap-6">
       <PageHeading title={t("title")} description={t("subtitle")} actions={templatesLink} />
 
-      <div className="flex flex-wrap items-end gap-3">
-        {tabs}
-        <FilterLabel label={t("filters.statusLabel")} htmlFor={statusId} className="w-full sm:w-48">
-          <NativeSelect
-            id={statusId}
-            value={filters.status ?? ""}
-            onChange={(event) => {
-              const status = OutreachStatusSchema.safeParse(event.target.value);
-              void setFilters({ status: status.success ? status.data : null, page: 1 });
-            }}
-            className="w-full"
-          >
-            <option value="">{t("filters.statusAll")}</option>
-            {OutreachStatusSchema.options.map((status) => (
-              <option key={status} value={status}>
-                {t(`statuses.${status}`)}
-              </option>
-            ))}
-          </NativeSelect>
-        </FilterLabel>
-        <FilterLabel
-          label={t("filters.campaignLabel")}
-          htmlFor={campaignId}
-          className="w-full sm:w-48"
-        >
-          <NativeSelect
-            id={campaignId}
-            value={filteredCampaignId}
-            disabled={campaigns.isPending && campaigns.fetchStatus !== "idle"}
-            onChange={(event) => void setFilters({ campaign: event.target.value || null, page: 1 })}
-            className="w-full"
-          >
-            <option value="">{t("filters.campaignAll")}</option>
-            {campaignOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </NativeSelect>
-        </FilterLabel>
-        {campaigns.isError && (
-          <p className="text-warning-text w-full text-xs" role="status">
-            {t("filters.campaignsLoadError")}
-          </p>
-        )}
-      </div>
+      <ListToolbar
+        tabs={tabs}
+        filters={
+          <FilterPopover
+            categories={filterCategories}
+            onClear={() => void setFilters({ status: null, campaign: null, page: 1 })}
+            labels={filterLabels}
+          />
+        }
+      />
 
       {outreaches.isError && outreaches.data === undefined ? (
         <LoadError

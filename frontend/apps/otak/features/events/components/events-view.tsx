@@ -7,11 +7,12 @@ import { todayDateOnly } from "@oba/shared/lib/date-only";
 import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
 import { useRouter } from "@oba/shared/libs/i18n/navigation";
 import { Button } from "@oba/ui/sky/button";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { Tabs, TabsList, TabsTrigger } from "@oba/ui/sky/tabs";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { DataTable, TablePagination } from "@/components/data-table";
-import { ActionEmptyState, FilterLabel, PageHeading } from "@/components/page-states";
+import { ActionEmptyState, PageHeading } from "@/components/page-states";
 import { useIsOrganizationAdmin } from "@/hooks/use-is-organization-admin";
 import { useEventColumns } from "../hooks/use-event-columns";
 import { useEventFilterParams } from "../hooks/use-event-filter-params";
@@ -80,27 +81,30 @@ export function EventsView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeading title={t("title")} description={t("subtitle")} actions={newButton} />
+      <PageHeading title={t("title")} description={t("subtitle")} />
 
-      <div className="flex flex-wrap items-end gap-3">
-        <Tabs value={filters.tab} onValueChange={handleTabChange}>
-          <TabsList aria-label={t("tabsLabel")}>
-            {EVENT_TABS.map((tab) => (
-              <TabsTrigger key={tab} value={tab}>
-                {t(`tabs.${tab}`)}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-        <FilterLabel label={t("filters.searchLabel")} className="w-full sm:w-64">
+      <ListToolbar
+        tabs={
+          <Tabs value={filters.tab} onValueChange={handleTabChange}>
+            <TabsList aria-label={t("tabsLabel")}>
+              {EVENT_TABS.map((tab) => (
+                <TabsTrigger key={tab} value={tab}>
+                  {t(`tabs.${tab}`)}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        }
+        search={
           <SenseySearchInput
             value={filters.search}
             placeholder={t("filters.searchPlaceholder")}
             onSearchChange={(search) => void setFilters({ search: search ?? null, page: 1 })}
-            className="w-full"
+            className="w-40 sm:w-56"
           />
-        </FilterLabel>
-      </div>
+        }
+        create={newButton}
+      />
 
       {events.isError && events.data === undefined ? (
         <LoadError

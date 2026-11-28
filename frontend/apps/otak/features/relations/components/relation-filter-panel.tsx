@@ -1,19 +1,14 @@
 "use client";
 
-import { useId, useMemo } from "react";
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { X } from "lucide-react";
-import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
-import { SelectFieldStandalone, type SelectOption } from "@oba/shared/features/form";
-import { Button } from "@oba/ui/sky/button";
-import { NativeSelect } from "@oba/ui/sky/field";
-import { FilterLabel } from "@/components/page-states";
+import { FilterPopover, type FilterCategory } from "@oba/ui/sky/filter-popover";
+import { useFilterPopoverLabels } from "@/components/page-states";
 import { useCampaignOptions } from "@/features/campaigns/hooks/use-campaigns";
 import { useEvent, useEventOptions } from "@/features/events/hooks/use-events";
 import { useOrganizationMembers } from "@/features/members/hooks/use-organization-members";
 import { memberOptions } from "@/features/members/lib/member-options";
 import {
-  hasActiveRelationFilter,
   RELATION_TAB_STAGES,
   tabHasStage,
   type RelationFilterParams,
@@ -31,19 +26,17 @@ interface RelationFilterPanelProps {
 }
 
 /**
- * The relations list's filters, each under its label as on Kaya's filter
- * rows: a search on name, the owner, the event, the campaign and, on the leads and
- * customers tabs, the stages of that tab. Without a stage the leads list hides lost and
- * parked leads and the customers list shows every customer; picking stages
- * lists exactly those. It sits in the toolbar row after the tabs, so it takes
- * the remaining width and wraps inside itself.
+ * The relations list's filter popover: the owner, the event, the campaign
+ * and, on the leads and customers tabs, the stages of that tab. Without a
+ * stage the leads list hides lost and parked leads and the customers list
+ * shows every customer; picking stages lists exactly those. The name search
+ * sits beside it in the list toolbar and is not cleared with these filters.
  */
 export function RelationFilterPanel({ filters, onChange }: RelationFilterPanelProps) {
   const t = useTranslations("relations");
   const members = useOrganizationMembers();
+  const filterLabels = useFilterPopoverLabels();
   const showStageFilter = tabHasStage(filters.tab);
-  const ownerId = useId();
-  const eventId = useId();
   const events = useEventOptions();
   // The select offers only the most recent events; an event from a shared
   // link outside them is fetched on its own so its name shows.
@@ -54,7 +47,6 @@ export function RelationFilterPanel({ filters, onChange }: RelationFilterPanelPr
   const filteredEvent = useEvent(filteredEventId, {
     enabled: events.isSuccess && !filteredEventListed,
   });
-  const campaignId = useId();
   const campaigns = useCampaignOptions();
   const filteredCampaignId = filters.campaign ?? "";
 
@@ -100,114 +92,61 @@ export function RelationFilterPanel({ filters, onChange }: RelationFilterPanelPr
     return options;
   }, [campaigns.data, filteredCampaignId]);
 
+  const categories: FilterCategory[] = [];
+  if (showStageFilter) {
+    categories.push({
+      key: "stage",
+      label: t("filters.stageLabel"),
+      mode: "multi",
+      value: filters.stage ?? [],
+      onChange: (values) => {
+        const stages = values.filter(isPipelineStage);
+        onChange({ stage: stages.length > 0 ? stages : null });
+      },
+      options: stageOptions,
+    });
+  }
+  categories.push(
+    {
+      key: "owner",
+      label: t("filters.ownerLabel"),
+      mode: "single",
+      value: filters.owner,
+      onChange: (owner) => onChange({ owner }),
+      options: ownerOptions,
+      searchable: true,
+      isLoading: members.isPending && members.fetchStatus !== "idle",
+      error: members.isError ? t("filters.ownersLoadError") : null,
+    },
+    {
+      key: "event",
+      label: t("filters.eventLabel"),
+      mode: "single",
+      value: filters.event,
+      onChange: (event) => onChange({ event }),
+      options: eventOptions,
+      searchable: true,
+      isLoading: events.isPending && events.fetchStatus !== "idle",
+      error: events.isError ? t("filters.eventsLoadError") : null,
+    },
+    {
+      key: "campaign",
+      label: t("filters.campaignLabel"),
+      mode: "single",
+      value: filters.campaign,
+      onChange: (campaign) => onChange({ campaign }),
+      options: campaignOptions,
+      searchable: true,
+      isLoading: campaigns.isPending && campaigns.fetchStatus !== "idle",
+      error: campaigns.isError ? t("filters.campaignsLoadError") : null,
+    }
+  );
+
   return (
-    <div className="flex min-w-0 flex-1 flex-wrap items-end gap-3 sm:justify-end">
-      <FilterLabel label={t("filters.searchLabel")} className="w-full sm:w-56">
-        <SenseySearchInput
-          value={filters.search}
-          placeholder={t("filters.searchPlaceholder")}
-          onSearchChange={(search) => onChange({ search: search ?? null })}
-          className="w-full"
-        />
-      </FilterLabel>
-      {showStageFilter && (
-        <FilterLabel label={t("filters.stageLabel")} className="w-full sm:w-48">
-          <SelectFieldStandalone
-            isMulti
-            value={filters.stage ?? []}
-            onValueChange={(values) => {
-              const stages = values.filter(isPipelineStage);
-              onChange({ stage: stages.length > 0 ? stages : null });
-            }}
-            options={stageOptions}
-            placeholder={
-              filters.tab === "customers"
-                ? t("filters.stagePlaceholderCustomers")
-                : t("filters.stagePlaceholder")
-            }
-            className="w-full"
-          />
-        </FilterLabel>
-      )}
-      <FilterLabel label={t("filters.ownerLabel")} htmlFor={ownerId} className="w-full sm:w-48">
-        <NativeSelect
-          id={ownerId}
-          value={filters.owner ?? ""}
-          disabled={members.isPending && members.fetchStatus !== "idle"}
-          onChange={(event) => onChange({ owner: event.target.value || null })}
-          className="w-full"
-        >
-          <option value="">{t("filters.ownerPlaceholder")}</option>
-          {ownerOptions.map((option: SelectOption) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </NativeSelect>
-      </FilterLabel>
-      <FilterLabel label={t("filters.eventLabel")} htmlFor={eventId} className="w-full sm:w-48">
-        <NativeSelect
-          id={eventId}
-          value={filteredEventId}
-          disabled={events.isPending && events.fetchStatus !== "idle"}
-          onChange={(event) => onChange({ event: event.target.value || null })}
-          className="w-full"
-        >
-          <option value="">{t("filters.eventPlaceholder")}</option>
-          {eventOptions.map((option: SelectOption) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </NativeSelect>
-      </FilterLabel>
-      <FilterLabel
-        label={t("filters.campaignLabel")}
-        htmlFor={campaignId}
-        className="w-full sm:w-48"
-      >
-        <NativeSelect
-          id={campaignId}
-          value={filteredCampaignId}
-          disabled={campaigns.isPending && campaigns.fetchStatus !== "idle"}
-          onChange={(event) => onChange({ campaign: event.target.value || null })}
-          className="w-full"
-        >
-          <option value="">{t("filters.campaignPlaceholder")}</option>
-          {campaignOptions.map((option: SelectOption) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </NativeSelect>
-      </FilterLabel>
-      {hasActiveRelationFilter(filters) && (
-        <Button
-          variant="ghost"
-          className="h-9"
-          onClick={() =>
-            onChange({ search: null, owner: null, event: null, campaign: null, stage: null })
-          }
-        >
-          <X aria-hidden="true" />
-          {t("filters.clear")}
-        </Button>
-      )}
-      {members.isError && (
-        <p className="text-warning-text w-full text-xs sm:text-right" role="status">
-          {t("filters.ownersLoadError")}
-        </p>
-      )}
-      {events.isError && (
-        <p className="text-warning-text w-full text-xs sm:text-right" role="status">
-          {t("filters.eventsLoadError")}
-        </p>
-      )}
-      {campaigns.isError && (
-        <p className="text-warning-text w-full text-xs sm:text-right" role="status">
-          {t("filters.campaignsLoadError")}
-        </p>
-      )}
-    </div>
+    <FilterPopover
+      categories={categories}
+      onClear={() => onChange({ owner: null, event: null, campaign: null, stage: null })}
+      labels={filterLabels}
+    />
   );
 }

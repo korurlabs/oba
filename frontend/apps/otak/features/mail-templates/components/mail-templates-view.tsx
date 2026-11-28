@@ -1,15 +1,16 @@
 "use client";
 
-import { useCallback, useId, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { AlertTriangle, Plus, X } from "lucide-react";
 import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
 import { Button } from "@oba/ui/sky/button";
-import { NativeSelect } from "@oba/ui/sky/field";
+import { FilterPopover, type FilterCategory } from "@oba/ui/sky/filter-popover";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { DataTable, TablePagination } from "@/components/data-table";
-import { ActionEmptyState, FilterLabel, PageHeading } from "@/components/page-states";
+import { ActionEmptyState, PageHeading, useFilterPopoverLabels } from "@/components/page-states";
 import { DocumentLanguageSchema } from "@/features/document-templates/schemas";
 import { useIsOrganizationAdmin } from "@/hooks/use-is-organization-admin";
 import { useMailTemplateColumns } from "../hooks/use-mail-template-columns";
@@ -35,7 +36,7 @@ export function MailTemplatesView() {
   const tTemplates = useTranslations("documentTemplates");
   const tErrors = useTranslations("errors");
   const isAdmin = useIsOrganizationAdmin();
-  const languageId = useId();
+  const filterLabels = useFilterPopoverLabels();
   const [filters, setFilters] = useMailTemplateFilterParams();
   const query = useMemo(() => toMailTemplateQuery(filters), [filters]);
   const templates = useMailTemplates(query);
@@ -72,6 +73,19 @@ export function MailTemplatesView() {
       })),
     [tTemplates]
   );
+  const filterCategories: FilterCategory[] = [
+    {
+      key: "language",
+      label: t("filters.languageLabel"),
+      mode: "single",
+      value: filters.language,
+      onChange: (value) => {
+        const language = DocumentLanguageSchema.safeParse(value);
+        void setFilters({ language: language.success ? language.data : null, page: 1 });
+      },
+      options: languageOptions,
+    },
+  ];
 
   const rows = useMemo(
     (): MailTemplateListItem[] => templates.data?.data ?? [],
@@ -89,46 +103,26 @@ export function MailTemplatesView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeading title={t("title")} description={t("subtitle")} actions={newButton} />
+      <PageHeading title={t("title")} description={t("subtitle")} />
 
-      <div className="flex flex-wrap items-end gap-3">
-        <FilterLabel label={t("filters.searchLabel")} className="w-full sm:w-64">
+      <ListToolbar
+        search={
           <SenseySearchInput
             value={filters.search}
             placeholder={t("filters.searchPlaceholder")}
             onSearchChange={(search) => void setFilters({ search: search ?? null, page: 1 })}
-            className="w-full"
+            className="w-40 sm:w-56"
           />
-        </FilterLabel>
-        <FilterLabel
-          label={t("filters.languageLabel")}
-          htmlFor={languageId}
-          className="w-full sm:w-40"
-        >
-          <NativeSelect
-            id={languageId}
-            value={filters.language ?? ""}
-            onChange={(event) => {
-              const language = DocumentLanguageSchema.safeParse(event.target.value);
-              void setFilters({ language: language.success ? language.data : null, page: 1 });
-            }}
-            className="w-full"
-          >
-            <option value="">{t("filters.languageAll")}</option>
-            {languageOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </NativeSelect>
-        </FilterLabel>
-        {isFiltered && (
-          <Button variant="ghost" className="h-9" onClick={() => void setFilters(CLEARED_FILTERS)}>
-            <X aria-hidden="true" />
-            {t("filters.clear")}
-          </Button>
-        )}
-      </div>
+        }
+        filters={
+          <FilterPopover
+            categories={filterCategories}
+            onClear={() => void setFilters({ language: null, page: 1 })}
+            labels={filterLabels}
+          />
+        }
+        create={newButton}
+      />
 
       {templates.isError && templates.data === undefined ? (
         <LoadError

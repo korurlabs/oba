@@ -113,19 +113,13 @@
     },
     "filters": {
       "searchPlaceholder": "Ada göre ara",
-      "stagePlaceholder": "Açık aşamalar",
-      "stagePlaceholderCustomers": "Her aşama",
-      "ownerPlaceholder": "Herhangi bir sahip",
       "clear": "Filtreleri temizle",
       "ownersLoadError": "Sahipler yüklenemedi.",
-      "searchLabel": "Ara",
       "stageLabel": "Aşama",
       "ownerLabel": "Sahip",
       "eventLabel": "Etkinlik",
-      "eventPlaceholder": "Herhangi bir etkinlik",
       "eventsLoadError": "Etkinlikler yüklenemedi.",
       "campaignLabel": "Kampanya",
-      "campaignPlaceholder": "Tüm kampanyalar",
       "campaignsLoadError": "Kampanyalar yüklenemedi."
     },
     "form": {
@@ -435,7 +429,6 @@
       "actions": "İşlemler"
     },
     "filters": {
-      "searchLabel": "Ara",
       "searchPlaceholder": "Ada göre ara",
       "clear": "Aramayı temizle"
     },
@@ -574,18 +567,14 @@
       "snapshotCount": "Gönderilen kopyalar"
     },
     "filters": {
-      "searchLabel": "Ara",
       "searchPlaceholder": "Başlığa göre ara",
       "relationLabel": "İlişki",
-      "relationAll": "Tüm ilişkiler",
       "legalEntityLabel": "Tüzel kişi",
-      "legalEntityAll": "Tüm tüzel kişiler",
       "legalEntityUnknown": "Seçili tüzel kişi",
       "typeLabel": "Tür",
-      "typeAll": "Tüm türler",
       "languageLabel": "Dil",
-      "languageAll": "Tüm diller",
-      "clear": "Filtreleri temizle"
+      "clear": "Filtreleri temizle",
+      "legalEntitiesLoadError": "Tüzel kişiler yüklenemedi."
     },
     "pagination": {
       "label": "Sayfalar",
@@ -751,16 +740,13 @@
       "actions": "İşlemler"
     },
     "filters": {
-      "searchLabel": "Ara",
       "searchPlaceholder": "Ada göre ara",
       "typeLabel": "Tür",
-      "typeAll": "Tüm türler",
       "languageLabel": "Dil",
-      "languageAll": "Tüm diller",
       "legalEntityLabel": "Tüzel kişi",
-      "legalEntityAll": "Tüm tüzel kişiler",
       "legalEntityUnknown": "Seçili tüzel kişi",
-      "clear": "Filtreleri temizle"
+      "clear": "Filtreleri temizle",
+      "legalEntitiesLoadError": "Tüzel kişiler yüklenemedi."
     },
     "pagination": {
       "label": "Sayfalar",
@@ -852,7 +838,6 @@
       "searchLabel": "Ara",
       "searchPlaceholder": "Ada göre ara",
       "languageLabel": "Dil",
-      "languageAll": "Tüm diller",
       "clear": "Filtreleri temizle"
     },
     "pagination": {
@@ -962,10 +947,8 @@
     },
     "filters": {
       "statusLabel": "Durum",
-      "statusAll": "Tüm durumlar",
       "clear": "Filtreyi temizle",
       "campaignLabel": "Kampanya",
-      "campaignAll": "Tüm kampanyalar",
       "campaignsLoadError": "Kampanyalar yüklenemedi."
     },
     "pagination": {
@@ -1258,7 +1241,6 @@
       "actions": "İşlemler"
     },
     "filters": {
-      "searchLabel": "Ara",
       "searchPlaceholder": "Ada göre ara",
       "clear": "Aramayı temizle"
     },
@@ -1389,7 +1371,6 @@
       "contentCount": "İçerikler"
     },
     "filters": {
-      "searchLabel": "Ara",
       "searchPlaceholder": "Ada göre ara",
       "clear": "Filtreleri temizle"
     },
@@ -1552,5 +1533,13 @@
         "publishedAtInFuture": "Yayınlanma tarihi gelecekte olamaz; bunun yerine içeriği planlayın"
       }
     }
+  },
+  "filterPopover": {
+    "trigger": "Filtrele",
+    "chooseCategory": "Başlamak için bir filtre alanı seçin",
+    "searchOptions": "Ara...",
+    "noOptions": "Seçenek yok",
+    "loading": "Yükleniyor",
+    "clear": "Tümünü temizle"
   }
 }
