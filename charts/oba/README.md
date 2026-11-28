@@ -61,6 +61,8 @@ Top level: `nameOverride`, `fullnameOverride`, `imagePullSecrets` and `commonLab
 | `KAZAN_GITHUB_APP_ID`, `KAZAN_GITHUB_INSTALLATION_ID`, `KAZAN_GITHUB_ORGANIZATION_ID`, `KAZAN_GITHUB_PRIVATE_KEY` | no | Credentials of the GitHub App that links repositories and pull requests. |
 | `KAZAN_ALERTMANAGER_ORGANIZATION_ID`, `KAZAN_ALERTMANAGER_WEBHOOK_TOKEN` | no | The Alertmanager webhook that files incident tickets. |
 | `KAZAN_EXPO_ACCESS_TOKEN` | no | Push notifications to the mobile app. |
+| `OBA_OIDC_ISSUER_URL` | no | Public https origin of the API root, without a trailing slash, at which `/.well-known/openid-configuration` and `/.well-known/jwks.json` answer. Turns on cloud connections through workload identity federation. Permanent: every federated credential in every customer tenant names it, so changing it breaks them all. |
+| `OBA_OIDC_SIGNING_KEY`, `OBA_OIDC_SIGNING_KEY_ID`, `OBA_OIDC_PUBLISHED_PUBLIC_KEY`, `OBA_OIDC_PUBLISHED_KEY_ID` | with `OBA_OIDC_ISSUER_URL` | The RSA key (PKCS#8, at least 2048 bits, base64 DER or PEM) and id that sign the assertions, for example from `openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048`. Whoever holds it can act as every connection, so keep it in a secret only the API reads. The published key (X.509 public key) and id are optional and listed in the key set during a rotation: publish the next key, sign with it at least a day later, then drop the old one. |
 | `KAYA_SESSION_RETENTION_CRON` | no | Schedule of the Kaya session clean-up, default `0 30 3 * * *`. |
 
 The chart sets `SPRING_PROFILES_ACTIVE=prod` and `JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=60.0`.

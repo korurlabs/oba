@@ -14,6 +14,7 @@ import com.korur.oba.connect.azure.exception.ExceptionDomainAzureError;
 import com.korur.oba.connect.github.exception.ExceptionDomainGithubError;
 import com.korur.oba.connect.intelligence.exception.ExceptionDomainIntelligenceError;
 import com.korur.oba.connect.notification.exception.ExceptionDomainNotificationError;
+import com.korur.oba.connect.oidc.exception.ExceptionDomainOidcError;
 import com.korur.oba.connect.outbox.exception.ExceptionDomainOutboxError;
 import com.korur.oba.connect.push.exception.ExceptionDomainPushError;
 import com.korur.oba.connect.realtime.exception.ExceptionDomainRealtimeError;
@@ -66,6 +67,7 @@ class ExceptionErrorConsistencyUnitTest {
         addAll(all, ExceptionDomainGithubError.values());
         addAll(all, ExceptionDomainIntelligenceError.values());
         addAll(all, ExceptionDomainNotificationError.values());
+        addAll(all, ExceptionDomainOidcError.values());
         addAll(all, ExceptionDomainOutboxError.values());
         addAll(all, ExceptionDomainPushError.values());
         addAll(all, ExceptionDomainDailyUpdateError.values());

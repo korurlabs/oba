@@ -21,6 +21,15 @@ public class SecurityConstant {
      */
     public static final String REALTIME_ENDPOINT_PATH = "/ws";
 
+    /**
+     * The OpenID Connect discovery document and key set of the issuer that signs cloud connection
+     * assertions. Public because a cloud provider fetches them without credentials; they hold only
+     * the issuer URL and public keys. The issuer URL is the public origin of the API root, so both
+     * sit at its /.well-known.
+     */
+    public static final String OIDC_DISCOVERY_PATH = "/.well-known/openid-configuration";
+    public static final String OIDC_JWKS_PATH = "/.well-known/jwks.json";
+
     // Publicly accessible paths
     public static final String[] PUBLIC_PATHS = {
         "/actuator/health/**",
@@ -29,7 +38,9 @@ public class SecurityConstant {
         "/swagger-ui/**",
         "/favicon.ico",
         "/invitations/preview",
-        REALTIME_ENDPOINT_PATH
+        REALTIME_ENDPOINT_PATH,
+        OIDC_DISCOVERY_PATH,
+        OIDC_JWKS_PATH
     };
 
     // Paths that need a login and an active account but no organization, so their methods carry no
