@@ -58,7 +58,7 @@ export const TargetPersonRole = TargetPersonRoleSchema.enum;
 /** The limits the server validates; the form checks the same ones first. */
 export const ICP_LIMITS = {
   nameMax: 100,
-  descriptionMax: 10000,
+  descriptionMax: 20000,
   searchMax: 100,
 } as const;
 
