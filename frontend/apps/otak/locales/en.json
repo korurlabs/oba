@@ -802,10 +802,19 @@
     },
     "legalEntityAll": "All"
   },
+  "mailPage": {
+    "title": "Mail",
+    "subtitle": "The mail templates and the mailboxes your outreach mail is sent from.",
+    "tabsLabel": "Mail",
+    "tabs": {
+      "templates": "Templates",
+      "senders": "Senders"
+    }
+  },
   "mailTemplates": {
     "title": "Mail templates",
     "subtitle": "Approved mails every mail outreach can start from.",
-    "new": "New mail template",
+    "new": "New template",
     "newTitle": "New mail template",
     "editTitle": "Edit mail template",
     "dialogDescription": "A subject and a plain text. An outreach copies it, so later changes do not change mails already prepared.",
@@ -1137,8 +1146,8 @@
   },
   "mailSenders": {
     "subtitle": "The mailboxes of your organization's Microsoft 365 tenant that it sends its outreach mail from.",
-    "new": "Add sender",
-    "newTitle": "Add sender",
+    "new": "Connect mailbox",
+    "newTitle": "Connect mailbox",
     "dialogDescription": "Enter the address of a mailbox in your organization's Microsoft 365 tenant.",
     "loadError": "The senders could not be loaded.",
     "reloadError": "The senders could not be refreshed; this list may be out of date.",
@@ -1146,6 +1155,8 @@
     "empty": "No senders yet",
     "emptyHint": "Add a mailbox of your organization's Microsoft 365 tenant to send outreach mail from.",
     "emptyHintMember": "An admin of the organization adds the senders.",
+    "emptyFiltered": "No senders match this search",
+    "emptyFilteredHint": "Try another mail address, or clear the search.",
     "tableLabel": "Senders",
     "delete": "Delete {mailAddress}",
     "deleteTitle": "Delete sender",
@@ -1191,6 +1202,10 @@
       "forbidden": "You do not have permission to do this.",
       "validation": "Check the highlighted fields.",
       "loadHint": "Check your connection and try again."
+    },
+    "filters": {
+      "searchPlaceholder": "Search by mail address",
+      "clear": "Clear search"
     }
   },
   "events": {

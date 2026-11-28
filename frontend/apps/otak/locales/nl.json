@@ -802,10 +802,19 @@
     },
     "legalEntityAll": "Alle"
   },
+  "mailPage": {
+    "title": "Mail",
+    "subtitle": "De mailsjablonen en de mailboxen waaruit je outreachmail wordt verstuurd.",
+    "tabsLabel": "Mail",
+    "tabs": {
+      "templates": "Sjablonen",
+      "senders": "Afzenders"
+    }
+  },
   "mailTemplates": {
     "title": "Mailsjablonen",
     "subtitle": "Goedgekeurde mails waar elke mailbenadering mee kan beginnen.",
-    "new": "Nieuw mailsjabloon",
+    "new": "Nieuw sjabloon",
     "newTitle": "Nieuw mailsjabloon",
     "editTitle": "Mailsjabloon bewerken",
     "dialogDescription": "Een onderwerp en een platte tekst. Een benadering kopieert het, dus latere wijzigingen veranderen al voorbereide mails niet.",
@@ -1137,8 +1146,8 @@
   },
   "mailSenders": {
     "subtitle": "De mailboxen van de Microsoft 365-tenant van je organisatie waaruit zij haar outreach-mail verstuurt.",
-    "new": "Afzender toevoegen",
-    "newTitle": "Afzender toevoegen",
+    "new": "Mailbox koppelen",
+    "newTitle": "Mailbox koppelen",
     "dialogDescription": "Voer het adres in van een mailbox in de Microsoft 365-tenant van je organisatie.",
     "loadError": "De afzenders konden niet worden geladen.",
     "reloadError": "De afzenders konden niet worden vernieuwd; deze lijst is mogelijk verouderd.",
@@ -1146,6 +1155,8 @@
     "empty": "Nog geen afzenders",
     "emptyHint": "Voeg een mailbox van de Microsoft 365-tenant van je organisatie toe om outreach-mail uit te versturen.",
     "emptyHintMember": "Een beheerder van de organisatie voegt de afzenders toe.",
+    "emptyFiltered": "Geen afzenders voor deze zoekopdracht",
+    "emptyFilteredHint": "Probeer een ander mailadres, of wis de zoekopdracht.",
     "tableLabel": "Afzenders",
     "delete": "{mailAddress} verwijderen",
     "deleteTitle": "Afzender verwijderen",
@@ -1191,6 +1202,10 @@
       "forbidden": "Je hebt geen toestemming om dit te doen.",
       "validation": "Controleer de gemarkeerde velden.",
       "loadHint": "Controleer je verbinding en probeer het opnieuw."
+    },
+    "filters": {
+      "searchPlaceholder": "Zoeken op mailadres",
+      "clear": "Zoekopdracht wissen"
     }
   },
   "events": {

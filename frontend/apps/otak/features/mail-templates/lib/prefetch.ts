@@ -19,9 +19,6 @@ export async function prefetchMailTemplates(
       await listMailTemplates(query)
     );
   } catch (error) {
-    console.error(
-      "[templates-page] mail template prefetch failed, the client will refetch:",
-      error
-    );
+    console.error("[mail-page] mail template prefetch failed, the client will refetch:", error);
   }
 }

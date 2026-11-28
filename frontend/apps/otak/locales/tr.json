@@ -802,10 +802,19 @@
     },
     "legalEntityAll": "Tümü"
   },
+  "mailPage": {
+    "title": "Posta",
+    "subtitle": "E-posta şablonları ve erişim e-postalarının gönderildiği posta kutuları.",
+    "tabsLabel": "Posta",
+    "tabs": {
+      "templates": "Şablonlar",
+      "senders": "Gönderenler"
+    }
+  },
   "mailTemplates": {
     "title": "E-posta şablonları",
     "subtitle": "Her e-posta erişiminin başlayabileceği onaylı e-postalar.",
-    "new": "Yeni e-posta şablonu",
+    "new": "Yeni şablon",
     "newTitle": "Yeni e-posta şablonu",
     "editTitle": "E-posta şablonunu düzenle",
     "dialogDescription": "Bir konu ve düz bir metin. Erişim onu kopyalar; sonraki değişiklikler hazırlanmış e-postaları değiştirmez.",
@@ -1137,8 +1146,8 @@
   },
   "mailSenders": {
     "subtitle": "Organizasyonun erişim e-postalarını gönderdiği Microsoft 365 kiracısındaki posta kutuları.",
-    "new": "Gönderen ekle",
-    "newTitle": "Gönderen ekle",
+    "new": "Posta kutusu bağla",
+    "newTitle": "Posta kutusu bağla",
     "dialogDescription": "Organizasyonunuzun Microsoft 365 kiracısındaki bir posta kutusunun adresini girin.",
     "loadError": "Gönderenler yüklenemedi.",
     "reloadError": "Gönderenler yenilenemedi; bu liste güncel olmayabilir.",
@@ -1146,6 +1155,8 @@
     "empty": "Henüz gönderen yok",
     "emptyHint": "Erişim e-postalarını göndermek için organizasyonunuzun Microsoft 365 kiracısından bir posta kutusu ekleyin.",
     "emptyHintMember": "Gönderenleri organizasyonun bir yöneticisi ekler.",
+    "emptyFiltered": "Bu aramaya uyan gönderen yok",
+    "emptyFilteredHint": "Başka bir e-posta adresi dene ya da aramayı temizle.",
     "tableLabel": "Gönderenler",
     "delete": "{mailAddress} sil",
     "deleteTitle": "Göndereni sil",
@@ -1191,6 +1202,10 @@
       "forbidden": "Bunu yapma yetkiniz yok.",
       "validation": "İşaretli alanları kontrol edin.",
       "loadHint": "Bağlantınızı kontrol edip tekrar deneyin."
+    },
+    "filters": {
+      "searchPlaceholder": "E-posta adresine göre ara",
+      "clear": "Aramayı temizle"
     }
   },
   "events": {

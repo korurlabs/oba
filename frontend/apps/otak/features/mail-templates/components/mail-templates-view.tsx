@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { AlertTriangle, Plus, X } from "lucide-react";
 import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
@@ -25,14 +25,20 @@ import { MailTemplatePreviewDialog } from "./mail-template-preview-dialog";
 /** Every filter cleared; the list goes back to its first page. */
 const CLEARED_FILTERS = { search: null, language: null, page: 1 };
 
+export interface MailTemplatesViewProps {
+  /** The Mail page's tabs, shown between the heading and the toolbar. */
+  tabs?: ReactNode;
+}
+
 /**
  * The organization's mail templates by name, with a search on name, a
  * language filter and paging in the URL. Every member opens a mail
  * template's preview; an admin also creates, edits and deletes them, as the
  * server refuses a member's writes.
  */
-export function MailTemplatesView() {
+export function MailTemplatesView({ tabs }: MailTemplatesViewProps) {
   const t = useTranslations("mailTemplates");
+  const tMail = useTranslations("mailPage");
   const tTemplates = useTranslations("documentTemplates");
   const tErrors = useTranslations("errors");
   const isAdmin = useIsOrganizationAdmin();
@@ -103,7 +109,9 @@ export function MailTemplatesView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeading title={t("title")} description={t("subtitle")} />
+      <PageHeading title={tMail("title")} description={t("subtitle")} />
+
+      {tabs}
 
       <ListToolbar
         search={
