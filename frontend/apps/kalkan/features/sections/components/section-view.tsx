@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { parseAsString, useQueryState } from "nuqs";
-import { Plus, RotateCcw } from "lucide-react";
+import { History, Plus, RotateCcw, ShieldCheck } from "lucide-react";
 import { useDateFormat } from "@oba/shared/i18n/use-date-format";
 import { Link } from "@oba/shared/libs/i18n/navigation";
 import { Button } from "@oba/ui/sky/button";
@@ -17,7 +17,7 @@ import { useSectionRoot, useSetUpSection } from "@/features/pages/hooks/use-sect
 import { pageErrorText } from "@/features/pages/lib/page-error";
 import { isLevelAtLeast, KalkanLevel, type PageTrashItem } from "@/features/pages/schemas";
 import { useIsOrganizationAdmin, useIsOrganizationMember } from "@/hooks/use-is-organization-admin";
-import { newPageHref } from "@/lib/routes";
+import { newPageHref, pageHistoryHref, pagePermissionsHref } from "@/lib/routes";
 import type { SectionSlug } from "@/lib/sections";
 import { visiblePageIds } from "../lib/tree-search";
 import { SectionTree } from "./section-tree";
@@ -28,6 +28,8 @@ import { SectionTree } from "./section-tree";
  * A root in the trash is not missing: setting the section up again would make
  * a second root, so a member whose trash holds it gets its restore instead.
  * With EDIT on the section the tree can be rearranged and pages added. The
+ * root page's history and access screens have no other way in from the
+ * section, so the toolbar links them on the same terms as the root page. The
  * search narrows the tree in the browser, since the tree arrives whole.
  */
 export function SectionView({ slug }: { slug: SectionSlug }) {
@@ -35,6 +37,7 @@ export function SectionView({ slug }: { slug: SectionSlug }) {
   const tTree = useTranslations("sectionTree");
   const tSidebar = useTranslations("sidebar");
   const tPages = useTranslations("pages");
+  const tPageView = useTranslations("pageView");
   const locale = useLocale();
   const [search, setSearch] = useQueryState("search", parseAsString);
   const [searchReset, setSearchReset] = useState(0);
@@ -49,6 +52,9 @@ export function SectionView({ slug }: { slug: SectionSlug }) {
   const root = section?.root ?? null;
   // The server refuses a GUEST every write whatever its level on the root.
   const canEdit = isMember && isLevelAtLeast(root?.level, KalkanLevel.EDIT);
+  // Access is set on a section's root, by whoever MANAGEs it.
+  const canManageAccess = isMember && isLevelAtLeast(root?.level, KalkanLevel.MANAGE);
+  const canSeeHistory = isLevelAtLeast(root?.level, KalkanLevel.VIEW);
   const deletedRoot = deletedRootOf(trash.data?.data ?? [], slug);
   const pages = data?.data ?? [];
   const visibleIds = root && search ? visiblePageIds(pages, root.id, search, locale) : undefined;
@@ -142,6 +148,26 @@ export function SectionView({ slug }: { slug: SectionSlug }) {
               clearLabel={tTree("searchClear")}
               resetSignal={searchReset}
             />
+          }
+          actions={
+            <>
+              {canSeeHistory && (
+                <Button asChild variant="outline">
+                  <Link href={pageHistoryHref(root.id)}>
+                    <History aria-hidden="true" />
+                    {tPageView("history")}
+                  </Link>
+                </Button>
+              )}
+              {canManageAccess && (
+                <Button asChild variant="outline">
+                  <Link href={pagePermissionsHref(root.id)}>
+                    <ShieldCheck aria-hidden="true" />
+                    {tPageView("permissions")}
+                  </Link>
+                </Button>
+              )}
+            </>
           }
           create={canEdit && <NewPageButton parentId={root.id} />}
         />

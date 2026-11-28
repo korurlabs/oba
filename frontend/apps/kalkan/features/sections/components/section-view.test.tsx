@@ -227,6 +227,29 @@ describe("section with a live root", () => {
     expect(treeProps?.visibleIds).toBeUndefined();
   });
 
+  test("a MANAGE holder gets the root page's history and access", () => {
+    const html = render();
+    expect(html).toContain('href="/pages/root/history"');
+    expect(html).toContain('href="/pages/root/permissions"');
+    expect(html).toContain("History");
+    expect(html).toContain("Access");
+  });
+
+  test("a reader gets the history but not the access screen", () => {
+    root = { ...ROOT, level: "VIEW" };
+    const html = render();
+    expect(html).toContain('href="/pages/root/history"');
+    expect(html).not.toContain('href="/pages/root/permissions"');
+  });
+
+  test("a guest with MANAGE on the root is not offered the access screen", () => {
+    isAdmin = false;
+    isMember = false;
+    const html = render();
+    expect(html).toContain('href="/pages/root/history"');
+    expect(html).not.toContain('href="/pages/root/permissions"');
+  });
+
   test("narrows the tree to the pages that answer the search", () => {
     search = "backup";
     render();
