@@ -146,7 +146,8 @@ describe("SkillDetail", () => {
     const html = render(KAZAN);
     expect(html).toContain("Back to Skills");
     expect(html).toContain('href="/skills?scope=pack%3Ap-1"');
-    expect(html).toContain(">kazan</h1>");
+    expect(html).toContain('data-slot="page-heading"');
+    expect(html).toContain('<h1 class="min-w-0 font-mono text-base break-all">kazan</h1>');
     expect(html).toContain("Pack village");
     expect(html).toContain(KAZAN);
   });

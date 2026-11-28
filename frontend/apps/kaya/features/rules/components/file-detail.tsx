@@ -7,6 +7,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Pencil } from "lucide-react";
 
 import type { SkyLinkProps } from "@oba/ui/sky/app-shell";
 import { Button } from "@oba/ui/sky/button";
+import { PageHeading, type PageHeadingBack } from "@oba/ui/sky/page-heading";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@oba/ui/sky/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@oba/ui/sky/tooltip";
 import {
@@ -169,37 +170,132 @@ export type Neighbour = {
 };
 
 /**
- * The row over a file's page: the link back to its list and, outside the
- * editor, the arrows to the files before and after it.
+ * The arrows to the entries before and after one in its list, such as
+ * "Previous file"; each end of the list disables its arrow.
  */
-export function DetailNav({
-  back,
-  backLabel,
+export function DetailSteps({
   previous,
   next,
-  showSteps,
+  noun,
 }: {
-  back: (current: URLSearchParams) => string;
-  backLabel: string;
   /** Null at the start of the list. */
   previous: Neighbour | null;
   /** Null at the end of the list. */
   next: Neighbour | null;
-  showSteps: boolean;
+  /** What the list holds, in the arrows' labels, such as "file" or "skill". */
+  noun: string;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2">
-      <BackLink to={back} label={backLabel} />
-      {showSteps && (
-        <div className="flex items-center gap-1">
-          <StepLink to={previous?.to ?? null} name={previous?.name} label="Previous file">
-            <ChevronLeft aria-hidden />
-          </StepLink>
-          <StepLink to={next?.to ?? null} name={next?.name} label="Next file">
-            <ChevronRight aria-hidden />
-          </StepLink>
+    <div className="flex items-center gap-1">
+      <StepLink to={previous?.to ?? null} name={previous?.name} label={`Previous ${noun}`}>
+        <ChevronLeft aria-hidden />
+      </StepLink>
+      <StepLink to={next?.to ?? null} name={next?.name} label={`Next ${noun}`}>
+        <ChevronRight aria-hidden />
+      </StepLink>
+    </div>
+  );
+}
+
+/** What a file's heading shows beside its name, as `FileDetail` builds it. */
+export type FileHeadingParts = {
+  /** The file's state, mode, origin and override badges. */
+  badges: ReactNode;
+  /** The file's size, such as "2 KB"; null when unknown. */
+  size: string | null;
+  /** Edit with its lock tip; null where the file may not be edited or the editor is open. */
+  edit: ReactNode;
+  /** The description line with the kind's details; null when there is none. */
+  line: ReactNode;
+  /** Whether the editor is open in place of the read view. */
+  editing: boolean;
+};
+
+/**
+ * A file that is the page itself, such as a rule or a convention doc: the
+ * shared page heading with the path as its mono title and the back link,
+ * which asks before it leaves an unsaved edit. Badges, size and the
+ * description line sit under the path; Edit and, outside the editor, the
+ * arrows to the neighbouring files sit at the right.
+ */
+export function FilePageHeading({
+  title,
+  back,
+  previous,
+  next,
+  showSteps,
+  parts,
+}: {
+  title: string;
+  back: PageHeadingBack;
+  /** Null at the start of the list. */
+  previous: Neighbour | null;
+  /** Null at the end of the list. */
+  next: Neighbour | null;
+  /** False when the file is not in the list, so it has no neighbours. */
+  showSteps: boolean;
+  parts: FileHeadingParts;
+}) {
+  const steps = showSteps && !parts.editing;
+  return (
+    <PageHeading
+      title={title}
+      titleVariant="mono"
+      back={back}
+      linkComponent={GuardedLink}
+      description={
+        <div className="flex min-w-0 flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-2">
+            {parts.badges}
+            {parts.size !== null && (
+              <span className="text-muted-foreground text-xs">{parts.size}</span>
+            )}
+          </div>
+          {parts.line}
         </div>
-      )}
+      }
+      actions={
+        parts.edit !== null || steps ? (
+          <>
+            {parts.edit}
+            {steps && <DetailSteps previous={previous} next={next} noun="file" />}
+          </>
+        ) : undefined
+      }
+    />
+  );
+}
+
+/**
+ * A file that is one part of a page with its own heading, such as a skill's
+ * file: one row with its name (its size in the name's tooltip), badges and
+ * Edit, then the description line.
+ */
+export function FilePartHeading({ name, parts }: { name: ReactNode; parts: FileHeadingParts }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-1">
+      <div className="flex flex-wrap items-center gap-2">
+        {parts.size === null ? (
+          name
+        ) : (
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div
+                  tabIndex={0}
+                  className="focus-visible:ring-ring min-w-0 rounded-sm outline-none focus-visible:ring-2"
+                >
+                  {name}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>{parts.size}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+        {parts.badges}
+        {parts.edit !== null && <span className="ml-auto">{parts.edit}</span>}
+      </div>
+      {parts.line}
     </div>
   );
 }
@@ -349,8 +445,12 @@ function ReadTabs({
 export type FileDetailProps = {
   file: ScopeFile;
   ready: ReadyScope;
-  /** The file's name in its header row, beside its state and Edit. */
-  heading: ReactNode;
+  /**
+   * The file's heading, given its badges, size, Edit and description line:
+   * `FilePageHeading` where the file is the page, `FilePartHeading` where it
+   * is a part of one.
+   */
+  heading: (parts: FileHeadingParts) => ReactNode;
   /** What the file's kind list says about it; null when it names nothing. */
   summary: KindSummary | null;
   /**
@@ -363,18 +463,16 @@ export type FileDetailProps = {
    * other file of the document shows its full path over the header.
    */
   mainPath?: string | null;
-  /** What sits above the header, told whether the editor is open. */
-  nav?: (editing: boolean) => ReactNode;
   /** A save moved the file to another path. */
   onRenamed: (path: string) => void;
   onDeleted: () => void;
 };
 
 /**
- * One delivered file: its path when it is a part of a document; one header
- * row with its name (its size in the name's tooltip), state, badges and
- * Edit; a line with its description and kind details; the read view with its tabs, or the editor view of the
- * file. Edit opens the editor at once: a save goes into the member's open
+ * One delivered file: its path when it is a part of a document; its heading
+ * with its name, state, badges, size and Edit, and a line with its
+ * description and kind details; the read view with its tabs, or the editor
+ * view of the file. Edit opens the editor at once: a save goes into the member's open
  * change of the file's pack, or is submitted as a one-edit change, after
  * which the editor closes and the page says the change is in review.
  */
@@ -385,7 +483,6 @@ export function FileDetail({
   summary,
   description,
   mainPath,
-  nav,
   onRenamed,
   onDeleted,
 }: FileDetailProps) {
@@ -456,49 +553,43 @@ export function FileDetail({
 
   return (
     <article className="flex min-w-0 flex-col gap-4" aria-label={file.path}>
-      {nav?.(editing)}
       <header className="flex min-w-0 flex-col gap-1">
         {breadcrumb !== null && <Breadcrumb segments={breadcrumb} />}
-        <div className="flex flex-wrap items-center gap-2">
-          {file.size === null ? (
-            heading
-          ) : (
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div
-                    tabIndex={0}
-                    className="focus-visible:ring-ring min-w-0 rounded-sm outline-none focus-visible:ring-2"
-                  >
-                    {heading}
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>{formatBytes(file.size)}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
-          <StateBadge state={state} />
-          <FileBadges file={{ ...shown, size: null }} />
-          {origin && <OriginBadge origin={origin} />}
-          <ItemStatusBadges item={effectiveOf(ready.effective, file.path)} owners={ready.owners} />
-          {mayEdit && !editing && (
-            <span className="ml-auto flex items-center gap-1">
-              <Button
-                size="sm"
-                onClick={startEditing}
-                disabled={source === null || source.kind === "locked"}
-              >
-                <Pencil aria-hidden />
-                Edit
-              </Button>
-              {source?.kind === "locked" && <ChangeLockTip packName={source.openPackName} />}
-            </span>
-          )}
-        </div>
-        <TruncatedLine
-          text={description ?? summary?.title ?? null}
-          details={summary?.details ?? []}
-        />
+        {heading({
+          badges: (
+            <>
+              <StateBadge state={state} />
+              <FileBadges file={{ ...shown, size: null }} />
+              {origin && <OriginBadge origin={origin} />}
+              <ItemStatusBadges
+                item={effectiveOf(ready.effective, file.path)}
+                owners={ready.owners}
+              />
+            </>
+          ),
+          size: file.size === null ? null : formatBytes(file.size),
+          edit:
+            mayEdit && !editing ? (
+              <span className="flex items-center gap-1">
+                <Button
+                  size="sm"
+                  onClick={startEditing}
+                  disabled={source === null || source.kind === "locked"}
+                >
+                  <Pencil aria-hidden />
+                  Edit
+                </Button>
+                {source?.kind === "locked" && <ChangeLockTip packName={source.openPackName} />}
+              </span>
+            ) : null,
+          line: (
+            <TruncatedLine
+              text={description ?? summary?.title ?? null}
+              details={summary?.details ?? []}
+            />
+          ),
+          editing,
+        })}
       </header>
       {submitted !== null && (
         <p className="text-sm">

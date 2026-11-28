@@ -177,7 +177,8 @@ beforeEach(() => {
 describe("ConventionDetail", () => {
   test("a doc shows its path, title, the back link, Edit and the four tabs with Content open", () => {
     const html = render(CQRS);
-    expect(html).toContain(`>${CQRS}</h1>`);
+    expect(html).toContain('data-slot="page-heading"');
+    expect(html).toContain(`<h1 class="min-w-0 font-mono text-base break-all">${CQRS}</h1>`);
     expect(html).toContain(">CQRS</p>");
     // Back to Conventions opens the doc's folder.
     expect(html).toContain('href="/conventions?scope=pack%3Ap-1&amp;open=backend"');
