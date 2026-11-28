@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { AlertTriangle, FileText, X } from "lucide-react";
-import { Link } from "@oba/shared/libs/i18n/navigation";
+import { AlertTriangle, X } from "lucide-react";
+import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
 import { Button } from "@oba/ui/sky/button";
 import { FilterPopover, type FilterCategory } from "@oba/ui/sky/filter-popover";
 import { ListToolbar } from "@oba/ui/sky/list-toolbar";
@@ -11,31 +11,35 @@ import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { DataTable, TablePagination } from "@/components/data-table";
 import { ActionEmptyState, PageHeading, useFilterPopoverLabels } from "@/components/page-states";
 import { useCampaignOptions } from "@/features/campaigns/hooks/use-campaigns";
+import { useMailSenders } from "@/features/mail-senders/hooks/use-mail-senders";
 import { useIsOrganizationAdmin } from "@/hooks/use-is-organization-admin";
 import { useOutreachColumns } from "../hooks/use-outreach-columns";
 import { useOutreachFilterParams } from "../hooks/use-outreach-filter-params";
 import { useOutreaches } from "../hooks/use-outreaches";
 import { outreachErrorText } from "../lib/outreach-error";
-import { toOutreachQuery } from "../lib/outreach-filters";
-import { OutreachStatusSchema, type OutreachListItem } from "../schemas";
+import {
+  CLEARED_OUTREACH_FILTERS,
+  CLEARED_OUTREACH_POPOVER_FILTERS,
+  hasActiveOutreachFilter,
+  toOutreachQuery,
+} from "../lib/outreach-filters";
+import { OutreachStatusSchema, OutreachTypeSchema, type OutreachListItem } from "../schemas";
 import { useOutreachRowActions } from "./outreach-row-actions";
-
-export interface OutreachesViewProps {
-  /** The page's tabs, shown before the filters. */
-  tabs?: ReactNode;
-}
+import { ReachOutButton } from "./reach-out-button";
 
 /**
- * The organization's reach-outs, newest first, with status and campaign
- * filters and paging in the URL. Each row links to its lead. New reach-outs start on a
- * lead's page; the reusable mails themselves are the mail templates.
+ * The organization's reach-outs, newest first, with a search, channel,
+ * status, sender and campaign filters and paging in the URL. Each row links
+ * to its lead. An admin reaches out from here by picking a lead first, or
+ * from the lead's own page.
  */
-export function OutreachesView({ tabs }: OutreachesViewProps) {
+export function OutreachesView() {
   const t = useTranslations("outreaches");
   const tErrors = useTranslations("errors");
   const isAdmin = useIsOrganizationAdmin();
   const filterLabels = useFilterPopoverLabels();
   const campaigns = useCampaignOptions();
+  const mailSenders = useMailSenders();
   const [filters, setFilters] = useOutreachFilterParams();
   const query = useMemo(() => toOutreachQuery(filters), [filters]);
   const outreaches = useOutreaches(query);
@@ -47,7 +51,7 @@ export function OutreachesView({ tabs }: OutreachesViewProps) {
     [outreaches.data?.data]
   );
   const pagination = outreaches.data?.pagination;
-  const isFiltered = !!filters.status || !!filters.campaign;
+  const isFiltered = hasActiveOutreachFilter(filters);
   const filteredCampaignId = filters.campaign ?? "";
   const campaignOptions = useMemo(() => {
     const options = [...(campaigns.data ?? [])];
@@ -61,8 +65,35 @@ export function OutreachesView({ tabs }: OutreachesViewProps) {
     }
     return options;
   }, [campaigns.data, filteredCampaignId]);
+  const filteredSenderId = filters.sender ?? "";
+  const senderOptions = useMemo(() => {
+    const options = (mailSenders.data?.data ?? []).map((sender) => ({
+      value: sender.id,
+      label: sender.mailAddress,
+    }));
+    if (filteredSenderId !== "" && !options.some((option) => option.value === filteredSenderId)) {
+      // A link to a deleted sender, or one read before the list arrives,
+      // shows its id so the filter can be cleared.
+      options.push({ value: filteredSenderId, label: filteredSenderId });
+    }
+    return options;
+  }, [mailSenders.data?.data, filteredSenderId]);
 
   const filterCategories: FilterCategory[] = [
+    {
+      key: "channel",
+      label: t("filters.channelLabel"),
+      mode: "single",
+      value: filters.channel,
+      onChange: (value) => {
+        const channel = OutreachTypeSchema.safeParse(value);
+        void setFilters({ channel: channel.success ? channel.data : null, page: 1 });
+      },
+      options: OutreachTypeSchema.options.map((type) => ({
+        value: type,
+        label: t(`types.${type}`),
+      })),
+    },
     {
       key: "status",
       label: t("filters.statusLabel"),
@@ -78,6 +109,17 @@ export function OutreachesView({ tabs }: OutreachesViewProps) {
       })),
     },
     {
+      key: "sender",
+      label: t("filters.senderLabel"),
+      mode: "single",
+      value: filters.sender,
+      onChange: (sender) => void setFilters({ sender, page: 1 }),
+      options: senderOptions,
+      searchable: true,
+      isLoading: mailSenders.isPending && mailSenders.fetchStatus !== "idle",
+      error: mailSenders.isError ? t("filters.sendersLoadError") : null,
+    },
+    {
       key: "campaign",
       label: t("filters.campaignLabel"),
       mode: "single",
@@ -90,28 +132,29 @@ export function OutreachesView({ tabs }: OutreachesViewProps) {
     },
   ];
 
-  const templatesLink = (
-    <Button asChild variant="outline">
-      <Link href="/mail">
-        <FileText aria-hidden="true" />
-        {t("mailTemplates")}
-      </Link>
-    </Button>
-  );
+  const reachOutButton = isAdmin ? <ReachOutButton /> : undefined;
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeading title={t("title")} description={t("subtitle")} actions={templatesLink} />
+      <PageHeading title={t("title")} description={t("subtitle")} />
 
       <ListToolbar
-        tabs={tabs}
+        search={
+          <SenseySearchInput
+            value={filters.search}
+            placeholder={t("filters.searchPlaceholder")}
+            onSearchChange={(search) => void setFilters({ search: search ?? null, page: 1 })}
+            className="w-40 sm:w-56"
+          />
+        }
         filters={
           <FilterPopover
             categories={filterCategories}
-            onClear={() => void setFilters({ status: null, campaign: null, page: 1 })}
+            onClear={() => void setFilters(CLEARED_OUTREACH_POPOVER_FILTERS)}
             labels={filterLabels}
           />
         }
+        create={reachOutButton}
       />
 
       {outreaches.isError && outreaches.data === undefined ? (
@@ -129,10 +172,7 @@ export function OutreachesView({ tabs }: OutreachesViewProps) {
             title={t("emptyFiltered")}
             description={t("emptyFilteredHint")}
             action={
-              <Button
-                variant="outline"
-                onClick={() => void setFilters({ status: null, campaign: null, page: 1 })}
-              >
+              <Button variant="outline" onClick={() => void setFilters(CLEARED_OUTREACH_FILTERS)}>
                 <X aria-hidden="true" />
                 {t("filters.clear")}
               </Button>
@@ -142,11 +182,7 @@ export function OutreachesView({ tabs }: OutreachesViewProps) {
           <ActionEmptyState
             title={t("empty")}
             description={isAdmin ? t("emptyHint") : t("emptyHintMember")}
-            action={
-              <Button asChild variant="outline">
-                <Link href="/relations">{t("goToLeads")}</Link>
-              </Button>
-            }
+            action={reachOutButton}
           />
         )
       ) : (

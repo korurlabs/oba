@@ -31,6 +31,8 @@ export const OutreachStatus = OutreachStatusSchema.enum;
 export const OUTREACH_LIMITS = {
   titleMax: 200,
   subjectMax: 255,
+  /** The longest search the list takes; a longer one is cut to it. */
+  searchMax: 200,
   bodyMax: 10000,
   /** The server refuses attachments that together are larger than this when sending. */
   attachmentsMaxBytes: 3 * 1024 * 1024,
@@ -86,11 +88,19 @@ export const outreachSendRequestSchema = z.object({
   mailSenderId: z.string(),
 });
 
-/** The list's query string; the server orders newest first. */
+/**
+ * The list's query string; the server orders newest first and ANDs every
+ * filter. `search` matches the title, the contact's name and mail address
+ * and the relation's name. `mailSenderId` keeps the outreaches sent, or last
+ * tried, from that sender, so a draft never matches it.
+ */
 export const outreachQueryRequestSchema = z.object({
   relationId: z.string().optional(),
   status: OutreachStatusSchema.optional(),
   campaignId: z.string().optional(),
+  search: z.string().max(OUTREACH_LIMITS.searchMax).optional(),
+  channel: OutreachTypeSchema.optional(),
+  mailSenderId: z.string().optional(),
   page: z.number().int().min(1),
   amount: z.number().int().min(1).max(50),
 });

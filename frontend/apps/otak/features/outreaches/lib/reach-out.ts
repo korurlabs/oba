@@ -2,11 +2,33 @@ import { ContactEmailType, type ContactListItem } from "@/features/contacts/sche
 import type { DocumentLanguage } from "@/features/document-templates/schemas";
 import type { MailTemplateDetail } from "@/features/mail-templates/schemas";
 import {
+  RELATION_LIMITS,
+  RelationType,
+  type RelationQueryRequest,
+} from "@/features/relations/schemas";
+import {
   DEFAULT_MAIL_LANGUAGE,
   OUTREACH_LIMITS,
   OutreachType,
   type OutreachRequest,
 } from "../schemas";
+
+/** The most leads one search of the lead picker shows. */
+export const LEAD_PICKER_SIZE = 20;
+
+/**
+ * The relation query of the lead picker's search: the first leads whose
+ * name matches, as only a lead is reached out to.
+ */
+export function leadPickerQuery(search: string): RelationQueryRequest {
+  const trimmed = search.trim().slice(0, RELATION_LIMITS.searchMax);
+  return {
+    type: RelationType.LEAD,
+    ...(trimmed ? { search: trimmed } : {}),
+    page: 1,
+    amount: LEAD_PICKER_SIZE,
+  };
+}
 
 /** Every step of reaching out to a lead, in order; a WHATSAPP or CALL skips the mail steps. */
 export const REACH_OUT_STEPS = ["channel", "contact", "mail", "attachments", "save"] as const;
