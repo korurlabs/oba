@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
+import com.korur.oba.apps.kaya.identity.service.KayaUserQueryService;
 import com.korur.oba.apps.kaya.ingest.constant.IngestConstant;
 import com.korur.oba.apps.kaya.ingest.dto.request.IngestPlanRequest;
 import com.korur.oba.apps.kaya.pack.entity.Pack;
@@ -47,6 +48,7 @@ import com.korur.oba.apps.kaya.release.service.RepositoryPackQueryService;
 import com.korur.oba.apps.kaya.session.dto.response.SessionHandoffResponse;
 import com.korur.oba.apps.kaya.session.entity.Session;
 import com.korur.oba.apps.kaya.session.service.SessionQueryService;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
 
 @Service
 @RequiredArgsConstructor
@@ -65,6 +67,7 @@ public class PlanIngestServiceImpl implements PlanIngestService {
     private final SessionQueryService sessionQueryService;
     private final RepositoryPackQueryService repositoryPackQueryService;
     private final PackQueryService packQueryService;
+    private final KayaUserQueryService kayaUserQueryService;
     private final EntityManager entityManager;
     private final LoggingService loggingService;
 
@@ -114,6 +117,9 @@ public class PlanIngestServiceImpl implements PlanIngestService {
             return;
         }
         Plan plan = existing.get();
+        if (isAgentOnAnotherUsersSpec(session, plan)) {
+            return;
+        }
         if (addVersion(session, plan, request, title)) {
             plan.setPackId(packId);
             planRepository.save(plan);
@@ -260,11 +266,31 @@ public class PlanIngestServiceImpl implements PlanIngestService {
                 continue;
             }
             Plan plan = found.get();
+            if (isAgentOnAnotherUsersSpec(session, plan)) {
+                continue;
+            }
             plan.setFeature(feature);
             planRepository.save(plan);
             loggingService.info(LOG_PREFIX, LogLayer.SERVICE, PlanServiceLogConstant.PLAN_FEATURE_LINKED,
                     plan.getId(), feature, session.getId());
         }
+    }
+
+    /**
+     * Tells whether an agent's session reached a spec that belongs to someone else, which it then
+     * leaves unchanged. A new version makes its session's user the owner and opens the review again,
+     * so the owner's pending review feedback would go to the agent's sessions instead, and an agent's
+     * run acts on text that other people write. People keep sharing a spec: whoever versions it last
+     * owns it. The user is read only when the spec has another owner.
+     */
+    private boolean isAgentOnAnotherUsersSpec(Session session, Plan plan) {
+        if (session.getUserId().equals(plan.getUserId())
+                || !AgentValidator.isAgent(kayaUserQueryService.getEntityById(session.getUserId()))) {
+            return false;
+        }
+        loggingService.info(LOG_PREFIX, LogLayer.SERVICE, PlanServiceLogConstant.PLAN_OF_ANOTHER_USER_SKIPPED,
+                plan.getId(), plan.getUserId(), session.getId());
+        return true;
     }
 
     /**

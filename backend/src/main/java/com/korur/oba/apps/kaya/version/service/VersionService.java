@@ -50,6 +50,8 @@ public interface VersionService {
      * @param organizationId the organization of the request
      * @param request        the pack to draft
      * @return the draft
+     * @throws com.korur.oba.dojo.exception.internal.auth.ForbiddenException AGT_SEC_002 when the user
+     *         is an agent
      * @throws com.korur.oba.dojo.exception.internal.business.NotFoundException KAY_NF_001 when the
      *         organization has no such pack
      */
@@ -133,6 +135,8 @@ public interface VersionService {
      * @param organizationId the organization of the request
      * @param versionId      the APPROVED or SUPERSEDED version to restore
      * @return the rollback draft, with source ROLLBACK
+     * @throws com.korur.oba.dojo.exception.internal.auth.ForbiddenException AGT_SEC_002 when the user
+     *         is an agent
      * @throws com.korur.oba.dojo.exception.internal.business.NotFoundException KAY_NF_001 when the
      *         organization has no such version
      * @throws com.korur.oba.dojo.exception.internal.business.ConflictException KAY_CFG_018 when the
@@ -150,6 +154,8 @@ public interface VersionService {
      * @param draftId        the draft
      * @param reason         the reason for the change
      * @return the version, now IN_REVIEW
+     * @throws com.korur.oba.dojo.exception.internal.auth.ForbiddenException AGT_SEC_002 when the user
+     *         is an agent
      * @throws com.korur.oba.dojo.exception.internal.business.ConflictException KAY_CFG_002 when a
      *         rebase is needed, KAY_CFG_014 when it is not a draft, KAY_CFG_015 when another version
      *         is in review, KAY_CFG_016 when it changes nothing

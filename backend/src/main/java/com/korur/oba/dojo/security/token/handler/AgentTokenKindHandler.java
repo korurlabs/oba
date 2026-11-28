@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 
 // 3. Java SDK
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,9 +23,11 @@ import com.korur.oba.dojo.security.token.constant.AgentTokenKindHandlerLogConsta
 import com.korur.oba.dojo.security.token.dto.ApiTokenBodyLimit;
 import com.korur.oba.dojo.security.token.dto.ApiTokenEndpoint;
 import com.korur.oba.dojo.security.token.dto.ApiTokenPrincipal;
+import com.korur.oba.dojo.security.token.dto.ApiTokenRefusedPaths;
 import com.korur.oba.dojo.security.token.dto.UserApiTokenPrincipal;
 import com.korur.oba.dojo.security.token.entity.ApiToken;
 import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
+import com.korur.oba.shrine.agent.constant.AgentConstant;
 import com.korur.oba.shrine.agent.exception.ExceptionDomainAgentError;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.identity.enums.UserKind;
@@ -40,7 +43,11 @@ import com.korur.oba.shrine.organization.service.OrganizationMemberQueryService;
  * the agent's organization.
  *
  * It reserves no path: the agent may call what its MEMBER role and app grants allow, which the request
- * access check applies to every annotated handler. The only unannotated handler it may call is reading
+ * access check applies to every annotated handler. Kaya is the exception
+ * ({@link SecurityConstant#AGENT_TOKEN_REFUSED_PATHS}), refused with 403 AGT_SEC_002 whatever the grants:
+ * its web API holds every member's transcripts and the lessons and plan feedback that reach people's
+ * sessions, so a run steered by text it read must not change or read them. An agent reaches Kaya only
+ * through a machine token an admin registered for it. The only unannotated handler it may call is reading
  * its own user ({@link SecurityConstant#AGENT_TOKEN_EXEMPT_ENDPOINTS}), which skips that check, so the
  * principal is built only after this handler has found the user to be an ACTIVE agent of the token's
  * organization, with an ACTIVE membership in an ACTIVE organization. A disabled or deleted agent's token
@@ -51,6 +58,10 @@ import com.korur.oba.shrine.organization.service.OrganizationMemberQueryService;
 public class AgentTokenKindHandler implements ApiTokenKindHandler {
 
     private static final LogPrefix LOG_PREFIX = LogPrefix.fromClass(AgentTokenKindHandler.class);
+
+    private static final ApiTokenRefusedPaths REFUSED_PATHS = new ApiTokenRefusedPaths(
+            SecurityConstant.AGENT_TOKEN_REFUSED_PATHS, ExceptionDomainAgentError.SEC_AGENT_ACTION_REFUSED,
+            Map.of(AgentConstant.FIELD_ACTION, AgentConstant.ACTION_KAYA_ACCESS));
 
     private final UserQueryService userQueryService;
     private final OrganizationMemberQueryService organizationMemberQueryService;
@@ -64,6 +75,11 @@ public class AgentTokenKindHandler implements ApiTokenKindHandler {
     @Override
     public List<String> reservedPaths() {
         return List.of();
+    }
+
+    @Override
+    public Optional<ApiTokenRefusedPaths> refusedPaths() {
+        return Optional.of(REFUSED_PATHS);
     }
 
     @Override

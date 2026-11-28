@@ -22,6 +22,8 @@ public final class MachineServiceLogConstant {
     public static final String LISTING_MACHINES = "Listing machines of organization {} with {}";
     public static final String READING_MACHINE = "Reading machine {} of organization {}";
     public static final String MACHINE_NOT_FOUND = "Machine {} not found in organization {}";
+    public static final String MACHINE_USER_NOT_ACTIVE = "Refused: the agent of machine {} of organization {} is not active";
+    public static final String MACHINE_MEMBERSHIP_NOT_ACTIVE = "Refused: the agent of machine {} has no active membership of organization {}";
 
     // --- Access ---
     public static final String SELF_REQUIRED = "Refused: user {} is not user {}, which owns machine {}";
@@ -44,8 +46,13 @@ public final class MachineServiceLogConstant {
     // --- User actions ---
     public static final String REVOKING_ALL = "Revoking every token and retiring every machine of user {} in organization {}";
     public static final String ALL_REVOKED = "Revoked {} tokens and retired {} machines of user {} in organization {}";
+    public static final String RETIRING_ALL = "Retiring every machine of user {} in organization {} and revoking its token";
 
     // --- Recorder contact ---
+    public static final String MACHINE_NOT_ACTIVE_REFUSED = "Refused: machine {} of organization {} is no longer active, so token {} may not record";
+    public static final String MACHINE_TOKEN_NOT_LIVE_REFUSED = "Refused: token {} is no longer the live token of machine {} of organization {}, so it may not record";
+    public static final String MACHINE_ORGANIZATION_DELETED_REFUSED = "Refused: organization {} of machine {} is deleted, so token {} may not record";
+    public static final String MACHINE_ORGANIZATION_DISABLED_REFUSED = "Refused: organization {} of machine {} is disabled, so token {} may not record until it is enabled";
     public static final String MACHINE_SEEN = "Machine {} reported Claude Code {} and account {}";
     public static final String RECORDING_USAGE = "Recording the usage snapshot of machine {} captured at {} from session {}";
     public static final String USAGE_RECORDED = "Stored the usage snapshot of machine {} captured at {}";

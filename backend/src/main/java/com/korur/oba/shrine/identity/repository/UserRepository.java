@@ -110,6 +110,22 @@ public interface UserRepository extends SoftDeleteRepository<User, UUID>, JpaSpe
     Optional<User> findByIdForUpdate(@Param("id") UUID id);
 
     /**
+     * Takes FOR KEY SHARE on a user row until the caller's transaction ends: the lock that PostgreSQL's
+     * foreign key check takes on the user when a row that references it is inserted. It conflicts only
+     * with FOR UPDATE, which a delete of the user or a change of one of its unique columns also takes, so
+     * ordinary updates of the user go through.
+     *
+     * @param id the user identifier
+     * @return the user id, or empty when no user has the id
+     */
+    @Query(value = """
+            SELECT id FROM shrine.users
+            WHERE id = :id
+            FOR KEY SHARE
+            """, nativeQuery = true)
+    Optional<UUID> lockForKeyShare(@Param("id") UUID id);
+
+    /**
      * Lists the users of one kind that belong to an organization as agents.
      *
      * @param kind           the kind, {@link UserKind#AGENT} for agents

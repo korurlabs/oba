@@ -109,9 +109,9 @@ public class LessonDeliveryController {
                     + "and searches) of the token in a minute (errorValues.limit 600, errorValues.policy "
                     + "token-reads-per-minute), more than 1200 of its user, all tokens and the web app together (errorValues.limit "
                     + "1200, errorValues.policy user-reads-per-minute), more than 3000 of its organization, all tokens "
-                    + "and the web app together (errorValues.limit 3000, errorValues.policy organization-reads-per-minute), or 2 lesson reads already running on this instance, of its user in "
+                    + "and the web app together (errorValues.limit 3000, errorValues.policy organization-reads-per-minute), or lesson reads already running on this instance, 2 of its user in "
                     + "all their organizations together (errorValues.limit 2, errorValues.policy user-reads-at-once) "
-                    + "or of its organization (errorValues.limit 2, errorValues.policy organization-reads-at-once); "
+                    + "or 3 of its organization (errorValues.limit 3, errorValues.policy organization-reads-at-once); "
                     + "Retry-After gives the seconds until the budget's window ends, or 1 for reads that run at once"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "503", description = "GEN_UPS_004: the read ran past its time limit of 5 "
@@ -154,7 +154,7 @@ public class LessonDeliveryController {
             @ApiResponse(responseCode = "401", description = "KAY_SEC_003: token refused"),
             @ApiResponse(responseCode = "403", description = "GEN_SEC_002, ORG_SEC_001 or ORG_SEC_005: the user no "
                     + "longer acts in the organization; ORG_SEC_003: the user is a GUEST; APP_SEC_001: the user has no Kaya "
-                    + "access"),
+                    + "access; AGT_SEC_002: the user is an agent"),
             @ApiResponse(responseCode = "404", description = "KAY_NF_001: no repository of the organization has this remote"),
             @ApiResponse(responseCode = "422", description = "KAY_VAL_002: repository archived; GEN_VAL_001: a field "
                     + "missing or out of range, claudeSessionId not a session id"),
@@ -194,9 +194,9 @@ public class LessonDeliveryController {
                     + "and searches) of the token in a minute (errorValues.limit 600, errorValues.policy "
                     + "token-reads-per-minute), more than 1200 of its user, all tokens and the web app together (errorValues.limit "
                     + "1200, errorValues.policy user-reads-per-minute), more than 3000 of its organization, all tokens "
-                    + "and the web app together (errorValues.limit 3000, errorValues.policy organization-reads-per-minute), or 2 lesson reads already running on this instance, of its user in "
+                    + "and the web app together (errorValues.limit 3000, errorValues.policy organization-reads-per-minute), or lesson reads already running on this instance, 2 of its user in "
                     + "all their organizations together (errorValues.limit 2, errorValues.policy user-reads-at-once) "
-                    + "or of its organization (errorValues.limit 2, errorValues.policy organization-reads-at-once); "
+                    + "or 3 of its organization (errorValues.limit 3, errorValues.policy organization-reads-at-once); "
                     + "Retry-After gives the seconds until the budget's window ends, or 1 for reads that run at once"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "503", description = "GEN_UPS_004: the read ran past its time limit of 5 "
@@ -249,7 +249,7 @@ public class LessonDeliveryController {
             @ApiResponse(responseCode = "401", description = "KAY_SEC_003: token refused"),
             @ApiResponse(responseCode = "403", description = "GEN_SEC_003: neither the author nor ADMIN or OWNER; "
                     + "GEN_SEC_002, ORG_SEC_001 or ORG_SEC_005: the user no longer acts in the organization; ORG_SEC_003: "
-                    + "the user is a GUEST; APP_SEC_001: the user has no Kaya access"),
+                    + "the user is a GUEST; APP_SEC_001: the user has no Kaya access; AGT_SEC_002: the user is an agent"),
             @ApiResponse(responseCode = "404", description = "KAY_NF_001: the organization has no such lesson"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })

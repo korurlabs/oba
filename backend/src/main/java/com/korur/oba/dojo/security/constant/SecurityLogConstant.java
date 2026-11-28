@@ -42,6 +42,7 @@ public final class SecurityLogConstant {
     public static final String API_TOKEN_ON_FOREIGN_PATH = "{} token refused on {} {}: the path is reserved for {} tokens";
     public static final String API_TOKEN_OUTSIDE_RESERVED_PATHS = "{} token refused on {} {}: outside the paths of its kind";
     public static final String API_TOKEN_REFUSED = "{} token refused on {} {}: {}";
+    public static final String API_TOKEN_ON_REFUSED_PATH = "{} token {} of user {} refused on {} {}: the path is refused to its kind";
     public static final String API_TOKEN_AUTHENTICATED = "{} token {} of user {} authenticated on {} {}";
     public static final String API_TOKEN_BODY_TOO_LARGE = "Body of {} {} with token {} exceeds {} bytes";
     public static final String API_TOKEN_ERROR_WRITE_FAILED = "Could not write the error response of {} {}";

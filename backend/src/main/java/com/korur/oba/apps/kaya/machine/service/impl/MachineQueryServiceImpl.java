@@ -47,6 +47,12 @@ import com.korur.oba.apps.kaya.session.service.SessionCountQueryService;
 import com.korur.oba.dojo.security.token.entity.ApiToken;
 import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
 import com.korur.oba.dojo.security.token.service.ApiTokenQueryService;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
+import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.shrine.identity.enums.UserStatus;
+import com.korur.oba.shrine.organization.entity.OrganizationMember;
+import com.korur.oba.shrine.organization.enums.OrganizationMemberStatus;
+import com.korur.oba.shrine.organization.service.OrganizationMemberQueryService;
 
 @Service
 @RequiredArgsConstructor
@@ -59,6 +65,7 @@ public class MachineQueryServiceImpl implements MachineQueryService {
     private final ApiTokenQueryService apiTokenQueryService;
     private final MachineUsageQueryService machineUsageQueryService;
     private final SessionCountQueryService sessionCountQueryService;
+    private final OrganizationMemberQueryService organizationMemberQueryService;
     private final MachineMapper machineMapper;
     private final Clock clock;
     private final LoggingService loggingService;
@@ -147,6 +154,26 @@ public class MachineQueryServiceImpl implements MachineQueryService {
         Optional<Machine> found = machineRepository.findByIdAndOrganizationId(machineId, organizationId);
         if (found.isEmpty() || found.get().getStatus() != MachineStatus.ACTIVE) {
             return Optional.empty();
+        }
+        User user = found.get().getUser();
+        // Ingest skips the request's user and membership checks, so an agent that is disabled or no longer
+        // an active member is refused here, before its token records anything. The agent itself is off, so
+        // the 401, after which its recorder waits for a new token, is the right answer. A person keeps the
+        // user and membership checks of each delivery call alone. A disabled organization is refused by
+        // ingest instead, under the machine lock, with a 403 that the recorder retries: the disable is
+        // reversible, and every member's recorder has to resume once the organization is enabled again.
+        if (AgentValidator.isAgent(user)) {
+            if (user.getStatus() != UserStatus.ACTIVE) {
+                loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.MACHINE_USER_NOT_ACTIVE,
+                        machineId, organizationId);
+                return Optional.empty();
+            }
+            Optional<OrganizationMember> member = organizationMemberQueryService.findMember(organizationId, user.getId());
+            if (member.isEmpty() || member.get().getStatus() != OrganizationMemberStatus.ACTIVE) {
+                loggingService.warn(LOG_PREFIX, LogLayer.SERVICE,
+                        MachineServiceLogConstant.MACHINE_MEMBERSHIP_NOT_ACTIVE, machineId, organizationId);
+                return Optional.empty();
+            }
         }
         return Optional.of(machineMapper.toPrincipal(found.get(), tokenId));
     }

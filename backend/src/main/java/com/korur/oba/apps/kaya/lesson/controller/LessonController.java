@@ -86,10 +86,10 @@ public class LessonController {
             @ApiResponse(responseCode = "429", description = "KAY_SEC_004: more than 1200 lesson reads of the user "
                     + "in a minute, in all their organizations and with the CLI together (errorValues.limit 1200, "
                     + "errorValues.policy user-reads-per-minute), more than 3000 of the organization, with the CLI "
-                    + "together (errorValues.limit 3000, errorValues.policy organization-reads-per-minute), or 2 "
-                    + "lesson reads already running on this instance, of the user in all their organizations together "
-                    + "(errorValues.limit 2, errorValues.policy user-reads-at-once) or of the organization "
-                    + "(errorValues.limit 2, errorValues.policy organization-reads-at-once); Retry-After gives the "
+                    + "together (errorValues.limit 3000, errorValues.policy organization-reads-per-minute), or "
+                    + "lesson reads already running on this instance, 2 of the user in all their organizations together "
+                    + "(errorValues.limit 2, errorValues.policy user-reads-at-once) or 3 of the organization "
+                    + "(errorValues.limit 3, errorValues.policy organization-reads-at-once); Retry-After gives the "
                     + "seconds until the budget's window ends, or 1 for reads that run at once"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "503", description = "GEN_UPS_004: the read ran past its time limit of 5 "
@@ -126,10 +126,10 @@ public class LessonController {
             @ApiResponse(responseCode = "429", description = "KAY_SEC_004: more than 1200 lesson reads of the user "
                     + "in a minute, in all their organizations and with the CLI together (errorValues.limit 1200, "
                     + "errorValues.policy user-reads-per-minute), more than 3000 of the organization, with the CLI "
-                    + "together (errorValues.limit 3000, errorValues.policy organization-reads-per-minute), or 2 "
-                    + "lesson reads already running on this instance, of the user in all their organizations together "
-                    + "(errorValues.limit 2, errorValues.policy user-reads-at-once) or of the organization "
-                    + "(errorValues.limit 2, errorValues.policy organization-reads-at-once); Retry-After gives the "
+                    + "together (errorValues.limit 3000, errorValues.policy organization-reads-per-minute), or "
+                    + "lesson reads already running on this instance, 2 of the user in all their organizations together "
+                    + "(errorValues.limit 2, errorValues.policy user-reads-at-once) or 3 of the organization "
+                    + "(errorValues.limit 3, errorValues.policy organization-reads-at-once); Retry-After gives the "
                     + "seconds until the budget's window ends, or 1 for reads that run at once"),
             @ApiResponse(responseCode = "500", description = "Internal server error"),
             @ApiResponse(responseCode = "503", description = "GEN_UPS_004: the read ran past its time limit of 5 "

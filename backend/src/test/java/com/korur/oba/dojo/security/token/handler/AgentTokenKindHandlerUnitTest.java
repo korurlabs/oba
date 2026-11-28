@@ -10,6 +10,7 @@ import org.springframework.http.HttpMethod;
 
 // 3. Java SDK
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -18,6 +19,7 @@ import com.korur.oba.dojo.exception.internal.auth.UnauthorizedException;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.dojo.security.token.dto.ApiTokenEndpoint;
 import com.korur.oba.dojo.security.token.dto.ApiTokenPrincipal;
+import com.korur.oba.dojo.security.token.dto.ApiTokenRefusedPaths;
 import com.korur.oba.dojo.security.token.dto.UserApiTokenPrincipal;
 import com.korur.oba.dojo.security.token.entity.ApiToken;
 import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
@@ -99,6 +101,15 @@ class AgentTokenKindHandlerUnitTest {
         assertEquals(List.of(new ApiTokenEndpoint(HttpMethod.GET, "/users/me")), handler.exemptEndpoints());
         assertTrue(handler.bodyLimit().isEmpty());
         assertEquals("AGT_SEC_001", handler.invalidTokenError().getCode());
+    }
+
+    @Test
+    void refusedPaths_agentToken_refusesKayaWithAgentActionRefused() {
+        ApiTokenRefusedPaths refused = handler.refusedPaths().orElseThrow();
+
+        assertEquals(List.of("/kaya/**"), refused.pathPatterns());
+        assertEquals("AGT_SEC_002", refused.refusedError().getCode());
+        assertEquals(Map.of("action", "KAYA_ACCESS"), refused.errorValues());
     }
 
     @Test

@@ -38,6 +38,7 @@ import com.korur.oba.dojo.security.token.authentication.ApiTokenAuthentication;
 import com.korur.oba.dojo.security.token.constant.ApiTokenConstant;
 import com.korur.oba.dojo.security.token.dto.ApiTokenBodyLimit;
 import com.korur.oba.dojo.security.token.dto.ApiTokenPrincipal;
+import com.korur.oba.dojo.security.token.dto.ApiTokenRefusedPaths;
 import com.korur.oba.dojo.security.token.entity.ApiToken;
 import com.korur.oba.dojo.security.token.handler.ApiTokenKindHandler;
 import com.korur.oba.dojo.security.token.helper.ApiTokenKindRegistry;
@@ -45,9 +46,9 @@ import com.korur.oba.dojo.security.token.service.ApiTokenQueryService;
 import com.korur.oba.dojo.security.token.service.ApiTokenService;
 
 /**
- * Authenticates the requests of the API token chain. Every refusal answers the 401 of the token's
- * kind, or of the kind that reserves the path, here as JSON, because an exception thrown from a servlet
- * filter never reaches the MVC exception handler.
+ * Authenticates the requests of the API token chain. Every refusal of the credential answers the 401
+ * of the token's kind, or of the kind that reserves the path, here as JSON, because an exception thrown
+ * from a servlet filter never reaches the MVC exception handler.
  *
  * In this order:
  * - a request without a token of an accepted kind reached the chain on a reserved path, so its
@@ -58,6 +59,8 @@ import com.korur.oba.dojo.security.token.service.ApiTokenService;
  * - the token must be live ({@link ApiTokenQueryService#authenticate}) and its subject may still act
  *   ({@link ApiTokenKindHandler#resolvePrincipal});
  * - its use is recorded, before the body is checked, so a refused upload still shows the token as used;
+ * - a path its kind is refused on ({@link ApiTokenKindHandler#refusedPaths}) answers 403 with the kind's
+ *   refusal, whatever the token's role and app grants allow;
  * - the body is read up to the kind's limit even without a Content-Length, so a chunked request cannot
  *   exceed it, and only after the token was checked, so an unauthenticated caller cannot make the server
  *   buffer anything.
@@ -141,6 +144,14 @@ public class ApiTokenAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
         apiTokenService.markUsed(principal.tokenId());
+        Optional<ApiTokenRefusedPaths> refusal = apiTokenKindRegistry.findRefusal(handler.kind(), path);
+        if (refusal.isPresent()) {
+            loggingService.warn(LOG_PREFIX, LogLayer.FILTER, SecurityLogConstant.API_TOKEN_ON_REFUSED_PATH,
+                    handler.kind(), principal.tokenId(), principal.userId(), request.getMethod(), path);
+            writeError(request, response, HttpStatus.FORBIDDEN, refusal.get().refusedError(),
+                    refusal.get().errorValues());
+            return;
+        }
         loggingService.debug(LOG_PREFIX, LogLayer.FILTER, SecurityLogConstant.API_TOKEN_AUTHENTICATED,
                 handler.kind(), principal.tokenId(), principal.userId(), request.getMethod(), path);
 

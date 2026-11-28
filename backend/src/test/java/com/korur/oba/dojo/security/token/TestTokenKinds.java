@@ -8,6 +8,7 @@ import org.springframework.http.HttpMethod;
 
 // 3. Java SDK
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,6 +20,7 @@ import com.korur.oba.dojo.exception.internal.auth.UnauthorizedException;
 import com.korur.oba.dojo.security.token.dto.ApiTokenBodyLimit;
 import com.korur.oba.dojo.security.token.dto.ApiTokenEndpoint;
 import com.korur.oba.dojo.security.token.dto.ApiTokenPrincipal;
+import com.korur.oba.dojo.security.token.dto.ApiTokenRefusedPaths;
 import com.korur.oba.dojo.security.token.entity.ApiToken;
 import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
 import com.korur.oba.dojo.security.token.handler.ApiTokenKindHandler;
@@ -29,7 +31,8 @@ import static org.mockito.Mockito.when;
 
 /**
  * Token kinds for the unit tests of the token mechanism: a machine-like kind confined to reserved paths
- * with a body limit, and an agent-like kind that may call any path and only GET /users/me unannotated.
+ * with a body limit, and an agent-like kind that may call any path but the refused Kaya paths, and only
+ * GET /users/me unannotated.
  */
 public final class TestTokenKinds {
 
@@ -41,6 +44,7 @@ public final class TestTokenKinds {
     public enum TestTokenError implements ExceptionDomainError {
         MACHINE_INVALID("TST_AUT_001", "Machine token refused.", ExceptionCategory.AUT),
         AGENT_INVALID("TST_AUT_002", "Agent token refused.", ExceptionCategory.AUT),
+        AGENT_PATH_REFUSED("TST_SEC_001", "Agent token refused on this path.", ExceptionCategory.SEC),
         BODY_TOO_LARGE("TST_API_001", "Body too large.", ExceptionCategory.API);
 
         private final String code;
@@ -88,6 +92,11 @@ public final class TestTokenKinds {
         }
 
         @Override
+        public Optional<ApiTokenRefusedPaths> refusedPaths() {
+            return Optional.empty();
+        }
+
+        @Override
         public List<ApiTokenEndpoint> exemptEndpoints() {
             return List.of(new ApiTokenEndpoint(HttpMethod.POST, "/kaya/ingest/**"));
         }
@@ -121,6 +130,12 @@ public final class TestTokenKinds {
         @Override
         public List<String> reservedPaths() {
             return List.of();
+        }
+
+        @Override
+        public Optional<ApiTokenRefusedPaths> refusedPaths() {
+            return Optional.of(new ApiTokenRefusedPaths(List.of("/kaya/**"), TestTokenError.AGENT_PATH_REFUSED,
+                    Map.of("action", "KAYA_ACCESS")));
         }
 
         @Override

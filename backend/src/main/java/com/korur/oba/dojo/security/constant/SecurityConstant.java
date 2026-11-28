@@ -95,6 +95,11 @@ public class SecurityConstant {
     public static final String AGENT_TOKEN_CURRENT_USER_PATH = "/users/me";
     public static final List<ApiTokenEndpoint> AGENT_TOKEN_EXEMPT_ENDPOINTS = List.of(
             new ApiTokenEndpoint(HttpMethod.GET, AGENT_TOKEN_CURRENT_USER_PATH));
+    // The Kaya web API is refused to an agent token even with the Kaya grant: it reads every member's
+    // transcripts and changes the lessons and plan feedback delivered into people's sessions. The
+    // agent's runs reach Kaya with the machine token an admin registered for the agent instead.
+    public static final String AGENT_TOKEN_REFUSED_KAYA_PATH = "/kaya/**";
+    public static final List<String> AGENT_TOKEN_REFUSED_PATHS = List.of(AGENT_TOKEN_REFUSED_KAYA_PATH);
 
     // Handlers of this package are guarded by the RequiredUserAccess check; framework handlers such
     // as SpringDoc and the error page are not

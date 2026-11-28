@@ -35,7 +35,11 @@ public interface TicketService {
     TicketDetailResponse createTicket(User user, UUID organizationId, UUID boardId, TicketCreateRequest request);
 
     /**
-     * Updates ticket metadata.
+     * Updates ticket metadata. An agent may not set DONE or change the title or description; the same
+     * title and description sent back unchanged pass.
+     *
+     * @throws com.korur.oba.dojo.exception.internal.auth.ForbiddenException AGT_SEC_002 when an agent
+     *         sets DONE, changes the title or description, or assigns another agent
      */
     TicketDetailResponse updateTicket(User user, UUID organizationId, UUID boardId, UUID ticketId, TicketUpdateRequest request);
 

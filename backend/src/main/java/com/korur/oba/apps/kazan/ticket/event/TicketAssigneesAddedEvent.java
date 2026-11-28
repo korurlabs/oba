@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 // 4. Internal
+import com.korur.oba.shrine.identity.enums.UserKind;
 
 /**
  * Published when a ticket create or update adds assignees to a ticket. Only the users the change
@@ -17,17 +18,22 @@ import java.util.UUID;
  * Consumers act after the transaction commits, so a rolled-back assignment starts nothing. An agent
  * among the added users is fired by {@link com.korur.oba.apps.kazan.ticket.listener.TicketAgentRoutineListener}.
  * The ticket key travels with the event because the listener runs without the transaction that holds
- * the ticket, and the key is the only input a fired routine receives.
+ * the ticket, and the key is the only input a fired routine receives. The actor's kind travels with it
+ * too, because only an assignment a person made starts an agent.
  *
  * @param organizationId organization of the ticket's board
  * @param ticketId       the ticket
  * @param ticketKey      key of the ticket, "KZN-311"
  * @param addedUserIds   the users the change added as assignees, not empty
+ * @param actorId        the user who made the change
+ * @param actorKind      the kind of that user
  */
 public record TicketAssigneesAddedEvent(UUID organizationId,
                                         UUID ticketId,
                                         String ticketKey,
-                                        List<UUID> addedUserIds) {
+                                        List<UUID> addedUserIds,
+                                        UUID actorId,
+                                        UserKind actorKind) {
 
     public TicketAssigneesAddedEvent {
         addedUserIds = List.copyOf(addedUserIds);

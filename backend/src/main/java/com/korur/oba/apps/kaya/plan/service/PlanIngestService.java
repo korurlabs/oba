@@ -24,6 +24,7 @@ public interface PlanIngestService {
      * latest version, adds nothing. Otherwise it is the plan's next version: the title, latest
      * session, user and change time follow it, and the review state returns to OPEN. A SPEC plan
      * keeps the pack it names, and takes its feature from the planning handoffs the session holds.
+     * An agent's session adds no version to a SPEC plan of another user and changes nothing on it.
      *
      * @param session the session of the batch, locked by the session ingest
      * @param plans   the plans of the batch in capture order, already validated; null for none
@@ -34,7 +35,8 @@ public interface PlanIngestService {
      * Links SPEC plans to the feature of a planning handoff. When the handoff is a
      * feature/planning.md file whose content names the path of a SPEC plan of the session's
      * repository, that plan's feature becomes the handoff's directory; a later planning handoff
-     * that names the same spec replaces it. Any other handoff changes nothing.
+     * that names the same spec replaces it. Any other handoff changes nothing, and neither does an
+     * agent's handoff for a SPEC plan of another user.
      *
      * @param session     the session that wrote the handoff
      * @param handoffPath the path below handoffs/, starting with the feature directory

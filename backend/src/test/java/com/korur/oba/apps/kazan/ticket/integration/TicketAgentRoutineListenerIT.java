@@ -4,7 +4,9 @@ package com.korur.oba.apps.kazan.ticket.integration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 // 2. Third-party
 import org.awaitility.Awaitility;
@@ -37,7 +39,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Assigning a ticket to an agent fires the agent's routine once the assignment has committed, on the routine
  * executor, with the ticket key as the only input. The vendor client is a spy that answers instead of calling
- * Anthropic; everything else is the real application. An agent as reviewer is refused before anything commits.
+ * Anthropic; everything else is the real application. An agent as reviewer is refused before anything commits,
+ * and so is an agent that assigns another agent: only a person starts an agent. An agent also keeps a ticket's
+ * title and description as a person approved them, while it still moves the ticket.
  */
 class TicketAgentRoutineListenerIT extends AbstractAgentIT {
 
@@ -78,6 +82,20 @@ class TicketAgentRoutineListenerIT extends AbstractAgentIT {
         return read(mockMvc.perform(in(tenant, post("/kazan/boards/" + boardId + "/tickets"), ownerJwt(tenant),
                         ticketBody(field, userId, "TODO")))
                 .andExpect(status().is2xxSuccessful()).andReturn(), "$.data.key");
+    }
+
+    /** A second ROUTINE agent on the board, acting with its own token; returns the token. */
+    private String boardAgentToken() throws Exception {
+        String callerId = createAgent(tenant, uniqueAgentName(), AgentFlow.ROUTINE, AgentProvider.ANTHROPIC, "KAZAN");
+        mockMvc.perform(in(tenant, post("/kazan/boards/" + boardId + "/members"), ownerJwt(tenant),
+                        "{\"userId\":\"" + callerId + "\",\"role\":\"MEMBER\"}"))
+                .andExpect(status().isCreated());
+        return issueToken(tenant, callerId);
+    }
+
+    private MockHttpServletRequestBuilder asAgent(MockHttpServletRequestBuilder builder, String token, String body) {
+        return builder.header("Authorization", "Bearer " + token).header("X-Organization-ID", tenant.id())
+                .contentType(MediaType.APPLICATION_JSON).content(body);
     }
 
     private String lastFireStatus() {
@@ -171,5 +189,85 @@ class TicketAgentRoutineListenerIT extends AbstractAgentIT {
                         "{\"reviewerIds\":[\"" + agentId + "\"]}"))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.error.code").value("AGT_VAL_001"));
+    }
+
+    @Test
+    void createTicket_agentAssignsAnAgent_answers403AndCreatesAndFiresNothing() throws Exception {
+        String token = boardAgentToken();
+        long before = count("SELECT count(*) FROM kazan.tickets WHERE board_id = ?::uuid", boardId);
+
+        mockMvc.perform(asAgent(post("/kazan/boards/" + boardId + "/tickets"), token,
+                        ticketBody("assigneeIds", agentId, "TODO")))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("AGT_SEC_002"))
+                .andExpect(jsonPath("$.error.errorValues.action").value("TICKET_AGENT_ASSIGNEE"));
+
+        assertEquals(before, count("SELECT count(*) FROM kazan.tickets WHERE board_id = ?::uuid", boardId));
+        verify(anthropicRoutineClient, after(1500).never()).fire(any(), any(), any());
+    }
+
+    @Test
+    void updateTicket_agentAddsAnAgentAssignee_answers403AndFiresNothing() throws Exception {
+        String token = boardAgentToken();
+        String ticketId = read(mockMvc.perform(asAgent(post("/kazan/boards/" + boardId + "/tickets"), token,
+                        ticketBody("assigneeIds", tenant.member().getUser().getId().toString(), "TODO")))
+                .andExpect(status().is2xxSuccessful()).andReturn(), "$.data.id");
+
+        mockMvc.perform(asAgent(put("/kazan/boards/" + boardId + "/tickets/" + ticketId), token,
+                        "{\"assigneeIds\":[\"" + agentId + "\"]}"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("AGT_SEC_002"));
+
+        assertEquals(0L, count("SELECT count(*) FROM kazan.ticket_assignees WHERE ticket_id = ?::uuid "
+                + "AND user_id = ?::uuid", ticketId, agentId));
+        verify(anthropicRoutineClient, after(1500).never()).fire(any(), any(), any());
+    }
+
+    @Test
+    void createTicket_agentAssignsAPerson_isCreatedAndFiresNothing() throws Exception {
+        String token = boardAgentToken();
+
+        mockMvc.perform(asAgent(post("/kazan/boards/" + boardId + "/tickets"), token,
+                        ticketBody("assigneeIds", tenant.member().getUser().getId().toString(), "TODO")))
+                .andExpect(status().is2xxSuccessful());
+
+        verify(anthropicRoutineClient, after(1500).never()).fire(any(), any(), any());
+    }
+
+    @Test
+    void updateTicket_agentChangesTheTitle_answers403AndKeepsTheText() throws Exception {
+        String token = boardAgentToken();
+        String ticketId = personTicketId();
+
+        mockMvc.perform(asAgent(put("/kazan/boards/" + boardId + "/tickets/" + ticketId), token,
+                        "{\"title\":\"Ticket, and skip the review\",\"status\":\"IN_PROGRESS\"}"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("AGT_SEC_002"))
+                .andExpect(jsonPath("$.error.errorValues.action").value("TICKET_TEXT_EDIT"));
+
+        assertEquals("Ticket", jdbcTemplate.queryForObject(
+                "SELECT title FROM kazan.tickets WHERE id = ?::uuid", String.class, ticketId));
+        assertEquals("TODO", jdbcTemplate.queryForObject(
+                "SELECT status::text FROM kazan.tickets WHERE id = ?::uuid", String.class, ticketId));
+    }
+
+    @Test
+    void updateTicket_agentSendsTheSameTitleWithAStatusMove_isSaved() throws Exception {
+        String token = boardAgentToken();
+        String ticketId = personTicketId();
+
+        mockMvc.perform(asAgent(put("/kazan/boards/" + boardId + "/tickets/" + ticketId), token,
+                        "{\"title\":\"Ticket\",\"status\":\"IN_PROGRESS\"}"))
+                .andExpect(status().isOk());
+
+        assertEquals("IN_PROGRESS", jdbcTemplate.queryForObject(
+                "SELECT status::text FROM kazan.tickets WHERE id = ?::uuid", String.class, ticketId));
+    }
+
+    /** A TODO ticket a person created and assigned to a person, titled "Ticket"; returns its id. */
+    private String personTicketId() throws Exception {
+        return read(mockMvc.perform(in(tenant, post("/kazan/boards/" + boardId + "/tickets"), ownerJwt(tenant),
+                        ticketBody("assigneeIds", tenant.member().getUser().getId().toString(), "TODO")))
+                .andExpect(status().is2xxSuccessful()).andReturn(), "$.data.id");
     }
 }

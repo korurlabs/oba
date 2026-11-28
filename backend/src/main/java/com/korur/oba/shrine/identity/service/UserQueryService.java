@@ -79,6 +79,18 @@ public interface UserQueryService {
     User getUserEntityForUpdate(UUID userId);
 
     /**
+     * Takes the lock that a foreign key check takes on the user row (FOR KEY SHARE) and holds it until
+     * the caller's transaction ends. An app takes it before an insert that references the user and another
+     * locked row, so that its transaction locks the user first, in the order that a writer holding the
+     * user FOR UPDATE uses. It does not block ordinary updates of the user.
+     *
+     * @param userId the user identifier
+     * @throws com.korur.oba.dojo.exception.internal.business.NotFoundException when no user has the id
+     * @throws org.springframework.transaction.IllegalTransactionStateException without a caller transaction
+     */
+    void lockUserForKeyShare(UUID userId);
+
+    /**
      * Lists the live agents of an organization, ordered by name ignoring case.
      *
      * @param organizationId the organization

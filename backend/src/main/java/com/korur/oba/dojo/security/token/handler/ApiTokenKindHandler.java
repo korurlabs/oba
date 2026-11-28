@@ -13,6 +13,7 @@ import com.korur.oba.dojo.exception.enums.ExceptionDomainError;
 import com.korur.oba.dojo.security.token.dto.ApiTokenBodyLimit;
 import com.korur.oba.dojo.security.token.dto.ApiTokenEndpoint;
 import com.korur.oba.dojo.security.token.dto.ApiTokenPrincipal;
+import com.korur.oba.dojo.security.token.dto.ApiTokenRefusedPaths;
 import com.korur.oba.dojo.security.token.entity.ApiToken;
 import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
 
@@ -22,9 +23,9 @@ import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
  * through the subject owner's query service; a kind without a bean is not accepted at all.
  *
  * The token chain authenticates a request with the kind's token, refuses it with the kind's error,
- * applies the body limit and sets the principal. The request access check then applies the handler's
- * RequiredUserAccess to the principal's user and organization, and lets the kind call only the
- * unannotated handlers it lists.
+ * refuses it with 403 on the kind's refused paths, applies the body limit and sets the principal. The
+ * request access check then applies the handler's RequiredUserAccess to the principal's user and
+ * organization, and lets the kind call only the unannotated handlers it lists.
  */
 public interface ApiTokenKindHandler {
 
@@ -41,6 +42,15 @@ public interface ApiTokenKindHandler {
      * @return Spring path patterns, empty when the kind may call any path its role allows
      */
     List<String> reservedPaths();
+
+    /**
+     * Paths a token of this kind is refused on with 403, although its role and app grants would allow
+     * them. The token is authenticated first, so an unknown or revoked one still answers
+     * {@link #invalidTokenError()}. A path another kind reserves is refused with that kind's 401 before.
+     *
+     * @return the refused paths with their error, or empty when the role and app grants alone decide
+     */
+    Optional<ApiTokenRefusedPaths> refusedPaths();
 
     /**
      * @return the handlers without RequiredUserAccess this kind may call, matched by method and path

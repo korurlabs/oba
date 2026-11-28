@@ -35,12 +35,15 @@ import com.korur.oba.apps.kaya.lesson.repository.LessonRepository;
 import com.korur.oba.apps.kaya.lesson.service.LessonQueryService;
 import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
 import com.korur.oba.apps.kaya.repository.service.RepositoryQueryService;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
+import com.korur.oba.shrine.identity.service.UserQueryService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -75,7 +78,8 @@ class LessonServiceImplUnitTest {
     @BeforeEach
     void setUp() {
         service = new LessonServiceImpl(lessonRepository, lessonQueryService, repositoryQueryService, userAccessHelper,
-                new LessonMapperImpl(), new DeliveryProposalProperties(WEB_URL), lessonDeliveryRateLimiter, loggingService);
+                new AgentValidator(mock(UserQueryService.class), loggingService), new LessonMapperImpl(),
+                new DeliveryProposalProperties(WEB_URL), lessonDeliveryRateLimiter, loggingService);
     }
 
     /**

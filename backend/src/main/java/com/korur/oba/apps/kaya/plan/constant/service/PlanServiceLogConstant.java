@@ -24,6 +24,7 @@ public final class PlanServiceLogConstant {
     public static final String PLAN_VERSION_ADDED = "Added version {} ({}) to plan {} from session {}; review reopened";
     public static final String PLAN_UNCHANGED = "Plan {} is unchanged at version {}; capture of session {} skipped";
     public static final String PLAN_CAPTURE_STALE = "Plan {} capture of session {} at {} is older than version {} at {}; skipped";
+    public static final String PLAN_OF_ANOTHER_USER_SKIPPED = "Plan {} belongs to user {}; agent session {} leaves it unchanged";
     public static final String PLAN_FEATURE_LINKED = "Linked plan {} to feature {} from planning handoff of session {}";
     public static final String PLAN_FEATURE_TOO_LONG = "Feature directory of handoff {} of session {} exceeds {} characters; not linked";
     public static final String PLAN_TITLE_TRUNCATED = "Cut a plan title of session {} to {} characters";

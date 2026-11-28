@@ -2,6 +2,7 @@ package com.korur.oba.apps.kaya.machine.service.impl;
 
 // 1. Framework-level
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 // 2. Third-party
@@ -14,6 +15,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,6 +24,7 @@ import java.util.UUID;
 import com.korur.oba.apps.kaya.core.exception.enums.ExceptionDomainKayaError;
 import com.korur.oba.dojo.exception.enums.ExceptionSecurityError;
 import com.korur.oba.dojo.exception.internal.auth.ForbiddenException;
+import com.korur.oba.dojo.exception.internal.auth.UnauthorizedException;
 import com.korur.oba.dojo.exception.internal.business.BadRequestException;
 import com.korur.oba.dojo.exception.internal.business.ConflictException;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
@@ -59,7 +62,12 @@ import com.korur.oba.apps.kaya.machine.service.MachineUsageQueryService;
 import com.korur.oba.dojo.security.token.dto.IssuedApiToken;
 import com.korur.oba.dojo.security.token.entity.ApiToken;
 import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
+import com.korur.oba.dojo.security.token.service.ApiTokenQueryService;
 import com.korur.oba.dojo.security.token.service.ApiTokenService;
+import com.korur.oba.shrine.organization.constant.OrganizationConstant;
+import com.korur.oba.shrine.organization.enums.OrganizationStatus;
+import com.korur.oba.shrine.organization.exception.ExceptionDomainOrganizationError;
+import com.korur.oba.shrine.organization.service.OrganizationQueryService;
 
 @Service
 @RequiredArgsConstructor
@@ -75,7 +83,9 @@ public class MachineServiceImpl implements MachineService {
     private final UserAuditRecorder userAuditRecorder;
     private final UserAccessHelper userAccessHelper;
     private final ApiTokenService apiTokenService;
+    private final ApiTokenQueryService apiTokenQueryService;
     private final AgentValidator agentValidator;
+    private final OrganizationQueryService organizationQueryService;
     private final MachineMapper machineMapper;
     private final Clock clock;
     private final LoggingService loggingService;
@@ -83,8 +93,10 @@ public class MachineServiceImpl implements MachineService {
     @Override
     @Transactional
     public MachineCreatedResponse createMachine(User actor, UUID organizationId, MachineCreateRequest request) {
-        // An agent never mints a credential, and a Kaya machine token is one: an agent may not
-        // register a machine, and no machine is registered for an agent.
+        // An agent never mints a credential, and a Kaya machine token is one, so an agent may not
+        // register a machine. An admin may register one for an agent and rotate its token: the agent's
+        // hosted runs record their sessions with it, and the admin puts it on the agent's host. Disabling
+        // or deleting the agent retires these machines, so the token never outlives the agent.
         agentValidator.ensureCallerIsNotAgent(actor, AgentConstant.ACTION_KAYA_MACHINE_CREATE);
         // The user row lock serialises this with a revoke all of the same user, so a machine created
         // at that moment is either retired by it or created after it.
@@ -92,7 +104,6 @@ public class MachineServiceImpl implements MachineService {
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.CREATING_MACHINE,
                 actor.getId(), user.getId(), organizationId);
         userAccessHelper.requireAdminOrSelf(actor, organizationId, user.getId());
-        agentValidator.ensureTargetIsNotAgent(user, AgentConstant.ACTION_KAYA_MACHINE_CREATE);
 
         Optional<Machine> existing = machineRepository.findByOrganizationIdAndUser_IdAndMachineName(
                 organizationId, user.getId(), request.machineName());
@@ -145,7 +156,7 @@ public class MachineServiceImpl implements MachineService {
 
         Machine machine = lockMachine(organizationId, machineId);
         User user = machine.getUser();
-        requireSelf(actor, user, machine);
+        requireRecipient(actor, organizationId, user, machine);
         if (machine.getStatus() == MachineStatus.RETIRED) {
             loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.MACHINE_RETIRED_REFUSED, machineId, organizationId);
             throw new ConflictException(ExceptionDomainKayaError.VAL_MACHINE_RETIRED,
@@ -168,6 +179,8 @@ public class MachineServiceImpl implements MachineService {
     @Override
     @Transactional
     public void revokeToken(User actor, UUID organizationId, UUID machineId) {
+        // A run that cuts off its own machine token stops the record of what it does.
+        agentValidator.ensureCallerIsNotAgent(actor, AgentConstant.ACTION_KAYA_TOKEN_REVOKE);
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.REVOKING_TOKEN,
                 actor.getId(), machineId, organizationId);
 
@@ -188,6 +201,8 @@ public class MachineServiceImpl implements MachineService {
     @Override
     @Transactional
     public MachineResponse updateMachine(User actor, UUID organizationId, UUID machineId, MachineUpdateRequest request) {
+        // Retiring revokes the machine's token, so it is refused to an agent like the revoke itself.
+        agentValidator.ensureCallerIsNotAgent(actor, AgentConstant.ACTION_KAYA_MACHINE_RETIRE);
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.RETIRING_MACHINE,
                 actor.getId(), machineId, organizationId);
 
@@ -220,14 +235,79 @@ public class MachineServiceImpl implements MachineService {
 
     @Override
     @Transactional
-    public Machine recordSeen(MachinePrincipal principal, String claudeCodeVersion, Account account) {
-        Machine machine = machineRepository.findByIdAndOrganizationId(principal.machineId(), principal.organizationId())
-                .orElseThrow(() -> {
-                    loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.MACHINE_NOT_FOUND,
-                            principal.machineId(), principal.organizationId());
-                    return new NotFoundException(ExceptionDomainKayaError.NOT_RESOURCE_FOUND,
-                            Map.of(MachineConstant.FIELD_MACHINE_ID, principal.machineId().toString()));
-                });
+    public int retireAllOfUser(UUID organizationId, UUID userId) {
+        loggingService.info(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.RETIRING_ALL, userId, organizationId);
+        // The user row lock serialises this with a machine registered for the same user, and the machine
+        // locks with a rotation or retirement of one of them, so none of them slips past this.
+        kayaUserQueryService.getMemberEntityForUpdate(organizationId, userId);
+        List<Machine> machines = machineRepository.findByOrganizationIdAndUserIdForUpdate(organizationId, userId);
+        int revoked = 0;
+        for (Machine machine : machines) {
+            if (apiTokenService.revoke(ApiTokenKind.KAYA_MACHINE, machine.getId()).isPresent()) {
+                revoked++;
+            }
+        }
+        int retired = machineRepository.retireActiveByOrganizationIdAndUserId(organizationId, userId);
+        loggingService.info(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.ALL_REVOKED,
+                revoked, retired, userId, organizationId);
+        return retired;
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Machine lockActiveMachine(MachinePrincipal principal) {
+        // A batch that opens a session has already inserted it, and the insert's foreign key check holds
+        // FOR KEY SHARE on this machine. The lock here is FOR NO KEY UPDATE, which that share does not
+        // block, so two sessions a machine opens at once are stored one after the other instead of
+        // deadlocking, while a rotation, a revocation or a retirement still waits for the batch.
+        Optional<Machine> machine = machineRepository.findByIdAndOrganizationIdForUpdate(principal.machineId(),
+                principal.organizationId());
+        if (machine.isEmpty() || machine.get().getStatus() != MachineStatus.ACTIVE) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.MACHINE_NOT_ACTIVE_REFUSED,
+                    principal.machineId(), principal.organizationId(), principal.tokenId());
+            throw new UnauthorizedException(ExceptionDomainKayaError.SEC_MACHINE_TOKEN_INVALID);
+        }
+        // A rotation or revocation locks the machine as well but leaves it ACTIVE, so a token replaced or
+        // revoked while the request ran is refused here, under the same lock, like a retired machine.
+        if (!isLiveToken(principal)) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.MACHINE_TOKEN_NOT_LIVE_REFUSED,
+                    principal.tokenId(), principal.machineId(), principal.organizationId());
+            throw new UnauthorizedException(ExceptionDomainKayaError.SEC_MACHINE_TOKEN_INVALID);
+        }
+        // Ingest skips the request's organization check, so it is made here, last, which also refuses a
+        // batch that authenticated just before a disable or a deletion committed. A deleted organization
+        // never comes back, so its tokens are refused like a retired machine's. A disable retires no
+        // machine and revokes no token and can be undone, so it gets the 403 a member's delivery calls
+        // get, which the recorder retries with its queue kept, and not the 401 after which the recorder
+        // waits for a new token: recording resumes once the organization is enabled again.
+        Optional<OrganizationStatus> organizationStatus =
+                organizationQueryService.findOrganizationStatus(principal.organizationId());
+        if (organizationStatus.isEmpty()) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.MACHINE_ORGANIZATION_DELETED_REFUSED,
+                    principal.organizationId(), principal.machineId(), principal.tokenId());
+            throw new UnauthorizedException(ExceptionDomainKayaError.SEC_MACHINE_TOKEN_INVALID);
+        }
+        if (organizationStatus.get() != OrganizationStatus.ACTIVE) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.MACHINE_ORGANIZATION_DISABLED_REFUSED,
+                    principal.organizationId(), principal.machineId(), principal.tokenId());
+            throw new ForbiddenException(ExceptionDomainOrganizationError.SEC_ORGANIZATION_DISABLED,
+                    Map.of(OrganizationConstant.FIELD_ORGANIZATION_ID, principal.organizationId()));
+        }
+        return machine.get();
+    }
+
+    private boolean isLiveToken(MachinePrincipal principal) {
+        for (ApiToken token : apiTokenQueryService.findLive(ApiTokenKind.KAYA_MACHINE, List.of(principal.machineId()))) {
+            if (token.getId().equals(principal.tokenId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    @Transactional
+    public Machine recordSeen(Machine machine, String claudeCodeVersion, Account account) {
         Instant now = Instant.now(clock);
         boolean versionChanged = claudeCodeVersion != null && !claudeCodeVersion.equals(machine.getClaudeCodeVersion());
         boolean accountChanged = account != null
@@ -319,10 +399,15 @@ public class MachineServiceImpl implements MachineService {
 
     /**
      * Only the person a token is for may receive it: an ADMIN who rotated someone else's token
-     * would hold a working credential of that person.
+     * would hold a working credential of that person. An agent's machine is the exception: the agent
+     * may not mint a token itself, so an ADMIN rotates it, as an ADMIN registered the machine.
      */
-    private void requireSelf(User actor, User user, Machine machine) {
+    private void requireRecipient(User actor, UUID organizationId, User user, Machine machine) {
         if (actor.getId().equals(user.getId())) {
+            return;
+        }
+        if (AgentValidator.isAgent(user)) {
+            userAccessHelper.requireAdminOrSelf(actor, organizationId, user.getId());
             return;
         }
         loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, MachineServiceLogConstant.SELF_REQUIRED,

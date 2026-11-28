@@ -19,6 +19,7 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 // 4. Internal
+import com.korur.oba.apps.kaya.machine.service.MachineService;
 import com.korur.oba.dojo.exception.internal.business.NotFoundException;
 import com.korur.oba.dojo.exception.internal.business.ValidationException;
 import com.korur.oba.dojo.logging.enums.LogLayer;
@@ -69,7 +70,12 @@ import com.korur.oba.shrine.organization.service.OrganizationMemberService;
  *
  * Disabling and deleting an agent end its access the way they end a person's: {@link AccessRevokedEvent}
  * is published for the membership, so open sessions and other state built on that access are torn down
- * once the change commits.
+ * once the change commits. Both also retire the agent's Kaya machines and revoke their tokens through
+ * {@link MachineService#retireAllOfUser}, because Kaya ingest does not check the user of each call and a
+ * token suspected of a leak must not come back when the agent is enabled again. Removing the agent's Kaya
+ * grant retires them as well, because ingest does not read grants either; that happens on the
+ * {@link com.korur.oba.shrine.access.event.AppAccessRevokedEvent} the revoke publishes, so the generic app
+ * grants page ends them the same way.
  */
 @Service
 @RequiredArgsConstructor
@@ -84,6 +90,7 @@ public class AgentServiceImpl implements AgentService {
     private final AppAccessService appAccessService;
     private final ApiTokenService apiTokenService;
     private final AgentRoutineService agentRoutineService;
+    private final MachineService machineService;
     private final AgentFlowHelper agentFlowHelper;
     private final AgentHelper agentHelper;
     private final AgentValidator agentValidator;
@@ -159,9 +166,10 @@ public class AgentServiceImpl implements AgentService {
                 appAccessService.grant(actor, organizationId, new AppGrantCreateRequest(app, agentId, null));
             }
         }
+        Map<String, Object> newValues = agentHelper.describe(agent, apps);
 
         agentHelper.audit(organizationId, actor, AgentConstant.AUDIT_ACTION_AGENT_UPDATED, agentId, oldValues,
-                agentHelper.describe(agent, apps));
+                newValues);
 
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, AgentServiceLogConstant.AGENT_UPDATED,
                 organizationId, agentId, apps);
@@ -190,15 +198,19 @@ public class AgentServiceImpl implements AgentService {
         }
 
         Map<String, Object> oldValues = Map.of(AgentConstant.FIELD_STATUS, agent.getStatus().name());
+        Map<String, Object> newValues = new HashMap<>();
+        newValues.put(AgentConstant.FIELD_STATUS, userStatus.name());
         userService.updateAgentUser(agent, null, null, userStatus);
         member.setStatus(status);
         organizationMemberService.saveMember(member);
         if (status == OrganizationMemberStatus.DISABLED) {
+            int retiredMachines = machineService.retireAllOfUser(organizationId, agentId);
+            newValues.put(AgentConstant.FIELD_RETIRED_MACHINES, retiredMachines);
             applicationEventPublisher.publishEvent(AccessRevokedEvent.member(agentId, organizationId));
         }
 
         agentHelper.audit(organizationId, actor, AgentConstant.AUDIT_ACTION_AGENT_STATUS_CHANGED, agentId, oldValues,
-                Map.of(AgentConstant.FIELD_STATUS, userStatus.name()));
+                newValues);
 
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, AgentServiceLogConstant.AGENT_STATUS_CHANGED,
                 organizationId, agentId, status);
@@ -211,6 +223,8 @@ public class AgentServiceImpl implements AgentService {
         User agent = agentQueryService.getAgentEntity(organizationId, agentId);
 
         Optional<ApiToken> revoked = apiTokenService.revoke(ApiTokenKind.AGENT, agentId);
+        // Retired while the agent's user still exists, so the machines are found by their user.
+        int retiredMachines = machineService.retireAllOfUser(organizationId, agentId);
         // The database removes the routine only with a hard delete of the user; a soft-deleted agent must
         // not keep a secret that can still be fired.
         agentRoutineService.remove(actor, organizationId, agentId);
@@ -224,6 +238,7 @@ public class AgentServiceImpl implements AgentService {
         }
         Map<String, Object> newValues = new HashMap<>();
         newValues.put(AgentConstant.FIELD_SOFT_DELETED, true);
+        newValues.put(AgentConstant.FIELD_RETIRED_MACHINES, retiredMachines);
         if (revokedTokenId != null) {
             newValues.put(AgentConstant.FIELD_REVOKED_TOKEN_ID, revokedTokenId.toString());
         }

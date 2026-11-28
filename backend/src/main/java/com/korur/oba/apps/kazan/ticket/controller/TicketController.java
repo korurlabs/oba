@@ -198,7 +198,8 @@ public class TicketController {
             @ApiResponse(responseCode = "400", description = "Missing or malformed X-Organization-ID header"),
             @ApiResponse(responseCode = "403", description = "Board role too low (KAZ_SEC_002), GUEST role in the "
                     + "organization (ORG_SEC_003), not a member of it, or membership or organization "
-                    + "disabled (ORG_SEC_001, ORG_SEC_002, ORG_SEC_005)"),
+                    + "disabled (ORG_SEC_001, ORG_SEC_002, ORG_SEC_005); AGT_SEC_002: the caller is an agent that "
+                    + "sets DONE, changes the title or description, or assigns another agent"),
             @ApiResponse(responseCode = "404", description = "Board not found or of another organization, or "
                     + "the caller is not a member of it, or ticket not found (KAZ_NOT_001, KAZ_NOT_002, "
                     + "KAZ_NOT_004)"),

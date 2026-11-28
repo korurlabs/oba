@@ -23,6 +23,7 @@ import com.korur.oba.dojo.security.constant.SecurityLogConstant;
 import com.korur.oba.dojo.security.token.dto.ApiTokenBodyLimit;
 import com.korur.oba.dojo.security.token.dto.ApiTokenEndpoint;
 import com.korur.oba.dojo.security.token.dto.ApiTokenPrincipal;
+import com.korur.oba.dojo.security.token.dto.ApiTokenRefusedPaths;
 import com.korur.oba.dojo.security.token.entity.ApiToken;
 import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
 
@@ -34,7 +35,8 @@ import com.korur.oba.dojo.security.token.enums.ApiTokenKind;
  * opens nothing else. Delivery handlers declare their role, so the request access check applies the
  * user's membership and Kaya grant to every call. Ingest stays open to every live token of an ACTIVE
  * machine ({@link SecurityConstant#KAYA_MACHINE_TOKEN_EXEMPT_ENDPOINTS}): it records sessions and serves
- * no config. The body cap bounds what a caller may make the server buffer before any controller runs.
+ * no config, and refuses a disabled or deleted organization itself, under the machine lock. The body
+ * cap bounds what a caller may make the server buffer before any controller runs.
  *
  * The principal is the {@link com.korur.oba.apps.kaya.machine.dto.MachinePrincipal} the Kaya
  * controllers read, built by {@link MachineQueryService#findActivePrincipal}, so a token of a machine
@@ -63,6 +65,11 @@ public class KayaMachineTokenKindHandler implements ApiTokenKindHandler {
     }
 
     @Override
+    public Optional<ApiTokenRefusedPaths> refusedPaths() {
+        return Optional.empty();
+    }
+
+    @Override
     public List<ApiTokenEndpoint> exemptEndpoints() {
         return SecurityConstant.KAYA_MACHINE_TOKEN_EXEMPT_ENDPOINTS;
     }
@@ -73,8 +80,9 @@ public class KayaMachineTokenKindHandler implements ApiTokenKindHandler {
     }
 
     /**
-     * @throws UnauthorizedException KAY_SEC_003 when the token's organization has no such machine or the
-     *                               machine is not ACTIVE
+     * @throws UnauthorizedException KAY_SEC_003 when the token's organization has no such machine, the
+     *                               machine is not ACTIVE, or its user is an agent that, or whose
+     *                               membership, is not ACTIVE
      */
     @Override
     public ApiTokenPrincipal resolvePrincipal(ApiToken token) {

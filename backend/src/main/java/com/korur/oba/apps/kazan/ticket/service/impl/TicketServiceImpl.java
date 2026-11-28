@@ -229,6 +229,9 @@ public class TicketServiceImpl implements TicketService {
             for (UUID assigneeId : request.assigneeIds()) {
                 boardValidator.ensureUserIsOrganizationMember(organizationId, assigneeId);
             }
+            // Assigning an agent starts its run, and only a person starts an agent.
+            agentValidator.ensureCallerNamesNoAgent(user, request.assigneeIds(),
+                    AgentConstant.ACTION_TICKET_AGENT_ASSIGNEE);
             appAccessValidator.ensureUsersHaveAppAccess(organizationId, App.KAZAN, request.assigneeIds());
             for (UUID assigneeId : request.assigneeIds()) {
                 User assigneeUser = userQueryService.getUserEntityById(assigneeId);
@@ -268,7 +271,7 @@ public class TicketServiceImpl implements TicketService {
                 TicketServiceLogConstant.TICKET_CREATED, ticket.getId());
 
         if (request.assigneeIds() != null && !request.assigneeIds().isEmpty()) {
-            publishAssigneesAdded(ticket, organizationId, request.assigneeIds());
+            publishAssigneesAdded(ticket, organizationId, user, request.assigneeIds());
         }
 
         if (isUrgentOpenIncident(ticket.getType(), ticket.getStatus(), ticket.getPriority())) {
@@ -298,6 +301,13 @@ public class TicketServiceImpl implements TicketService {
         // DONE stays a person's decision. A ticket already DONE can still be edited by an agent.
         if (request.status() == TicketStatus.DONE && previousStatus != TicketStatus.DONE) {
             agentValidator.ensureCallerIsNotAgent(user, AgentConstant.ACTION_TICKET_DONE);
+        }
+
+        // A person approves a plan against the title and description, and the build run works from
+        // that text, so an agent leaves both as they are. Sending them back unchanged still passes.
+        if (changesText(request.title(), ticket.getTitle())
+                || changesText(request.description(), ticket.getDescription())) {
+            agentValidator.ensureCallerIsNotAgent(user, AgentConstant.ACTION_TICKET_TEXT_EDIT);
         }
 
         ticketMapper.updateEntity(ticket, request);
@@ -343,6 +353,9 @@ public class TicketServiceImpl implements TicketService {
                     addedAssigneeIds.add(assigneeId);
                 }
             }
+            // Assigning an agent starts its run, and only a person starts an agent. An agent already on
+            // the ticket may stay when an agent sends the full list back.
+            agentValidator.ensureCallerNamesNoAgent(user, addedAssigneeIds, AgentConstant.ACTION_TICKET_AGENT_ASSIGNEE);
             appAccessValidator.ensureUsersHaveAppAccess(organizationId, App.KAZAN, addedAssigneeIds);
             for (UUID assigneeId : request.assigneeIds()) {
                 User assigneeUser = userQueryService.getUserEntityById(assigneeId);
@@ -429,7 +442,7 @@ public class TicketServiceImpl implements TicketService {
                 TicketServiceLogConstant.TICKET_UPDATED, ticket.getId());
 
         if (!addedAssigneeIds.isEmpty()) {
-            publishAssigneesAdded(ticket, organizationId, addedAssigneeIds);
+            publishAssigneesAdded(ticket, organizationId, user, addedAssigneeIds);
         }
 
         // The board members are alerted when the update makes the ticket an urgent open incident
@@ -629,10 +642,18 @@ public class TicketServiceImpl implements TicketService {
     }
 
     /**
-     * Announces the assignees a change added, so an agent among them starts on the ticket after the
-     * commit. A user named twice is announced once.
+     * Tells whether a partial update sets a text field to another value. Null keeps the field, as
+     * {@link TicketMapper#updateEntity} ignores it, and the same text sent back changes nothing.
      */
-    private void publishAssigneesAdded(Ticket ticket, UUID organizationId, List<UUID> addedUserIds) {
+    private static boolean changesText(String requested, String current) {
+        return requested != null && !requested.equals(current);
+    }
+
+    /**
+     * Announces the assignees a change added, so an agent among them starts on the ticket after the
+     * commit when a person made the change. A user named twice is announced once.
+     */
+    private void publishAssigneesAdded(Ticket ticket, UUID organizationId, User actor, List<UUID> addedUserIds) {
         List<UUID> distinctIds = new ArrayList<>();
         for (UUID userId : addedUserIds) {
             if (!distinctIds.contains(userId)) {
@@ -640,7 +661,7 @@ public class TicketServiceImpl implements TicketService {
             }
         }
         applicationEventPublisher.publishEvent(new TicketAssigneesAddedEvent(
-                organizationId, ticket.getId(), ticket.getKey(), distinctIds));
+                organizationId, ticket.getId(), ticket.getKey(), distinctIds, actor.getId(), actor.getKind()));
     }
 
     /**

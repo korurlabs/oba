@@ -45,9 +45,10 @@ public interface MachineService {
     /**
      * Issues a new token to a machine and revokes its live one in the same transaction, audited as
      * TOKEN_ROTATED, or TOKEN_ISSUED when the machine had no live token. Only the machine's own user
-     * may do this, because only they can put the token on the machine.
+     * may do this, because only they can put the token on the machine. An agent's machine is rotated
+     * by an ADMIN instead, because an agent never mints a credential.
      *
-     * @param actor          the user of the machine
+     * @param actor          the user of the machine, or an ADMIN when that user is an agent
      * @param organizationId the organization of the request
      * @param machineId        the machine
      * @return the new plaintext token, shown only here
@@ -79,17 +80,50 @@ public interface MachineService {
     MachineResponse updateMachine(User actor, UUID organizationId, UUID machineId, MachineUpdateRequest request);
 
     /**
+     * Retires every ACTIVE machine of a user in one organization and revokes the live token of each of
+     * the user's machines, so no machine token outlives an agent that is disabled, deleted or loses its
+     * Kaya grant. It writes no audit entry; the caller writes one for the whole action.
+     *
+     * @param organizationId the organization whose machines are retired
+     * @param userId         the user whose machines are retired
+     * @return the number of machines retired
+     * @throws com.korur.oba.dojo.exception.internal.business.NotFoundException KAY_NF_001 when the
+     *         user is not a member of the organization
+     */
+    int retireAllOfUser(UUID organizationId, UUID userId);
+
+    /**
+     * Locks the machine of a machine token until the caller's transaction ends and checks that it is
+     * still ACTIVE. The token was checked when the request was authenticated, but a retirement of the
+     * machine may have committed since, or may be running: the lock waits for a running one, and the
+     * check then refuses the request, so the caller's transaction rolls back and nothing it wrote lands
+     * after the machine was retired. Under the same lock it checks that the request's token is still the
+     * machine's live token, because a rotation or revocation leaves the machine ACTIVE, and that the
+     * organization is ACTIVE, because ingest skips the request's organization check.
+     *
+     * @param principal the authenticated machine token
+     * @return the locked machine, with its user
+     * @throws com.korur.oba.dojo.exception.internal.auth.UnauthorizedException KAY_SEC_003 when the
+     *         machine is retired or not in the token's organization, the token was rotated or revoked, or
+     *         the organization is deleted
+     * @throws com.korur.oba.dojo.exception.internal.auth.ForbiddenException ORG_SEC_005 when the
+     *         organization is disabled; the token stays valid and works again once it is enabled
+     */
+    Machine lockActiveMachine(MachinePrincipal principal);
+
+    /**
      * Records that the recorder of a machine sent a batch: the Claude Code version and the
      * account it reported, and lastSeenAt. The row is written only when a reported value changed
      * or lastSeenAt is a minute old, so steady batches do not rewrite it every time. A value the
      * batch does not report is kept.
      *
-     * @param principal         the authenticated machine token
+     * @param machine           the machine of the batch, locked by {@link #lockActiveMachine}, so the
+     *                          write cannot set a machine retired meanwhile back to ACTIVE
      * @param claudeCodeVersion the version the batch reported, or null
      * @param account           the account of the batch, or null
      * @return the machine, with its user and account
      */
-    Machine recordSeen(MachinePrincipal principal, String claudeCodeVersion, Account account);
+    Machine recordSeen(Machine machine, String claudeCodeVersion, Account account);
 
     /**
      * Stores the usage limits a batch carried as the machine's snapshot, unless the stored one was

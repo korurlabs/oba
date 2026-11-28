@@ -47,6 +47,8 @@ import com.korur.oba.apps.kaya.plan.repository.PlanFeedbackRepository;
 import com.korur.oba.apps.kaya.plan.repository.PlanRepository;
 import com.korur.oba.apps.kaya.plan.repository.PlanVersionRepository;
 import com.korur.oba.apps.kaya.plan.service.PlanService;
+import com.korur.oba.shrine.agent.constant.AgentConstant;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
 
 @Service
 @RequiredArgsConstructor
@@ -60,6 +62,7 @@ public class PlanServiceImpl implements PlanService {
     private final PlanVersionRepository planVersionRepository;
     private final PlanFeedbackRepository planFeedbackRepository;
     private final UserAccessHelper userAccessHelper;
+    private final AgentValidator agentValidator;
     private final PlanMapper planMapper;
     private final LoggingService loggingService;
     private final Clock clock;
@@ -67,6 +70,8 @@ public class PlanServiceImpl implements PlanService {
     @Override
     @Transactional
     public PlanFeedbackResponse giveFeedback(User user, UUID organizationId, UUID planId, PlanFeedbackRequest request) {
+        // The CLI injects plan feedback into the plan owner's live session, so only a person gives it.
+        agentValidator.ensureCallerIsNotAgent(user, AgentConstant.ACTION_KAYA_PLAN_FEEDBACK);
         // The plan row is locked before the version is checked, so a version stored by the ingest
         // meanwhile either commits first and makes this version old, or waits for this decision.
         Plan plan = lockedPlan(organizationId, planId);

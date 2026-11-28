@@ -14,6 +14,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -27,9 +28,11 @@ import java.util.Set;
 import java.util.UUID;
 
 // 4. Internal
+import com.korur.oba.dojo.exception.internal.business.NotFoundException;
 import com.korur.oba.shrine.identity.dto.UserQueryRequest;
 import com.korur.oba.shrine.identity.dto.response.UserListResponse;
 import com.korur.oba.shrine.identity.entity.User;
+import com.korur.oba.shrine.identity.exception.ExceptionDomainIdentityError;
 import com.korur.oba.shrine.identity.mapper.UserMapper;
 import com.korur.oba.shrine.identity.repository.UserRepository;
 import com.korur.oba.shrine.organization.service.OrganizationMemberQueryService;
@@ -122,6 +125,32 @@ class UserQueryServiceImplUnitTest {
 
             // Assert
             assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    class LockUserForKeyShare {
+
+        @Test
+        void knownUser_takesTheKeyShareLockOnly() {
+            UUID userId = UUID.randomUUID();
+            when(userRepository.lockForKeyShare(userId)).thenReturn(Optional.of(userId));
+
+            userQueryService.lockUserForKeyShare(userId);
+
+            verify(userRepository).lockForKeyShare(userId);
+            verifyNoMoreInteractions(userRepository);
+        }
+
+        @Test
+        void unknownUser_throwsNotFound() {
+            UUID userId = UUID.randomUUID();
+            when(userRepository.lockForKeyShare(userId)).thenReturn(Optional.empty());
+
+            NotFoundException exception = assertThrows(NotFoundException.class,
+                    () -> userQueryService.lockUserForKeyShare(userId));
+
+            assertEquals(ExceptionDomainIdentityError.NOT_USER_FOUND.getCode(), exception.getErrorCode());
         }
     }
 }

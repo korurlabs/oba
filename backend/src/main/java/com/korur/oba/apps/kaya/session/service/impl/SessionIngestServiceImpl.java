@@ -33,6 +33,7 @@ import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.apps.kaya.release.entity.Release;
 import com.korur.oba.apps.kaya.release.service.ReleaseQueryService;
+import com.korur.oba.apps.kaya.identity.service.KayaUserQueryService;
 import com.korur.oba.apps.kaya.ingest.dto.request.IngestAccountRequest;
 import com.korur.oba.apps.kaya.ingest.dto.request.IngestBatchRequest;
 import com.korur.oba.apps.kaya.ingest.dto.request.IngestConfigReleaseRequest;
@@ -68,6 +69,7 @@ public class SessionIngestServiceImpl implements SessionIngestService {
     private static final Pattern KAZAN_TICKET = Pattern.compile(SessionConstant.KAZAN_TICKET_PATTERN);
 
     private final SessionRepository sessionRepository;
+    private final KayaUserQueryService kayaUserQueryService;
     private final SessionEventRepository sessionEventRepository;
     private final SessionSubagentRepository sessionSubagentRepository;
     private final SessionSkillUseRepository sessionSkillUseRepository;
@@ -84,6 +86,16 @@ public class SessionIngestServiceImpl implements SessionIngestService {
     @Transactional(propagation = Propagation.MANDATORY)
     public Session openSession(UUID organizationId, UUID repositoryId, UUID userId, UUID machineId, String sessionId,
             Instant startedAt) {
+        Optional<Session> existing = findSessionForUpdate(organizationId, userId, sessionId);
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+        // The new row references the machine and the user, and PostgreSQL checks each key by locking the
+        // referenced row in turn, not in an order this code controls. Retiring a user's machines locks the
+        // user and then the machines, so the user is locked here first, with the same key share lock the
+        // check takes: both then lock in one order and cannot wait on each other. A batch of an existing
+        // session inserts no session row and takes no lock on the user.
+        kayaUserQueryService.lockUserForKeyShare(userId);
         int created = sessionRepository.insertIfAbsent(organizationId, repositoryId, userId, machineId, sessionId, startedAt);
         Session session = findSessionForUpdate(organizationId, userId, sessionId)
                 .orElseThrow(() -> new IllegalStateException(SessionServiceLogConstant.SESSION_MISSING_AFTER_INSERT));

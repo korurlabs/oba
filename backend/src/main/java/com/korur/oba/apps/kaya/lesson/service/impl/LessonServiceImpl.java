@@ -42,6 +42,8 @@ import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
 import com.korur.oba.apps.kaya.repository.dto.response.RepositoryResponse;
 import com.korur.oba.apps.kaya.repository.enums.RepositoryStatus;
 import com.korur.oba.apps.kaya.repository.service.RepositoryQueryService;
+import com.korur.oba.shrine.agent.constant.AgentConstant;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
 
 @Service
 @RequiredArgsConstructor
@@ -53,6 +55,7 @@ public class LessonServiceImpl implements LessonService {
     private final LessonQueryService lessonQueryService;
     private final RepositoryQueryService repositoryQueryService;
     private final UserAccessHelper userAccessHelper;
+    private final AgentValidator agentValidator;
     private final LessonMapper lessonMapper;
     private final DeliveryProposalProperties deliveryProposalProperties;
     private final LessonDeliveryRateLimiter lessonDeliveryRateLimiter;
@@ -81,6 +84,9 @@ public class LessonServiceImpl implements LessonService {
     @Override
     @Transactional
     public LessonDetailResponse create(User user, UUID organizationId, LessonRequest request, String claudeSessionId) {
+        // A lesson reaches every member's next session with no approval step, so an agent writes none,
+        // through the web API or its machine token, which both end here.
+        agentValidator.ensureCallerIsNotAgent(user, AgentConstant.ACTION_KAYA_LESSON_CREATE);
         requireWritableRepository(organizationId, request.repositoryId());
         Lesson lesson = lessonRepository.save(lessonMapper.toEntity(request, organizationId, user.getId(), claudeSessionId));
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, LessonServiceLogConstant.LESSON_CREATED,
@@ -91,6 +97,8 @@ public class LessonServiceImpl implements LessonService {
     @Override
     @Transactional
     public LessonDetailResponse update(User user, UUID organizationId, UUID lessonId, LessonRequest request) {
+        // Lessons reach every later session, so an agent never rewrites one.
+        agentValidator.ensureCallerIsNotAgent(user, AgentConstant.ACTION_KAYA_LESSON_UPDATE);
         Lesson lesson = lessonQueryService.getEntity(organizationId, lessonId);
         userAccessHelper.requireAdminOrSelf(user, organizationId, lesson.getUserId());
         // Only a move is checked, so a lesson whose repository was archived stays correctable.
@@ -108,6 +116,8 @@ public class LessonServiceImpl implements LessonService {
     @Override
     @Transactional
     public void delete(User user, UUID organizationId, UUID lessonId) {
+        // Also refused through the machine token, so an agent cannot remove a lesson people rely on.
+        agentValidator.ensureCallerIsNotAgent(user, AgentConstant.ACTION_KAYA_LESSON_DELETE);
         Lesson lesson = lessonQueryService.getEntity(organizationId, lessonId);
         userAccessHelper.requireAdminOrSelf(user, organizationId, lesson.getUserId());
         lessonRepository.delete(lesson);
@@ -119,6 +129,8 @@ public class LessonServiceImpl implements LessonService {
     @Transactional
     public LessonDeliveryCreatedResponse create(MachinePrincipal principal, LessonDeliveryRequest request) {
         User user = lessonQueryService.getActingUser(principal);
+        // Refused before the checkout is looked up, so an agent gets the same 403 whatever remote it names.
+        agentValidator.ensureCallerIsNotAgent(user, AgentConstant.ACTION_KAYA_LESSON_CREATE);
         UUID organizationId = principal.organizationId();
         UUID repositoryId = request.repoWide() ? null : requireCheckoutRepository(organizationId, request.remoteUrl());
         LessonDetailResponse lesson = create(user, organizationId,

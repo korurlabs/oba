@@ -87,6 +87,14 @@ public class UserQueryServiceImpl implements UserQueryService {
     }
 
     @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void lockUserForKeyShare(UUID userId) {
+        if (userRepository.lockForKeyShare(userId).isEmpty()) {
+            throw new NotFoundException(ExceptionDomainIdentityError.NOT_USER_FOUND);
+        }
+    }
+
+    @Override
     public List<User> getAgentsOfOrganization(UUID organizationId) {
         List<User> agents = new ArrayList<>(
                 userRepository.findAllByKindAndAgentDetailOrganizationId(UserKind.AGENT, organizationId));

@@ -16,6 +16,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 // 3. Java SDK
@@ -33,6 +34,7 @@ import com.korur.oba.connect.routine.core.enums.RoutineFireStatus;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.service.LoggingService;
 import com.korur.oba.shrine.agent.routine.service.AgentRoutineService;
+import com.korur.oba.shrine.identity.enums.UserKind;
 
 @ExtendWith(MockitoExtension.class)
 class TicketAgentRoutineListenerUnitTest {
@@ -93,6 +95,20 @@ class TicketAgentRoutineListenerUnitTest {
     }
 
     @Test
+    void onTicketAssigneesAdded_byAnAgent_firesNothing() {
+        UUID agentId = UUID.randomUUID();
+        UUID actorId = UUID.randomUUID();
+
+        listener.onTicketAssigneesAdded(new TicketAssigneesAddedEvent(organizationId, UUID.randomUUID(), TICKET_KEY,
+                List.of(agentId), actorId, UserKind.AGENT));
+
+        verifyNoInteractions(agentRoutineService);
+        verify(loggingService).info(any(), eq(LogLayer.HANDLER),
+                eq(TicketAgentRoutineListenerLogConstant.ROUTINE_NOT_FIRED_FOR_NON_PERSON),
+                eq(organizationId), eq(TICKET_KEY), eq(actorId), eq(UserKind.AGENT));
+    }
+
+    @Test
     void onTicketAssigneesAdded_runsAfterCommitOnTheRoutineExecutor() throws NoSuchMethodException {
         Method handler = TicketAgentRoutineListener.class.getMethod("onTicketAssigneesAdded",
                 TicketAssigneesAddedEvent.class);
@@ -103,6 +119,7 @@ class TicketAgentRoutineListenerUnitTest {
     }
 
     private TicketAssigneesAddedEvent event(List<UUID> addedUserIds) {
-        return new TicketAssigneesAddedEvent(organizationId, UUID.randomUUID(), TICKET_KEY, addedUserIds);
+        return new TicketAssigneesAddedEvent(organizationId, UUID.randomUUID(), TICKET_KEY, addedUserIds,
+                UUID.randomUUID(), UserKind.HUMAN);
     }
 }

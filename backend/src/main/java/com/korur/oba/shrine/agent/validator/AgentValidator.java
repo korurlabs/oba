@@ -36,10 +36,10 @@ import com.korur.oba.shrine.identity.service.UserQueryService;
  *
  * An agent acts with a token from a hosted session whose input other people write, so the actions
  * that close, delete or outlive its work, or that mint a credential, are refused to it as the caller
- * with 403 AGT_SEC_002. People management and the higher roles do not apply to an agent as the
- * target, because its membership and status follow the Agents page and its grants stay narrow; those
- * answer 422 AGT_VAL_001. The services that own each action call this validator, so the rule holds
- * for every client.
+ * with 403 AGT_SEC_002, and so is naming another agent where that starts the other agent's run. People
+ * management and the higher roles do not apply to an agent as the target, because its membership and
+ * status follow the Agents page and its grants stay narrow; those answer 422 AGT_VAL_001. The services
+ * that own each action call this validator, so the rule holds for every client.
  *
  * It also keeps agent names unique in an organization, answering 409 AGT_STA_001.
  */
@@ -77,6 +77,34 @@ public class AgentValidator {
                 caller.getId(), action);
         throw new ForbiddenException(ExceptionDomainAgentError.SEC_AGENT_ACTION_REFUSED,
                 Map.of(AgentConstant.FIELD_ACTION, action));
+    }
+
+    /**
+     * Refuses an agent caller an action that names other agents among its target users, such as
+     * assigning a ticket, which starts the assigned agent's run: one agent may not start another. A person
+     * may name agents, and an agent may name people. The users are read in one query, and only for an
+     * agent caller; an unknown id is left to the caller's own existence check.
+     *
+     * @param caller  the user who calls
+     * @param userIds the users the action names; empty passes without a query
+     * @param action  the refused action, one of the action names in {@link AgentConstant}
+     * @throws ForbiddenException AGT_SEC_002 naming the first agent found when the caller is an agent
+     */
+    public void ensureCallerNamesNoAgent(User caller, Collection<UUID> userIds, String action) {
+        if (!isAgent(caller) || userIds == null || userIds.isEmpty()) {
+            return;
+        }
+        List<UUID> ids = new ArrayList<>(new LinkedHashSet<>(userIds));
+        for (User user : userQueryService.getUserEntitiesByIds(ids)) {
+            if (isAgent(user)) {
+                loggingService.warn(LOG_PREFIX, LogLayer.VALIDATOR,
+                        AgentValidatorLogConstant.AGENT_CALLER_NAMING_AGENT_REFUSED, caller.getId(), user.getId(),
+                        action);
+                throw new ForbiddenException(ExceptionDomainAgentError.SEC_AGENT_ACTION_REFUSED,
+                        Map.of(AgentConstant.FIELD_ACTION, action, AgentConstant.FIELD_USER_ID,
+                                user.getId().toString()));
+            }
+        }
     }
 
     /**

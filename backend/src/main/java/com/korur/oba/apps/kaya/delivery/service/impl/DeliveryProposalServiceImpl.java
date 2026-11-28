@@ -36,6 +36,7 @@ import com.korur.oba.apps.kaya.delivery.dto.response.DeliveryProposalResponse;
 import com.korur.oba.apps.kaya.delivery.mapper.DeliveryMapper;
 import com.korur.oba.apps.kaya.delivery.service.DeliveryProposalService;
 import com.korur.oba.apps.kaya.delivery.service.DeliveryQueryService;
+import com.korur.oba.apps.kaya.identity.service.KayaUserQueryService;
 import com.korur.oba.apps.kaya.machine.dto.MachinePrincipal;
 import com.korur.oba.apps.kaya.pack.entity.Pack;
 import com.korur.oba.apps.kaya.pack.service.PackQueryService;
@@ -54,6 +55,8 @@ import com.korur.oba.apps.kaya.version.dto.response.VersionResponse;
 import com.korur.oba.apps.kaya.version.entity.Version;
 import com.korur.oba.apps.kaya.version.service.VersionQueryService;
 import com.korur.oba.apps.kaya.version.service.VersionService;
+import com.korur.oba.shrine.agent.constant.AgentConstant;
+import com.korur.oba.shrine.agent.validator.AgentValidator;
 
 /**
  * The {@link DeliveryProposalService} implementation: it resolves the proposer and the owner of the
@@ -74,6 +77,8 @@ public class DeliveryProposalServiceImpl implements DeliveryProposalService {
     private final ValidationQueryService validationQueryService;
     private final DeliveryMapper deliveryMapper;
     private final DeliveryProposalProperties deliveryProposalProperties;
+    private final KayaUserQueryService kayaUserQueryService;
+    private final AgentValidator agentValidator;
     private final LoggingService loggingService;
 
     @Override
@@ -84,6 +89,11 @@ public class DeliveryProposalServiceImpl implements DeliveryProposalService {
         // the review rules can exclude from approving it. The machine token chain has checked that the
         // user still acts in the organization with the Kaya app.
         UUID proposerId = principal.userId();
+        // An approved proposal releases hooks and settings to every machine of the organization, and
+        // an agent's run reads text other people write, so an agent proposes nothing. Refused before
+        // any lookup, so an agent gets the same 403 whatever the request names.
+        agentValidator.ensureCallerIsNotAgent(kayaUserQueryService.getEntityById(proposerId),
+                AgentConstant.ACTION_KAYA_CONFIG_PROPOSE);
         requireDistinctPaths(principal, request.files());
         RepositoryResponse repository = deliveryQueryService.getRepository(organizationId, request.remoteUrl());
         Release release = releaseQueryService.getEntityByNumber(organizationId, repository.id(),

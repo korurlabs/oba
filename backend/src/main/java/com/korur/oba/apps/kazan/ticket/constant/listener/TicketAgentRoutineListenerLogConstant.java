@@ -10,6 +10,9 @@ public final class TicketAgentRoutineListenerLogConstant {
     private TicketAgentRoutineListenerLogConstant() {
     }
 
+    public static final String ROUTINE_NOT_FIRED_FOR_NON_PERSON =
+            "No agent routine fired for assignment by a non-person: organizationId={}, ticketKey={}, "
+                    + "actorId={}, actorKind={}";
     public static final String ROUTINE_FIRED =
             "Agent routine fired for assignment: organizationId={}, ticketKey={}, userId={}, status={}";
     public static final String ROUTINE_FIRE_FAILED =

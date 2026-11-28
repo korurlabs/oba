@@ -151,13 +151,16 @@ public final class LessonConstant {
     public static final int DELIVERY_CONCURRENT_READS_MAX = 4;
     // Lesson reads of one organization that run at the same time on one instance. The CLI reads the
     // pages of the list one after another, so one checkout holds one read at a time, and two machines
-    // of a team rarely read in the same milliseconds. Two lets that happen, and leaves the other half of
-    // the instance's reads to the other organizations when the reads of one turn slow.
-    public static final int DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX = 2;
+    // of a team rarely read in the same milliseconds. Three lets that happen and stays above the cap of
+    // one user, so no single member, a person or an agent, holds every place of their organization
+    // while colleagues are refused. It still leaves one of the instance's reads to the other
+    // organizations when the reads of one turn slow.
+    public static final int DELIVERY_ORGANIZATION_CONCURRENT_READS_MAX = 3;
     // Lesson reads of one user that run at the same time on one instance, in all their organizations
     // together. A person reads from a few machines, each one page after another, so two at once is
     // already rare. Without it, one person with two organizations of their own would hold all four
-    // places of the instance; with it, that takes two accounts.
+    // places of the instance; with it, that takes two accounts. It stays below the cap of the
+    // organization, so a colleague always finds a place the user cannot take.
     public static final int DELIVERY_USER_CONCURRENT_READS_MAX = 2;
     // The Retry-After of a read refused because too many run at once. A healthy read ends within
     // milliseconds, so a second later its place is most likely free again; a refusal by a budget
