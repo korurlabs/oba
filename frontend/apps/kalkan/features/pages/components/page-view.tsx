@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { ArrowLeft, FilePlus, History, Pencil, RotateCcw, ShieldCheck, Trash2 } from "lucide-react";
+import { FilePlus, History, Pencil, RotateCcw, ShieldCheck, Trash2 } from "lucide-react";
 import { isApiError } from "@oba/shared/api/axios";
 import { useDateFormat } from "@oba/shared/i18n/use-date-format";
 import { Link, useRouter } from "@oba/shared/libs/i18n/navigation";
@@ -10,9 +10,9 @@ import { Alert, AlertDescription } from "@oba/ui/sky/alert";
 import { Badge } from "@oba/ui/sky/badge";
 import { Button } from "@oba/ui/sky/button";
 import { Card, CardContent } from "@oba/ui/sky/card";
-import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { PageHeading } from "@oba/ui/sky/page-heading";
+import { EmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { ToggleGroup, ToggleGroupItem } from "@oba/ui/sky/toggle-group";
-import { ActionEmptyState } from "@/components/page-states";
 import { descendantCountOf } from "@/features/sections/lib/tree-moves";
 import { useIsOrganizationMember } from "@/hooks/use-is-organization-admin";
 import {
@@ -62,11 +62,7 @@ export function PageView({ pageId }: { pageId: string }) {
     }
     if (isApiError(page.error, "KLK_SEC_001")) {
       return (
-        <ActionEmptyState
-          title={tView("noAccess.title")}
-          description={tView("noAccess.description")}
-          action={<BackButton />}
-        />
+        <EmptyState title={tView("noAccess.title")} description={tView("noAccess.description")} />
       );
     }
     return (
@@ -80,18 +76,6 @@ export function PageView({ pageId }: { pageId: string }) {
   }
 
   return <TableLoading label={t("view.loading")} />;
-}
-
-function BackButton() {
-  const t = useTranslations("pageView");
-  return (
-    <Button asChild variant="outline">
-      <Link href="/">
-        <ArrowLeft aria-hidden="true" />
-        {t("back")}
-      </Link>
-    </Button>
-  );
 }
 
 /**
@@ -116,7 +100,7 @@ function PageNotFound({ pageId }: { pageId: string }) {
             <AlertDescription>{t("deleted.parentFirst")}</AlertDescription>
           </Alert>
         )}
-        <ActionEmptyState
+        <EmptyState
           title={t("deleted.title")}
           description={t("deleted.description", { date: formatDate(deleted.deletedAt) })}
           action={
@@ -130,13 +114,7 @@ function PageNotFound({ pageId }: { pageId: string }) {
     );
   }
 
-  return (
-    <ActionEmptyState
-      title={t("notFound.title")}
-      description={t("notFound.description")}
-      action={<BackButton />}
-    />
-  );
+  return <EmptyState title={t("notFound.title")} description={t("notFound.description")} />;
 }
 
 /** The translation shown first: the one that fits the interface, else the other one. */
@@ -201,9 +179,9 @@ function PageContent({ page }: { page: PageDetail }) {
     <div className="flex flex-col gap-6">
       <PageBreadcrumbs page={page} title={title} pages={pages} />
 
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex min-w-0 flex-col gap-2">
-          <h1 className="break-words">{title}</h1>
+      <PageHeading
+        title={title}
+        description={
           <div className="flex flex-wrap items-center gap-2">
             {page.compliance && <Badge variant="info">{t("compliance")}</Badge>}
             {translation && (
@@ -217,75 +195,77 @@ function PageContent({ page }: { page: PageDetail }) {
               </span>
             )}
           </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <ToggleGroup
-            type="single"
-            variant="outline"
-            size="sm"
-            aria-label={t("language")}
-            value={shownLocale ?? ""}
-            onValueChange={(value: string) => {
-              const parsed = KalkanLocaleSchema.safeParse(value);
-              if (parsed.success) setChosen(parsed.data);
-            }}
-          >
-            {KalkanLocaleSchema.options.map((option) => (
-              <ToggleGroupItem
-                key={option}
-                value={option}
-                disabled={!page.translations.some((candidate) => candidate.locale === option)}
-              >
-                {option}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
-          {canSeeHistory && (
-            <Button asChild variant="outline">
-              <Link href={pageHistoryHref(page.id)}>
-                <History aria-hidden="true" />
-                {t("history")}
-              </Link>
-            </Button>
-          )}
-          {canManageAccess && (
-            <Button asChild variant="outline">
-              <Link href={pagePermissionsHref(page.id)}>
-                <ShieldCheck aria-hidden="true" />
-                {t("permissions")}
-              </Link>
-            </Button>
-          )}
-          {canEdit && (
-            <>
-              <Button asChild variant="outline">
-                <Link href={newPageHref(page.id)}>
-                  <FilePlus aria-hidden="true" />
-                  {t("newChild")}
-                </Link>
-              </Button>
-              <Button asChild>
-                <Link href={pageEditHref(page.id)}>
-                  <Pencil aria-hidden="true" />
-                  {t("edit")}
-                </Link>
-              </Button>
-            </>
-          )}
-          {canDelete && (
-            // Outlined, not filled: the heading keeps one filled action, and this one asks first.
-            <Button
+        }
+        actions={
+          <>
+            <ToggleGroup
+              type="single"
               variant="outline"
-              className="text-destructive hover:text-destructive"
-              onClick={() => setDeleteOpen(true)}
-              disabled={deletePage.isPending}
+              size="sm"
+              aria-label={t("language")}
+              value={shownLocale ?? ""}
+              onValueChange={(value: string) => {
+                const parsed = KalkanLocaleSchema.safeParse(value);
+                if (parsed.success) setChosen(parsed.data);
+              }}
             >
-              <Trash2 aria-hidden="true" />
-              {t("delete")}
-            </Button>
-          )}
-        </div>
-      </div>
+              {KalkanLocaleSchema.options.map((option) => (
+                <ToggleGroupItem
+                  key={option}
+                  value={option}
+                  disabled={!page.translations.some((candidate) => candidate.locale === option)}
+                >
+                  {option}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+            {canSeeHistory && (
+              <Button asChild variant="outline">
+                <Link href={pageHistoryHref(page.id)}>
+                  <History aria-hidden="true" />
+                  {t("history")}
+                </Link>
+              </Button>
+            )}
+            {canManageAccess && (
+              <Button asChild variant="outline">
+                <Link href={pagePermissionsHref(page.id)}>
+                  <ShieldCheck aria-hidden="true" />
+                  {t("permissions")}
+                </Link>
+              </Button>
+            )}
+            {canEdit && (
+              <>
+                <Button asChild variant="outline">
+                  <Link href={newPageHref(page.id)}>
+                    <FilePlus aria-hidden="true" />
+                    {t("newChild")}
+                  </Link>
+                </Button>
+                <Button asChild>
+                  <Link href={pageEditHref(page.id)}>
+                    <Pencil aria-hidden="true" />
+                    {t("edit")}
+                  </Link>
+                </Button>
+              </>
+            )}
+            {canDelete && (
+              // Outlined, not filled: the heading keeps one filled action, and this one asks first.
+              <Button
+                variant="outline"
+                className="text-destructive hover:text-destructive"
+                onClick={() => setDeleteOpen(true)}
+                disabled={deletePage.isPending}
+              >
+                <Trash2 aria-hidden="true" />
+                {t("delete")}
+              </Button>
+            )}
+          </>
+        }
+      />
 
       {!hasPreferred && shownLocale && (
         <p className="text-muted-foreground text-sm" role="note">

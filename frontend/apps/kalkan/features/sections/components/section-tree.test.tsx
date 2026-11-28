@@ -6,7 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import messages from "@/locales/en.json";
 import type { PageListItem } from "@/features/pages/schemas";
 
-// The section's data, the role and the writes are replaced by fixed values; the
+// The section's data, the role, the writes and the search in the address are
+// replaced by fixed values; the
 // tree, the view and the messages are real. Links render as plain anchors, so the
 // test reads where each one leads.
 type SectionState = {
@@ -25,6 +26,7 @@ const actualPages = { ...(await import("@/features/pages/hooks/use-pages")) };
 const actualRoles = { ...(await import("@/hooks/use-is-organization-admin")) };
 const actualMove = { ...(await import("../hooks/use-move-section-page")) };
 const actualNavigation = { ...(await import("@oba/shared/libs/i18n/navigation")) };
+const actualNuqs = { ...(await import("nuqs")) };
 
 const idleMutation = { mutate: () => undefined, isPending: false };
 
@@ -77,12 +79,18 @@ mock.module("@oba/shared/libs/i18n/navigation", () => ({
   },
 }));
 
+mock.module("nuqs", () => ({
+  ...actualNuqs,
+  useQueryState: () => [null, () => Promise.resolve(new URLSearchParams())],
+}));
+
 afterAll(() => {
   mock.module("@/features/pages/hooks/use-section-root", () => actualSectionRoot);
   mock.module("@/features/pages/hooks/use-pages", () => actualPages);
   mock.module("@/hooks/use-is-organization-admin", () => actualRoles);
   mock.module("../hooks/use-move-section-page", () => actualMove);
   mock.module("@oba/shared/libs/i18n/navigation", () => actualNavigation);
+  mock.module("nuqs", () => actualNuqs);
 });
 
 const { SectionTree } = await import("./section-tree");
@@ -161,6 +169,20 @@ describe("section tree", () => {
     expect(html).toContain('draggable="true"');
   });
 
+  test("shows only the pages a search keeps, each in its place", () => {
+    const html = render(
+      <SectionTree
+        pages={TREE}
+        root={ROOT}
+        sectionTitle="Policy"
+        canEdit={false}
+        visibleIds={new Set([ACCESS.id, ACCESS_REVIEW.id])}
+      />
+    );
+    expect(html).toContain("Title review");
+    expect(html).not.toContain("Yedekleme");
+  });
+
   test("shows a reader the tree without any action", () => {
     const html = render(
       <SectionTree pages={TREE} root={ROOT} sectionTitle="Policy" canEdit={false} />
@@ -207,10 +229,11 @@ describe("section view", () => {
     expect(html).not.toContain("/pages/new");
   });
 
-  test("shows the tree with the section page link and the new page action", () => {
+  test("shows the tree with the search and the new page action, without a link to the root page", () => {
     const html = render(<SectionView slug="policies" />);
     expect(html).toContain('role="tree"');
-    expect(html).toContain('href="/pages/root"');
+    expect(html).toContain('aria-label="Search pages"');
+    expect(html).not.toContain('href="/pages/root"');
     expect(html).toContain('href="/pages/new?parent=root"');
   });
 

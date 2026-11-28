@@ -1,23 +1,25 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { useTranslations } from "next-intl";
-import { FilePlus, FileText, RotateCcw, Trash2 } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { parseAsString, useQueryState } from "nuqs";
+import { Plus, RotateCcw } from "lucide-react";
 import { useDateFormat } from "@oba/shared/i18n/use-date-format";
 import { Link } from "@oba/shared/libs/i18n/navigation";
 import { Button } from "@oba/ui/sky/button";
 import { Card, CardContent } from "@oba/ui/sky/card";
 import { ListToolbar } from "@oba/ui/sky/list-toolbar";
-import { EmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
-import { ActionEmptyState, PageHeading } from "@/components/page-states";
+import { PageHeading } from "@oba/ui/sky/page-heading";
+import { EmptyState, ListEmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { SearchInput } from "@oba/ui/sky/search-input";
 import { useRestorePage, useTrash } from "@/features/pages/hooks/use-pages";
 import { useSectionRoot, useSetUpSection } from "@/features/pages/hooks/use-section-root";
 import { pageErrorText } from "@/features/pages/lib/page-error";
 import { isLevelAtLeast, KalkanLevel, type PageTrashItem } from "@/features/pages/schemas";
 import { useIsOrganizationAdmin, useIsOrganizationMember } from "@/hooks/use-is-organization-admin";
-import { newPageHref, pageHref, TRASH_HREF } from "@/lib/routes";
+import { newPageHref } from "@/lib/routes";
 import type { SectionSlug } from "@/lib/sections";
-import { DeletedPagesCard } from "./deleted-pages-card";
+import { visiblePageIds } from "../lib/tree-search";
 import { SectionTree } from "./section-tree";
 
 /**
@@ -25,14 +27,17 @@ import { SectionTree } from "./section-tree";
  * not exist yet offers an admin to set it up; anyone else is told to ask one.
  * A root in the trash is not missing: setting the section up again would make
  * a second root, so a member whose trash holds it gets its restore instead.
- * With EDIT on the section the tree can be rearranged and pages added; a
- * member also sees the section's deleted pages with their restore.
+ * With EDIT on the section the tree can be rearranged and pages added. The
+ * search narrows the tree in the browser, since the tree arrives whole.
  */
 export function SectionView({ slug }: { slug: SectionSlug }) {
   const t = useTranslations("sections");
   const tTree = useTranslations("sectionTree");
   const tSidebar = useTranslations("sidebar");
   const tPages = useTranslations("pages");
+  const locale = useLocale();
+  const [search, setSearch] = useQueryState("search", parseAsString);
+  const [searchReset, setSearchReset] = useState(0);
   const isAdmin = useIsOrganizationAdmin();
   const isMember = useIsOrganizationMember();
   const { section, data, isPending, isError, error, refetch } = useSectionRoot(slug);
@@ -45,6 +50,12 @@ export function SectionView({ slug }: { slug: SectionSlug }) {
   // The server refuses a GUEST every write whatever its level on the root.
   const canEdit = isMember && isLevelAtLeast(root?.level, KalkanLevel.EDIT);
   const deletedRoot = deletedRootOf(trash.data?.data ?? [], slug);
+  const pages = data?.data ?? [];
+  const visibleIds = root && search ? visiblePageIds(pages, root.id, search, locale) : undefined;
+  const clearSearch = () => {
+    void setSearch(null);
+    setSearchReset((count) => count + 1);
+  };
 
   let body: ReactNode;
   if (isPending) {
@@ -73,7 +84,7 @@ export function SectionView({ slug }: { slug: SectionSlug }) {
     body = <SectionInTrash root={deletedRoot} />;
   } else if (!root && isAdmin) {
     body = (
-      <ActionEmptyState
+      <EmptyState
         title={t("notSetUp.title")}
         description={t("notSetUp.adminDescription")}
         action={
@@ -85,27 +96,33 @@ export function SectionView({ slug }: { slug: SectionSlug }) {
     );
   } else if (!root) {
     body = <EmptyState title={t("notSetUp.title")} description={t("notSetUp.description")} />;
-  } else if (section.children.length === 0 && canEdit) {
+  } else if (section.children.length === 0 || visibleIds?.size === 0) {
     body = (
-      <ActionEmptyState
-        title={tTree("empty.title")}
-        description={tTree("empty.editorDescription")}
-        action={<NewPageButton parentId={root.id} />}
+      <ListEmptyState
+        filtered={section.children.length > 0}
+        onClearFilters={clearSearch}
+        create={canEdit ? <NewPageButton parentId={root.id} /> : undefined}
+        labels={{
+          emptyTitle: tTree("empty.title"),
+          emptyDescription: canEdit
+            ? tTree("empty.editorDescription")
+            : tTree("empty.readerDescription"),
+          filteredTitle: tTree("filtered.title"),
+          filteredDescription: tTree("filtered.description"),
+          clearFilters: tTree("filtered.clear"),
+        }}
       />
-    );
-  } else if (section.children.length === 0) {
-    body = (
-      <EmptyState title={tTree("empty.title")} description={tTree("empty.readerDescription")} />
     );
   } else {
     body = (
       <Card className="py-4">
         <CardContent className="px-3">
           <SectionTree
-            pages={data?.data ?? []}
+            pages={pages}
             root={root}
             sectionTitle={title}
             canEdit={canEdit}
+            visibleIds={visibleIds}
           />
         </CardContent>
       </Card>
@@ -117,19 +134,19 @@ export function SectionView({ slug }: { slug: SectionSlug }) {
       <PageHeading title={title} />
       {root && (
         <ListToolbar
-          actions={
-            <Button asChild variant="outline">
-              <Link href={pageHref(root.id)}>
-                <FileText aria-hidden="true" />
-                {tTree("sectionPage")}
-              </Link>
-            </Button>
+          search={
+            <SearchInput
+              value={search}
+              onSearchChange={(next) => void setSearch(next ?? null)}
+              label={tTree("search")}
+              clearLabel={tTree("searchClear")}
+              resetSignal={searchReset}
+            />
           }
           create={canEdit && <NewPageButton parentId={root.id} />}
         />
       )}
       {body}
-      {root && isMember && <DeletedPagesCard rootSlug={root.slug} />}
     </div>
   );
 }
@@ -144,7 +161,7 @@ function deletedRootOf(
 
 /**
  * A section whose root page is in the caller's trash: when it was deleted,
- * its restore, and the way to the trash. A restore brings back the pages the
+ * and its restore. A restore brings back the pages the
  * delete took, so the section returns as it was.
  */
 function SectionInTrash({ root }: { root: PageTrashItem }) {
@@ -154,7 +171,7 @@ function SectionInTrash({ root }: { root: PageTrashItem }) {
   const date = formatDate(root.deletedAt);
 
   return (
-    <ActionEmptyState
+    <EmptyState
       title={t("title")}
       description={
         root.deletedByName
@@ -162,18 +179,10 @@ function SectionInTrash({ root }: { root: PageTrashItem }) {
           : t("descriptionUnknown", { date })
       }
       action={
-        <div className="flex flex-wrap justify-center gap-2">
-          <Button onClick={() => restore.mutate(root.id)} disabled={restore.isPending}>
-            <RotateCcw aria-hidden="true" />
-            {t("restore")}
-          </Button>
-          <Button asChild variant="outline">
-            <Link href={TRASH_HREF}>
-              <Trash2 aria-hidden="true" />
-              {t("openTrash")}
-            </Link>
-          </Button>
-        </div>
+        <Button onClick={() => restore.mutate(root.id)} disabled={restore.isPending}>
+          <RotateCcw aria-hidden="true" />
+          {t("restore")}
+        </Button>
       }
     />
   );
@@ -185,7 +194,7 @@ function NewPageButton({ parentId }: { parentId: string }) {
   return (
     <Button asChild>
       <Link href={newPageHref(parentId)}>
-        <FilePlus aria-hidden="true" />
+        <Plus aria-hidden="true" />
         {t("newPage")}
       </Link>
     </Button>

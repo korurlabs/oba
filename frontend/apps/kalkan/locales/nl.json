@@ -73,7 +73,6 @@
       "description": "Haar pagina is op {date} door {name} verwijderd, met alle pagina's eronder. Herstel haar om de sectie terug te brengen.",
       "descriptionUnknown": "Haar pagina is op {date} verwijderd, met alle pagina's eronder. Herstel haar om de sectie terug te brengen.",
       "restore": "Sectie herstellen",
-      "openTrash": "Prullenbak openen",
       "loadError": "De prullenbak kon niet worden geladen"
     }
   },
@@ -129,8 +128,7 @@
     "recentTitle": "Recente wijzigingen",
     "recentLoading": "De recente wijzigingen worden geladen",
     "recentLoadError": "De recente wijzigingen konden niet worden geladen",
-    "recentEmpty": "Er is nog geen pagina gewijzigd.",
-    "viewAll": "Alles bekijken"
+    "recentEmpty": "Er is nog geen pagina gewijzigd."
   },
   "recent": {
     "title": "Recente wijzigingen",
@@ -151,10 +149,17 @@
   "trash": {
     "title": "Prullenbak",
     "subtitle": "Verwijderde pagina's die je kunt terugzetten, met de pagina's die mee zijn verwijderd.",
+    "search": "Prullenbak doorzoeken",
+    "searchClear": "Zoekopdracht wissen",
     "loading": "De prullenbak wordt geladen",
     "loadError": "De prullenbak kon niet worden geladen",
     "empty": "De prullenbak is leeg",
     "emptyHint": "Verwijderde pagina's die je beheert staan hier tot ze worden teruggezet.",
+    "filtered": {
+      "title": "Geen verwijderde pagina's gevonden",
+      "description": "Probeer een ander woord, of wis de zoekopdracht om de hele prullenbak te zien.",
+      "clear": "Zoekopdracht wissen"
+    },
     "membersOnly": "Alleen leden kunnen de prullenbak openen",
     "membersOnlyHint": "Gasten lezen pagina's maar kunnen ze niet terugzetten.",
     "tableLabel": "Verwijderde pagina's",
@@ -208,11 +213,17 @@
   "sectionTree": {
     "label": "Pagina's van {section}",
     "newPage": "Nieuwe pagina",
-    "sectionPage": "Sectiepagina",
+    "search": "Pagina's zoeken",
+    "searchClear": "Zoekopdracht wissen",
     "empty": {
       "title": "Nog geen pagina's",
       "editorDescription": "Voeg de eerste pagina van deze sectie toe.",
       "readerDescription": "Pagina's die aan deze sectie worden toegevoegd, verschijnen hier."
+    },
+    "filtered": {
+      "title": "Geen pagina's gevonden",
+      "description": "Probeer een ander woord, of wis de zoekopdracht om de hele sectie te zien.",
+      "clear": "Zoekopdracht wissen"
     },
     "expand": "{title} uitklappen",
     "collapse": "{title} inklappen",
@@ -227,19 +238,7 @@
     "outdent": "Eén niveau omhoog plaatsen",
     "newChild": "Nieuwe subpagina",
     "edit": "Bewerken",
-    "delete": "Verwijderen",
-    "deleted": {
-      "title": "Verwijderde pagina's",
-      "description": "Pagina's van deze sectie in de prullenbak. Herstellen brengt ook de pagina's terug die met de verwijdering meegingen.",
-      "loadError": "De verwijderde pagina's konden niet worden geladen",
-      "untitled": "Pagina zonder titel",
-      "meta": "Verwijderd op {date} door {name}",
-      "metaUnknown": "Verwijderd op {date}",
-      "descendants": "{count, plural, =0 {geen pagina's eronder} one {# pagina eronder} other {# pagina's eronder}}",
-      "restore": "Herstellen",
-      "restoreLabel": "{title} herstellen",
-      "parentFirst": "Herstel eerst de bovenliggende pagina: {path} staat onder een pagina die nog in de prullenbak ligt."
-    }
+    "delete": "Verwijderen"
   },
   "pageView": {
     "breadcrumb": "Kruimelpad",
@@ -259,7 +258,6 @@
     "history": "Geschiedenis",
     "permissions": "Toegang",
     "delete": "Verwijderen",
-    "back": "Terug naar het overzicht",
     "notFound": {
       "title": "Pagina niet gevonden",
       "description": "Deze pagina bestaat niet, of je hebt er geen toegang toe."
@@ -322,8 +320,7 @@
     "saving": "Bezig met opslaan...",
     "noParent": {
       "title": "Geen plek om een pagina toe te voegen",
-      "description": "Je kunt alleen pagina's toevoegen onder een sectie waar je bewerkrechten hebt. Vraag een sectiebeheerder om toegang.",
-      "action": "Naar het overzicht"
+      "description": "Je kunt alleen pagina's toevoegen onder een sectie waar je bewerkrechten hebt. Vraag een sectiebeheerder om toegang."
     },
     "readOnly": {
       "title": "Je kunt deze pagina lezen maar niet bewerken",
@@ -392,7 +389,8 @@
     },
     "list": {
       "title": "Wie heeft toegang",
-      "empty": "Nog niemand heeft toegang gekregen.",
+      "emptyTitle": "Nog niemand heeft toegang",
+      "emptyDescription": "Voeg hierboven een lid toe om het deze sectie te laten bekijken, bewerken of beheren.",
       "subject": "Lid",
       "level": "Toegang",
       "actions": "Acties",

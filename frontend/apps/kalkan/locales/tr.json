@@ -73,7 +73,6 @@
       "description": "Bölümün sayfası, altındaki tüm sayfalarla birlikte {date} tarihinde {name} tarafından silindi. Bölümü geri getirmek için geri yükleyin.",
       "descriptionUnknown": "Bölümün sayfası, altındaki tüm sayfalarla birlikte {date} tarihinde silindi. Bölümü geri getirmek için geri yükleyin.",
       "restore": "Bölümü geri yükle",
-      "openTrash": "Çöp kutusunu aç",
       "loadError": "Çöp kutusu yüklenemedi"
     }
   },
@@ -129,8 +128,7 @@
     "recentTitle": "Son değişiklikler",
     "recentLoading": "Son değişiklikler yükleniyor",
     "recentLoadError": "Son değişiklikler yüklenemedi",
-    "recentEmpty": "Henüz hiçbir sayfa değiştirilmedi.",
-    "viewAll": "Tümünü gör"
+    "recentEmpty": "Henüz hiçbir sayfa değiştirilmedi."
   },
   "recent": {
     "title": "Son değişiklikler",
@@ -151,10 +149,17 @@
   "trash": {
     "title": "Çöp kutusu",
     "subtitle": "Geri yükleyebileceğiniz silinmiş sayfalar ve onlarla birlikte silinen sayfalar.",
+    "search": "Çöp kutusunda ara",
+    "searchClear": "Aramayı temizle",
     "loading": "Çöp kutusu yükleniyor",
     "loadError": "Çöp kutusu yüklenemedi",
     "empty": "Çöp kutusu boş",
     "emptyHint": "Yönettiğiniz silinmiş sayfalar geri yüklenene kadar burada görünür.",
+    "filtered": {
+      "title": "Aramanızla eşleşen silinmiş sayfa yok",
+      "description": "Başka bir kelime deneyin veya tüm çöp kutusunu görmek için aramayı temizleyin.",
+      "clear": "Aramayı temizle"
+    },
     "membersOnly": "Çöp kutusunu yalnızca üyeler açabilir",
     "membersOnlyHint": "Misafirler sayfaları okur ama geri yükleyemez.",
     "tableLabel": "Silinmiş sayfalar",
@@ -208,11 +213,17 @@
   "sectionTree": {
     "label": "{section} sayfaları",
     "newPage": "Yeni sayfa",
-    "sectionPage": "Bölüm sayfası",
+    "search": "Sayfalarda ara",
+    "searchClear": "Aramayı temizle",
     "empty": {
       "title": "Henüz sayfa yok",
       "editorDescription": "Bu bölümün ilk sayfasını ekleyin.",
       "readerDescription": "Bu bölüme eklenen sayfalar burada görünür."
+    },
+    "filtered": {
+      "title": "Aramanızla eşleşen sayfa yok",
+      "description": "Başka bir kelime deneyin veya tüm bölümü görmek için aramayı temizleyin.",
+      "clear": "Aramayı temizle"
     },
     "expand": "{title} sayfasını aç",
     "collapse": "{title} sayfasını kapat",
@@ -227,19 +238,7 @@
     "outdent": "Bir seviye dışarı taşı",
     "newChild": "Yeni alt sayfa",
     "edit": "Düzenle",
-    "delete": "Sil",
-    "deleted": {
-      "title": "Silinen sayfalar",
-      "description": "Bu bölümün çöp kutusundaki sayfaları. Geri yükleme, silmenin götürdüğü sayfaları da geri getirir.",
-      "loadError": "Silinen sayfalar yüklenemedi",
-      "untitled": "Başlıksız sayfa",
-      "meta": "{date} tarihinde {name} sildi",
-      "metaUnknown": "{date} tarihinde silindi",
-      "descendants": "{count, plural, =0 {altında sayfa yok} other {altında # sayfa}}",
-      "restore": "Geri yükle",
-      "restoreLabel": "{title} sayfasını geri yükle",
-      "parentFirst": "Önce üst sayfayı geri yükleyin: {path} hâlâ çöp kutusundaki bir sayfanın altında."
-    }
+    "delete": "Sil"
   },
   "pageView": {
     "breadcrumb": "Gezinti yolu",
@@ -259,7 +258,6 @@
     "history": "Geçmiş",
     "permissions": "Erişim",
     "delete": "Sil",
-    "back": "Genel bakışa dön",
     "notFound": {
       "title": "Sayfa bulunamadı",
       "description": "Bu sayfa yok ya da sayfaya erişiminiz yok."
@@ -322,8 +320,7 @@
     "saving": "Kaydediliyor...",
     "noParent": {
       "title": "Sayfa eklenecek yer yok",
-      "description": "Yalnızca düzenleme erişiminiz olan bir bölüme sayfa ekleyebilirsiniz. Bir bölüm yöneticisinden erişim isteyin.",
-      "action": "Genel bakışa git"
+      "description": "Yalnızca düzenleme erişiminiz olan bir bölüme sayfa ekleyebilirsiniz. Bir bölüm yöneticisinden erişim isteyin."
     },
     "readOnly": {
       "title": "Bu sayfayı okuyabilir ama düzenleyemezsiniz",
@@ -392,7 +389,8 @@
     },
     "list": {
       "title": "Erişimi olanlar",
-      "empty": "Henüz kimseye erişim verilmedi.",
+      "emptyTitle": "Henüz kimsenin erişimi yok",
+      "emptyDescription": "Bu bölümü görüntüleyebilmesi, düzenleyebilmesi veya yönetebilmesi için yukarıdan bir üye ekleyin.",
       "subject": "Üye",
       "level": "Erişim",
       "actions": "İşlemler",

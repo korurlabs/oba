@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { EmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
-import { PageHeading } from "@/components/page-states";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { useRecentPages } from "@/features/pages/hooks/use-pages";
 import { pageErrorText } from "@/features/pages/lib/page-error";
 import type { PageRecentItem } from "@/features/pages/schemas";

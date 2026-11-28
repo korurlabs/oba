@@ -73,7 +73,6 @@
       "description": "Its page was deleted {date} by {name}, with every page below it. Restore it to bring the section back.",
       "descriptionUnknown": "Its page was deleted {date}, with every page below it. Restore it to bring the section back.",
       "restore": "Restore section",
-      "openTrash": "Open the trash",
       "loadError": "The trash could not be loaded"
     }
   },
@@ -129,8 +128,7 @@
     "recentTitle": "Recent changes",
     "recentLoading": "Loading the recent changes",
     "recentLoadError": "The recent changes could not be loaded",
-    "recentEmpty": "No page has been changed yet.",
-    "viewAll": "View all"
+    "recentEmpty": "No page has been changed yet."
   },
   "recent": {
     "title": "Recent changes",
@@ -151,10 +149,17 @@
   "trash": {
     "title": "Trash",
     "subtitle": "Deleted pages you can restore, with the pages deleted along with them.",
+    "search": "Search the trash",
+    "searchClear": "Clear search",
     "loading": "Loading the trash",
     "loadError": "The trash could not be loaded",
     "empty": "The trash is empty",
     "emptyHint": "Deleted pages you manage show here until they are restored.",
+    "filtered": {
+      "title": "No deleted pages match your search",
+      "description": "Try another word, or clear the search to see the whole trash.",
+      "clear": "Clear search"
+    },
     "membersOnly": "Only members can open the trash",
     "membersOnlyHint": "Guests read pages but cannot restore them.",
     "tableLabel": "Deleted pages",
@@ -208,11 +213,17 @@
   "sectionTree": {
     "label": "Pages of {section}",
     "newPage": "New page",
-    "sectionPage": "Section page",
+    "search": "Search pages",
+    "searchClear": "Clear search",
     "empty": {
       "title": "No pages yet",
       "editorDescription": "Add the first page of this section.",
       "readerDescription": "Pages added to this section appear here."
+    },
+    "filtered": {
+      "title": "No pages match your search",
+      "description": "Try another word, or clear the search to see the whole section.",
+      "clear": "Clear search"
     },
     "expand": "Expand {title}",
     "collapse": "Collapse {title}",
@@ -227,19 +238,7 @@
     "outdent": "Move out one level",
     "newChild": "New subpage",
     "edit": "Edit",
-    "delete": "Delete",
-    "deleted": {
-      "title": "Deleted pages",
-      "description": "Pages of this section in the trash. A restore brings back the pages its delete took.",
-      "loadError": "The deleted pages could not be loaded",
-      "untitled": "Untitled page",
-      "meta": "Deleted {date} by {name}",
-      "metaUnknown": "Deleted {date}",
-      "descendants": "{count, plural, =0 {no pages below} one {# page below} other {# pages below}}",
-      "restore": "Restore",
-      "restoreLabel": "Restore {title}",
-      "parentFirst": "Restore the parent first: {path} lies under a page that is still in the trash."
-    }
+    "delete": "Delete"
   },
   "pageView": {
     "breadcrumb": "Breadcrumb",
@@ -259,7 +258,6 @@
     "history": "History",
     "permissions": "Access",
     "delete": "Delete",
-    "back": "Back to the overview",
     "notFound": {
       "title": "Page not found",
       "description": "This page does not exist, or you do not have access to it."
@@ -322,8 +320,7 @@
     "saving": "Saving...",
     "noParent": {
       "title": "No place to add a page",
-      "description": "You can add pages only under a section where you have edit access. Ask a section manager for access.",
-      "action": "Go to the overview"
+      "description": "You can add pages only under a section where you have edit access. Ask a section manager for access."
     },
     "readOnly": {
       "title": "You can read this page but not edit it",
@@ -392,7 +389,8 @@
     },
     "list": {
       "title": "Who has access",
-      "empty": "Nobody has been given access yet.",
+      "emptyTitle": "Nobody has access yet",
+      "emptyDescription": "Add a member above to let them view, edit or manage this section.",
       "subject": "Member",
       "level": "Access",
       "actions": "Actions",

@@ -9,30 +9,33 @@ import { pageErrorText } from "@/features/pages/lib/page-error";
 import type { PageListItem, PageTrashItem } from "@/features/pages/schemas";
 
 // The section's tree, the trash and the roles are fixed values; the view, its
-// states and the messages are real. The tree and the deleted-pages card are
-// stand-ins with their own tests.
+// states and the messages are real. The tree is a stand-in with its own
+// tests, and the search reads a fixed value instead of the address.
 type TrashState = { data?: PageTrashItem[]; error?: unknown };
 
 let root: PageListItem | null;
+let children: PageListItem[];
 let trashState: TrashState;
 let trashEnabled: boolean | undefined;
 let isAdmin: boolean;
 let isMember: boolean;
+let search: string | null;
+let treeProps: { visibleIds?: ReadonlySet<string> } | undefined;
 
 const actualSectionRoot = { ...(await import("@/features/pages/hooks/use-section-root")) };
 const actualPages = { ...(await import("@/features/pages/hooks/use-pages")) };
 const actualRoles = { ...(await import("@/hooks/use-is-organization-admin")) };
 const actualNavigation = { ...(await import("@oba/shared/libs/i18n/navigation")) };
 const actualTree = { ...(await import("./section-tree")) };
-const actualDeleted = { ...(await import("./deleted-pages-card")) };
+const actualNuqs = { ...(await import("nuqs")) };
 
 const idleMutation = { mutate: () => undefined, isPending: false, error: null };
 
 mock.module("@/features/pages/hooks/use-section-root", () => ({
   ...actualSectionRoot,
   useSectionRoot: () => ({
-    section: { root, children: [] },
-    data: { data: root ? [root] : [] },
+    section: { root, children: root ? children : [] },
+    data: { data: root ? [root, ...children] : [] },
     isPending: false,
     isError: false,
     error: null,
@@ -66,10 +69,16 @@ mock.module("@oba/shared/libs/i18n/navigation", () => ({
     </a>
   ),
 }));
-mock.module("./section-tree", () => ({ ...actualTree, SectionTree: () => <div data-tree="" /> }));
-mock.module("./deleted-pages-card", () => ({
-  ...actualDeleted,
-  DeletedPagesCard: () => <div data-deleted="" />,
+mock.module("./section-tree", () => ({
+  ...actualTree,
+  SectionTree: (props: { visibleIds?: ReadonlySet<string> }) => {
+    treeProps = props;
+    return <div data-tree="" />;
+  },
+}));
+mock.module("nuqs", () => ({
+  ...actualNuqs,
+  useQueryState: () => [search, () => Promise.resolve(new URLSearchParams())],
 }));
 
 afterAll(() => {
@@ -78,7 +87,7 @@ afterAll(() => {
   mock.module("@/hooks/use-is-organization-admin", () => actualRoles);
   mock.module("@oba/shared/libs/i18n/navigation", () => actualNavigation);
   mock.module("./section-tree", () => actualTree);
-  mock.module("./deleted-pages-card", () => actualDeleted);
+  mock.module("nuqs", () => actualNuqs);
 });
 
 const { SectionView } = await import("./section-view");
@@ -91,6 +100,32 @@ const DELETED_ROOT: PageTrashItem = {
   deletedByName: "Ayla Demir",
   descendantCount: 3,
 };
+
+const ROOT: PageListItem = {
+  id: "root",
+  parentId: null,
+  rootId: null,
+  slug: "policies",
+  path: "policies",
+  position: 0,
+  compliance: false,
+  titles: { EN: "Policy" },
+  level: "MANAGE",
+};
+
+function child(id: string, title: string, position: number): PageListItem {
+  return {
+    ...ROOT,
+    id,
+    parentId: ROOT.id,
+    rootId: ROOT.id,
+    slug: id,
+    path: `policies/${id}`,
+    position,
+    titles: { EN: title },
+    level: null,
+  };
+}
 
 function render(): string {
   return renderToStaticMarkup(
@@ -108,6 +143,9 @@ beforeEach(() => {
   trashEnabled = undefined;
   isAdmin = true;
   isMember = true;
+  search = null;
+  treeProps = undefined;
+  children = [];
 });
 
 describe("section without a live root", () => {
@@ -117,7 +155,7 @@ describe("section without a live root", () => {
     expect(html).toContain("This section is in the trash");
     expect(html).toContain("Ayla Demir");
     expect(html).toContain("Restore section");
-    expect(html).toContain('href="/trash"');
+    expect(html).not.toContain('href="/trash"');
     expect(html).not.toContain("Set up section");
   });
 
@@ -156,17 +194,7 @@ describe("section without a live root", () => {
   });
 
   test("a section with a live root does not read the trash for its root", () => {
-    root = {
-      id: "root",
-      parentId: null,
-      rootId: null,
-      slug: "policies",
-      path: "policies",
-      position: 0,
-      compliance: false,
-      titles: { EN: "Policy" },
-      level: "MANAGE",
-    };
+    root = ROOT;
     render();
     expect(trashEnabled).toBe(false);
   });
@@ -181,5 +209,35 @@ describe("a refused set-up", () => {
     expect(pageErrorText(error, (key) => key, "toast.sectionSetUpError")).toBe(
       "The section already has a root page."
     );
+  });
+});
+
+describe("section with a live root", () => {
+  beforeEach(() => {
+    root = ROOT;
+    children = [child("access", "Access control", 0), child("backup", "Backups", 1)];
+  });
+
+  test("offers a search and a new page, and no link to the root page or its deleted pages", () => {
+    const html = render();
+    expect(html).toContain('aria-label="Search pages"');
+    expect(html).toContain("New page");
+    expect(html).not.toContain("Section page");
+    expect(html).not.toContain("Deleted pages");
+    expect(treeProps?.visibleIds).toBeUndefined();
+  });
+
+  test("narrows the tree to the pages that answer the search", () => {
+    search = "backup";
+    render();
+    expect([...(treeProps?.visibleIds ?? [])]).toEqual(["backup"]);
+  });
+
+  test("a search without a hit offers to clear it, not to add a page", () => {
+    search = "risk";
+    const html = render();
+    expect(html).toContain("No pages match your search");
+    expect(html).toContain("Clear search");
+    expect(html).not.toContain("data-tree");
   });
 });

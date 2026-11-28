@@ -151,7 +151,8 @@ describe("OverviewView", () => {
     expect(html).toContain("Ayşe");
     expect(html).toContain(">scope<");
     expect(html).toContain("unknownUser");
-    expect(html).toContain('href="/recent"');
+    // The sidebar leads to the full list, so the card repeats no link to it.
+    expect(html).not.toContain('href="/recent"');
   });
 
   test("shows a retry for each part that failed to load", () => {

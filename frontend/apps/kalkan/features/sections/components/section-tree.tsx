@@ -53,6 +53,8 @@ interface SectionTreeProps {
   sectionTitle: string;
   /** EDIT on the section's root: the pages can be moved, deleted, edited and added to. */
   canEdit: boolean;
+  /** The pages a search keeps, each hit with the pages above it; every page when unset. */
+  visibleIds?: ReadonlySet<string>;
 }
 
 /**
@@ -60,8 +62,10 @@ interface SectionTreeProps {
  * sibling order and expanded at first. With EDIT on the section a page can be
  * dragged before another page, moved up, down, into the page above or out one
  * level from its menu, edited, given a subpage or deleted with its subtree.
+ * A search hides the other pages but moves still place a page among all its
+ * siblings, as the order is kept on the whole tree.
  */
-export function SectionTree({ pages, root, sectionTitle, canEdit }: SectionTreeProps) {
+export function SectionTree({ pages, root, sectionTitle, canEdit, visibleIds }: SectionTreeProps) {
   const t = useTranslations("sectionTree");
   const locale = useLocale();
   const move = useMoveSectionPage();
@@ -107,7 +111,11 @@ export function SectionTree({ pages, root, sectionTitle, canEdit }: SectionTreeP
       aria-busy={depth === 1 && move.isPending ? true : undefined}
       className="flex flex-col gap-0.5"
     >
-      {level.map(({ page, children }) => {
+      {level.map(({ page, children: allChildren }) => {
+        if (visibleIds && !visibleIds.has(page.id)) return null;
+        const children = visibleIds
+          ? allChildren.filter((child) => visibleIds.has(child.page.id))
+          : allChildren;
         const title = pageTitle(page, locale);
         const hasChildren = children.length > 0;
         const open = !collapsed.has(page.id);
