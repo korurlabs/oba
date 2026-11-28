@@ -14,7 +14,8 @@ import {
   DialogTrigger,
 } from "@oba/ui/sky/dialog";
 import { Field, Input } from "@oba/ui/sky/field";
-import { EmptyState } from "@oba/ui/sky/page-states";
+import { ListEmptyState } from "@oba/ui/sky/page-states";
+import { CLEAR_FILTERS_LABEL } from "@/components/common/list-parts";
 import { useCurrentQuery } from "@/features/rules/components/file-detail";
 import { ScopePage, type ReadyScope } from "@/features/scope/components";
 import { ListToolbar, NewButton } from "@/features/scope/components/list-toolbar";
@@ -178,10 +179,19 @@ function SkillsView({ rows, ready }: { rows: readonly SkillRow[]; ready: ReadySc
         }
         create={create}
       />
-      {rows.length === 0 ? (
-        <EmptyState
-          title="No skills in this scope"
-          description="No SKILL.md under .agents/skills/ or .claude/skills/ is delivered here."
+      {visible.length === 0 ? (
+        <ListEmptyState
+          filtered={rows.length > 0}
+          onClearFilters={() => setSearch("")}
+          create={create}
+          labels={{
+            emptyTitle: "No skills in this scope",
+            emptyDescription:
+              "No SKILL.md under .agents/skills/ or .claude/skills/ is delivered here.",
+            filteredTitle: "No skill matches",
+            filteredDescription: "No skill matches the search.",
+            clearFilters: CLEAR_FILTERS_LABEL,
+          }}
         />
       ) : (
         <SkillsTable

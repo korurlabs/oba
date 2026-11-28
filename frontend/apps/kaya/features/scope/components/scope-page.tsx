@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@oba/ui/sky/tooltip";
 import { EmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { describeError } from "@/lib/api/error-text";
@@ -268,10 +269,7 @@ export function ScopePage({ title, description, children, variant = "list" }: Sc
   return (
     <LiveEditProvider>
       <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-1">
-          <h1>{title}</h1>
-          <p className="text-muted-foreground">{description}</p>
-        </div>
+        <PageHeading title={title} description={description} />
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
           <aside className="lg:border-r lg:pr-4">
             {!scopeState.loading && scopeState.error === null && <PackTree state={scopeState} />}

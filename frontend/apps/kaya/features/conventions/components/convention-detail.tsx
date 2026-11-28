@@ -124,7 +124,7 @@ function NewConventionDoc({ ready }: { ready: ReadyScope }) {
   return (
     <div className="flex min-w-0 flex-col gap-4">
       <BackLink to={backToFolder} label={BACK_LABEL} />
-      <h1>New file</h1>
+      <h1>New convention</h1>
       {submitted !== null ? (
         <p className="text-sm">
           <SubmittedNotice submitted={submitted} />

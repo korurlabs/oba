@@ -1,8 +1,10 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { parseAsString, useQueryState } from "nuqs";
 
 import { InfoTip } from "@oba/ui/sky/info-tip";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { EmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { ListToolbar, NewButton } from "@/features/scope/components/list-toolbar";
 import { NewPackDialog } from "@/features/scope/components/new-pack-dialog";
@@ -119,6 +121,18 @@ export function PacksPage() {
     retry,
   };
 
+  const newPack = (trigger: ReactNode) =>
+    owners !== undefined && (
+      <NewPackDialog
+        owners={owners}
+        defaultParentId={packId}
+        onCreated={(next: Scope) => {
+          if (next.kind === "PACK") select(next.packId);
+        }}
+        trigger={trigger}
+      />
+    );
+
   let body;
   if (error !== null) {
     body = (
@@ -129,8 +143,13 @@ export function PacksPage() {
   } else if (packId === null) {
     body = (
       <EmptyState
-        title="Create your first pack"
-        description={can("OWNER") ? "Use New pack to add one." : "An owner creates packs."}
+        title="No packs yet"
+        description={
+          can("OWNER")
+            ? "A pack holds the rules, skills and conventions your repositories share."
+            : "An owner creates packs."
+        }
+        action={can("OWNER") ? newPack(<NewButton label="New pack" />) : undefined}
       />
     );
   } else {
@@ -147,33 +166,22 @@ export function PacksPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <h1>Packs</h1>
-          <InfoTip label="What is a pack?">{PACKS_HELP}</InfoTip>
-        </div>
-        <p className="text-muted-foreground">
-          The packs your repositories compose, how they nest, and their versions.
-        </p>
-      </div>
+      <PageHeading
+        title="Packs"
+        description={
+          <div className="text-muted-foreground flex items-center gap-2">
+            <p>The packs your repositories compose, how they nest, and their versions.</p>
+            <InfoTip label="What is a pack?">{PACKS_HELP}</InfoTip>
+          </div>
+        }
+      />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
         <aside className="lg:border-r lg:pr-4">
           {owners !== undefined && error === null && <PackTree state={treeState} />}
         </aside>
         <div className="flex min-w-0 flex-col gap-6">
           {owners !== undefined && error === null && can("OWNER") && (
-            <ListToolbar
-              create={
-                <NewPackDialog
-                  owners={owners}
-                  defaultParentId={packId}
-                  onCreated={(next: Scope) => {
-                    if (next.kind === "PACK") select(next.packId);
-                  }}
-                  trigger={<NewButton label="New pack" />}
-                />
-              }
-            />
+            <ListToolbar create={newPack(<NewButton label="New pack" />)} />
           )}
           {body}
         </div>

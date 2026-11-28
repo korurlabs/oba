@@ -82,12 +82,13 @@ describe("ListToolbar filter", () => {
 });
 
 describe("ListToolbar search, tabs and actions", () => {
-  test("the search shows as a collapsed button, and a typed term keeps the field open", () => {
-    const closed = renderToStaticMarkup(<ListToolbar search={SEARCH} />);
-    expect(closed).toContain('aria-label="Search skills"');
-    expect(closed).not.toContain('type="search"');
+  test("the search is the sky search field, open with its placeholder and the searched term", () => {
+    const empty = renderToStaticMarkup(<ListToolbar search={SEARCH} />);
+    expect(empty).toContain('aria-label="Search skills"');
+    expect(empty).toContain('placeholder="Search"');
     const typed = renderToStaticMarkup(<ListToolbar search={{ ...SEARCH, value: "kai" }} />);
     expect(typed).toContain('value="kai"');
+    expect(typed).toContain('aria-label="Clear search"');
   });
 
   test("without a search no search button renders", () => {

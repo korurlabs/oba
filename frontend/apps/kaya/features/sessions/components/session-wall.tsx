@@ -1,10 +1,19 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 
-import { Button } from "@oba/ui/sky/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@oba/ui/sky/card";
+import { FilterPopover } from "@oba/ui/sky/filter-popover";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
+import { PageHeading } from "@oba/ui/sky/page-heading";
+import { ListEmptyState, LoadError } from "@oba/ui/sky/page-states";
+import { SearchInput } from "@oba/ui/sky/search-input";
+import {
+  CLEAR_FILTERS_LABEL,
+  CLEAR_SEARCH_LABEL,
+  FILTER_LABELS,
+  ListPagination,
+} from "@/components/common/list-parts";
 
 import {
   useSessionFilterParams,
@@ -17,7 +26,7 @@ import {
   WALL_PAGE_SIZE,
 } from "../hooks/use-sessions";
 import type { SessionListResponse, SessionQueryRequest } from "../schemas";
-import { SessionFilters } from "./session-filters";
+import { NO_SESSION_FILTERS, sessionFilterCategories, sessionsFiltered } from "./session-filters";
 import { SessionTile } from "./session-tile";
 
 const GRID = "grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3";
@@ -67,20 +76,37 @@ export function SessionWall() {
       : `The repository list could not be loaded: ${repositories.error.message}`,
   ].filter((text): text is string => text !== null);
 
+  const filtered = sessionsFiltered(filters);
+
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1>Sessions</h1>
-        <p className="text-muted-foreground">
-          Every Claude Code session recorded in your organization, newest activity first.
-        </p>
-      </div>
+      <PageHeading
+        title="Sessions"
+        description="Every Claude Code session recorded in your organization, newest activity first."
+      />
 
-      <SessionFilters
-        filters={filters}
-        onChange={onChange}
-        options={options.data?.data ?? undefined}
-        repositories={repositories.data?.data ?? undefined}
+      <ListToolbar
+        search={
+          <SearchInput
+            value={filters.search}
+            onSearchChange={(search: string | undefined) => onChange({ search: search ?? null })}
+            label="Search sessions"
+            placeholder="Title, branch or ticket key"
+            clearLabel={CLEAR_SEARCH_LABEL}
+          />
+        }
+        filters={
+          <FilterPopover
+            categories={sessionFilterCategories(
+              filters,
+              onChange,
+              options.data?.data ?? undefined,
+              repositories.data?.data ?? undefined
+            )}
+            onClear={() => onChange({ ...NO_SESSION_FILTERS, search: filters.search })}
+            labels={FILTER_LABELS}
+          />
+        }
       />
 
       {optionErrors.length > 0 && (
@@ -95,11 +121,26 @@ export function SessionWall() {
       )}
 
       {sessions.error !== null && sessions.data === undefined ? (
-        <WallError message={sessions.error.message} onRetry={() => void sessions.refetch()} />
+        <LoadError
+          title="Could not load the sessions"
+          message={sessions.error.message}
+          onRetry={() => void sessions.refetch()}
+        />
       ) : sessions.data === undefined ? (
         <WallLoading />
       ) : tiles.length === 0 ? (
-        <WallEmpty filtered={filters.page > 1 || Object.keys(query).length > 2} />
+        <ListEmptyState
+          filtered={filtered || filters.page > 1}
+          onClearFilters={() => onChange(NO_SESSION_FILTERS)}
+          labels={{
+            emptyTitle: "No sessions yet",
+            emptyDescription:
+              "Sessions appear here once a machine of your organization records one.",
+            filteredTitle: "No session matches",
+            filteredDescription: "No session of your organization matches the search and filters.",
+            clearFilters: CLEAR_FILTERS_LABEL,
+          }}
+        />
       ) : (
         <>
           {sessions.error !== null && (
@@ -113,30 +154,11 @@ export function SessionWall() {
               <SessionTile key={session.id} session={session} now={loadedAt} />
             ))}
           </div>
-          {pagination !== null && pagination.totalPages > 1 && (
-            <nav aria-label="Pages" className="flex items-center justify-between gap-4 text-sm">
-              <Button
-                variant="outline"
-                disabled={pagination.first}
-                onClick={() => void setFilters({ page: pagination.currentPage - 1 })}
-              >
-                <ChevronLeft className="size-4" aria-hidden />
-                Newer
-              </Button>
-              <span className="text-muted-foreground">
-                Page {pagination.currentPage} of {pagination.totalPages} ·{" "}
-                {pagination.totalElements} sessions
-              </span>
-              <Button
-                variant="outline"
-                disabled={pagination.last}
-                onClick={() => void setFilters({ page: pagination.currentPage + 1 })}
-              >
-                Older
-                <ChevronRight className="size-4" aria-hidden />
-              </Button>
-            </nav>
-          )}
+          <ListPagination
+            pagination={pagination}
+            noun="sessions"
+            onPageChange={(page: number) => void setFilters({ page })}
+          />
         </>
       )}
     </div>
@@ -151,41 +173,5 @@ export function WallLoading() {
         <div key={index} className="bg-muted h-64 animate-pulse rounded-xl border" />
       ))}
     </div>
-  );
-}
-
-function WallEmpty({ filtered }: { filtered: boolean }) {
-  return (
-    <Card className="items-center py-12 text-center">
-      <CardHeader className="w-full justify-items-center">
-        <CardTitle className="text-lg">
-          {filtered ? "No session matches" : "No sessions yet"}
-        </CardTitle>
-        <CardDescription>
-          {filtered
-            ? "No session of your organization matches these filters."
-            : "Sessions appear here once a machine of your organization records one."}
-        </CardDescription>
-      </CardHeader>
-    </Card>
-  );
-}
-
-function WallError({ message, onRetry }: { message: string; onRetry: () => void }) {
-  return (
-    <Card role="alert" className="border-error/40 bg-error-light gap-4">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <AlertTriangle className="text-error size-5" aria-hidden />
-          Could not load the sessions
-        </CardTitle>
-        <CardDescription className="text-foreground">{message}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Button variant="outline" onClick={onRetry}>
-          Try again
-        </Button>
-      </CardContent>
-    </Card>
   );
 }

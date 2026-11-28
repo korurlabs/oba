@@ -107,7 +107,7 @@ describe("ScopePage frame", () => {
     const html = render("list");
     expect(html).not.toContain(SOURCE_LINE);
     expect(html).not.toContain(OLDER_RELEASE);
-    expect(html).toContain("<h1>Rules</h1>");
+    expect(html).toContain(">Rules</h1>");
     expect(html).not.toContain("Show inherited");
   });
 

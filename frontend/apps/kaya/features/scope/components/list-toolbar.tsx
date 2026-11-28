@@ -4,14 +4,11 @@ import type { ComponentProps, ReactNode } from "react";
 import { Plus } from "lucide-react";
 
 import { Button } from "@oba/ui/sky/button";
-import { CollapsibleSearch, type CollapsibleSearchProps } from "@oba/ui/sky/collapsible-search";
-import {
-  FilterPopover,
-  type FilterCategory,
-  type FilterPopoverLabels,
-} from "@oba/ui/sky/filter-popover";
+import { FilterPopover, type FilterCategory } from "@oba/ui/sky/filter-popover";
 import { ListToolbar as SkyListToolbar } from "@oba/ui/sky/list-toolbar";
+import { SearchInput } from "@oba/ui/sky/search-input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@oba/ui/sky/tooltip";
+import { CLEAR_SEARCH_LABEL, FILTER_LABELS } from "@/components/common/list-parts";
 import { ChangeLockTip } from "@/features/versions/components/open-change";
 
 /**
@@ -26,13 +23,14 @@ export type InheritedFilter = {
 /** The one option of the inherited category; chosen means parent items are listed too. */
 export const INHERITED_SHOWN = "shown";
 
-const FILTER_LABELS: FilterPopoverLabels = {
-  trigger: "Filter",
-  chooseCategory: "Select a field",
-  searchOptions: "Search options",
-  noOptions: "No options",
-  loading: "Loading",
-  clear: "Clear all",
+/** A list's search, kept by the page; "" when nothing is searched. */
+export type ListSearch = {
+  value: string;
+  /** Called after typing pauses, and at once on clear, with the trimmed text or "". */
+  onChange: (value: string) => void;
+  /** Names the field for assistive technology, such as "Search skills". */
+  label: string;
+  placeholder?: string;
 };
 
 /**
@@ -105,7 +103,7 @@ export type ListToolbarProps = {
   /** The inherited filter; null or left out hides the Filter button, as on a repository. */
   filter?: InheritedFilter | null;
   /** The list's search, first on the left; left out when the list has none. */
-  search?: CollapsibleSearchProps;
+  search?: ListSearch;
   /** Other actions before the filter, such as the Allowlist's Edit. */
   actions?: ReactNode;
   /** The create button, usually a `NewButton`; null or left out on a read only scope. */
@@ -121,7 +119,17 @@ export function ListToolbar({ tabs, filter, search, actions, create }: ListToolb
   return (
     <SkyListToolbar
       tabs={tabs}
-      search={search && <CollapsibleSearch {...search} />}
+      search={
+        search && (
+          <SearchInput
+            value={search.value}
+            onSearchChange={(value: string | undefined) => search.onChange(value ?? "")}
+            label={search.label}
+            placeholder={search.placeholder}
+            clearLabel={CLEAR_SEARCH_LABEL}
+          />
+        )
+      }
       actions={actions}
       filters={
         filter && (

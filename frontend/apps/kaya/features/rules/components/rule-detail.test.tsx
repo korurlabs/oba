@@ -563,7 +563,7 @@ describe("RuleDetail editor view", () => {
 describe("RuleDetail new file", () => {
   test("with no change open it opens a one-edit editor at the tab's start path", () => {
     const html = render("rules", null);
-    expect(html).toContain("New file");
+    expect(html).toContain("<h1>New rule</h1>");
     expect(html).toContain("File editor single");
     expect(html).not.toContain("Start a draft");
     expect(seen.newEditor).toMatchObject({

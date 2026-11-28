@@ -2,13 +2,18 @@
 
 import { useState, type ReactNode } from "react";
 
+import { FilterPopover, type SingleFilterCategory } from "@oba/ui/sky/filter-popover";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { SearchInput } from "@oba/ui/sky/search-input";
 import { useScope } from "@/features/scope/hooks/use-scope";
 import { useScopeContent, type ScopeContent } from "@/features/scope/hooks/use-scope-content";
 import { scopeValue } from "@/features/scope/components/scope-data";
 import type { ScopeFile } from "@/features/scope/components/scope-files";
-import { ListToolbar } from "@/features/scope/components/list-toolbar";
-import { ScopeSelect } from "@/features/scope/components/scope-select";
+import { scopeCategory } from "@/features/scope/components/scope-category";
+import { useConfirmLeave } from "@/features/versions/components/draft-context";
+import { CLEAR_SEARCH_LABEL, FILTER_LABELS } from "@/components/common/list-parts";
 import { describeError } from "@/lib/api/error-text";
 
 import { PATH_MAPPING_VERSIONS_MAX, usePathMappings } from "../hooks/use-path-mappings";
@@ -16,7 +21,7 @@ import { useToolMappings } from "../hooks/use-tool-mappings";
 import type { PathMappingResponse } from "../schemas";
 import { PathMappingTable } from "./path-mapping-table";
 import { ScopeCountNotes } from "./scope-count-notes";
-import { ToolToggle, useToolView } from "./tool-toggle";
+import { ToolTabs, useToolView } from "./tool-tabs";
 import { ToolViewBody } from "./tool-view";
 
 /** Which versions the counts read: still loading, or the scope's versions (none for no scope). */
@@ -65,21 +70,56 @@ export type PathMappingBodyProps = {
   search?: string;
 };
 
-/** The toolbar's search, then the table, or its loading or error state. */
-function SearchedPathMappingBody(props: Omit<PathMappingBodyProps, "search">) {
+/** The toolbar with its search, then the table, or its loading or error state. */
+function SearchedPathMappingBody({
+  toolbar,
+  ...props
+}: Omit<PathMappingBodyProps, "search"> & { toolbar: Omit<PathMappingToolbarProps, "search"> }) {
   const [search, setSearch] = useState("");
   return (
-    <div className="flex flex-col gap-4">
-      <ListToolbar
-        search={{
-          value: search,
-          onChange: setSearch,
-          label: "Search the path mapping",
-          placeholder: "Search by path, kind or page",
-        }}
+    <>
+      <PathMappingToolbar
+        {...toolbar}
+        search={
+          <SearchInput
+            value={search}
+            onSearchChange={(next: string | undefined) => setSearch(next ?? "")}
+            label="Search the path mapping"
+            placeholder="Search by path, kind or page"
+            clearLabel={CLEAR_SEARCH_LABEL}
+          />
+        }
       />
       <PathMappingBody {...props} search={search} />
-    </div>
+    </>
+  );
+}
+
+type PathMappingToolbarProps = {
+  search?: ReactNode;
+  tabs: ReactNode;
+  scope: SingleFilterCategory | null;
+};
+
+/**
+ * The page's toolbar: the search of the table by kind, the views as tabs,
+ * since each view is another list, and the scope whose files are counted.
+ */
+function PathMappingToolbar({ search, tabs, scope }: PathMappingToolbarProps) {
+  return (
+    <ListToolbar
+      search={search}
+      tabs={tabs}
+      filters={
+        scope && (
+          <FilterPopover
+            categories={[scope]}
+            onClear={() => scope.onChange(null)}
+            labels={FILTER_LABELS}
+          />
+        )
+      }
+    />
   );
 }
 
@@ -132,6 +172,11 @@ export function PathMappingPage() {
   const mappings = usePathMappings(requested, counted.status === "ready" && tool === null);
   const tools = useToolMappings(requested, counted.status === "ready" && tool !== null);
   const scope = scopeState.scope === null ? null : scopeValue(scopeState.scope);
+  const confirmLeave = useConfirmLeave();
+  const toolbar: Omit<PathMappingToolbarProps, "search"> = {
+    tabs: <ToolTabs tool={tool} onChange={(next) => void setTool(next)} />,
+    scope: scopeState.scope === null ? null : scopeCategory(scopeState, confirmLeave),
+  };
 
   let body: ReactNode;
   if (scopeState.error !== null) {
@@ -144,27 +189,34 @@ export function PathMappingPage() {
     );
   } else if (counted.status === "error") {
     body = (
-      <LoadError
-        title="Could not load the scope's files"
-        message={describeError(counted.error)}
-        onRetry={counted.retry}
-      />
+      <>
+        <PathMappingToolbar {...toolbar} />
+        <LoadError
+          title="Could not load the scope's files"
+          message={describeError(counted.error)}
+          onRetry={counted.retry}
+        />
+      </>
     );
   } else if (tool !== null) {
     body = (
-      <ToolViewBody
-        tool={tool}
-        mappings={tools.data?.data ?? undefined}
-        loading={counted.status === "loading" || tools.isPending}
-        error={tools.error}
-        onRetry={() => void tools.refetch()}
-        scope={scope}
-        versionCount={versionIds.length}
-      />
+      <>
+        <PathMappingToolbar {...toolbar} />
+        <ToolViewBody
+          tool={tool}
+          mappings={tools.data?.data ?? undefined}
+          loading={counted.status === "loading" || tools.isPending}
+          error={tools.error}
+          onRetry={() => void tools.refetch()}
+          scope={scope}
+          versionCount={versionIds.length}
+        />
+      </>
     );
   } else {
     body = (
       <SearchedPathMappingBody
+        toolbar={toolbar}
         rows={mappings.data?.data ?? undefined}
         loading={counted.status === "loading" || mappings.isPending}
         error={mappings.error}
@@ -177,18 +229,10 @@ export function PathMappingPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h1>Path mapping</h1>
-          <p className="text-muted-foreground">
-            Where Kaya delivers each kind of file in a repository.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-end gap-3 lg:flex-nowrap">
-          <ScopeSelect state={scopeState} />
-          <ToolToggle tool={tool} onChange={(next) => void setTool(next)} />
-        </div>
-      </div>
+      <PageHeading
+        title="Path mapping"
+        description="Where Kaya delivers each kind of file in a repository."
+      />
       {body}
     </div>
   );

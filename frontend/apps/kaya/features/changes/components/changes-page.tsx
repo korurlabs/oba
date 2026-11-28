@@ -1,27 +1,28 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { parseAsStringEnum, useQueryState } from "nuqs";
 
 import { Badge } from "@oba/ui/sky/badge";
-import { Button } from "@oba/ui/sky/button";
-import { NativeSelect } from "@oba/ui/sky/field";
-import { EmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@oba/ui/sky/table";
+import { FilterPopover, type FilterCategory } from "@oba/ui/sky/filter-popover";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
+import { PageHeading } from "@oba/ui/sky/page-heading";
+import { ListEmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@oba/ui/sky/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@oba/ui/sky/tabs";
 import { RepositoryReleases } from "@/features/releases/components/repository-releases";
 import { ownerLabel } from "@/features/scope/components/owner-labels";
 import { useOwners } from "@/features/scope/hooks/use-owners";
 import type { Owner } from "@/features/scope/schemas";
-import type { VersionStatus } from "@/features/versions/schemas";
+import { VersionStatusSchema, type VersionStatus } from "@/features/versions/schemas";
 import { useMembers } from "@/features/members/hooks/use-members";
+import {
+  CLEAR_FILTERS_LABEL,
+  FILTER_LABELS,
+  ListPagination,
+  withChosen,
+} from "@/components/common/list-parts";
 import { describeError } from "@/lib/api/error-text";
 import { ageText } from "@/lib/format-time";
 import { memberName } from "@/lib/identity/member-name";
@@ -107,22 +108,31 @@ const VIEWS = ["changes", "releases"] as const;
 
 /**
  * The organization's config changes, and the releases they produced per
- * repository; the tab lives in the URL as `view`.
+ * repository. The two are different lists, so they are tabs of the toolbar,
+ * kept in the URL as `view`; each list brings its own filters.
  */
 export function ChangesPage() {
   const [view, setView] = useQueryState(
     "view",
     parseAsStringEnum([...VIEWS]).withDefault("changes")
   );
+  const tabs = (
+    <TabsList>
+      <TabsTrigger value="changes">Proposals</TabsTrigger>
+      <TabsTrigger value="releases">Releases</TabsTrigger>
+    </TabsList>
+  );
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1>Changes</h1>
-        <p className="text-muted-foreground">
-          Config changes proposed in Kaya, on the web or with <code>oba kaya propose</code>. A change is
-          released once an admin or owner other than its proposer approves it.
-        </p>
-      </div>
+      <PageHeading
+        title="Changes"
+        description={
+          <p className="text-muted-foreground">
+            Config changes proposed in Kaya, on the web or with <code>oba kaya propose</code>. A
+            change is released once an admin or owner other than its proposer approves it.
+          </p>
+        }
+      />
       <Tabs
         value={view}
         onValueChange={(next: string) => {
@@ -130,12 +140,12 @@ export function ChangesPage() {
           if (found) void setView(found);
         }}
       >
-        <TabsList>
-          <TabsTrigger value="changes">Changes</TabsTrigger>
-          <TabsTrigger value="releases">Releases</TabsTrigger>
-        </TabsList>
-        <TabsContent value="changes">{view === "changes" && <ChangeList />}</TabsContent>
-        <TabsContent value="releases">{view === "releases" && <RepositoryReleases />}</TabsContent>
+        <TabsContent value="changes">
+          {view === "changes" && <ChangeList tabs={tabs} />}
+        </TabsContent>
+        <TabsContent value="releases">
+          {view === "releases" && <RepositoryReleases tabs={tabs} />}
+        </TabsContent>
       </Tabs>
     </div>
   );
@@ -145,7 +155,7 @@ export function ChangesPage() {
  * Every proposed config change of the organization, newest first: drafts,
  * changes in review and released versions, filtered by status and by pack.
  */
-function ChangeList() {
+function ChangeList({ tabs }: { tabs: ReactNode }) {
   const [filters, setFilters] = useChangeFilterParams();
   const changes = useChanges(toChangeQuery(filters));
   const { owners, error: ownersError } = useOwners();
@@ -157,50 +167,44 @@ function ChangeList() {
     (members.data?.data ?? []).map((member) => [member.userId, member.displayName])
   );
   const lookupError = members.error ?? ownersError;
-  const selectedOwner = filters.packId ?? "";
+  const filtered = filters.status !== null || filters.packId !== null;
+  const clear = () => void setFilters({ status: null, packId: null, page: 1 });
+  const categories: FilterCategory[] = [
+    {
+      key: "status",
+      label: "Status",
+      mode: "single",
+      options: STATUS_FILTERS.map((status: VersionStatus) => ({
+        value: status,
+        label: STATUS_BADGES[status].label,
+      })),
+      value: filters.status,
+      onChange: (value: string | null) =>
+        void setFilters({
+          status: value === null ? null : VersionStatusSchema.parse(value),
+          page: 1,
+        }),
+    },
+    {
+      key: "packId",
+      label: "Pack",
+      mode: "single",
+      searchable: true,
+      options: withChosen(
+        (owners ?? []).map((owner: Owner) => ({ value: owner.id, label: ownerLabel(owner) })),
+        filters.packId
+      ),
+      value: filters.packId,
+      onChange: (packId: string | null) => void setFilters({ packId, page: 1 }),
+    },
+  ];
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-end gap-3">
-        <label className="flex flex-col gap-1 text-xs font-medium">
-          <span className="text-muted-foreground">Status</span>
-          <NativeSelect
-            value={filters.status ?? ""}
-            onChange={(event) =>
-              void setFilters({
-                status: event.target.value === "" ? null : (event.target.value as VersionStatus),
-                page: 1,
-              })
-            }
-          >
-            <option value="">All</option>
-            {STATUS_FILTERS.map((status: VersionStatus) => (
-              <option key={status} value={status}>
-                {STATUS_BADGES[status].label}
-              </option>
-            ))}
-          </NativeSelect>
-        </label>
-        <label className="flex flex-col gap-1 text-xs font-medium">
-          <span className="text-muted-foreground">Pack</span>
-          <NativeSelect
-            value={selectedOwner}
-            onChange={(event) => {
-              void setFilters({
-                packId: event.target.value === "" ? null : event.target.value,
-                page: 1,
-              });
-            }}
-          >
-            <option value="">Every pack</option>
-            {(owners ?? []).map((owner: Owner) => (
-              <option key={owner.id} value={owner.id}>
-                {ownerLabel(owner)}
-              </option>
-            ))}
-          </NativeSelect>
-        </label>
-      </div>
+      <ListToolbar
+        tabs={tabs}
+        filters={<FilterPopover categories={categories} onClear={clear} labels={FILTER_LABELS} />}
+      />
       {lookupError !== null && (
         <p className="text-warning-text text-sm" role="status">
           Names of members or packs could not be loaded: {describeError(lookupError)}
@@ -215,39 +219,26 @@ function ChangeList() {
       ) : changes.data === undefined ? (
         <TableLoading label="Loading the changes" />
       ) : rows.length === 0 ? (
-        <EmptyState
-          title="No change"
-          description={
-            filters.status === null && filters.packId === null
-              ? "No config change has been proposed yet."
-              : "No change matches these filters."
-          }
+        <ListEmptyState
+          filtered={filtered || filters.page > 1}
+          onClearFilters={clear}
+          labels={{
+            emptyTitle: "No changes yet",
+            emptyDescription:
+              "Propose a change from a pack's rules, skills or conventions, or with oba kaya propose.",
+            filteredTitle: "No change matches",
+            filteredDescription: "No change matches these filters.",
+            clearFilters: CLEAR_FILTERS_LABEL,
+          }}
         />
       ) : (
         <ChangeRows changes={rows} owners={owners} memberNames={memberNames} now={now} />
       )}
-      {pagination !== null && pagination.totalPages > 1 && (
-        <nav aria-label="Pages" className="flex items-center justify-between gap-4 text-sm">
-          <Button
-            variant="outline"
-            disabled={pagination.first}
-            onClick={() => void setFilters({ page: pagination.currentPage - 1 })}
-          >
-            Newer
-          </Button>
-          <span className="text-muted-foreground">
-            Page {pagination.currentPage} of {pagination.totalPages} · {pagination.totalElements}{" "}
-            changes
-          </span>
-          <Button
-            variant="outline"
-            disabled={pagination.last}
-            onClick={() => void setFilters({ page: pagination.currentPage + 1 })}
-          >
-            Older
-          </Button>
-        </nav>
-      )}
+      <ListPagination
+        pagination={pagination}
+        noun="changes"
+        onPageChange={(page: number) => void setFilters({ page })}
+      />
     </div>
   );
 }

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 
-import { LoadError } from "@oba/ui/sky/page-states";
+import { ListEmptyState, LoadError } from "@oba/ui/sky/page-states";
+import { CLEAR_FILTERS_LABEL } from "@/components/common/list-parts";
 import { RULE_KIND_VERSIONS_MAX, useRuleTabKind } from "@/features/rules/hooks/use-rule-kinds";
 import { filterRuleRows, ruleTabRows, tabVersionIds } from "@/features/rules/components/rule-rows";
 import { NewFileButton } from "@/features/rules/components/rules-page";
@@ -31,6 +32,15 @@ function GuardrailsView({ ready }: { ready: ReadyScope }) {
   // The pack an edit changes; null in a repository scope, which is read only.
   const target = ready.edit?.target ?? editTarget(ready.scope, ready.owners);
   const start = target === null ? null : GUARDRAILS_SECTION.newStart(mountRefOf(target));
+  const create =
+    target !== null && start !== null ? (
+      <NewFileButton
+        ready={ready}
+        newHref={guardrailNewHref}
+        label="New guardrail"
+        help={GUARDRAILS_HELP}
+      />
+    ) : null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -42,16 +52,7 @@ function GuardrailsView({ ready }: { ready: ReadyScope }) {
           label: "Search guardrails",
           placeholder: "Search by path, title or description",
         }}
-        create={
-          target !== null && start !== null ? (
-            <NewFileButton
-              ready={ready}
-              newHref={guardrailNewHref}
-              label="New guardrail"
-              help={GUARDRAILS_HELP}
-            />
-          ) : null
-        }
+        create={create}
       />
       {kind.error !== null && kind.kind === null && (
         <LoadError
@@ -66,10 +67,19 @@ function GuardrailsView({ ready }: { ready: ReadyScope }) {
           describes at once, so the list shows their paths only.
         </p>
       )}
-      {rows.length === 0 ? (
-        <p className="text-muted-foreground text-sm">This scope delivers no guardrails.</p>
-      ) : visible.length === 0 ? (
-        <p className="text-muted-foreground text-sm">No guardrails match the search.</p>
+      {visible.length === 0 ? (
+        <ListEmptyState
+          filtered={rows.length > 0}
+          onClearFilters={() => setSearch("")}
+          create={create}
+          labels={{
+            emptyTitle: "No guardrails yet",
+            emptyDescription: "This scope delivers no guardrails.",
+            filteredTitle: "No guardrail matches",
+            filteredDescription: "No guardrails match the search.",
+            clearFilters: CLEAR_FILTERS_LABEL,
+          }}
+        />
       ) : (
         <RulesTable
           tab={tab}

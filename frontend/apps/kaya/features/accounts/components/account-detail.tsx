@@ -1,12 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowLeft } from "lucide-react";
 
 import { Badge } from "@oba/ui/sky/badge";
-import { Button } from "@oba/ui/sky/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@oba/ui/sky/card";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { EmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { MachinesTable } from "@/features/machines/components";
 import { USAGE_TICK_MS } from "@/features/machines/components/usage-data";
@@ -153,13 +151,7 @@ export function AccountDetail({ accountId }: { accountId: string }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <Button asChild variant="ghost" size="sm" className="w-fit">
-        <Link href="/accounts">
-          <ArrowLeft aria-hidden />
-          Accounts
-        </Link>
-      </Button>
-      <h1 className="break-all">{data.accountEmail}</h1>
+      <PageHeading title={data.accountEmail} back={{ href: "/accounts", label: "Accounts" }} />
       <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
         <Card>
           <CardHeader>

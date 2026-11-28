@@ -66,13 +66,11 @@ describe("PacksPage", () => {
   test("a subtitle sits under the title, and the What is a pack tip stays", () => {
     role = "OWNER";
     const html = render();
-    expect(html).toContain("<h1>Packs</h1>");
+    expect(html).toContain(">Packs</h1>");
     expect(html).toContain(
       "The packs your repositories compose, how they nest, and their versions."
     );
-    expect(html.indexOf("<h1>Packs</h1>")).toBeLessThan(
-      html.indexOf("The packs your repositories")
-    );
+    expect(html.indexOf(">Packs</h1>")).toBeLessThan(html.indexOf("The packs your repositories"));
     expect(html).toContain('aria-label="What is a pack?"');
   });
 
@@ -91,13 +89,17 @@ describe("PacksPage", () => {
     role = "OWNER";
   });
 
-  test("an empty organization tells an owner to use New pack", () => {
+  test("an empty organization gives an owner the New pack button in the empty state", () => {
     role = "OWNER";
     owners = [];
     const html = render();
-    expect(html).toContain("Use New pack to add one.");
+    expect(html).toContain("No packs yet");
+    // One New pack in the toolbar and one in the empty state.
+    expect(html.split("New pack</button>").length - 1).toBe(2);
     role = "MEMBER";
-    expect(render()).toContain("An owner creates packs.");
+    const member = render();
+    expect(member).toContain("An owner creates packs.");
+    expect(member).not.toContain("New pack</button>");
     owners = [owner("p-1", "village")];
     role = "OWNER";
   });

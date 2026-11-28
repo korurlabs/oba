@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { LoadError } from "@oba/ui/sky/page-states";
+import { ListEmptyState, LoadError } from "@oba/ui/sky/page-states";
+import { CLEAR_FILTERS_LABEL } from "@/components/common/list-parts";
 import { ScopePage, type ReadyScope } from "@/features/scope/components";
 import { ListToolbar, NewButton } from "@/features/scope/components/list-toolbar";
 import type { ScopeFile } from "@/features/scope/components/scope-files";
@@ -66,6 +67,15 @@ function ConventionsView({ ready }: { ready: ReadyScope }) {
   const onNew = useNewConvention();
   // A new doc can start only where an edit can go: not while loading, nor while a change of another pack is open.
   const mayCreate = source !== null && source.kind !== "locked";
+  const create =
+    target === null ? null : (
+      <NewButton
+        label="New convention"
+        lockedBy={source?.kind === "locked" ? source.openPackName : null}
+        disabled={!mayCreate}
+        onClick={() => onNew(null)}
+      />
+    );
 
   return (
     <div className="flex flex-col gap-4">
@@ -77,16 +87,7 @@ function ConventionsView({ ready }: { ready: ReadyScope }) {
           label: "Search convention docs",
           placeholder: "Search by path or title",
         }}
-        create={
-          target === null ? null : (
-            <NewButton
-              label="New convention"
-              lockedBy={source?.kind === "locked" ? source.openPackName : null}
-              disabled={!mayCreate}
-              onClick={() => onNew(null)}
-            />
-          )
-        }
+        create={create}
       />
       {conventions.error !== null && !rows && (
         <LoadError
@@ -101,10 +102,19 @@ function ConventionsView({ ready }: { ready: ReadyScope }) {
           describes at once, so the list shows their paths only.
         </p>
       )}
-      {docs.length === 0 ? (
-        <p className="text-muted-foreground text-sm">This scope delivers no convention docs.</p>
-      ) : visible.length === 0 ? (
-        <p className="text-muted-foreground text-sm">No convention docs match the search.</p>
+      {visible.length === 0 ? (
+        <ListEmptyState
+          filtered={docs.length > 0}
+          onClearFilters={() => setSearch("")}
+          create={create}
+          labels={{
+            emptyTitle: "No convention docs yet",
+            emptyDescription: "This scope delivers no convention docs.",
+            filteredTitle: "No convention doc matches",
+            filteredDescription: "No convention docs match the search.",
+            clearFilters: CLEAR_FILTERS_LABEL,
+          }}
+        />
       ) : (
         <ConventionsTable
           groups={conventionGroups(visible)}
