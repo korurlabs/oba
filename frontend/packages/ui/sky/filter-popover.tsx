@@ -151,8 +151,9 @@ function choose(category: FilterCategory, value: string): void {
 const COUNT_CLASS =
   "bg-korur-blue/10 text-korur-blue-hover inline-flex h-5 min-w-5 items-center justify-center rounded-md px-1 text-xs font-medium tabular-nums";
 
+/** Option rows and category tabs light up like sky's menu links (`sky-glass-item` in styles.css). */
 const OPTION_ROW_CLASS =
-  "hover:bg-muted/50 flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors";
+  "sky-glass-item flex cursor-pointer items-center gap-2.5 px-2 py-1.5 text-sm";
 
 export type FilterPopoverPanelProps = {
   categories: readonly FilterCategory[];
@@ -193,7 +194,7 @@ export function FilterPopoverPanel({
     >
       <div className="flex max-h-[320px] min-h-0 flex-1">
         <div
-          className="w-[40%] overflow-y-auto border-r py-1"
+          className="sky-glass-divider w-[40%] space-y-0.5 overflow-y-auto border-r p-1.5"
           role="tablist"
           aria-orientation="vertical"
         >
@@ -208,14 +209,9 @@ export function FilterPopoverPanel({
                 aria-selected={isShown}
                 data-category={category.key}
                 onClick={() => onSelectCategory(category.key)}
-                className={cn(
-                  "flex w-full items-center justify-between gap-2 border-l-2 px-4 py-2.5 text-left text-sm transition-colors",
-                  isShown
-                    ? "bg-accent text-accent-foreground border-primary"
-                    : "hover:bg-muted/50 border-transparent"
-                )}
+                className="sky-glass-item flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm"
               >
-                <span className="truncate font-medium">{category.label}</span>
+                <span className="truncate">{category.label}</span>
                 {count > 0 && <span className={COUNT_CLASS}>{count}</span>}
               </button>
             );
@@ -230,7 +226,7 @@ export function FilterPopoverPanel({
           ) : (
             <>
               {hasOptionSearch(shown) && (
-                <div className="border-b px-3 py-2">
+                <div className="sky-glass-divider border-b px-3 py-2">
                   <div className="relative">
                     <Search
                       aria-hidden
@@ -242,7 +238,7 @@ export function FilterPopoverPanel({
                       onChange={(event) => onSearchChange(event.target.value)}
                       placeholder={shown.searchPlaceholder ?? labels.searchOptions}
                       aria-label={shown.searchPlaceholder ?? labels.searchOptions}
-                      className="h-8 pl-8"
+                      className="h-8 bg-white/80 pl-8"
                     />
                   </div>
                 </div>
@@ -261,7 +257,7 @@ export function FilterPopoverPanel({
       </div>
 
       {activeCount > 0 && (
-        <div className="shrink-0 border-t px-4 py-2">
+        <div className="sky-glass-divider shrink-0 border-t px-3 py-2">
           <Button type="button" variant="ghost" size="sm" className="w-full" onClick={onClear}>
             <X aria-hidden />
             {labels.clear}
@@ -397,7 +393,10 @@ export function FilterPopover({ categories, onClear, labels, className }: Filter
           variant="outline"
           title={labels.trigger}
           data-active={activeCount > 0 || undefined}
-          className={cn("shrink-0 gap-2", className)}
+          className={cn(
+            "data-[active=true]:border-korur-blue/40 data-[state=open]:border-korur-blue/40 data-[state=open]:bg-accent shrink-0 gap-2 data-[state=open]:shadow-[0_0_14px_-4px_rgb(47_143_233/0.45)]",
+            className
+          )}
         >
           <ListFilter aria-hidden />
           {/* Text, not an aria-label, so the badge's count is read with the name. */}
@@ -408,7 +407,7 @@ export function FilterPopover({ categories, onClear, labels, className }: Filter
       <PopoverContent
         align="end"
         collisionPadding={16}
-        className="flex max-h-[var(--radix-popover-content-available-height)] w-[min(520px,calc(100vw-2rem))] flex-col overflow-hidden p-0"
+        className="sky-glass-panel flex max-h-[var(--radix-popover-content-available-height)] w-[min(520px,calc(100vw-2rem))] flex-col overflow-hidden p-0"
       >
         <FilterPopoverPanel
           categories={categories}

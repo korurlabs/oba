@@ -154,6 +154,13 @@ describe("FilterPopoverPanel", () => {
     expect(html).not.toContain("Search options");
   });
 
+  test("categories and options are sky glass rows, with no grid frame", () => {
+    const html = panel([status(["DONE"]), language()], "status");
+    expect(html.match(/sky-glass-item/g)).toHaveLength(4);
+    expect(html).toContain("sky-glass-divider");
+    expect(html).not.toContain("grid-frame");
+  });
+
   test("a single select shows one radio group with a search box", () => {
     const html = panel([language("nl")], null, "dut");
     expect(html.match(/type="radio"/g)).toHaveLength(1);
