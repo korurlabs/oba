@@ -10,6 +10,8 @@
     "legalEntities": "Rechtspersonen",
     "access": "Toegang",
     "invitations": "Uitnodigingen",
+    "integrations": "Integraties",
+    "azureIntegration": "Azure",
     "organizationSettings": "Organisatie-instellingen",
     "language": "Taal"
   },
@@ -169,6 +171,127 @@
       "setError": "De routine kon niet worden opgeslagen",
       "removeSuccess": "Routine verwijderd",
       "removeError": "De routine kon niet worden verwijderd"
+    }
+  },
+  "integrations": {
+    "title": "Integraties",
+    "description": "De externe diensten die deze organisatie aan Oba koppelt.",
+    "providers": {
+      "azure": {
+        "name": "Microsoft Azure",
+        "description": "Oba leest je abonnementen via workload identity federation. Er wordt geen geheim opgeslagen.",
+        "connectionCount": "{count, plural, =0 {Geen koppelingen} one {# koppeling} other {# koppelingen}}",
+        "open": "Beheren"
+      }
+    },
+    "azure": {
+      "title": "Azure-koppelingen",
+      "description": "Met elke koppeling leest Oba een Azure-tenant via een federatieve referentie die Oba vertrouwt. Oba slaat geen geheim op.",
+      "unavailableTitle": "Azure-koppelingen zijn hier niet beschikbaar",
+      "unavailableDescription": "Deze Oba-omgeving heeft geen OpenID Connect-issuer ingesteld, dus Azure kan haar niet vertrouwen.",
+      "emptyTitle": "Nog geen Azure-koppelingen",
+      "emptyDescription": "Koppel een Azure-tenant zodat Oba de abonnementen kan lezen.",
+      "newConnection": "Nieuwe koppeling",
+      "loading": "Azure-koppelingen laden",
+      "loadError": "De Azure-koppelingen konden niet worden geladen",
+      "cancel": "Annuleren",
+      "createSuccess": "Azure-koppeling aangemaakt",
+      "createError": "De Azure-koppeling kon niet worden aangemaakt",
+      "updateSuccess": "Azure-koppeling opgeslagen",
+      "updateError": "De Azure-koppeling kon niet worden opgeslagen",
+      "deleteSuccess": "Azure-koppeling verwijderd",
+      "deleteError": "De Azure-koppeling kon niet worden verwijderd",
+      "notFound": "Deze Azure-koppeling bestaat niet meer",
+      "inUse": "Een back-upbron leest nog via deze koppeling. Verwijder eerst de bron.",
+      "verifySuccess": "Azure heeft de koppeling geaccepteerd",
+      "verifyFailed": "Azure heeft de koppeling niet geaccepteerd. De laatste fout zegt waarom.",
+      "verifyError": "De koppeling kon niet worden gecontroleerd",
+      "clientIdMissing": "Vul de client-id van de identiteit in voordat je de koppeling controleert",
+      "deleteConfirmTitle": "Azure-koppeling verwijderen",
+      "deleteConfirmDescription": "De koppeling \"{name}\" verwijderen? Oba leest deze tenant dan niet meer. De identiteit in Azure blijft bestaan tot je haar daar verwijdert.",
+      "neverVerified": "Nooit",
+      "noError": "Geen",
+      "columns": {
+        "name": "Naam",
+        "tenantId": "Tenant-id",
+        "status": "Status",
+        "lastVerifiedAt": "Laatst gecontroleerd",
+        "lastError": "Laatste fout"
+      },
+      "statuses": {
+        "PENDING": "In afwachting",
+        "CONNECTED": "Verbonden",
+        "FAILING": "Mislukt"
+      },
+      "actions": {
+        "menu": "Acties",
+        "open": "Openen",
+        "edit": "Bewerken",
+        "verify": "Controleren",
+        "verifying": "Controleren...",
+        "delete": "Verwijderen"
+      },
+      "form": {
+        "createTitle": "Nieuwe Azure-koppeling",
+        "createDescription": "Geef de koppeling een naam en vul de tenant-id in. De client-id kun je toevoegen nadat je de identiteit in Azure hebt aangemaakt.",
+        "editTitle": "Azure-koppeling bewerken",
+        "editDescription": "Een nieuwe tenant-id of client-id zet de koppeling terug op in afwachting tot de volgende controle.",
+        "nameLabel": "Naam",
+        "namePlaceholder": "Productietenant",
+        "nameRequired": "Naam van de koppeling is verplicht",
+        "nameMaxLength": "De naam mag maximaal 255 tekens zijn",
+        "nameTaken": "Er bestaat al een koppeling met deze naam",
+        "tenantIdLabel": "Tenant-id",
+        "tenantIdPlaceholder": "00000000-0000-0000-0000-000000000000",
+        "tenantIdRequired": "Tenant-id is verplicht",
+        "tenantIdFormat": "Vul de tenant-id in als UUID",
+        "clientIdLabel": "Client-id",
+        "clientIdPlaceholder": "00000000-0000-0000-0000-000000000000",
+        "clientIdDescription": "De client-id van de beheerde identiteit of app-registratie met de federatieve referentie.",
+        "clientIdFormat": "Vul de client-id in als UUID",
+        "identityTaken": "Een andere koppeling gebruikt deze tenant-id en client-id al",
+        "unavailable": "Azure-koppelingen zijn niet beschikbaar in deze Oba-omgeving",
+        "create": "Koppeling aanmaken",
+        "creating": "Aanmaken...",
+        "save": "Opslaan",
+        "saving": "Opslaan..."
+      },
+      "setup": {
+        "title": "Het vertrouwen instellen in Azure",
+        "description": "Maak in je tenant een identiteit met een federatieve referentie die deze waarden gebruikt, en geef haar de rol Reader op een abonnement.",
+        "issuerLabel": "Issuer",
+        "subjectLabel": "Subject",
+        "audienceLabel": "Audience",
+        "copy": "Kopiëren",
+        "copied": "Gekopieerd",
+        "copyError": "De waarde kon niet worden gekopieerd",
+        "noIssuer": "Deze omgeving heeft geen issuer, dus er valt niets in te stellen.",
+        "managedIdentityTab": "Beheerde identiteit",
+        "appRegistrationTab": "App-registratie",
+        "azCliTab": "Azure CLI",
+        "terraformTab": "Terraform",
+        "placeholdersNote": "Vervang de plaatshouders voor abonnement-id, resourcegroep en locatie voordat je het uitvoert. De laatste stap toont de client-id die je bij deze koppeling invult."
+      },
+      "subscriptions": {
+        "title": "Abonnementen",
+        "description": "De abonnementen die de identiteit bij de laatste geslaagde controle kon lezen.",
+        "empty": "Nog geen abonnementen gevonden. Controleer de koppeling om ze te lezen.",
+        "columns": {
+          "displayName": "Naam",
+          "subscriptionId": "Abonnement-id",
+          "state": "Staat"
+        }
+      },
+      "lastErrors": {
+        "AZR_UPS_005": "Azure Resource Manager was niet bereikbaar.",
+        "AZR_UPS_006": "Azure heeft de identiteit geweigerd. Controleer of ze de rol Reader op het abonnement heeft.",
+        "AZR_UPS_007": "Azure heeft de verzoeken beperkt. De volgende controle probeert het opnieuw.",
+        "AZR_UPS_008": "Azure gaf een antwoord dat Oba niet verwachtte.",
+        "AZR_UPS_009": "Microsoft Entra ID heeft de tokenuitwisseling geweigerd. Controleer de issuer, het subject en de audience van de federatieve referentie, en de client-id.",
+        "AZR_STA_005": "De identiteit kan geen abonnement lezen. Geef haar de rol Reader op een abonnement.",
+        "entraCode": "Entra-code {code}",
+        "unknown": "De controle is mislukt met fout {code}."
+      }
     }
   },
   "errors": {

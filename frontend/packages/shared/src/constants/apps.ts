@@ -37,6 +37,9 @@ export const ULAK_LINKS = {
   get organizations(): string {
     return appUrl("ulak");
   },
+  get azureIntegrations(): string {
+    return `${appUrl("ulak")}/integrations/azure`;
+  },
 };
 
 /**

@@ -48,4 +48,9 @@ export const API_ROUTES = {
     list: "/invitations",
     detail: (invitationId: string) => `/invitations/${invitationId}`,
   },
+  azureConnections: {
+    list: "/azure/connections",
+    detail: (connectionId: string) => `/azure/connections/${connectionId}`,
+    verify: (connectionId: string) => `/azure/connections/${connectionId}/verify`,
+  },
 } as const;

@@ -10,6 +10,8 @@
     "legalEntities": "Legal entities",
     "access": "Access",
     "invitations": "Invitations",
+    "integrations": "Integrations",
+    "azureIntegration": "Azure",
     "organizationSettings": "Organization settings",
     "language": "Language"
   },
@@ -169,6 +171,127 @@
       "setError": "The routine could not be saved",
       "removeSuccess": "Routine removed",
       "removeError": "The routine could not be removed"
+    }
+  },
+  "integrations": {
+    "title": "Integrations",
+    "description": "The outside services this organization connects to Oba.",
+    "providers": {
+      "azure": {
+        "name": "Microsoft Azure",
+        "description": "Oba reads your subscriptions through workload identity federation. No secret is stored.",
+        "connectionCount": "{count, plural, =0 {No connections} one {# connection} other {# connections}}",
+        "open": "Manage"
+      }
+    },
+    "azure": {
+      "title": "Azure connections",
+      "description": "Each connection lets Oba read one Azure tenant through a federated credential that trusts Oba. Oba stores no secret.",
+      "unavailableTitle": "Azure connections are not available here",
+      "unavailableDescription": "This Oba deployment has no OpenID Connect issuer configured, so Azure cannot trust it.",
+      "emptyTitle": "No Azure connections yet",
+      "emptyDescription": "Connect an Azure tenant so that Oba can read its subscriptions.",
+      "newConnection": "New connection",
+      "loading": "Loading Azure connections",
+      "loadError": "The Azure connections could not be loaded",
+      "cancel": "Cancel",
+      "createSuccess": "Azure connection created",
+      "createError": "The Azure connection could not be created",
+      "updateSuccess": "Azure connection saved",
+      "updateError": "The Azure connection could not be saved",
+      "deleteSuccess": "Azure connection deleted",
+      "deleteError": "The Azure connection could not be deleted",
+      "notFound": "This Azure connection no longer exists",
+      "inUse": "A backup source still reads through this connection. Remove the source first.",
+      "verifySuccess": "Azure accepted the connection",
+      "verifyFailed": "Azure did not accept the connection. The last error says why.",
+      "verifyError": "The connection could not be checked",
+      "clientIdMissing": "Enter the client id of the identity before you verify the connection",
+      "deleteConfirmTitle": "Delete Azure connection",
+      "deleteConfirmDescription": "Delete the connection \"{name}\"? Oba stops reading this tenant. The identity in Azure stays until you remove it there.",
+      "neverVerified": "Never",
+      "noError": "None",
+      "columns": {
+        "name": "Name",
+        "tenantId": "Tenant id",
+        "status": "Status",
+        "lastVerifiedAt": "Last verified",
+        "lastError": "Last error"
+      },
+      "statuses": {
+        "PENDING": "Pending",
+        "CONNECTED": "Connected",
+        "FAILING": "Failing"
+      },
+      "actions": {
+        "menu": "Actions",
+        "open": "Open",
+        "edit": "Edit",
+        "verify": "Verify",
+        "verifying": "Verifying...",
+        "delete": "Delete"
+      },
+      "form": {
+        "createTitle": "New Azure connection",
+        "createDescription": "Name the connection and enter the tenant id. You can add the client id after you have created the identity in Azure.",
+        "editTitle": "Edit Azure connection",
+        "editDescription": "A new tenant id or client id sets the connection back to pending until the next check.",
+        "nameLabel": "Name",
+        "namePlaceholder": "Production tenant",
+        "nameRequired": "Connection name is required",
+        "nameMaxLength": "Name must be at most 255 characters",
+        "nameTaken": "A connection with this name already exists",
+        "tenantIdLabel": "Tenant id",
+        "tenantIdPlaceholder": "00000000-0000-0000-0000-000000000000",
+        "tenantIdRequired": "Tenant id is required",
+        "tenantIdFormat": "Enter the tenant id as a UUID",
+        "clientIdLabel": "Client id",
+        "clientIdPlaceholder": "00000000-0000-0000-0000-000000000000",
+        "clientIdDescription": "The client id of the managed identity or app registration that holds the federated credential.",
+        "clientIdFormat": "Enter the client id as a UUID",
+        "identityTaken": "Another connection already uses this tenant id and client id",
+        "unavailable": "Azure connections are not available on this Oba deployment",
+        "create": "Create connection",
+        "creating": "Creating...",
+        "save": "Save",
+        "saving": "Saving..."
+      },
+      "setup": {
+        "title": "Set up the trust in Azure",
+        "description": "Create an identity in your tenant with a federated credential that uses these values, and give it the Reader role on a subscription.",
+        "issuerLabel": "Issuer",
+        "subjectLabel": "Subject",
+        "audienceLabel": "Audience",
+        "copy": "Copy",
+        "copied": "Copied",
+        "copyError": "The value could not be copied",
+        "noIssuer": "This deployment has no issuer, so there is nothing to set up.",
+        "managedIdentityTab": "Managed identity",
+        "appRegistrationTab": "App registration",
+        "azCliTab": "Azure CLI",
+        "terraformTab": "Terraform",
+        "placeholdersNote": "Replace the subscription id, resource group and location placeholders before you run it. The last step prints the client id to enter on this connection."
+      },
+      "subscriptions": {
+        "title": "Subscriptions",
+        "description": "The subscriptions the identity could read at the last successful check.",
+        "empty": "No subscriptions found yet. Verify the connection to read them.",
+        "columns": {
+          "displayName": "Name",
+          "subscriptionId": "Subscription id",
+          "state": "State"
+        }
+      },
+      "lastErrors": {
+        "AZR_UPS_005": "Azure Resource Manager could not be reached.",
+        "AZR_UPS_006": "Azure refused the identity. Check that it has the Reader role on the subscription.",
+        "AZR_UPS_007": "Azure limited the requests. The next check tries again.",
+        "AZR_UPS_008": "Azure gave an answer Oba did not expect.",
+        "AZR_UPS_009": "Microsoft Entra ID refused the token exchange. Check the issuer, subject and audience of the federated credential, and the client id.",
+        "AZR_STA_005": "The identity can read no subscription. Give it the Reader role on one.",
+        "entraCode": "Entra code {code}",
+        "unknown": "The check failed with error {code}."
+      }
     }
   },
   "errors": {

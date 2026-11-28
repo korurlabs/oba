@@ -10,6 +10,8 @@
     "legalEntities": "Tüzel kişiler",
     "access": "Erişim",
     "invitations": "Davetler",
+    "integrations": "Entegrasyonlar",
+    "azureIntegration": "Azure",
     "organizationSettings": "Organizasyon ayarları",
     "language": "Dil"
   },
@@ -169,6 +171,127 @@
       "setError": "Rutin kaydedilemedi",
       "removeSuccess": "Rutin kaldırıldı",
       "removeError": "Rutin kaldırılamadı"
+    }
+  },
+  "integrations": {
+    "title": "Entegrasyonlar",
+    "description": "Bu organizasyonun Oba ile bağladığı dış hizmetler.",
+    "providers": {
+      "azure": {
+        "name": "Microsoft Azure",
+        "description": "Oba aboneliklerinizi iş yükü kimlik federasyonu ile okur. Hiçbir gizli anahtar saklanmaz.",
+        "connectionCount": "{count, plural, =0 {Bağlantı yok} one {# bağlantı} other {# bağlantı}}",
+        "open": "Yönet"
+      }
+    },
+    "azure": {
+      "title": "Azure bağlantıları",
+      "description": "Her bağlantı, Oba'ya güvenen bir federe kimlik bilgisi üzerinden Oba'nın bir Azure kiracısını okumasını sağlar. Oba hiçbir gizli anahtar saklamaz.",
+      "unavailableTitle": "Azure bağlantıları burada kullanılamıyor",
+      "unavailableDescription": "Bu Oba kurulumunda yapılandırılmış bir OpenID Connect yayıncısı yok, bu yüzden Azure ona güvenemez.",
+      "emptyTitle": "Henüz Azure bağlantısı yok",
+      "emptyDescription": "Oba'nın aboneliklerini okuyabilmesi için bir Azure kiracısı bağlayın.",
+      "newConnection": "Yeni bağlantı",
+      "loading": "Azure bağlantıları yükleniyor",
+      "loadError": "Azure bağlantıları yüklenemedi",
+      "cancel": "İptal",
+      "createSuccess": "Azure bağlantısı oluşturuldu",
+      "createError": "Azure bağlantısı oluşturulamadı",
+      "updateSuccess": "Azure bağlantısı kaydedildi",
+      "updateError": "Azure bağlantısı kaydedilemedi",
+      "deleteSuccess": "Azure bağlantısı silindi",
+      "deleteError": "Azure bağlantısı silinemedi",
+      "notFound": "Bu Azure bağlantısı artık yok",
+      "inUse": "Bir yedekleme kaynağı hâlâ bu bağlantı üzerinden okuyor. Önce kaynağı kaldırın.",
+      "verifySuccess": "Azure bağlantıyı kabul etti",
+      "verifyFailed": "Azure bağlantıyı kabul etmedi. Nedenini son hata gösteriyor.",
+      "verifyError": "Bağlantı kontrol edilemedi",
+      "clientIdMissing": "Bağlantıyı doğrulamadan önce kimliğin istemci kimliğini girin",
+      "deleteConfirmTitle": "Azure bağlantısını sil",
+      "deleteConfirmDescription": "\"{name}\" bağlantısı silinsin mi? Oba bu kiracıyı okumayı bırakır. Azure'daki kimlik, siz orada kaldırana kadar kalır.",
+      "neverVerified": "Hiç",
+      "noError": "Yok",
+      "columns": {
+        "name": "Ad",
+        "tenantId": "Kiracı kimliği",
+        "status": "Durum",
+        "lastVerifiedAt": "Son doğrulama",
+        "lastError": "Son hata"
+      },
+      "statuses": {
+        "PENDING": "Bekliyor",
+        "CONNECTED": "Bağlı",
+        "FAILING": "Başarısız"
+      },
+      "actions": {
+        "menu": "İşlemler",
+        "open": "Aç",
+        "edit": "Düzenle",
+        "verify": "Doğrula",
+        "verifying": "Doğrulanıyor...",
+        "delete": "Sil"
+      },
+      "form": {
+        "createTitle": "Yeni Azure bağlantısı",
+        "createDescription": "Bağlantıya bir ad verin ve kiracı kimliğini girin. İstemci kimliğini, kimliği Azure'da oluşturduktan sonra ekleyebilirsiniz.",
+        "editTitle": "Azure bağlantısını düzenle",
+        "editDescription": "Yeni bir kiracı kimliği veya istemci kimliği, bağlantıyı bir sonraki kontrole kadar bekliyor durumuna döndürür.",
+        "nameLabel": "Ad",
+        "namePlaceholder": "Üretim kiracısı",
+        "nameRequired": "Bağlantı adı zorunludur",
+        "nameMaxLength": "Ad en fazla 255 karakter olabilir",
+        "nameTaken": "Bu ada sahip bir bağlantı zaten var",
+        "tenantIdLabel": "Kiracı kimliği",
+        "tenantIdPlaceholder": "00000000-0000-0000-0000-000000000000",
+        "tenantIdRequired": "Kiracı kimliği zorunludur",
+        "tenantIdFormat": "Kiracı kimliğini UUID olarak girin",
+        "clientIdLabel": "İstemci kimliği",
+        "clientIdPlaceholder": "00000000-0000-0000-0000-000000000000",
+        "clientIdDescription": "Federe kimlik bilgisini taşıyan yönetilen kimliğin veya uygulama kaydının istemci kimliği.",
+        "clientIdFormat": "İstemci kimliğini UUID olarak girin",
+        "identityTaken": "Başka bir bağlantı bu kiracı kimliğini ve istemci kimliğini zaten kullanıyor",
+        "unavailable": "Bu Oba kurulumunda Azure bağlantıları kullanılamıyor",
+        "create": "Bağlantı oluştur",
+        "creating": "Oluşturuluyor...",
+        "save": "Kaydet",
+        "saving": "Kaydediliyor..."
+      },
+      "setup": {
+        "title": "Azure'da güveni kurun",
+        "description": "Kiracınızda bu değerleri kullanan bir federe kimlik bilgisine sahip bir kimlik oluşturun ve ona bir abonelikte Reader rolü verin.",
+        "issuerLabel": "Yayıncı (issuer)",
+        "subjectLabel": "Konu (subject)",
+        "audienceLabel": "Hedef kitle (audience)",
+        "copy": "Kopyala",
+        "copied": "Kopyalandı",
+        "copyError": "Değer kopyalanamadı",
+        "noIssuer": "Bu kurulumda yayıncı yok, bu yüzden kurulacak bir şey yok.",
+        "managedIdentityTab": "Yönetilen kimlik",
+        "appRegistrationTab": "Uygulama kaydı",
+        "azCliTab": "Azure CLI",
+        "terraformTab": "Terraform",
+        "placeholdersNote": "Çalıştırmadan önce abonelik kimliği, kaynak grubu ve konum yer tutucularını değiştirin. Son adım, bu bağlantıya girilecek istemci kimliğini yazdırır."
+      },
+      "subscriptions": {
+        "title": "Abonelikler",
+        "description": "Kimliğin son başarılı kontrolde okuyabildiği abonelikler.",
+        "empty": "Henüz abonelik bulunamadı. Okumak için bağlantıyı doğrulayın.",
+        "columns": {
+          "displayName": "Ad",
+          "subscriptionId": "Abonelik kimliği",
+          "state": "Durum"
+        }
+      },
+      "lastErrors": {
+        "AZR_UPS_005": "Azure Resource Manager'a ulaşılamadı.",
+        "AZR_UPS_006": "Azure kimliği reddetti. Abonelikte Reader rolü olduğunu kontrol edin.",
+        "AZR_UPS_007": "Azure istekleri sınırladı. Bir sonraki kontrol yeniden dener.",
+        "AZR_UPS_008": "Azure, Oba'nın beklemediği bir yanıt verdi.",
+        "AZR_UPS_009": "Microsoft Entra ID belirteç değişimini reddetti. Federe kimlik bilgisinin yayıncısını, konusunu ve hedef kitlesini ve istemci kimliğini kontrol edin.",
+        "AZR_STA_005": "Kimlik hiçbir aboneliği okuyamıyor. Ona bir abonelikte Reader rolü verin.",
+        "entraCode": "Entra kodu {code}",
+        "unknown": "Kontrol {code} hatasıyla başarısız oldu."
+      }
     }
   },
   "errors": {
