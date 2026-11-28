@@ -79,7 +79,7 @@ class OutreachListFilterIT extends AbstractOtakDocumentsIT {
     /** Lists the outreaches of the tenant with the given name and value pairs as query parameters. */
     private String list(String... parameters) throws Exception {
         MockHttpServletRequestBuilder request = get(OUTREACHES_PATH);
-        for (int i = 0; i < parameters.length; i += 2) {
+        for (int i = 0; i + 1 < parameters.length; i += 2) {
             request = request.param(parameters[i], parameters[i + 1]);
         }
         MvcResult result = mockMvc.perform(in(tenant, request, admin.jwt(), null))
