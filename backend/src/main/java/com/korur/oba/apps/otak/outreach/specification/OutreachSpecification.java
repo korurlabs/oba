@@ -13,6 +13,7 @@ import com.korur.oba.apps.otak.outreach.constant.OutreachConstant;
 import com.korur.oba.apps.otak.outreach.dto.request.OutreachQueryRequest;
 import com.korur.oba.apps.otak.outreach.entity.Outreach;
 import com.korur.oba.apps.otak.outreach.enums.OutreachStatus;
+import com.korur.oba.dojo.constant.CommonConstant;
 
 /**
  * JPA Specification builder for {@link Outreach} entity queries: the filters of the
@@ -44,7 +45,7 @@ public final class OutreachSpecification {
      * @throws UnsupportedOperationException always
      */
     private OutreachSpecification() {
-        throw new UnsupportedOperationException("Utility class");
+        throw new UnsupportedOperationException(CommonConstant.UTILITY_CLASS_MESSAGE);
     }
 
     /**

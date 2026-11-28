@@ -19,6 +19,7 @@ import com.korur.oba.apps.otak.relation.dto.request.RelationQueryRequest;
 import com.korur.oba.apps.otak.relation.entity.Relation;
 import com.korur.oba.apps.otak.relation.enums.PipelineStage;
 import com.korur.oba.apps.otak.relation.enums.RelationType;
+import com.korur.oba.dojo.constant.CommonConstant;
 
 /**
  * JPA Specification builder for Relation entity queries.
@@ -29,7 +30,7 @@ import com.korur.oba.apps.otak.relation.enums.RelationType;
 public final class RelationSpecification {
 
     private RelationSpecification() {
-        throw new UnsupportedOperationException("Utility class");
+        throw new UnsupportedOperationException(CommonConstant.UTILITY_CLASS_MESSAGE);
     }
 
     /**
@@ -94,7 +95,7 @@ public final class RelationSpecification {
         if (keyword == null || keyword.isBlank()) {
             return noOp();
         }
-        String pattern = "%" + keyword.trim().toLowerCase() + "%";
+        String pattern = RelationConstant.LIKE_WILDCARD + keyword.trim().toLowerCase() + RelationConstant.LIKE_WILDCARD;
         return (root, query, cb) -> cb.like(cb.lower(root.get(RelationConstant.FIELD_NAME)), pattern);
     }
 

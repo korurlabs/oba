@@ -27,6 +27,13 @@ public final class CampaignConstant {
     public static final String FIELD_PUBLISHED_AT = "publishedAt";
     public static final String FIELD_UPDATED_AT = "updatedAt";
 
+    // -------------Search-----------//
+
+    /**
+     * Wraps a search keyword so the LIKE filter matches it anywhere in the name.
+     */
+    public static final String LIKE_WILDCARD = "%";
+
     // -------------Validation messages-----------//
 
     public static final String NAME_REQUIRED_MESSAGE = "Name is required";
