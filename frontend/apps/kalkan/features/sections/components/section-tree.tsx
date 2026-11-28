@@ -44,6 +44,14 @@ import {
   type MoveTarget,
   type PageNode,
 } from "../lib/tree-moves";
+import {
+  collapsedOf,
+  NO_FOLDS,
+  searchKeyOf,
+  syncFoldsToSearch,
+  toggleFold,
+  type TreeFolds,
+} from "../lib/tree-search";
 
 interface SectionTreeProps {
   /** The whole page tree the caller can see, flat, as the tree endpoint answers. */
@@ -62,28 +70,31 @@ interface SectionTreeProps {
  * sibling order and expanded at first. With EDIT on the section a page can be
  * dragged before another page, moved up, down, into the page above or out one
  * level from its menu, edited, given a subpage or deleted with its subtree.
- * A search hides the other pages but moves still place a page among all its
- * siblings, as the order is kept on the whole tree.
+ * A search hides the other pages and opens every page above a hit, but moves
+ * still place a page among all its siblings, as the order is kept on the
+ * whole tree.
  */
 export function SectionTree({ pages, root, sectionTitle, canEdit, visibleIds }: SectionTreeProps) {
   const t = useTranslations("sectionTree");
   const locale = useLocale();
   const move = useMoveSectionPage();
   const deletePage = useDeletePage();
-  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(new Set());
+  const [storedFolds, setFolds] = useState<TreeFolds>(NO_FOLDS);
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<PageListItem | null>(null);
 
   const nodes = buildNodes(pages, root.id);
 
+  // A new search opens every page above its hits; the member's own folds
+  // come back once the search is cleared.
+  const searchKey = searchKeyOf(visibleIds);
+  const folds = syncFoldsToSearch(storedFolds, searchKey);
+  if (folds !== storedFolds) setFolds(folds);
+  const collapsed = collapsedOf(folds);
+
   const toggle = (pageId: string) => {
-    setCollapsed((current) => {
-      const next = new Set(current);
-      if (next.has(pageId)) next.delete(pageId);
-      else next.add(pageId);
-      return next;
-    });
+    setFolds((current) => toggleFold(syncFoldsToSearch(current, searchKey), pageId));
   };
 
   const runMove = (pageId: string, target: MoveTarget | null) => {

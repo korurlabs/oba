@@ -1,6 +1,14 @@
 import { describe, expect, test } from "bun:test";
 import type { PageListItem } from "@/features/pages/schemas";
-import { pageMatchesSearch, visiblePageIds } from "./tree-search";
+import {
+  collapsedOf,
+  NO_FOLDS,
+  pageMatchesSearch,
+  searchKeyOf,
+  syncFoldsToSearch,
+  toggleFold,
+  visiblePageIds,
+} from "./tree-search";
 
 function page(
   id: string,
@@ -57,5 +65,35 @@ describe("visiblePageIds", () => {
 
   test("is empty when no page answers", () => {
     expect(visiblePageIds(TREE, "root", "risk", "en").size).toBe(0);
+  });
+});
+
+describe("tree folds", () => {
+  const search = (text: string) => searchKeyOf(visiblePageIds(TREE, ROOT.id, text, "en"));
+
+  test("opens a page the member folded while a search shows a hit below it", () => {
+    const folded = toggleFold(NO_FOLDS, ACCESS.id);
+    expect(collapsedOf(folded).has(ACCESS.id)).toBe(true);
+
+    const searching = syncFoldsToSearch(folded, search("password"));
+    expect(collapsedOf(searching).size).toBe(0);
+  });
+
+  test("brings back the member's own folds once the search is cleared", () => {
+    const folded = toggleFold(NO_FOLDS, ACCESS.id);
+    const searching = toggleFold(syncFoldsToSearch(folded, search("password")), BACKUP.id);
+    expect([...collapsedOf(searching)]).toEqual([BACKUP.id]);
+
+    const cleared = syncFoldsToSearch(searching, searchKeyOf(undefined));
+    expect([...collapsedOf(cleared)]).toEqual([ACCESS.id]);
+  });
+
+  test("opens every page again when the search keeps other pages", () => {
+    const searching = toggleFold(syncFoldsToSearch(NO_FOLDS, search("password")), ACCESS.id);
+    expect(syncFoldsToSearch(searching, search("password"))).toBe(searching);
+
+    const changed = syncFoldsToSearch(searching, search("access"));
+    expect(search("access")).not.toBe(search("password"));
+    expect(collapsedOf(changed).size).toBe(0);
   });
 });
