@@ -56,6 +56,21 @@ function language(value: string | null = null): SingleFilterCategory {
   };
 }
 
+function period(value: string = "upcoming"): SingleFilterCategory {
+  return {
+    key: "period",
+    label: "Period",
+    mode: "single",
+    value,
+    defaultValue: "upcoming",
+    onChange: () => undefined,
+    options: [
+      { value: "upcoming", label: "Upcoming" },
+      { value: "past", label: "Past" },
+    ],
+  };
+}
+
 function relation(overrides: Partial<SingleFilterCategory> = {}): SingleFilterCategory {
   return {
     key: "relation",
@@ -91,6 +106,12 @@ describe("active counts", () => {
     expect(categoryActiveCount(language("nl"))).toBe(1);
     expect(totalActiveCount([status(["OPEN", "DONE"]), language("nl")])).toBe(3);
   });
+
+  test("a single select with a default does not count its default", () => {
+    expect(categoryActiveCount(period())).toBe(0);
+    expect(categoryActiveCount(period("past"))).toBe(1);
+    expect(totalActiveCount([period(), language("nl")])).toBe(1);
+  });
 });
 
 describe("choosing values", () => {
@@ -103,6 +124,12 @@ describe("choosing values", () => {
     expect(nextSingleValue(null, "en")).toBe("en");
     expect(nextSingleValue("en", "nl")).toBe("nl");
     expect(nextSingleValue("nl", "nl")).toBeNull();
+  });
+
+  test("a single select with a default returns to it when the chosen option is clicked again", () => {
+    expect(nextSingleValue("upcoming", "past", "upcoming")).toBe("past");
+    expect(nextSingleValue("past", "past", "upcoming")).toBe("upcoming");
+    expect(nextSingleValue("upcoming", "upcoming", "upcoming")).toBe("upcoming");
   });
 });
 
@@ -194,6 +221,20 @@ describe("FilterPopoverPanel", () => {
     expect(panel([status(), language()], null)).not.toContain("Clear all");
     expect(panel([status(), language("en")], null)).toContain("Clear all");
   });
+
+  test("a category on its default ticks it, but shows no count and no Clear footer", () => {
+    const html = panel([period()], null);
+    expect(html.match(/type="radio"/g)).toHaveLength(2);
+    expect(html).toMatch(/type="radio"[^>]*checked=""[^>]*\/?>(?:(?!<label).)*Upcoming/);
+    expect(html).not.toContain("tabular-nums");
+    expect(html).not.toContain("Clear all");
+  });
+
+  test("a category off its default counts one and offers Clear", () => {
+    const html = panel([period("past")], null);
+    expect(html).toMatch(/tabular-nums">1<\/span>/);
+    expect(html).toContain("Clear all");
+  });
 });
 
 describe("FilterPopover", () => {
@@ -214,5 +255,12 @@ describe("FilterPopover", () => {
     const html = trigger([status(["OPEN", "DONE"]), language("en")]);
     expect(html).toContain('data-active="true"');
     expect(html).toMatch(/tabular-nums">3<\/span>/);
+  });
+
+  test("the trigger has no badge while a defaulted category is on its default", () => {
+    expect(trigger([period()])).not.toContain("data-active");
+    const html = trigger([period("past")]);
+    expect(html).toContain('data-active="true"');
+    expect(html).toMatch(/tabular-nums">1<\/span>/);
   });
 });

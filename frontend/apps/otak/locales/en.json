@@ -1213,8 +1213,7 @@
       "past": "Events move here the day after they end."
     },
     "tableLabel": "Events",
-    "tabsLabel": "Period",
-    "tabs": {
+    "periods": {
       "upcoming": "Upcoming",
       "past": "Past"
     },
@@ -1241,6 +1240,7 @@
       "actions": "Actions"
     },
     "filters": {
+      "period": "Period",
       "searchPlaceholder": "Search by name",
       "clear": "Clear search"
     },

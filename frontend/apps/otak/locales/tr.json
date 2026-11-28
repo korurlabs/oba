@@ -1213,8 +1213,7 @@
       "past": "Etkinlikler bittikleri günün ertesinde buraya taşınır."
     },
     "tableLabel": "Etkinlikler",
-    "tabsLabel": "Dönem",
-    "tabs": {
+    "periods": {
       "upcoming": "Yaklaşan",
       "past": "Geçmiş"
     },
@@ -1241,6 +1240,7 @@
       "actions": "İşlemler"
     },
     "filters": {
+      "period": "Dönem",
       "searchPlaceholder": "Ada göre ara",
       "clear": "Aramayı temizle"
     },

@@ -7,18 +7,18 @@ import { todayDateOnly } from "@oba/shared/lib/date-only";
 import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
 import { useRouter } from "@oba/shared/libs/i18n/navigation";
 import { Button } from "@oba/ui/sky/button";
+import { FilterPopover, type FilterCategory } from "@oba/ui/sky/filter-popover";
 import { ListToolbar } from "@oba/ui/sky/list-toolbar";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
-import { Tabs, TabsList, TabsTrigger } from "@oba/ui/sky/tabs";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { DataTable, TablePagination } from "@/components/data-table";
-import { ActionEmptyState, PageHeading } from "@/components/page-states";
+import { ActionEmptyState, PageHeading, useFilterPopoverLabels } from "@/components/page-states";
 import { useIsOrganizationAdmin } from "@/hooks/use-is-organization-admin";
 import { useEventColumns } from "../hooks/use-event-columns";
 import { useEventFilterParams } from "../hooks/use-event-filter-params";
 import { useDeleteEvent, useEvents } from "../hooks/use-events";
 import { eventErrorText } from "../lib/event-error";
-import { EVENT_TABS, toEventQuery, type EventTab } from "../lib/event-filters";
+import { EVENT_TABS, eventFilterParams, toEventQuery, type EventTab } from "../lib/event-filters";
 import type { EventListItem } from "../schemas";
 import { EventFormDialog } from "./event-form-dialog";
 
@@ -26,20 +26,26 @@ function isEventTab(value: string): value is EventTab {
   return (EVENT_TABS as readonly string[]).includes(value);
 }
 
+/** The period the list shows when the URL names none. */
+const DEFAULT_PERIOD: EventTab = eventFilterParams.tab.defaultValue;
+
 /**
- * The organization's events in an Upcoming and a Past tab, with a name
- * search and paging in the URL. Upcoming and past are judged on the viewer's
- * calendar day, which the list sends as `today`. Every member creates and
- * edits events in a dialog; only an admin deletes.
+ * The organization's events, upcoming or past, with a name search and paging
+ * in the URL. Both periods list the same rows with the same columns, so the
+ * period is a filter (still kept as `tab` in the URL) rather than tabs.
+ * Upcoming and past are judged on the viewer's calendar day, which the list
+ * sends as `today`. Every member creates and edits events in a dialog; only
+ * an admin deletes.
  */
 export function EventsView() {
   const t = useTranslations("events");
   const tErrors = useTranslations("errors");
+  const filterLabels = useFilterPopoverLabels();
   const router = useRouter();
   const isAdmin = useIsOrganizationAdmin();
   const [filters, setFilters] = useEventFilterParams();
   // Read per change of the URL state, so a list opened before midnight moves
-  // on to the new day with the next tab, search or page.
+  // on to the new day with the next period, search or page.
   const query = useMemo(() => toEventQuery(filters, todayDateOnly()), [filters]);
   const events = useEvents(query);
   const deleteEvent = useDeleteEvent();
@@ -60,13 +66,19 @@ export function EventsView() {
     onEdit: handleEdit,
     onDelete: isAdmin ? handleDelete : null,
   });
-  const handleTabChange = useCallback(
-    (value: string) => {
-      if (!isEventTab(value)) return;
-      void setFilters({ tab: value, page: 1 });
+  const periodCategory: FilterCategory = {
+    key: "period",
+    label: t("filters.period"),
+    mode: "single",
+    options: EVENT_TABS.map((tab) => ({ value: tab, label: t(`periods.${tab}`) })),
+    value: filters.tab,
+    defaultValue: DEFAULT_PERIOD,
+    onChange: (value: string | null) => {
+      // A null URL value falls back to the default period and keeps the URL short.
+      const tab = value !== null && isEventTab(value) && value !== DEFAULT_PERIOD ? value : null;
+      void setFilters({ tab, page: 1 });
     },
-    [setFilters]
-  );
+  };
 
   const rows = useMemo((): EventListItem[] => events.data?.data ?? [], [events.data?.data]);
   const pagination = events.data?.pagination;
@@ -84,23 +96,19 @@ export function EventsView() {
       <PageHeading title={t("title")} description={t("subtitle")} />
 
       <ListToolbar
-        tabs={
-          <Tabs value={filters.tab} onValueChange={handleTabChange}>
-            <TabsList aria-label={t("tabsLabel")}>
-              {EVENT_TABS.map((tab) => (
-                <TabsTrigger key={tab} value={tab}>
-                  {t(`tabs.${tab}`)}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-        }
         search={
           <SenseySearchInput
             value={filters.search}
             placeholder={t("filters.searchPlaceholder")}
             onSearchChange={(search) => void setFilters({ search: search ?? null, page: 1 })}
             className="w-40 sm:w-56"
+          />
+        }
+        filters={
+          <FilterPopover
+            categories={[periodCategory]}
+            onClear={() => void setFilters({ tab: null, page: 1 })}
+            labels={filterLabels}
           />
         }
         create={newButton}

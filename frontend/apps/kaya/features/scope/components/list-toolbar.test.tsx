@@ -94,7 +94,7 @@ describe("ListToolbar search, tabs and actions", () => {
     expect(renderToStaticMarkup(<ListToolbar />)).not.toContain("Search");
   });
 
-  test("tabs and search on the left, then actions, Filter and create, as on Kazan", () => {
+  test("search first, then tabs, then actions, Filter and create, as on every sky list", () => {
     const html = renderToStaticMarkup(
       <ListToolbar
         tabs={<span>TABS</span>}
@@ -105,8 +105,8 @@ describe("ListToolbar search, tabs and actions", () => {
       />
     );
     const order = [
-      "TABS",
       'aria-label="Search skills"',
+      "TABS",
       'aria-hidden="true"></div>',
       "ACTIONS",
       'title="Filter"',

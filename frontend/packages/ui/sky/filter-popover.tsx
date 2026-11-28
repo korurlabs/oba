@@ -48,11 +48,21 @@ type FilterCategoryBase = {
   emptyLabel?: string;
 };
 
-/** A category that holds at most one value; ticking the chosen option again clears it. */
+/**
+ * A category that holds at most one value; ticking the chosen option again
+ * clears it. With `defaultValue` it always holds one: ticking the chosen
+ * option again returns it to the default, as the app's Clear should.
+ */
 export type SingleFilterCategory = FilterCategoryBase & {
   mode: "single";
   value: string | null;
   onChange: (value: string | null) => void;
+  /**
+   * The option the list shows when nothing narrows it, such as "upcoming"
+   * events. It is not counted as a filter, so the trigger's badge and the
+   * Clear footer appear only once another option is chosen.
+   */
+  defaultValue?: string;
 };
 
 /** A category that holds any number of values. */
@@ -83,7 +93,7 @@ export type FilterPopoverLabels = {
 /** The number of values a category narrows the list by. */
 export function categoryActiveCount(category: FilterCategory): number {
   if (category.mode === "multi") return category.value.length;
-  return category.value === null ? 0 : 1;
+  return category.value === null || category.value === category.defaultValue ? 0 : 1;
 }
 
 /** The number on the trigger's badge: every chosen value of every category. */
@@ -99,9 +109,17 @@ export function toggleMultiValue(values: readonly string[], value: string): stri
   return [...values, value];
 }
 
-/** The value of a single select after its option `value` is clicked: the chosen one clears. */
-export function nextSingleValue(current: string | null, value: string): string | null {
-  return current === value ? null : value;
+/**
+ * The value of a single select after its option `value` is clicked: the
+ * chosen one clears, to `defaultValue` when the category has one.
+ */
+export function nextSingleValue(
+  current: string | null,
+  value: string,
+  defaultValue?: string
+): string | null {
+  if (current !== value) return value;
+  return defaultValue ?? null;
 }
 
 /** Whether the category shows a search box over its options. */
@@ -143,9 +161,11 @@ function isChecked(category: FilterCategory, value: string): boolean {
 function choose(category: FilterCategory, value: string): void {
   if (category.mode === "multi") {
     category.onChange(toggleMultiValue(category.value, value));
-  } else {
-    category.onChange(nextSingleValue(category.value, value));
+    return;
   }
+  const next = nextSingleValue(category.value, value, category.defaultValue);
+  // Clicking the chosen default changes nothing, so the app gets no call.
+  if (next !== category.value) category.onChange(next);
 }
 
 const COUNT_CLASS =

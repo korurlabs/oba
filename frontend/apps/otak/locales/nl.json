@@ -1213,8 +1213,7 @@
       "past": "Evenementen komen hier de dag nadat ze eindigen."
     },
     "tableLabel": "Evenementen",
-    "tabsLabel": "Periode",
-    "tabs": {
+    "periods": {
       "upcoming": "Komend",
       "past": "Afgelopen"
     },
@@ -1241,6 +1240,7 @@
       "actions": "Acties"
     },
     "filters": {
+      "period": "Periode",
       "searchPlaceholder": "Zoeken op naam",
       "clear": "Zoekopdracht wissen"
     },

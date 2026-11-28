@@ -100,11 +100,11 @@ export function NewButton({ label, lockedBy = null, help, ...props }: NewButtonP
 }
 
 export type ListToolbarProps = {
-  /** The tabs of a page that has them, first on the left. */
+  /** The tabs of a page that has them, after the search. */
   tabs?: ReactNode;
   /** The inherited filter; null or left out hides the Filter button, as on a repository. */
   filter?: InheritedFilter | null;
-  /** The list's search, beside the tabs; left out when the list has none. */
+  /** The list's search, first on the left; left out when the list has none. */
   search?: CollapsibleSearchProps;
   /** Other actions before the filter, such as the Allowlist's Edit. */
   actions?: ReactNode;
@@ -113,9 +113,9 @@ export type ListToolbarProps = {
 };
 
 /**
- * The one row above a config list, laid out as every sky list: its tabs and
- * search on the left; its actions, the Filter button and the create button
- * on the right.
+ * The one row above a config list, laid out as every sky list: its search
+ * and then its tabs on the left; its actions, the Filter button and the
+ * create button on the right.
  */
 export function ListToolbar({ tabs, filter, search, actions, create }: ListToolbarProps) {
   return (

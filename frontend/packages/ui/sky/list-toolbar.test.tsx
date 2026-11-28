@@ -4,17 +4,17 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { ListToolbar } from "./list-toolbar";
 
 describe("ListToolbar", () => {
-  test("lays out tabs and search on the left, then actions, filter and create", () => {
+  test("puts the search first, then tabs, then actions, filter and create", () => {
     const html = renderToStaticMarkup(
       <ListToolbar
-        tabs={<span>TABS</span>}
         search={<span>SEARCH</span>}
+        tabs={<span>TABS</span>}
         actions={<span>ACTIONS</span>}
         filters={<span>FILTER</span>}
         create={<span>CREATE</span>}
       />
     );
-    const order = ["TABS", "SEARCH", 'class="flex-1"', "ACTIONS", "FILTER", "CREATE"].map((part) =>
+    const order = ["SEARCH", "TABS", 'class="flex-1"', "ACTIONS", "FILTER", "CREATE"].map((part) =>
       html.indexOf(part)
     );
     for (const index of order) expect(index).toBeGreaterThan(-1);
