@@ -231,7 +231,9 @@
       "IN_PROGRESS": "In Progress",
       "WAITING_FOR_THIRD_PARTY": "Waiting for 3rd party",
       "IN_REVIEW": "In Review",
-      "DONE": "Done"
+      "DONE": "Done",
+      "filterBy": "Filter by {status}",
+      "filterByWithCount": "Filter by {status} ({count})"
     },
     "missionRank": {
       "XS": "XS",
@@ -1050,7 +1052,11 @@
     "hideChannels": "Hide channels",
     "showBoards": "Show boards",
     "hideBoards": "Hide boards",
-    "tableColumns": "Table columns"
+    "tableColumns": "Table columns",
+    "navigation": "Navigation",
+    "workspace": "Workspace",
+    "toggleSidebar": "Toggle sidebar",
+    "appearance": "Appearance"
   },
   "columns": "Columns",
   "preferences": {
@@ -2240,5 +2246,33 @@
     "save": "Save default",
     "reset": "Reset to built-in layout",
     "discard": "Discard changes"
+  },
+  "appearance": {
+    "title": "Appearance",
+    "description": "Choose how Kazan looks. Your choice is saved to your account, so it follows you to every device.",
+    "saveError": "Could not save your appearance. Try again.",
+    "layout": {
+      "title": "Layout",
+      "description": "The frame around your pages: the menu and the content area.",
+      "modern": "Modern",
+      "modernHint": "Floating menu, top bar and the grid look",
+      "classic": "Classic",
+      "classicHint": "Full-height sidebar, content on a rounded panel"
+    },
+    "theme": {
+      "title": "Theme",
+      "description": "Light, dark or the same as your device. It applies to every Oba app.",
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "background": {
+      "title": "Background",
+      "description": "The page area behind boards, lists and chat.",
+      "grid": "Grid",
+      "plain": "Plain",
+      "mist": "Mist",
+      "slate": "Slate"
+    }
   }
 }

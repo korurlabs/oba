@@ -13,12 +13,14 @@
 @source "../../../packages/ui/src/components/**/*.{ts,tsx}";
 
 /*
- * The sky design has no dark mode, and the theme provider keeps the page
- * light. Kazan and the shared components carry `dark:` classes; tied to the
- * `.dark` class they never apply, where the default would follow the system
- * setting.
+ * Dark mode follows the `.dark` class the theme provider sets on <html> from
+ * the user's theme preference, not the system setting alone, so the `dark:`
+ * classes of Kazan and the shared components are tied to that class.
  */
 @custom-variant dark (&:is(.dark *));
+/* The classic layout: classes a component carries only for the look Kazan had
+   before the grid redesign (rounded controls, soft shadows). */
+@custom-variant classic (&:where([data-kazan-layout="classic"] *));
 
 @theme {
   /*
@@ -158,10 +160,14 @@
       linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) left top / 2px 10px no-repeat,
       linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) right top / 10px 2px no-repeat,
       linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) right top / 2px 10px no-repeat,
-      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) left bottom / 10px 2px no-repeat,
-      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) left bottom / 2px 10px no-repeat,
-      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) right bottom / 10px 2px no-repeat,
-      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) right bottom / 2px 10px no-repeat;
+      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) left bottom / 10px 2px
+        no-repeat,
+      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) left bottom / 2px 10px
+        no-repeat,
+      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) right bottom / 10px 2px
+        no-repeat,
+      linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark)) right bottom / 2px 10px
+        no-repeat;
   }
 
   .kazan-grid-label {
@@ -299,118 +305,129 @@
  * `rounded-xl` or `shadow-lg` cannot bring a soft corner back. They only set
  * corners, hairlines, shadows and background paint, never size or spacing,
  * so no layout depends on them.
+ *
+ * They belong to the modern layout. The classic layout keeps the rounded
+ * corners and plain menus it always had, so the whole set is scoped to a page
+ * that is not classic (a page without the attribute counts as modern).
  */
-:root {
+:root:not([data-kazan-layout="classic"]) {
+  & {
+    /*
+     * Square corners. The sky theme derives rounded-sm, -md, -lg and -xl from
+     * this token; below zero the calc() results clamp to a square corner.
+     */
+    --radius: 0px;
+    --radius-xs: 0px;
+    --radius-2xl: 0px;
+    --radius-3xl: 0px;
+
+    /* One straight bar of the corner bracket colour, layered eight times below. */
+    --kazan-grid-crop: linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark));
+    --kazan-grid-edge: color-mix(in srgb, var(--primary) 28%, transparent);
+    --kazan-grid-shadow:
+      0 18px 40px -20px rgb(47 79 106 / 0.45), 0 2px 6px -2px rgb(47 79 106 / 0.12);
+    --kazan-grid-hover: color-mix(in srgb, var(--primary) 8%, transparent);
+    --kazan-control-edge: color-mix(in srgb, var(--foreground) 24%, transparent);
+  }
+
   /*
-   * Square corners. The sky theme derives rounded-sm, -md, -lg and -xl from
-   * this token; below zero the calc() results clamp to a square corner.
+   * Every floating surface (dialog, alert dialog, sheet, popover, menu, select,
+   * filter panel and those that opt in with .kazan-grid-surface) carries the
+   * full frame: the 16px grid and the four corner brackets, so a panel that
+   * opens over the page reads as part of the same instrument. Both are background layers rather than a pseudo
+   * element, so they stay put in the corners while a long dialog scrolls, and
+   * assistive technology reads nothing new.
    */
-  --radius: 0px;
-  --radius-xs: 0px;
-  --radius-2xl: 0px;
-  --radius-3xl: 0px;
+  :is(
+    [data-slot="dialog-content"],
+    [data-slot="alert-dialog-content"],
+    [data-slot="sheet-content"],
+    [data-slot="popover-content"],
+    [data-slot="dropdown-menu-content"],
+    [data-slot="dropdown-menu-sub-content"],
+    [data-slot="context-menu-content"],
+    [data-slot="context-menu-sub-content"],
+    [data-slot="select-content"],
+    [data-slot="navigation-menu-content"],
+    .kazan-grid-surface
+  ) {
+    border-radius: 0;
+    border-color: var(--kazan-grid-edge);
+    box-shadow: var(--kazan-grid-shadow);
+    background-image:
+      var(--kazan-grid-crop), var(--kazan-grid-crop), var(--kazan-grid-crop),
+      var(--kazan-grid-crop), var(--kazan-grid-crop), var(--kazan-grid-crop),
+      var(--kazan-grid-crop), var(--kazan-grid-crop),
+      linear-gradient(var(--kazan-grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--kazan-grid-line) 1px, transparent 1px);
+    background-size:
+      12px 2px,
+      2px 12px,
+      12px 2px,
+      2px 12px,
+      12px 2px,
+      2px 12px,
+      12px 2px,
+      2px 12px,
+      16px 16px,
+      16px 16px;
+    background-position:
+      left top,
+      left top,
+      right top,
+      right top,
+      left bottom,
+      left bottom,
+      right bottom,
+      right bottom,
+      left top,
+      left top;
+    background-repeat:
+      no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat,
+      repeat, repeat;
+  }
 
-  /* One straight bar of the corner bracket colour, layered eight times below. */
-  --kazan-grid-crop: linear-gradient(var(--kazan-grid-mark), var(--kazan-grid-mark));
-  --kazan-grid-edge: color-mix(in srgb, var(--primary) 28%, transparent);
-  --kazan-grid-shadow: 0 18px 40px -20px rgb(47 79 106 / 0.45), 0 2px 6px -2px rgb(47 79 106 / 0.12);
-  --kazan-grid-hover: color-mix(in srgb, var(--primary) 8%, transparent);
-  --kazan-control-edge: color-mix(in srgb, var(--foreground) 24%, transparent);
-}
+  /* The scrim behind a dialog or sheet: a flat Korur ink tint, no blur, so the page edge stays crisp. */
+  :is(
+    [data-slot="dialog-overlay"],
+    [data-slot="alert-dialog-overlay"],
+    [data-slot="sheet-overlay"]
+  ) {
+    background-color: rgb(22 39 58 / 0.45);
+    backdrop-filter: none;
+  }
 
-/*
- * Every floating surface (dialog, alert dialog, sheet, popover, menu, select,
- * filter panel and those that opt in with .kazan-grid-surface) carries the
- * full frame: the 16px grid and the four corner brackets, so a panel that
- * opens over the page reads as part of the same instrument. Both are background layers rather than a pseudo
- * element, so they stay put in the corners while a long dialog scrolls, and
- * assistive technology reads nothing new.
- */
-:is(
-  [data-slot="dialog-content"],
-  [data-slot="alert-dialog-content"],
-  [data-slot="sheet-content"],
-  [data-slot="popover-content"],
-  [data-slot="dropdown-menu-content"],
-  [data-slot="dropdown-menu-sub-content"],
-  [data-slot="context-menu-content"],
-  [data-slot="context-menu-sub-content"],
-  [data-slot="select-content"],
-  [data-slot="navigation-menu-content"],
-  .kazan-grid-surface
-) {
-  border-radius: 0;
-  border-color: var(--kazan-grid-edge);
-  box-shadow: var(--kazan-grid-shadow);
-  background-image:
-    var(--kazan-grid-crop), var(--kazan-grid-crop), var(--kazan-grid-crop), var(--kazan-grid-crop),
-    var(--kazan-grid-crop), var(--kazan-grid-crop), var(--kazan-grid-crop), var(--kazan-grid-crop),
-    linear-gradient(var(--kazan-grid-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--kazan-grid-line) 1px, transparent 1px);
-  background-size:
-    12px 2px, 2px 12px, 12px 2px, 2px 12px,
-    12px 2px, 2px 12px, 12px 2px, 2px 12px,
-    16px 16px, 16px 16px;
-  background-position:
-    left top, left top, right top, right top,
-    left bottom, left bottom, right bottom, right bottom,
-    left top, left top;
-  background-repeat:
-    no-repeat, no-repeat, no-repeat, no-repeat,
-    no-repeat, no-repeat, no-repeat, no-repeat,
-    repeat, repeat;
-}
+  /*
+   * A dialog's heading leads with the grid label's bow and arrow, at its own
+   * readable size. A heading that already leads with an icon keeps the icon as
+   * its only marker.
+   */
+  :is([data-slot="dialog-title"], [data-slot="alert-dialog-title"], [data-slot="sheet-title"]):not(
+      :has(svg)
+    )::before {
+    content: "";
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-right: 0.5rem;
+    vertical-align: -0.1em;
+    flex-shrink: 0;
+    background-color: var(--kazan-grid-mark);
+    mask: var(--kazan-grid-bow) center / contain no-repeat;
+  }
 
-/* The scrim behind a dialog or sheet: a flat Korur ink tint, no blur, so the page edge stays crisp. */
-:is([data-slot="dialog-overlay"], [data-slot="alert-dialog-overlay"], [data-slot="sheet-overlay"]) {
-  background-color: rgb(22 39 58 / 0.45);
-  backdrop-filter: none;
-}
+  /* Dialog close buttons are square and take the primary colour on hover. */
+  :is([data-slot="dialog-close"], [data-slot="sheet-close"]) {
+    border-radius: 0;
+  }
 
-/*
- * A dialog's heading leads with the grid label's bow and arrow, at its own
- * readable size. A heading that already leads with an icon keeps the icon as
- * its only marker.
- */
-:is([data-slot="dialog-title"], [data-slot="alert-dialog-title"], [data-slot="sheet-title"]):not(:has(svg))::before {
-  content: "";
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  margin-right: 0.5rem;
-  vertical-align: -0.1em;
-  flex-shrink: 0;
-  background-color: var(--kazan-grid-mark);
-  mask: var(--kazan-grid-bow) center / contain no-repeat;
-}
+  /* A command list inside a popover draws on the popover's own frame. */
+  [data-slot="command"] {
+    border-radius: 0;
+  }
 
-/* Dialog close buttons are square and take the primary colour on hover. */
-:is([data-slot="dialog-close"], [data-slot="sheet-close"]) {
-  border-radius: 0;
-}
-
-/* A command list inside a popover draws on the popover's own frame. */
-[data-slot="command"] {
-  border-radius: 0;
-}
-
-/* Menu rows are square; the highlighted row gets a faint primary fill and a primary rule on its leading edge. */
-:is(
-  [data-slot="dropdown-menu-item"],
-  [data-slot="dropdown-menu-checkbox-item"],
-  [data-slot="dropdown-menu-radio-item"],
-  [data-slot="dropdown-menu-sub-trigger"],
-  [data-slot="context-menu-item"],
-  [data-slot="context-menu-checkbox-item"],
-  [data-slot="context-menu-radio-item"],
-  [data-slot="context-menu-sub-trigger"],
-  [data-slot="select-item"],
-  [data-slot="command-item"]
-) {
-  border-radius: 0;
-}
-
-:is(
+  /* Menu rows are square; the highlighted row gets a faint primary fill and a primary rule on its leading edge. */
+  :is(
     [data-slot="dropdown-menu-item"],
     [data-slot="dropdown-menu-checkbox-item"],
     [data-slot="dropdown-menu-radio-item"],
@@ -421,145 +438,525 @@
     [data-slot="context-menu-sub-trigger"],
     [data-slot="select-item"],
     [data-slot="command-item"]
-  ):is([data-highlighted], [data-selected="true"], [data-state="open"]):not([data-disabled]) {
-  background-color: var(--kazan-grid-hover);
-  color: var(--foreground);
-  box-shadow: inset 2px 0 0 var(--primary);
-}
+  ) {
+    border-radius: 0;
+  }
 
-/* A menu's section heading reads as a grid label. */
-:is(
-  [data-slot="dropdown-menu-label"],
-  [data-slot="context-menu-label"],
-  [data-slot="select-label"],
-  [cmdk-group-heading]
-) {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--kazan-grid-ink);
-}
+  :is(
+      [data-slot="dropdown-menu-item"],
+      [data-slot="dropdown-menu-checkbox-item"],
+      [data-slot="dropdown-menu-radio-item"],
+      [data-slot="dropdown-menu-sub-trigger"],
+      [data-slot="context-menu-item"],
+      [data-slot="context-menu-checkbox-item"],
+      [data-slot="context-menu-radio-item"],
+      [data-slot="context-menu-sub-trigger"],
+      [data-slot="select-item"],
+      [data-slot="command-item"]
+    ):is([data-highlighted], [data-selected="true"], [data-state="open"]):not([data-disabled]) {
+    background-color: var(--kazan-grid-hover);
+    color: var(--foreground);
+    box-shadow: inset 2px 0 0 var(--primary);
+  }
 
-/* Tooltips are square plates. */
-[data-slot="tooltip-content"] {
-  border-radius: 0;
+  /* A menu's section heading reads as a grid label. */
+  :is(
+    [data-slot="dropdown-menu-label"],
+    [data-slot="context-menu-label"],
+    [data-slot="select-label"],
+    [cmdk-group-heading]
+  ) {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--kazan-grid-ink);
+  }
+
+  /* Tooltips are square plates. */
+  [data-slot="tooltip-content"] {
+    border-radius: 0;
+  }
+
+  /*
+   * Controls: square, a 1px hairline instead of a thick rounded rim, and a
+   * crisp primary edge on focus. A radio button keeps its circle, because the
+   * circle is what tells it apart from a checkbox.
+   */
+  :is(
+    [data-slot="button"],
+    [data-slot="toggle"],
+    [data-slot="toggle-group"],
+    [data-slot="toggle-group-item"],
+    [data-slot="input"],
+    [data-slot="textarea"],
+    [data-slot="select-trigger"],
+    [data-slot="checkbox"],
+    [data-slot="command-input-wrapper"],
+    [data-slot="tabs-list"],
+    [data-slot="tabs-trigger"]
+  ) {
+    border-radius: 0;
+  }
+
+  /*
+   * The sky theme's --input is white, so a field's rim showed only through its
+   * soft shadow. A flat field needs a visible hairline of its own instead; a
+   * field in error keeps its red edge.
+   */
+  :is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"]) {
+    box-shadow: none;
+  }
+
+  :is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"]):not(
+    [aria-invalid="true"]
+  ) {
+    border-color: var(--kazan-control-edge);
+  }
+
+  :is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"]):hover:not(
+      [aria-invalid="true"],
+      :disabled,
+      [data-disabled]
+    ) {
+    border-color: color-mix(in srgb, var(--primary) 55%, transparent);
+  }
+
+  /*
+   * Focus doubles the primary edge to 2px; a field in error keeps its red edge,
+   * and a borderless field inside its own frame leaves focus to that frame.
+   */
+  :is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"]):is(
+      :focus,
+      :focus-visible,
+      [data-state="open"]
+    ):not([aria-invalid="true"], [class~="border-0"], [class~="border-none"]) {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary);
+  }
+
+  /* A switch becomes a square track with a square thumb, still sliding on the same path. */
+  :is([data-slot="switch"], [data-slot="switch-thumb"]) {
+    border-radius: 0;
+  }
+
+  /*
+   * Tables (the shared ticket table and its relatives): the header is a square
+   * card-coloured strip of mono labels over a primary hairline, not a tinted
+   * band, and a row marks hover and selection with the faint primary fill and
+   * the leading primary rule the menus use. The hairline is an inset shadow,
+   * because the sticky header cells lose a collapsed border while scrolling.
+   */
+  [data-slot="table-head"] {
+    border-radius: 0;
+    background-color: var(--card);
+    box-shadow: inset 0 -1px 0 var(--kazan-grid-edge);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  [data-slot="table-head"]:not(.text-primary) {
+    color: var(--kazan-grid-ink);
+  }
+
+  [data-slot="table-head"] span {
+    font-size: inherit;
+  }
+
+  [data-slot="table-row"]:hover {
+    background-color: var(--kazan-grid-hover);
+  }
+
+  [data-slot="table-row"][data-state="selected"] {
+    background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+    box-shadow: inset 2px 0 0 var(--primary);
+  }
+
+  [data-slot="checkbox"] {
+    box-shadow: none;
+  }
 }
 
 /*
- * Controls: square, a 1px hairline instead of a thick rounded rim, and a
- * crisp primary edge on focus. A radio button keeps its circle, because the
- * circle is what tells it apart from a checkbox.
+ * The page area behind boards, lists and chat. The background belongs to the
+ * scroll container, so a pattern stays fixed to the area instead of sliding
+ * with a long page. Text never sits on the lines: tables and the chat's
+ * message list are solid plates on top of it.
+ *
+ * The user picks the background (`data-kazan-background` on <html>):
+ *   grid   a pale blue sheet with the menu's 16px grid, also the fallback
+ *          when the attribute is missing
+ *   plain  the page colour of the theme, as the classic layout had
+ *   mist   the pale blue sheet without the lines
+ *   slate  a neutral grey sheet
  */
-:is(
-  [data-slot="button"],
-  [data-slot="toggle"],
-  [data-slot="toggle-group"],
-  [data-slot="toggle-group-item"],
-  [data-slot="input"],
-  [data-slot="textarea"],
-  [data-slot="select-trigger"],
-  [data-slot="checkbox"],
-  [data-slot="command-input-wrapper"],
-  [data-slot="tabs-list"],
-  [data-slot="tabs-trigger"]
-) {
-  border-radius: 0;
-}
-
-/*
- * The sky theme's --input is white, so a field's rim showed only through its
- * soft shadow. A flat field needs a visible hairline of its own instead; a
- * field in error keeps its red edge.
- */
-:is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"]) {
-  box-shadow: none;
-}
-
-:is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"]):not([aria-invalid="true"]) {
-  border-color: var(--kazan-control-edge);
-}
-
-:is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"]):hover:not([aria-invalid="true"], :disabled, [data-disabled]) {
-  border-color: color-mix(in srgb, var(--primary) 55%, transparent);
-}
-
-/*
- * Focus doubles the primary edge to 2px; a field in error keeps its red edge,
- * and a borderless field inside its own frame leaves focus to that frame.
- */
-:is([data-slot="input"], [data-slot="textarea"], [data-slot="select-trigger"]):is(:focus, :focus-visible, [data-state="open"]):not([aria-invalid="true"], [class~="border-0"], [class~="border-none"]) {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 1px var(--primary);
-}
-
-/* A switch becomes a square track with a square thumb, still sliding on the same path. */
-:is([data-slot="switch"], [data-slot="switch-thumb"]) {
-  border-radius: 0;
-}
-
-/*
- * Tables (the shared ticket table and its relatives): the header is a square
- * card-coloured strip of mono labels over a primary hairline, not a tinted
- * band, and a row marks hover and selection with the faint primary fill and
- * the leading primary rule the menus use. The hairline is an inset shadow,
- * because the sticky header cells lose a collapsed border while scrolling.
- */
-[data-slot="table-head"] {
-  border-radius: 0;
-  background-color: var(--card);
-  box-shadow: inset 0 -1px 0 var(--kazan-grid-edge);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-[data-slot="table-head"]:not(.text-primary) {
-  color: var(--kazan-grid-ink);
-}
-
-[data-slot="table-head"] span {
-  font-size: inherit;
-}
-
-[data-slot="table-row"]:hover {
-  background-color: var(--kazan-grid-hover);
-}
-
-[data-slot="table-row"][data-state="selected"] {
-  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
-  box-shadow: inset 2px 0 0 var(--primary);
-}
-
-[data-slot="checkbox"] {
-  box-shadow: none;
-}
-
-/*
- * The page area behind boards, lists and chat: a pale blue sheet with the
- * menu's 16px grid. The background belongs to the scroll container, so the
- * grid stays fixed to the area instead of sliding with a long page. Text
- * never sits on the lines: tables and the chat's message list are solid
- * plates on top of it.
- */
-.kazan-canvas {
-  background-color: #f6fbff;
-  background-image:
+:root {
+  --kazan-canvas-color: #f6fbff;
+  --kazan-canvas-image:
     linear-gradient(rgb(47 143 233 / 0.07) 1px, transparent 1px),
     linear-gradient(90deg, rgb(47 143 233 / 0.07) 1px, transparent 1px);
-  background-size: 16px 16px;
 }
 
-.dark .kazan-canvas {
-  background-color: var(--background);
-  background-image:
+:root.dark {
+  --kazan-canvas-color: var(--background);
+  --kazan-canvas-image:
     linear-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1px),
     linear-gradient(90deg, rgb(255 255 255 / 0.04) 1px, transparent 1px);
 }
 
+:root[data-kazan-background="plain"] {
+  --kazan-canvas-color: var(--background);
+  --kazan-canvas-image: none;
+}
+
+:root[data-kazan-background="mist"] {
+  --kazan-canvas-color: #f6fbff;
+  --kazan-canvas-image: none;
+}
+
+:root[data-kazan-background="mist"].dark {
+  --kazan-canvas-color: #0f1a26;
+}
+
+:root[data-kazan-background="slate"] {
+  --kazan-canvas-color: #f5f5f5;
+  --kazan-canvas-image: none;
+}
+
+:root[data-kazan-background="slate"].dark {
+  --kazan-canvas-color: #121212;
+}
+
+.kazan-canvas {
+  background-color: var(--kazan-canvas-color);
+  background-image: var(--kazan-canvas-image, none);
+  background-size: 16px 16px;
+}
+
 .kazan-canvas [data-slot="table"] {
   background-color: var(--card);
+}
+
+/*
+ * Dark mode of the modern layout. The sky stylesheet defines light tokens
+ * only, so the dark ones are set here: a deep navy page with the same Korur
+ * blue as the light theme. Unlayered, like the sky tokens they replace.
+ */
+:root.dark {
+  --background: #0b1622;
+  --foreground: #dbe8f5;
+  --card: #0f1d2b;
+  --card-foreground: #dbe8f5;
+  --popover: #0f1d2b;
+  --popover-foreground: #dbe8f5;
+  --primary: #4aa3ff;
+  --primary-foreground: #0b1622;
+  --primary-light: #16273a;
+  --primary-medium: #274158;
+  --secondary: #16273a;
+  --secondary-foreground: #dbe8f5;
+  --muted: #132232;
+  --muted-foreground: #8ea8c0;
+  --accent: #16273a;
+  --accent-foreground: #e6f0fa;
+  --border: #22384f;
+  --input: #2a4560;
+  --ring: #4aa3ff;
+  --destructive: #f05252;
+  --destructive-foreground: #ffffff;
+
+  --korur-blue-deep: #beddff;
+  --korur-blue-light: #16273a;
+  --korur-blue-accent: #132a40;
+  --color-korur-blue-strong: #7abeff;
+  --color-korur-blue-medium: #274158;
+
+  --success-light: rgb(34 168 75 / 0.16);
+  --error-light: rgb(235 51 51 / 0.16);
+  --warning-text: #fcd435;
+  --warning-light: rgb(252 212 53 / 0.14);
+  --info-light: rgb(74 163 255 / 0.16);
+
+  --sidebar: #0d1a27;
+  --sidebar-foreground: #dbe8f5;
+  --sidebar-primary: #4aa3ff;
+  --sidebar-primary-foreground: #0b1622;
+  --sidebar-accent: #16273a;
+  --sidebar-accent-foreground: #e6f0fa;
+  --sidebar-border: #22384f;
+  --sidebar-ring: #4aa3ff;
+
+  --kazan-grid-line: rgb(74 163 255 / 0.07);
+  --kazan-grid-mark: #4aa3ff;
+  --kazan-grid-ink: #7abeff;
+}
+
+@layer base {
+  .dark body {
+    background: linear-gradient(180deg, #0b1622 0%, #0e2032 100%);
+    background-attachment: fixed;
+  }
+
+  /* The sky stylesheet paints scrollbar thumbs light grey, which glares on a
+     dark page, so dark mode takes the thumb from the border tokens. */
+  .dark ::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--input);
+  }
+}
+
+/*
+ * The modern menu panel in dark mode. The sky stylesheet paints the panel in
+ * light sky colours on its data attributes, so the dark panel is set on the
+ * same attributes: a night sky over the same faint grid.
+ */
+.dark [data-slot="sidebar"] {
+  --sidebar: #0f2133;
+  --sidebar-foreground: #dbe8f5;
+  --sidebar-accent: rgb(74 163 255 / 0.16);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgb(74 163 255 / 0.3);
+  --sidebar-ring: #4aa3ff;
+  --muted-foreground: #9db7cf;
+  --background: #0f2133;
+  --ring: #4aa3ff;
+  --sky-azure: #4aa3ff;
+  --sky-azure-deep: #8cc6ff;
+  --sky-hover-glow: rgb(74 163 255 / 0.35);
+}
+
+.dark [data-slot="sidebar"][data-variant="floating"] [data-slot="sidebar-inner"] {
+  border-color: rgb(74 163 255 / 0.3);
+  background:
+    linear-gradient(rgb(74 163 255 / 0.06) 1px, transparent 1px) 0 0 / 16px 16px,
+    linear-gradient(90deg, rgb(74 163 255 / 0.06) 1px, transparent 1px) 0 0 / 16px 16px,
+    radial-gradient(120% 45% at 0% 0%, rgb(74 163 255 / 0.12), transparent 70%),
+    linear-gradient(
+      180deg,
+      rgb(20 48 76 / 0.92) 0%,
+      rgb(14 33 52 / 0.92) 55%,
+      rgb(11 22 34 / 0.94) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    0 0 26px -10px rgb(74 163 255 / 0.35),
+    0 18px 36px -18px rgb(0 0 0 / 0.6);
+}
+
+.dark [data-slot="sidebar"][data-mobile="true"] {
+  background: linear-gradient(180deg, #14304c 0%, #0e2134 55%, #0b1622 100%);
+}
+
+.dark [data-slot="sidebar"] [data-slot="sidebar-menu-button"]:hover,
+.dark [data-slot="sidebar"] [data-slot="sidebar-menu-button"][data-active="true"] {
+  background: rgb(74 163 255 / 0.14);
+  color: #ffffff;
+}
+
+/*
+ * The classic layout: Kazan as it was before the sky shell, an inset sidebar
+ * on a light grey ground with the content on a white, rounded panel, set in
+ * Inter. Its tokens take the place of the sky ones on <html>, so the shared
+ * components, portalled menus and dialogs included, follow them.
+ */
+:root[data-kazan-layout="classic"] {
+  --primary: #2f8fe9;
+  --primary-foreground: hsl(0 0% 100%);
+  --primary-light: #eaf5ff;
+  --primary-medium: #beddff;
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(0 0% 9%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(0 0% 9%);
+  --card-background: hsl(0 0% 96%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(0 0% 9%);
+  --secondary: hsl(0 0% 96%);
+  --secondary-foreground: hsl(0 0% 45%);
+  --muted: hsl(0 0% 96%);
+  --muted-foreground: hsl(0 0% 45%);
+  --accent: #edf6ff;
+  --accent-foreground: hsl(0 0% 9%);
+  --radius: 0.625rem;
+  --border: hsl(0 0% 90%);
+  --input: hsl(0 0% 90%);
+  --ring: #2f8fe9;
+  --destructive: #dc2626;
+  --destructive-foreground: hsl(0 0% 100%);
+
+  --sidebar: hsl(0 0% 98%);
+  --sidebar-foreground: hsl(240 5.3% 26.1%);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--primary-light);
+  --sidebar-accent-foreground: hsl(0 0% 9%);
+  --sidebar-border: hsl(220 13% 91%);
+  --sidebar-ring: var(--ring);
+
+  --kazan-grid-ink: var(--foreground);
+}
+
+:root[data-kazan-layout="classic"].dark {
+  --primary: #4aa3ff;
+  --primary-foreground: hsl(0 0% 9%);
+  --primary-light: #16273a;
+  --primary-medium: #274158;
+  --background: hsl(0 0% 4%);
+  --foreground: hsl(0 0% 98%);
+  --card: hsl(0 0% 7%);
+  --card-foreground: hsl(0 0% 98%);
+  --card-background: hsl(0 0% 9%);
+  --popover: hsl(0 0% 7%);
+  --popover-foreground: hsl(0 0% 98%);
+  --secondary: hsl(0 0% 18%);
+  --secondary-foreground: hsl(0 0% 98%);
+  --muted: hsl(0 0% 18%);
+  --muted-foreground: hsl(0 0% 64%);
+  --accent: #16273a;
+  --accent-foreground: hsl(0 0% 98%);
+  --border: hsl(0 0% 20%);
+  --input: hsl(0 0% 20%);
+  --ring: #4aa3ff;
+  --destructive: hsl(0 62% 50%);
+  --destructive-foreground: hsl(0 0% 98%);
+
+  --sidebar: rgb(31 31 31);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-accent-foreground: hsl(0 0% 98%);
+  --sidebar-border: hsl(0 0% 20%);
+}
+
+/*
+ * The sky stylesheet sets its own tokens and HUD styles on every sidebar,
+ * the inset one included. The classic sidebar takes the classic tokens back
+ * and the plain shadcn rows: sentence-case group labels, a tinted active row
+ * and no glowing rail.
+ */
+:root[data-kazan-layout="classic"] [data-slot="sidebar"] {
+  --sidebar: hsl(0 0% 98%);
+  --sidebar-foreground: hsl(240 5.3% 26.1%);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--primary-light);
+  --sidebar-accent-foreground: hsl(0 0% 9%);
+  --sidebar-border: hsl(220 13% 91%);
+  --sidebar-ring: var(--ring);
+  --muted-foreground: hsl(0 0% 45%);
+  --background: hsl(0 0% 100%);
+  --ring: var(--primary);
+}
+
+:root[data-kazan-layout="classic"].dark [data-slot="sidebar"] {
+  --sidebar: rgb(31 31 31);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-accent-foreground: hsl(0 0% 98%);
+  --sidebar-border: hsl(0 0% 20%);
+  --muted-foreground: hsl(0 0% 64%);
+  --background: hsl(0 0% 4%);
+}
+
+:root[data-kazan-layout="classic"] [data-slot="sidebar"] [data-slot="sidebar-group-label"] {
+  padding-inline: 0.5rem;
+  color: color-mix(in srgb, var(--sidebar-foreground) 70%, transparent);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+:root[data-kazan-layout="classic"] [data-slot="sidebar"] [data-slot="sidebar-group-label"]::before,
+:root[data-kazan-layout="classic"] [data-slot="sidebar"] [data-slot="sidebar-group-label"]::after,
+:root[data-kazan-layout="classic"] [data-slot="sidebar"] [data-slot="sidebar-menu-button"]::before {
+  content: none;
+}
+
+:root[data-kazan-layout="classic"] [data-slot="sidebar"] [data-slot="sidebar-menu-button"] {
+  border-radius: calc(var(--radius) - 2px);
+  color: var(--sidebar-foreground);
+}
+
+:root[data-kazan-layout="classic"] [data-slot="sidebar"] [data-slot="sidebar-menu-button"]:hover,
+:root[data-kazan-layout="classic"]
+  [data-slot="sidebar"]
+  [data-slot="sidebar-menu-button"][data-active="true"] {
+  background: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
+  box-shadow: none;
+}
+
+:root[data-kazan-layout="classic"]
+  [data-slot="sidebar"]
+  [data-slot="sidebar-menu-button"][data-active="true"] {
+  font-weight: 500;
+}
+
+:root[data-kazan-layout="classic"] [data-slot="sidebar"] [data-slot="sidebar-menu-button"] > svg {
+  color: inherit;
+  filter: none;
+}
+
+/*
+ * Classic type: Inter in place of Alexandria, so every use of the Alexandria
+ * variable inside <body> reads Inter. Unlayered, because the font loader sets
+ * the variable on <body> in an unlayered rule.
+ */
+:root[data-kazan-layout="classic"] body {
+  --font-alexandria: var(--font-inter);
+}
+
+@layer base {
+  /*
+   * Inter's alternate glyphs and semibold headings. The page ground is the
+   * sidebar grey, on which the content panel floats.
+   */
+  :root[data-kazan-layout="classic"] body {
+    background: var(--sidebar);
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  :root[data-kazan-layout="classic"] :is(h1, h2, h3) {
+    font-weight: 600;
+  }
+}
+
+/*
+ * The grid labels, headings, chips and frames of the modern pages, read in
+ * the classic layout as plain text and plain cards: no mono capitals, no
+ * markers, no grid paint or corner brackets.
+ */
+:root[data-kazan-layout="classic"]
+  :is(.kazan-grid-label, .kazan-grid-heading, .kazan-grid-number, .kazan-grid-chip) {
+  font-family: inherit;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+:root[data-kazan-layout="classic"] :is(.kazan-grid-label, .kazan-grid-heading)::before,
+:root[data-kazan-layout="classic"] .kazan-grid-frame::before {
+  display: none;
+}
+
+:root[data-kazan-layout="classic"] .kazan-grid-label {
+  color: var(--muted-foreground);
+}
+
+:root[data-kazan-layout="classic"] .kazan-grid-heading {
+  font-size: 0.875rem;
+}
+
+:root[data-kazan-layout="classic"] .kazan-grid-chip {
+  border-radius: calc(var(--radius) - 4px);
+}
+
+:root[data-kazan-layout="classic"] :is(.kazan-grid-frame, .kazan-card) {
+  border-radius: var(--radius);
+  background-color: var(--card);
+  background-image: none;
 }

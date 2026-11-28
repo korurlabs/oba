@@ -1,31 +1,14 @@
 "use client";
 
+import { Fragment } from "react";
 import { useTranslations } from "next-intl";
-import {
-  DatabaseBackup,
-  Gauge,
-  GitPullRequest,
-  House,
-  LifeBuoy,
-  Newspaper,
-  ShieldAlert,
-  Siren,
-  Ticket,
-  Tornado,
-} from "lucide-react";
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
 } from "@oba/ui/sky/sidebar";
-import { useGetMe } from "@oba/shared/features/users/hooks/use-get-me";
-import { useChatChannelListRealtime } from "@/features/chat/hooks/use-chat-realtime";
-import { ChatChannelPurpose } from "@/features/chat/schemas";
-import { isCyberscoreClosed } from "@/features/cyberscore/lib/cyberscore-access";
-import { BoardsNavItem } from "./sidebar-boards-nav";
-import { ChatChannelNavItem, ChatNavItem } from "./sidebar-chat-nav";
-import { SidebarItem } from "./sidebar-item";
+import { useKazanNavGroups, type KazanNavRow } from "./kazan-nav-items";
 
 /**
  * Kazan's navigation inside the sky shell's floating panel, in two labelled
@@ -43,12 +26,7 @@ import { SidebarItem } from "./sidebar-item";
  */
 export function KazanMenu() {
   const t = useTranslations("sidebar");
-  const { data: meResponse } = useGetMe();
-  const me = meResponse?.data;
-  const currentUserId = me?.id;
-  const cyberscoreClosed = isCyberscoreClosed(me, me?.defaultOrganizationId);
-  // The chat rows follow channel changes on every page, not only in the chat view.
-  useChatChannelListRealtime();
+  const { operations, work } = useKazanNavGroups();
 
   return (
     <>
@@ -56,15 +34,7 @@ export function KazanMenu() {
         <SidebarGroupLabel>{t("operations")}</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu className="gap-0.5">
-            <SidebarItem href="/home" label={t("home")} icon={House} />
-            <SidebarItem href="/incidents" label={t("incidents")} icon={Siren} />
-            <SidebarItem href="/vulnerabilities" label={t("vulnerabilities")} icon={ShieldAlert} />
-            <SidebarItem href="/disaster-drills" label={t("disasterDrills")} icon={LifeBuoy} />
-            <SidebarItem href="/backup-runs" label={t("backupRuns")} icon={DatabaseBackup} />
-            <SidebarItem href="/chaos-engineering" label={t("chaosEngineering")} icon={Tornado} />
-            {!cyberscoreClosed && (
-              <SidebarItem href="/cyberscore" label={t("cyberscore")} icon={Gauge} />
-            )}
+            <NavRows rows={operations} />
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
@@ -72,26 +42,14 @@ export function KazanMenu() {
         <SidebarGroupLabel>{t("work")}</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu className="gap-0.5">
-            <SidebarItem
-              href={`/tickets?assigneeIds=${currentUserId}`}
-              label={t("tickets")}
-              icon={Ticket}
-            />
-            <ChatChannelNavItem
-              purpose={ChatChannelPurpose.DAILY_UPDATES}
-              label={t("dailyUpdates")}
-              icon={Newspaper}
-            />
-            <ChatChannelNavItem
-              purpose={ChatChannelPurpose.PULL_REQUESTS}
-              label={t("pullRequests")}
-              icon={GitPullRequest}
-            />
-            <ChatNavItem />
-            <BoardsNavItem />
+            <NavRows rows={work} />
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
     </>
   );
+}
+
+export function NavRows({ rows }: { rows: KazanNavRow[] }) {
+  return rows.map((row) => <Fragment key={row.id}>{row.node}</Fragment>);
 }

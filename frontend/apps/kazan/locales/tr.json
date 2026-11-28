@@ -207,7 +207,9 @@
       "IN_PROGRESS": "Devam Ediyor",
       "WAITING_FOR_THIRD_PARTY": "Üçüncü taraf bekleniyor",
       "IN_REVIEW": "İncelemede",
-      "DONE": "Tamamlandı"
+      "DONE": "Tamamlandı",
+      "filterBy": "{status} ile filtrele",
+      "filterByWithCount": "{status} ile filtrele ({count})"
     },
     "missionRank": {
       "XS": "XS",
@@ -1050,7 +1052,11 @@
     "hideChannels": "Kanalları gizle",
     "showBoards": "Panoları göster",
     "hideBoards": "Panoları gizle",
-    "tableColumns": "Tablo sütunları"
+    "tableColumns": "Tablo sütunları",
+    "navigation": "Gezinme",
+    "workspace": "Çalışma alanı",
+    "toggleSidebar": "Kenar çubuğunu aç/kapat",
+    "appearance": "Görünüm"
   },
   "columns": "Sütunlar",
   "preferences": {
@@ -2240,5 +2246,33 @@
     "save": "Varsayılanı kaydet",
     "reset": "Yerleşik düzene sıfırla",
     "discard": "Değişiklikleri at"
+  },
+  "appearance": {
+    "title": "Görünüm",
+    "description": "Kazan'ın nasıl görüneceğini seçin. Seçiminiz hesabınıza kaydedilir ve her cihazda sizinle gelir.",
+    "saveError": "Görünüm kaydedilemedi. Tekrar deneyin.",
+    "layout": {
+      "title": "Düzen",
+      "description": "Sayfalarınızın çerçevesi: menü ve içerik alanı.",
+      "modern": "Modern",
+      "modernHint": "Yüzen menü, üst çubuk ve ızgara görünümü",
+      "classic": "Klasik",
+      "classicHint": "Tam boy kenar çubuğu, içerik yuvarlak bir panelde"
+    },
+    "theme": {
+      "title": "Tema",
+      "description": "Açık, koyu veya cihazınızla aynı. Tüm Oba uygulamalarında geçerlidir.",
+      "system": "Sistem",
+      "light": "Açık",
+      "dark": "Koyu"
+    },
+    "background": {
+      "title": "Arka plan",
+      "description": "Panoların, listelerin ve sohbetin arkasındaki alan.",
+      "grid": "Izgara",
+      "plain": "Düz",
+      "mist": "Sis",
+      "slate": "Arduvaz"
+    }
   }
 }

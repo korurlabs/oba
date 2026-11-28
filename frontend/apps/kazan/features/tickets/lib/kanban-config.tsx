@@ -26,19 +26,22 @@ import { sortByPriority } from "@/features/tickets/lib/ticket-priority-order";
 // ---------------------------------------------------------------------------
 
 /**
- * The status columns in board order. A column is told apart by its label and
- * its position, not by a colour.
+ * The status columns in board order. In the modern layout a column is told
+ * apart by its label and its position, not by a colour; the classic layout
+ * keeps the coloured edge on the column header it always had.
  */
 export interface KanbanColumn {
   id: TicketStatus;
+  /** The coloured left edge of the column header, in the classic layout only. */
+  classicEdgeClass: string;
 }
 
 export const KANBAN_COLUMNS: KanbanColumn[] = [
-  { id: TicketStatus.TODO },
-  { id: TicketStatus.IN_PROGRESS },
-  { id: TicketStatus.WAITING_FOR_THIRD_PARTY },
-  { id: TicketStatus.IN_REVIEW },
-  { id: TicketStatus.DONE },
+  { id: TicketStatus.TODO, classicEdgeClass: "classic:border-l-gray-300" },
+  { id: TicketStatus.IN_PROGRESS, classicEdgeClass: "classic:border-l-blue-400" },
+  { id: TicketStatus.WAITING_FOR_THIRD_PARTY, classicEdgeClass: "classic:border-l-amber-400" },
+  { id: TicketStatus.IN_REVIEW, classicEdgeClass: "classic:border-l-purple-400" },
+  { id: TicketStatus.DONE, classicEdgeClass: "classic:border-l-green-400" },
 ];
 
 /**
@@ -134,7 +137,7 @@ export type DropSlotResolver<S extends string = string> = (cardId: string) => S 
  * an earlier drop alone.
  */
 export function useDropHandoff<T extends { id: string }, S extends string = string>(
-  resolveSlot: DropSlotResolver<S>,
+  resolveSlot: DropSlotResolver<S>
 ) {
   const [activeCard, setActiveCard] = useState<T | null>(null);
   const [pendingDrop, setPendingDrop] = useState<PendingDrop<S> | null>(null);
@@ -202,7 +205,7 @@ export function useDropHandoff<T extends { id: string }, S extends string = stri
 export function useKanbanDropHandoff<T extends KanbanDragCard>(tickets: T[]) {
   const resolveSlot = useCallback<DropSlotResolver<TicketStatus>>(
     (ticketId) => tickets.find((ticket) => ticket.id === ticketId)?.status ?? null,
-    [tickets],
+    [tickets]
   );
 
   const { activeCard, pendingDrop, beginDrag, releaseDrag, handOffTo } = useDropHandoff<
@@ -215,7 +218,7 @@ export function useKanbanDropHandoff<T extends KanbanDragCard>(tickets: T[]) {
   const displayTickets = useMemo(() => {
     if (!pendingId || !pendingStatus) return tickets;
     return tickets.map((ticket) =>
-      ticket.id === pendingId ? { ...ticket, status: pendingStatus } : ticket,
+      ticket.id === pendingId ? { ...ticket, status: pendingStatus } : ticket
     );
   }, [tickets, pendingId, pendingStatus]);
 
@@ -277,8 +280,9 @@ export function DroppableColumn({ id, children, isOver }: DroppableColumnProps) 
     <div
       ref={setNodeRef}
       className={cn(
-        "flex flex-1 flex-col gap-3 rounded-none border border-dashed border-transparent p-0 transition-colors",
-        isOver && "border-primary bg-primary/5 dark:border-border dark:bg-muted",
+        "classic:rounded-lg classic:border-2 flex flex-1 flex-col gap-3 rounded-none border border-dashed border-transparent p-0 transition-colors",
+        isOver &&
+          "border-primary bg-primary/5 dark:border-border dark:bg-muted classic:bg-primary/10"
       )}
     >
       {children}

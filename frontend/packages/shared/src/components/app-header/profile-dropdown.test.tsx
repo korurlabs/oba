@@ -102,6 +102,7 @@ afterAll(() => {
 
 const { ProfileDropdown } = await import("./profile-dropdown");
 const { LanguageSwitcherSubMenu } = await import("../language-switcher");
+const { SidebarProvider } = await import("@oba/ui/sky/sidebar");
 
 function classesOf(html: string, slot: string): string[] {
   return [...html.matchAll(new RegExp(`data-slot="${slot}"[^>]*class="([^"]*)"`, "g"))].map(
@@ -192,5 +193,35 @@ describe("ProfileDropdown", () => {
     expect(html).toContain('data-value="en" data-state="unchecked"');
     const current = html.match(/data-value="nl" data-state="checked" class="([^"]*)"/)?.[1];
     expect(current).toContain("data-[state=checked]:before:w-0.5");
+  });
+});
+
+describe("ProfileDropdown sidebar variant", () => {
+  // The sidebar trigger is a sidebar menu button, which needs its provider.
+  const html = renderToStaticMarkup(
+    <SidebarProvider>
+      <ProfileDropdown variant="sidebar" showDarkModeSoon={false} extraMenuContent={withLanguage} />
+    </SidebarProvider>
+  );
+
+  test("keeps the theme's rounded menu", () => {
+    const [content] = classesOf(html, "content");
+    expect(content).toBe("border-border w-56 rounded-xl border p-2 shadow-xl");
+    for (const item of classesOf(html, "item")) {
+      expect(item).toContain("rounded-lg");
+      expect(item).not.toContain("rounded-none");
+    }
+  });
+
+  test("leaves out the Dark mode row when the app has a theme of its own", () => {
+    expect(html).not.toContain("darkMode");
+    // Profile, the two languages of the plain submenu, and Log out.
+    expect(classesOf(html, "item")).toHaveLength(4);
+  });
+
+  test("keeps the plain language submenu", () => {
+    expect(html).not.toContain('data-slot="radio-group"');
+    const [subContent] = classesOf(html, "sub-content");
+    expect(subContent).toBe("min-w-[180px]");
   });
 });

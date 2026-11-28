@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2 } from "lucide-react";
 import { SprintList } from "@/features/sprints/components/sprint-list";
@@ -18,6 +19,7 @@ import { TicketDragOverlayCard } from "@/features/all/components/ticket-drag-ove
 import { useAllPage } from "@/features/all/hooks/use-all-page";
 import { useAllSectionDnd } from "@/features/all/hooks/use-all-section-dnd";
 import { useTicketColumnToggleItems } from "@/features/tickets/hooks/use-ticket-column-toggle-items";
+import { groupListRows, listWorkItems } from "@/lib/utils/ticket-groups";
 import {
   ALL_BACKLOG_CONTAINER_ID,
   ALL_SPRINT_CONTAINER_ID,
@@ -65,6 +67,17 @@ export function AllPageView({ boardId }: AllPageViewProps) {
     canMove: canEdit,
   });
 
+  // The work items each table lists (parents and orphan sub-tickets), counted
+  // by the status chips of the classic layout.
+  const sprintWorkItems = useMemo(
+    () => listWorkItems(groupListRows(dnd.sprintTickets)),
+    [dnd.sprintTickets]
+  );
+  const backlogWorkItems = useMemo(
+    () => listWorkItems(groupListRows(dnd.backlogTickets)),
+    [dnd.backlogTickets]
+  );
+
   return (
     <div className="flex h-full flex-col">
       <AllToolbar boardId={boardId} page={page} columnToggleItems={columnToggleItems} />
@@ -93,6 +106,9 @@ export function AllPageView({ boardId }: AllPageViewProps) {
                     <div className="px-6">
                       <SprintSectionHeader
                         currentSprint={page.currentSprint}
+                        tickets={sprintWorkItems}
+                        selectedStatuses={page.filters.statuses ?? undefined}
+                        onStatusToggle={page.toggleStatusFilter}
                         sprintContext={
                           <SprintContext
                             sprints={page.sprints}
@@ -162,6 +178,9 @@ export function AllPageView({ boardId }: AllPageViewProps) {
                 <section className="flex flex-col gap-2">
                   <div className="px-6">
                     <BacklogSectionHeader
+                      tickets={backlogWorkItems}
+                      selectedStatuses={page.filters.statuses ?? undefined}
+                      onStatusToggle={page.toggleStatusFilter}
                       onAddTicket={canCreateTickets ? page.openBacklogAddTicketDialog : undefined}
                     />
                   </div>

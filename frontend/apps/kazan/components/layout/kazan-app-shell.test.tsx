@@ -14,6 +14,7 @@ type Role = "OWNER" | "MEMBER";
 
 let pathname: string;
 let role: Role;
+let layout: "modern" | "classic";
 
 const actualMe = { ...(await import("@oba/shared/features/users/hooks/use-get-me")) };
 const actualNavigation = { ...(await import("@oba/shared/libs/i18n/navigation")) };
@@ -24,6 +25,11 @@ const actualSwitcher = { ...(await import("@oba/shared/components/app-header/app
 const actualProfile = { ...(await import("@oba/shared/components/app-header/profile-dropdown")) };
 const actualLanguage = { ...(await import("@oba/shared/components/language-switcher")) };
 const actualMenu = { ...(await import("./kazan-menu")) };
+const actualNavItems = { ...(await import("./kazan-nav-items")) };
+const actualAppearanceItem = { ...(await import("./appearance-menu-item")) };
+const actualAppearance = {
+  ...(await import("@/features/settings/hooks/use-kazan-appearance")),
+};
 const actualGate = { ...(await import("./app-access-gate")) };
 const actualSync = { ...(await import("./account-session-sync")) };
 const actualTitle = { ...(await import("./chat-unread-title")) };
@@ -75,6 +81,26 @@ mock.module("@oba/shared/components/language-switcher", () => ({
   LanguageSwitcherSubMenu: () => <div data-language="" />,
 }));
 mock.module("./kazan-menu", () => ({ ...actualMenu, KazanMenu: () => <div data-menu="" /> }));
+// The rows render a marker each, so a test sees the order the classic
+// sidebar lists them in.
+mock.module("./kazan-nav-items", () => ({
+  ...actualNavItems,
+  useKazanNavGroups: () => ({
+    operations: ["home", "incidents", "cyberscore"].map((id) => ({
+      id,
+      node: <li data-row={id} />,
+    })),
+    work: ["tickets", "chats", "boards"].map((id) => ({ id, node: <li data-row={id} /> })),
+  }),
+}));
+mock.module("./appearance-menu-item", () => ({
+  ...actualAppearanceItem,
+  AppearanceMenuItem: () => <div data-appearance-link="" />,
+}));
+mock.module("@/features/settings/hooks/use-kazan-appearance", () => ({
+  ...actualAppearance,
+  useKazanAppearance: () => ({ layout, background: layout === "classic" ? "plain" : "grid" }),
+}));
 mock.module("./app-access-gate", () => ({
   ...actualGate,
   AppAccessGate: ({ children }: { children?: ReactNode }) => <div data-gate="">{children}</div>,
@@ -100,6 +126,9 @@ afterAll(() => {
   mock.module("@oba/shared/components/app-header/profile-dropdown", () => actualProfile);
   mock.module("@oba/shared/components/language-switcher", () => actualLanguage);
   mock.module("./kazan-menu", () => actualMenu);
+  mock.module("./kazan-nav-items", () => actualNavItems);
+  mock.module("./appearance-menu-item", () => actualAppearanceItem);
+  mock.module("@/features/settings/hooks/use-kazan-appearance", () => actualAppearance);
   mock.module("./app-access-gate", () => actualGate);
   mock.module("./account-session-sync", () => actualSync);
   mock.module("./chat-unread-title", () => actualTitle);
@@ -132,6 +161,7 @@ const footerOf = (html: string): string => html.slice(html.indexOf('data-sidebar
 beforeEach(() => {
   pathname = "/home";
   role = "MEMBER";
+  layout = "modern";
 });
 
 describe("KazanAppShell top bar", () => {
@@ -169,6 +199,10 @@ describe("KazanAppShell top bar", () => {
 
   test("offers the language submenu to everyone", () => {
     expect(markup()).toContain("data-language");
+  });
+
+  test("links the appearance settings from the profile menu", () => {
+    expect(between(markup(), "data-profile-menu", "</header>")).toContain("data-appearance-link");
   });
 
   test("has no Organizations row, not even for an owner", () => {
@@ -242,6 +276,79 @@ describe("KazanAppShell page area", () => {
   test("mounts the session effects outside the gate, so every page runs them", () => {
     const html = markup();
     const gate = html.indexOf("data-gate");
+    for (const effect of ["session-sync", "incident-alert", "unread-title"]) {
+      const at = html.indexOf(`data-effect="${effect}"`);
+      expect(at).toBeGreaterThan(-1);
+      expect(at).toBeLessThan(gate);
+    }
+  });
+});
+
+describe("KazanAppShell classic layout", () => {
+  beforeEach(() => {
+    layout = "classic";
+  });
+
+  test("has no top bar and draws the inset sidebar beside an inset content panel", () => {
+    const html = markup();
+    expect(html).not.toContain("<header");
+    expect(html).toContain('data-variant="inset"');
+    expect(html).toContain('data-collapsible=""');
+    expect(html).toContain('data-slot="sidebar-inset"');
+    expect(html.indexOf('data-variant="inset"')).toBeLessThan(
+      html.indexOf('data-slot="sidebar-inset"')
+    );
+  });
+
+  test("puts the organization selector and the app switcher in the sidebar header", () => {
+    const header = between(markup(), 'data-sidebar="header"', 'data-sidebar="content"');
+    expect(header).toContain('data-selector="KAZAN"');
+    expect(header).toContain('data-switcher="kazan"');
+  });
+
+  test("lists the rows in one group: Home and Tickets first, then operations, then work, then Settings", () => {
+    const content = between(markup(), 'data-sidebar="content"', 'data-sidebar="footer"');
+    expect(content).toContain(en.sidebar.navigation);
+    const order = ["home", "tickets", "incidents", "cyberscore", "chats", "boards"].map((id) =>
+      content.indexOf(`data-row="${id}"`)
+    );
+    expect(order[0]).toBeGreaterThan(-1);
+    expect([...order].sort((a, b) => a - b)).toEqual(order);
+    const settings = content.indexOf('href="/settings/columns"');
+    expect(settings).toBeGreaterThan(order[order.length - 1] ?? 0);
+  });
+
+  test("keeps the CLI page and the account menu in the sidebar foot", () => {
+    const footer = footerOf(markup());
+    expect(footer).toContain('href="/settings/cli"');
+    expect(footer).toContain("data-profile-menu");
+    expect(footer).toContain("data-appearance-link");
+    expect(footer).toContain("data-language");
+  });
+
+  test("shows the sidebar toggle bar in the content area outside a board", () => {
+    const inset = markup().slice(markup().indexOf('data-slot="sidebar-inset"'));
+    expect(inset).toContain(`aria-label="${en.sidebar.toggleSidebar}"`);
+    expect(inset.indexOf('data-slot="sidebar-trigger"')).toBeLessThan(inset.indexOf("data-gate"));
+  });
+
+  test("hides the toggle bar while the content holds a board bar, on any path", () => {
+    // A /board/ path without a board bar (an unknown board, Kazan shut) keeps
+    // the bar, so the hiding hangs on the board bar's marker, not the path.
+    pathname = "/board/ops/all";
+    const inset = markup().slice(markup().indexOf('data-slot="sidebar-inset"'));
+    expect(inset.slice(0, inset.indexOf(">"))).toContain("group/classic-content");
+    const at = inset.indexOf('data-slot="sidebar-trigger"');
+    expect(at).toBeGreaterThan(-1);
+    const row = inset.slice(inset.lastIndexOf("<div", at), at);
+    expect(row).toContain("group-has-[[data-board-bar]]/classic-content:hidden");
+  });
+
+  test("keeps the page body: canvas, gate and the session effects outside it", () => {
+    const html = markup();
+    expect(html).toContain("kazan-canvas");
+    const gate = html.indexOf("data-gate");
+    expect(gate).toBeLessThan(html.indexOf("data-page"));
     for (const effect of ["session-sync", "incident-alert", "unread-title"]) {
       const at = html.indexOf(`data-effect="${effect}"`);
       expect(at).toBeGreaterThan(-1);

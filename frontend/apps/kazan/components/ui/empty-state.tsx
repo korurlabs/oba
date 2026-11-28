@@ -26,7 +26,7 @@ export function EmptyState({ Icon, title, description, action, secondaryAction }
     <div className="flex h-full flex-col items-center justify-center p-6 text-center">
       {/* A dashed square, as an empty kanban slot: the place is ready, nothing is in it yet. */}
       {Icon && (
-        <div className="border-primary/40 mb-6 flex h-20 w-20 items-center justify-center border border-dashed">
+        <div className="border-primary/40 classic:rounded-full classic:border-0 classic:bg-primary/10 mb-6 flex h-20 w-20 items-center justify-center border border-dashed">
           <Icon className="text-primary h-10 w-10" />
         </div>
       )}

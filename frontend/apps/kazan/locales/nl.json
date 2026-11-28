@@ -207,7 +207,9 @@
       "IN_PROGRESS": "In Uitvoering",
       "WAITING_FOR_THIRD_PARTY": "Wacht op derde partij",
       "IN_REVIEW": "In Review",
-      "DONE": "Klaar"
+      "DONE": "Klaar",
+      "filterBy": "Filter op {status}",
+      "filterByWithCount": "Filter op {status} ({count})"
     },
     "missionRank": {
       "XS": "XS",
@@ -1050,7 +1052,11 @@
     "hideChannels": "Kanalen verbergen",
     "showBoards": "Borden tonen",
     "hideBoards": "Borden verbergen",
-    "tableColumns": "Tabelkolommen"
+    "tableColumns": "Tabelkolommen",
+    "navigation": "Navigatie",
+    "workspace": "Werkruimte",
+    "toggleSidebar": "Zijbalk in-/uitklappen",
+    "appearance": "Weergave"
   },
   "columns": "Kolommen",
   "preferences": {
@@ -2240,5 +2246,33 @@
     "save": "Standaard opslaan",
     "reset": "Herstellen naar ingebouwde indeling",
     "discard": "Wijzigingen negeren"
+  },
+  "appearance": {
+    "title": "Weergave",
+    "description": "Kies hoe Kazan eruitziet. Je keuze wordt in je account bewaard en volgt je naar elk apparaat.",
+    "saveError": "Je weergave kon niet worden opgeslagen. Probeer het opnieuw.",
+    "layout": {
+      "title": "Indeling",
+      "description": "Het kader rond je pagina's: het menu en het inhoudsgebied.",
+      "modern": "Modern",
+      "modernHint": "Zwevend menu, bovenbalk en het rasterontwerp",
+      "classic": "Klassiek",
+      "classicHint": "Zijbalk over de volle hoogte, inhoud op een afgerond paneel"
+    },
+    "theme": {
+      "title": "Thema",
+      "description": "Licht, donker of gelijk aan je apparaat. Het geldt voor elke Oba-app.",
+      "system": "Systeem",
+      "light": "Licht",
+      "dark": "Donker"
+    },
+    "background": {
+      "title": "Achtergrond",
+      "description": "Het gebied achter borden, lijsten en chat.",
+      "grid": "Raster",
+      "plain": "Effen",
+      "mist": "Nevel",
+      "slate": "Leisteen"
+    }
   }
 }

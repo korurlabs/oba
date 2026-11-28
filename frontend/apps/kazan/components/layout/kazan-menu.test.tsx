@@ -177,8 +177,8 @@ describe("KazanMenu", () => {
     const html = markup();
     expect(html.match(/data-sidebar="group-label"/g)).toHaveLength(2);
     expect(html.match(/data-sidebar="group"/g)).toHaveLength(2);
-    expect(html).not.toContain(">Navigation<");
-    expect(sidebar).not.toHaveProperty("navigation");
+    // The single "Navigation" group belongs to the classic sidebar only.
+    expect(html).not.toContain(`>${sidebar.navigation}<`);
   });
 
   test("links Field, Incidents, Vulnerabilities, Disaster Drills, Backup Runs, Chaos Engineering, Cyberscore and Chats to their pages", () => {

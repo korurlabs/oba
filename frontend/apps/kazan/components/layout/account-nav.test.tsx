@@ -49,10 +49,11 @@ beforeEach(() => {
 });
 
 describe("AccountNav", () => {
-  test("shows only Kazan's tabs: Table columns, Alerts, then Download CLI", () => {
+  test("shows only Kazan's tabs: Table columns, Alerts, Appearance, then Download CLI", () => {
     expect(tabs(markup()).map((row) => [row[0], row[1]])).toEqual([
       ["/settings/columns", en.sidebar.tableColumns],
       ["/settings/alerts", en.sidebar.alerts],
+      ["/settings/appearance", en.sidebar.appearance],
       ["/settings/cli", en.sidebar.downloads],
     ]);
   });

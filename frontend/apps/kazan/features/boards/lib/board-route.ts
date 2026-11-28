@@ -15,6 +15,7 @@ import type { ApiResponse } from "@oba/shared/schema";
 import { isApiError } from "@oba/shared/api/axios";
 import { getBoard, getBoardBySlug } from "../api";
 import type { BoardListResponse } from "../schemas";
+import type { KazanLayout } from "@/lib/kazan-appearance";
 
 /** The tabs of a board page, each a fixed segment after the board slug. */
 export const BOARD_TAB = {
@@ -43,6 +44,27 @@ export const BOARD_TAB_ORDER: readonly BoardTab[] = [
  * the sidebar, the board cards). It is the first tab, the current sprint.
  */
 export const BOARD_DEFAULT_TAB: BoardTab = BOARD_TAB.sprint;
+
+/**
+ * The tab order of the classic layout, as Kazan listed its tabs before the
+ * grid redesign: All, the sprint and the backlog on one page, comes first.
+ */
+export const CLASSIC_BOARD_TAB_ORDER: readonly BoardTab[] = [
+  BOARD_TAB.all,
+  BOARD_TAB.sprint,
+  BOARD_TAB.backlog,
+  BOARD_TAB.roadmap,
+];
+
+/** The tab order of a layout. */
+export function boardTabOrder(layout: KazanLayout): readonly BoardTab[] {
+  return layout === "classic" ? CLASSIC_BOARD_TAB_ORDER : BOARD_TAB_ORDER;
+}
+
+/** The tab a board opens on in a layout: its first tab, All in the classic layout. */
+export function boardDefaultTab(layout: KazanLayout): BoardTab {
+  return layout === "classic" ? BOARD_TAB.all : BOARD_DEFAULT_TAB;
+}
 
 /** The segment of the ticket page, `/board/<slug>/ticket/<KEY>`. */
 export const BOARD_TICKET_SEGMENT = "ticket";

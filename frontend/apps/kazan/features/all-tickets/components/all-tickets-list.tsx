@@ -12,6 +12,8 @@ import { useTranslations } from "next-intl";
 import type { VisibilityState } from "@tanstack/react-table";
 import type { TicketListResponse } from "@/features/tickets/schemas";
 import { useSearchPathFilter } from "@/features/tickets/lib/search-match";
+import { TicketStatusSummary } from "@/features/tickets/components/ticket-status-summary";
+import { useKazanAppearance } from "@/features/settings/hooks/use-kazan-appearance";
 import { SenseyTable } from "@oba/shared/components/sensey-table";
 import { useAllTicketColumns } from "../hooks/use-all-ticket-columns";
 import type { AllTicketListResponse } from "../schemas";
@@ -53,6 +55,7 @@ export function AllTicketsList({
   const subRowFilter = useSearchPathFilter<TicketListResponse>(search);
   const t = useTranslations();
   const columns = useAllTicketColumns({ onCopyLink });
+  const { layout } = useKazanAppearance();
 
   // Filter to parent tickets only (sub-tickets rendered as hierarchy)
   const parentTickets = useMemo(() => {
@@ -71,6 +74,10 @@ export function AllTicketsList({
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-hidden p-6">
+      {/* The classic layout keeps the per-status totals above the table. */}
+      {layout === "classic" && (
+        <TicketStatusSummary tickets={parentTickets as TicketListResponse[]} />
+      )}
       <SenseyTable<TicketListResponse>
         columns={columns}
         data={parentTickets as TicketListResponse[]}

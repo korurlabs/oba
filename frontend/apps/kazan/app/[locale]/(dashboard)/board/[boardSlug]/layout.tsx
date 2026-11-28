@@ -1,11 +1,13 @@
-import { Suspense } from 'react';
-import { BoardTabs } from '@/components/layout/board-tabs';
-import { BoardBarSlotProvider } from '@/components/layout/board-bar-slot';
-import { BoardRoleProvider } from '@/features/boards/providers/board-role-provider';
-import { findBoardRoute } from '@/features/boards/lib/board-route';
-import { Skeleton } from '@/components/ui/skeleton';
-import { isKazanClosedOnServer } from '@/components/layout/kazan-access-server';
-import { UnknownBoardGate } from './unknown-board-gate';
+import { Suspense } from "react";
+import { BoardTabs } from "@/components/layout/board-tabs";
+import { BoardBarSlotProvider } from "@/components/layout/board-bar-slot";
+import { BoardRoleProvider } from "@/features/boards/providers/board-role-provider";
+import { findBoardRoute } from "@/features/boards/lib/board-route";
+import { Skeleton } from "@/components/ui/skeleton";
+import { isKazanClosedOnServer } from "@/components/layout/kazan-access-server";
+import { loadServerAppearance } from "@/components/layout/kazan-appearance-server";
+import type { KazanLayout } from "@/lib/kazan-appearance";
+import { UnknownBoardGate } from "./unknown-board-gate";
 
 interface BoardLayoutProps {
   children: React.ReactNode;
@@ -23,10 +25,7 @@ interface BoardLayoutProps {
  * the lookup and the no-access panel takes the place of the board, so the
  * layout skips both the lookup and the board chrome.
  */
-export default async function BoardLayout({
-  children,
-  params,
-}: BoardLayoutProps) {
+export default async function BoardLayout({ children, params }: BoardLayoutProps) {
   if (await isKazanClosedOnServer()) {
     return <>{children}</>;
   }
@@ -37,6 +36,7 @@ export default async function BoardLayout({
     return <UnknownBoardGate>{children}</UnknownBoardGate>;
   }
   const { board, legacy } = resolution;
+  const { layout } = await loadServerAppearance();
 
   // Every page under an id-based URL redirects to its slug URL, so the
   // board chrome is not rendered for the moment it would show.
@@ -49,7 +49,7 @@ export default async function BoardLayout({
       <BoardBarSlotProvider>
         <div className="flex h-full flex-col">
           {/* The board bar: name, tabs, the page's view controls and settings */}
-          <Suspense fallback={<BoardTabsSkeleton />}>
+          <Suspense fallback={<BoardTabsSkeleton layout={layout} />}>
             <BoardTabs boardId={board.id} />
           </Suspense>
 
@@ -62,9 +62,12 @@ export default async function BoardLayout({
   );
 }
 
-function BoardTabsSkeleton() {
+/** The board bar's placeholder, in the shape of the user's layout. */
+function BoardTabsSkeleton({ layout }: { layout: KazanLayout }) {
+  if (layout === "classic") return <ClassicBoardTabsSkeleton />;
+
   return (
-    <div className="border-b border-border bg-card px-4 py-3 lg:px-6">
+    <div className="border-border bg-card border-b px-4 py-3 lg:px-6">
       {/* Mirrors BoardTabs: the name and the tabs on the left, the controls
         on the right, which wrap under the tabs when the row is narrow. */}
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
@@ -79,6 +82,39 @@ function BoardTabsSkeleton() {
           <Skeleton className="h-8 w-32" />
           <Skeleton className="h-8 w-20" />
           <Skeleton className="h-8 w-8" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ClassicBoardTabsSkeleton() {
+  return (
+    <div className="border-border bg-card border-b px-6 py-3" data-board-bar="">
+      {/* Mirrors the phone layout of the classic bar: below `md` the tabs take
+        a row of their own under the breadcrumb and the actions, so the
+        placeholder fits a phone and the header does not jump when it loads. */}
+      <div className="flex items-center justify-between max-md:flex-wrap max-md:justify-start max-md:gap-x-3 max-md:gap-y-3">
+        <div className="flex items-center gap-3 max-md:contents">
+          {/* The sidebar toggle and its separator, which lead the bar */}
+          <div className="-ml-2 flex items-center gap-2">
+            <Skeleton className="size-7 rounded-md" />
+            <Skeleton className="h-4 w-px" />
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Skeleton className="h-4 w-4" />
+            <Skeleton className="h-4 w-4" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+          <Skeleton className="h-5 w-px max-md:hidden" />
+          <div className="flex items-center gap-6 max-md:order-last max-md:basis-full">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-4 w-12" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2 max-md:ml-auto">
+          <Skeleton className="h-8 w-8 rounded-md" />
+          <Skeleton className="h-8 w-20 rounded-md" />
         </div>
       </div>
     </div>
