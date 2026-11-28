@@ -8,8 +8,22 @@ import { Button } from "./button";
 /** Where the back link above a heading leads, and its translated text, such as "All campaigns". */
 export type PageHeadingBack = { href: string; label: string };
 
+/**
+ * How the title is set. `mono` is for a title that is a file path or another
+ * machine name: monospace at body size, broken anywhere so a long path wraps
+ * instead of widening the page.
+ */
+export type PageHeadingTitleVariant = "default" | "mono";
+
+const TITLE_CLASS: Record<PageHeadingTitleVariant, string> = {
+  default: "break-words",
+  mono: "min-w-0 font-mono text-base break-all",
+};
+
 export type PageHeadingProps = {
   title: string;
+  /** Defaults to `default`, the page title style. */
+  titleVariant?: PageHeadingTitleVariant;
   /**
    * A line on what the page holds. A string is set as muted text; a detail
    * page may pass its own row instead, such as badges and dates.
@@ -31,6 +45,7 @@ export type PageHeadingProps = {
  */
 export function PageHeading({
   title,
+  titleVariant = "default",
   description,
   actions,
   back,
@@ -39,7 +54,7 @@ export function PageHeading({
   const heading = (
     <div data-slot="page-heading" className="flex flex-wrap items-end justify-between gap-4">
       <div className="flex min-w-0 flex-col gap-1">
-        <h1 className="break-words">{title}</h1>
+        <h1 className={TITLE_CLASS[titleVariant]}>{title}</h1>
         {typeof description === "string"
           ? description !== "" && <p className="text-muted-foreground">{description}</p>
           : description}

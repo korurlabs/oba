@@ -15,6 +15,30 @@ describe("PageHeading", () => {
     expect(html).not.toContain("<a");
   });
 
+  test("sets a file path title in monospace with the same description, actions and back link", () => {
+    const html = renderToStaticMarkup(
+      <PageHeading
+        title=".agents/rules/core.md"
+        titleVariant="mono"
+        description="The rules shared by every repository."
+        actions={<button>EDIT</button>}
+        back={{ href: "/rules", label: "All rules" }}
+      />
+    );
+    expect(html).toContain(
+      '<h1 class="min-w-0 font-mono text-base break-all">.agents/rules/core.md</h1>'
+    );
+    expect(html).not.toContain("break-words");
+    expect(html).toContain(
+      '<p class="text-muted-foreground">The rules shared by every repository.</p>'
+    );
+    expect(html).toContain('class="flex min-w-0 flex-col gap-1"');
+    expect(html).toContain('class="flex flex-col gap-6"');
+    expect(html).toContain('href="/rules"');
+    expect(html.indexOf("All rules")).toBeLessThan(html.indexOf("<h1"));
+    expect(html.indexOf("core.md")).toBeLessThan(html.indexOf("EDIT"));
+  });
+
   test("leaves out an empty description and the actions group without actions", () => {
     const html = renderToStaticMarkup(<PageHeading title="Campaigns" description="" />);
     expect(html).not.toContain("<p");
