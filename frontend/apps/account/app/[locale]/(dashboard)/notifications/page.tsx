@@ -24,8 +24,6 @@ export default async function NotificationsPage() {
       <PageHeading title={t("title")} description={t("subtitle")} />
 
       <ComingSoonPanel
-        id="notifications-heading"
-        title={t("title")}
         description={t("panelSubtitle")}
         body={t("panelDescription")}
         comingSoon={t("comingSoon")}

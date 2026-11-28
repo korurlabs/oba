@@ -18,7 +18,6 @@
     "description": "Ulak beheert één organisatie tegelijk. Kies er een waarvan je eigenaar of beheerder bent."
   },
   "agents": {
-    "title": "Agents",
     "description": "De AI-agents die in deze organisatie werken, met hun rollen, apps en tokens.",
     "emptyTitle": "Nog geen agents",
     "emptyDescription": "Agents die je aan deze organisatie toevoegt, verschijnen hier.",
@@ -217,7 +216,6 @@
     "notFound": "Organisatie niet gevonden",
     "notFoundDescription": "Deze organisatie is mogelijk verwijderd of u heeft geen toegang meer.",
     "members": {
-      "title": "Leden",
       "noMembers": "Geen leden gevonden",
       "noMembersDescription": "Er hoort nog niemand bij deze organisatie. Nodig mensen uit op de pagina Uitnodigingen.",
       "userId": "Gebruiker",
@@ -250,7 +248,6 @@
       "loading": "Leden laden"
     },
     "invitations": {
-      "title": "Uitnodigingen",
       "noInvitations": "Geen uitnodigingen gevonden",
       "noInvitationsDescription": "Er zijn nog geen uitnodigingen verstuurd voor deze organisatie.",
       "invite": "Uitnodigen",
@@ -293,7 +290,6 @@
     "record": "Gegevens",
     "loadingOrganization": "De organisatie laden",
     "legalEntities": {
-      "title": "Juridische entiteiten",
       "newLegalEntity": "Nieuwe juridische entiteit",
       "noLegalEntities": "Nog geen juridische entiteiten",
       "noLegalEntitiesDescription": "Voeg de bedrijven toe waaronder deze organisatie documenten uitgeeft.",
@@ -362,7 +358,6 @@
       "deleteError": "Het verwijderen van de juridische entiteit is mislukt. Probeer het opnieuw."
     },
     "groups": {
-      "title": "Groepen",
       "newGroup": "Nieuwe groep",
       "noGroups": "Geen groepen gevonden",
       "name": "Naam",
@@ -424,7 +419,6 @@
       "membersLoading": "Leden van de groep laden"
     },
     "access": {
-      "title": "Toegang",
       "description": "Ken apps toe aan leden en groepen.",
       "grantsTitle": "Toekenningen",
       "grantAccess": "Toegang geven",

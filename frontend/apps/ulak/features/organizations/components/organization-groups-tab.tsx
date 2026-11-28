@@ -89,10 +89,7 @@ export function GroupsTab({ organizationId }: GroupsTabProps) {
   });
 
   return (
-    <section className="flex flex-col gap-4" aria-labelledby="organization-groups-title">
-      <h2 id="organization-groups-title" className="text-xl">
-        {t("groups.title")}
-      </h2>
+    <div className="flex flex-col gap-4">
       <ListToolbar
         create={
           <Button size="sm" onClick={handleCreate}>
@@ -133,6 +130,6 @@ export function GroupsTab({ organizationId }: GroupsTabProps) {
         open={membersOpen}
         onOpenChange={setMembersOpen}
       />
-    </section>
+    </div>
   );
 }

@@ -61,10 +61,7 @@ export function LegalEntitiesTab({ organizationId, canEdit }: LegalEntitiesTabPr
   });
 
   return (
-    <section className="flex flex-col gap-4" aria-labelledby="organization-legal-entities-title">
-      <h2 id="organization-legal-entities-title" className="text-xl">
-        {t("legalEntities.title")}
-      </h2>
+    <div className="flex flex-col gap-4">
       {canEdit && (
         <ListToolbar
           create={
@@ -106,6 +103,6 @@ export function LegalEntitiesTab({ organizationId, canEdit }: LegalEntitiesTabPr
           onOpenChange={setFormOpen}
         />
       )}
-    </section>
+    </div>
   );
 }

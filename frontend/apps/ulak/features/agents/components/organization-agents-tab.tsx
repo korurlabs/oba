@@ -87,13 +87,8 @@ export function AgentsTab({ organizationId }: AgentsTabProps) {
   };
 
   return (
-    <section className="flex flex-col gap-4" aria-labelledby="organization-agents-title">
-      <div className="flex flex-col gap-1">
-        <h2 id="organization-agents-title" className="text-xl">
-          {t("title")}
-        </h2>
-        <p className="text-muted-foreground text-sm">{t("description")}</p>
-      </div>
+    <div className="flex flex-col gap-4">
+      <p className="text-muted-foreground text-sm">{t("description")}</p>
       <ListToolbar
         create={
           <Button size="sm" onClick={() => openDialog({ kind: "form", agentId: null })}>
@@ -134,6 +129,6 @@ export function AgentsTab({ organizationId }: AgentsTabProps) {
         open={dialog?.kind === "routine"}
         onOpenChange={closeDialog}
       />
-    </section>
+    </div>
   );
 }

@@ -25,7 +25,8 @@ describe("security page", () => {
 
     expect(html).toContain("<h1>title</h1>");
     expect(html).toContain("subtitle");
-    expect(html).toContain('id="security-heading"');
+    expect(html).not.toContain("<h2");
+    expect(html.match(/>title</g)).toHaveLength(1);
     expect(html).toContain("panelDescription");
     expect(html).toContain("comingSoon");
   });

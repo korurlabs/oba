@@ -29,17 +29,14 @@ export function MembersTab({ organizationId, canEdit }: MembersTabProps) {
 
   const currentUserId = meResponse?.data?.id;
   const currentUserRole = meResponse?.data?.organizations?.find(
-    (o) => o.id === organizationId,
+    (o) => o.id === organizationId
   )?.role;
 
-  const { data: membersResponse, isLoading } =
-    useOrganizationMembers(organizationId);
-  const { mutate: updateRole, isPending: isUpdatingRole } =
-    useUpdateMemberRole(organizationId);
+  const { data: membersResponse, isLoading } = useOrganizationMembers(organizationId);
+  const { mutate: updateRole, isPending: isUpdatingRole } = useUpdateMemberRole(organizationId);
   const { mutate: updateStatus, isPending: isUpdatingStatus } =
     useUpdateMemberStatus(organizationId);
-  const { mutate: removeMember, isPending: isRemoving } =
-    useRemoveMember(organizationId);
+  const { mutate: removeMember, isPending: isRemoving } = useRemoveMember(organizationId);
 
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
@@ -52,21 +49,21 @@ export function MembersTab({ organizationId, canEdit }: MembersTabProps) {
     (userId: string, role: OrganizationRole) => {
       updateRole({ userId, data: { role } });
     },
-    [updateRole],
+    [updateRole]
   );
 
   const handleStatusChange = useCallback(
     (userId: string, status: OrganizationMemberStatus) => {
       updateStatus({ userId, status });
     },
-    [updateStatus],
+    [updateStatus]
   );
 
   const handleRemove = useCallback(
     (userId: string) => {
       removeMember(userId);
     },
-    [removeMember],
+    [removeMember]
   );
 
   const handleEdit = useCallback((userId: string) => {
@@ -87,11 +84,7 @@ export function MembersTab({ organizationId, canEdit }: MembersTabProps) {
   });
 
   return (
-    <section className="flex flex-col gap-4" aria-labelledby="organization-members-title">
-      <h2 id="organization-members-title" className="text-xl">
-        {t("members.title")}
-      </h2>
-
+    <div className="flex flex-col gap-4">
       <DataTable<OrganizationMember>
         columns={columns}
         data={members}
@@ -105,6 +98,6 @@ export function MembersTab({ organizationId, canEdit }: MembersTabProps) {
           />
         }
       />
-    </section>
+    </div>
   );
 }

@@ -43,10 +43,7 @@ export function InvitationsTab({ organizationId, canEdit, currentUserRole }: Inv
   });
 
   return (
-    <section className="flex flex-col gap-4" aria-labelledby="organization-invitations-title">
-      <h2 id="organization-invitations-title" className="text-xl">
-        {t("invitations.title")}
-      </h2>
+    <div className="flex flex-col gap-4">
       {canEdit && (
         <ListToolbar
           create={
@@ -80,6 +77,6 @@ export function InvitationsTab({ organizationId, canEdit, currentUserRole }: Inv
           onOpenChange={setDialogOpen}
         />
       )}
-    </section>
+    </div>
   );
 }

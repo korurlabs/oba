@@ -18,7 +18,6 @@
     "description": "Ulak tek seferde bir organizasyonu yönetir. Sahibi veya yöneticisi olduğunuz birini seçin."
   },
   "agents": {
-    "title": "Ajanlar",
     "description": "Bu organizasyonda çalışan yapay zekâ ajanları; rolleri, uygulamaları ve token'larıyla.",
     "emptyTitle": "Henüz ajan yok",
     "emptyDescription": "Bu organizasyona eklediğiniz ajanlar burada görünür.",
@@ -217,7 +216,6 @@
     "notFound": "Organizasyon bulunamadı",
     "notFoundDescription": "Bu organizasyon silinmiş olabilir veya artık erişiminiz yok.",
     "members": {
-      "title": "Üyeler",
       "noMembers": "Üye bulunamadı",
       "noMembersDescription": "Bu organizasyonda henüz kimse yok. Davetler sayfasından kişileri davet edin.",
       "userId": "Kullanıcı",
@@ -250,7 +248,6 @@
       "loading": "Üyeler yükleniyor"
     },
     "invitations": {
-      "title": "Davetler",
       "noInvitations": "Davet bulunamadı",
       "noInvitationsDescription": "Bu organizasyon için henüz davet gönderilmedi.",
       "invite": "Davet Et",
@@ -293,7 +290,6 @@
     "record": "Kayıt",
     "loadingOrganization": "Organizasyon yükleniyor",
     "legalEntities": {
-      "title": "Tüzel kişiler",
       "newLegalEntity": "Yeni tüzel kişi",
       "noLegalEntities": "Henüz tüzel kişi yok",
       "noLegalEntitiesDescription": "Bu organizasyonun belgelerini düzenleyen şirketleri ekleyin.",
@@ -362,7 +358,6 @@
       "deleteError": "Tüzel kişi silinemedi. Lütfen tekrar deneyin."
     },
     "groups": {
-      "title": "Gruplar",
       "newGroup": "Yeni grup",
       "noGroups": "Grup bulunamadı",
       "name": "Ad",
@@ -424,7 +419,6 @@
       "membersLoading": "Grubun üyeleri yükleniyor"
     },
     "access": {
-      "title": "Erişim",
       "description": "Üyelere ve gruplara uygulama erişimi verin.",
       "grantsTitle": "Erişimler",
       "grantAccess": "Erişim ver",

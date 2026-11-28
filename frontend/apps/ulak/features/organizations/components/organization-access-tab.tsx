@@ -45,14 +45,9 @@ export function AccessTab({ organizationId }: AccessTabProps) {
   const [grantOpen, setGrantOpen] = useState(false);
 
   return (
-    <section className="flex flex-col gap-8" aria-labelledby="organization-access-title">
+    <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-4">
-        <div className="flex min-w-0 flex-col gap-1">
-          <h2 id="organization-access-title" className="text-xl">
-            {t("access.title")}
-          </h2>
-          <p className="text-muted-foreground text-sm">{t("access.description")}</p>
-        </div>
+        <p className="text-muted-foreground text-sm">{t("access.description")}</p>
         <ListToolbar
           create={
             <Button size="sm" onClick={() => setGrantOpen(true)}>
@@ -72,7 +67,7 @@ export function AccessTab({ organizationId }: AccessTabProps) {
         open={grantOpen}
         onOpenChange={setGrantOpen}
       />
-    </section>
+    </div>
   );
 }
 
@@ -103,9 +98,9 @@ function GrantsSection({ organizationId }: { organizationId: string }) {
 
   return (
     <section className="flex flex-col gap-3" aria-labelledby="organization-access-grants-title">
-      <h3 id="organization-access-grants-title" className="text-lg">
+      <h2 id="organization-access-grants-title" className="text-lg">
         {t("access.grantsTitle")}
-      </h3>
+      </h2>
 
       {isLoading ? (
         <TableLoading label={t("access.grantsLoading")} />
@@ -212,9 +207,9 @@ function EffectiveAccessSection({ organizationId }: { organizationId: string }) 
   return (
     <section className="flex flex-col gap-3" aria-labelledby="organization-access-effective-title">
       <div className="flex flex-col gap-1">
-        <h3 id="organization-access-effective-title" className="text-lg">
+        <h2 id="organization-access-effective-title" className="text-lg">
           {t("access.effectiveTitle")}
-        </h3>
+        </h2>
         <p className="text-muted-foreground text-sm">{t("access.effectiveDescription")}</p>
         <p className="text-muted-foreground text-sm">{t("access.ownerNote")}</p>
       </div>

@@ -43,8 +43,11 @@ export function PanelTitle({ id, children }: { id: string; children: ReactNode }
 }
 
 /**
- * A panel for a section that is not built yet: its title, what it will hold,
- * and a "coming soon" badge in place of a control that would do nothing.
+ * A panel for a section that is not built yet: what it will hold, and a
+ * "coming soon" badge in place of a control that would do nothing. A panel
+ * that is one of several on a page takes a title, which names it as a region;
+ * a panel that is the whole page leaves the title out, so the page heading is
+ * not repeated.
  */
 export function ComingSoonPanel({
   id,
@@ -52,17 +55,16 @@ export function ComingSoonPanel({
   description,
   body,
   comingSoon,
-}: {
-  id: string;
-  title: string;
+}: ({ id: string; title: string } | { id?: undefined; title?: undefined }) & {
   description: string;
   body: string;
   comingSoon: string;
 }) {
+  const named = title !== undefined && id !== undefined;
   return (
-    <Card aria-labelledby={id} role="region">
+    <Card {...(named ? { "aria-labelledby": id, role: "region" } : {})}>
       <CardHeader>
-        <PanelTitle id={id}>{title}</PanelTitle>
+        {named && <PanelTitle id={id}>{title}</PanelTitle>}
         <CardDescription>{description}</CardDescription>
         <CardAction>
           <Badge variant="muted">{comingSoon}</Badge>
