@@ -88,7 +88,13 @@ describe("ULAK_LINKS", () => {
     setEnv({ NODE_ENV: "production", ULAK_URL: "https://ulak.example.test/" });
 
     expect(ULAK_LINKS.organizations).toBe("https://ulak.example.test");
-    expect(Object.keys(ULAK_LINKS)).toEqual(["organizations"]);
+    expect(Object.keys(ULAK_LINKS)).toEqual(["organizations", "azureIntegrations"]);
+  });
+
+  test("the Azure integrations link is a path under the Ulak origin", () => {
+    setEnv({ NODE_ENV: "production", ULAK_URL: "https://ulak.example.test/" });
+
+    expect(ULAK_LINKS.azureIntegrations).toBe("https://ulak.example.test/integrations/azure");
   });
 
   test("follow a changed environment on the next read", () => {
