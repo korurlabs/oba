@@ -2,17 +2,19 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { AlertTriangle, Plus, X } from "lucide-react";
+import { AlertTriangle, Plus } from "lucide-react";
 import { todayDateOnly } from "@oba/shared/lib/date-only";
-import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
+import { SearchInput } from "@oba/ui/sky/search-input";
 import { useRouter } from "@oba/shared/libs/i18n/navigation";
 import { Button } from "@oba/ui/sky/button";
 import { FilterPopover, type FilterCategory } from "@oba/ui/sky/filter-popover";
 import { ListToolbar } from "@oba/ui/sky/list-toolbar";
-import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { ListEmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { TablePagination } from "@oba/ui/sky/table-pagination";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { DataTable, TablePagination } from "@/components/data-table";
-import { ActionEmptyState, PageHeading, useFilterPopoverLabels } from "@/components/page-states";
+import { DataTable } from "@/components/data-table";
+import { useFilterPopoverLabels, useSearchClearLabel } from "@/components/list-labels";
 import { useIsOrganizationAdmin } from "@/hooks/use-is-organization-admin";
 import { useEventColumns } from "../hooks/use-event-columns";
 import { useEventFilterParams } from "../hooks/use-event-filter-params";
@@ -39,6 +41,7 @@ const DEFAULT_PERIOD: EventTab = eventFilterParams.tab.defaultValue;
  */
 export function EventsView() {
   const t = useTranslations("events");
+  const searchClearLabel = useSearchClearLabel();
   const tErrors = useTranslations("errors");
   const filterLabels = useFilterPopoverLabels();
   const router = useRouter();
@@ -97,11 +100,12 @@ export function EventsView() {
 
       <ListToolbar
         search={
-          <SenseySearchInput
+          <SearchInput
             value={filters.search}
+            label={t("filters.searchLabel")}
+            clearLabel={searchClearLabel}
             placeholder={t("filters.searchPlaceholder")}
             onSearchChange={(search) => void setFilters({ search: search ?? null, page: 1 })}
-            className="w-40 sm:w-56"
           />
         }
         filters={
@@ -124,24 +128,18 @@ export function EventsView() {
       ) : events.data === undefined ? (
         <TableLoading label={t("loading")} />
       ) : rows.length === 0 ? (
-        isFiltered ? (
-          <ActionEmptyState
-            title={t("emptyFiltered")}
-            description={t("emptyFilteredHint")}
-            action={
-              <Button variant="outline" onClick={() => void setFilters({ search: null, page: 1 })}>
-                <X aria-hidden="true" />
-                {t("filters.clear")}
-              </Button>
-            }
-          />
-        ) : (
-          <ActionEmptyState
-            title={t(`emptyByTab.${filters.tab}`)}
-            description={t(`emptyHintByTab.${filters.tab}`)}
-            action={newButton}
-          />
-        )
+        <ListEmptyState
+          filtered={isFiltered}
+          onClearFilters={() => void setFilters({ search: null, page: 1 })}
+          create={newButton}
+          labels={{
+            emptyTitle: t(`emptyByTab.${filters.tab}`),
+            emptyDescription: t(`emptyHintByTab.${filters.tab}`),
+            filteredTitle: t("emptyFiltered"),
+            filteredDescription: t("emptyFilteredHint"),
+            clearFilters: t("filters.clear"),
+          }}
+        />
       ) : (
         <>
           {events.isError && (

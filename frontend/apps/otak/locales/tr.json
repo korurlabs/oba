@@ -98,6 +98,7 @@
       "companyMail": "Şirket e-postası"
     },
     "filters": {
+      "searchLabel": "İlişkilerde ara",
       "searchPlaceholder": "Ada göre ara",
       "clear": "Filtreleri temizle",
       "ownersLoadError": "Sahipler yüklenemedi.",
@@ -411,6 +412,7 @@
       "actions": "İşlemler"
     },
     "filters": {
+      "searchLabel": "ICP'lerde ara",
       "searchPlaceholder": "Ada göre ara",
       "clear": "Aramayı temizle"
     },
@@ -549,6 +551,7 @@
       "snapshotCount": "Gönderilen kopyalar"
     },
     "filters": {
+      "searchLabel": "Belgelerde ara",
       "searchPlaceholder": "Başlığa göre ara",
       "relationLabel": "İlişki",
       "legalEntityLabel": "Tüzel kişi",
@@ -722,6 +725,7 @@
       "actions": "İşlemler"
     },
     "filters": {
+      "searchLabel": "Belge şablonlarında ara",
       "searchPlaceholder": "Ada göre ara",
       "typeLabel": "Tür",
       "languageLabel": "Dil",
@@ -825,7 +829,7 @@
       "actions": "İşlemler"
     },
     "filters": {
-      "searchLabel": "Ara",
+      "searchLabel": "E-posta şablonlarında ara",
       "searchPlaceholder": "Ada göre ara",
       "languageLabel": "Dil",
       "clear": "Filtreleri temizle"
@@ -929,6 +933,7 @@
       "sentTo": "Gönderildiği adres"
     },
     "filters": {
+      "searchLabel": "Erişimlerde ara",
       "searchPlaceholder": "Erişimlerde ara",
       "channelLabel": "Kanal",
       "statusLabel": "Durum",
@@ -1185,6 +1190,7 @@
       "loadHint": "Bağlantınızı kontrol edip tekrar deneyin."
     },
     "filters": {
+      "searchLabel": "E-posta gönderenlerinde ara",
       "searchPlaceholder": "E-posta adresine göre ara",
       "clear": "Aramayı temizle"
     }
@@ -1240,6 +1246,7 @@
     },
     "filters": {
       "period": "Dönem",
+      "searchLabel": "Etkinliklerde ara",
       "searchPlaceholder": "Ada göre ara",
       "clear": "Aramayı temizle"
     },
@@ -1370,6 +1377,7 @@
       "contentCount": "İçerikler"
     },
     "filters": {
+      "searchLabel": "Kampanyalarda ara",
       "searchPlaceholder": "Ada göre ara",
       "clear": "Filtreleri temizle"
     },
@@ -1540,5 +1548,8 @@
     "noOptions": "Seçenek yok",
     "loading": "Yükleniyor",
     "clear": "Tümünü temizle"
+  },
+  "searchInput": {
+    "clear": "Aramayı temizle"
   }
 }

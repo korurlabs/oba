@@ -2,14 +2,15 @@
 
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { AlertTriangle, X } from "lucide-react";
-import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
-import { Button } from "@oba/ui/sky/button";
+import { AlertTriangle } from "lucide-react";
+import { SearchInput } from "@oba/ui/sky/search-input";
 import { FilterPopover, type FilterCategory } from "@oba/ui/sky/filter-popover";
 import { ListToolbar } from "@oba/ui/sky/list-toolbar";
-import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
-import { DataTable, TablePagination } from "@/components/data-table";
-import { ActionEmptyState, PageHeading, useFilterPopoverLabels } from "@/components/page-states";
+import { ListEmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { TablePagination } from "@oba/ui/sky/table-pagination";
+import { PageHeading } from "@oba/ui/sky/page-heading";
+import { DataTable } from "@/components/data-table";
+import { useFilterPopoverLabels, useSearchClearLabel } from "@/components/list-labels";
 import { useCampaignOptions } from "@/features/campaigns/hooks/use-campaigns";
 import { useMailSenders } from "@/features/mail-senders/hooks/use-mail-senders";
 import { useIsOrganizationAdmin } from "@/hooks/use-is-organization-admin";
@@ -35,6 +36,7 @@ import { ReachOutButton } from "./reach-out-button";
  */
 export function OutreachesView() {
   const t = useTranslations("outreaches");
+  const searchClearLabel = useSearchClearLabel();
   const tErrors = useTranslations("errors");
   const isAdmin = useIsOrganizationAdmin();
   const filterLabels = useFilterPopoverLabels();
@@ -140,11 +142,12 @@ export function OutreachesView() {
 
       <ListToolbar
         search={
-          <SenseySearchInput
+          <SearchInput
             value={filters.search}
+            label={t("filters.searchLabel")}
+            clearLabel={searchClearLabel}
             placeholder={t("filters.searchPlaceholder")}
             onSearchChange={(search) => void setFilters({ search: search ?? null, page: 1 })}
-            className="w-40 sm:w-56"
           />
         }
         filters={
@@ -167,24 +170,18 @@ export function OutreachesView() {
       ) : outreaches.data === undefined ? (
         <TableLoading label={t("loading")} />
       ) : rows.length === 0 ? (
-        isFiltered ? (
-          <ActionEmptyState
-            title={t("emptyFiltered")}
-            description={t("emptyFilteredHint")}
-            action={
-              <Button variant="outline" onClick={() => void setFilters(CLEARED_OUTREACH_FILTERS)}>
-                <X aria-hidden="true" />
-                {t("filters.clear")}
-              </Button>
-            }
-          />
-        ) : (
-          <ActionEmptyState
-            title={t("empty")}
-            description={isAdmin ? t("emptyHint") : t("emptyHintMember")}
-            action={reachOutButton}
-          />
-        )
+        <ListEmptyState
+          filtered={isFiltered}
+          onClearFilters={() => void setFilters(CLEARED_OUTREACH_FILTERS)}
+          create={reachOutButton}
+          labels={{
+            emptyTitle: t("empty"),
+            emptyDescription: isAdmin ? t("emptyHint") : t("emptyHintMember"),
+            filteredTitle: t("emptyFiltered"),
+            filteredDescription: t("emptyFilteredHint"),
+            clearFilters: t("filters.clear"),
+          }}
+        />
       ) : (
         <>
           {outreaches.isError && (

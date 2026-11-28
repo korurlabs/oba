@@ -4,7 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "rea
 import { useTranslations } from "next-intl";
 import { Send } from "lucide-react";
 import { toast } from "sonner";
-import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
+import { SearchInput } from "@oba/ui/sky/search-input";
 import { useRouter } from "@oba/shared/libs/i18n/navigation";
 import { AttachmentUpload } from "@oba/shared/features/attachments/components";
 import { useUploadAttachments } from "@oba/shared/features/attachments/hooks";
@@ -21,7 +21,8 @@ import {
 } from "@oba/ui/sky/dialog";
 import { Field, Input, NativeSelect, Textarea } from "@oba/ui/sky/field";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
-import { FilterLabel } from "@/components/page-states";
+import { FilterLabel } from "@oba/ui/sky/filter-label";
+import { useSearchClearLabel } from "@/components/list-labels";
 import { useCampaignOptions } from "@/features/campaigns/hooks/use-campaigns";
 import { useContacts } from "@/features/contacts/hooks/use-contacts";
 import { contactErrorText } from "@/features/contacts/lib/contact-error";
@@ -420,6 +421,7 @@ function MailStep({
   const tForm = useTranslations("outreaches.form");
   const tTemplates = useTranslations("documentTemplates");
   const tMailTemplates = useTranslations("mailTemplates");
+  const searchClearLabel = useSearchClearLabel();
   const tErrors = useTranslations("errors");
   const [search, setSearch] = useState<string | null>(null);
   const [pickedId, setPickedId] = useState<string | null>(
@@ -455,8 +457,10 @@ function MailStep({
   return (
     <div className="flex flex-col gap-4">
       <FilterLabel label={tMailTemplates("filters.searchLabel")} className="w-full">
-        <SenseySearchInput
+        <SearchInput
           value={search}
+          label={tMailTemplates("filters.searchLabel")}
+          clearLabel={searchClearLabel}
           placeholder={t("templateSearchPlaceholder")}
           onSearchChange={(value) => setSearch(value ?? null)}
           className="w-full"

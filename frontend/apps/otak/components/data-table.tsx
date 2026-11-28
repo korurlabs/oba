@@ -1,6 +1,5 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   flexRender,
   getCoreRowModel,
@@ -12,7 +11,6 @@ import {
   type Row,
 } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@oba/ui/sky/table";
-import { Button } from "@oba/ui/sky/button";
 import { cn } from "@/lib/utils";
 
 /**
@@ -142,46 +140,5 @@ export function DataTable<T>({
         </TableBody>
       </Table>
     </div>
-  );
-}
-
-interface TablePaginationProps {
-  page: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-  /** Names the navigation for assistive technology. */
-  label: string;
-  previousLabel: string;
-  nextLabel: string;
-  /** Where the list stands, such as "Page 2 of 5 · 93 relations". */
-  summary: string;
-}
-
-/** The pages of a list below it, as Kaya's wall pages: back, where it stands, forward. */
-export function TablePagination({
-  page,
-  totalPages,
-  onPageChange,
-  label,
-  previousLabel,
-  nextLabel,
-  summary,
-}: TablePaginationProps) {
-  return (
-    <nav aria-label={label} className="flex items-center justify-between gap-4 text-sm">
-      <Button variant="outline" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>
-        <ChevronLeft className="size-4" aria-hidden />
-        {previousLabel}
-      </Button>
-      <span className="text-muted-foreground tabular-nums">{summary}</span>
-      <Button
-        variant="outline"
-        disabled={page >= totalPages}
-        onClick={() => onPageChange(page + 1)}
-      >
-        {nextLabel}
-        <ChevronRight className="size-4" aria-hidden />
-      </Button>
-    </nav>
   );
 }

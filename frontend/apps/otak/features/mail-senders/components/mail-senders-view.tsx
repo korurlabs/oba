@@ -2,14 +2,15 @@
 
 import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { AlertTriangle, Plus, X } from "lucide-react";
-import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
+import { AlertTriangle, Plus } from "lucide-react";
+import { SearchInput } from "@oba/ui/sky/search-input";
 import { Button } from "@oba/ui/sky/button";
 import { ListToolbar } from "@oba/ui/sky/list-toolbar";
-import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { ListEmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { DataTable } from "@/components/data-table";
-import { ActionEmptyState, PageHeading } from "@/components/page-states";
+import { useSearchClearLabel } from "@/components/list-labels";
 import { useIsOrganizationAdmin } from "@/hooks/use-is-organization-admin";
 import { useMailSenderColumns } from "../hooks/use-mail-sender-columns";
 import { useMailSenderFilterParams } from "../hooks/use-mail-sender-filter-params";
@@ -33,6 +34,7 @@ export interface MailSendersViewProps {
  */
 export function MailSendersView({ tabs }: MailSendersViewProps) {
   const t = useTranslations("mailSenders");
+  const searchClearLabel = useSearchClearLabel();
   const tMail = useTranslations("mailPage");
   const tErrors = useTranslations("errors");
   const isAdmin = useIsOrganizationAdmin();
@@ -65,11 +67,12 @@ export function MailSendersView({ tabs }: MailSendersViewProps) {
 
       <ListToolbar
         search={
-          <SenseySearchInput
+          <SearchInput
             value={filters.search}
+            label={t("filters.searchLabel")}
+            clearLabel={searchClearLabel}
             placeholder={t("filters.searchPlaceholder")}
             onSearchChange={(search) => void setFilters({ search: search ?? null })}
-            className="w-40 sm:w-56"
           />
         }
         create={newButton}
@@ -85,24 +88,18 @@ export function MailSendersView({ tabs }: MailSendersViewProps) {
       ) : mailSenders.data === undefined ? (
         <TableLoading label={t("loading")} />
       ) : rows.length === 0 ? (
-        isFiltered ? (
-          <ActionEmptyState
-            title={t("emptyFiltered")}
-            description={t("emptyFilteredHint")}
-            action={
-              <Button variant="outline" onClick={() => void setFilters({ search: null })}>
-                <X aria-hidden="true" />
-                {t("filters.clear")}
-              </Button>
-            }
-          />
-        ) : (
-          <ActionEmptyState
-            title={t("empty")}
-            description={isAdmin ? t("emptyHint") : t("emptyHintMember")}
-            action={newButton}
-          />
-        )
+        <ListEmptyState
+          filtered={isFiltered}
+          onClearFilters={() => void setFilters({ search: null })}
+          create={newButton}
+          labels={{
+            emptyTitle: t("empty"),
+            emptyDescription: isAdmin ? t("emptyHint") : t("emptyHintMember"),
+            filteredTitle: t("emptyFiltered"),
+            filteredDescription: t("emptyFilteredHint"),
+            clearFilters: t("filters.clear"),
+          }}
+        />
       ) : (
         <>
           {mailSenders.isError && (

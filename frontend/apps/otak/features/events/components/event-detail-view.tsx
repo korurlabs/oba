@@ -10,10 +10,11 @@ import { Link, useRouter } from "@oba/shared/libs/i18n/navigation";
 import { Badge } from "@oba/ui/sky/badge";
 import { Button } from "@oba/ui/sky/button";
 import { Card, CardContent, CardHeader } from "@oba/ui/sky/card";
-import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { PageHeading } from "@oba/ui/sky/page-heading";
+import { EmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { TablePagination } from "@oba/ui/sky/table-pagination";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { DataTable, TablePagination } from "@/components/data-table";
-import { ActionEmptyState } from "@/components/page-states";
+import { DataTable } from "@/components/data-table";
 import { useRelationColumns } from "@/features/relations/hooks/use-relation-columns";
 import { useRelations } from "@/features/relations/hooks/use-relations";
 import { relationErrorText } from "@/features/relations/lib/relation-error";
@@ -47,7 +48,7 @@ export function EventDetailView({ eventId }: { eventId: string }) {
   if (event.isError) {
     if (isApiError(event.error, "OTK_NOT_009")) {
       return (
-        <ActionEmptyState
+        <EmptyState
           title={t("detail.notFoundTitle")}
           description={t("detail.notFoundDescription")}
           action={
@@ -98,16 +99,11 @@ function EventDetailContent({ event }: { event: EventDetail }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <Button asChild variant="ghost" size="sm" className="w-fit">
-        <Link href="/events">
-          <ArrowLeft aria-hidden="true" />
-          {t("detail.back")}
-        </Link>
-      </Button>
-
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex min-w-0 flex-col gap-2">
-          <h1 className="break-words">{event.name}</h1>
+      <PageHeading
+        title={event.name}
+        back={{ href: "/events", label: t("detail.back") }}
+        linkComponent={Link}
+        description={
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="secondary">{t(`types.${event.type}`)}</Badge>
             <span className="text-muted-foreground text-sm tabular-nums">
@@ -117,24 +113,26 @@ function EventDetailContent({ event }: { event: EventDetail }) {
               })}
             </span>
           </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" onClick={() => setFormOpen(true)}>
-            <Pencil aria-hidden="true" />
-            {t("detail.edit")}
-          </Button>
-          {isAdmin && (
-            <Button
-              variant="outline"
-              disabled={deleteEvent.isPending}
-              onClick={() => setConfirmOpen(true)}
-            >
-              <Trash2 aria-hidden="true" />
-              {deleteEvent.isPending ? t("detail.deleting") : t("detail.delete")}
+        }
+        actions={
+          <>
+            <Button variant="outline" onClick={() => setFormOpen(true)}>
+              <Pencil aria-hidden="true" />
+              {t("detail.edit")}
             </Button>
-          )}
-        </div>
-      </div>
+            {isAdmin && (
+              <Button
+                variant="outline"
+                disabled={deleteEvent.isPending}
+                onClick={() => setConfirmOpen(true)}
+              >
+                <Trash2 aria-hidden="true" />
+                {deleteEvent.isPending ? t("detail.deleting") : t("detail.delete")}
+              </Button>
+            )}
+          </>
+        }
+      />
 
       <Card role="region" aria-labelledby="event-details" className="gap-4">
         <CardHeader>

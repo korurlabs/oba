@@ -98,6 +98,7 @@
       "companyMail": "Company mail"
     },
     "filters": {
+      "searchLabel": "Search relations",
       "searchPlaceholder": "Search by name",
       "clear": "Clear filters",
       "ownersLoadError": "The owners could not be loaded.",
@@ -411,6 +412,7 @@
       "actions": "Actions"
     },
     "filters": {
+      "searchLabel": "Search ICPs",
       "searchPlaceholder": "Search by name",
       "clear": "Clear search"
     },
@@ -549,6 +551,7 @@
       "snapshotCount": "Sent copies"
     },
     "filters": {
+      "searchLabel": "Search documents",
       "searchPlaceholder": "Search by title",
       "relationLabel": "Relation",
       "legalEntityLabel": "Legal entity",
@@ -722,6 +725,7 @@
       "actions": "Actions"
     },
     "filters": {
+      "searchLabel": "Search document templates",
       "searchPlaceholder": "Search by name",
       "typeLabel": "Type",
       "languageLabel": "Language",
@@ -825,7 +829,7 @@
       "actions": "Actions"
     },
     "filters": {
-      "searchLabel": "Search",
+      "searchLabel": "Search mail templates",
       "searchPlaceholder": "Search by name",
       "languageLabel": "Language",
       "clear": "Clear filters"
@@ -929,6 +933,7 @@
       "sentTo": "Sent to"
     },
     "filters": {
+      "searchLabel": "Search outreaches",
       "searchPlaceholder": "Search outreaches",
       "channelLabel": "Channel",
       "statusLabel": "Status",
@@ -1185,6 +1190,7 @@
       "loadHint": "Check your connection and try again."
     },
     "filters": {
+      "searchLabel": "Search mail senders",
       "searchPlaceholder": "Search by mail address",
       "clear": "Clear search"
     }
@@ -1240,6 +1246,7 @@
     },
     "filters": {
       "period": "Period",
+      "searchLabel": "Search events",
       "searchPlaceholder": "Search by name",
       "clear": "Clear search"
     },
@@ -1370,6 +1377,7 @@
       "contentCount": "Contents"
     },
     "filters": {
+      "searchLabel": "Search campaigns",
       "searchPlaceholder": "Search by name",
       "clear": "Clear filters"
     },
@@ -1540,5 +1548,8 @@
     "noOptions": "No options",
     "loading": "Loading",
     "clear": "Clear all"
+  },
+  "searchInput": {
+    "clear": "Clear search"
   }
 }

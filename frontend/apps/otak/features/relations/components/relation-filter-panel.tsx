@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { FilterPopover, type FilterCategory } from "@oba/ui/sky/filter-popover";
-import { useFilterPopoverLabels } from "@/components/page-states";
+import { useFilterPopoverLabels } from "@/components/list-labels";
 import { useCampaignOptions } from "@/features/campaigns/hooks/use-campaigns";
 import { useEvent, useEventOptions } from "@/features/events/hooks/use-events";
 import { useOrganizationMembers } from "@/features/members/hooks/use-organization-members";
@@ -37,7 +37,7 @@ interface RelationFilterPanelProps {
 /**
  * The relations list's filter popover: the types, the stages, the owner, the
  * event and the campaign. No type lists every type. The stages are those of
- * leads and customers, each marked with its type, since a stage implies its
+ * leads and customers, grouped under their type, since a stage implies its
  * type; without a stage the list hides lost and parked leads, and picking
  * stages lists exactly those. The name search sits beside it in the list
  * toolbar and is not cleared with these filters.
@@ -63,14 +63,14 @@ export function RelationFilterPanel({ filters, onChange }: RelationFilterPanelPr
     () => RELATION_TYPES.map((type) => ({ value: type, label: t(`types.${type}`) })),
     [t]
   );
-  // The popover has no group headings, so each stage names its type as a hint.
+  // The stages sit under a heading of their type, since a stage implies its type.
   const stageOptions = useMemo(
     () =>
       RELATION_STAGE_GROUPS.flatMap((group) =>
         group.stages.map((stage) => ({
           value: stage,
           label: t(`stages.${stage}`),
-          hint: t(`types.${group.type}`),
+          group: t(`types.${group.type}`),
         }))
       ),
     [t]

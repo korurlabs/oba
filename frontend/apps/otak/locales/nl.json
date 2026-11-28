@@ -98,6 +98,7 @@
       "companyMail": "Bedrijfsmail"
     },
     "filters": {
+      "searchLabel": "Relaties zoeken",
       "searchPlaceholder": "Zoek op naam",
       "clear": "Filters wissen",
       "ownersLoadError": "De eigenaren konden niet worden geladen.",
@@ -411,6 +412,7 @@
       "actions": "Acties"
     },
     "filters": {
+      "searchLabel": "ICP's zoeken",
       "searchPlaceholder": "Zoeken op naam",
       "clear": "Zoekopdracht wissen"
     },
@@ -549,6 +551,7 @@
       "snapshotCount": "Verstuurde kopieën"
     },
     "filters": {
+      "searchLabel": "Documenten zoeken",
       "searchPlaceholder": "Zoeken op titel",
       "relationLabel": "Relatie",
       "legalEntityLabel": "Rechtspersoon",
@@ -722,6 +725,7 @@
       "actions": "Acties"
     },
     "filters": {
+      "searchLabel": "Documentsjablonen zoeken",
       "searchPlaceholder": "Zoeken op naam",
       "typeLabel": "Type",
       "languageLabel": "Taal",
@@ -825,7 +829,7 @@
       "actions": "Acties"
     },
     "filters": {
-      "searchLabel": "Zoeken",
+      "searchLabel": "Mailsjablonen zoeken",
       "searchPlaceholder": "Zoeken op naam",
       "languageLabel": "Taal",
       "clear": "Filters wissen"
@@ -929,6 +933,7 @@
       "sentTo": "Verstuurd naar"
     },
     "filters": {
+      "searchLabel": "Outreaches zoeken",
       "searchPlaceholder": "Outreaches zoeken",
       "channelLabel": "Kanaal",
       "statusLabel": "Status",
@@ -1185,6 +1190,7 @@
       "loadHint": "Controleer je verbinding en probeer het opnieuw."
     },
     "filters": {
+      "searchLabel": "Mailafzenders zoeken",
       "searchPlaceholder": "Zoeken op mailadres",
       "clear": "Zoekopdracht wissen"
     }
@@ -1240,6 +1246,7 @@
     },
     "filters": {
       "period": "Periode",
+      "searchLabel": "Evenementen zoeken",
       "searchPlaceholder": "Zoeken op naam",
       "clear": "Zoekopdracht wissen"
     },
@@ -1370,6 +1377,7 @@
       "contentCount": "Inhoud"
     },
     "filters": {
+      "searchLabel": "Campagnes zoeken",
       "searchPlaceholder": "Zoek op naam",
       "clear": "Filters wissen"
     },
@@ -1540,5 +1548,8 @@
     "noOptions": "Geen opties",
     "loading": "Laden",
     "clear": "Alles wissen"
+  },
+  "searchInput": {
+    "clear": "Zoekopdracht wissen"
   }
 }

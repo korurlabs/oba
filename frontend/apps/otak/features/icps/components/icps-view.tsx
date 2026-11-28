@@ -2,14 +2,16 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { AlertTriangle, Plus, X } from "lucide-react";
-import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
+import { AlertTriangle, Plus } from "lucide-react";
+import { SearchInput } from "@oba/ui/sky/search-input";
 import { Button } from "@oba/ui/sky/button";
 import { ListToolbar } from "@oba/ui/sky/list-toolbar";
-import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { ListEmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { TablePagination } from "@oba/ui/sky/table-pagination";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { DataTable, TablePagination } from "@/components/data-table";
-import { ActionEmptyState, PageHeading } from "@/components/page-states";
+import { DataTable } from "@/components/data-table";
+import { useSearchClearLabel } from "@/components/list-labels";
 import { useIsOrganizationAdmin } from "@/hooks/use-is-organization-admin";
 import { useIcpColumns } from "../hooks/use-icp-columns";
 import { useIcpFilterParams } from "../hooks/use-icp-filter-params";
@@ -25,6 +27,7 @@ import { IcpFormDialog } from "./icp-form-dialog";
  */
 export function IcpsView() {
   const t = useTranslations("icps");
+  const searchClearLabel = useSearchClearLabel();
   const tErrors = useTranslations("errors");
   const isAdmin = useIsOrganizationAdmin();
   const [filters, setFilters] = useIcpFilterParams();
@@ -63,11 +66,12 @@ export function IcpsView() {
 
       <ListToolbar
         search={
-          <SenseySearchInput
+          <SearchInput
             value={filters.search}
+            label={t("filters.searchLabel")}
+            clearLabel={searchClearLabel}
             placeholder={t("filters.searchPlaceholder")}
             onSearchChange={(search) => void setFilters({ search: search ?? null, page: 1 })}
-            className="w-40 sm:w-56"
           />
         }
         create={newButton}
@@ -83,20 +87,18 @@ export function IcpsView() {
       ) : icps.data === undefined ? (
         <TableLoading label={t("loading")} />
       ) : rows.length === 0 ? (
-        isFiltered ? (
-          <ActionEmptyState
-            title={t("emptyFiltered")}
-            description={t("emptyFilteredHint")}
-            action={
-              <Button variant="outline" onClick={() => void setFilters({ search: null, page: 1 })}>
-                <X aria-hidden="true" />
-                {t("filters.clear")}
-              </Button>
-            }
-          />
-        ) : (
-          <ActionEmptyState title={t("empty")} description={t("emptyHint")} action={newButton} />
-        )
+        <ListEmptyState
+          filtered={isFiltered}
+          onClearFilters={() => void setFilters({ search: null, page: 1 })}
+          create={newButton}
+          labels={{
+            emptyTitle: t("empty"),
+            emptyDescription: t("emptyHint"),
+            filteredTitle: t("emptyFiltered"),
+            filteredDescription: t("emptyFilteredHint"),
+            clearFilters: t("filters.clear"),
+          }}
+        />
       ) : (
         <>
           {icps.isError && (

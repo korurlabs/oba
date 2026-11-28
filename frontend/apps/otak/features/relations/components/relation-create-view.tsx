@@ -3,10 +3,9 @@
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { parseAsStringEnum, useQueryState } from "nuqs";
-import { ArrowLeft } from "lucide-react";
 import { Link, useRouter } from "@oba/shared/libs/i18n/navigation";
 import { Button } from "@oba/ui/sky/button";
-import { PageHeading } from "@/components/page-states";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { useCreateRelation } from "../hooks/use-relations";
 import { emptyRelationFormValues, RelationType, toRelationCreateRequest } from "../schemas";
 import { applyRelationFieldErrors, RelationForm } from "./relation-form";
@@ -30,14 +29,12 @@ export function RelationCreateView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Button asChild variant="ghost" size="sm" className="w-fit">
-        <Link href={backHref}>
-          <ArrowLeft aria-hidden="true" />
-          {t("newPage.back")}
-        </Link>
-      </Button>
-
-      <PageHeading title={t("newPage.title")} description={t("newPage.subtitle")} />
+      <PageHeading
+        title={t("newPage.title")}
+        description={t("newPage.subtitle")}
+        back={{ href: backHref, label: t("newPage.back") }}
+        linkComponent={Link}
+      />
 
       <RelationForm
         mode="create"

@@ -8,8 +8,8 @@ import { useDateFormat } from "@oba/shared/i18n/use-date-format";
 import { Link, useRouter } from "@oba/shared/libs/i18n/navigation";
 import { Badge } from "@oba/ui/sky/badge";
 import { Button } from "@oba/ui/sky/button";
-import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
-import { ActionEmptyState } from "@/components/page-states";
+import { PageHeading } from "@oba/ui/sky/page-heading";
+import { EmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { ContactsCard } from "@/features/contacts/components/contacts-card";
 import { useEvent } from "@/features/events/hooks/use-events";
 import { OutreachesCard } from "@/features/outreaches/components/outreaches-card";
@@ -50,7 +50,7 @@ export function RelationDetailView({ relationId }: { relationId: string }) {
   if (relation.isError) {
     if (isApiError(relation.error, "OTK_NOT_001")) {
       return (
-        <ActionEmptyState
+        <EmptyState
           title={t("detail.notFoundTitle")}
           description={t("detail.notFoundDescription")}
           action={
@@ -95,16 +95,11 @@ function RelationDetailContent({ relation }: { relation: RelationDetail }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <Button asChild variant="ghost" size="sm" className="w-fit">
-        <Link href="/relations">
-          <ArrowLeft aria-hidden="true" />
-          {t("detail.back")}
-        </Link>
-      </Button>
-
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex min-w-0 flex-col gap-2">
-          <h1 className="break-words">{relation.name}</h1>
+      <PageHeading
+        title={relation.name}
+        back={{ href: "/relations", label: t("detail.back") }}
+        linkComponent={Link}
+        description={
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="secondary">{t(`types.${relation.type}`)}</Badge>
             {relation.stage && <RelationStageBadge stage={relation.stage} />}
@@ -116,21 +111,23 @@ function RelationDetailContent({ relation }: { relation: RelationDetail }) {
               })}
             </span>
           </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {isAdmin && relation.type === RelationType.LEAD && (
-            <ReachOutDialog relationId={relation.id} relationName={relation.name} />
-          )}
-          <RelationTypeActions relation={relation} />
-          {isAdmin && (
-            <DeleteRelationDialog
-              relationName={relation.name}
-              isDeleting={deleteRelation.isPending}
-              onConfirm={handleDelete}
-            />
-          )}
-        </div>
-      </div>
+        }
+        actions={
+          <>
+            {isAdmin && relation.type === RelationType.LEAD && (
+              <ReachOutDialog relationId={relation.id} relationName={relation.name} />
+            )}
+            <RelationTypeActions relation={relation} />
+            {isAdmin && (
+              <DeleteRelationDialog
+                relationName={relation.name}
+                isDeleting={deleteRelation.isPending}
+                onConfirm={handleDelete}
+              />
+            )}
+          </>
+        }
+      />
 
       <RelationForm
         mode="edit"

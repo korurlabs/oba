@@ -8,8 +8,8 @@ import { Link } from "@oba/shared/libs/i18n/navigation";
 import { cn } from "@oba/ui/lib/utils";
 import { Badge } from "@oba/ui/sky/badge";
 import { Button } from "@oba/ui/sky/button";
-import { LoadError } from "@oba/ui/sky/page-states";
-import { ActionEmptyState, PageHeading } from "@/components/page-states";
+import { EmptyState, LoadError } from "@oba/ui/sky/page-states";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { useChangeRelationStage, useRelationBattlefield } from "../hooks/use-relations";
 import {
   BATTLEFIELD_COLUMNS,
@@ -172,7 +172,7 @@ export function RelationBattlefieldView() {
           ))}
         </div>
       ) : relations.length === 0 ? (
-        <ActionEmptyState
+        <EmptyState
           title={t("battlefield.emptyTitle")}
           description={t("battlefield.empty")}
           action={

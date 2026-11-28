@@ -2,14 +2,16 @@
 
 import { useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { AlertTriangle, Plus, X } from "lucide-react";
-import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
+import { AlertTriangle, Plus } from "lucide-react";
+import { SearchInput } from "@oba/ui/sky/search-input";
 import { Link, useRouter } from "@oba/shared/libs/i18n/navigation";
 import { Button } from "@oba/ui/sky/button";
 import { ListToolbar } from "@oba/ui/sky/list-toolbar";
-import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
-import { DataTable, TablePagination } from "@/components/data-table";
-import { ActionEmptyState, PageHeading } from "@/components/page-states";
+import { ListEmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { TablePagination } from "@oba/ui/sky/table-pagination";
+import { PageHeading } from "@oba/ui/sky/page-heading";
+import { DataTable } from "@/components/data-table";
+import { useSearchClearLabel } from "@/components/list-labels";
 import { useRelationColumns } from "../hooks/use-relation-columns";
 import { useRelationFilterParams } from "../hooks/use-relation-filter-params";
 import { useRelations } from "../hooks/use-relations";
@@ -39,6 +41,7 @@ const CLEARED_FILTERS: Partial<RelationFilterParams> = {
  */
 export function RelationsView() {
   const t = useTranslations("relations");
+  const searchClearLabel = useSearchClearLabel();
   const tErrors = useTranslations("errors");
   const router = useRouter();
   const [filters, setFilters] = useRelationFilterParams();
@@ -72,11 +75,12 @@ export function RelationsView() {
 
       <ListToolbar
         search={
-          <SenseySearchInput
+          <SearchInput
             value={filters.search}
+            label={t("filters.searchLabel")}
+            clearLabel={searchClearLabel}
             placeholder={t("filters.searchPlaceholder")}
             onSearchChange={(search) => handleFilterChange({ search: search ?? null })}
-            className="w-40 sm:w-56"
           />
         }
         filters={<RelationFilterPanel filters={filters} onChange={handleFilterChange} />}
@@ -93,20 +97,18 @@ export function RelationsView() {
       ) : relations.data === undefined ? (
         <TableLoading label={t("loading")} />
       ) : rows.length === 0 ? (
-        isFiltered ? (
-          <ActionEmptyState
-            title={t("emptyFiltered")}
-            description={t("emptyFilteredHint")}
-            action={
-              <Button variant="outline" onClick={() => handleFilterChange(CLEARED_FILTERS)}>
-                <X aria-hidden="true" />
-                {t("filters.clear")}
-              </Button>
-            }
-          />
-        ) : (
-          <ActionEmptyState title={t("empty")} description={t("emptyHint")} action={newButton} />
-        )
+        <ListEmptyState
+          filtered={isFiltered}
+          onClearFilters={() => handleFilterChange(CLEARED_FILTERS)}
+          create={newButton}
+          labels={{
+            emptyTitle: t("empty"),
+            emptyDescription: t("emptyHint"),
+            filteredTitle: t("emptyFiltered"),
+            filteredDescription: t("emptyFilteredHint"),
+            clearFilters: t("filters.clear"),
+          }}
+        />
       ) : (
         <>
           {relations.isError && (
