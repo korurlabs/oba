@@ -9,14 +9,23 @@ import { useEvent, useEventOptions } from "@/features/events/hooks/use-events";
 import { useOrganizationMembers } from "@/features/members/hooks/use-organization-members";
 import { memberOptions } from "@/features/members/lib/member-options";
 import {
-  RELATION_TAB_STAGES,
-  tabHasStage,
+  RELATION_STAGE_GROUPS,
+  RELATION_TYPES,
   type RelationFilterParams,
 } from "../lib/relation-filters";
-import { PipelineStageSchema, type PipelineStage } from "../schemas";
+import {
+  PipelineStageSchema,
+  RelationTypeSchema,
+  type PipelineStage,
+  type RelationType,
+} from "../schemas";
 
 function isPipelineStage(value: string): value is PipelineStage {
   return PipelineStageSchema.safeParse(value).success;
+}
+
+function isRelationType(value: string): value is RelationType {
+  return RelationTypeSchema.safeParse(value).success;
 }
 
 interface RelationFilterPanelProps {
@@ -26,17 +35,17 @@ interface RelationFilterPanelProps {
 }
 
 /**
- * The relations list's filter popover: the owner, the event, the campaign
- * and, on the leads and customers tabs, the stages of that tab. Without a
- * stage the leads list hides lost and parked leads and the customers list
- * shows every customer; picking stages lists exactly those. The name search
- * sits beside it in the list toolbar and is not cleared with these filters.
+ * The relations list's filter popover: the types, the stages, the owner, the
+ * event and the campaign. No type lists every type. The stages are those of
+ * leads and customers, each marked with its type, since a stage implies its
+ * type; without a stage the list hides lost and parked leads, and picking
+ * stages lists exactly those. The name search sits beside it in the list
+ * toolbar and is not cleared with these filters.
  */
 export function RelationFilterPanel({ filters, onChange }: RelationFilterPanelProps) {
   const t = useTranslations("relations");
   const members = useOrganizationMembers();
   const filterLabels = useFilterPopoverLabels();
-  const showStageFilter = tabHasStage(filters.tab);
   const events = useEventOptions();
   // The select offers only the most recent events; an event from a shared
   // link outside them is fetched on its own so its name shows.
@@ -50,13 +59,21 @@ export function RelationFilterPanel({ filters, onChange }: RelationFilterPanelPr
   const campaigns = useCampaignOptions();
   const filteredCampaignId = filters.campaign ?? "";
 
+  const typeOptions = useMemo(
+    () => RELATION_TYPES.map((type) => ({ value: type, label: t(`types.${type}`) })),
+    [t]
+  );
+  // The popover has no group headings, so each stage names its type as a hint.
   const stageOptions = useMemo(
     () =>
-      RELATION_TAB_STAGES[filters.tab].map((stage) => ({
-        value: stage,
-        label: t(`stages.${stage}`),
-      })),
-    [t, filters.tab]
+      RELATION_STAGE_GROUPS.flatMap((group) =>
+        group.stages.map((stage) => ({
+          value: stage,
+          label: t(`stages.${stage}`),
+          hint: t(`types.${group.type}`),
+        }))
+      ),
+    [t]
   );
   // The filter lists disabled members too: they can still own relations.
   const ownerOptions = useMemo(() => {
@@ -92,9 +109,19 @@ export function RelationFilterPanel({ filters, onChange }: RelationFilterPanelPr
     return options;
   }, [campaigns.data, filteredCampaignId]);
 
-  const categories: FilterCategory[] = [];
-  if (showStageFilter) {
-    categories.push({
+  const categories: FilterCategory[] = [
+    {
+      key: "type",
+      label: t("filters.typeLabel"),
+      mode: "multi",
+      value: filters.type ?? [],
+      onChange: (values) => {
+        const types = values.filter(isRelationType);
+        onChange({ type: types.length > 0 ? types : null });
+      },
+      options: typeOptions,
+    },
+    {
       key: "stage",
       label: t("filters.stageLabel"),
       mode: "multi",
@@ -104,9 +131,7 @@ export function RelationFilterPanel({ filters, onChange }: RelationFilterPanelPr
         onChange({ stage: stages.length > 0 ? stages : null });
       },
       options: stageOptions,
-    });
-  }
-  categories.push(
+    },
     {
       key: "owner",
       label: t("filters.ownerLabel"),
@@ -139,13 +164,15 @@ export function RelationFilterPanel({ filters, onChange }: RelationFilterPanelPr
       searchable: true,
       isLoading: campaigns.isPending && campaigns.fetchStatus !== "idle",
       error: campaigns.isError ? t("filters.campaignsLoadError") : null,
-    }
-  );
+    },
+  ];
 
   return (
     <FilterPopover
       categories={categories}
-      onClear={() => onChange({ owner: null, event: null, campaign: null, stage: null })}
+      onClear={() =>
+        onChange({ type: null, stage: null, owner: null, event: null, campaign: null })
+      }
       labels={filterLabels}
     />
   );

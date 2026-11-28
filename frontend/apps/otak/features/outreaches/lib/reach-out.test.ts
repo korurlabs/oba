@@ -247,8 +247,13 @@ describe("WhatsApp and call reach-outs", () => {
 });
 
 describe("leadPickerQuery", () => {
-  test("an empty search lists the first 20 leads", () => {
-    expect(leadPickerQuery("")).toEqual({ type: "LEAD", page: 1, amount: 20 });
+  test("an empty search lists the first 20 leads that are still worked", () => {
+    expect(leadPickerQuery("")).toEqual({
+      type: ["LEAD"],
+      hideInactiveLeads: true,
+      page: 1,
+      amount: 20,
+    });
   });
 
   test("the search is trimmed and cut to 200 characters", () => {
@@ -257,6 +262,11 @@ describe("leadPickerQuery", () => {
   });
 
   test("a blank search is left out", () => {
-    expect(leadPickerQuery("   ")).toEqual({ type: "LEAD", page: 1, amount: 20 });
+    expect(leadPickerQuery("   ")).toEqual({
+      type: ["LEAD"],
+      hideInactiveLeads: true,
+      page: 1,
+      amount: 20,
+    });
   });
 });

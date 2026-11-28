@@ -18,12 +18,14 @@ export const LEAD_PICKER_SIZE = 20;
 
 /**
  * The relation query of the lead picker's search: the first leads whose
- * name matches, as only a lead is reached out to.
+ * name matches, as only a lead is reached out to. Lost and parked leads are
+ * left out, since nobody works them any more.
  */
 export function leadPickerQuery(search: string): RelationQueryRequest {
   const trimmed = search.trim().slice(0, RELATION_LIMITS.searchMax);
   return {
-    type: RelationType.LEAD,
+    type: [RelationType.LEAD],
+    hideInactiveLeads: true,
     ...(trimmed ? { search: trimmed } : {}),
     page: 1,
     amount: LEAD_PICKER_SIZE,

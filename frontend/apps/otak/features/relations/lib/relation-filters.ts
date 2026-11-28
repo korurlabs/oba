@@ -4,7 +4,6 @@ import {
   parseAsInteger,
   parseAsString,
   parseAsStringEnum,
-  parseAsStringLiteral,
 } from "nuqs/server";
 import type { Values } from "nuqs";
 import {
@@ -16,43 +15,24 @@ import {
   type RelationQueryRequest,
 } from "../schemas";
 
-/** The list's tabs, one per relation type, in the order they are shown. */
-export const RELATION_TABS = ["leads", "customers", "suppliers"] as const;
-export type RelationTab = (typeof RELATION_TABS)[number];
-
-/** The relation type each tab lists. */
-export const RELATION_TAB_TYPES: Record<RelationTab, RelationType> = {
-  leads: RelationType.LEAD,
-  customers: RelationType.CUSTOMER,
-  suppliers: RelationType.SUPPLIER,
-};
-
-/** The tab that lists relations of a type, to return to after a delete. */
-export function relationTabOf(type: RelationType): RelationTab {
-  return RELATION_TABS.find((tab) => RELATION_TAB_TYPES[tab] === type) ?? "leads";
-}
-
-/** The stages the stage filter offers on a tab; suppliers have no stage and no filter. */
-export const RELATION_TAB_STAGES: Record<RelationTab, readonly PipelineStage[]> = {
-  leads: LEAD_STAGES,
-  customers: CUSTOMER_STAGES,
-  suppliers: [],
-};
-
-/** True when the tab lists relations with a stage, so it shows the stage column and filter. */
-export function tabHasStage(tab: RelationTab): boolean {
-  return RELATION_TAB_STAGES[tab].length > 0;
-}
+/** The relation types in the order the type filter offers them. */
+export const RELATION_TYPES = [
+  RelationType.LEAD,
+  RelationType.CUSTOMER,
+  RelationType.SUPPLIER,
+] as const satisfies readonly RelationType[];
 
 /**
- * The URL's stages that belong to the tab. A stage of another tab, as in a
- * link edited by hand, is dropped: the filter could not show it, and the
- * server would match nothing for it.
+ * The stages the stage filter offers, grouped by the type that has them. A
+ * supplier has no stage, so it has no group.
  */
-function tabStages(filters: RelationFilterParams): PipelineStage[] {
-  const offered = RELATION_TAB_STAGES[filters.tab];
-  return (filters.stage ?? []).filter((stage) => offered.includes(stage));
-}
+export const RELATION_STAGE_GROUPS: readonly {
+  type: RelationType;
+  stages: readonly PipelineStage[];
+}[] = [
+  { type: RelationType.LEAD, stages: LEAD_STAGES },
+  { type: RelationType.CUSTOMER, stages: CUSTOMER_STAGES },
+];
 
 /**
  * The list's state in the URL, so a filtered list can be reloaded and
@@ -60,8 +40,10 @@ function tabStages(filters: RelationFilterParams): PipelineStage[] {
  * under the key the client builds.
  */
 export const relationFilterParams = {
-  tab: parseAsStringLiteral(RELATION_TABS).withDefault("leads"),
+  /** The types listed; none means every type. */
+  type: parseAsArrayOf(parseAsStringEnum(Object.values(RelationType))),
   search: parseAsString,
+  /** The stages listed, of any type; none hides lost and parked leads. */
   stage: parseAsArrayOf(parseAsStringEnum(Object.values(PipelineStage))),
   owner: parseAsString,
   /** The id of the event the relations were met at. */
@@ -77,33 +59,39 @@ export const loadRelationFilterParams = createLoader(relationFilterParams);
 
 /**
  * The query the list sends for its URL state. Absent filters are left out,
- * so the client and the server prefetch build the same key. The stage
- * filter applies to leads and customers.
+ * so the client and the server prefetch build the same key. Without a stage
+ * the list hides lost and parked leads, which nobody works any more; picking
+ * stages lists exactly those, whatever the types.
  */
 export function toRelationQuery(filters: RelationFilterParams): RelationQueryRequest {
-  const type = RELATION_TAB_TYPES[filters.tab];
   const query: RelationQueryRequest = {
-    type,
     page: Math.max(1, filters.page),
     amount: RELATIONS_PAGE_SIZE,
   };
+  const types = filters.type ?? [];
+  if (types.length > 0) query.type = types;
+  const stages = filters.stage ?? [];
+  if (stages.length > 0) {
+    query.stage = stages;
+  } else {
+    query.hideInactiveLeads = true;
+  }
   const search = filters.search?.trim();
   if (search) query.search = search;
   if (filters.owner) query.ownerUserId = filters.owner;
   if (filters.event) query.eventId = filters.event;
   if (filters.campaign) query.campaignId = filters.campaign;
-  const stages = tabStages(filters);
-  if (stages.length > 0) query.stage = stages;
   return query;
 }
 
-/** True when the list is narrowed by anything other than its tab and page. */
+/** True when the list is narrowed by anything other than its page. */
 export function hasActiveRelationFilter(filters: RelationFilterParams): boolean {
   return (
     !!filters.search ||
     !!filters.owner ||
     !!filters.event ||
     !!filters.campaign ||
-    tabStages(filters).length > 0
+    (filters.type ?? []).length > 0 ||
+    (filters.stage ?? []).length > 0
   );
 }

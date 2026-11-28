@@ -17,7 +17,6 @@ import { ReachOutDialog } from "@/features/outreaches/components/reach-out-dialo
 import { useIsOrganizationAdmin } from "@/hooks/use-is-organization-admin";
 import { useDeleteRelation, useRelation, useUpdateRelation } from "../hooks/use-relations";
 import { relationErrorText } from "../lib/relation-error";
-import { relationTabOf } from "../lib/relation-filters";
 import {
   RelationType,
   relationToFormValues,
@@ -85,22 +84,21 @@ function RelationDetailContent({ relation }: { relation: RelationDetail }) {
   const isAdmin = useIsOrganizationAdmin();
   const updateRelation = useUpdateRelation(relation.id);
   const deleteRelation = useDeleteRelation();
-  const tab = relationTabOf(relation.type);
 
   const initialValues = useMemo(() => relationToFormValues(relation), [relation]);
 
   const handleDelete = () => {
     deleteRelation.mutate(relation.id, {
-      onSuccess: () => router.replace({ pathname: "/relations", query: { tab } }),
+      onSuccess: () => router.replace("/relations"),
     });
   };
 
   return (
     <div className="flex flex-col gap-6">
       <Button asChild variant="ghost" size="sm" className="w-fit">
-        <Link href={{ pathname: "/relations", query: { tab } }}>
+        <Link href="/relations">
           <ArrowLeft aria-hidden="true" />
-          {t(`detail.backTo.${tab}`)}
+          {t("detail.back")}
         </Link>
       </Button>
 

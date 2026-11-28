@@ -46,24 +46,10 @@
     "reloadError": "Liste yenilenemedi; güncel olmayabilir.",
     "emptyFiltered": "Bu filtrelere uyan ilişki yok.",
     "emptyFilteredHint": "Aramayı veya filtreleri değiştirin ya da tüm listeyi görmek için temizleyin.",
-    "emptyByTab": {
-      "leads": "Henüz açık potansiyel müşteri yok.",
-      "customers": "Henüz müşteri yok.",
-      "suppliers": "Henüz tedarikçi yok."
-    },
-    "emptyHintByTab": {
-      "leads": "Kazanmak istediğiniz bir şirketi ekleyin ve ilk temastan teklife kadar takip edin.",
-      "customers": "Satış yaptığınız bir şirketi ekleyin veya kazanılan bir potansiyel müşteriyi müşteri olarak işaretleyin.",
-      "suppliers": "Kuruluşunuzun satın aldığı bir şirketi ekleyin."
-    },
+    "empty": "Henüz ilişki yok.",
+    "emptyHint": "Organizasyonunuzun satış yaptığı, satın aldığı veya kazanmak istediği bir şirket ekleyin.",
     "noOwner": "Sahibi yok",
     "noValue": "Beklenen değer yok",
-    "tabs": {
-      "leads": "Potansiyel müşteriler",
-      "customers": "Müşteriler",
-      "suppliers": "Tedarikçiler"
-    },
-    "tabsLabel": "İlişki türü",
     "types": {
       "LEAD": "Potansiyel müşteri",
       "SUPPLIER": "Tedarikçi",
@@ -115,6 +101,7 @@
       "searchPlaceholder": "Ada göre ara",
       "clear": "Filtreleri temizle",
       "ownersLoadError": "Sahipler yüklenemedi.",
+      "typeLabel": "Tür",
       "stageLabel": "Aşama",
       "ownerLabel": "Sahip",
       "eventLabel": "Etkinlik",
@@ -194,11 +181,6 @@
     "detail": {
       "title": "İlişki",
       "back": "İlişkilere dön",
-      "backTo": {
-        "leads": "Potansiyel müşterilere dön",
-        "customers": "Müşterilere dön",
-        "suppliers": "Tedarikçilere dön"
-      },
       "details": "Ayrıntılar",
       "timestamps": "Oluşturuldu {created} · Güncellendi {updated}",
       "loading": "İlişki yükleniyor",
@@ -1146,8 +1128,8 @@
   },
   "mailSenders": {
     "subtitle": "Organizasyonun erişim e-postalarını gönderdiği Microsoft 365 kiracısındaki posta kutuları.",
-    "new": "Posta kutusu bağla",
-    "newTitle": "Posta kutusu bağla",
+    "new": "Gönderen ekle",
+    "newTitle": "Gönderen ekle",
     "dialogDescription": "Organizasyonunuzun Microsoft 365 kiracısındaki bir posta kutusunun adresini girin.",
     "loadError": "Gönderenler yüklenemedi.",
     "reloadError": "Gönderenler yenilenemedi; bu liste güncel olmayabilir.",

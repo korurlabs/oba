@@ -46,24 +46,10 @@
     "reloadError": "De lijst kon niet worden vernieuwd; hij is mogelijk niet actueel.",
     "emptyFiltered": "Geen relatie voldoet aan deze filters.",
     "emptyFilteredHint": "Pas de zoekopdracht of de filters aan, of wis ze om de hele lijst te zien.",
-    "emptyByTab": {
-      "leads": "Nog geen open leads.",
-      "customers": "Nog geen klanten.",
-      "suppliers": "Nog geen leveranciers."
-    },
-    "emptyHintByTab": {
-      "leads": "Voeg een bedrijf toe dat je wilt winnen en volg het van eerste contact tot voorstel.",
-      "customers": "Voeg een bedrijf toe waaraan je verkoopt, of markeer een gewonnen lead als klant.",
-      "suppliers": "Voeg een bedrijf toe waarvan je organisatie inkoopt."
-    },
+    "empty": "Nog geen relaties.",
+    "emptyHint": "Voeg een bedrijf toe waaraan je organisatie verkoopt, waarvan ze inkoopt of dat ze wil winnen.",
     "noOwner": "Geen eigenaar",
     "noValue": "Geen verwachte waarde",
-    "tabs": {
-      "leads": "Leads",
-      "customers": "Klanten",
-      "suppliers": "Leveranciers"
-    },
-    "tabsLabel": "Soort relatie",
     "types": {
       "LEAD": "Lead",
       "SUPPLIER": "Leverancier",
@@ -115,6 +101,7 @@
       "searchPlaceholder": "Zoek op naam",
       "clear": "Filters wissen",
       "ownersLoadError": "De eigenaren konden niet worden geladen.",
+      "typeLabel": "Soort",
       "stageLabel": "Fase",
       "ownerLabel": "Eigenaar",
       "eventLabel": "Evenement",
@@ -194,11 +181,6 @@
     "detail": {
       "title": "Relatie",
       "back": "Terug naar relaties",
-      "backTo": {
-        "leads": "Terug naar leads",
-        "customers": "Terug naar klanten",
-        "suppliers": "Terug naar leveranciers"
-      },
       "details": "Gegevens",
       "timestamps": "Aangemaakt {created} · Bijgewerkt {updated}",
       "loading": "De relatie wordt geladen",
@@ -1146,8 +1128,8 @@
   },
   "mailSenders": {
     "subtitle": "De mailboxen van de Microsoft 365-tenant van je organisatie waaruit zij haar outreach-mail verstuurt.",
-    "new": "Mailbox koppelen",
-    "newTitle": "Mailbox koppelen",
+    "new": "Afzender toevoegen",
+    "newTitle": "Afzender toevoegen",
     "dialogDescription": "Voer het adres in van een mailbox in de Microsoft 365-tenant van je organisatie.",
     "loadError": "De afzenders konden niet worden geladen.",
     "reloadError": "De afzenders konden niet worden vernieuwd; deze lijst is mogelijk verouderd.",

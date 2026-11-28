@@ -47,23 +47,23 @@ function MailCell({ email, emptyLabel }: { email: string | null; emptyLabel: str
 }
 
 interface RelationColumnsOptions {
-  /** Leads and customers have a stage; suppliers have none, so the column is left out. */
-  showStage: boolean;
-  /**
-   * A table that mixes types, such as an event's relations, shows each row's
-   * type; a list of one type leaves the column out.
-   */
+  /** Shows the stage column; a supplier's stage cell is empty. Default true. */
+  showStage?: boolean;
+  /** Shows the type column. Default true, as relation lists mix every type. */
   showType?: boolean;
 }
 
 /**
- * The relations table. The name takes the free width; every other column has
- * a fixed width sized to its widest usual value, so the columns line up from
- * one tab to the next. Money is right aligned in tabular figures, and the
- * last change always shows date and time, so two changes on one day still
- * tell apart.
+ * The relations table, for lists that mix every type. The name takes the
+ * free width; every other column has a fixed width sized to its widest usual
+ * value, so the columns line up from one page to the next. Money is right
+ * aligned in tabular figures, and the last change always shows date and time,
+ * so two changes on one day still tell apart.
  */
-export function useRelationColumns({ showStage, showType = false }: RelationColumnsOptions) {
+export function useRelationColumns({
+  showStage = true,
+  showType = true,
+}: RelationColumnsOptions = {}) {
   const t = useTranslations("relations");
   const format = useFormatter();
   const { formatDateTime } = useDateFormat();

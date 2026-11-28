@@ -22,7 +22,12 @@ import {
   type StageSelectMove,
 } from "../lib/battlefield";
 import { relationErrorText } from "../lib/relation-error";
-import { BATTLEFIELD_MAX_LEADS, PipelineStage, type RelationListItem } from "../schemas";
+import {
+  BATTLEFIELD_MAX_LEADS,
+  PipelineStage,
+  RelationType,
+  type RelationListItem,
+} from "../schemas";
 import { RelationBattlefieldCard } from "./relation-battlefield-card";
 
 /** A stage column: a pale sky lane with rounded corners, the cards white on it. */
@@ -126,7 +131,7 @@ export function RelationBattlefieldView() {
         description={t("battlefield.subtitle")}
         actions={
           <Button asChild>
-            <Link href={{ pathname: "/relations/new", query: { tab: "leads" } }}>
+            <Link href={{ pathname: "/relations/new", query: { type: RelationType.LEAD } }}>
               <Plus aria-hidden="true" />
               {t("battlefield.newLead")}
             </Link>
@@ -172,7 +177,7 @@ export function RelationBattlefieldView() {
           description={t("battlefield.empty")}
           action={
             <Button asChild>
-              <Link href={{ pathname: "/relations/new", query: { tab: "leads" } }}>
+              <Link href={{ pathname: "/relations/new", query: { type: RelationType.LEAD } }}>
                 <Plus aria-hidden="true" />
                 {t("battlefield.newLead")}
               </Link>

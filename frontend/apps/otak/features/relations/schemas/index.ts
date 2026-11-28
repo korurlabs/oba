@@ -88,7 +88,7 @@ export const OPEN_LEAD_STAGES = [
 ] as const satisfies readonly PipelineStage[];
 
 /**
- * The stages of a lead nobody works any more. The leads list hides them
+ * The stages of a lead nobody works any more. The relations list hides them
  * unless its stage filter names them.
  */
 export const INACTIVE_LEAD_STAGES = [
@@ -151,15 +151,18 @@ export const relationCreateRequestSchema = relationUpdateRequestSchema.extend({
 });
 
 /**
- * The list's query string. `stage` is repeated and applies to leads and
- * customers; a stage foreign to the type matches nothing. Without `type` the
- * server lists every type and every stage and ignores `stage`. `eventId` and
+ * The list's query string. `type` and `stage` are repeated; without `type`
+ * the server lists every type. A relation matches a stage whatever the type,
+ * so a stage implies its type, a supplier never matches one and a stage of a
+ * type `type` leaves out matches nothing. `hideInactiveLeads` applies only
+ * without a stage: it leaves out lost and parked leads. `eventId` and
  * `campaignId` keep the relations linked to that event or campaign; an
  * unknown id matches nothing.
  */
 export const relationQueryRequestSchema = z.object({
-  type: RelationTypeSchema.optional(),
+  type: z.array(RelationTypeSchema).optional(),
   stage: z.array(PipelineStageSchema).optional(),
+  hideInactiveLeads: z.boolean().optional(),
   ownerUserId: z.string().optional(),
   search: z.string().optional(),
   eventId: z.string().optional(),

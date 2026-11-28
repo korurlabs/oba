@@ -46,24 +46,10 @@
     "reloadError": "The list could not be refreshed; it may be out of date.",
     "emptyFiltered": "No relation matches these filters.",
     "emptyFilteredHint": "Change the search or the filters, or clear them to see the whole list.",
-    "emptyByTab": {
-      "leads": "No open leads yet.",
-      "customers": "No customers yet.",
-      "suppliers": "No suppliers yet."
-    },
-    "emptyHintByTab": {
-      "leads": "Add a company you want to win, and follow it from first contact to proposal.",
-      "customers": "Add a company you sell to, or mark a won lead as a customer.",
-      "suppliers": "Add a company your organization buys from."
-    },
+    "empty": "No relations yet.",
+    "emptyHint": "Add a company your organization sells to, buys from or wants to win.",
     "noOwner": "No owner",
     "noValue": "No expected value",
-    "tabs": {
-      "leads": "Leads",
-      "customers": "Customers",
-      "suppliers": "Suppliers"
-    },
-    "tabsLabel": "Relation type",
     "types": {
       "LEAD": "Lead",
       "SUPPLIER": "Supplier",
@@ -115,6 +101,7 @@
       "searchPlaceholder": "Search by name",
       "clear": "Clear filters",
       "ownersLoadError": "The owners could not be loaded.",
+      "typeLabel": "Type",
       "stageLabel": "Stage",
       "ownerLabel": "Owner",
       "eventLabel": "Event",
@@ -194,11 +181,6 @@
     "detail": {
       "title": "Relation",
       "back": "Back to relations",
-      "backTo": {
-        "leads": "Back to leads",
-        "customers": "Back to customers",
-        "suppliers": "Back to suppliers"
-      },
       "details": "Details",
       "timestamps": "Created {created} · Updated {updated}",
       "loading": "Loading the relation",
@@ -1146,8 +1128,8 @@
   },
   "mailSenders": {
     "subtitle": "The mailboxes of your organization's Microsoft 365 tenant that it sends its outreach mail from.",
-    "new": "Connect mailbox",
-    "newTitle": "Connect mailbox",
+    "new": "Add sender",
+    "newTitle": "Add sender",
     "dialogDescription": "Enter the address of a mailbox in your organization's Microsoft 365 tenant.",
     "loadError": "The senders could not be loaded.",
     "reloadError": "The senders could not be refreshed; this list may be out of date.",
