@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { ViewToggle } from "@/features/editor/components/view-toggle";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { useEditorParams, type EditorView } from "@/features/editor/hooks/use-editor-params";
 import { ScopePage, type ReadyScope } from "@/features/scope/components";
 import { mountRefOf } from "@/features/scope/components/mount-paths";
@@ -14,7 +15,14 @@ import { FileEditor } from "@/features/versions/components/file-editor";
 import { useEditSource, type SubmittedChange } from "@/features/versions/hooks/use-change-write";
 
 import { useRuleTabKind } from "../hooks/use-rule-kinds";
-import { BackLink, DetailNav, FileDetail, useCurrentQuery, type Neighbour } from "./file-detail";
+import {
+  BackLink,
+  DetailNav,
+  FileDetail,
+  GuardedLink,
+  useCurrentQuery,
+  type Neighbour,
+} from "./file-detail";
 import { rulesSection, type RuleSection } from "./rule-links";
 import { ruleTabRows, tabVersionIds, type RuleTabRow } from "./rule-rows";
 
@@ -99,8 +107,11 @@ function NewRuleFile({ section, ready }: { section: RuleSection; ready: ReadySco
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      <BackLink to={section.listHref} label={section.back} />
-      <h1>{section.newTitle}</h1>
+      <PageHeading
+        title={section.newTitle}
+        back={{ href: section.listHref(current), label: section.back }}
+        linkComponent={GuardedLink}
+      />
       {submitted !== null ? (
         <p className="text-sm">
           <SubmittedNotice submitted={submitted} />

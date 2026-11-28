@@ -9,6 +9,7 @@ import { Button } from "@oba/ui/sky/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@oba/ui/sky/card";
 import { NativeSelect } from "@oba/ui/sky/field";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { EmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@oba/ui/sky/tabs";
 import { FileDiff } from "@/features/changes/components/diff-view";
@@ -310,36 +311,40 @@ function PlanView({ plan }: { plan: PlanDetailResponse }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <BackLink />
-      <header className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary">{KIND_LABELS[plan.kind]}</Badge>
-          <Badge variant={review.variant}>{review.label}</Badge>
-        </div>
-        <h1 className="break-words">{plan.title}</h1>
-        {plan.path && (
-          <code className="text-muted-foreground font-mono text-sm break-all">{plan.path}</code>
-        )}
-        <dl className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-3 lg:grid-cols-6">
-          <Meta label="Repository">{referenceName(plan.repository)}</Meta>
-          <Meta label="Pack">
-            <PlanPack pack={plan.pack} spec={plan.kind === "SPEC"} />
-          </Meta>
-          <Meta label="User">{referenceName(plan.user)}</Meta>
-          <Meta label="Latest session">
-            {session ? (
-              <>
-                <SessionLink sessionId={session.sessionId} />
-                {session.ended ? " (ended)" : " (running)"}
-              </>
-            ) : (
-              "Deleted"
+      <PageHeading
+        title={plan.title}
+        back={{ href: "/plans", label: "All plans" }}
+        description={
+          <div className="mt-2 flex flex-col gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="secondary">{KIND_LABELS[plan.kind]}</Badge>
+              <Badge variant={review.variant}>{review.label}</Badge>
+            </div>
+            {plan.path && (
+              <code className="text-muted-foreground font-mono text-sm break-all">{plan.path}</code>
             )}
-          </Meta>
-          <Meta label="Branch">{session?.branch ?? "Unknown"}</Meta>
-          <Meta label="Updated">{dateTimeText(plan.lastChangedAt)}</Meta>
-        </dl>
-      </header>
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-3 lg:grid-cols-6">
+              <Meta label="Repository">{referenceName(plan.repository)}</Meta>
+              <Meta label="Pack">
+                <PlanPack pack={plan.pack} spec={plan.kind === "SPEC"} />
+              </Meta>
+              <Meta label="User">{referenceName(plan.user)}</Meta>
+              <Meta label="Latest session">
+                {session ? (
+                  <>
+                    <SessionLink sessionId={session.sessionId} />
+                    {session.ended ? " (ended)" : " (running)"}
+                  </>
+                ) : (
+                  "Deleted"
+                )}
+              </Meta>
+              <Meta label="Branch">{session?.branch ?? "Unknown"}</Meta>
+              <Meta label="Updated">{dateTimeText(plan.lastChangedAt)}</Meta>
+            </dl>
+          </div>
+        }
+      />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="flex min-w-0 flex-col gap-4">

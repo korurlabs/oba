@@ -3,12 +3,14 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { ViewToggle } from "@/features/editor/components/view-toggle";
 import { useEditorParams, type EditorView } from "@/features/editor/hooks/use-editor-params";
 import {
   BackLink,
   DetailNav,
   FileDetail,
+  GuardedLink,
   useCurrentQuery,
   type Neighbour,
 } from "@/features/rules/components/file-detail";
@@ -123,8 +125,11 @@ function NewConventionDoc({ ready }: { ready: ReadyScope }) {
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      <BackLink to={backToFolder} label={BACK_LABEL} />
-      <h1>New convention</h1>
+      <PageHeading
+        title="New convention"
+        back={{ href: backToFolder(current), label: BACK_LABEL }}
+        linkComponent={GuardedLink}
+      />
       {submitted !== null ? (
         <p className="text-sm">
           <SubmittedNotice submitted={submitted} />

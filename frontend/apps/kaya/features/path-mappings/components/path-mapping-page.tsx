@@ -2,7 +2,6 @@
 
 import { useState, type ReactNode } from "react";
 
-import { FilterPopover, type SingleFilterCategory } from "@oba/ui/sky/filter-popover";
 import { ListToolbar } from "@oba/ui/sky/list-toolbar";
 import { PageHeading } from "@oba/ui/sky/page-heading";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
@@ -11,9 +10,8 @@ import { useScope } from "@/features/scope/hooks/use-scope";
 import { useScopeContent, type ScopeContent } from "@/features/scope/hooks/use-scope-content";
 import { scopeValue } from "@/features/scope/components/scope-data";
 import type { ScopeFile } from "@/features/scope/components/scope-files";
-import { scopeCategory } from "@/features/scope/components/scope-category";
-import { useConfirmLeave } from "@/features/versions/components/draft-context";
-import { CLEAR_SEARCH_LABEL, FILTER_LABELS } from "@/components/common/list-parts";
+import { PackTree } from "@/features/scope/components/pack-tree";
+import { CLEAR_SEARCH_LABEL } from "@/components/common/list-parts";
 import { describeError } from "@/lib/api/error-text";
 
 import { PATH_MAPPING_VERSIONS_MAX, usePathMappings } from "../hooks/use-path-mappings";
@@ -98,29 +96,15 @@ function SearchedPathMappingBody({
 type PathMappingToolbarProps = {
   search?: ReactNode;
   tabs: ReactNode;
-  scope: SingleFilterCategory | null;
 };
 
 /**
- * The page's toolbar: the search of the table by kind, the views as tabs,
- * since each view is another list, and the scope whose files are counted.
+ * The page's toolbar: the search of the table by kind and the views as tabs,
+ * since each view is another list. The scope whose files are counted is
+ * chosen in the pack tree, as on the other config pages.
  */
-function PathMappingToolbar({ search, tabs, scope }: PathMappingToolbarProps) {
-  return (
-    <ListToolbar
-      search={search}
-      tabs={tabs}
-      filters={
-        scope && (
-          <FilterPopover
-            categories={[scope]}
-            onClear={() => scope.onChange(null)}
-            labels={FILTER_LABELS}
-          />
-        )
-      }
-    />
-  );
+function PathMappingToolbar({ search, tabs }: PathMappingToolbarProps) {
+  return <ListToolbar search={search} tabs={tabs} />;
 }
 
 /** The table, or its loading or error state; the rows are static, so there is no empty state. */
@@ -172,10 +156,8 @@ export function PathMappingPage() {
   const mappings = usePathMappings(requested, counted.status === "ready" && tool === null);
   const tools = useToolMappings(requested, counted.status === "ready" && tool !== null);
   const scope = scopeState.scope === null ? null : scopeValue(scopeState.scope);
-  const confirmLeave = useConfirmLeave();
   const toolbar: Omit<PathMappingToolbarProps, "search"> = {
     tabs: <ToolTabs tool={tool} onChange={(next) => void setTool(next)} />,
-    scope: scopeState.scope === null ? null : scopeCategory(scopeState, confirmLeave),
   };
 
   let body: ReactNode;
@@ -233,7 +215,12 @@ export function PathMappingPage() {
         title="Path mapping"
         description="Where Kaya delivers each kind of file in a repository."
       />
-      {body}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
+        <aside className="lg:border-r lg:pr-4">
+          {!scopeState.loading && scopeState.error === null && <PackTree state={scopeState} />}
+        </aside>
+        <div className="flex min-w-0 flex-col gap-6">{body}</div>
+      </div>
     </div>
   );
 }

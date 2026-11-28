@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowLeft, MessagesSquare } from "lucide-react";
+import { MessagesSquare } from "lucide-react";
 
 import { Badge } from "@oba/ui/sky/badge";
 import { Button } from "@oba/ui/sky/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@oba/ui/sky/card";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { ERROR_CODES, KayaApiError } from "@/lib/api/errors";
 import { describeError } from "@/lib/api/error-text";
 import { ageText, dateTimeText } from "@/lib/format-time";
@@ -64,35 +65,32 @@ export function MachineDetail({ machineId }: { machineId: string }) {
   const subscription = accountSubscriptionText(data.account);
   return (
     <div className="flex flex-col gap-6">
-      <Button asChild variant="ghost" size="sm" className="w-fit">
-        <Link href="/machines">
-          <ArrowLeft aria-hidden />
-          Machines
-        </Link>
-      </Button>
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <h1 className="flex flex-wrap items-center gap-3">
-            {data.machineName}
+      <PageHeading
+        title={data.machineName}
+        back={{ href: "/machines", label: "Machines" }}
+        description={
+          <div className="flex flex-wrap items-center gap-2">
             <Badge variant={data.status === "ACTIVE" ? "success" : "muted"}>
               {data.status === "ACTIVE" ? "Active" : "Retired"}
             </Badge>
-          </h1>
-          <p className="text-muted-foreground">
-            Machine of{" "}
-            <span className="text-foreground">{data.userDisplayName ?? data.userId}</span>
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline" size="sm">
-            <Link href={`/?machineId=${data.id}`}>
-              <MessagesSquare aria-hidden />
-              {data.sessionCount} sessions
-            </Link>
-          </Button>
-          <MachineActions machine={data} />
-        </div>
-      </div>
+            <p className="text-muted-foreground">
+              Machine of{" "}
+              <span className="text-foreground">{data.userDisplayName ?? data.userId}</span>
+            </p>
+          </div>
+        }
+        actions={
+          <>
+            <Button asChild variant="outline" size="sm">
+              <Link href={`/?machineId=${data.id}`}>
+                <MessagesSquare aria-hidden />
+                {data.sessionCount} sessions
+              </Link>
+            </Button>
+            <MachineActions machine={data} />
+          </>
+        }
+      />
       <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
         <Card>
           <CardHeader>

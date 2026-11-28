@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useState, type MouseEvent, type ReactNode } from "react";
 import { ArrowLeft, ChevronLeft, ChevronRight, Pencil } from "lucide-react";
 
+import type { SkyLinkProps } from "@oba/ui/sky/app-shell";
 import { Button } from "@oba/ui/sky/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@oba/ui/sky/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@oba/ui/sky/tooltip";
@@ -72,6 +73,23 @@ const DEFAULT_DETAIL_TAB: EditorPanel = "content";
 export function useCurrentQuery(): URLSearchParams {
   const searchParams = useSearchParams();
   return new URLSearchParams(searchParams.toString());
+}
+
+/**
+ * A link that asks before it leaves an unsaved edit, for the back link of a
+ * page heading over the editor, where a plain link would drop the edit.
+ */
+export function GuardedLink({ onClick, ...props }: SkyLinkProps) {
+  const guard = useGuardedLink();
+  return (
+    <Link
+      {...props}
+      onClick={(event: MouseEvent<HTMLAnchorElement>) => {
+        onClick?.(event);
+        if (!event.defaultPrevented) guard(event);
+      }}
+    />
+  );
 }
 
 /** The link back to a detail page's list, such as "Back to Rules". */
