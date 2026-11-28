@@ -1,5 +1,5 @@
 -- Oba Database Schema - Otak: Create Campaigns
--- V1_2_133__Otak_Create_Campaigns.sql
+-- V1_2_139__Otak_Create_Campaigns.sql
 --
 -- Adds the campaign of an organization to Otak and its contents. A campaign is
 -- the umbrella: a name, an optional description, an optional date range, an

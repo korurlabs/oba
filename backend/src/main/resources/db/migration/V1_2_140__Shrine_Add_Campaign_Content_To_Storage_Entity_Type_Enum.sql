@@ -1,5 +1,5 @@
 -- Oba Database Schema - Shrine: Add CAMPAIGN_CONTENT To Storage Entity Type Enum
--- V1_2_134__Shrine_Add_Campaign_Content_To_Storage_Entity_Type_Enum.sql
+-- V1_2_140__Shrine_Add_Campaign_Content_To_Storage_Entity_Type_Enum.sql
 --
 -- Extends shrine_storage_entity_type_enum with CAMPAIGN_CONTENT so that
 -- shrine.attachments can be associated with Otak campaign contents.

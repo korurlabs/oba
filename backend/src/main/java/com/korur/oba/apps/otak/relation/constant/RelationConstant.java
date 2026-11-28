@@ -52,6 +52,13 @@ public final class RelationConstant {
      */
     public static final String WEBSITE_PATTERN = "^https?://[^\\s/?#]+\\.[^\\s]+$";
 
+    // -------------Search-----------//
+
+    /**
+     * Wraps a search keyword so the LIKE filter matches it anywhere in the name.
+     */
+    public static final String LIKE_WILDCARD = "%";
+
     // -------------Validation messages-----------//
 
     public static final String NAME_REQUIRED_MESSAGE = "Name is required";

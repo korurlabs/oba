@@ -6,6 +6,7 @@ import {
   getCoreRowModel,
   useReactTable,
   type Cell,
+  type Column,
   type ColumnDef,
   type Header,
   type Row,
@@ -31,11 +32,33 @@ const ALIGN_CLASS: Record<NonNullable<DataTableColumnMeta["align"]>, string> = {
   right: "text-right",
 };
 
+/** Whether a column keeps the width its `size` gives, rather than sharing the free width. */
+function hasFixedWidth<T>(column: Column<T, unknown>): boolean {
+  return !columnMeta(column.columnDef.meta).flex && column.columnDef.size !== undefined;
+}
+
 /** A column's width: fixed from its `size`, unless it takes the free width or names none. */
-function widthStyle<T>(column: Header<T, unknown>["column"]): { width?: number } {
-  const meta = columnMeta(column.columnDef.meta);
-  if (meta.flex || column.columnDef.size === undefined) return {};
-  return { width: column.getSize() };
+function widthStyle<T>(column: Column<T, unknown>): { width?: number } {
+  return hasFixedWidth(column) ? { width: column.getSize() } : {};
+}
+
+/**
+ * The least width a column without a fixed width keeps, so the name column
+ * stays readable beside wide fixed columns.
+ */
+const FREE_COLUMN_MIN_WIDTH = 240;
+
+/**
+ * The narrowest the table may get. A fixed layout gives the free columns only
+ * what the fixed ones leave, which is nothing once they fill the panel; with
+ * this floor the panel scrolls sideways instead of collapsing those columns.
+ */
+function tableMinWidth<T>(columns: Column<T, unknown>[]): number {
+  let width = 0;
+  for (const column of columns) {
+    width += hasFixedWidth(column) ? column.getSize() : FREE_COLUMN_MIN_WIDTH;
+  }
+  return width;
 }
 
 interface DataTableProps<T> {
@@ -73,7 +96,12 @@ export function DataTable<T>({
 
   return (
     <div className="bg-card overflow-hidden rounded-xl border shadow-sm">
-      <Table aria-label={label} aria-busy={isFetching} className={cn(fixedLayout && "table-fixed")}>
+      <Table
+        aria-label={label}
+        aria-busy={isFetching}
+        className={cn(fixedLayout && "table-fixed")}
+        style={fixedLayout ? { minWidth: tableMinWidth(table.getVisibleLeafColumns()) } : undefined}
+      >
         <TableHeader>
           {table.getHeaderGroups().map((group) => (
             <TableRow key={group.id} className="hover:bg-transparent">

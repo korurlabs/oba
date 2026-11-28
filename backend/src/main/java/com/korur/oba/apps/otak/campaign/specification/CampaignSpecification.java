@@ -12,6 +12,7 @@ import java.util.UUID;
 import com.korur.oba.apps.otak.campaign.constant.CampaignConstant;
 import com.korur.oba.apps.otak.campaign.dto.request.CampaignQueryRequest;
 import com.korur.oba.apps.otak.campaign.entity.Campaign;
+import com.korur.oba.dojo.constant.CommonConstant;
 
 /**
  * JPA Specification builder for Campaign entity queries.
@@ -22,7 +23,7 @@ import com.korur.oba.apps.otak.campaign.entity.Campaign;
 public final class CampaignSpecification {
 
     private CampaignSpecification() {
-        throw new UnsupportedOperationException("Utility class");
+        throw new UnsupportedOperationException(CommonConstant.UTILITY_CLASS_MESSAGE);
     }
 
     /**
@@ -58,7 +59,7 @@ public final class CampaignSpecification {
         if (keyword == null || keyword.isBlank()) {
             return noOp();
         }
-        String pattern = "%" + keyword.trim().toLowerCase() + "%";
+        String pattern = CampaignConstant.LIKE_WILDCARD + keyword.trim().toLowerCase() + CampaignConstant.LIKE_WILDCARD;
         return (root, query, cb) -> cb.like(cb.lower(root.get(CampaignConstant.FIELD_NAME)), pattern);
     }
 
