@@ -23,7 +23,7 @@ const deleted: string[] = [];
 
 const actualIntl = { ...(await import("next-intl")) };
 const actualHooks = { ...(await import("../hooks/use-azure-connections")) };
-const actualColumns = { ...(await import("./azure-connection-columns")) };
+const actualColumns = { ...(await import("../hooks/use-azure-connection-columns")) };
 const actualTable = { ...(await import("@/components/data-table")) };
 const actualDialog = { ...(await import("./azure-connection-form-dialog")) };
 const actualSheet = { ...(await import("./azure-connection-sheet")) };
@@ -47,7 +47,7 @@ mock.module("../hooks/use-azure-connections", () => ({
     mutate: (connectionId: string) => void deleted.push(connectionId),
   }),
 }));
-mock.module("./azure-connection-columns", () => ({
+mock.module("../hooks/use-azure-connection-columns", () => ({
   ...actualColumns,
   useAzureConnectionColumns: (options: ColumnOptions) => {
     columnOptions = options;
@@ -85,7 +85,7 @@ mock.module("@/features/organizations/components/organization-load-error", () =>
 afterAll(() => {
   mock.module("next-intl", () => actualIntl);
   mock.module("../hooks/use-azure-connections", () => actualHooks);
-  mock.module("./azure-connection-columns", () => actualColumns);
+  mock.module("../hooks/use-azure-connection-columns", () => actualColumns);
   mock.module("@/components/data-table", () => actualTable);
   mock.module("./azure-connection-form-dialog", () => actualDialog);
   mock.module("./azure-connection-sheet", () => actualSheet);

@@ -23,7 +23,7 @@ import {
 } from "@oba/ui/sky/dialog";
 import { useDateFormat } from "@oba/shared/i18n/use-date-format";
 import type { AzureConnection } from "../schemas";
-import { AzureLastError } from "./azure-last-error";
+import { AzureLastError } from "../components/azure-last-error";
 
 interface AzureConnectionColumnsOptions {
   onOpen: (connection: AzureConnection) => void;

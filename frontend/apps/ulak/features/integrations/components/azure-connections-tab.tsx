@@ -14,7 +14,7 @@ import {
   useDeleteAzureConnection,
   useVerifyAzureConnection,
 } from "../hooks/use-azure-connections";
-import { useAzureConnectionColumns } from "./azure-connection-columns";
+import { useAzureConnectionColumns } from "../hooks/use-azure-connection-columns";
 import { AzureConnectionFormDialog } from "./azure-connection-form-dialog";
 import { AzureConnectionSheet } from "./azure-connection-sheet";
 
