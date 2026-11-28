@@ -38,10 +38,24 @@ public final class OutreachConstant {
     public static final String FIELD_TYPE = "type";
     public static final String FIELD_SIZE_BYTES = "sizeBytes";
     public static final String FIELD_MAX_SIZE_BYTES = "maxSizeBytes";
+    public static final String FIELD_TITLE = "title";
+
+    /**
+     * Mail address of a contact, which the list search matches besides the contact's name.
+     */
+    public static final String FIELD_CONTACT_EMAIL = "email";
 
     // -------------Limits-----------//
 
     public static final int TITLE_MAX_LENGTH = 200;
+    public static final int SEARCH_MAX_LENGTH = 200;
+
+    // -------------Search-----------//
+
+    /**
+     * Wraps a search keyword so the LIKE filter matches it anywhere in a value.
+     */
+    public static final String LIKE_WILDCARD = "%";
 
     /**
      * Largest total size of the attachments sent with one outreach. Graph refuses a sendMail
@@ -75,4 +89,5 @@ public final class OutreachConstant {
     public static final String MAIL_TEMPLATE_NOT_FOR_TYPE_MESSAGE = "Only a mail outreach takes a mail template";
     public static final String MAIL_NOT_FOR_TYPE_MESSAGE = "Only a mail outreach takes a mail";
     public static final String DOCUMENT_TEMPLATES_NOT_FOR_TYPE_MESSAGE = "Only a mail outreach takes document templates";
+    public static final String SEARCH_SIZE_MESSAGE = "Search can not be longer than 200 characters";
 }
