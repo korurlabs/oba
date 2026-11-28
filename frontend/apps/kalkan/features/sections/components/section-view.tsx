@@ -7,6 +7,7 @@ import { useDateFormat } from "@oba/shared/i18n/use-date-format";
 import { Link } from "@oba/shared/libs/i18n/navigation";
 import { Button } from "@oba/ui/sky/button";
 import { Card, CardContent } from "@oba/ui/sky/card";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
 import { EmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { ActionEmptyState, PageHeading } from "@/components/page-states";
 import { useRestorePage, useTrash } from "@/features/pages/hooks/use-pages";
@@ -113,22 +114,20 @@ export function SectionView({ slug }: { slug: SectionSlug }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeading
-        title={title}
-        actions={
-          root && (
-            <>
-              <Button asChild variant="outline">
-                <Link href={pageHref(root.id)}>
-                  <FileText aria-hidden="true" />
-                  {tTree("sectionPage")}
-                </Link>
-              </Button>
-              {canEdit && <NewPageButton parentId={root.id} />}
-            </>
-          )
-        }
-      />
+      <PageHeading title={title} />
+      {root && (
+        <ListToolbar
+          actions={
+            <Button asChild variant="outline">
+              <Link href={pageHref(root.id)}>
+                <FileText aria-hidden="true" />
+                {tTree("sectionPage")}
+              </Link>
+            </Button>
+          }
+          create={canEdit && <NewPageButton parentId={root.id} />}
+        />
+      )}
       {body}
       {root && isMember && <DeletedPagesCard rootSlug={root.slug} />}
     </div>

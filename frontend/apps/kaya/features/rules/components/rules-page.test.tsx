@@ -302,7 +302,7 @@ describe("RulesPage", () => {
   test("the toolbar has the filter and search, a repository scope has neither the filter nor New", () => {
     reset();
     const pack = render();
-    expect(pack).toContain('aria-label="Filter');
+    expect(pack).toContain('title="Filter"');
     expect(pack).toContain('aria-label="Search files"');
     ready = {
       ...READY,
@@ -310,7 +310,7 @@ describe("RulesPage", () => {
       scope: { kind: "REPOSITORY", repositoryId: "r-1" },
     } as unknown as ReadyScope;
     const repository = render("scope=repository%3Ar-1");
-    expect(repository).not.toContain('aria-label="Filter');
+    expect(repository).not.toContain('title="Filter"');
     expect(repository).toContain('aria-label="Search files"');
     reset();
   });
