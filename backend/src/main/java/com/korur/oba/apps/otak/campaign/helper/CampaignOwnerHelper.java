@@ -17,6 +17,7 @@ import java.util.UUID;
 // 4. Internal
 import com.korur.oba.apps.otak.campaign.dto.response.CampaignOwnerResponse;
 import com.korur.oba.apps.otak.campaign.entity.Campaign;
+import com.korur.oba.shrine.identity.constant.UserConstant;
 import com.korur.oba.shrine.identity.entity.User;
 import com.korur.oba.shrine.identity.entity.embedded.UserProfile;
 import com.korur.oba.shrine.identity.service.UserQueryService;
@@ -29,8 +30,6 @@ import com.korur.oba.shrine.identity.service.UserQueryService;
 @Component
 @RequiredArgsConstructor
 public class CampaignOwnerHelper {
-
-    private static final String NAME_SEPARATOR = " ";
 
     private final UserQueryService userQueryService;
 
@@ -91,7 +90,7 @@ public class CampaignOwnerHelper {
         UserProfile profile = user.getProfile();
         String firstName = profile == null || profile.getFirstName() == null ? "" : profile.getFirstName().trim();
         String lastName = profile == null || profile.getLastName() == null ? "" : profile.getLastName().trim();
-        String name = (firstName + NAME_SEPARATOR + lastName).trim();
+        String name = (firstName + UserConstant.FULL_NAME_SEPARATOR + lastName).trim();
         return name.isEmpty() ? user.getEmail() : name;
     }
 }
