@@ -27,7 +27,8 @@ export const repositoryUpdateRequestSchema = z.object({
 });
 
 // ── Response Schemas ────────────────────────────────────────────────
-export const repositorySettingsResponseSchema = z.object({
+/** A repository of `GET /repositories`, archived ones included. */
+export const repositoryListResponseSchema = z.object({
   id: z.string(),
   name: z.string(),
   remoteUrl: z.string(),
@@ -39,4 +40,4 @@ export const repositorySettingsResponseSchema = z.object({
 
 // ── Inferred Types ──────────────────────────────────────────────────
 export type RepositoryUpdateRequest = z.infer<typeof repositoryUpdateRequestSchema>;
-export type RepositorySettingsResponse = z.infer<typeof repositorySettingsResponseSchema>;
+export type RepositoryListResponse = z.infer<typeof repositoryListResponseSchema>;

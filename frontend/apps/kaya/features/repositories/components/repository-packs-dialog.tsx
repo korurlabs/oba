@@ -30,6 +30,7 @@ import {
   refusedRowKey,
   requiredEntries,
   rowsOf,
+  rowsWith,
   type PackOption,
   type PackRow,
 } from "./repository-pack-rows";
@@ -120,17 +121,21 @@ function PacksForm({
   repositoryId,
   packs,
   entries,
+  addPackId,
   onSaved,
   onCancel,
 }: {
   repositoryId: string;
   packs: readonly PackResponse[];
   entries: readonly RepositoryPackEntryResponse[];
+  addPackId: string | undefined;
   onSaved: () => void;
   onCancel: () => void;
 }) {
   const update = useUpdateRepositoryPacks();
-  const [rows, setRows] = useState<PackRow[]>(() => rowsOf(entries));
+  const [rows, setRows] = useState<PackRow[]>(() =>
+    addPackId === undefined ? rowsOf(entries) : rowsWith(entries, addPackId)
+  );
   const [failure, setFailure] = useState<Failure | null>(null);
   const required = requiredEntries(entries);
   const busy = update.isPending;
@@ -215,20 +220,38 @@ function PacksForm({
 
 /**
  * An owner picks the packs a repository uses, each at the repository root
- * or mounted in a folder. Required packs come first and stay read only,
- * since every repository composes them. Saving publishes a new release; a
- * refusal (an invalid or overlapping folder, a mounted pack that another
- * used pack inherits, a rule not scoped to its folder) is shown in the
- * dialog, with the row it names marked.
+ * or mounted in a folder. This dialog is the one place a repository's pack
+ * list is written, from the Repositories page and from a pack's
+ * repositories. Required packs come first and stay read only, since every
+ * repository composes them. Saving publishes a new release; a refusal (an
+ * invalid or overlapping folder, a mounted pack that another used pack
+ * inherits, a rule not scoped to its folder) is shown in the dialog, with
+ * the row it names marked.
+ *
+ * Without `open` the dialog brings its own icon button. With `open` the
+ * caller opens it, as a pack's repository rows do, and no button is drawn.
  */
 export function RepositoryPacksDialog({
   repositoryId,
   repositoryName,
+  addPackId,
+  open: openProp,
+  onOpenChange,
 }: {
   repositoryId: string;
   repositoryName: string;
+  /** A pack to add: the form opens with it as a new row at the repository root, unless the list holds it. */
+  addPackId?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [ownOpen, setOwnOpen] = useState(false);
+  const controlled = openProp !== undefined;
+  const open = controlled ? openProp : ownOpen;
+  const setOpen = (next: boolean) => {
+    if (!controlled) setOwnOpen(next);
+    onOpenChange?.(next);
+  };
   const { packs, list } = useRepositoryPackChoice(repositoryId, open);
   const packData = packs.data?.data ?? undefined;
   const listData = list.data?.data ?? undefined;
@@ -236,16 +259,18 @@ export function RepositoryPacksDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          aria-label={`Packs of ${repositoryName}`}
-          title="Packs"
-        >
-          <Layers aria-hidden />
-        </Button>
-      </DialogTrigger>
+      {!controlled && (
+        <DialogTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label={`Packs of ${repositoryName}`}
+            title="Packs"
+          >
+            <Layers aria-hidden />
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Packs of {repositoryName}</DialogTitle>
@@ -263,10 +288,11 @@ export function RepositoryPacksDialog({
           <TableLoading label="Loading the packs" />
         ) : (
           <PacksForm
-            key={list.dataUpdatedAt}
+            key={`${repositoryId}-${list.dataUpdatedAt}`}
             repositoryId={repositoryId}
             packs={packData}
             entries={listData.packs}
+            addPackId={addPackId}
             onSaved={() => setOpen(false)}
             onCancel={() => setOpen(false)}
           />

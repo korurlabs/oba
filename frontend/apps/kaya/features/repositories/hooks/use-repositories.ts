@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useIdentity } from "@/lib/identity/identity-context";
 
-import { listRepositorySettings, updateRepository } from "../api";
+import { listAllRepositories, updateRepository } from "../api";
 import type { RepositoryUpdateRequest } from "../schemas";
 
 const KEYS = {
@@ -12,11 +12,12 @@ const KEYS = {
   repositories: (organizationId: string) => ["repositories", organizationId] as const,
 };
 
-export function useRepositorySettings() {
+/** Every repository of the organization, archived ones included. */
+export function useAllRepositories() {
   const { organization } = useIdentity();
   return useQuery({
-    queryKey: [...KEYS.repositories(organization.organizationId), "settings"],
-    queryFn: listRepositorySettings,
+    queryKey: [...KEYS.repositories(organization.organizationId), "all"],
+    queryFn: listAllRepositories,
   });
 }
 
@@ -33,6 +34,6 @@ export function useUpdateRepository() {
       // Sessions show the repository's name.
       await queryClient.invalidateQueries({ queryKey: ["sessions", organization.organizationId] });
     },
-    onError: (error: unknown) => console.warn("[settings] Repository change refused", error),
+    onError: (error: unknown) => console.warn("[repositories] Repository change refused", error),
   });
 }

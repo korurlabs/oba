@@ -1,26 +1,11 @@
 import { describe, expect, test } from "bun:test";
 
-import type {
-  Owner,
-  PackRepositoryResponse,
-  RepositoryPackEntryResponse,
-} from "@/features/scope/schemas";
+import type { Owner, PackRepositoryResponse } from "@/features/scope/schemas";
 import type { RepositoryResponse } from "@/features/sessions/schemas";
 import type { VersionResponse } from "@/features/versions/schemas";
 import { KayaApiError } from "@/lib/api/errors";
 
-import {
-  attachRows,
-  attachableRepositories,
-  removeRows,
-  renameFailure,
-  shownPackId,
-  versionRows,
-} from "./pack-data";
-
-function entry(id: string, rootPath: string | null, required = false): RepositoryPackEntryResponse {
-  return { id, name: id, required, rootPath, createdAt: "2026-10-28T00:00:00Z" };
-}
+import { attachableRepositories, renameFailure, shownPackId, versionRows } from "./pack-data";
 
 function owner(id: string, name: string, parentPackId: string | null = null): Owner {
   return {
@@ -74,46 +59,7 @@ describe("the pack the page shows", () => {
   });
 });
 
-describe("attaching and removing a pack on a repository's list", () => {
-  const entries = [
-    entry("guard", null, true),
-    entry("village", null),
-    entry("kagi", "projects/kagi"),
-  ];
-
-  test("attach appends the pack with its folder and drops the required packs", () => {
-    expect(attachRows(entries, "docs", " tools/docs ")).toEqual([
-      { key: "village", packId: "village", folder: "" },
-      { key: "kagi", packId: "kagi", folder: "projects/kagi" },
-      { key: "attach-docs", packId: "docs", folder: "tools/docs" },
-    ]);
-  });
-
-  test("attach at the root keeps an empty folder", () => {
-    expect(attachRows([], "docs", "")).toEqual([
-      { key: "attach-docs", packId: "docs", folder: "" },
-    ]);
-  });
-
-  test("attach of a pack the list holds leaves the list unchanged", () => {
-    expect(attachRows(entries, "kagi", "other")).toEqual([
-      { key: "village", packId: "village", folder: "" },
-      { key: "kagi", packId: "kagi", folder: "projects/kagi" },
-    ]);
-  });
-
-  test("remove keeps the other own packs in order with their folders", () => {
-    expect(removeRows(entries, "village")).toEqual([
-      { key: "kagi", packId: "kagi", folder: "projects/kagi" },
-    ]);
-  });
-
-  test("remove of a pack the list does not hold changes nothing", () => {
-    expect(removeRows(entries, "docs").map((row) => row.packId)).toEqual(["village", "kagi"]);
-  });
-});
-
-describe("repositories offered for attach", () => {
+describe("repositories offered to add the pack to", () => {
   test("leaves out archived ones and those composing the pack, by name", () => {
     const repositories = [
       repository("r-3", "zeta"),

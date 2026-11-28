@@ -238,9 +238,11 @@ describe("Kaya header", () => {
     expect(html).not.toContain("Organization</span>");
   });
 
-  test("Settings stays at the foot of the menu and the page is shown", () => {
+  test("Repositories stays at the foot of the menu and the page is shown", () => {
     const html = render();
     expect(html).toContain("<p>page</p>");
-    expect(html).toContain("Settings");
+    expect(html).toContain("Repositories");
+    expect(html).toContain('href="/repositories"');
+    expect(html).not.toContain('href="/settings"');
   });
 });

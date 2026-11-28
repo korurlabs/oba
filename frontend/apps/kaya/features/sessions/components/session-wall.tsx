@@ -25,7 +25,7 @@ import {
   useRepositories,
   WALL_PAGE_SIZE,
 } from "../hooks/use-sessions";
-import type { SessionListResponse, SessionQueryRequest } from "../schemas";
+import { SESSION_LIMITS, type SessionListResponse, type SessionQueryRequest } from "../schemas";
 import { NO_SESSION_FILTERS, sessionFilterCategories, sessionsFiltered } from "./session-filters";
 import { SessionTile } from "./session-tile";
 
@@ -89,7 +89,10 @@ export function SessionWall() {
         search={
           <SearchInput
             value={filters.search}
-            onSearchChange={(search: string | undefined) => onChange({ search: search ?? null })}
+            onSearchChange={(search: string | undefined) =>
+              // The API takes a search of at most this length.
+              onChange({ search: search?.slice(0, SESSION_LIMITS.searchMax) ?? null })
+            }
             label="Search sessions"
             placeholder="Title, branch or ticket key"
             clearLabel={CLEAR_SEARCH_LABEL}

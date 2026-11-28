@@ -27,12 +27,18 @@ export const ConfigDeliveredBySchema = z.enum(["LAUNCHER", "HOOK"]);
 export type ConfigDeliveredBy = z.infer<typeof ConfigDeliveredBySchema>;
 export const ConfigDeliveredBy = ConfigDeliveredBySchema.enum;
 
+// ── Limits ─────────────────────────────────────────────────────────
+// The limits equal the server's; the server stays the authority.
+export const SESSION_LIMITS = {
+  searchMax: 200,
+} as const;
+
 // ── Request Schemas ─────────────────────────────────────────────────
 /** The query of `GET /sessions`; every filter is optional and `page` counts from 1. */
 export const sessionQueryRequestSchema = z.object({
   page: z.number().int().min(1).optional(),
   amount: z.number().int().min(1).max(60).optional(),
-  search: z.string().max(200).optional(),
+  search: z.string().max(SESSION_LIMITS.searchMax).optional(),
   repositoryId: z.string().optional(),
   userId: z.string().optional(),
   machineId: z.string().optional(),

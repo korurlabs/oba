@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 
-import { repositorySettingsResponseSchema, repositoryUpdateRequestSchema } from ".";
+import { repositoryListResponseSchema, repositoryUpdateRequestSchema } from ".";
 
-describe("settings responses", () => {
+describe("repository responses", () => {
   test("reads a repository", () => {
     const repository = {
       id: "r",
@@ -11,14 +11,14 @@ describe("settings responses", () => {
       status: "ARCHIVED",
       createdAt: "t",
     };
-    expect(repositorySettingsResponseSchema.safeParse(repository).success).toBe(true);
+    expect(repositoryListResponseSchema.safeParse(repository).success).toBe(true);
     expect(
-      repositorySettingsResponseSchema.safeParse({ ...repository, status: "DELETED" }).success
+      repositoryListResponseSchema.safeParse({ ...repository, status: "DELETED" }).success
     ).toBe(false);
   });
 });
 
-describe("settings requests", () => {
+describe("repository requests", () => {
   test("a repository name has 1 to 100 characters after trimming", () => {
     expect(repositoryUpdateRequestSchema.safeParse({ name: "  " }).success).toBe(false);
     expect(repositoryUpdateRequestSchema.safeParse({ name: "a".repeat(100) }).success).toBe(true);

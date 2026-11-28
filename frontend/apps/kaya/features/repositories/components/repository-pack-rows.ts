@@ -37,6 +37,20 @@ export function rowsOf(entries: readonly RepositoryPackEntryResponse[]): PackRow
 }
 
 /**
+ * The repository's own packs as rows with `packId` added at the end at the
+ * repository root, for a pack that is being added to the repository. A list
+ * that already holds the pack, own or required, is returned as it is.
+ */
+export function rowsWith(
+  entries: readonly RepositoryPackEntryResponse[],
+  packId: string
+): PackRow[] {
+  const rows = rowsOf(entries);
+  if (entries.some((entry: RepositoryPackEntryResponse) => entry.id === packId)) return rows;
+  return [...rows, { key: `add-${packId}`, packId, folder: "" }];
+}
+
+/**
  * The packs a row may choose: every pack but the required ones, which every
  * repository composes already, and those another row holds, since a
  * repository uses a pack once.
