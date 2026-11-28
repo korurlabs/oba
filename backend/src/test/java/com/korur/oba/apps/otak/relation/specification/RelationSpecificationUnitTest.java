@@ -33,8 +33,8 @@ import com.korur.oba.apps.otak.relation.enums.RelationType;
 /**
  * Checks the criteria the type and stage filters of the relations list build, against a mocked
  * Criteria API: no PostgreSQL runs here. The type and stage filters are independent, so a stage
- * filter applies without a type, and with no stage the inactive leads are left out whatever the
- * type filter.
+ * filter applies without a type. With no stage every relation matches, and the inactive leads are
+ * left out, whatever the type filter, only when the request asks to hide them.
  */
 class RelationSpecificationUnitTest {
 
@@ -102,9 +102,24 @@ class RelationSpecificationUnitTest {
     }
 
     @Test
-    void filterBy_noStage_leavesOutOnlyLeadsAtInactiveStages() {
+    void filterBy_noStage_addsNoStageFilter() {
         // Arrange
         RelationQueryRequest request = new RelationQueryRequest();
+
+        // Act
+        apply(request);
+
+        // Assert
+        verify(stagePath, never()).in(anyCollection());
+        verify(cb, never()).equal(typePath, RelationType.LEAD);
+        verify(cb, never()).not(any());
+    }
+
+    @Test
+    void filterBy_noStageAndHideInactiveLeads_leavesOutOnlyLeadsAtInactiveStages() {
+        // Arrange
+        RelationQueryRequest request = new RelationQueryRequest();
+        request.setHideInactiveLeads(true);
 
         // Act
         apply(request);
@@ -116,10 +131,11 @@ class RelationSpecificationUnitTest {
     }
 
     @Test
-    void filterBy_noStageWithCustomerAndSupplierTypes_stillLeavesOutOnlyInactiveLeads() {
+    void filterBy_noStageAndHideInactiveLeadsWithCustomerAndSupplierTypes_stillLeavesOutOnlyInactiveLeads() {
         // Arrange
         RelationQueryRequest request = new RelationQueryRequest();
         request.setType(List.of(RelationType.CUSTOMER, RelationType.SUPPLIER));
+        request.setHideInactiveLeads(true);
 
         // Act
         apply(request);
@@ -129,6 +145,22 @@ class RelationSpecificationUnitTest {
         verify(cb).equal(typePath, RelationType.LEAD);
         verify(stagePath).in(PipelineStage.INACTIVE_LEAD_STAGES);
         verify(cb).not(any());
+    }
+
+    @Test
+    void filterBy_stagesAndHideInactiveLeads_ignoresTheFlag() {
+        // Arrange
+        RelationQueryRequest request = new RelationQueryRequest();
+        request.setStage(List.of(PipelineStage.LOST));
+        request.setHideInactiveLeads(true);
+
+        // Act
+        apply(request);
+
+        // Assert
+        verify(stagePath).in(List.of(PipelineStage.LOST));
+        verify(stagePath, never()).in(PipelineStage.INACTIVE_LEAD_STAGES);
+        verify(cb, never()).not(any());
     }
 
     @Test
@@ -149,10 +181,11 @@ class RelationSpecificationUnitTest {
     }
 
     @Test
-    void filterBy_emptyStageList_actsAsNoStage() {
+    void filterBy_emptyStageListAndHideInactiveLeads_actsAsNoStage() {
         // Arrange
         RelationQueryRequest request = new RelationQueryRequest();
         request.setStage(List.of());
+        request.setHideInactiveLeads(true);
 
         // Act
         apply(request);

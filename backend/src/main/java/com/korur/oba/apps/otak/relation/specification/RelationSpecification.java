@@ -63,17 +63,21 @@ public final class RelationSpecification {
     /**
      * Filters relations by stage, whatever the type filter: a stage belongs to one type, so
      * naming it is enough, and a stage of a type the type filter leaves out matches nothing.
-     * A supplier has no stage, so it never matches a stage filter. Without stages the list
-     * leaves out the leads at {@link PipelineStage#INACTIVE_LEAD_STAGES}, so LOST and PARKED
-     * show only when asked for, and keeps every customer and supplier.
+     * A supplier has no stage, so it never matches a stage filter. Without stages every
+     * relation matches, unless {@code hideInactiveLeads} asks to leave out the leads at
+     * {@link PipelineStage#INACTIVE_LEAD_STAGES}: a pipeline view hides LOST and PARKED leads,
+     * while a picker or an event's relations must still reach them. Named stages ignore the flag.
      */
-    private static Specification<Relation> byStages(List<PipelineStage> stages) {
-        if (stages == null || stages.isEmpty()) {
-            return (root, query, cb) -> cb.not(cb.and(
-                    cb.equal(root.get(RelationConstant.FIELD_TYPE), RelationType.LEAD),
-                    root.get(RelationConstant.FIELD_STAGE).in(PipelineStage.INACTIVE_LEAD_STAGES)));
+    private static Specification<Relation> byStages(List<PipelineStage> stages, boolean hideInactiveLeads) {
+        if (stages != null && !stages.isEmpty()) {
+            return (root, query, cb) -> root.get(RelationConstant.FIELD_STAGE).in(stages);
         }
-        return (root, query, cb) -> root.get(RelationConstant.FIELD_STAGE).in(stages);
+        if (!hideInactiveLeads) {
+            return noOp();
+        }
+        return (root, query, cb) -> cb.not(cb.and(
+                cb.equal(root.get(RelationConstant.FIELD_TYPE), RelationType.LEAD),
+                root.get(RelationConstant.FIELD_STAGE).in(PipelineStage.INACTIVE_LEAD_STAGES)));
     }
 
     /**
@@ -139,7 +143,8 @@ public final class RelationSpecification {
     /**
      * Builds the specification of the relations list: one organization, and the optional
      * type, stage, owner, name, contact, event and campaign filters. Without a type every type
-     * matches; without a stage every relation matches but the inactive leads.
+     * matches; without a stage every relation matches, but the inactive leads when the request
+     * asks to hide them.
      *
      * @param organizationId the organization whose relations are listed
      * @param request        the list filters
@@ -148,7 +153,7 @@ public final class RelationSpecification {
     public static Specification<Relation> filterBy(UUID organizationId, RelationQueryRequest request) {
         return belongsToOrganization(organizationId)
                 .and(hasTypes(request.getType()))
-                .and(byStages(request.getStage()))
+                .and(byStages(request.getStage(), request.isHideInactiveLeads()))
                 .and(byOwner(request.getOwnerUserId()))
                 .and(searchSpecification(request.getSearch()))
                 .and(byContacts(request.getHasContacts()))

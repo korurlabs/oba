@@ -25,8 +25,8 @@ import com.korur.oba.apps.otak.relation.repository.RelationRepository;
 /**
  * Proves, against the migrated PostgreSQL schema, that the relations list is one list of every
  * type: the repeated type parameter narrows it to several types, the stage filter applies
- * without a type and never matches a supplier, and with no stage the leads at LOST and PARKED
- * are left out whatever the type filter, while every customer and supplier shows.
+ * without a type and never matches a supplier, and with no stage every relation shows unless the
+ * caller asks to hide the leads at LOST and PARKED, which then leave whatever the type filter.
  */
 class RelationTypeAndStageFilterIT extends AbstractTenantIT {
 
@@ -75,13 +75,31 @@ class RelationTypeAndStageFilterIT extends AbstractTenantIT {
     }
 
     @Test
-    void listWithoutFilters_showsEveryTypeButTheInactiveLeads() throws Exception {
-        assertThat(list("")).containsExactlyInAnyOrder(leadNew, customerClosed, customerDirect, supplier);
+    void listWithoutFilters_showsEveryRelation() throws Exception {
+        assertThat(list("")).containsExactlyInAnyOrder(
+                leadNew, leadLost, leadParked, customerClosed, customerDirect, supplier);
+    }
+
+    @Test
+    void listHidingInactiveLeads_showsEveryTypeButTheInactiveLeads() throws Exception {
+        assertThat(list("&hideInactiveLeads=true"))
+                .containsExactlyInAnyOrder(leadNew, customerClosed, customerDirect, supplier);
+    }
+
+    @Test
+    void listWithLeadTypeHidingInactiveLeads_showsOnlyTheActiveLead() throws Exception {
+        assertThat(list("&type=LEAD&hideInactiveLeads=true")).containsExactly(leadNew);
+    }
+
+    @Test
+    void listWithStagesHidingInactiveLeads_ignoresTheFlag() throws Exception {
+        assertThat(list("&stage=LOST&hideInactiveLeads=true")).containsExactly(leadLost);
     }
 
     @Test
     void listWithRepeatedType_showsThoseTypes() throws Exception {
-        assertThat(list("&type=LEAD&type=SUPPLIER")).containsExactlyInAnyOrder(leadNew, supplier);
+        assertThat(list("&type=LEAD&type=SUPPLIER"))
+                .containsExactlyInAnyOrder(leadNew, leadLost, leadParked, supplier);
     }
 
     @Test
