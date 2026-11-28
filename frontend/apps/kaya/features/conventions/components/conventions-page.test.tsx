@@ -172,7 +172,7 @@ describe("ConventionsPage", () => {
     expect(pack).toContain('aria-label="New file in backend/"');
     const repository = render(REPOSITORY);
     expect(repository).not.toContain("New convention");
-    expect(repository).not.toContain('aria-label="Filter');
+    expect(repository).not.toContain('title="Filter"');
     expect(repository).toContain("from pack village");
   });
 

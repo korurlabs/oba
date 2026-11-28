@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 import { Button } from "@oba/ui/sky/button";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
 import { EmptyState } from "@oba/ui/sky/page-states";
 import { DataTable } from "@/components/data-table";
 import { OrganizationLoadError } from "@/features/organizations/components/organization-load-error";
@@ -87,18 +88,20 @@ export function AgentsTab({ organizationId }: AgentsTabProps) {
 
   return (
     <section className="flex flex-col gap-4" aria-labelledby="organization-agents-title">
-      <div className="flex min-h-9 flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-col gap-1">
-          <h2 id="organization-agents-title" className="text-xl">
-            {t("title")}
-          </h2>
-          <p className="text-muted-foreground text-sm">{t("description")}</p>
-        </div>
-        <Button size="sm" onClick={() => openDialog({ kind: "form", agentId: null })}>
-          <Plus aria-hidden="true" />
-          {t("newAgent")}
-        </Button>
+      <div className="flex flex-col gap-1">
+        <h2 id="organization-agents-title" className="text-xl">
+          {t("title")}
+        </h2>
+        <p className="text-muted-foreground text-sm">{t("description")}</p>
       </div>
+      <ListToolbar
+        create={
+          <Button size="sm" onClick={() => openDialog({ kind: "form", agentId: null })}>
+            <Plus aria-hidden="true" />
+            {t("newAgent")}
+          </Button>
+        }
+      />
 
       {isError && !agentsResponse ? (
         <OrganizationLoadError onRetry={() => void refetch()} />

@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 import { Button } from "@oba/ui/sky/button";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
 import { EmptyState } from "@oba/ui/sky/page-states";
 import { DataTable } from "@/components/data-table";
 import type { OrganizationGroup } from "@oba/shared/features/organizations/schemas";
@@ -89,15 +90,17 @@ export function GroupsTab({ organizationId }: GroupsTabProps) {
 
   return (
     <section className="flex flex-col gap-4" aria-labelledby="organization-groups-title">
-      <div className="flex min-h-9 flex-wrap items-center justify-between gap-3">
-        <h2 id="organization-groups-title" className="text-xl">
-          {t("groups.title")}
-        </h2>
-        <Button size="sm" onClick={handleCreate}>
-          <Plus aria-hidden="true" />
-          {t("groups.newGroup")}
-        </Button>
-      </div>
+      <h2 id="organization-groups-title" className="text-xl">
+        {t("groups.title")}
+      </h2>
+      <ListToolbar
+        create={
+          <Button size="sm" onClick={handleCreate}>
+            <Plus aria-hidden="true" />
+            {t("groups.newGroup")}
+          </Button>
+        }
+      />
 
       {isError && !groupsResponse ? (
         <OrganizationLoadError onRetry={() => void refetch()} />

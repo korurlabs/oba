@@ -144,7 +144,7 @@ describe("SkillsPage", () => {
     mutable.scope = { kind: "REPOSITORY", repositoryId: "r-1" };
     try {
       const html = render("");
-      expect(html).not.toContain('aria-label="Filter"');
+      expect(html).not.toContain('title="Filter"');
       expect(html).not.toContain("New skill");
       expect(html).toContain('aria-label="Search skills"');
     } finally {
@@ -156,7 +156,7 @@ describe("SkillsPage", () => {
   test("the toolbar shows the filter, a collapsed search button and New skill, and no count line", () => {
     const html = render("");
     expect(html).not.toContain("1 skill.");
-    expect(html).toContain('aria-label="Filter"');
+    expect(html).toContain('title="Filter"');
     expect(html).toContain("New skill");
     expect(html).toContain('aria-label="Search skills"');
     expect(html).not.toContain('type="search"');

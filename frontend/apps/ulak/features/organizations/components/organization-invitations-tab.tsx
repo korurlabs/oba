@@ -4,11 +4,9 @@ import { useCallback, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 import { Button } from "@oba/ui/sky/button";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
 import { EmptyState } from "@oba/ui/sky/page-states";
-import {
-  useInvitations,
-  useRevokeInvitation,
-} from "../hooks/use-invitations";
+import { useInvitations, useRevokeInvitation } from "../hooks/use-invitations";
 import { useInvitationColumns } from "../hooks/use-invitation-columns";
 import { CreateInvitationDialog } from "./create-organization-invitation-dialog";
 import { DataTable } from "@/components/data-table";
@@ -20,18 +18,12 @@ interface InvitationsTabProps {
   currentUserRole: OrganizationRole | undefined;
 }
 
-export function InvitationsTab({
-  organizationId,
-  canEdit,
-  currentUserRole,
-}: InvitationsTabProps) {
+export function InvitationsTab({ organizationId, canEdit, currentUserRole }: InvitationsTabProps) {
   const t = useTranslations("organization");
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const { data: invitationsResponse, isLoading } =
-    useInvitations(organizationId);
-  const { mutate: revokeInvitation, isPending: isRevoking } =
-    useRevokeInvitation(organizationId);
+  const { data: invitationsResponse, isLoading } = useInvitations(organizationId);
+  const { mutate: revokeInvitation, isPending: isRevoking } = useRevokeInvitation(organizationId);
 
   const invitations = invitationsResponse?.data ?? [];
 
@@ -41,7 +33,7 @@ export function InvitationsTab({
     (invitationId: string) => {
       revokeInvitation(invitationId);
     },
-    [revokeInvitation],
+    [revokeInvitation]
   );
 
   const columns = useInvitationColumns({
@@ -52,17 +44,19 @@ export function InvitationsTab({
 
   return (
     <section className="flex flex-col gap-4" aria-labelledby="organization-invitations-title">
-      <div className="flex min-h-9 flex-wrap items-center justify-between gap-3">
-        <h2 id="organization-invitations-title" className="text-xl">
-          {t("invitations.title")}
-        </h2>
-        {canEdit && (
-          <Button size="sm" onClick={() => setDialogOpen(true)}>
-            <Plus aria-hidden="true" />
-            {t("invitations.invite")}
-          </Button>
-        )}
-      </div>
+      <h2 id="organization-invitations-title" className="text-xl">
+        {t("invitations.title")}
+      </h2>
+      {canEdit && (
+        <ListToolbar
+          create={
+            <Button size="sm" onClick={() => setDialogOpen(true)}>
+              <Plus aria-hidden="true" />
+              {t("invitations.invite")}
+            </Button>
+          }
+        />
+      )}
 
       <DataTable<Invitation>
         columns={columns}

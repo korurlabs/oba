@@ -16,6 +16,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@oba/ui/sky/dialog";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
 import { EmptyState, TableLoading } from "@oba/ui/sky/page-states";
 import { DataTable } from "@/components/data-table";
 import { cn } from "@/lib/utils";
@@ -45,17 +46,21 @@ export function AccessTab({ organizationId }: AccessTabProps) {
 
   return (
     <section className="flex flex-col gap-8" aria-labelledby="organization-access-title">
-      <div className="flex min-h-9 flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-col gap-4">
         <div className="flex min-w-0 flex-col gap-1">
           <h2 id="organization-access-title" className="text-xl">
             {t("access.title")}
           </h2>
           <p className="text-muted-foreground text-sm">{t("access.description")}</p>
         </div>
-        <Button size="sm" onClick={() => setGrantOpen(true)}>
-          <Plus aria-hidden="true" />
-          {t("access.grantAccess")}
-        </Button>
+        <ListToolbar
+          create={
+            <Button size="sm" onClick={() => setGrantOpen(true)}>
+              <Plus aria-hidden="true" />
+              {t("access.grantAccess")}
+            </Button>
+          }
+        />
       </div>
 
       <GrantsSection organizationId={organizationId} />
