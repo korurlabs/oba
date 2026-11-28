@@ -1,6 +1,7 @@
 package com.korur.oba.connect.azure.service.impl;
 
 // 1. Framework-level
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
@@ -12,6 +13,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 // 3. Java SDK
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
@@ -21,6 +23,7 @@ import com.korur.oba.connect.azure.dto.response.AzureConnectionResponse;
 import com.korur.oba.connect.azure.entity.AzureConnection;
 import com.korur.oba.connect.azure.exception.ExceptionDomainAzureError;
 import com.korur.oba.connect.azure.mock_data.AzureConnectionMocks;
+import com.korur.oba.connect.azure.repository.AzureConnectionRepository;
 import com.korur.oba.connect.azure.service.AzureConnectionQueryService;
 import com.korur.oba.connect.azure.service.AzureConnectionService;
 import com.korur.oba.connect.azure.service.AzureResourceManagerQueryService;
@@ -42,14 +45,24 @@ import static org.mockito.Mockito.when;
 class AzureConnectionCheckServiceImplUnitTest {
 
     private final AzureConnectionValidator validator = mock(AzureConnectionValidator.class);
+    private final AzureConnectionRepository connectionRepository = mock(AzureConnectionRepository.class);
     private final AzureConnectionService connectionService = mock(AzureConnectionService.class);
     private final AzureConnectionQueryService queryService = mock(AzureConnectionQueryService.class);
     private final AzureResourceManagerQueryService resourceManagerQueryService =
             mock(AzureResourceManagerQueryService.class);
     private final AzureConnectionCheckServiceImpl service = new AzureConnectionCheckServiceImpl(validator,
-            connectionService, queryService, resourceManagerQueryService, mock(LoggingService.class));
+            connectionRepository, connectionService, queryService, resourceManagerQueryService,
+            mock(LoggingService.class));
 
-    private final UUID connectionId = UUID.randomUUID();
+    private final AzureConnection checked = AzureConnectionMocks.connection();
+    private final UUID connectionId = checked.getId();
+    private final UUID tenantId = checked.getTenantId();
+    private final UUID clientId = checked.getClientId();
+
+    @BeforeEach
+    void setUp() {
+        when(connectionRepository.findById(connectionId)).thenReturn(Optional.of(checked));
+    }
 
     @Test
     void checkConnection_subscriptionsVisible_recordsSuccessWithThem() {
@@ -59,8 +72,8 @@ class AzureConnectionCheckServiceImplUnitTest {
 
         service.checkConnection(connectionId);
 
-        verify(connectionService).recordCheckSucceeded(connectionId, subscriptions);
-        verify(connectionService, never()).recordCheckFailed(any(), anyString());
+        verify(connectionService).recordCheckSucceeded(connectionId, tenantId, clientId, subscriptions);
+        verify(connectionService, never()).recordCheckFailed(any(), any(), any(), anyString());
     }
 
     @Test
@@ -69,9 +82,9 @@ class AzureConnectionCheckServiceImplUnitTest {
 
         service.checkConnection(connectionId);
 
-        verify(connectionService).recordCheckFailed(connectionId,
+        verify(connectionService).recordCheckFailed(connectionId, tenantId, clientId,
                 ExceptionDomainAzureError.STA_AZURE_CONNECTION_NO_SUBSCRIPTION.getCode());
-        verify(connectionService, never()).recordCheckSucceeded(any(), any());
+        verify(connectionService, never()).recordCheckSucceeded(any(), any(), any(), any());
     }
 
     @Test
@@ -82,7 +95,7 @@ class AzureConnectionCheckServiceImplUnitTest {
 
         service.checkConnection(connectionId);
 
-        verify(connectionService).recordCheckFailed(connectionId, "AZR_UPS_009:AADSTS700213");
+        verify(connectionService).recordCheckFailed(connectionId, tenantId, clientId, "AZR_UPS_009:AADSTS700213");
     }
 
     @Test
@@ -92,7 +105,7 @@ class AzureConnectionCheckServiceImplUnitTest {
 
         service.checkConnection(connectionId);
 
-        verify(connectionService).recordCheckFailed(connectionId,
+        verify(connectionService).recordCheckFailed(connectionId, tenantId, clientId,
                 ExceptionDomainAzureError.UPS_AZURE_ARM_CREDENTIALS_REFUSED.getCode());
     }
 
@@ -103,7 +116,33 @@ class AzureConnectionCheckServiceImplUnitTest {
 
         assertThatThrownBy(() -> service.checkConnection(connectionId)).isInstanceOf(IllegalStateException.class);
 
-        verify(connectionService, never()).recordCheckFailed(any(), anyString());
+        verify(connectionService, never()).recordCheckFailed(any(), any(), any(), anyString());
+    }
+
+    @Test
+    void checkConnection_identityChangedDuringRead_passesTheIdentityItReadWith() {
+        List<AzureSubscriptionPayload> subscriptions =
+                List.of(new AzureSubscriptionPayload(UUID.randomUUID(), "Production", "Enabled"));
+        when(resourceManagerQueryService.listSubscriptions(connectionId)).thenAnswer(invocation -> {
+            checked.setTenantId(UUID.randomUUID());
+            checked.setClientId(UUID.randomUUID());
+            return subscriptions;
+        });
+
+        service.checkConnection(connectionId);
+
+        verify(connectionService).recordCheckSucceeded(connectionId, tenantId, clientId, subscriptions);
+    }
+
+    @Test
+    void checkConnection_connectionGone_readsNoAzureAndRecordsNothing() {
+        when(connectionRepository.findById(connectionId)).thenReturn(Optional.empty());
+
+        service.checkConnection(connectionId);
+
+        verify(resourceManagerQueryService, never()).listSubscriptions(any());
+        verify(connectionService, never()).recordCheckSucceeded(any(), any(), any(), any());
+        verify(connectionService, never()).recordCheckFailed(any(), any(), any(), anyString());
     }
 
     @Test

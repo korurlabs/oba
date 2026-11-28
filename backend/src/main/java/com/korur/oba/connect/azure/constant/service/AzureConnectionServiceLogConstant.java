@@ -21,6 +21,8 @@ public final class AzureConnectionServiceLogConstant {
             "Azure connection check recorded as failed: connectionId={}, errorCode={}, status={}";
     public static final String CHECK_RESULT_CONNECTION_GONE =
             "Azure connection check result dropped, the connection was deleted during the check: connectionId={}";
+    public static final String CHECK_RESULT_IDENTITY_CHANGED =
+            "Azure connection check result dropped, the tenant or client id changed during the check: connectionId={}";
     public static final String SUBSCRIPTION_DUPLICATE_SKIPPED =
             "Azure subscription listed twice, kept once: connectionId={}, subscriptionId={}";
 }

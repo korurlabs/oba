@@ -51,20 +51,28 @@ public interface AzureConnectionService {
 
     /**
      * Records a successful check: replaces the subscriptions, sets CONNECTED, the verification time
-     * and no error. Does nothing but log when the connection was deleted during the check.
+     * and no error. Does nothing but log when the connection was deleted during the check, or when
+     * its tenant or client id no longer is the one checked, because the result belongs to the old
+     * identity.
      *
-     * @param connectionId  ID of the connection
-     * @param subscriptions the subscriptions the identity can read, not empty
+     * @param connectionId    ID of the connection
+     * @param checkedTenantId the tenant id the check read Azure with
+     * @param checkedClientId the client id the check read Azure with
+     * @param subscriptions   the subscriptions the identity can read, not empty
      */
-    void recordCheckSucceeded(UUID connectionId, List<AzureSubscriptionPayload> subscriptions);
+    void recordCheckSucceeded(UUID connectionId, UUID checkedTenantId, UUID checkedClientId,
+                              List<AzureSubscriptionPayload> subscriptions);
 
     /**
      * Records a failed check: keeps the subscriptions, stores the error code, and moves a CONNECTED
      * or FAILING connection to FAILING while a PENDING one stays PENDING. Does nothing but log when
-     * the connection was deleted during the check.
+     * the connection was deleted during the check, or when its tenant or client id no longer is the
+     * one checked, because the result belongs to the old identity.
      *
-     * @param connectionId ID of the connection
-     * @param errorCode    the error code to show, never a raw Entra or Azure message
+     * @param connectionId    ID of the connection
+     * @param checkedTenantId the tenant id the check read Azure with
+     * @param checkedClientId the client id the check read Azure with
+     * @param errorCode       the error code to show, never a raw Entra or Azure message
      */
-    void recordCheckFailed(UUID connectionId, String errorCode);
+    void recordCheckFailed(UUID connectionId, UUID checkedTenantId, UUID checkedClientId, String errorCode);
 }

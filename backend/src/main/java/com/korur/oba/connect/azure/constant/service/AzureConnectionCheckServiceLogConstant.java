@@ -11,6 +11,8 @@ public final class AzureConnectionCheckServiceLogConstant {
     }
 
     public static final String CHECK_STARTED = "Checking Azure connection: connectionId={}";
+    public static final String CHECK_SKIPPED_CONNECTION_GONE =
+            "Azure connection check skipped, the connection no longer exists: connectionId={}";
     public static final String CHECK_SUCCEEDED = "Azure connection check succeeded: connectionId={}, subscriptions={}";
     // Only Oba's error code and Entra's AADSTS code, never the Entra or Resource Manager message.
     public static final String CHECK_FAILED = "Azure connection check failed: connectionId={}, errorCode={}";

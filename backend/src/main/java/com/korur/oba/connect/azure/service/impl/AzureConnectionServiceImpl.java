@@ -51,9 +51,10 @@ import com.korur.oba.shrine.identity.entity.User;
  *
  * The admin's writes run behind the ADMIN role the access interceptor checks, and load the
  * connection by id and organization, so another organization's connection reads as missing. The
- * two check results lock the row with {@link AzureConnectionRepository#findByIdForUpdate}, so a
- * result is written against the identity the row holds at that moment and two checks of one
- * connection never interleave their subscription lists.
+ * two check results lock the row with {@link AzureConnectionRepository#findByIdForUpdate} and are
+ * written only while the row still holds the tenant and client id the check read Azure with, so an
+ * admin's change of the identity during a check is never overwritten by the old identity's result,
+ * and two checks of one connection never interleave their subscription lists.
  */
 @Service
 @RequiredArgsConstructor
@@ -126,13 +127,12 @@ public class AzureConnectionServiceImpl implements AzureConnectionService {
 
     @Override
     @Transactional
-    public void recordCheckSucceeded(UUID connectionId, List<AzureSubscriptionPayload> subscriptions) {
-        Optional<AzureConnection> locked = connectionRepository.findByIdForUpdate(connectionId);
-        if (locked.isEmpty()) {
-            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, CHECK_RESULT_CONNECTION_GONE, connectionId);
+    public void recordCheckSucceeded(UUID connectionId, UUID checkedTenantId, UUID checkedClientId,
+                                     List<AzureSubscriptionPayload> subscriptions) {
+        AzureConnection connection = lockCheckedConnection(connectionId, checkedTenantId, checkedClientId);
+        if (connection == null) {
             return;
         }
-        AzureConnection connection = locked.get();
 
         subscriptionRepository.deleteByConnectionId(connectionId);
         List<AzureConnectionSubscription> rows = toSubscriptionRows(connection, subscriptions);
@@ -148,13 +148,11 @@ public class AzureConnectionServiceImpl implements AzureConnectionService {
 
     @Override
     @Transactional
-    public void recordCheckFailed(UUID connectionId, String errorCode) {
-        Optional<AzureConnection> locked = connectionRepository.findByIdForUpdate(connectionId);
-        if (locked.isEmpty()) {
-            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, CHECK_RESULT_CONNECTION_GONE, connectionId);
+    public void recordCheckFailed(UUID connectionId, UUID checkedTenantId, UUID checkedClientId, String errorCode) {
+        AzureConnection connection = lockCheckedConnection(connectionId, checkedTenantId, checkedClientId);
+        if (connection == null) {
             return;
         }
-        AzureConnection connection = locked.get();
 
         // A connection that never succeeded stays PENDING: FAILING says that a trust which worked
         // has stopped working.
@@ -166,6 +164,26 @@ public class AzureConnectionServiceImpl implements AzureConnectionService {
 
         loggingService.info(LOG_PREFIX, LogLayer.SERVICE, CHECK_FAILED_RECORDED, connectionId, errorCode,
                 connection.getStatus());
+    }
+
+    /**
+     * Locks the connection a check result is for, or answers null when the result must be dropped:
+     * the connection was deleted during the check, or an admin changed its tenant or client id
+     * after the check read Azure, which already reset the row to PENDING for the new identity.
+     */
+    private AzureConnection lockCheckedConnection(UUID connectionId, UUID checkedTenantId, UUID checkedClientId) {
+        Optional<AzureConnection> locked = connectionRepository.findByIdForUpdate(connectionId);
+        if (locked.isEmpty()) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, CHECK_RESULT_CONNECTION_GONE, connectionId);
+            return null;
+        }
+        AzureConnection connection = locked.get();
+        if (!Objects.equals(connection.getTenantId(), checkedTenantId)
+                || !Objects.equals(connection.getClientId(), checkedClientId)) {
+            loggingService.warn(LOG_PREFIX, LogLayer.SERVICE, CHECK_RESULT_IDENTITY_CHANGED, connectionId);
+            return null;
+        }
+        return connection;
     }
 
     /**

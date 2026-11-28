@@ -216,7 +216,8 @@ class AzureConnectionServiceImplUnitTest {
                 new AzureSubscriptionPayload(first, "Duplicate", "Enabled"),
                 new AzureSubscriptionPayload(UUID.randomUUID(), "Staging", "S".repeat(40)));
 
-        service.recordCheckSucceeded(connection.getId(), subscriptions);
+        service.recordCheckSucceeded(connection.getId(), connection.getTenantId(), connection.getClientId(),
+                subscriptions);
 
         InOrder order = inOrder(subscriptionRepository);
         order.verify(subscriptionRepository).deleteByConnectionId(connection.getId());
@@ -236,7 +237,7 @@ class AzureConnectionServiceImplUnitTest {
         UUID connectionId = UUID.randomUUID();
         when(connectionRepository.findByIdForUpdate(connectionId)).thenReturn(Optional.empty());
 
-        service.recordCheckSucceeded(connectionId,
+        service.recordCheckSucceeded(connectionId, UUID.randomUUID(), UUID.randomUUID(),
                 List.of(new AzureSubscriptionPayload(UUID.randomUUID(), "Production", "Enabled")));
 
         verify(subscriptionRepository, never()).deleteByConnectionId(any());
@@ -248,7 +249,8 @@ class AzureConnectionServiceImplUnitTest {
         AzureConnection connection = connectedConnection();
         when(connectionRepository.findByIdForUpdate(connection.getId())).thenReturn(Optional.of(connection));
 
-        service.recordCheckFailed(connection.getId(), "AZR_UPS_009:AADSTS700213");
+        service.recordCheckFailed(connection.getId(), connection.getTenantId(), connection.getClientId(),
+                "AZR_UPS_009:AADSTS700213");
 
         assertThat(connection.getStatus()).isEqualTo(AzureConnectionStatus.FAILING);
         assertThat(connection.getLastError()).isEqualTo("AZR_UPS_009:AADSTS700213");
@@ -261,7 +263,8 @@ class AzureConnectionServiceImplUnitTest {
         AzureConnection connection = AzureConnectionMocks.connection();
         when(connectionRepository.findByIdForUpdate(connection.getId())).thenReturn(Optional.of(connection));
 
-        service.recordCheckFailed(connection.getId(), "AZR_UPS_006");
+        service.recordCheckFailed(connection.getId(), connection.getTenantId(), connection.getClientId(),
+                "AZR_UPS_006");
 
         assertThat(connection.getStatus()).isEqualTo(AzureConnectionStatus.PENDING);
         assertThat(connection.getLastError()).isEqualTo("AZR_UPS_006");
@@ -273,7 +276,8 @@ class AzureConnectionServiceImplUnitTest {
         connection.setStatus(AzureConnectionStatus.FAILING);
         when(connectionRepository.findByIdForUpdate(connection.getId())).thenReturn(Optional.of(connection));
 
-        service.recordCheckFailed(connection.getId(), "AZR_STA_005");
+        service.recordCheckFailed(connection.getId(), connection.getTenantId(), connection.getClientId(),
+                "AZR_STA_005");
 
         assertThat(connection.getStatus()).isEqualTo(AzureConnectionStatus.FAILING);
     }
@@ -283,8 +287,37 @@ class AzureConnectionServiceImplUnitTest {
         UUID connectionId = UUID.randomUUID();
         when(connectionRepository.findByIdForUpdate(connectionId)).thenReturn(Optional.empty());
 
-        service.recordCheckFailed(connectionId, "AZR_UPS_006");
+        service.recordCheckFailed(connectionId, UUID.randomUUID(), UUID.randomUUID(), "AZR_UPS_006");
 
+        verify(connectionRepository, never()).save(any());
+    }
+
+    @Test
+    void recordCheckSucceeded_clientIdChangedDuringCheck_dropsStaleResult() {
+        AzureConnection connection = AzureConnectionMocks.connection();
+        UUID checkedClientId = UUID.randomUUID();
+        when(connectionRepository.findByIdForUpdate(connection.getId())).thenReturn(Optional.of(connection));
+
+        service.recordCheckSucceeded(connection.getId(), connection.getTenantId(), checkedClientId,
+                List.of(new AzureSubscriptionPayload(UUID.randomUUID(), "Production", "Enabled")));
+
+        assertThat(connection.getStatus()).isEqualTo(AzureConnectionStatus.PENDING);
+        assertThat(connection.getLastVerifiedAt()).isNull();
+        verify(subscriptionRepository, never()).deleteByConnectionId(any());
+        verify(subscriptionRepository, never()).saveAll(anyList());
+        verify(connectionRepository, never()).save(any());
+    }
+
+    @Test
+    void recordCheckFailed_tenantIdChangedDuringCheck_dropsStaleResult() {
+        AzureConnection connection = AzureConnectionMocks.connection();
+        UUID checkedTenantId = UUID.randomUUID();
+        when(connectionRepository.findByIdForUpdate(connection.getId())).thenReturn(Optional.of(connection));
+
+        service.recordCheckFailed(connection.getId(), checkedTenantId, connection.getClientId(), "AZR_UPS_009");
+
+        assertThat(connection.getStatus()).isEqualTo(AzureConnectionStatus.PENDING);
+        assertThat(connection.getLastError()).isNull();
         verify(connectionRepository, never()).save(any());
     }
 
