@@ -24,4 +24,8 @@ public final class AzureConnectionExceptionLogConstant {
             "Azure connection is not connected: connectionId={}, status={}";
     public static final String CONNECTION_IN_USE =
             "Azure connection delete refused, still referenced: connectionId={}";
+    public static final String CONNECTION_NAME_RACE_LOST =
+            "Azure connection name taken by a concurrent write: organizationId={}, name={}";
+    public static final String CONNECTION_IDENTITY_RACE_LOST =
+            "Azure connection identity taken by a concurrent write: organizationId={}, tenantId={}, clientId={}";
 }

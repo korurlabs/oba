@@ -39,6 +39,10 @@ public final class AzureConnectionConstant {
     public static final String MSG_NAME_SIZE = "Name must not exceed 255 characters";
     public static final String MSG_TENANT_ID_REQUIRED = "Tenant id is required";
 
+    // --- Check results ---
+    // lastError of a refused token exchange: Oba's error code, then Entra's AADSTS code when Entra sent one.
+    public static final String LAST_ERROR_WITH_DETAIL_FORMAT = "%s:%s";
+
     // --- Constraints ---
     // Back the name and identity checks against a concurrent write.
     public static final String NAME_UNIQUE_CONSTRAINT = "azure_connections_organization_id_name_uk";
