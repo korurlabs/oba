@@ -3,31 +3,34 @@
 import Link from "next/link";
 
 import { Badge } from "@oba/ui/sky/badge";
-import { Button } from "@oba/ui/sky/button";
-import { EmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { FilterPopover } from "@oba/ui/sky/filter-popover";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
+import { PageHeading } from "@oba/ui/sky/page-heading";
+import { ListEmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { SearchInput } from "@oba/ui/sky/search-input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@oba/ui/sky/table";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@oba/ui/sky/table";
+  CLEAR_FILTERS_LABEL,
+  CLEAR_SEARCH_LABEL,
+  FILTER_LABELS,
+  ListPagination,
+} from "@/components/common/list-parts";
 import { describeError } from "@/lib/api/error-text";
 import { ageText } from "@/lib/format-time";
 import { useNow } from "@/lib/use-now";
 
 import { usePlanFilterParams, type PlanFilterParams } from "../hooks/use-plan-filter-params";
 import { usePlanFilters, usePlans } from "../hooks/use-plans";
-import type { PlanListResponse } from "../schemas";
+import { PLAN_LIMITS, type PlanListResponse } from "../schemas";
 import {
   KIND_LABELS,
   REVIEW_BADGES,
   emptyPlansText,
+  hasActiveFilter,
   referenceName,
   toPlanQuery,
 } from "./plan-data";
-import { PlanFilters } from "./plan-filters";
+import { NO_PLAN_FILTERS, planFilterCategories } from "./plan-filters";
 import { PlanPack } from "./plan-pack";
 
 export type PlanRowsProps = {
@@ -104,19 +107,34 @@ export function PlansPage() {
   const organizationHasPlans =
     optionsData === undefined ? undefined : optionsData.repositories.length > 0;
 
+  const onChange = (change: Partial<PlanFilterParams>) => void setFilters({ ...change, page: 1 });
+
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1>Plans</h1>
-        <p className="text-muted-foreground">
-          Specs and plan-mode plans written by sessions. Approve them, request changes or comment,
-          and Kaya passes your feedback to the session.
-        </p>
-      </div>
-      <PlanFilters
-        filters={filters}
-        onChange={(change: Partial<PlanFilterParams>) => void setFilters({ ...change, page: 1 })}
-        options={optionsData}
+      <PageHeading
+        title="Plans"
+        description="Specs and plan-mode plans written by sessions. Approve them, request changes or comment, and Kaya passes your feedback to the session."
+      />
+      <ListToolbar
+        search={
+          <SearchInput
+            value={filters.search}
+            onSearchChange={(search: string | undefined) =>
+              // The API takes a search of at most this length.
+              onChange({ search: search?.slice(0, PLAN_LIMITS.searchMax) ?? null })
+            }
+            label="Search plans"
+            placeholder="Title or path"
+            clearLabel={CLEAR_SEARCH_LABEL}
+          />
+        }
+        filters={
+          <FilterPopover
+            categories={planFilterCategories(filters, onChange, optionsData)}
+            onClear={() => onChange({ ...NO_PLAN_FILTERS, search: filters.search })}
+            labels={FILTER_LABELS}
+          />
+        }
       />
       {options.error !== null && (
         <p className="text-warning-text text-sm" role="status">
@@ -132,32 +150,25 @@ export function PlansPage() {
       ) : plans.data === undefined ? (
         <TableLoading label="Loading the plans" />
       ) : rows.length === 0 ? (
-        <EmptyState title="No plan" description={emptyPlansText(filters, organizationHasPlans)} />
+        <ListEmptyState
+          filtered={hasActiveFilter(filters) || filters.page > 1}
+          onClearFilters={() => onChange(NO_PLAN_FILTERS)}
+          labels={{
+            emptyTitle: organizationHasPlans === false ? "No plans yet" : "Nothing to review",
+            emptyDescription: emptyPlansText(filters, organizationHasPlans),
+            filteredTitle: "No plan matches",
+            filteredDescription: emptyPlansText(filters, organizationHasPlans),
+            clearFilters: CLEAR_FILTERS_LABEL,
+          }}
+        />
       ) : (
         <PlanRows plans={rows} now={now} />
       )}
-      {pagination !== null && pagination.totalPages > 1 && (
-        <nav aria-label="Pages" className="flex items-center justify-between gap-4 text-sm">
-          <Button
-            variant="outline"
-            disabled={pagination.first}
-            onClick={() => void setFilters({ page: pagination.currentPage - 1 })}
-          >
-            Newer
-          </Button>
-          <span className="text-muted-foreground">
-            Page {pagination.currentPage} of {pagination.totalPages} · {pagination.totalElements}{" "}
-            plans
-          </span>
-          <Button
-            variant="outline"
-            disabled={pagination.last}
-            onClick={() => void setFilters({ page: pagination.currentPage + 1 })}
-          >
-            Older
-          </Button>
-        </nav>
-      )}
+      <ListPagination
+        pagination={pagination}
+        noun="plans"
+        onPageChange={(page: number) => void setFilters({ page })}
+      />
     </div>
   );
 }

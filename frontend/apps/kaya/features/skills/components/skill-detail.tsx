@@ -3,18 +3,11 @@
 import { useEffect, useId, useState } from "react";
 import { useRouter } from "next/navigation";
 import { parseAsString, useQueryStates } from "nuqs";
-import {
-  AlertTriangle,
-  Check,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  Search,
-} from "lucide-react";
+import { AlertTriangle, Check, ChevronDown, Plus, Search } from "lucide-react";
 
 import { Badge } from "@oba/ui/sky/badge";
 import { Button } from "@oba/ui/sky/button";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@oba/ui/sky/field";
 import { Popover, PopoverContent, PopoverTrigger } from "@oba/ui/sky/popover";
@@ -22,9 +15,12 @@ import { ViewToggle } from "@/features/editor/components/view-toggle";
 import { useEditorParams, type EditorView } from "@/features/editor/hooks/use-editor-params";
 import {
   BackLink,
+  DetailSteps,
   FileDetail,
-  StepLink,
+  FilePartHeading,
+  GuardedLink,
   useCurrentQuery,
+  type FileHeadingParts,
   type Neighbour,
 } from "@/features/rules/components/file-detail";
 import { ScopePage, type ReadyScope } from "@/features/scope/components";
@@ -395,70 +391,73 @@ function SkillView({
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <BackLink to={skillsListHref} label="Back to Skills" />
-        {index !== -1 && (
-          <div className="flex items-center gap-1">
-            <StepLink to={previous?.to ?? null} name={previous?.name} label="Previous skill">
-              <ChevronLeft aria-hidden />
-            </StepLink>
-            <StepLink to={next?.to ?? null} name={next?.name} label="Next skill">
-              <ChevronRight aria-hidden />
-            </StepLink>
-          </div>
-        )}
-      </div>
-      <header className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <h1 className="min-w-0 font-mono text-base font-semibold break-all">{skill.name}</h1>
-          <Badge variant={origin.variant}>{origin.text}</Badge>
-          <ItemStatusBadges
-            item={ready.effective.get(`${skill.directory}/`)}
-            owners={ready.owners}
-          />
-          {editable && source !== null && (
-            <div className="ml-auto flex flex-wrap items-center gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  if (!confirmLeave()) return;
-                  setSubmitted(null);
-                  setCreating(true);
-                }}
-                disabled={creating || source.kind === "locked"}
-              >
-                <Plus aria-hidden />
-                Add file
-              </Button>
-              <DeleteSkill
-                source={source}
-                skill={skill}
-                files={own}
-                onDeleted={toList}
-                onSubmitted={onSubmitted}
+      <PageHeading
+        title={skill.name}
+        titleVariant="mono"
+        back={{ href: skillsListHref(current), label: "Back to Skills" }}
+        linkComponent={GuardedLink}
+        description={
+          <div className="flex min-w-0 flex-col gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant={origin.variant}>{origin.text}</Badge>
+              <ItemStatusBadges
+                item={ready.effective.get(`${skill.directory}/`)}
+                owners={ready.owners}
               />
             </div>
-          )}
-        </div>
-        <code className="text-muted-foreground font-mono text-xs break-all">{skill.directory}</code>
-        {skill.error !== null && (
-          <p className="text-error flex items-start gap-1.5 text-sm">
-            <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-            <span>{skill.error}</span>
-          </p>
-        )}
-        {paths && paths.length > 0 && (
-          <p className="text-muted-foreground text-xs break-words">
-            Applies to <span className="font-mono">{paths.join(", ")}</span>
-          </p>
-        )}
-        {submitted !== null && (
-          <p className="text-sm">
-            <SubmittedNotice submitted={submitted} />
-          </p>
-        )}
-      </header>
+            <code className="text-muted-foreground font-mono text-xs break-all">
+              {skill.directory}
+            </code>
+            {skill.error !== null && (
+              <p className="text-error flex items-start gap-1.5 text-sm">
+                <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+                <span>{skill.error}</span>
+              </p>
+            )}
+            {paths && paths.length > 0 && (
+              <p className="text-muted-foreground text-xs break-words">
+                Applies to <span className="font-mono">{paths.join(", ")}</span>
+              </p>
+            )}
+          </div>
+        }
+        actions={
+          (editable && source !== null) || index !== -1 ? (
+            <>
+              {editable && source !== null && (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      if (!confirmLeave()) return;
+                      setSubmitted(null);
+                      setCreating(true);
+                    }}
+                    disabled={creating || source.kind === "locked"}
+                  >
+                    <Plus aria-hidden />
+                    Add file
+                  </Button>
+                  <DeleteSkill
+                    source={source}
+                    skill={skill}
+                    files={own}
+                    onDeleted={toList}
+                    onSubmitted={onSubmitted}
+                  />
+                </>
+              )}
+              {index !== -1 && <DetailSteps previous={previous} next={next} noun="skill" />}
+            </>
+          ) : undefined
+        }
+      />
+      {submitted !== null && (
+        <p className="text-sm">
+          <SubmittedNotice submitted={submitted} />
+        </p>
+      )}
       {editable && creating && source !== null && source.kind !== "locked" ? (
         <div className="flex min-w-0 flex-col gap-3">
           <h2 className="text-sm font-medium">New file</h2>
@@ -491,11 +490,16 @@ function SkillView({
               ready={ready}
               summary={null}
               description={skill.description}
-              heading={
-                <h2 className="min-w-0 font-mono text-sm break-all">
-                  {skillFileLabel(skill.directory, selected.path)}
-                </h2>
-              }
+              heading={(parts: FileHeadingParts) => (
+                <FilePartHeading
+                  name={
+                    <h2 className="min-w-0 font-mono text-sm break-all">
+                      {skillFileLabel(skill.directory, selected.path)}
+                    </h2>
+                  }
+                  parts={parts}
+                />
+              )}
               onRenamed={(path: string) => void setParams({ file: path })}
               onDeleted={() => (own.length <= 1 ? toList() : void setParams({ file: null }))}
             />

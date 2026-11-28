@@ -1,17 +1,22 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 import { Button } from "@oba/ui/sky/button";
-import { EmptyState } from "@oba/ui/sky/page-states";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
+import { ListEmptyState } from "@oba/ui/sky/page-states";
+import { SearchInput } from "@oba/ui/sky/search-input";
 import { DataTable } from "@/components/data-table";
+import { useClearSearchLabel, useListEmptyLabels } from "@/components/list-labels";
 import type { OrganizationGroup } from "@oba/shared/features/organizations/schemas";
 import {
   useDeleteOrganizationGroup,
   useOrganizationGroups,
 } from "../hooks/use-organization-groups";
 import { useGroupColumns } from "../hooks/use-group-columns";
+import { useGroupFilterParams } from "../hooks/use-group-filter-params";
+import { CLEARED_GROUP_FILTERS, filterGroups, hasActiveGroupFilter } from "../lib/group-filters";
 import { GroupFormDialog } from "./group-form-dialog";
 import { GroupMembersSheet } from "./group-members-sheet";
 import { OrganizationLoadError } from "./organization-load-error";
@@ -21,12 +26,20 @@ interface GroupsTabProps {
 }
 
 /**
- * Groups of the organization, "Everyone" first. Shown only to an OWNER or
+ * Groups of the organization, "Everyone" first, with a search on name and
+ * description in the URL. Shown only to an OWNER or
  * ADMIN, who are the only roles that can read groups, so every control is
  * editable here.
  */
 export function GroupsTab({ organizationId }: GroupsTabProps) {
   const t = useTranslations("organization");
+  const [filters, setFilters] = useGroupFilterParams();
+  const clearSearchLabel = useClearSearchLabel();
+  const emptyLabels = useListEmptyLabels({
+    emptyTitle: t("groups.noGroups"),
+    emptyDescription: t("groups.noGroupsDescription"),
+    filteredTitle: t("groups.filteredTitle"),
+  });
 
   const {
     data: groupsResponse,
@@ -53,7 +66,10 @@ export function GroupsTab({ organizationId }: GroupsTabProps) {
     }
   );
 
-  const groups = groupsResponse?.data ?? [];
+  const groups = useMemo(
+    () => filterGroups(groupsResponse?.data ?? [], filters),
+    [groupsResponse?.data, filters]
+  );
 
   // The handlers are dependencies of the column memo. A new identity rebuilds
   // every column and remounts every cell, which closes an open row menu or
@@ -87,17 +103,26 @@ export function GroupsTab({ organizationId }: GroupsTabProps) {
     isDeleting,
   });
 
+  const newButton = (
+    <Button onClick={handleCreate}>
+      <Plus aria-hidden="true" />
+      {t("groups.newGroup")}
+    </Button>
+  );
+
   return (
-    <section className="flex flex-col gap-4" aria-labelledby="organization-groups-title">
-      <div className="flex min-h-9 flex-wrap items-center justify-between gap-3">
-        <h2 id="organization-groups-title" className="text-xl">
-          {t("groups.title")}
-        </h2>
-        <Button size="sm" onClick={handleCreate}>
-          <Plus aria-hidden="true" />
-          {t("groups.newGroup")}
-        </Button>
-      </div>
+    <div className="flex flex-col gap-4">
+      <ListToolbar
+        search={
+          <SearchInput
+            value={filters.search}
+            onSearchChange={(search) => void setFilters({ search: search ?? null })}
+            label={t("groups.searchLabel")}
+            clearLabel={clearSearchLabel}
+          />
+        }
+        create={newButton}
+      />
 
       {isError && !groupsResponse ? (
         <OrganizationLoadError onRetry={() => void refetch()} />
@@ -109,9 +134,11 @@ export function GroupsTab({ organizationId }: GroupsTabProps) {
           loadingLabel={t("groups.loading")}
           getRowId={(group: OrganizationGroup) => group.id}
           emptyMessage={
-            <EmptyState
-              title={t("groups.noGroups")}
-              description={t("groups.noGroupsDescription")}
+            <ListEmptyState
+              filtered={hasActiveGroupFilter(filters)}
+              onClearFilters={() => void setFilters(CLEARED_GROUP_FILTERS)}
+              create={newButton}
+              labels={emptyLabels}
             />
           }
         />
@@ -130,6 +157,6 @@ export function GroupsTab({ organizationId }: GroupsTabProps) {
         open={membersOpen}
         onOpenChange={setMembersOpen}
       />
-    </section>
+    </div>
   );
 }

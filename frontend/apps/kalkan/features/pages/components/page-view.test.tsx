@@ -163,11 +163,11 @@ describe("page view states", () => {
     expect(render()).toContain('aria-label="Loading the page"');
   });
 
-  test("answers a missing page with the not-found state and a way back", () => {
+  test("answers a missing page with the not-found state, leaving the way out to the sidebar", () => {
     pageState = { error: new ApiError("Not found", { status: 404, code: "KLK_NOT_001" }) };
     const html = render();
     expect(html).toContain("Page not found");
-    expect(html).toContain('href="/"');
+    expect(html).not.toContain('href="/"');
     expect(html).not.toContain("Restore page");
   });
 

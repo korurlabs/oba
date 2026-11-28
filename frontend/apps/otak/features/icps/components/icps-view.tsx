@@ -2,13 +2,16 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { AlertTriangle, Plus, X } from "lucide-react";
-import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
+import { AlertTriangle, Plus } from "lucide-react";
+import { SearchInput } from "@oba/ui/sky/search-input";
 import { Button } from "@oba/ui/sky/button";
-import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
+import { ListEmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { TablePagination } from "@oba/ui/sky/table-pagination";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { DataTable, TablePagination } from "@/components/data-table";
-import { ActionEmptyState, FilterLabel, PageHeading } from "@/components/page-states";
+import { DataTable } from "@/components/data-table";
+import { useSearchClearLabel } from "@/components/list-labels";
 import { useIsOrganizationAdmin } from "@/hooks/use-is-organization-admin";
 import { useIcpColumns } from "../hooks/use-icp-columns";
 import { useIcpFilterParams } from "../hooks/use-icp-filter-params";
@@ -24,6 +27,7 @@ import { IcpFormDialog } from "./icp-form-dialog";
  */
 export function IcpsView() {
   const t = useTranslations("icps");
+  const searchClearLabel = useSearchClearLabel();
   const tErrors = useTranslations("errors");
   const isAdmin = useIsOrganizationAdmin();
   const [filters, setFilters] = useIcpFilterParams();
@@ -58,18 +62,20 @@ export function IcpsView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeading title={t("title")} description={t("subtitle")} actions={newButton} />
+      <PageHeading title={t("title")} description={t("subtitle")} />
 
-      <div className="flex flex-wrap items-end gap-3">
-        <FilterLabel label={t("filters.searchLabel")} className="w-full sm:w-64">
-          <SenseySearchInput
+      <ListToolbar
+        search={
+          <SearchInput
             value={filters.search}
+            label={t("filters.searchLabel")}
+            clearLabel={searchClearLabel}
             placeholder={t("filters.searchPlaceholder")}
             onSearchChange={(search) => void setFilters({ search: search ?? null, page: 1 })}
-            className="w-full"
           />
-        </FilterLabel>
-      </div>
+        }
+        create={newButton}
+      />
 
       {icps.isError && icps.data === undefined ? (
         <LoadError
@@ -81,20 +87,18 @@ export function IcpsView() {
       ) : icps.data === undefined ? (
         <TableLoading label={t("loading")} />
       ) : rows.length === 0 ? (
-        isFiltered ? (
-          <ActionEmptyState
-            title={t("emptyFiltered")}
-            description={t("emptyFilteredHint")}
-            action={
-              <Button variant="outline" onClick={() => void setFilters({ search: null, page: 1 })}>
-                <X aria-hidden="true" />
-                {t("filters.clear")}
-              </Button>
-            }
-          />
-        ) : (
-          <ActionEmptyState title={t("empty")} description={t("emptyHint")} action={newButton} />
-        )
+        <ListEmptyState
+          filtered={isFiltered}
+          onClearFilters={() => void setFilters({ search: null, page: 1 })}
+          create={newButton}
+          labels={{
+            emptyTitle: t("empty"),
+            emptyDescription: t("emptyHint"),
+            filteredTitle: t("emptyFiltered"),
+            filteredDescription: t("emptyFilteredHint"),
+            clearFilters: t("filters.clear"),
+          }}
+        />
       ) : (
         <>
           {icps.isError && (

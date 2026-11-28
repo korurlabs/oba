@@ -10,9 +10,9 @@ import { Link, useRouter } from "@oba/shared/libs/i18n/navigation";
 import { Badge } from "@oba/ui/sky/badge";
 import { Button } from "@oba/ui/sky/button";
 import { Card, CardContent, CardHeader } from "@oba/ui/sky/card";
-import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { PageHeading } from "@oba/ui/sky/page-heading";
+import { EmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { ActionEmptyState } from "@/components/page-states";
 import { DocumentTemplatePreviewContent } from "@/features/document-templates/components/document-template-preview-dialog";
 import { useDocumentTemplate } from "@/features/document-templates/hooks/use-document-templates";
 import { useDeleteDocument, useDocument } from "../hooks/use-documents";
@@ -47,7 +47,7 @@ export function DocumentDetailView({ documentId }: { documentId: string }) {
   if (document.isError) {
     if (isApiError(document.error, "DOC_NOT_002")) {
       return (
-        <ActionEmptyState
+        <EmptyState
           title={t("detail.notFoundTitle")}
           description={t("detail.notFoundDescription")}
           action={
@@ -93,16 +93,11 @@ function DocumentDetailContent({ document }: { document: DocumentDetail }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <Button asChild variant="ghost" size="sm" className="w-fit">
-        <Link href="/documents">
-          <ArrowLeft aria-hidden="true" />
-          {t("detail.back")}
-        </Link>
-      </Button>
-
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex min-w-0 flex-col gap-2">
-          <h1 className="break-words">{document.title}</h1>
+      <PageHeading
+        title={document.title}
+        back={{ href: "/documents", label: t("detail.back") }}
+        linkComponent={Link}
+        description={
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="secondary">{tTemplates(`types.${document.type}`)}</Badge>
             <Badge variant="outline">{tTemplates(`languages.${document.language}`)}</Badge>
@@ -114,26 +109,28 @@ function DocumentDetailContent({ document }: { document: DocumentDetail }) {
               {t("detail.edited", { text: editedText(document.updatedAt, document.updatedBy) })}
             </span>
           </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" onClick={() => setEditOpen(true)}>
-            <Pencil aria-hidden="true" />
-            {t("detail.edit")}
-          </Button>
-          <Button variant="outline" onClick={() => setFilesOpen(true)}>
-            <FileUp aria-hidden="true" />
-            {t("detail.replaceFiles")}
-          </Button>
-          <Button
-            variant="outline"
-            disabled={deleteDocument.isPending}
-            onClick={() => setConfirmOpen(true)}
-          >
-            <Trash2 aria-hidden="true" />
-            {deleteDocument.isPending ? t("detail.deleting") : t("detail.delete")}
-          </Button>
-        </div>
-      </div>
+        }
+        actions={
+          <>
+            <Button variant="outline" onClick={() => setEditOpen(true)}>
+              <Pencil aria-hidden="true" />
+              {t("detail.edit")}
+            </Button>
+            <Button variant="outline" onClick={() => setFilesOpen(true)}>
+              <FileUp aria-hidden="true" />
+              {t("detail.replaceFiles")}
+            </Button>
+            <Button
+              variant="outline"
+              disabled={deleteDocument.isPending}
+              onClick={() => setConfirmOpen(true)}
+            >
+              <Trash2 aria-hidden="true" />
+              {deleteDocument.isPending ? t("detail.deleting") : t("detail.delete")}
+            </Button>
+          </>
+        }
+      />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card role="region" aria-labelledby="document-preview" className="gap-4 lg:col-span-2">

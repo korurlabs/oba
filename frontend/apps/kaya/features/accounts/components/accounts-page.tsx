@@ -1,19 +1,25 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { parseAsString, useQueryState } from "nuqs";
 
 import { Badge } from "@oba/ui/sky/badge";
-import { EmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { FilterPopover, type FilterCategory } from "@oba/ui/sky/filter-popover";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
+import { PageHeading } from "@oba/ui/sky/page-heading";
+import { ListEmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { SearchInput } from "@oba/ui/sky/search-input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@oba/ui/sky/table";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@oba/ui/sky/table";
+  CLEAR_FILTERS_LABEL,
+  CLEAR_SEARCH_LABEL,
+  FILTER_LABELS,
+  withChosen,
+} from "@/components/common/list-parts";
 import { USAGE_TICK_MS } from "@/features/machines/components/usage-data";
+import { useMembers } from "@/features/members/hooks/use-members";
+import type { MemberResponse } from "@/features/members/schemas";
 import { describeError } from "@/lib/api/error-text";
 import { ageText } from "@/lib/format-time";
 import { useNow } from "@/lib/use-now";
@@ -53,24 +59,84 @@ export function MachineCount({ account }: { account: AccountListResponse }) {
 }
 
 /**
+ * The accounts the search finds by account e-mail, organization or user
+ * name, ignoring case; an empty search keeps every account. The list holds
+ * every account of the organization, so it is searched in the browser.
+ */
+export function searchAccounts(
+  accounts: readonly AccountListResponse[],
+  search: string
+): AccountListResponse[] {
+  const needle = search.trim().toLowerCase();
+  if (needle === "") return [...accounts];
+  return accounts.filter((account: AccountListResponse) => {
+    const texts = [
+      account.accountEmail,
+      organizationText(account),
+      ...account.users.map((user: AccountUser) => user.displayName),
+    ];
+    return texts.some((text: string) => text.toLowerCase().includes(needle));
+  });
+}
+
+/**
  * Every account of the organization with its provider, subscription, users
- * and current usage, reloaded every minute; `?userId=` keeps one user's.
+ * and current usage, reloaded every minute; `?userId=` keeps one user's,
+ * which the User filter shows and clears.
  */
 export function AccountsPage() {
-  const [userId] = useQueryState("userId", parseAsString);
+  const [userId, setUserId] = useQueryState("userId", parseAsString);
+  const [search, setSearch] = useState("");
   const params: AccountQueryRequest = userId ? { userId } : {};
   const accounts = useAccounts(params);
+  const members = useMembers();
   const now = useNow(USAGE_TICK_MS);
-  const rows = accounts.data?.data ?? [];
+  const rows = searchAccounts(accounts.data?.data ?? [], search);
+  const userCategory: FilterCategory = {
+    key: "userId",
+    label: "User",
+    mode: "single",
+    searchable: true,
+    options: withChosen(
+      (members.data?.data ?? []).map((member: MemberResponse) => ({
+        value: member.userId,
+        label: member.displayName,
+      })),
+      userId
+    ),
+    value: userId,
+    onChange: (value: string | null) => void setUserId(value),
+  };
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <h1>Accounts</h1>
-        <p className="text-muted-foreground">
-          The AI provider accounts your users work on, with how much of each limit is used.
+      <PageHeading
+        title="Accounts"
+        description="The AI provider accounts your users work on, with how much of each limit is used."
+      />
+      <ListToolbar
+        search={
+          <SearchInput
+            value={search}
+            onSearchChange={(next: string | undefined) => setSearch(next ?? "")}
+            label="Search accounts"
+            placeholder="E-mail, organization or user"
+            clearLabel={CLEAR_SEARCH_LABEL}
+          />
+        }
+        filters={
+          <FilterPopover
+            categories={[userCategory]}
+            onClear={() => void setUserId(null)}
+            labels={FILTER_LABELS}
+          />
+        }
+      />
+      {members.error !== null && (
+        <p className="text-warning-text text-sm" role="status">
+          The user list could not be loaded: {describeError(members.error)}
         </p>
-      </div>
+      )}
       {accounts.error !== null && accounts.data === undefined ? (
         <LoadError
           title="Could not load the accounts"
@@ -80,9 +146,19 @@ export function AccountsPage() {
       ) : accounts.data === undefined ? (
         <TableLoading label="Loading accounts" />
       ) : rows.length === 0 ? (
-        <EmptyState
-          title="No account reported yet"
-          description="An account shows here once a user's recorder reports it."
+        <ListEmptyState
+          filtered={userId !== null || search !== ""}
+          onClearFilters={() => {
+            setSearch("");
+            void setUserId(null);
+          }}
+          labels={{
+            emptyTitle: "No account reported yet",
+            emptyDescription: "An account shows here once a user's recorder reports it.",
+            filteredTitle: "No account matches",
+            filteredDescription: "No account matches the search and filters.",
+            clearFilters: CLEAR_FILTERS_LABEL,
+          }}
         />
       ) : (
         <>

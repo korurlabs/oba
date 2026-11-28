@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { ArrowLeft, Trash2, UserPlus } from "lucide-react";
+import { Trash2, UserPlus } from "lucide-react";
 import { SelectFieldStandalone } from "@oba/shared/features/form";
 import type { OrganizationMember } from "@oba/shared/features/organizations/schemas";
 import { Link } from "@oba/shared/libs/i18n/navigation";
@@ -10,9 +10,9 @@ import { Alert, AlertDescription, AlertTitle } from "@oba/ui/sky/alert";
 import { Badge } from "@oba/ui/sky/badge";
 import { Button } from "@oba/ui/sky/button";
 import { Card, CardContent, CardHeader } from "@oba/ui/sky/card";
-import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { PageHeading, type PageHeadingBack } from "@oba/ui/sky/page-heading";
+import { EmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@oba/ui/sky/table";
-import { ActionEmptyState, PageHeading } from "@/components/page-states";
 import { pageHref, pagePermissionsHref } from "@/lib/routes";
 import { useOrganizationMembers } from "../hooks/use-organization-members";
 import { usePagePermissions, useReplacePagePermissions } from "../hooks/use-page-permissions";
@@ -47,14 +47,7 @@ export function PagePermissionsView({ pageId }: { pageId: string }) {
   const detail = page.data?.data ?? null;
   const canManage = detail !== null && detail.parentId === null && detail.level === "MANAGE";
 
-  const back = (
-    <Button asChild variant="ghost" size="sm" className="w-fit">
-      <Link href={pageHref(pageId)}>
-        <ArrowLeft aria-hidden="true" />
-        {t("backToPage")}
-      </Link>
-    </Button>
-  );
+  const back: PageHeadingBack = { href: pageHref(pageId), label: t("backToPage") };
 
   if (page.isPending) {
     return <TableLoading label={tPages("view.loading")} />;
@@ -76,11 +69,20 @@ export function PagePermissionsView({ pageId }: { pageId: string }) {
     detail.translations[0]?.title ??
     detail.slug;
 
+  const heading = (
+    <PageHeading
+      title={t("title", { title })}
+      description={t("subtitle")}
+      back={back}
+      linkComponent={Link}
+    />
+  );
+
   if (detail.parentId !== null) {
     return (
       <div className="flex flex-col gap-6">
-        {back}
-        <ActionEmptyState
+        {heading}
+        <EmptyState
           title={t("onChild.title")}
           description={t("onChild.description")}
           action={
@@ -88,7 +90,7 @@ export function PagePermissionsView({ pageId }: { pageId: string }) {
               <Button asChild variant="outline">
                 <Link href={pagePermissionsHref(detail.rootId)}>{t("onChild.action")}</Link>
               </Button>
-            ) : null
+            ) : undefined
           }
         />
       </div>
@@ -97,24 +99,15 @@ export function PagePermissionsView({ pageId }: { pageId: string }) {
   if (!canManage) {
     return (
       <div className="flex flex-col gap-6">
-        {back}
-        <ActionEmptyState
-          title={t("noAccess.title")}
-          description={t("noAccess.description")}
-          action={
-            <Button asChild variant="outline">
-              <Link href={pageHref(pageId)}>{t("backToPage")}</Link>
-            </Button>
-          }
-        />
+        {heading}
+        <EmptyState title={t("noAccess.title")} description={t("noAccess.description")} />
       </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-6">
-      {back}
-      <PageHeading title={t("title", { title })} description={t("subtitle")} />
+      {heading}
       <PermissionsEditor page={detail} />
     </div>
   );
@@ -269,18 +262,16 @@ function GrantListEditor({
         </CardContent>
       </Card>
 
-      <Card role="region" aria-labelledby="permission-list" className="gap-4">
-        <CardHeader>
-          <h2 id="permission-list" className="text-lg leading-none">
-            {t("list.title")}
-          </h2>
-        </CardHeader>
-        <CardContent>
-          {drafts.length === 0 ? (
-            <p className="text-muted-foreground text-sm" role="status">
-              {t("list.empty")}
-            </p>
-          ) : (
+      {drafts.length === 0 ? (
+        <EmptyState title={t("list.emptyTitle")} description={t("list.emptyDescription")} />
+      ) : (
+        <Card role="region" aria-labelledby="permission-list" className="gap-4">
+          <CardHeader>
+            <h2 id="permission-list" className="text-lg leading-none">
+              {t("list.title")}
+            </h2>
+          </CardHeader>
+          <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -339,9 +330,9 @@ function GrantListEditor({
                 })}
               </TableBody>
             </Table>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {saveError ? (
         <Alert variant="destructive">

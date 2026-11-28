@@ -1,108 +1,118 @@
-import { afterAll, describe, expect, mock, test } from "bun:test";
-import { Children, isValidElement, type ReactElement, type ReactNode } from "react";
+import { describe, expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
+import { FilterPopoverPanel } from "@oba/ui/sky/filter-popover";
 
-// The filter menu lives in a portal that a static render leaves out, so the
-// popover shows its content in place; the toolbar itself is real.
-const actualPopover = { ...(await import("@oba/ui/sky/popover")) };
-mock.module("@oba/ui/sky/popover", () => ({
-  ...actualPopover,
-  Popover: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-  PopoverTrigger: ({ children }: { children: ReactNode }) => <>{children}</>,
-  PopoverContent: ({ children }: { children: ReactNode }) => <div>{children}</div>,
-}));
-afterAll(() => {
-  mock.module("@oba/ui/sky/popover", () => actualPopover);
-});
-
-const { ListToolbar, NewButton } = await import("./list-toolbar");
-
-type Props = Record<string, unknown> & { children?: ReactNode };
-
-/** Walks an element tree, rendering only the filter menu (the one hook-free component that holds the checkbox), and collects the host elements of `tag`. */
-function hostElements(node: ReactNode, tag: string): ReactElement<Props>[] {
-  if (!isValidElement<Props>(node)) return [];
-  const found: ReactElement<Props>[] = [];
-  if (node.type === tag) found.push(node);
-  if (typeof node.type === "function" && node.type.name === "FilterMenu") {
-    const rendered = (node.type as (props: Props) => ReactNode)(node.props);
-    return [...found, ...hostElements(rendered, tag)];
-  }
-  Children.forEach(node.props.children, (child: ReactNode) => {
-    found.push(...hostElements(child, tag));
-  });
-  return found;
-}
+const { INHERITED_SHOWN, ListToolbar, NewButton, inheritedCategory } =
+  await import("./list-toolbar");
 
 const noop = () => undefined;
 const SEARCH = { value: "", onChange: noop, label: "Search skills", placeholder: "Search" };
 
+/** The popover's content, which a static render of the toolbar leaves in its portal. */
+function panel(shown: boolean): string {
+  return renderToStaticMarkup(
+    <FilterPopoverPanel
+      categories={[inheritedCategory({ shown, onChange: noop })]}
+      selectedKey={null}
+      onSelectCategory={noop}
+      search=""
+      onSearchChange={noop}
+      onClear={noop}
+      labels={{
+        trigger: "Filter",
+        chooseCategory: "Select a field",
+        searchOptions: "Search options",
+        noOptions: "No options",
+        loading: "Loading",
+        clear: "Clear all",
+      }}
+    />
+  );
+}
+
 describe("ListToolbar filter", () => {
-  test("the menu holds a Show inherited checkbox that mirrors the filter", () => {
-    const on = renderToStaticMarkup(<ListToolbar filter={{ shown: true, onChange: noop }} />);
-    expect(on).toContain("Show inherited");
-    expect(on).toMatch(/<input[^>]*type="checkbox"[^>]*checked=""/);
-    expect(on).toContain('aria-label="What is inherited?"');
-    const off = renderToStaticMarkup(<ListToolbar filter={{ shown: false, onChange: noop }} />);
-    expect(off).not.toMatch(/<input[^>]*type="checkbox"[^>]*checked=""/);
+  test("Show inherited is the one option of a single select Inherited category", () => {
+    const category = inheritedCategory({ shown: true, onChange: noop });
+    expect(category.mode).toBe("single");
+    expect(category.label).toBe("Inherited");
+    expect(category.options.map((option) => option.label)).toEqual(["Show inherited"]);
+    expect(category.value).toBe(INHERITED_SHOWN);
+    expect(inheritedCategory({ shown: false, onChange: noop }).value).toBeNull();
   });
 
-  test("ticking the checkbox hands the new state to the filter", () => {
+  test("choosing or clearing the option hands the boolean to the filter", () => {
     const changes: boolean[] = [];
-    const toolbar = ListToolbar({
-      filter: { shown: false, onChange: (shown: boolean) => changes.push(shown) },
+    const category = inheritedCategory({
+      shown: false,
+      onChange: (shown: boolean) => changes.push(shown),
     });
-    const [checkbox] = hostElements(toolbar, "input");
-    const onChange = checkbox?.props.onChange as (event: { target: { checked: boolean } }) => void;
-    onChange({ target: { checked: true } });
-    onChange({ target: { checked: false } });
+    if (category.mode !== "single") throw new Error("expected a single select");
+    category.onChange(INHERITED_SHOWN);
+    category.onChange(null);
     expect(changes).toEqual([true, false]);
   });
 
-  test("the icon looks active only while inherited items are shown", () => {
+  test("the panel shows the option ticked while inherited items are listed", () => {
+    const on = panel(true);
+    expect(on).toContain("Show inherited");
+    expect(on).toMatch(/<input[^>]*type="radio"[^>]*checked=""/);
+    expect(on).toContain("Clear all");
+    const off = panel(false);
+    expect(off).not.toMatch(/<input[^>]*type="radio"[^>]*checked=""/);
+    expect(off).not.toContain("Clear all");
+  });
+
+  test("the Filter button is badged and active only while inherited items are shown", () => {
     const on = renderToStaticMarkup(<ListToolbar filter={{ shown: true, onChange: noop }} />);
-    expect(on).toContain('aria-label="Filter, inherited items shown"');
+    expect(on).toContain('title="Filter"');
     expect(on).toContain('data-active="true"');
+    expect(on).toContain(">1</span>");
     const off = renderToStaticMarkup(<ListToolbar filter={{ shown: false, onChange: noop }} />);
-    expect(off).toContain('aria-label="Filter"');
+    expect(off).toContain('title="Filter"');
     expect(off).not.toContain("data-active");
   });
 
-  test("no filter, as on a repository, hides the icon and the menu", () => {
+  test("no filter, as on a repository, hides the Filter button", () => {
     for (const filter of [null, undefined]) {
       const html = renderToStaticMarkup(<ListToolbar filter={filter} search={SEARCH} />);
-      expect(html).not.toContain('aria-label="Filter');
-      expect(html).not.toContain("Show inherited");
+      expect(html).not.toContain('title="Filter"');
       expect(html).toContain('aria-label="Search skills"');
     }
   });
 });
 
 describe("ListToolbar search, tabs and actions", () => {
-  test("the search shows as a collapsed button, and a typed term keeps the field open", () => {
-    const closed = renderToStaticMarkup(<ListToolbar search={SEARCH} />);
-    expect(closed).toContain('aria-label="Search skills"');
-    expect(closed).not.toContain('type="search"');
+  test("the search is the sky search field, open with its placeholder and the searched term", () => {
+    const empty = renderToStaticMarkup(<ListToolbar search={SEARCH} />);
+    expect(empty).toContain('aria-label="Search skills"');
+    expect(empty).toContain('placeholder="Search"');
     const typed = renderToStaticMarkup(<ListToolbar search={{ ...SEARCH, value: "kai" }} />);
     expect(typed).toContain('value="kai"');
+    expect(typed).toContain('aria-label="Clear search"');
   });
 
   test("without a search no search button renders", () => {
     expect(renderToStaticMarkup(<ListToolbar />)).not.toContain("Search");
   });
 
-  test("tabs come before the right side, actions before the create button", () => {
+  test("search first, then tabs, then actions, Filter and create, as on every sky list", () => {
     const html = renderToStaticMarkup(
       <ListToolbar
         tabs={<span>TABS</span>}
         search={SEARCH}
+        filter={{ shown: false, onChange: noop }}
         actions={<span>ACTIONS</span>}
         create={<span>CREATE</span>}
       />
     );
-    const order = ["TABS", 'aria-label="Search skills"', "ACTIONS", "CREATE"].map((part: string) =>
-      html.indexOf(part)
-    );
+    const order = [
+      'aria-label="Search skills"',
+      "TABS",
+      'aria-hidden="true"></div>',
+      "ACTIONS",
+      'title="Filter"',
+      "CREATE",
+    ].map((part: string) => html.indexOf(part));
     expect(order.every((index: number) => index >= 0)).toBe(true);
     expect(order).toEqual([...order].sort((left: number, right: number) => left - right));
   });

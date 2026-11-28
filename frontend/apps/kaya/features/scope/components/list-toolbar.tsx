@@ -1,15 +1,15 @@
 "use client";
 
 import type { ComponentProps, ReactNode } from "react";
-import { ListFilter, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { Button } from "@oba/ui/sky/button";
-import { CollapsibleSearch, type CollapsibleSearchProps } from "@oba/ui/sky/collapsible-search";
-import { InfoTip } from "@oba/ui/sky/info-tip";
-import { Popover, PopoverContent, PopoverTrigger } from "@oba/ui/sky/popover";
+import { FilterPopover, type FilterCategory } from "@oba/ui/sky/filter-popover";
+import { ListToolbar as SkyListToolbar } from "@oba/ui/sky/list-toolbar";
+import { SearchInput } from "@oba/ui/sky/search-input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@oba/ui/sky/tooltip";
+import { CLEAR_SEARCH_LABEL, FILTER_LABELS } from "@/components/common/list-parts";
 import { ChangeLockTip } from "@/features/versions/components/open-change";
-import { cn } from "@/lib/utils";
 
 /**
  * "Show inherited" of a pack's list, kept in the URL as `inherited`. A
@@ -20,41 +20,33 @@ export type InheritedFilter = {
   onChange: (shown: boolean) => void;
 };
 
-const INHERITED_HELP =
-  "A pack inherits what its parent packs deliver. Unchecked lists only what this pack owns; checked also lists the parent items, each with its source pack.";
+/** The one option of the inherited category; chosen means parent items are listed too. */
+export const INHERITED_SHOWN = "shown";
 
-/** The filter icon and its menu; the icon is highlighted while inherited items are listed. */
-function FilterMenu({ filter }: { filter: InheritedFilter }) {
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          aria-label={filter.shown ? "Filter, inherited items shown" : "Filter"}
-          title="Filter"
-          data-active={filter.shown || undefined}
-          className={cn(filter.shown && "bg-korur-blue/10 text-korur-blue-hover")}
-        >
-          <ListFilter aria-hidden />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent align="end" className="w-auto p-3">
-        <div className="flex items-center gap-1.5">
-          <label className="flex items-center gap-2 text-sm whitespace-nowrap">
-            <input
-              type="checkbox"
-              checked={filter.shown}
-              onChange={(event) => filter.onChange(event.target.checked)}
-            />
-            Show inherited
-          </label>
-          <InfoTip label="What is inherited?">{INHERITED_HELP}</InfoTip>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
+/** A list's search, kept by the page; "" when nothing is searched. */
+export type ListSearch = {
+  value: string;
+  /** Called after typing pauses, and at once on clear, with the trimmed text or "". */
+  onChange: (value: string) => void;
+  /** Names the field for assistive technology, such as "Search skills". */
+  label: string;
+  placeholder?: string;
+};
+
+/**
+ * The inherited filter as a single select category: a pack inherits what its
+ * parent packs deliver, so ticking it also lists the parent items, each with
+ * its source pack, and clearing it lists only what this pack owns.
+ */
+export function inheritedCategory(filter: InheritedFilter): FilterCategory {
+  return {
+    key: "inherited",
+    label: "Inherited",
+    mode: "single",
+    options: [{ value: INHERITED_SHOWN, label: "Show inherited", hint: "from parent packs" }],
+    value: filter.shown ? INHERITED_SHOWN : null,
+    onChange: (value: string | null) => filter.onChange(value === INHERITED_SHOWN),
+  };
 }
 
 export type NewButtonProps = Omit<ComponentProps<typeof Button>, "children"> & {
@@ -106,32 +98,49 @@ export function NewButton({ label, lockedBy = null, help, ...props }: NewButtonP
 }
 
 export type ListToolbarProps = {
-  /** The tabs of a page that has them, on the left. */
+  /** The tabs of a page that has them, after the search. */
   tabs?: ReactNode;
-  /** The inherited filter; null or left out hides the filter icon, as on a repository. */
+  /** The inherited filter; null or left out hides the Filter button, as on a repository. */
   filter?: InheritedFilter | null;
-  /** The list's search; left out when the list has none. */
-  search?: CollapsibleSearchProps;
-  /** Other actions before the create button, such as the Allowlist's Edit. */
+  /** The list's search, first on the left; left out when the list has none. */
+  search?: ListSearch;
+  /** Other actions before the filter, such as the Allowlist's Edit. */
   actions?: ReactNode;
   /** The create button, usually a `NewButton`; null or left out on a read only scope. */
   create?: ReactNode;
 };
 
 /**
- * The one row above a config list: its tabs on the left; the filter, the
- * search and the create button on the right.
+ * The one row above a config list, laid out as every sky list: its search
+ * and then its tabs on the left; its actions, the Filter button and the
+ * create button on the right.
  */
 export function ListToolbar({ tabs, filter, search, actions, create }: ListToolbarProps) {
   return (
-    <div className="flex min-h-9 flex-wrap items-center justify-between gap-2">
-      <div className="min-w-0">{tabs}</div>
-      <div className="ml-auto flex min-w-0 items-center justify-end gap-1">
-        {filter && <FilterMenu filter={filter} />}
-        {search && <CollapsibleSearch {...search} />}
-        {actions}
-        {create && <div className="ml-1">{create}</div>}
-      </div>
-    </div>
+    <SkyListToolbar
+      tabs={tabs}
+      search={
+        search && (
+          <SearchInput
+            value={search.value}
+            onSearchChange={(value: string | undefined) => search.onChange(value ?? "")}
+            label={search.label}
+            placeholder={search.placeholder}
+            clearLabel={CLEAR_SEARCH_LABEL}
+          />
+        )
+      }
+      actions={actions}
+      filters={
+        filter && (
+          <FilterPopover
+            categories={[inheritedCategory(filter)]}
+            onClear={() => filter.onChange(false)}
+            labels={FILTER_LABELS}
+          />
+        )
+      }
+      create={create}
+    />
   );
 }

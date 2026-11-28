@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { parseAsStringEnum, useQueryState } from "nuqs";
 
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
@@ -186,6 +186,8 @@ export function AllowlistTabs({
 }: AllowlistTabsProps) {
   const rules = useMemo(() => (allowlist !== null ? toAllowRules(allowlist) : []), [allowlist]);
   const [urlTab, setTab] = useQueryState("tab", allowlistTabParam);
+  // Local state, so a reload of the allowlist keeps the search.
+  const [ruleSearch, setRuleSearch] = useState("");
   const [, setEditor] = useEditorParams();
   const session = useDraftSession(ready.scope, ready.owners);
   const confirmLeave = useConfirmLeave();
@@ -231,6 +233,16 @@ export function AllowlistTabs({
             ))}
           </TabsList>
         }
+        search={
+          tab === "rules"
+            ? {
+                value: ruleSearch,
+                onChange: setRuleSearch,
+                label: "Search rules",
+                placeholder: "Pattern or tool",
+              }
+            : undefined
+        }
         filter={ready.inheritedFilter}
         actions={actions}
       />
@@ -238,7 +250,7 @@ export function AllowlistTabs({
         {tab === "rules" && allowlist !== null && (
           <>
             {rulesEditor}
-            <RuleList rules={rules} />
+            <RuleList rules={rules} search={ruleSearch} onClearSearch={() => setRuleSearch("")} />
           </>
         )}
       </TabsContent>

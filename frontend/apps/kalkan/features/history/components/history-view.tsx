@@ -2,14 +2,12 @@
 
 import { useCallback, useState, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { ArrowLeft } from "lucide-react";
 import { useDateFormat } from "@oba/shared/i18n/use-date-format";
 import { Link } from "@oba/shared/libs/i18n/navigation";
-import { Button } from "@oba/ui/sky/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader } from "@oba/ui/sky/card";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { EmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { ToggleGroup, ToggleGroupItem } from "@oba/ui/sky/toggle-group";
-import { PageHeading } from "@/components/page-states";
 import { usePage, usePageRevision, usePageRevisions } from "@/features/pages/hooks/use-pages";
 import { pageErrorText } from "@/features/pages/lib/page-error";
 import { contentLocaleOf } from "@/features/pages/lib/page-tree";
@@ -81,14 +79,8 @@ export function HistoryView({ pageId }: { pageId: string }) {
       <PageHeading
         title={t("title")}
         description={pageTitle}
-        actions={
-          <Button asChild variant="outline">
-            <Link href={pageHref(pageId)}>
-              <ArrowLeft aria-hidden="true" />
-              {t("backToPage")}
-            </Link>
-          </Button>
-        }
+        back={{ href: pageHref(pageId), label: t("backToPage") }}
+        linkComponent={Link}
       />
       {body}
     </div>

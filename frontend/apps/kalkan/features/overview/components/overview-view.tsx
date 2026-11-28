@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
-import { PageHeading } from "@/components/page-states";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { usePageTree } from "@/features/pages/hooks/use-pages";
 import { pageErrorText } from "@/features/pages/lib/page-error";
 import { sectionCounts } from "../lib/section-counts";

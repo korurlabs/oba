@@ -75,15 +75,16 @@ public class RelationController {
     private final LoggingService loggingService;
 
     /**
-     * Lists one page of the relations of one type, or of every type.
+     * Lists one page of the relations of the chosen types, or of every type.
      */
     @GetMapping
     @RequiredUserAccess(OrganizationMemberRole.MEMBER)
     @Operation(summary = "List relations",
-            description = "One page of the organization's relations of one type, or of every type and stage when "
-                    + "the type is left out, last change first. The stage filter applies to leads and customers; "
-                    + "leads at LOST or PARKED show only when it names them. Each row carries the name of the "
-                    + "relation's main contact.")
+            description = "One page of the organization's relations, last change first. Repeat type for several "
+                    + "types; none gives every type. Repeat stage for several stages, whatever the type; a supplier "
+                    + "has no stage and never matches. With no stage every relation of the chosen types shows, and "
+                    + "hideInactiveLeads=true leaves out the leads at LOST or PARKED; with stages it is ignored. "
+                    + "Each row carries the name of the relation's main contact.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successful operation"),
             @ApiResponse(responseCode = "400", description = "Missing or malformed X-Organization-ID header"),

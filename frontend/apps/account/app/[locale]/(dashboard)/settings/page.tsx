@@ -9,7 +9,8 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { LanguageSwitcher } from "@oba/shared/components/language-switcher";
 import { Card, CardAction, CardDescription, CardHeader } from "@oba/ui/sky/card";
-import { ComingSoonPanel, PageHeading, PanelTitle } from "@/components/layout/page-heading";
+import { PageHeading } from "@oba/ui/sky/page-heading";
+import { ComingSoonPanel, PanelTitle } from "@/components/layout/page-heading";
 import { AppearanceCard } from "@/features/settings/components/appearance-card";
 import { SUPPORTED_LOCALES } from "@/lib/i18n/supported-locales";
 

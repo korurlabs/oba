@@ -4,6 +4,7 @@ package com.korur.oba.apps.otak.outreach.dto.request;
 
 // 2. Third-party
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,14 +13,16 @@ import lombok.Setter;
 import java.util.UUID;
 
 // 4. Internal
+import com.korur.oba.apps.otak.outreach.constant.OutreachConstant;
 import com.korur.oba.apps.otak.outreach.enums.OutreachStatus;
+import com.korur.oba.apps.otak.outreach.enums.OutreachType;
 import com.korur.oba.dojo.dto.QueryRequest;
 
 /**
  * Filters of the outreach list. Outreaches are always ordered newest first, so sortBy and
  * sortDirection are ignored.
  *
- * Paging comes from {@link QueryRequest}. Both filters are optional and combine with AND;
+ * Paging comes from {@link QueryRequest}. Every filter is optional and they combine with AND;
  * the organization is not a filter here but comes from the checked request header, so the
  * list never shows another organization's outreaches whatever these fields hold.
  *
@@ -55,4 +58,30 @@ public class OutreachQueryRequest extends QueryRequest {
     @Schema(description = "Only outreaches of this campaign; null for every outreach", nullable = true,
             example = "3b7c9d1e-4f5a-4b6c-8d7e-9f0a1b2c3d4e")
     private UUID campaignId;
+
+    /**
+     * Part of the outreach title, the contact's name or mail address, or the relation's name,
+     * case ignored and trimmed; null or blank for no search. A blank value is ignored rather
+     * than refused, so a cleared search box can still send the parameter.
+     */
+    @Schema(description = "Part of the title, the contact's name or mail address, or the relation's name; "
+            + "case ignored, trimmed, blank ignored", nullable = true, example = "fabrikam")
+    @Size(max = OutreachConstant.SEARCH_MAX_LENGTH, message = OutreachConstant.SEARCH_SIZE_MESSAGE)
+    private String search;
+
+    /**
+     * Only outreaches through this {@link OutreachType}; null for every channel.
+     */
+    @Schema(description = "Only outreaches through this channel; null for every channel", nullable = true,
+            example = "MAIL")
+    private OutreachType channel;
+
+    /**
+     * Only outreaches sent from this mail sender, or whose failed send last tried it; null for
+     * every outreach. A draft, a WhatsApp and a call outreach have no sender, so they never
+     * match a sender filter.
+     */
+    @Schema(description = "Only outreaches sent, or last tried, from this mail sender; drafts, WhatsApp "
+            + "and calls have none and never match. Null for every outreach", nullable = true, example = "6c1d2e3f-4a5b-4c6d-8e7f-9a0b1c2d3e4f")
+    private UUID mailSenderId;
 }

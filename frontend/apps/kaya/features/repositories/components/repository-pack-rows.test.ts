@@ -9,6 +9,7 @@ import {
   refusedRowKey,
   requiredEntries,
   rowsOf,
+  rowsWith,
   type PackRow,
 } from "./repository-pack-rows";
 
@@ -104,9 +105,7 @@ describe("checkRows", () => {
       message: "The folder projects/kagi is given twice.",
       rowKey: "b",
     });
-    expect(
-      checkRows([row("a", "kagi", "projects"), row("b", "kazan", "projects/kazan")])
-    ).toEqual({
+    expect(checkRows([row("a", "kagi", "projects"), row("b", "kazan", "projects/kazan")])).toEqual({
       ok: false,
       message: "The folders projects and projects/kazan lie inside one another.",
       rowKey: "b",
@@ -145,5 +144,26 @@ describe("refusedRowKey", () => {
   test("other refusals mark no row", () => {
     expect(refusedRowKey(new KayaApiError("refused", 409, "KAY_CFG_033", {}), rows)).toBeNull();
     expect(refusedRowKey(new Error("offline"), rows)).toBeNull();
+  });
+});
+
+describe("rowsWith", () => {
+  const entries = [
+    entry("guard", null, true),
+    entry("village", null),
+    entry("kagi", "projects/kagi"),
+  ];
+
+  test("adds the pack at the end at the repository root and drops the required packs", () => {
+    expect(rowsWith(entries, "docs")).toEqual([
+      row("village", "village"),
+      row("kagi", "kagi", "projects/kagi"),
+      row("add-docs", "docs"),
+    ]);
+  });
+
+  test("a pack the list holds, own or required, is not added again", () => {
+    expect(rowsWith(entries, "kagi")).toEqual(rowsOf(entries));
+    expect(rowsWith(entries, "guard")).toEqual(rowsOf(entries));
   });
 });

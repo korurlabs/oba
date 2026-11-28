@@ -6,6 +6,7 @@ import {
   emptyReachOutSelection,
   isStepComplete,
   isTemplateUnchanged,
+  leadPickerQuery,
   mailableContacts,
   nextReachOutStep,
   previousReachOutStep,
@@ -241,6 +242,31 @@ describe("WhatsApp and call reach-outs", () => {
       mailTemplateId: null,
       mail: null,
       campaignId: null,
+    });
+  });
+});
+
+describe("leadPickerQuery", () => {
+  test("an empty search lists the first 20 leads that are still worked", () => {
+    expect(leadPickerQuery("")).toEqual({
+      type: ["LEAD"],
+      hideInactiveLeads: true,
+      page: 1,
+      amount: 20,
+    });
+  });
+
+  test("the search is trimmed and cut to 200 characters", () => {
+    expect(leadPickerQuery("  acme ").search).toBe("acme");
+    expect(leadPickerQuery("a".repeat(250)).search).toHaveLength(200);
+  });
+
+  test("a blank search is left out", () => {
+    expect(leadPickerQuery("   ")).toEqual({
+      type: ["LEAD"],
+      hideInactiveLeads: true,
+      page: 1,
+      amount: 20,
     });
   });
 });

@@ -1,4 +1,5 @@
 import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
+import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { LegalEntityListItem } from "../schemas";
 
@@ -88,8 +89,20 @@ const entity: LegalEntityListItem = {
   updatedAt: "2026-11-21T09:00:00Z",
 };
 
-function render(canEdit: boolean): string {
-  return renderToStaticMarkup(<LegalEntitiesTab organizationId="org-1" canEdit={canEdit} />);
+const other: LegalEntityListItem = {
+  ...entity,
+  id: "le-2",
+  shortName: "Korur TR",
+  legalName: "Korur Teknoloji A.Ş.",
+  country: "TUR",
+};
+
+function render(canEdit: boolean, searchParams = ""): string {
+  return renderToStaticMarkup(
+    <NuqsTestingAdapter searchParams={searchParams}>
+      <LegalEntitiesTab organizationId="org-1" canEdit={canEdit} />
+    </NuqsTestingAdapter>
+  );
 }
 
 beforeEach(() => {
@@ -139,6 +152,29 @@ describe("LegalEntitiesTab", () => {
     list = { ...list, isError: true };
 
     expect(render(true)).toContain("rows:Korur NL");
+  });
+
+  test("every role gets the search; it narrows the rows on short or legal name", () => {
+    list = { ...list, data: { data: [entity, other] } };
+
+    expect(render(false)).toContain("legalEntities.searchLabel");
+    expect(render(false, "?search=teknoloji")).toContain("rows:Korur TR");
+    expect(render(true, "?search=nl")).toContain("rows:Korur NL");
+  });
+
+  test("a search that hides every row offers to clear it, not to create", () => {
+    const html = render(true, "?search=nothing");
+
+    expect(html).toContain("legalEntities.filteredTitle");
+    expect(html).toContain("clearFilters");
+    expect(html).not.toContain("legalEntities.noLegalEntitiesDescription");
+  });
+
+  test("an empty list offers the create button to an OWNER or ADMIN only", () => {
+    list = { data: { data: [] }, isLoading: false, isError: false, refetch: () => undefined };
+
+    expect(render(true).match(/legalEntities\.newLegalEntity/g)).toHaveLength(2);
+    expect(render(false)).not.toContain("legalEntities.newLegalEntity");
   });
 
   test("a confirmed delete runs the delete mutation with the id", () => {

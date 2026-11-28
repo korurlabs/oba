@@ -2,22 +2,25 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { AlertTriangle, Plus, X } from "lucide-react";
+import { AlertTriangle, Plus } from "lucide-react";
 import { todayDateOnly } from "@oba/shared/lib/date-only";
-import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
+import { SearchInput } from "@oba/ui/sky/search-input";
 import { useRouter } from "@oba/shared/libs/i18n/navigation";
 import { Button } from "@oba/ui/sky/button";
-import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
-import { Tabs, TabsList, TabsTrigger } from "@oba/ui/sky/tabs";
+import { FilterPopover, type FilterCategory } from "@oba/ui/sky/filter-popover";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
+import { ListEmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { TablePagination } from "@oba/ui/sky/table-pagination";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { DataTable, TablePagination } from "@/components/data-table";
-import { ActionEmptyState, FilterLabel, PageHeading } from "@/components/page-states";
+import { DataTable } from "@/components/data-table";
+import { useFilterPopoverLabels, useSearchClearLabel } from "@/components/list-labels";
 import { useIsOrganizationAdmin } from "@/hooks/use-is-organization-admin";
 import { useEventColumns } from "../hooks/use-event-columns";
 import { useEventFilterParams } from "../hooks/use-event-filter-params";
 import { useDeleteEvent, useEvents } from "../hooks/use-events";
 import { eventErrorText } from "../lib/event-error";
-import { EVENT_TABS, toEventQuery, type EventTab } from "../lib/event-filters";
+import { EVENT_TABS, eventFilterParams, toEventQuery, type EventTab } from "../lib/event-filters";
 import type { EventListItem } from "../schemas";
 import { EventFormDialog } from "./event-form-dialog";
 
@@ -25,20 +28,27 @@ function isEventTab(value: string): value is EventTab {
   return (EVENT_TABS as readonly string[]).includes(value);
 }
 
+/** The period the list shows when the URL names none. */
+const DEFAULT_PERIOD: EventTab = eventFilterParams.tab.defaultValue;
+
 /**
- * The organization's events in an Upcoming and a Past tab, with a name
- * search and paging in the URL. Upcoming and past are judged on the viewer's
- * calendar day, which the list sends as `today`. Every member creates and
- * edits events in a dialog; only an admin deletes.
+ * The organization's events, upcoming or past, with a name search and paging
+ * in the URL. Both periods list the same rows with the same columns, so the
+ * period is a filter (still kept as `tab` in the URL) rather than tabs.
+ * Upcoming and past are judged on the viewer's calendar day, which the list
+ * sends as `today`. Every member creates and edits events in a dialog; only
+ * an admin deletes.
  */
 export function EventsView() {
   const t = useTranslations("events");
+  const searchClearLabel = useSearchClearLabel();
   const tErrors = useTranslations("errors");
+  const filterLabels = useFilterPopoverLabels();
   const router = useRouter();
   const isAdmin = useIsOrganizationAdmin();
   const [filters, setFilters] = useEventFilterParams();
   // Read per change of the URL state, so a list opened before midnight moves
-  // on to the new day with the next tab, search or page.
+  // on to the new day with the next period, search or page.
   const query = useMemo(() => toEventQuery(filters, todayDateOnly()), [filters]);
   const events = useEvents(query);
   const deleteEvent = useDeleteEvent();
@@ -59,13 +69,19 @@ export function EventsView() {
     onEdit: handleEdit,
     onDelete: isAdmin ? handleDelete : null,
   });
-  const handleTabChange = useCallback(
-    (value: string) => {
-      if (!isEventTab(value)) return;
-      void setFilters({ tab: value, page: 1 });
+  const periodCategory: FilterCategory = {
+    key: "period",
+    label: t("filters.period"),
+    mode: "single",
+    options: EVENT_TABS.map((tab) => ({ value: tab, label: t(`periods.${tab}`) })),
+    value: filters.tab,
+    defaultValue: DEFAULT_PERIOD,
+    onChange: (value: string | null) => {
+      // A null URL value falls back to the default period and keeps the URL short.
+      const tab = value !== null && isEventTab(value) && value !== DEFAULT_PERIOD ? value : null;
+      void setFilters({ tab, page: 1 });
     },
-    [setFilters]
-  );
+  };
 
   const rows = useMemo((): EventListItem[] => events.data?.data ?? [], [events.data?.data]);
   const pagination = events.data?.pagination;
@@ -80,27 +96,27 @@ export function EventsView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeading title={t("title")} description={t("subtitle")} actions={newButton} />
+      <PageHeading title={t("title")} description={t("subtitle")} />
 
-      <div className="flex flex-wrap items-end gap-3">
-        <Tabs value={filters.tab} onValueChange={handleTabChange}>
-          <TabsList aria-label={t("tabsLabel")}>
-            {EVENT_TABS.map((tab) => (
-              <TabsTrigger key={tab} value={tab}>
-                {t(`tabs.${tab}`)}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-        <FilterLabel label={t("filters.searchLabel")} className="w-full sm:w-64">
-          <SenseySearchInput
+      <ListToolbar
+        search={
+          <SearchInput
             value={filters.search}
+            label={t("filters.searchLabel")}
+            clearLabel={searchClearLabel}
             placeholder={t("filters.searchPlaceholder")}
             onSearchChange={(search) => void setFilters({ search: search ?? null, page: 1 })}
-            className="w-full"
           />
-        </FilterLabel>
-      </div>
+        }
+        filters={
+          <FilterPopover
+            categories={[periodCategory]}
+            onClear={() => void setFilters({ tab: null, page: 1 })}
+            labels={filterLabels}
+          />
+        }
+        create={newButton}
+      />
 
       {events.isError && events.data === undefined ? (
         <LoadError
@@ -112,24 +128,18 @@ export function EventsView() {
       ) : events.data === undefined ? (
         <TableLoading label={t("loading")} />
       ) : rows.length === 0 ? (
-        isFiltered ? (
-          <ActionEmptyState
-            title={t("emptyFiltered")}
-            description={t("emptyFilteredHint")}
-            action={
-              <Button variant="outline" onClick={() => void setFilters({ search: null, page: 1 })}>
-                <X aria-hidden="true" />
-                {t("filters.clear")}
-              </Button>
-            }
-          />
-        ) : (
-          <ActionEmptyState
-            title={t(`emptyByTab.${filters.tab}`)}
-            description={t(`emptyHintByTab.${filters.tab}`)}
-            action={newButton}
-          />
-        )
+        <ListEmptyState
+          filtered={isFiltered}
+          onClearFilters={() => void setFilters({ search: null, page: 1 })}
+          create={newButton}
+          labels={{
+            emptyTitle: t(`emptyByTab.${filters.tab}`),
+            emptyDescription: t(`emptyHintByTab.${filters.tab}`),
+            filteredTitle: t("emptyFiltered"),
+            filteredDescription: t("emptyFilteredHint"),
+            clearFilters: t("filters.clear"),
+          }}
+        />
       ) : (
         <>
           {events.isError && (

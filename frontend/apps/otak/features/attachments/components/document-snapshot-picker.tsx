@@ -6,7 +6,7 @@ import { FilePlus, Plus } from "lucide-react";
 import { SelectFieldStandalone, type SelectOption } from "@oba/shared/features/form";
 import { Button } from "@oba/ui/sky/button";
 import { NativeSelect } from "@oba/ui/sky/field";
-import { FilterLabel } from "@/components/page-states";
+import { FilterLabel } from "@oba/ui/sky/filter-label";
 import { DocumentTypeSchema, type DocumentType } from "@/features/document-templates/schemas";
 import { documentErrorText } from "@/features/documents/lib/document-error";
 import { useAttachDocumentSnapshot } from "../hooks/use-document-snapshots";

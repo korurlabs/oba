@@ -375,14 +375,16 @@ describe("RuleDetail header", () => {
 });
 
 describe("RuleDetail header row", () => {
-  test("the size leaves the header for the name's tooltip", () => {
+  test("the path is the shared page heading's mono title, the size beside the badges under it", () => {
     ready = scopeOf([file(AGENT_A), file(AGENT_B, { size: 2048 }), file(AGENT_C)]);
     const html = render("subagents", AGENT_B);
-    expect(html).not.toContain("2,048 bytes");
-    expect(html).toContain('data-slot="tooltip-trigger"');
+    expect(html).toContain('data-slot="page-heading"');
+    expect(html).toContain(`<h1 class="min-w-0 font-mono text-base break-all">${AGENT_B}</h1>`);
+    expect(html).toMatch(/>Current<\/span>[^]*>2,048 bytes<\/span>/);
+    expect(html).not.toMatch(/data-slot="tooltip-trigger"><h1/);
   });
 
-  test("the size and description tooltips open from the keyboard", () => {
+  test("the description tooltip opens from the keyboard", () => {
     ready = scopeOf([file(AGENT_A), file(AGENT_B, { size: 2048 }), file(AGENT_C)]);
     kindRows = {
       tab: "subagents",
@@ -401,7 +403,6 @@ describe("RuleDetail header row", () => {
       ],
     };
     const html = render("subagents", AGENT_B);
-    expect(html).toMatch(/<div tabindex="0"[^>]*data-slot="tooltip-trigger"><h1/);
     expect(html).toMatch(/<p tabindex="0"[^>]*data-slot="tooltip-trigger">Builder/);
   });
 
@@ -563,7 +564,7 @@ describe("RuleDetail editor view", () => {
 describe("RuleDetail new file", () => {
   test("with no change open it opens a one-edit editor at the tab's start path", () => {
     const html = render("rules", null);
-    expect(html).toContain("New file");
+    expect(html).toContain('<h1 class="break-words">New rule</h1>');
     expect(html).toContain("File editor single");
     expect(html).not.toContain("Start a draft");
     expect(seen.newEditor).toMatchObject({

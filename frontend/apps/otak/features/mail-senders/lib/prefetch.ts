@@ -14,6 +14,6 @@ export async function prefetchMailSenders(
   try {
     queryClient.setQueryData(MAIL_SENDER_KEYS.list(organizationId), await listMailSenders());
   } catch (error) {
-    console.error("[outreaches-page] mail senders prefetch failed — client will refetch:", error);
+    console.error("[mail-page] mail senders prefetch failed, the client will refetch:", error);
   }
 }

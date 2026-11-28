@@ -1,15 +1,18 @@
 "use client";
 
-import { useCallback, useId, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { AlertTriangle, Plus, X } from "lucide-react";
-import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
+import { AlertTriangle, Plus } from "lucide-react";
+import { SearchInput } from "@oba/ui/sky/search-input";
 import { Button } from "@oba/ui/sky/button";
-import { NativeSelect } from "@oba/ui/sky/field";
-import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { FilterPopover, type FilterCategory } from "@oba/ui/sky/filter-popover";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
+import { ListEmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { TablePagination } from "@oba/ui/sky/table-pagination";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { DataTable, TablePagination } from "@/components/data-table";
-import { ActionEmptyState, FilterLabel, PageHeading } from "@/components/page-states";
+import { DataTable } from "@/components/data-table";
+import { useFilterPopoverLabels, useSearchClearLabel } from "@/components/list-labels";
 import { DocumentLanguageSchema } from "@/features/document-templates/schemas";
 import { useIsOrganizationAdmin } from "@/hooks/use-is-organization-admin";
 import { useMailTemplateColumns } from "../hooks/use-mail-template-columns";
@@ -24,18 +27,25 @@ import { MailTemplatePreviewDialog } from "./mail-template-preview-dialog";
 /** Every filter cleared; the list goes back to its first page. */
 const CLEARED_FILTERS = { search: null, language: null, page: 1 };
 
+export interface MailTemplatesViewProps {
+  /** The Mail page's tabs, shown between the heading and the toolbar. */
+  tabs?: ReactNode;
+}
+
 /**
  * The organization's mail templates by name, with a search on name, a
  * language filter and paging in the URL. Every member opens a mail
  * template's preview; an admin also creates, edits and deletes them, as the
  * server refuses a member's writes.
  */
-export function MailTemplatesView() {
+export function MailTemplatesView({ tabs }: MailTemplatesViewProps) {
   const t = useTranslations("mailTemplates");
+  const searchClearLabel = useSearchClearLabel();
+  const tMail = useTranslations("mailPage");
   const tTemplates = useTranslations("documentTemplates");
   const tErrors = useTranslations("errors");
   const isAdmin = useIsOrganizationAdmin();
-  const languageId = useId();
+  const filterLabels = useFilterPopoverLabels();
   const [filters, setFilters] = useMailTemplateFilterParams();
   const query = useMemo(() => toMailTemplateQuery(filters), [filters]);
   const templates = useMailTemplates(query);
@@ -72,6 +82,19 @@ export function MailTemplatesView() {
       })),
     [tTemplates]
   );
+  const filterCategories: FilterCategory[] = [
+    {
+      key: "language",
+      label: t("filters.languageLabel"),
+      mode: "single",
+      value: filters.language,
+      onChange: (value) => {
+        const language = DocumentLanguageSchema.safeParse(value);
+        void setFilters({ language: language.success ? language.data : null, page: 1 });
+      },
+      options: languageOptions,
+    },
+  ];
 
   const rows = useMemo(
     (): MailTemplateListItem[] => templates.data?.data ?? [],
@@ -89,46 +112,29 @@ export function MailTemplatesView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeading title={t("title")} description={t("subtitle")} actions={newButton} />
+      <PageHeading title={tMail("title")} description={t("subtitle")} />
 
-      <div className="flex flex-wrap items-end gap-3">
-        <FilterLabel label={t("filters.searchLabel")} className="w-full sm:w-64">
-          <SenseySearchInput
+      {tabs}
+
+      <ListToolbar
+        search={
+          <SearchInput
             value={filters.search}
+            label={t("filters.searchLabel")}
+            clearLabel={searchClearLabel}
             placeholder={t("filters.searchPlaceholder")}
             onSearchChange={(search) => void setFilters({ search: search ?? null, page: 1 })}
-            className="w-full"
           />
-        </FilterLabel>
-        <FilterLabel
-          label={t("filters.languageLabel")}
-          htmlFor={languageId}
-          className="w-full sm:w-40"
-        >
-          <NativeSelect
-            id={languageId}
-            value={filters.language ?? ""}
-            onChange={(event) => {
-              const language = DocumentLanguageSchema.safeParse(event.target.value);
-              void setFilters({ language: language.success ? language.data : null, page: 1 });
-            }}
-            className="w-full"
-          >
-            <option value="">{t("filters.languageAll")}</option>
-            {languageOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </NativeSelect>
-        </FilterLabel>
-        {isFiltered && (
-          <Button variant="ghost" className="h-9" onClick={() => void setFilters(CLEARED_FILTERS)}>
-            <X aria-hidden="true" />
-            {t("filters.clear")}
-          </Button>
-        )}
-      </div>
+        }
+        filters={
+          <FilterPopover
+            categories={filterCategories}
+            onClear={() => void setFilters({ language: null, page: 1 })}
+            labels={filterLabels}
+          />
+        }
+        create={newButton}
+      />
 
       {templates.isError && templates.data === undefined ? (
         <LoadError
@@ -140,24 +146,18 @@ export function MailTemplatesView() {
       ) : templates.data === undefined ? (
         <TableLoading label={t("loading")} />
       ) : rows.length === 0 ? (
-        isFiltered ? (
-          <ActionEmptyState
-            title={t("emptyFiltered")}
-            description={t("emptyFilteredHint")}
-            action={
-              <Button variant="outline" onClick={() => void setFilters(CLEARED_FILTERS)}>
-                <X aria-hidden="true" />
-                {t("filters.clear")}
-              </Button>
-            }
-          />
-        ) : (
-          <ActionEmptyState
-            title={t("empty")}
-            description={isAdmin ? t("emptyHint") : t("emptyHintMember")}
-            action={newButton}
-          />
-        )
+        <ListEmptyState
+          filtered={isFiltered}
+          onClearFilters={() => void setFilters(CLEARED_FILTERS)}
+          create={newButton}
+          labels={{
+            emptyTitle: t("empty"),
+            emptyDescription: isAdmin ? t("emptyHint") : t("emptyHintMember"),
+            filteredTitle: t("emptyFiltered"),
+            filteredDescription: t("emptyFilteredHint"),
+            clearFilters: t("filters.clear"),
+          }}
+        />
       ) : (
         <>
           {templates.isError && (

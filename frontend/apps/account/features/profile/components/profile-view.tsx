@@ -6,7 +6,8 @@ import { Lock, Mail, User } from "lucide-react";
 import { useGetMe } from "@oba/shared/features/users/hooks/use-get-me";
 import { Card, CardContent, CardDescription, CardHeader } from "@oba/ui/sky/card";
 import { LoadError } from "@oba/ui/sky/page-states";
-import { PageHeading, PanelTitle } from "@/components/layout/page-heading";
+import { PageHeading } from "@oba/ui/sky/page-heading";
+import { PanelTitle } from "@/components/layout/page-heading";
 import { ProfileForm } from "./profile-form";
 
 /**

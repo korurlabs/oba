@@ -2,7 +2,8 @@ import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
 
 // The trash lists deleted pages for members. The role, the user, the trash
-// query and the restore are replaced; the translator prints its key and values.
+// query, the restore and the search in the address are replaced; the
+// translator prints its key and values.
 type QueryState = {
   data?: { success: boolean; data: unknown[] };
   isError: boolean;
@@ -13,6 +14,7 @@ let isMember: boolean;
 let me: { data?: unknown; isError: boolean };
 let trash: QueryState;
 let trashEnabled: boolean[];
+let search: string | null;
 
 // Copies, not the namespaces: mock.module rewrites a loaded module in place, so the
 // afterAll restore would otherwise put the mocks back for the files that run later.
@@ -21,6 +23,7 @@ const actualPages = { ...(await import("@/features/pages/hooks/use-pages")) };
 const actualDates = { ...(await import("@oba/shared/i18n/use-date-format")) };
 const actualRole = { ...(await import("@/hooks/use-is-organization-admin")) };
 const actualMe = { ...(await import("@oba/shared/features/users/hooks/use-get-me")) };
+const actualNuqs = { ...(await import("nuqs")) };
 
 mock.module("next-intl", () => ({
   ...actualIntl,
@@ -51,6 +54,10 @@ mock.module("@oba/shared/features/users/hooks/use-get-me", () => ({
   ...actualMe,
   useGetMe: () => me,
 }));
+mock.module("nuqs", () => ({
+  ...actualNuqs,
+  useQueryState: () => [search, () => Promise.resolve(new URLSearchParams())],
+}));
 
 afterAll(() => {
   mock.module("next-intl", () => actualIntl);
@@ -58,6 +65,7 @@ afterAll(() => {
   mock.module("@oba/shared/i18n/use-date-format", () => actualDates);
   mock.module("@/hooks/use-is-organization-admin", () => actualRole);
   mock.module("@oba/shared/features/users/hooks/use-get-me", () => actualMe);
+  mock.module("nuqs", () => actualNuqs);
 });
 
 const { TrashView } = await import("./trash-view");
@@ -78,6 +86,7 @@ beforeEach(() => {
   me = { data: { success: true }, isError: false };
   trash = { isError: false };
   trashEnabled = [];
+  search = null;
 });
 
 describe("TrashView", () => {
@@ -119,6 +128,44 @@ describe("TrashView", () => {
     expect(html).toContain(">3<");
     expect(html).toContain("restoreLabel(Old policy)");
     expect(html).not.toContain("parentFirst");
+  });
+
+  test("offers a search to members only", () => {
+    trash = { data: { success: true, data: [deleted] }, isError: false };
+    expect(renderToStaticMarkup(<TrashView />)).toContain('aria-label="search"');
+
+    isMember = false;
+    expect(renderToStaticMarkup(<TrashView />)).not.toContain('aria-label="search"');
+  });
+
+  test("keeps the rows that answer the search", () => {
+    trash = {
+      data: {
+        success: true,
+        data: [
+          deleted,
+          { ...deleted, id: "page-2", title: "Risk register", path: "risks/register" },
+        ],
+      },
+      isError: false,
+    };
+    search = "risk";
+
+    const html = renderToStaticMarkup(<TrashView />);
+
+    expect(html).toContain("Risk register");
+    expect(html).not.toContain("Old policy");
+  });
+
+  test("a search without a hit offers to clear it", () => {
+    trash = { data: { success: true, data: [deleted] }, isError: false };
+    search = "risk";
+
+    const html = renderToStaticMarkup(<TrashView />);
+
+    expect(html).toContain("filtered.title");
+    expect(html).toContain("filtered.clear");
+    expect(html).not.toContain("emptyHint");
   });
 
   test("shows a retry when the trash failed to load", () => {

@@ -1,18 +1,34 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 import { Button } from "@oba/ui/sky/button";
-import { EmptyState } from "@oba/ui/sky/page-states";
+import { FilterPopover, type FilterCategory } from "@oba/ui/sky/filter-popover";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
+import { ListEmptyState } from "@oba/ui/sky/page-states";
+import { SearchInput } from "@oba/ui/sky/search-input";
 import {
-  useInvitations,
-  useRevokeInvitation,
-} from "../hooks/use-invitations";
-import { useInvitationColumns } from "../hooks/use-invitation-columns";
-import { CreateInvitationDialog } from "./create-organization-invitation-dialog";
+  InvitationStatusSchema,
+  type Invitation,
+  type OrganizationRole,
+} from "@oba/shared/features/organizations/schemas";
 import { DataTable } from "@/components/data-table";
-import type { Invitation, OrganizationRole } from "@oba/shared/features/organizations/schemas";
+import {
+  useClearSearchLabel,
+  useFilterPopoverLabels,
+  useListEmptyLabels,
+} from "@/components/list-labels";
+import { useInvitations, useRevokeInvitation } from "../hooks/use-invitations";
+import { useInvitationColumns } from "../hooks/use-invitation-columns";
+import { useInvitationFilterParams } from "../hooks/use-invitation-filter-params";
+import {
+  CLEARED_INVITATION_FILTERS,
+  CLEARED_INVITATION_POPOVER_FILTERS,
+  filterInvitations,
+  hasActiveInvitationFilter,
+} from "../lib/invitation-filters";
+import { CreateInvitationDialog } from "./create-organization-invitation-dialog";
 
 interface InvitationsTabProps {
   organizationId: string;
@@ -20,20 +36,33 @@ interface InvitationsTabProps {
   currentUserRole: OrganizationRole | undefined;
 }
 
-export function InvitationsTab({
-  organizationId,
-  canEdit,
-  currentUserRole,
-}: InvitationsTabProps) {
+/**
+ * The invitations of the organization, with a search on email and a status
+ * filter in the URL; the API answers with every invitation, so the list is
+ * narrowed here. Every member reads and searches the list; only an OWNER or
+ * ADMIN invites and revokes.
+ */
+export function InvitationsTab({ organizationId, canEdit, currentUserRole }: InvitationsTabProps) {
   const t = useTranslations("organization");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [filters, setFilters] = useInvitationFilterParams();
+  const filterLabels = useFilterPopoverLabels();
+  const clearSearchLabel = useClearSearchLabel();
+  const emptyLabels = useListEmptyLabels({
+    emptyTitle: t("invitations.noInvitations"),
+    emptyDescription: canEdit
+      ? t("invitations.noInvitationsDescription")
+      : t("invitations.noInvitationsReadOnly"),
+    filteredTitle: t("invitations.filteredTitle"),
+  });
 
-  const { data: invitationsResponse, isLoading } =
-    useInvitations(organizationId);
-  const { mutate: revokeInvitation, isPending: isRevoking } =
-    useRevokeInvitation(organizationId);
+  const { data: invitationsResponse, isLoading } = useInvitations(organizationId);
+  const { mutate: revokeInvitation, isPending: isRevoking } = useRevokeInvitation(organizationId);
 
-  const invitations = invitationsResponse?.data ?? [];
+  const invitations = useMemo(
+    () => filterInvitations(invitationsResponse?.data ?? [], filters),
+    [invitationsResponse?.data, filters]
+  );
 
   // A dependency of the column memo: a new identity would remount every cell
   // and close an open revoke confirmation.
@@ -41,7 +70,7 @@ export function InvitationsTab({
     (invitationId: string) => {
       revokeInvitation(invitationId);
     },
-    [revokeInvitation],
+    [revokeInvitation]
   );
 
   const columns = useInvitationColumns({
@@ -50,19 +79,50 @@ export function InvitationsTab({
     isRevoking,
   });
 
+  const filterCategories: FilterCategory[] = [
+    {
+      key: "status",
+      label: t("invitations.status"),
+      mode: "single",
+      value: filters.status,
+      onChange: (value) => {
+        const status = InvitationStatusSchema.safeParse(value);
+        void setFilters({ status: status.success ? status.data : null });
+      },
+      options: InvitationStatusSchema.options.map((value) => ({
+        value,
+        label: t(`invitations.statuses.${value}`),
+      })),
+    },
+  ];
+
+  const inviteButton = canEdit ? (
+    <Button onClick={() => setDialogOpen(true)}>
+      <Plus aria-hidden="true" />
+      {t("invitations.invite")}
+    </Button>
+  ) : undefined;
+
   return (
-    <section className="flex flex-col gap-4" aria-labelledby="organization-invitations-title">
-      <div className="flex min-h-9 flex-wrap items-center justify-between gap-3">
-        <h2 id="organization-invitations-title" className="text-xl">
-          {t("invitations.title")}
-        </h2>
-        {canEdit && (
-          <Button size="sm" onClick={() => setDialogOpen(true)}>
-            <Plus aria-hidden="true" />
-            {t("invitations.invite")}
-          </Button>
-        )}
-      </div>
+    <div className="flex flex-col gap-4">
+      <ListToolbar
+        search={
+          <SearchInput
+            value={filters.search}
+            onSearchChange={(search) => void setFilters({ search: search ?? null })}
+            label={t("invitations.searchLabel")}
+            clearLabel={clearSearchLabel}
+          />
+        }
+        filters={
+          <FilterPopover
+            categories={filterCategories}
+            onClear={() => void setFilters(CLEARED_INVITATION_POPOVER_FILTERS)}
+            labels={filterLabels}
+          />
+        }
+        create={inviteButton}
+      />
 
       <DataTable<Invitation>
         columns={columns}
@@ -71,9 +131,11 @@ export function InvitationsTab({
         loadingLabel={t("invitations.loading")}
         getRowId={(invitation: Invitation) => invitation.id}
         emptyMessage={
-          <EmptyState
-            title={t("invitations.noInvitations")}
-            description={t("invitations.noInvitationsDescription")}
+          <ListEmptyState
+            filtered={hasActiveInvitationFilter(filters)}
+            onClearFilters={() => void setFilters(CLEARED_INVITATION_FILTERS)}
+            create={inviteButton}
+            labels={emptyLabels}
           />
         }
       />
@@ -86,6 +148,6 @@ export function InvitationsTab({
           onOpenChange={setDialogOpen}
         />
       )}
-    </section>
+    </div>
   );
 }

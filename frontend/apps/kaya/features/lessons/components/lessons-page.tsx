@@ -4,31 +4,34 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 
 import { Button } from "@oba/ui/sky/button";
-import { InfoTip } from "@oba/ui/sky/info-tip";
-import { EmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { FilterPopover } from "@oba/ui/sky/filter-popover";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
+import { PageHeading } from "@oba/ui/sky/page-heading";
+import { ListEmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { SearchInput } from "@oba/ui/sky/search-input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@oba/ui/sky/table";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@oba/ui/sky/table";
+  CLEAR_FILTERS_LABEL,
+  CLEAR_SEARCH_LABEL,
+  FILTER_LABELS,
+  ListPagination,
+} from "@/components/common/list-parts";
 import { describeError } from "@/lib/api/error-text";
 import { ageText } from "@/lib/format-time";
 import { useNow } from "@/lib/use-now";
 
 import { useLessonFilterParams, type LessonFilterParams } from "../hooks/use-lesson-filter-params";
 import { useLessonFilters, useLessons } from "../hooks/use-lessons";
-import type { LessonListResponse } from "../schemas";
+import { LESSON_LIMITS, type LessonListResponse } from "../schemas";
 import {
   emptyLessonsText,
   firstLine,
+  hasActiveFilter,
   referenceName,
   repositoryText,
   toLessonQuery,
 } from "./lesson-data";
-import { LessonFilters } from "./lesson-filters";
+import { NO_LESSON_FILTERS, lessonFilterCategories } from "./lesson-filters";
 import { LessonFormDialog } from "./lesson-form-dialog";
 import { LessonSessionLink, ReloadWarning } from "./lesson-parts";
 
@@ -83,29 +86,45 @@ export function LessonsPage() {
   const rows = lessons.data?.data ?? [];
   const pagination = lessons.data?.pagination ?? null;
 
+  const onChange = (change: Partial<LessonFilterParams>) => void setFilters({ ...change, page: 1 });
+  const newLesson = (
+    <LessonFormDialog
+      trigger={
+        <Button>
+          <Plus aria-hidden />
+          New lesson
+        </Button>
+      }
+    />
+  );
+
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <h1>Lessons</h1>
-          <InfoTip label="What is a lesson?">
-            Lessons are shared rules. Agents see new ones by title at session start. Delete one that
-            is wrong or obsolete.
-          </InfoTip>
-        </div>
-        <LessonFormDialog
-          trigger={
-            <Button>
-              <Plus aria-hidden />
-              New lesson
-            </Button>
-          }
-        />
-      </div>
-      <LessonFilters
-        filters={filters}
-        onChange={(change: Partial<LessonFilterParams>) => void setFilters({ ...change, page: 1 })}
-        options={options.data?.data ?? undefined}
+      <PageHeading
+        title="Lessons"
+        description="Shared rules: agents see new ones by title at session start. Delete one that is wrong or obsolete."
+      />
+      <ListToolbar
+        search={
+          <SearchInput
+            value={filters.search}
+            onSearchChange={(search: string | undefined) =>
+              // The API takes a search of at most this length.
+              onChange({ search: search?.slice(0, LESSON_LIMITS.searchMax) ?? null })
+            }
+            label="Search lessons"
+            placeholder="Title or text"
+            clearLabel={CLEAR_SEARCH_LABEL}
+          />
+        }
+        filters={
+          <FilterPopover
+            categories={lessonFilterCategories(filters, onChange, options.data?.data ?? undefined)}
+            onClear={() => onChange({ ...NO_LESSON_FILTERS, search: filters.search })}
+            labels={FILTER_LABELS}
+          />
+        }
+        create={newLesson}
       />
       {options.error !== null && (
         <p className="text-warning-text text-sm" role="status">
@@ -124,32 +143,26 @@ export function LessonsPage() {
       ) : lessons.data === undefined ? (
         <TableLoading label="Loading the lessons" />
       ) : rows.length === 0 ? (
-        <EmptyState title="No lesson" description={emptyLessonsText(filters)} />
+        <ListEmptyState
+          filtered={hasActiveFilter(filters) || filters.page > 1}
+          onClearFilters={() => onChange(NO_LESSON_FILTERS)}
+          create={newLesson}
+          labels={{
+            emptyTitle: "No lessons yet",
+            emptyDescription: emptyLessonsText(filters),
+            filteredTitle: "No lesson matches",
+            filteredDescription: emptyLessonsText(filters),
+            clearFilters: CLEAR_FILTERS_LABEL,
+          }}
+        />
       ) : (
         <LessonRows lessons={rows} now={now} />
       )}
-      {pagination !== null && pagination.totalPages > 1 && (
-        <nav aria-label="Pages" className="flex items-center justify-between gap-4 text-sm">
-          <Button
-            variant="outline"
-            disabled={pagination.first}
-            onClick={() => void setFilters({ page: pagination.currentPage - 1 })}
-          >
-            Newer
-          </Button>
-          <span className="text-muted-foreground">
-            Page {pagination.currentPage} of {pagination.totalPages} · {pagination.totalElements}{" "}
-            lessons
-          </span>
-          <Button
-            variant="outline"
-            disabled={pagination.last}
-            onClick={() => void setFilters({ page: pagination.currentPage + 1 })}
-          >
-            Older
-          </Button>
-        </nav>
-      )}
+      <ListPagination
+        pagination={pagination}
+        noun="lessons"
+        onPageChange={(page: number) => void setFilters({ page })}
+      />
     </div>
   );
 }

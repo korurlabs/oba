@@ -4,7 +4,8 @@ import { useState, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { parseAsStringEnum, useQueryStates } from "nuqs";
 
-import { LoadError } from "@oba/ui/sky/page-states";
+import { ListEmptyState, LoadError } from "@oba/ui/sky/page-states";
+import { CLEAR_FILTERS_LABEL } from "@/components/common/list-parts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@oba/ui/sky/tabs";
 import { useSettings } from "@/features/allowlist/hooks/use-settings";
 import type { SettingsResponse } from "@/features/allowlist/schemas";
@@ -24,7 +25,7 @@ import { useEditSource } from "@/features/versions/hooks/use-change-write";
 import { describeError } from "@/lib/api/error-text";
 
 import { RULE_KIND_VERSIONS_MAX, useRuleTabKind } from "../hooks/use-rule-kinds";
-import { newFileStart, ruleNewHref } from "./rule-links";
+import { RULE_NEW_LABELS, newFileStart, ruleNewHref } from "./rule-links";
 import { filterRuleRows, ruleTabRows, tabVersionIds, type RuleTabRow } from "./rule-rows";
 import { RulesTable } from "./rules-table";
 
@@ -89,17 +90,6 @@ export function NewFileButton({
   );
 }
 
-/** The create button's text on each tab. */
-const NEW_LABELS: Readonly<Record<RuleTab, string>> = {
-  rules: "New rule",
-  "agents-md": "New AGENTS.md",
-  roles: "New role",
-  subagents: "New subagent",
-  workflows: "New workflow",
-  templates: "New template",
-  hooks: "New hook",
-};
-
 function tabNoun(label: string): string {
   return label === "AGENTS.md" ? "AGENTS.md" : label.toLowerCase();
 }
@@ -115,6 +105,14 @@ function RulesView({ ready }: { ready: ReadyScope }) {
   // The pack an edit changes; null in a repository scope, which is read only.
   const target = ready.edit?.target ?? editTarget(ready.scope, ready.owners);
   const start = target === null ? null : newFileStart(tab, mountRefOf(target));
+  const create =
+    target !== null && start !== null ? (
+      <NewFileButton
+        ready={ready}
+        label={RULE_NEW_LABELS[tab]}
+        newHref={(current: URLSearchParams) => ruleNewHref(tab, current)}
+      />
+    ) : null;
 
   return (
     <Tabs
@@ -144,15 +142,7 @@ function RulesView({ ready }: { ready: ReadyScope }) {
           label: "Search files",
           placeholder: "Search by path, title or description",
         }}
-        create={
-          target !== null && start !== null ? (
-            <NewFileButton
-              ready={ready}
-              label={NEW_LABELS[tab]}
-              newHref={(current: URLSearchParams) => ruleNewHref(tab, current)}
-            />
-          ) : null
-        }
+        create={create}
       />
       {RULE_TABS.map((entry) => (
         <TabsContent key={entry.id} value={entry.id}>
@@ -177,14 +167,19 @@ function RulesView({ ready }: { ready: ReadyScope }) {
                   describes at once, so the list shows their paths only.
                 </p>
               )}
-              {rows.length === 0 ? (
-                <p className="text-muted-foreground text-sm">
-                  This scope delivers no {tabNoun(entry.label)}.
-                </p>
-              ) : visible.length === 0 ? (
-                <p className="text-muted-foreground text-sm">
-                  No {tabNoun(entry.label)} match the search.
-                </p>
+              {visible.length === 0 ? (
+                <ListEmptyState
+                  filtered={rows.length > 0}
+                  onClearFilters={() => setSearch("")}
+                  create={create}
+                  labels={{
+                    emptyTitle: `No ${tabNoun(entry.label)} yet`,
+                    emptyDescription: `This scope delivers no ${tabNoun(entry.label)}.`,
+                    filteredTitle: `No ${tabNoun(entry.label)} match`,
+                    filteredDescription: `No ${tabNoun(entry.label)} match the search.`,
+                    clearFilters: CLEAR_FILTERS_LABEL,
+                  }}
+                />
               ) : (
                 <RulesTable tab={tab} rows={visible} ready={ready} hookEvents={hookEvents} />
               )}

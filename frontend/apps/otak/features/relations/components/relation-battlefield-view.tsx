@@ -8,8 +8,8 @@ import { Link } from "@oba/shared/libs/i18n/navigation";
 import { cn } from "@oba/ui/lib/utils";
 import { Badge } from "@oba/ui/sky/badge";
 import { Button } from "@oba/ui/sky/button";
-import { LoadError } from "@oba/ui/sky/page-states";
-import { ActionEmptyState, PageHeading } from "@/components/page-states";
+import { EmptyState, LoadError } from "@oba/ui/sky/page-states";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { useChangeRelationStage, useRelationBattlefield } from "../hooks/use-relations";
 import {
   BATTLEFIELD_COLUMNS,
@@ -22,7 +22,12 @@ import {
   type StageSelectMove,
 } from "../lib/battlefield";
 import { relationErrorText } from "../lib/relation-error";
-import { BATTLEFIELD_MAX_LEADS, PipelineStage, type RelationListItem } from "../schemas";
+import {
+  BATTLEFIELD_MAX_LEADS,
+  PipelineStage,
+  RelationType,
+  type RelationListItem,
+} from "../schemas";
 import { RelationBattlefieldCard } from "./relation-battlefield-card";
 
 /** A stage column: a pale sky lane with rounded corners, the cards white on it. */
@@ -126,7 +131,7 @@ export function RelationBattlefieldView() {
         description={t("battlefield.subtitle")}
         actions={
           <Button asChild>
-            <Link href={{ pathname: "/relations/new", query: { tab: "leads" } }}>
+            <Link href={{ pathname: "/relations/new", query: { type: RelationType.LEAD } }}>
               <Plus aria-hidden="true" />
               {t("battlefield.newLead")}
             </Link>
@@ -167,12 +172,12 @@ export function RelationBattlefieldView() {
           ))}
         </div>
       ) : relations.length === 0 ? (
-        <ActionEmptyState
+        <EmptyState
           title={t("battlefield.emptyTitle")}
           description={t("battlefield.empty")}
           action={
             <Button asChild>
-              <Link href={{ pathname: "/relations/new", query: { tab: "leads" } }}>
+              <Link href={{ pathname: "/relations/new", query: { type: RelationType.LEAD } }}>
                 <Plus aria-hidden="true" />
                 {t("battlefield.newLead")}
               </Link>

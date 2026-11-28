@@ -1,7 +1,8 @@
 import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import type { ReactNode } from "react";
+import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import { renderToStaticMarkup } from "react-dom/server";
-import type { AppGrant } from "@oba/shared/features/organizations/schemas";
+import type { AppGrant, MemberAppAccess } from "@oba/shared/features/organizations/schemas";
 
 // The tab reads grants and effective access through query hooks. The hooks,
 // the table, the grant dialog and the confirm dialog are replaced; the confirm
@@ -15,6 +16,7 @@ type GrantsResult = {
 };
 
 let grants: GrantsResult;
+let members: MemberAppAccess[];
 const revoked: string[] = [];
 const confirmed: (() => void)[] = [];
 
@@ -35,7 +37,7 @@ mock.module("next-intl", () => ({
 mock.module("../hooks/use-app-access", () => ({
   ...actualAccess,
   useAppGrants: () => grants,
-  useMemberAppAccess: () => ({ data: { data: [] }, isLoading: false, isError: false }),
+  useMemberAppAccess: () => ({ data: { data: members }, isLoading: false, isError: false }),
   useRevokeAppGrant: () => ({ isPending: false, mutate: (id: string) => void revoked.push(id) }),
 }));
 mock.module("../hooks/use-app-access-columns", () => ({
@@ -44,7 +46,12 @@ mock.module("../hooks/use-app-access-columns", () => ({
 }));
 mock.module("@/components/data-table", () => ({
   ...actualTable,
-  DataTable: () => <p>effective-table</p>,
+  DataTable: ({ data, emptyMessage }: { data: MemberAppAccess[]; emptyMessage: ReactNode }) =>
+    data.length === 0 ? (
+      <>{emptyMessage}</>
+    ) : (
+      <p>{`effective-table:${data.map((member) => member.fullName).join(",")}`}</p>
+    ),
 }));
 mock.module("@oba/ui/sky/dialog", () => ({
   ...actualDialog,
@@ -120,12 +127,17 @@ function loaded(list: AppGrant[]): GrantsResult {
   };
 }
 
-function render(): string {
-  return renderToStaticMarkup(<AccessTab organizationId="org-1" />);
+function render(searchParams = ""): string {
+  return renderToStaticMarkup(
+    <NuqsTestingAdapter searchParams={searchParams}>
+      <AccessTab organizationId="org-1" />
+    </NuqsTestingAdapter>
+  );
 }
 
 beforeEach(() => {
   grants = loaded([]);
+  members = [];
   revoked.length = 0;
   confirmed.length = 0;
 });
@@ -223,6 +235,74 @@ describe("AccessTab grants", () => {
     const html = render();
 
     expect(html).toContain("load-error");
-    expect(html).toContain("effective-table");
+    expect(html).not.toContain("effective-table");
+  });
+
+  test("a search keeps only the apps with a grant to a matching member or group", () => {
+    grants = loaded([
+      grant({}),
+      grant({
+        id: "grant-2",
+        app: "KAYA",
+        targetType: "GROUP",
+        userId: null,
+        userFullName: null,
+        groupId: "g-1",
+        groupName: "Developers",
+        groupType: "CUSTOM",
+      } as Partial<AppGrant>),
+    ]);
+
+    const html = render("?search=develop");
+
+    expect(html).toContain("Developers");
+    expect(html).toContain("kaya.name");
+    expect(html).not.toContain("Ada Lovelace");
+    expect(html).not.toContain("kazan.name");
+    expect(html).not.toContain("access.noGrants");
+  });
+
+  test("a search that matches no grant offers to clear it", () => {
+    grants = loaded([grant({})]);
+
+    const html = render("?search=nobody");
+
+    expect(html).toContain("access.grantsFilteredTitle");
+    expect(html).toContain("clearFilters");
+  });
+});
+
+describe("AccessTab toolbar and tabs", () => {
+  test("one toolbar holds the search, both tabs and the grant button", () => {
+    const html = render();
+
+    expect(html).toContain('data-slot="list-toolbar"');
+    expect(html).toContain("access.searchGrantsLabel");
+    expect(html).toContain("access.tabs.grants");
+    expect(html).toContain("access.tabs.members");
+    expect(html).toContain("access.grantAccess");
+  });
+
+  test("the effective access tab lists the members instead of the grant cards", () => {
+    members = [
+      { userId: "u-1", fullName: "Ada Lovelace", role: "MEMBER", apps: ["KAZAN"] },
+      { userId: "u-2", fullName: "Grace Hopper", role: "ADMIN", apps: [] },
+    ];
+
+    const html = render("?tab=members");
+
+    expect(html).toContain("effective-table:Ada Lovelace,Grace Hopper");
+    expect(html).toContain("access.searchMembersLabel");
+    expect(html).not.toContain("kazan.name");
+  });
+
+  test("the effective access search narrows the members by name", () => {
+    members = [
+      { userId: "u-1", fullName: "Ada Lovelace", role: "MEMBER", apps: [] },
+      { userId: "u-2", fullName: "Grace Hopper", role: "ADMIN", apps: [] },
+    ];
+
+    expect(render("?tab=members&search=grace")).toContain("effective-table:Grace Hopper");
+    expect(render("?tab=members&search=nobody")).toContain("access.membersFilteredTitle");
   });
 });

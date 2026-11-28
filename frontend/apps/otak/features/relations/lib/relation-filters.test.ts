@@ -6,74 +6,75 @@ import {
 } from "./relation-filters";
 
 describe("toRelationQuery", () => {
-  test("an empty URL lists the first page of leads, 25 rows", () => {
-    expect(toRelationQuery(loadRelationFilterParams(""))).toEqual({
-      type: "LEAD",
+  test("an empty URL lists the first page of every type, without inactive leads", () => {
+    const filters = loadRelationFilterParams("");
+    expect(toRelationQuery(filters)).toEqual({ hideInactiveLeads: true, page: 1, amount: 25 });
+    expect(hasActiveRelationFilter(filters)).toBe(false);
+  });
+
+  test("the type filter sends every chosen type and counts as a filter", () => {
+    const filters = loadRelationFilterParams("?type=LEAD,SUPPLIER");
+    expect(toRelationQuery(filters)).toEqual({
+      type: ["LEAD", "SUPPLIER"],
+      hideInactiveLeads: true,
       page: 1,
       amount: 25,
     });
+    expect(hasActiveRelationFilter(filters)).toBe(true);
   });
 
-  test("the stage filter applies to leads", () => {
+  test("stages are sent without a type and stop hiding inactive leads", () => {
     const filters = loadRelationFilterParams(
-      "?stage=LOST,PARKED&owner=u-1&search=%20acme%20&page=3"
+      "?stage=LOST,DIRECT&owner=u-1&search=%20acme%20&page=3"
     );
     expect(toRelationQuery(filters)).toEqual({
-      type: "LEAD",
-      stage: ["LOST", "PARKED"],
+      stage: ["LOST", "DIRECT"],
       ownerUserId: "u-1",
       search: "acme",
       page: 3,
       amount: 25,
     });
-  });
-
-  test("the stage filter applies to customers with the customer stages", () => {
-    const filters = loadRelationFilterParams("?tab=customers&stage=CLOSED,DIRECT");
-    expect(toRelationQuery(filters)).toEqual({
-      type: "CUSTOMER",
-      stage: ["CLOSED", "DIRECT"],
-      page: 1,
-      amount: 25,
-    });
     expect(hasActiveRelationFilter(filters)).toBe(true);
   });
 
-  test("a stage of another tab is not sent and does not count as a filter", () => {
-    const customers = loadRelationFilterParams("?tab=customers&stage=NEW");
-    expect(toRelationQuery(customers)).toEqual({ type: "CUSTOMER", page: 1, amount: 25 });
-    expect(hasActiveRelationFilter(customers)).toBe(false);
-    const leads = loadRelationFilterParams("?stage=CLOSED,WARM");
-    expect(toRelationQuery(leads).stage).toEqual(["WARM"]);
+  test("types and stages are sent together as chosen", () => {
+    const filters = loadRelationFilterParams("?type=CUSTOMER&stage=CLOSED,NEW");
+    expect(toRelationQuery(filters)).toEqual({
+      type: ["CUSTOMER"],
+      stage: ["CLOSED", "NEW"],
+      page: 1,
+      amount: 25,
+    });
   });
 
-  test("the event filter is sent as eventId on every tab and counts as a filter", () => {
-    const filters = loadRelationFilterParams("?tab=suppliers&event=event-1");
+  test("the event filter is sent as eventId and counts as a filter", () => {
+    const filters = loadRelationFilterParams("?event=event-1");
     expect(toRelationQuery(filters)).toEqual({
-      type: "SUPPLIER",
       eventId: "event-1",
+      hideInactiveLeads: true,
       page: 1,
       amount: 25,
     });
     expect(hasActiveRelationFilter(filters)).toBe(true);
-    expect(hasActiveRelationFilter(loadRelationFilterParams("?tab=suppliers"))).toBe(false);
   });
 
   test("the campaign filter is sent as campaignId and counts as a filter", () => {
-    const filters = loadRelationFilterParams("?tab=leads&campaign=campaign-1");
-    expect(toRelationQuery(filters)).toMatchObject({ type: "LEAD", campaignId: "campaign-1" });
+    const filters = loadRelationFilterParams("?campaign=campaign-1");
+    expect(toRelationQuery(filters)).toMatchObject({ campaignId: "campaign-1" });
     expect(hasActiveRelationFilter(filters)).toBe(true);
-    expect(toRelationQuery(loadRelationFilterParams("?tab=leads")).campaignId).toBeUndefined();
+    expect(toRelationQuery(loadRelationFilterParams("")).campaignId).toBeUndefined();
   });
 
-  test("suppliers send no stage", () => {
-    const filters = loadRelationFilterParams("?tab=suppliers&stage=DIRECT");
-    expect(toRelationQuery(filters)).toEqual({ type: "SUPPLIER", page: 1, amount: 25 });
-  });
-
-  test("an unknown tab or stage falls back to the defaults", () => {
-    const filters = loadRelationFilterParams("?tab=partners&stage=WON");
-    expect(toRelationQuery(filters).type).toBe("LEAD");
+  test("an unknown type or stage is not sent", () => {
+    const filters = loadRelationFilterParams("?type=PARTNER&stage=WON");
+    expect(toRelationQuery(filters).type).toBeUndefined();
     expect(toRelationQuery(filters).stage).toBeUndefined();
+    expect(toRelationQuery(filters).hideInactiveLeads).toBe(true);
+  });
+
+  test("the removed tab param is ignored", () => {
+    const filters = loadRelationFilterParams("?tab=suppliers");
+    expect(toRelationQuery(filters)).toEqual({ hideInactiveLeads: true, page: 1, amount: 25 });
+    expect(hasActiveRelationFilter(filters)).toBe(false);
   });
 });

@@ -46,24 +46,14 @@ function MailCell({ email, emptyLabel }: { email: string | null; emptyLabel: str
   );
 }
 
-interface RelationColumnsOptions {
-  /** Leads and customers have a stage; suppliers have none, so the column is left out. */
-  showStage: boolean;
-  /**
-   * A table that mixes types, such as an event's relations, shows each row's
-   * type; a list of one type leaves the column out.
-   */
-  showType?: boolean;
-}
-
 /**
- * The relations table. The name takes the free width; every other column has
- * a fixed width sized to its widest usual value, so the columns line up from
- * one tab to the next. Money is right aligned in tabular figures, and the
- * last change always shows date and time, so two changes on one day still
- * tell apart.
+ * The relations table, for lists that mix every type. The name takes the
+ * free width; every other column has a fixed width sized to its widest usual
+ * value, so the columns line up from one page to the next. Money is right
+ * aligned in tabular figures, and the last change always shows date and time,
+ * so two changes on one day still tell apart.
  */
-export function useRelationColumns({ showStage, showType = false }: RelationColumnsOptions) {
+export function useRelationColumns() {
   const t = useTranslations("relations");
   const format = useFormatter();
   const { formatDateTime } = useDateFormat();
@@ -86,31 +76,21 @@ export function useRelationColumns({ showStage, showType = false }: RelationColu
         ),
         meta: { flex: true },
       },
-      ...(showType
-        ? [
-            {
-              id: "type",
-              accessorKey: "type",
-              header: t("columns.type"),
-              size: 120,
-              cell: ({ row }) => (
-                <Badge variant="secondary">{t(`types.${row.original.type}`)}</Badge>
-              ),
-            } satisfies ColumnDef<RelationListItem, unknown>,
-          ]
-        : []),
-      ...(showStage
-        ? [
-            {
-              id: "stage",
-              accessorKey: "stage",
-              header: t("columns.stage"),
-              size: 140,
-              cell: ({ row }) =>
-                row.original.stage ? <RelationStageBadge stage={row.original.stage} /> : null,
-            } satisfies ColumnDef<RelationListItem, unknown>,
-          ]
-        : []),
+      {
+        id: "type",
+        accessorKey: "type",
+        header: t("columns.type"),
+        size: 120,
+        cell: ({ row }) => <Badge variant="secondary">{t(`types.${row.original.type}`)}</Badge>,
+      },
+      {
+        id: "stage",
+        accessorKey: "stage",
+        header: t("columns.stage"),
+        size: 140,
+        cell: ({ row }) =>
+          row.original.stage ? <RelationStageBadge stage={row.original.stage} /> : null,
+      },
       {
         id: "owner",
         accessorKey: "owner",
@@ -196,6 +176,6 @@ export function useRelationColumns({ showStage, showType = false }: RelationColu
         ),
       },
     ],
-    [t, format, formatDateTime, showStage, showType]
+    [t, format, formatDateTime]
   );
 }

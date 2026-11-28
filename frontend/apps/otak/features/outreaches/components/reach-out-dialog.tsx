@@ -4,7 +4,8 @@ import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "rea
 import { useTranslations } from "next-intl";
 import { Send } from "lucide-react";
 import { toast } from "sonner";
-import { SenseySearchInput } from "@oba/shared/components/sensey-search-input";
+import { SearchInput } from "@oba/ui/sky/search-input";
+import { useRouter } from "@oba/shared/libs/i18n/navigation";
 import { AttachmentUpload } from "@oba/shared/features/attachments/components";
 import { useUploadAttachments } from "@oba/shared/features/attachments/hooks";
 import { StorageEntityType } from "@oba/shared/features/attachments/schemas";
@@ -20,7 +21,8 @@ import {
 } from "@oba/ui/sky/dialog";
 import { Field, Input, NativeSelect, Textarea } from "@oba/ui/sky/field";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
-import { FilterLabel } from "@/components/page-states";
+import { FilterLabel } from "@oba/ui/sky/filter-label";
+import { useSearchClearLabel } from "@/components/list-labels";
 import { useCampaignOptions } from "@/features/campaigns/hooks/use-campaigns";
 import { useContacts } from "@/features/contacts/hooks/use-contacts";
 import { contactErrorText } from "@/features/contacts/lib/contact-error";
@@ -59,6 +61,22 @@ const TEMPLATE_CHOICES = 50;
 /** The radio value of a mail written by hand, next to the template ids. */
 const SCRATCH = "scratch";
 
+export interface ReachOutDialogProps {
+  relationId: string;
+  relationName: string;
+  /**
+   * Opens the dialog from outside. When set, the dialog renders no Reach
+   * out button of its own, as the caller opens it once a lead is chosen.
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /**
+   * Where "Go to Contacts" leads when the lead has no reachable contact. Left
+   * out on the lead's own page, where the dialog scrolls to its Contacts card.
+   */
+  contactsHref?: string;
+}
+
 /**
  * Prepares a reach-out to a lead: the channel, one contact, and a title. A
  * mail goes to a contact with a business address and takes a mail template
@@ -70,12 +88,16 @@ const SCRATCH = "scratch";
 export function ReachOutDialog({
   relationId,
   relationName,
-}: {
-  relationId: string;
-  relationName: string;
-}) {
+  open: openProp,
+  onOpenChange,
+  contactsHref,
+}: ReachOutDialogProps) {
   const t = useTranslations("outreaches.reachOut");
-  const [open, setOpen] = useState(false);
+  const router = useRouter();
+  const [ownOpen, setOwnOpen] = useState(false);
+  const isControlled = openProp !== undefined;
+  const open = isControlled ? openProp : ownOpen;
+  const setOpen = (next: boolean) => (isControlled ? onOpenChange?.(next) : setOwnOpen(next));
   const [saving, setSaving] = useState(false);
   // Set when the user leaves for the Contacts card, so closing scrolls there
   // instead of returning focus to the button at the top of the page.
@@ -83,12 +105,14 @@ export function ReachOutDialog({
 
   return (
     <Dialog open={open} onOpenChange={(next) => !saving && setOpen(next)}>
-      <DialogTrigger asChild>
-        <Button variant="outline">
-          <Send aria-hidden="true" />
-          {t("button")}
-        </Button>
-      </DialogTrigger>
+      {!isControlled && (
+        <DialogTrigger asChild>
+          <Button variant="outline">
+            <Send aria-hidden="true" />
+            {t("button")}
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent
         className="sm:max-w-2xl"
         onCloseAutoFocus={(event) => {
@@ -110,8 +134,12 @@ export function ReachOutDialog({
             onSavingChange={setSaving}
             onDone={() => setOpen(false)}
             onGoToContacts={() => {
-              goToContacts.current = true;
               setOpen(false);
+              if (contactsHref) {
+                router.push(contactsHref);
+                return;
+              }
+              goToContacts.current = true;
             }}
           />
         )}
@@ -393,6 +421,7 @@ function MailStep({
   const tForm = useTranslations("outreaches.form");
   const tTemplates = useTranslations("documentTemplates");
   const tMailTemplates = useTranslations("mailTemplates");
+  const searchClearLabel = useSearchClearLabel();
   const tErrors = useTranslations("errors");
   const [search, setSearch] = useState<string | null>(null);
   const [pickedId, setPickedId] = useState<string | null>(
@@ -428,8 +457,10 @@ function MailStep({
   return (
     <div className="flex flex-col gap-4">
       <FilterLabel label={tMailTemplates("filters.searchLabel")} className="w-full">
-        <SenseySearchInput
+        <SearchInput
           value={search}
+          label={tMailTemplates("filters.searchLabel")}
+          clearLabel={searchClearLabel}
           placeholder={t("templateSearchPlaceholder")}
           onSearchChange={(value) => setSearch(value ?? null)}
           className="w-full"

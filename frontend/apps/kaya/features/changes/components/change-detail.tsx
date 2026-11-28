@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { Badge } from "@oba/ui/sky/badge";
 import { Button } from "@oba/ui/sky/button";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { ReasonDialog } from "@/components/reason-dialog";
@@ -285,29 +286,33 @@ export function ChangeDetail({ versionId }: { versionId: string }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <BackLink />
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <h1>{changeTitle(version, owners)}</h1>
-          <Badge variant={status.variant}>{status.label}</Badge>
-          {version.executableChange && <Badge variant="warning">Executable</Badge>}
-          {version.id === currentVersionId && <Badge variant="info">Current</Badge>}
-        </div>
-        <dl className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4">
-          <Meta label="Of">{ownerText}</Meta>
-          <Meta label="Source">{SOURCE_LABELS[version.source]}</Meta>
-          <Meta label="Proposed by">{memberName(version.proposedBy, memberNames)}</Meta>
-          <Meta label="Approval by">{approverText(detail.requiredRole)}</Meta>
-          <Meta label="Created">{dateTimeText(version.createdAt)}</Meta>
-          <Meta label="Submitted">
-            {version.submittedAt ? dateTimeText(version.submittedAt) : "Not yet"}
-          </Meta>
-          {version.decidedAt && <Meta label="Decided">{dateTimeText(version.decidedAt)}</Meta>}
-        </dl>
-        {version.reason && (
-          <p className="max-w-3xl text-sm break-words whitespace-pre-wrap">{version.reason}</p>
-        )}
-      </div>
+      <PageHeading
+        title={changeTitle(version, owners)}
+        back={{ href: "/changes", label: "All changes" }}
+        description={
+          <div className="mt-1 flex flex-col gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant={status.variant}>{status.label}</Badge>
+              {version.executableChange && <Badge variant="warning">Executable</Badge>}
+              {version.id === currentVersionId && <Badge variant="info">Current</Badge>}
+            </div>
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4">
+              <Meta label="Of">{ownerText}</Meta>
+              <Meta label="Source">{SOURCE_LABELS[version.source]}</Meta>
+              <Meta label="Proposed by">{memberName(version.proposedBy, memberNames)}</Meta>
+              <Meta label="Approval by">{approverText(detail.requiredRole)}</Meta>
+              <Meta label="Created">{dateTimeText(version.createdAt)}</Meta>
+              <Meta label="Submitted">
+                {version.submittedAt ? dateTimeText(version.submittedAt) : "Not yet"}
+              </Meta>
+              {version.decidedAt && <Meta label="Decided">{dateTimeText(version.decidedAt)}</Meta>}
+            </dl>
+            {version.reason && (
+              <p className="max-w-3xl text-sm break-words whitespace-pre-wrap">{version.reason}</p>
+            )}
+          </div>
+        }
+      />
 
       <div className="flex flex-wrap items-start gap-3">
         <ReviewButtons

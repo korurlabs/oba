@@ -122,6 +122,20 @@ export type RuleSection = {
   mountedRefusal: string;
 };
 
+/**
+ * What each Rules tab creates: the text of its create button and the heading
+ * of the page that button opens, so both name the same thing.
+ */
+export const RULE_NEW_LABELS: Readonly<Record<RuleTab, string>> = {
+  rules: "New rule",
+  "agents-md": "New AGENTS.md",
+  roles: "New role",
+  subagents: "New subagent",
+  workflows: "New workflow",
+  templates: "New template",
+  hooks: "New hook",
+};
+
 /** A Rules tab as a section; every file of the scope is offered to the tab. */
 export function rulesSection(tab: RuleTab): RuleSection {
   return {
@@ -129,7 +143,7 @@ export function rulesSection(tab: RuleTab): RuleSection {
     title: "Rules",
     description: "The rules and agent files a repository's release or a pack delivers.",
     back: "Back to Rules",
-    newTitle: "New file",
+    newTitle: RULE_NEW_LABELS[tab],
     files: (files: readonly ScopeFile[]) => files,
     listHref: (current: URLSearchParams) => rulesListHref(tab, current),
     detailHref: (path: string, current: URLSearchParams) => ruleDetailHref(tab, path, current),

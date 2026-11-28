@@ -137,7 +137,8 @@ function GroupActions({
         <DropdownMenuContent align="end">
           <DropdownMenuItem onSelect={() => onShowMembers(group)}>
             <Users aria-hidden="true" />
-            {t("groups.viewMembers")}
+            {/* Everyone's members are every member, so its sheet only lists them. */}
+            {isSystemGroup ? t("groups.viewMembers") : t("groups.manageMembers")}
           </DropdownMenuItem>
           {!isSystemGroup && (
             <>

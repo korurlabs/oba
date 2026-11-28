@@ -7,7 +7,8 @@ import { useFormContext } from "react-hook-form";
 import { ArrowLeft } from "lucide-react";
 import { Alert, AlertDescription } from "@oba/ui/sky/alert";
 import { Card, CardContent, CardHeader } from "@oba/ui/sky/card";
-import { PageHeading, PanelTitle } from "@/components/layout/page-heading";
+import { PageHeading } from "@oba/ui/sky/page-heading";
+import { PanelTitle } from "@/components/layout/page-heading";
 import { Button } from "@oba/ui/sky/button";
 import {
   TextField,

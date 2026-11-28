@@ -3,11 +3,10 @@
 import { useMemo } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { parseAsString, useQueryState } from "nuqs";
-import { ArrowLeft } from "lucide-react";
 import { Link, useRouter } from "@oba/shared/libs/i18n/navigation";
 import { Button } from "@oba/ui/sky/button";
-import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
-import { ActionEmptyState, PageHeading } from "@/components/page-states";
+import { PageHeading } from "@oba/ui/sky/page-heading";
+import { EmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { useIsOrganizationMember } from "@/hooks/use-is-organization-admin";
 import { pageHref } from "@/lib/routes";
 import { useCreatePage, usePageTree } from "../hooks/use-pages";
@@ -43,13 +42,13 @@ export function PageCreateView() {
   );
   const backHref = parentListed && parent !== null ? pageHref(parent) : "/";
 
-  const back = (
-    <Button asChild variant="ghost" size="sm" className="w-fit">
-      <Link href={backHref}>
-        <ArrowLeft aria-hidden="true" />
-        {t("back")}
-      </Link>
-    </Button>
+  const heading = (
+    <PageHeading
+      title={t("newTitle")}
+      description={t("newSubtitle")}
+      back={{ href: backHref, label: t("back") }}
+      linkComponent={Link}
+    />
   );
 
   if (tree.isPending) {
@@ -68,24 +67,15 @@ export function PageCreateView() {
   if (!isMember || options.length === 0) {
     return (
       <div className="flex flex-col gap-6">
-        {back}
-        <ActionEmptyState
-          title={t("noParent.title")}
-          description={t("noParent.description")}
-          action={
-            <Button asChild variant="outline">
-              <Link href="/">{t("noParent.action")}</Link>
-            </Button>
-          }
-        />
+        {heading}
+        <EmptyState title={t("noParent.title")} description={t("noParent.description")} />
       </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-6">
-      {back}
-      <PageHeading title={t("newTitle")} description={t("newSubtitle")} />
+      {heading}
       <PageForm
         mode="create"
         initialValues={initialValues}

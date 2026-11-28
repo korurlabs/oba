@@ -101,7 +101,7 @@ export function SendOutreachDialog({ outreach, onOpenChange }: SendOutreachDialo
             <p className="font-medium">{tSend("noSendersTitle")}</p>
             <p className="text-muted-foreground text-sm">{tSend("noSendersHint")}</p>
             <Button asChild variant="outline">
-              <Link href={{ pathname: "/outreaches", query: { tab: "senders" } }}>
+              <Link href={{ pathname: "/mail", query: { tab: "senders" } }}>
                 {tSend("goToSenders")}
               </Link>
             </Button>

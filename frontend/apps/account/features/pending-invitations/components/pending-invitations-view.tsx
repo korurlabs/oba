@@ -6,7 +6,7 @@ import type { Session } from "next-auth";
 import { useGetMe, USERS_KEYS, type usersApi } from "@oba/shared/features/users/hooks/use-get-me";
 import { SenseyTable } from "@oba/shared/components/sensey-table";
 import { EmptyState, LoadError } from "@oba/ui/sky/page-states";
-import { PageHeading } from "@/components/layout/page-heading";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { usePendingInvitationColumns } from "../hooks/use-pending-invitation-columns";
 import { useDecideInvitation, useRemindLater } from "../hooks/use-pending-invitations";
 import { InvitationDecision } from "../schemas";

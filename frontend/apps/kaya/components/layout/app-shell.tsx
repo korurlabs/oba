@@ -14,7 +14,7 @@ import { ChangeModeFrame, OpenChangeProvider } from "@/features/versions/compone
 import { useIdentity } from "@/lib/identity/identity-context";
 import type { MembershipResponse } from "@/lib/identity/schemas";
 
-import { guardNavigation, KAYA_NAV_SECTIONS, KAYA_SETTINGS_ITEM } from "./kaya-sidebar";
+import { guardNavigation, KAYA_NAV_SECTIONS, KAYA_REPOSITORIES_ITEM } from "./kaya-sidebar";
 import { KayaLogo } from "./kaya-logo";
 
 export type AppShellProps = {
@@ -48,7 +48,7 @@ function KayaOrganizationSelector() {
 /**
  * Page frame: the shared sky shell with Kaya's menu, its wordmark, the
  * member's change, the organization selector, the app switcher and the
- * account menu in the top bar, and Settings at the foot of the menu. The
+ * account menu in the top bar, and Repositories at the foot of the menu. The
  * member's open change is known to every part of it, and change mode frames
  * the whole window. A menu link asks first while a config edit is unsaved.
  */
@@ -71,7 +71,7 @@ export function AppShell({ children }: AppShellProps) {
           </>
         }
         sections={KAYA_NAV_SECTIONS}
-        footerItems={[KAYA_SETTINGS_ITEM]}
+        footerItems={[KAYA_REPOSITORIES_ITEM]}
         footerMark={
           <Image
             src="/assets/korur-mark.png"

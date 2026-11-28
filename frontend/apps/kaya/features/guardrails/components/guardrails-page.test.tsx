@@ -130,7 +130,7 @@ describe("GuardrailsPage", () => {
     );
     expect(html).toContain("New guardrail");
     expect(html).not.toContain('aria-label="What is a guardrail?"');
-    expect(html).toContain('aria-label="Filter');
+    expect(html).toContain('title="Filter"');
   });
 
   test("New guardrail is disabled with the lock tip while a change of another pack is open", () => {

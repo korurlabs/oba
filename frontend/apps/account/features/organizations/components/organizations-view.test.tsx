@@ -2,9 +2,9 @@ import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-// The organizations card lists the memberships and links to the organization
-// creation page. The user
-// query is replaced by a value the test sets; the translator echoes its key.
+// The organizations list shows the memberships under a toolbar that links to
+// the organization creation page. The user query is replaced by a value the
+// test sets; the translator echoes its key.
 type Organization = { id: string; name: string; role: string };
 
 let organizations: Organization[];
@@ -60,29 +60,33 @@ function createLinks(html: string): string[] {
 }
 
 describe("OrganizationsView", () => {
-  test("links to /organizations/new when the user has no organizations", () => {
+  test("an empty list offers the create link in the toolbar and in the empty state", () => {
     const html = renderToStaticMarkup(<OrganizationsView />);
 
-    expect(createLinks(html)).toHaveLength(1);
+    expect(createLinks(html)).toHaveLength(2);
     expect(createLinks(html)[0]).toContain("organization.new.title");
     expect(html).toContain("organization.noOrganizations");
+    expect(html).toContain("organization.noOrganizationsDescription");
   });
 
-  test("links to /organizations/new when the user has organizations", () => {
+  test("a list with organizations has one create link, in the toolbar", () => {
     organizations = [{ id: "o1", name: "Acme", role: "OWNER" }];
 
     const html = renderToStaticMarkup(<OrganizationsView />);
 
     expect(createLinks(html)).toHaveLength(1);
+    expect(html).toMatch(/data-slot="list-toolbar"[^]*href="\/organizations\/new"/);
     expect(html).toContain("Acme");
     expect(html).not.toContain("organization.noOrganizations");
   });
 
-  test("shows the page heading and the organizations card", () => {
+  test("the page title shows once, with no card heading repeating it", () => {
+    organizations = [{ id: "o1", name: "Acme", role: "OWNER" }];
+
     const html = renderToStaticMarkup(<OrganizationsView />);
 
-    expect(html).toContain("organization.list.title");
+    expect(html).toContain('<h1 class="break-words">organization.list.title</h1>');
     expect(html).toContain("organization.list.subtitle");
-    expect(html).toContain("organization.list.yourOrganizations");
+    expect(html).not.toContain("<h2");
   });
 });

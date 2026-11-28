@@ -21,9 +21,11 @@ import com.korur.oba.dojo.annotation.NullOrNotBlank;
 import com.korur.oba.dojo.dto.QueryRequest;
 
 /**
- * Filters of the relations list: one tab per type, or every type when the type is left
- * out, as on an event's page. Relations are always ordered by their last change, newest
- * first, so sortBy and sortDirection are ignored.
+ * Filters of the relations list, one list of every type: the type and stage filters narrow
+ * it independently, and a stage implies its type. Without a stage the list holds every
+ * relation of the chosen types, and the leads at LOST or PARKED leave it only when the
+ * caller asks for that. Relations are always ordered by their last change, newest first,
+ * so sortBy and sortDirection are ignored.
  */
 @Schema(description = "Paging and filters of the relations list; sortBy and sortDirection are ignored")
 @Getter
@@ -31,15 +33,18 @@ import com.korur.oba.dojo.dto.QueryRequest;
 @NoArgsConstructor
 public class RelationQueryRequest extends QueryRequest {
 
-    @Schema(description = "The tab: only relations of this type. Empty: every type and every stage, and the "
-            + "stage filter is ignored", nullable = true, example = "LEAD")
-    private RelationType type;
+    @Schema(description = "Only relations of these types, repeat the parameter for several. Empty: every type",
+            nullable = true, example = "LEAD")
+    private List<RelationType> type;
 
-    @Schema(description = "Only these stages, repeat the parameter for several; a stage of another type matches "
-            + "nothing. Empty: every lead but LOST and PARKED, or every customer. Ignored for suppliers and "
-            + "without a type",
+    @Schema(description = "Only relations at these stages, repeat the parameter for several, whatever the type "
+            + "filter; a supplier has no stage and never matches. Empty: every relation, see hideInactiveLeads",
             nullable = true, example = "NEW")
     private List<PipelineStage> stage;
+
+    @Schema(description = "true: with no stage given, leave out the leads at LOST or PARKED; ignored when "
+            + "stages are given. Default false", example = "true")
+    private boolean hideInactiveLeads;
 
     @Schema(description = "Only relations of this owner", nullable = true,
             example = "4d5e6f7a-8b9c-4d0e-9f1a-2b3c4d5e6f7a")

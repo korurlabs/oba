@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 
 import { Button } from "@oba/ui/sky/button";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { Markdown } from "@/features/sessions/components/markdown";
@@ -67,37 +68,39 @@ function DeleteLesson({ lessonId }: { lessonId: string }) {
 function LessonView({ lesson }: { lesson: LessonDetailResponse }) {
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <BackLink />
-        {lesson.canEdit && (
-          <div className="flex gap-2">
-            <LessonFormDialog
-              lesson={lesson}
-              trigger={
-                <Button variant="outline" size="sm">
-                  <Pencil aria-hidden />
-                  Edit
-                </Button>
-              }
-            />
-            <DeleteLesson lessonId={lesson.id} />
-          </div>
-        )}
-      </div>
-      <header className="flex flex-col gap-3">
-        <h1 className="break-words">{lesson.title}</h1>
-        <dl className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-3 lg:grid-cols-5">
-          <Meta label="Repository">{repositoryText(lesson.repository)}</Meta>
-          {lesson.session && (
-            <Meta label="Session">
-              <LessonSessionLink session={lesson.session} />
-            </Meta>
-          )}
-          <Meta label="User">{referenceName(lesson.user)}</Meta>
-          <Meta label="Created">{dateTimeText(lesson.createdAt)}</Meta>
-          <Meta label="Updated">{dateTimeText(lesson.updatedAt)}</Meta>
-        </dl>
-      </header>
+      <PageHeading
+        title={lesson.title}
+        back={{ href: "/lessons", label: "All lessons" }}
+        actions={
+          lesson.canEdit && (
+            <>
+              <LessonFormDialog
+                lesson={lesson}
+                trigger={
+                  <Button variant="outline" size="sm">
+                    <Pencil aria-hidden />
+                    Edit
+                  </Button>
+                }
+              />
+              <DeleteLesson lessonId={lesson.id} />
+            </>
+          )
+        }
+        description={
+          <dl className="mt-2 grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-3 lg:grid-cols-5">
+            <Meta label="Repository">{repositoryText(lesson.repository)}</Meta>
+            {lesson.session && (
+              <Meta label="Session">
+                <LessonSessionLink session={lesson.session} />
+              </Meta>
+            )}
+            <Meta label="User">{referenceName(lesson.user)}</Meta>
+            <Meta label="Created">{dateTimeText(lesson.createdAt)}</Meta>
+            <Meta label="Updated">{dateTimeText(lesson.updatedAt)}</Meta>
+          </dl>
+        }
+      />
       <Markdown source={lesson.body} />
     </div>
   );

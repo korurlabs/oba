@@ -46,24 +46,10 @@
     "reloadError": "De lijst kon niet worden vernieuwd; hij is mogelijk niet actueel.",
     "emptyFiltered": "Geen relatie voldoet aan deze filters.",
     "emptyFilteredHint": "Pas de zoekopdracht of de filters aan, of wis ze om de hele lijst te zien.",
-    "emptyByTab": {
-      "leads": "Nog geen open leads.",
-      "customers": "Nog geen klanten.",
-      "suppliers": "Nog geen leveranciers."
-    },
-    "emptyHintByTab": {
-      "leads": "Voeg een bedrijf toe dat je wilt winnen en volg het van eerste contact tot voorstel.",
-      "customers": "Voeg een bedrijf toe waaraan je verkoopt, of markeer een gewonnen lead als klant.",
-      "suppliers": "Voeg een bedrijf toe waarvan je organisatie inkoopt."
-    },
+    "empty": "Nog geen relaties.",
+    "emptyHint": "Voeg een bedrijf toe waaraan je organisatie verkoopt, waarvan ze inkoopt of dat ze wil winnen.",
     "noOwner": "Geen eigenaar",
     "noValue": "Geen verwachte waarde",
-    "tabs": {
-      "leads": "Leads",
-      "customers": "Klanten",
-      "suppliers": "Leveranciers"
-    },
-    "tabsLabel": "Soort relatie",
     "types": {
       "LEAD": "Lead",
       "SUPPLIER": "Leverancier",
@@ -112,20 +98,16 @@
       "companyMail": "Bedrijfsmail"
     },
     "filters": {
+      "searchLabel": "Relaties zoeken",
       "searchPlaceholder": "Zoek op naam",
-      "stagePlaceholder": "Open fasen",
-      "stagePlaceholderCustomers": "Elke fase",
-      "ownerPlaceholder": "Elke eigenaar",
       "clear": "Filters wissen",
       "ownersLoadError": "De eigenaren konden niet worden geladen.",
-      "searchLabel": "Zoeken",
+      "typeLabel": "Soort",
       "stageLabel": "Fase",
       "ownerLabel": "Eigenaar",
       "eventLabel": "Evenement",
-      "eventPlaceholder": "Elk evenement",
       "eventsLoadError": "De evenementen konden niet worden geladen.",
       "campaignLabel": "Campagne",
-      "campaignPlaceholder": "Elke campagne",
       "campaignsLoadError": "De campagnes konden niet worden geladen."
     },
     "form": {
@@ -200,11 +182,6 @@
     "detail": {
       "title": "Relatie",
       "back": "Terug naar relaties",
-      "backTo": {
-        "leads": "Terug naar leads",
-        "customers": "Terug naar klanten",
-        "suppliers": "Terug naar leveranciers"
-      },
       "details": "Gegevens",
       "timestamps": "Aangemaakt {created} · Bijgewerkt {updated}",
       "loading": "De relatie wordt geladen",
@@ -435,7 +412,7 @@
       "actions": "Acties"
     },
     "filters": {
-      "searchLabel": "Zoeken",
+      "searchLabel": "ICP's zoeken",
       "searchPlaceholder": "Zoeken op naam",
       "clear": "Zoekopdracht wissen"
     },
@@ -574,18 +551,15 @@
       "snapshotCount": "Verstuurde kopieën"
     },
     "filters": {
-      "searchLabel": "Zoeken",
+      "searchLabel": "Documenten zoeken",
       "searchPlaceholder": "Zoeken op titel",
       "relationLabel": "Relatie",
-      "relationAll": "Alle relaties",
       "legalEntityLabel": "Rechtspersoon",
-      "legalEntityAll": "Alle rechtspersonen",
       "legalEntityUnknown": "Gekozen rechtspersoon",
       "typeLabel": "Type",
-      "typeAll": "Alle typen",
       "languageLabel": "Taal",
-      "languageAll": "Alle talen",
-      "clear": "Filters wissen"
+      "clear": "Filters wissen",
+      "legalEntitiesLoadError": "De juridische entiteiten konden niet worden geladen."
     },
     "pagination": {
       "label": "Pagina's",
@@ -751,16 +725,14 @@
       "actions": "Acties"
     },
     "filters": {
-      "searchLabel": "Zoeken",
+      "searchLabel": "Documentsjablonen zoeken",
       "searchPlaceholder": "Zoeken op naam",
       "typeLabel": "Type",
-      "typeAll": "Alle typen",
       "languageLabel": "Taal",
-      "languageAll": "Alle talen",
       "legalEntityLabel": "Rechtspersoon",
-      "legalEntityAll": "Alle rechtspersonen",
       "legalEntityUnknown": "Gekozen rechtspersoon",
-      "clear": "Filters wissen"
+      "clear": "Filters wissen",
+      "legalEntitiesLoadError": "De juridische entiteiten konden niet worden geladen."
     },
     "pagination": {
       "label": "Pagina's",
@@ -816,10 +788,18 @@
     },
     "legalEntityAll": "Alle"
   },
+  "mailPage": {
+    "title": "Mail",
+    "subtitle": "De mailsjablonen en de mailboxen waaruit je outreachmail wordt verstuurd.",
+    "tabsLabel": "Mail",
+    "tabs": {
+      "templates": "Sjablonen",
+      "senders": "Afzenders"
+    }
+  },
   "mailTemplates": {
-    "title": "Mailsjablonen",
     "subtitle": "Goedgekeurde mails waar elke mailbenadering mee kan beginnen.",
-    "new": "Nieuw mailsjabloon",
+    "new": "Nieuw sjabloon",
     "newTitle": "Nieuw mailsjabloon",
     "editTitle": "Mailsjabloon bewerken",
     "dialogDescription": "Een onderwerp en een platte tekst. Een benadering kopieert het, dus latere wijzigingen veranderen al voorbereide mails niet.",
@@ -849,10 +829,9 @@
       "actions": "Acties"
     },
     "filters": {
-      "searchLabel": "Zoeken",
+      "searchLabel": "Mailsjablonen zoeken",
       "searchPlaceholder": "Zoeken op naam",
       "languageLabel": "Taal",
-      "languageAll": "Alle talen",
       "clear": "Filters wissen"
     },
     "pagination": {
@@ -900,11 +879,6 @@
   "outreaches": {
     "title": "Outreaches",
     "subtitle": "Elke benadering van contactpersonen van leads, per mail, WhatsApp of telefoon: wat is voorbereid, wat is verstuurd of gedaan, en vanuit welke mailbox.",
-    "tabsLabel": "Onderdelen van outreach",
-    "tabs": {
-      "outreaches": "Outreaches",
-      "senders": "Afzenders"
-    },
     "cardTitle": "Outreaches",
     "cardEmpty": "Nog geen outreaches. Gebruik Benaderen bij een lead om er een voor te bereiden.",
     "cardEmptyMember": "Nog geen outreaches. Een beheerder van de organisatie bereidt ze voor.",
@@ -918,12 +892,10 @@
     "loading": "Outreaches laden",
     "loadingOne": "Outreach laden",
     "empty": "Nog geen outreaches",
-    "emptyHint": "Open een lead en gebruik Benaderen om een mail, een WhatsApp-bericht of een gesprek met een van de contactpersonen voor te bereiden.",
+    "emptyHint": "Gebruik Benaderen om een mail, een WhatsApp-bericht of een gesprek met een contactpersoon van een lead voor te bereiden.",
     "emptyHintMember": "Een beheerder van de organisatie bereidt de outreaches voor bij de leads.",
-    "emptyFiltered": "Geen outreaches met deze status",
-    "emptyFilteredHint": "Kies een andere status of wis het filter.",
-    "goToLeads": "Naar relaties",
-    "mailTemplates": "Mailsjablonen",
+    "emptyFiltered": "Geen outreaches die aan deze filters voldoen",
+    "emptyFilteredHint": "Probeer een andere zoekterm of een ander filter, of wis de filters.",
     "tableLabel": "Outreaches",
     "view": "{title} bekijken",
     "edit": "{title} bewerken",
@@ -961,11 +933,14 @@
       "sentTo": "Verstuurd naar"
     },
     "filters": {
+      "searchLabel": "Outreaches zoeken",
+      "searchPlaceholder": "Outreaches zoeken",
+      "channelLabel": "Kanaal",
       "statusLabel": "Status",
-      "statusAll": "Alle statussen",
-      "clear": "Filter wissen",
+      "senderLabel": "Afzender",
+      "sendersLoadError": "De afzenders konden niet worden geladen.",
+      "clear": "Filters wissen",
       "campaignLabel": "Campagne",
-      "campaignAll": "Alle campagnes",
       "campaignsLoadError": "De campagnes konden niet worden geladen."
     },
     "pagination": {
@@ -1042,7 +1017,7 @@
       "descriptionNoContact": "De contactpersoon van deze outreach is verwijderd. Bewerk de outreach en kies eerst een andere contactpersoon.",
       "previouslyFailed": "De vorige poging om deze outreach te versturen is mislukt. Je kunt hem opnieuw versturen.",
       "noSendersTitle": "Nog geen afzenders",
-      "noSendersHint": "Mail gaat uit vanuit een mailbox van de organisatie. Een beheerder voegt er een toe op het tabblad Afzenders.",
+      "noSendersHint": "Mail gaat uit vanuit een mailbox van de organisatie. Een beheerder voegt er een toe onder Mail, op het tabblad Afzenders.",
       "goToSenders": "Naar Afzenders",
       "senderLegend": "Versturen vanuit",
       "failedTitle": "De mail is niet verstuurd",
@@ -1065,7 +1040,7 @@
       },
       "contactLegend": "Welke contactpersoon krijgt de mail?",
       "noContactsTitle": "Geen contactpersoon met een zakelijk e-mailadres",
-      "noContactsHint": "Een mail heeft een contactpersoon met een zakelijk of gedeeld e-mailadres nodig. Voeg er een toe, of vul een adres in bij een contactpersoon, in de kaart Contactpersonen op deze pagina.",
+      "noContactsHint": "Een mail heeft een contactpersoon met een zakelijk of gedeeld e-mailadres nodig. Voeg er een toe, of vul een adres in bij een contactpersoon, in de kaart Contactpersonen van de lead.",
       "goToContacts": "Naar Contactpersonen",
       "mailLegend": "Begin met een mailsjabloon of schrijf de mail zelf",
       "templateSearchPlaceholder": "Zoek mailsjablonen op naam",
@@ -1093,7 +1068,13 @@
       },
       "phoneContactLegend": "Welke contactpersoon benader je?",
       "noPhoneContactsTitle": "Geen contactpersoon met een telefoonnummer",
-      "noPhoneContactsHint": "Een WhatsApp-bericht of gesprek heeft een contactpersoon met een telefoonnummer nodig. Voeg er een toe in de kaart Contactpersonen op deze pagina."
+      "noPhoneContactsHint": "Een WhatsApp-bericht of gesprek heeft een contactpersoon met een telefoonnummer nodig. Voeg er een toe in de kaart Contactpersonen van de lead.",
+      "leadTitle": "Kies een lead",
+      "leadDescription": "De lead die je benadert. Daarna kies je het kanaal en een van de contactpersonen.",
+      "leadLabel": "Lead",
+      "leadPlaceholder": "Kies een lead",
+      "leadSearchPlaceholder": "Leads zoeken op naam",
+      "cancel": "Annuleren"
     },
     "complete": "{title} als gedaan markeren",
     "completeTitle": "Als gedaan markeren",
@@ -1160,6 +1141,8 @@
     "empty": "Nog geen afzenders",
     "emptyHint": "Voeg een mailbox van de Microsoft 365-tenant van je organisatie toe om outreach-mail uit te versturen.",
     "emptyHintMember": "Een beheerder van de organisatie voegt de afzenders toe.",
+    "emptyFiltered": "Geen afzenders voor deze zoekopdracht",
+    "emptyFilteredHint": "Probeer een ander mailadres, of wis de zoekopdracht.",
     "tableLabel": "Afzenders",
     "delete": "{mailAddress} verwijderen",
     "deleteTitle": "Afzender verwijderen",
@@ -1205,6 +1188,11 @@
       "forbidden": "Je hebt geen toestemming om dit te doen.",
       "validation": "Controleer de gemarkeerde velden.",
       "loadHint": "Controleer je verbinding en probeer het opnieuw."
+    },
+    "filters": {
+      "searchLabel": "Mailafzenders zoeken",
+      "searchPlaceholder": "Zoeken op mailadres",
+      "clear": "Zoekopdracht wissen"
     }
   },
   "events": {
@@ -1230,8 +1218,7 @@
       "past": "Evenementen komen hier de dag nadat ze eindigen."
     },
     "tableLabel": "Evenementen",
-    "tabsLabel": "Periode",
-    "tabs": {
+    "periods": {
       "upcoming": "Komend",
       "past": "Afgelopen"
     },
@@ -1258,7 +1245,8 @@
       "actions": "Acties"
     },
     "filters": {
-      "searchLabel": "Zoeken",
+      "period": "Periode",
+      "searchLabel": "Evenementen zoeken",
       "searchPlaceholder": "Zoeken op naam",
       "clear": "Zoekopdracht wissen"
     },
@@ -1389,7 +1377,7 @@
       "contentCount": "Inhoud"
     },
     "filters": {
-      "searchLabel": "Zoeken",
+      "searchLabel": "Campagnes zoeken",
       "searchPlaceholder": "Zoek op naam",
       "clear": "Filters wissen"
     },
@@ -1552,5 +1540,16 @@
         "publishedAtInFuture": "De publicatiedatum kan niet in de toekomst liggen; plan de inhoud in"
       }
     }
+  },
+  "filterPopover": {
+    "trigger": "Filteren",
+    "chooseCategory": "Selecteer een filterveld om te beginnen",
+    "searchOptions": "Zoeken...",
+    "noOptions": "Geen opties",
+    "loading": "Laden",
+    "clear": "Alles wissen"
+  },
+  "searchInput": {
+    "clear": "Zoekopdracht wissen"
   }
 }

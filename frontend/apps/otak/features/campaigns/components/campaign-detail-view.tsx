@@ -8,9 +8,9 @@ import { useDateFormat } from "@oba/shared/i18n/use-date-format";
 import { Link, useRouter } from "@oba/shared/libs/i18n/navigation";
 import { Button } from "@oba/ui/sky/button";
 import { Card, CardContent, CardHeader } from "@oba/ui/sky/card";
-import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
+import { PageHeading } from "@oba/ui/sky/page-heading";
+import { EmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { ActionEmptyState } from "@/components/page-states";
 import { useIcp } from "@/features/icps/hooks/use-icps";
 import { useIsOrganizationAdmin } from "@/hooks/use-is-organization-admin";
 import { cn } from "@/lib/utils";
@@ -40,7 +40,7 @@ export function CampaignDetailView({ campaignId }: { campaignId: string }) {
   if (campaign.isError) {
     if (isApiError(campaign.error, "OTK_NOT_012")) {
       return (
-        <ActionEmptyState
+        <EmptyState
           title={t("detail.notFoundTitle")}
           description={t("detail.notFoundDescription")}
           action={
@@ -88,16 +88,11 @@ function CampaignDetailContent({ campaign }: { campaign: CampaignDetail }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <Button asChild variant="ghost" size="sm" className="w-fit">
-        <Link href="/campaigns">
-          <ArrowLeft aria-hidden="true" />
-          {t("detail.back")}
-        </Link>
-      </Button>
-
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex min-w-0 flex-col gap-2">
-          <h1 className="break-words">{campaign.name}</h1>
+      <PageHeading
+        title={campaign.name}
+        back={{ href: "/campaigns", label: t("detail.back") }}
+        linkComponent={Link}
+        description={
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-muted-foreground text-sm tabular-nums">
               {t("detail.timestamps", {
@@ -106,24 +101,26 @@ function CampaignDetailContent({ campaign }: { campaign: CampaignDetail }) {
               })}
             </span>
           </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" onClick={() => setFormOpen(true)}>
-            <Pencil aria-hidden="true" />
-            {t("detail.edit")}
-          </Button>
-          {isAdmin && (
-            <Button
-              variant="outline"
-              disabled={deleteCampaign.isPending}
-              onClick={() => setConfirmOpen(true)}
-            >
-              <Trash2 aria-hidden="true" />
-              {deleteCampaign.isPending ? t("detail.deleting") : t("detail.delete")}
+        }
+        actions={
+          <>
+            <Button variant="outline" onClick={() => setFormOpen(true)}>
+              <Pencil aria-hidden="true" />
+              {t("detail.edit")}
             </Button>
-          )}
-        </div>
-      </div>
+            {isAdmin && (
+              <Button
+                variant="outline"
+                disabled={deleteCampaign.isPending}
+                onClick={() => setConfirmOpen(true)}
+              >
+                <Trash2 aria-hidden="true" />
+                {deleteCampaign.isPending ? t("detail.deleting") : t("detail.delete")}
+              </Button>
+            )}
+          </>
+        }
+      />
 
       <Card role="region" aria-labelledby="campaign-details" className="gap-4">
         <CardHeader className="flex flex-wrap items-center justify-between gap-2">

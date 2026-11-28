@@ -3,16 +3,15 @@
 import { useTranslations } from "next-intl";
 import { useDateFormat } from "@oba/shared/i18n/use-date-format";
 import { Link } from "@oba/shared/libs/i18n/navigation";
-import { Button } from "@oba/ui/sky/button";
-import { Card, CardAction, CardContent, CardHeader } from "@oba/ui/sky/card";
+import { Card, CardContent, CardHeader } from "@oba/ui/sky/card";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { useRecentPages } from "@/features/pages/hooks/use-pages";
 import { pageErrorText } from "@/features/pages/lib/page-error";
 import { listedPageTitle, sectionOfRootSlug } from "@/features/recent/lib/page-label";
 import { OVERVIEW_RECENT_LIMIT } from "@/features/recent/lib/recent-limits";
-import { pageHref, RECENT_HREF } from "@/lib/routes";
+import { pageHref } from "@/lib/routes";
 
-/** The latest page changes, each with its section, when and by whom, and a link to all of them. */
+/** The latest page changes, each with its section, when and by whom. The sidebar leads to the full list. */
 export function RecentChangesCard() {
   const t = useTranslations("overview");
   const tRecent = useTranslations("recent");
@@ -29,11 +28,6 @@ export function RecentChangesCard() {
         <h2 id="overview-recent" className="text-lg leading-none">
           {t("recentTitle")}
         </h2>
-        <CardAction>
-          <Button asChild variant="ghost" size="sm">
-            <Link href={RECENT_HREF}>{t("viewAll")}</Link>
-          </Button>
-        </CardAction>
       </CardHeader>
       <CardContent>
         {recent.isError && recent.data === undefined ? (

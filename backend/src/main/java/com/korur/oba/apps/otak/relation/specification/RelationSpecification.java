@@ -50,32 +50,34 @@ public final class RelationSpecification {
     }
 
     /**
-     * Filters relations of one type. Returns no-op if {@code type} is null.
+     * Filters relations of the given types. Returns no-op if {@code types} is null or empty,
+     * so that the list holds every type.
      */
-    public static Specification<Relation> hasType(RelationType type) {
-        if (type == null) {
+    private static Specification<Relation> hasTypes(List<RelationType> types) {
+        if (types == null || types.isEmpty()) {
             return noOp();
         }
-        return (root, query, cb) -> cb.equal(root.get(RelationConstant.FIELD_TYPE), type);
+        return (root, query, cb) -> root.get(RelationConstant.FIELD_TYPE).in(types);
     }
 
     /**
-     * Filters leads and customers by stage; a stage of another type matches nothing. Without
-     * stages a lead list leaves out the inactive stages, so LOST and PARKED show only when
-     * asked for, and a customer list keeps every customer. A supplier has no stage, so for
-     * a supplier, or no type, the filter is a no-op.
+     * Filters relations by stage, whatever the type filter: a stage belongs to one type, so
+     * naming it is enough, and a stage of a type the type filter leaves out matches nothing.
+     * A supplier has no stage, so it never matches a stage filter. Without stages every
+     * relation matches, unless {@code hideInactiveLeads} asks to leave out the leads at
+     * {@link PipelineStage#INACTIVE_LEAD_STAGES}: a pipeline view hides LOST and PARKED leads,
+     * while a picker or an event's relations must still reach them. Named stages ignore the flag.
      */
-    private static Specification<Relation> byStages(RelationType type, List<PipelineStage> stages) {
-        if (type != RelationType.LEAD && type != RelationType.CUSTOMER) {
+    private static Specification<Relation> byStages(List<PipelineStage> stages, boolean hideInactiveLeads) {
+        if (stages != null && !stages.isEmpty()) {
+            return (root, query, cb) -> root.get(RelationConstant.FIELD_STAGE).in(stages);
+        }
+        if (!hideInactiveLeads) {
             return noOp();
         }
-        if (stages == null || stages.isEmpty()) {
-            return type == RelationType.LEAD
-                    ? (root, query, cb) -> cb.not(root.get(RelationConstant.FIELD_STAGE)
-                            .in(PipelineStage.INACTIVE_LEAD_STAGES))
-                    : noOp();
-        }
-        return (root, query, cb) -> root.get(RelationConstant.FIELD_STAGE).in(stages);
+        return (root, query, cb) -> cb.not(cb.and(
+                cb.equal(root.get(RelationConstant.FIELD_TYPE), RelationType.LEAD),
+                root.get(RelationConstant.FIELD_STAGE).in(PipelineStage.INACTIVE_LEAD_STAGES)));
     }
 
     /**
@@ -140,8 +142,9 @@ public final class RelationSpecification {
 
     /**
      * Builds the specification of the relations list: one organization, and the optional
-     * type, stage, owner, name, contact, event and campaign filters. Without a type every relation
-     * of the organization matches, whatever its stage.
+     * type, stage, owner, name, contact, event and campaign filters. Without a type every type
+     * matches; without a stage every relation matches, but the inactive leads when the request
+     * asks to hide them.
      *
      * @param organizationId the organization whose relations are listed
      * @param request        the list filters
@@ -149,8 +152,8 @@ public final class RelationSpecification {
      */
     public static Specification<Relation> filterBy(UUID organizationId, RelationQueryRequest request) {
         return belongsToOrganization(organizationId)
-                .and(hasType(request.getType()))
-                .and(byStages(request.getType(), request.getStage()))
+                .and(hasTypes(request.getType()))
+                .and(byStages(request.getStage(), request.isHideInactiveLeads()))
                 .and(byOwner(request.getOwnerUserId()))
                 .and(searchSpecification(request.getSearch()))
                 .and(byContacts(request.getHasContacts()))

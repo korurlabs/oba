@@ -185,7 +185,7 @@ describe("page permissions view list", () => {
 
   test("says so when nobody has a grant", () => {
     permissionsState = { data: [] };
-    expect(render()).toContain(en.permissions.list.empty);
+    expect(render()).toContain(en.permissions.list.emptyTitle);
   });
 
   test("shows the outline while the grants load", () => {

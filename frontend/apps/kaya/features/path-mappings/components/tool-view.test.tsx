@@ -39,7 +39,7 @@ describe("ToolViewBody", () => {
     expect(html).toContain('aria-busy="true"');
   });
 
-  test("shows the picked tool's reads and gaps; the summary sits in an info tip and no legend shows", () => {
+  test("shows the picked tool's reads and gaps; the summary shows under the tab and no legend shows", () => {
     const html = renderToStaticMarkup(
       <ToolViewBody
         tool="CODEX"
@@ -51,9 +51,10 @@ describe("ToolViewBody", () => {
         versionCount={0}
       />
     );
-    expect(html).toContain("What OpenAI Codex reads");
-    expect(html).toContain('aria-label="How OpenAI Codex finds the files"');
-    expect(html).not.toContain("Reads AGENTS.md and the skills under .agents/skills");
+    // The tab names the tool, so the view repeats no heading.
+    expect(html).toContain('aria-label="What OpenAI Codex reads"');
+    expect(html).not.toContain("<h2");
+    expect(html).toContain("Reads AGENTS.md and the skills under .agents/skills");
     expect(html).toContain("Choose a repository or pack to see which of these paths");
     expect(html).not.toContain("<dl");
     expect(html).not.toContain("loaded at the start of every session");

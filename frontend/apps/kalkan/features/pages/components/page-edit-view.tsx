@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { AlertTriangle, ArrowLeft, RefreshCw } from "lucide-react";
+import { AlertTriangle, RefreshCw } from "lucide-react";
 import { Link, useRouter } from "@oba/shared/libs/i18n/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@oba/ui/sky/alert";
 import { Button } from "@oba/ui/sky/button";
-import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
-import { ActionEmptyState, PageHeading } from "@/components/page-states";
+import { PageHeading, type PageHeadingBack } from "@oba/ui/sky/page-heading";
+import { EmptyState, LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { pageHref } from "@/lib/routes";
 import { usePage, useUpdatePage } from "../hooks/use-pages";
 import { pageErrorText } from "../lib/page-error";
@@ -51,14 +51,7 @@ export function PageEditView({ pageId }: { pageId: string }) {
   const initialValues = useMemo(() => (base ? pageFormValuesFromDetail(base) : null), [base]);
   const requiredLocales = useMemo(() => (base ? storedLocales(base) : []), [base]);
 
-  const back = (
-    <Button asChild variant="ghost" size="sm" className="w-fit">
-      <Link href={pageHref(pageId)}>
-        <ArrowLeft aria-hidden="true" />
-        {t("backToPage")}
-      </Link>
-    </Button>
-  );
+  const back: PageHeadingBack = { href: pageHref(pageId), label: t("backToPage") };
 
   if (base === null || initialValues === null) {
     if (page.isError) {
@@ -74,19 +67,26 @@ export function PageEditView({ pageId }: { pageId: string }) {
     return <TableLoading label={tPages("view.loading")} />;
   }
 
+  const title =
+    base.translations.find((translation) => translation.locale === contentLocaleOf(locale))
+      ?.title ??
+    base.translations[0]?.title ??
+    base.slug;
+
+  const heading = (
+    <PageHeading
+      title={t("editTitle", { title })}
+      description={base.path}
+      back={back}
+      linkComponent={Link}
+    />
+  );
+
   if (!isLevelAtLeast(base.level, KalkanLevel.EDIT)) {
     return (
       <div className="flex flex-col gap-6">
-        {back}
-        <ActionEmptyState
-          title={t("readOnly.title")}
-          description={t("readOnly.description")}
-          action={
-            <Button asChild variant="outline">
-              <Link href={pageHref(pageId)}>{t("backToPage")}</Link>
-            </Button>
-          }
-        />
+        {heading}
+        <EmptyState title={t("readOnly.title")} description={t("readOnly.description")} />
       </div>
     );
   }
@@ -110,16 +110,9 @@ export function PageEditView({ pageId }: { pageId: string }) {
     }
   };
 
-  const title =
-    base.translations.find((translation) => translation.locale === contentLocaleOf(locale))
-      ?.title ??
-    base.translations[0]?.title ??
-    base.slug;
-
   return (
     <div className="flex flex-col gap-6">
-      {back}
-      <PageHeading title={t("editTitle", { title })} description={base.path} />
+      {heading}
       <PageForm
         mode="edit"
         initialValues={initialValues}

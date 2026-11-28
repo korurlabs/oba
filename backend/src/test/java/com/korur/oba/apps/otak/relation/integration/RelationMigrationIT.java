@@ -140,12 +140,12 @@ class RelationMigrationIT extends AbstractTenantIT {
         UUID organizationId = tenantA.organization().getId();
 
         RelationQueryRequest onlyClosed = new RelationQueryRequest();
-        onlyClosed.setType(RelationType.CUSTOMER);
+        onlyClosed.setType(List.of(RelationType.CUSTOMER));
         onlyClosed.setStage(List.of(PipelineStage.CLOSED));
         RelationQueryRequest allCustomers = new RelationQueryRequest();
-        allCustomers.setType(RelationType.CUSTOMER);
+        allCustomers.setType(List.of(RelationType.CUSTOMER));
         RelationQueryRequest customersAtLeadStage = new RelationQueryRequest();
-        customersAtLeadStage.setType(RelationType.CUSTOMER);
+        customersAtLeadStage.setType(List.of(RelationType.CUSTOMER));
         customersAtLeadStage.setStage(List.of(PipelineStage.WARM));
 
         assertEquals(List.of(closed.getId()), ids(RelationSpecification.filterBy(organizationId, onlyClosed)));

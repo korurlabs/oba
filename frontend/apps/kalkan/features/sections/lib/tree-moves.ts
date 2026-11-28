@@ -1,5 +1,5 @@
 import { childrenOf } from "@/features/pages/lib/page-tree";
-import type { PageListItem, PageTrashItem } from "@/features/pages/schemas";
+import type { PageListItem } from "@/features/pages/schemas";
 
 /**
  * The step between the positions a reorder hands out. The server stores a
@@ -160,17 +160,4 @@ export function dropTargetOf(
   const draggedIndex = current.indexOf(draggedId);
   if (draggedIndex >= 0 && current[draggedIndex + 1] === onto.id) return null;
   return { parentId: onto.parentId, index };
-}
-
-/**
- * The deleted pages of a section: the trash entries whose path is the
- * section's root or lies below it. Paths start with the root's slug, which
- * the server compares without regard to case.
- */
-export function deletedPagesOf(trash: readonly PageTrashItem[], rootSlug: string): PageTrashItem[] {
-  const root = rootSlug.toLowerCase();
-  return trash.filter((item) => {
-    const path = item.path.toLowerCase();
-    return path === root || path.startsWith(`${root}/`);
-  });
 }

@@ -110,7 +110,7 @@ public class OutreachQueryServiceImpl implements OutreachQueryService {
      * Called by {@link com.korur.oba.apps.otak.outreach.controller.OutreachController#listOutreaches}.
      *
      * @param organizationId the organization that owns the outreaches
-     * @param request        the one-based page, the page size and the optional relation and status filters
+     * @param request        the one-based page, the page size and the optional filters of {@link OutreachQueryRequest}
      * @return the page of outreaches, newest first
      * @throws com.korur.oba.dojo.exception.internal.business.NotFoundException
      *         {@link com.korur.oba.apps.otak.exception.ExceptionDomainOtakError#NOT_RELATION_FOUND} if the

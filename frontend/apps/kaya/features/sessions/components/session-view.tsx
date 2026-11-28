@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
-import { AlertTriangle, ArrowLeft, GitPullRequest, Plus, Ticket, Trash2, X } from "lucide-react";
+import { AlertTriangle, GitPullRequest, Plus, Ticket, Trash2, X } from "lucide-react";
 
 import { StateBadge } from "@/components/common";
 import { Badge } from "@oba/ui/sky/badge";
 import { Button } from "@oba/ui/sky/button";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@oba/ui/sky/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Field, Input, NativeSelect } from "@oba/ui/sky/field";
@@ -327,35 +328,33 @@ function SessionPage({
   return (
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-3">
-        <div className="flex items-center justify-between gap-2">
-          <Link
-            href="/"
-            className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1.5 text-sm"
-          >
-            <ArrowLeft className="size-4" aria-hidden />
-            Sessions
-          </Link>
-          <DeleteSession detail={detail} />
-        </div>
-        <div className="flex flex-wrap items-center gap-1.5">
-          {detail.repositoryName && <Badge variant="secondary">{detail.repositoryName}</Badge>}
-          {detail.branch && (
-            <Badge variant="outline" className="font-mono font-normal">
-              {detail.branch}
-            </Badge>
-          )}
-          <StateBadge state={sessionState(detail)} />
-          <ConfigReleaseBadge detail={detail} />
-        </div>
-        <h1 className="break-words">
-          {sessionTitle({ title: detail.title ?? detail.sessionTitle })}
-        </h1>
-        {detail.identityConflictUserDisplayName && (
-          <p className="text-warning-text flex items-start gap-2 text-sm" role="status">
-            <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
-            <span>Identity of {detail.identityConflictUserDisplayName}</span>
-          </p>
-        )}
+        <PageHeading
+          title={sessionTitle({ title: detail.title ?? detail.sessionTitle })}
+          back={{ href: "/", label: "Sessions" }}
+          actions={<DeleteSession detail={detail} />}
+          description={
+            <div className="mt-1 flex flex-col gap-2">
+              <div className="flex flex-wrap items-center gap-1.5">
+                {detail.repositoryName && (
+                  <Badge variant="secondary">{detail.repositoryName}</Badge>
+                )}
+                {detail.branch && (
+                  <Badge variant="outline" className="font-mono font-normal">
+                    {detail.branch}
+                  </Badge>
+                )}
+                <StateBadge state={sessionState(detail)} />
+                <ConfigReleaseBadge detail={detail} />
+              </div>
+              {detail.identityConflictUserDisplayName && (
+                <p className="text-warning-text flex items-start gap-2 text-sm" role="status">
+                  <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
+                  <span>Identity of {detail.identityConflictUserDisplayName}</span>
+                </p>
+              )}
+            </div>
+          }
+        />
         <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm sm:grid-cols-3 lg:grid-cols-5">
           {facts(detail).map((fact) => (
             <div key={fact.label} className="flex min-w-0 flex-col">

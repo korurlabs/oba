@@ -46,24 +46,10 @@
     "reloadError": "Liste yenilenemedi; güncel olmayabilir.",
     "emptyFiltered": "Bu filtrelere uyan ilişki yok.",
     "emptyFilteredHint": "Aramayı veya filtreleri değiştirin ya da tüm listeyi görmek için temizleyin.",
-    "emptyByTab": {
-      "leads": "Henüz açık potansiyel müşteri yok.",
-      "customers": "Henüz müşteri yok.",
-      "suppliers": "Henüz tedarikçi yok."
-    },
-    "emptyHintByTab": {
-      "leads": "Kazanmak istediğiniz bir şirketi ekleyin ve ilk temastan teklife kadar takip edin.",
-      "customers": "Satış yaptığınız bir şirketi ekleyin veya kazanılan bir potansiyel müşteriyi müşteri olarak işaretleyin.",
-      "suppliers": "Kuruluşunuzun satın aldığı bir şirketi ekleyin."
-    },
+    "empty": "Henüz ilişki yok.",
+    "emptyHint": "Organizasyonunuzun satış yaptığı, satın aldığı veya kazanmak istediği bir şirket ekleyin.",
     "noOwner": "Sahibi yok",
     "noValue": "Beklenen değer yok",
-    "tabs": {
-      "leads": "Potansiyel müşteriler",
-      "customers": "Müşteriler",
-      "suppliers": "Tedarikçiler"
-    },
-    "tabsLabel": "İlişki türü",
     "types": {
       "LEAD": "Potansiyel müşteri",
       "SUPPLIER": "Tedarikçi",
@@ -112,20 +98,16 @@
       "companyMail": "Şirket e-postası"
     },
     "filters": {
+      "searchLabel": "İlişkilerde ara",
       "searchPlaceholder": "Ada göre ara",
-      "stagePlaceholder": "Açık aşamalar",
-      "stagePlaceholderCustomers": "Her aşama",
-      "ownerPlaceholder": "Herhangi bir sahip",
       "clear": "Filtreleri temizle",
       "ownersLoadError": "Sahipler yüklenemedi.",
-      "searchLabel": "Ara",
+      "typeLabel": "Tür",
       "stageLabel": "Aşama",
       "ownerLabel": "Sahip",
       "eventLabel": "Etkinlik",
-      "eventPlaceholder": "Herhangi bir etkinlik",
       "eventsLoadError": "Etkinlikler yüklenemedi.",
       "campaignLabel": "Kampanya",
-      "campaignPlaceholder": "Tüm kampanyalar",
       "campaignsLoadError": "Kampanyalar yüklenemedi."
     },
     "form": {
@@ -200,11 +182,6 @@
     "detail": {
       "title": "İlişki",
       "back": "İlişkilere dön",
-      "backTo": {
-        "leads": "Potansiyel müşterilere dön",
-        "customers": "Müşterilere dön",
-        "suppliers": "Tedarikçilere dön"
-      },
       "details": "Ayrıntılar",
       "timestamps": "Oluşturuldu {created} · Güncellendi {updated}",
       "loading": "İlişki yükleniyor",
@@ -435,7 +412,7 @@
       "actions": "İşlemler"
     },
     "filters": {
-      "searchLabel": "Ara",
+      "searchLabel": "ICP'lerde ara",
       "searchPlaceholder": "Ada göre ara",
       "clear": "Aramayı temizle"
     },
@@ -574,18 +551,15 @@
       "snapshotCount": "Gönderilen kopyalar"
     },
     "filters": {
-      "searchLabel": "Ara",
+      "searchLabel": "Belgelerde ara",
       "searchPlaceholder": "Başlığa göre ara",
       "relationLabel": "İlişki",
-      "relationAll": "Tüm ilişkiler",
       "legalEntityLabel": "Tüzel kişi",
-      "legalEntityAll": "Tüm tüzel kişiler",
       "legalEntityUnknown": "Seçili tüzel kişi",
       "typeLabel": "Tür",
-      "typeAll": "Tüm türler",
       "languageLabel": "Dil",
-      "languageAll": "Tüm diller",
-      "clear": "Filtreleri temizle"
+      "clear": "Filtreleri temizle",
+      "legalEntitiesLoadError": "Tüzel kişiler yüklenemedi."
     },
     "pagination": {
       "label": "Sayfalar",
@@ -751,16 +725,14 @@
       "actions": "İşlemler"
     },
     "filters": {
-      "searchLabel": "Ara",
+      "searchLabel": "Belge şablonlarında ara",
       "searchPlaceholder": "Ada göre ara",
       "typeLabel": "Tür",
-      "typeAll": "Tüm türler",
       "languageLabel": "Dil",
-      "languageAll": "Tüm diller",
       "legalEntityLabel": "Tüzel kişi",
-      "legalEntityAll": "Tüm tüzel kişiler",
       "legalEntityUnknown": "Seçili tüzel kişi",
-      "clear": "Filtreleri temizle"
+      "clear": "Filtreleri temizle",
+      "legalEntitiesLoadError": "Tüzel kişiler yüklenemedi."
     },
     "pagination": {
       "label": "Sayfalar",
@@ -816,10 +788,18 @@
     },
     "legalEntityAll": "Tümü"
   },
+  "mailPage": {
+    "title": "Posta",
+    "subtitle": "E-posta şablonları ve erişim e-postalarının gönderildiği posta kutuları.",
+    "tabsLabel": "Posta",
+    "tabs": {
+      "templates": "Şablonlar",
+      "senders": "Gönderenler"
+    }
+  },
   "mailTemplates": {
-    "title": "E-posta şablonları",
     "subtitle": "Her e-posta erişiminin başlayabileceği onaylı e-postalar.",
-    "new": "Yeni e-posta şablonu",
+    "new": "Yeni şablon",
     "newTitle": "Yeni e-posta şablonu",
     "editTitle": "E-posta şablonunu düzenle",
     "dialogDescription": "Bir konu ve düz bir metin. Erişim onu kopyalar; sonraki değişiklikler hazırlanmış e-postaları değiştirmez.",
@@ -849,10 +829,9 @@
       "actions": "İşlemler"
     },
     "filters": {
-      "searchLabel": "Ara",
+      "searchLabel": "E-posta şablonlarında ara",
       "searchPlaceholder": "Ada göre ara",
       "languageLabel": "Dil",
-      "languageAll": "Tüm diller",
       "clear": "Filtreleri temizle"
     },
     "pagination": {
@@ -900,11 +879,6 @@
   "outreaches": {
     "title": "Erişimler",
     "subtitle": "Müşteri adaylarının kişilerine e-posta, WhatsApp veya arama ile yapılan her erişim: ne hazırlandı, ne gönderildi veya yapıldı ve hangi posta kutusundan.",
-    "tabsLabel": "Erişim bölümleri",
-    "tabs": {
-      "outreaches": "Erişimler",
-      "senders": "Gönderenler"
-    },
     "cardTitle": "Erişimler",
     "cardEmpty": "Henüz erişim yok. Hazırlamak için potansiyel müşteride Ulaş düğmesini kullan.",
     "cardEmptyMember": "Henüz erişim yok. Kuruluşun bir yöneticisi hazırlar.",
@@ -918,12 +892,10 @@
     "loading": "Erişimler yükleniyor",
     "loadingOne": "Erişim yükleniyor",
     "empty": "Henüz erişim yok",
-    "emptyHint": "Bir müşteri adayını aç ve kişilerinden birine e-posta, WhatsApp mesajı veya arama hazırlamak için Erişim'i kullan.",
+    "emptyHint": "Bir potansiyel müşterinin kişisine e-posta, WhatsApp mesajı veya arama hazırlamak için Ulaş'ı kullan.",
     "emptyHintMember": "Erişimleri potansiyel müşterilerde kuruluşun bir yöneticisi hazırlar.",
-    "emptyFiltered": "Bu durumda erişim yok",
-    "emptyFilteredHint": "Başka bir durum seç veya filtreyi temizle.",
-    "goToLeads": "İlişkilere git",
-    "mailTemplates": "E-posta şablonları",
+    "emptyFiltered": "Bu filtrelere uyan erişim yok",
+    "emptyFilteredHint": "Başka bir arama veya filtre dene ya da filtreleri temizle.",
     "tableLabel": "Erişimler",
     "view": "{title} görüntüle",
     "edit": "{title} düzenle",
@@ -961,11 +933,14 @@
       "sentTo": "Gönderildiği adres"
     },
     "filters": {
+      "searchLabel": "Erişimlerde ara",
+      "searchPlaceholder": "Erişimlerde ara",
+      "channelLabel": "Kanal",
       "statusLabel": "Durum",
-      "statusAll": "Tüm durumlar",
-      "clear": "Filtreyi temizle",
+      "senderLabel": "Gönderen",
+      "sendersLoadError": "Gönderenler yüklenemedi.",
+      "clear": "Filtreleri temizle",
       "campaignLabel": "Kampanya",
-      "campaignAll": "Tüm kampanyalar",
       "campaignsLoadError": "Kampanyalar yüklenemedi."
     },
     "pagination": {
@@ -1042,7 +1017,7 @@
       "descriptionNoContact": "Bu erişimin kişisi silindi. Önce erişimi düzenleyip başka bir kişi seç.",
       "previouslyFailed": "Bu erişimi göndermenin son denemesi başarısız oldu. Tekrar gönderebilirsin.",
       "noSendersTitle": "Henüz gönderen yok",
-      "noSendersHint": "E-posta kuruluşun bir posta kutusundan gider. Bir yönetici Gönderenler sekmesinden ekler.",
+      "noSendersHint": "E-posta kuruluşun bir posta kutusundan gider. Bir yönetici Mail altında, Gönderenler sekmesinden ekler.",
       "goToSenders": "Gönderenlere git",
       "senderLegend": "Gönderen",
       "failedTitle": "E-posta gönderilmedi",
@@ -1065,7 +1040,7 @@
       },
       "contactLegend": "E-postayı hangi kişi alacak?",
       "noContactsTitle": "İş e-posta adresi olan kişi yok",
-      "noContactsHint": "Bir e-posta için şirket veya paylaşılan e-posta adresi olan bir kişi gerekir. Bu sayfadaki Kişiler kartında bir kişi ekle ya da bir kişiye adres ekle.",
+      "noContactsHint": "Bir e-posta için şirket veya paylaşılan e-posta adresi olan bir kişi gerekir. Potansiyel müşterinin Kişiler kartında bir kişi ekle ya da bir kişiye adres ekle.",
       "goToContacts": "Kişilere git",
       "mailLegend": "Bir e-posta şablonuyla başla veya e-postayı kendin yaz",
       "templateSearchPlaceholder": "E-posta şablonlarını ada göre ara",
@@ -1093,7 +1068,13 @@
       },
       "phoneContactLegend": "Hangi kişiye erişiyorsun?",
       "noPhoneContactsTitle": "Telefon numarası olan kişi yok",
-      "noPhoneContactsHint": "WhatsApp mesajı veya arama için telefon numarası olan bir kişi gerekir. Bu sayfadaki Kişiler kartında bir numara ekle."
+      "noPhoneContactsHint": "WhatsApp mesajı veya arama için telefon numarası olan bir kişi gerekir. Potansiyel müşterinin Kişiler kartında bir numara ekle.",
+      "leadTitle": "Potansiyel müşteri seç",
+      "leadDescription": "Ulaşacağın potansiyel müşteri. Ardından kanalı ve kişilerinden birini seçersin.",
+      "leadLabel": "Potansiyel müşteri",
+      "leadPlaceholder": "Potansiyel müşteri seç",
+      "leadSearchPlaceholder": "Potansiyel müşterileri ada göre ara",
+      "cancel": "İptal"
     },
     "complete": "{title} yapıldı olarak işaretle",
     "completeTitle": "Yapıldı olarak işaretle",
@@ -1160,6 +1141,8 @@
     "empty": "Henüz gönderen yok",
     "emptyHint": "Erişim e-postalarını göndermek için organizasyonunuzun Microsoft 365 kiracısından bir posta kutusu ekleyin.",
     "emptyHintMember": "Gönderenleri organizasyonun bir yöneticisi ekler.",
+    "emptyFiltered": "Bu aramaya uyan gönderen yok",
+    "emptyFilteredHint": "Başka bir e-posta adresi dene ya da aramayı temizle.",
     "tableLabel": "Gönderenler",
     "delete": "{mailAddress} sil",
     "deleteTitle": "Göndereni sil",
@@ -1205,6 +1188,11 @@
       "forbidden": "Bunu yapma yetkiniz yok.",
       "validation": "İşaretli alanları kontrol edin.",
       "loadHint": "Bağlantınızı kontrol edip tekrar deneyin."
+    },
+    "filters": {
+      "searchLabel": "E-posta gönderenlerinde ara",
+      "searchPlaceholder": "E-posta adresine göre ara",
+      "clear": "Aramayı temizle"
     }
   },
   "events": {
@@ -1230,8 +1218,7 @@
       "past": "Etkinlikler bittikleri günün ertesinde buraya taşınır."
     },
     "tableLabel": "Etkinlikler",
-    "tabsLabel": "Dönem",
-    "tabs": {
+    "periods": {
       "upcoming": "Yaklaşan",
       "past": "Geçmiş"
     },
@@ -1258,7 +1245,8 @@
       "actions": "İşlemler"
     },
     "filters": {
-      "searchLabel": "Ara",
+      "period": "Dönem",
+      "searchLabel": "Etkinliklerde ara",
       "searchPlaceholder": "Ada göre ara",
       "clear": "Aramayı temizle"
     },
@@ -1389,7 +1377,7 @@
       "contentCount": "İçerikler"
     },
     "filters": {
-      "searchLabel": "Ara",
+      "searchLabel": "Kampanyalarda ara",
       "searchPlaceholder": "Ada göre ara",
       "clear": "Filtreleri temizle"
     },
@@ -1552,5 +1540,16 @@
         "publishedAtInFuture": "Yayınlanma tarihi gelecekte olamaz; bunun yerine içeriği planlayın"
       }
     }
+  },
+  "filterPopover": {
+    "trigger": "Filtrele",
+    "chooseCategory": "Başlamak için bir filtre alanı seçin",
+    "searchOptions": "Ara...",
+    "noOptions": "Seçenek yok",
+    "loading": "Yükleniyor",
+    "clear": "Tümünü temizle"
+  },
+  "searchInput": {
+    "clear": "Aramayı temizle"
   }
 }

@@ -1,9 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import type { PageListItem, PageTrashItem } from "@/features/pages/schemas";
+import type { PageListItem } from "@/features/pages/schemas";
 import {
   ancestorsOf,
   buildNodes,
-  deletedPagesOf,
   descendantCountOf,
   dropTargetOf,
   moveTargetOf,
@@ -119,26 +118,5 @@ describe("move plan", () => {
     expect(steps.at(-1)).toEqual({ pageId: "z", parentId: "root", position: POSITION_GAP });
     expect(steps).toContainEqual({ pageId: "x", parentId: "root", position: 0 });
     expect(steps).toContainEqual({ pageId: "y", parentId: "root", position: 2 * POSITION_GAP });
-  });
-});
-
-describe("deleted pages of a section", () => {
-  const trashItem = (id: string, path: string): PageTrashItem => ({
-    id,
-    title: id,
-    path,
-    deletedAt: "2026-11-20T10:00:00Z",
-    deletedByName: null,
-    descendantCount: 0,
-  });
-
-  test("keeps the trash entries at or below the section's root, without regard to case", () => {
-    const trash = [
-      trashItem("1", "policies"),
-      trashItem("2", "Policies/access"),
-      trashItem("3", "policies-old/x"),
-      trashItem("4", "risks/r1"),
-    ];
-    expect(deletedPagesOf(trash, "policies").map((item) => item.id)).toEqual(["1", "2"]);
   });
 });

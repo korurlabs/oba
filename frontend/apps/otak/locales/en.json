@@ -46,24 +46,10 @@
     "reloadError": "The list could not be refreshed; it may be out of date.",
     "emptyFiltered": "No relation matches these filters.",
     "emptyFilteredHint": "Change the search or the filters, or clear them to see the whole list.",
-    "emptyByTab": {
-      "leads": "No open leads yet.",
-      "customers": "No customers yet.",
-      "suppliers": "No suppliers yet."
-    },
-    "emptyHintByTab": {
-      "leads": "Add a company you want to win, and follow it from first contact to proposal.",
-      "customers": "Add a company you sell to, or mark a won lead as a customer.",
-      "suppliers": "Add a company your organization buys from."
-    },
+    "empty": "No relations yet.",
+    "emptyHint": "Add a company your organization sells to, buys from or wants to win.",
     "noOwner": "No owner",
     "noValue": "No expected value",
-    "tabs": {
-      "leads": "Leads",
-      "customers": "Customers",
-      "suppliers": "Suppliers"
-    },
-    "tabsLabel": "Relation type",
     "types": {
       "LEAD": "Lead",
       "SUPPLIER": "Supplier",
@@ -112,20 +98,16 @@
       "companyMail": "Company mail"
     },
     "filters": {
+      "searchLabel": "Search relations",
       "searchPlaceholder": "Search by name",
-      "stagePlaceholder": "Open stages",
-      "stagePlaceholderCustomers": "Every stage",
-      "ownerPlaceholder": "Any owner",
       "clear": "Clear filters",
       "ownersLoadError": "The owners could not be loaded.",
-      "searchLabel": "Search",
+      "typeLabel": "Type",
       "stageLabel": "Stage",
       "ownerLabel": "Owner",
       "eventLabel": "Event",
-      "eventPlaceholder": "Any event",
       "eventsLoadError": "The events could not be loaded.",
       "campaignLabel": "Campaign",
-      "campaignPlaceholder": "Any campaign",
       "campaignsLoadError": "The campaigns could not be loaded."
     },
     "form": {
@@ -200,11 +182,6 @@
     "detail": {
       "title": "Relation",
       "back": "Back to relations",
-      "backTo": {
-        "leads": "Back to leads",
-        "customers": "Back to customers",
-        "suppliers": "Back to suppliers"
-      },
       "details": "Details",
       "timestamps": "Created {created} · Updated {updated}",
       "loading": "Loading the relation",
@@ -435,7 +412,7 @@
       "actions": "Actions"
     },
     "filters": {
-      "searchLabel": "Search",
+      "searchLabel": "Search ICPs",
       "searchPlaceholder": "Search by name",
       "clear": "Clear search"
     },
@@ -574,18 +551,15 @@
       "snapshotCount": "Sent copies"
     },
     "filters": {
-      "searchLabel": "Search",
+      "searchLabel": "Search documents",
       "searchPlaceholder": "Search by title",
       "relationLabel": "Relation",
-      "relationAll": "All relations",
       "legalEntityLabel": "Legal entity",
-      "legalEntityAll": "All legal entities",
       "legalEntityUnknown": "Selected legal entity",
       "typeLabel": "Type",
-      "typeAll": "All types",
       "languageLabel": "Language",
-      "languageAll": "All languages",
-      "clear": "Clear filters"
+      "clear": "Clear filters",
+      "legalEntitiesLoadError": "The legal entities could not be loaded."
     },
     "pagination": {
       "label": "Pages",
@@ -751,16 +725,14 @@
       "actions": "Actions"
     },
     "filters": {
-      "searchLabel": "Search",
+      "searchLabel": "Search document templates",
       "searchPlaceholder": "Search by name",
       "typeLabel": "Type",
-      "typeAll": "All types",
       "languageLabel": "Language",
-      "languageAll": "All languages",
       "legalEntityLabel": "Legal entity",
-      "legalEntityAll": "All legal entities",
       "legalEntityUnknown": "Selected legal entity",
-      "clear": "Clear filters"
+      "clear": "Clear filters",
+      "legalEntitiesLoadError": "The legal entities could not be loaded."
     },
     "pagination": {
       "label": "Pages",
@@ -816,10 +788,18 @@
     },
     "legalEntityAll": "All"
   },
+  "mailPage": {
+    "title": "Mail",
+    "subtitle": "The mail templates and the mailboxes your outreach mail is sent from.",
+    "tabsLabel": "Mail",
+    "tabs": {
+      "templates": "Templates",
+      "senders": "Senders"
+    }
+  },
   "mailTemplates": {
-    "title": "Mail templates",
     "subtitle": "Approved mails every mail outreach can start from.",
-    "new": "New mail template",
+    "new": "New template",
     "newTitle": "New mail template",
     "editTitle": "Edit mail template",
     "dialogDescription": "A subject and a plain text. An outreach copies it, so later changes do not change mails already prepared.",
@@ -849,10 +829,9 @@
       "actions": "Actions"
     },
     "filters": {
-      "searchLabel": "Search",
+      "searchLabel": "Search mail templates",
       "searchPlaceholder": "Search by name",
       "languageLabel": "Language",
-      "languageAll": "All languages",
       "clear": "Clear filters"
     },
     "pagination": {
@@ -900,11 +879,6 @@
   "outreaches": {
     "title": "Outreaches",
     "subtitle": "Every reach-out to the contacts of leads, by mail, WhatsApp or call: what was prepared, what was sent or done, and from which mailbox.",
-    "tabsLabel": "Outreach sections",
-    "tabs": {
-      "outreaches": "Outreaches",
-      "senders": "Senders"
-    },
     "cardTitle": "Outreaches",
     "cardEmpty": "No outreaches yet. Use Reach out on a lead to prepare one.",
     "cardEmptyMember": "No outreaches yet. An admin of the organization prepares them.",
@@ -918,12 +892,10 @@
     "loading": "Loading the outreaches",
     "loadingOne": "Loading the outreach",
     "empty": "No outreaches yet",
-    "emptyHint": "Open a lead and use Reach out to prepare a mail, a WhatsApp message or a call to one of its contacts.",
+    "emptyHint": "Use Reach out to prepare a mail, a WhatsApp message or a call to a contact of a lead.",
     "emptyHintMember": "An admin of the organization prepares the outreaches on the leads.",
-    "emptyFiltered": "No outreaches with this status",
-    "emptyFilteredHint": "Choose another status, or clear the filter.",
-    "goToLeads": "Go to relations",
-    "mailTemplates": "Mail templates",
+    "emptyFiltered": "No outreaches match these filters",
+    "emptyFilteredHint": "Try another search or filter, or clear the filters.",
     "tableLabel": "Outreaches",
     "view": "View {title}",
     "edit": "Edit {title}",
@@ -961,11 +933,14 @@
       "sentTo": "Sent to"
     },
     "filters": {
+      "searchLabel": "Search outreaches",
+      "searchPlaceholder": "Search outreaches",
+      "channelLabel": "Channel",
       "statusLabel": "Status",
-      "statusAll": "All statuses",
-      "clear": "Clear filter",
+      "senderLabel": "Sender",
+      "sendersLoadError": "The senders could not be loaded.",
+      "clear": "Clear filters",
       "campaignLabel": "Campaign",
-      "campaignAll": "All campaigns",
       "campaignsLoadError": "The campaigns could not be loaded."
     },
     "pagination": {
@@ -1042,7 +1017,7 @@
       "descriptionNoContact": "The contact of this outreach was deleted. Edit the outreach and choose another contact first.",
       "previouslyFailed": "The last attempt to send this outreach failed. You can send it again.",
       "noSendersTitle": "No senders yet",
-      "noSendersHint": "Mail goes out from a mailbox of the organization. An admin adds one on the Senders tab.",
+      "noSendersHint": "Mail goes out from a mailbox of the organization. An admin adds one under Mail, on the Senders tab.",
       "goToSenders": "Go to Senders",
       "senderLegend": "Send from",
       "failedTitle": "The mail was not sent",
@@ -1065,7 +1040,7 @@
       },
       "contactLegend": "Which contact gets the mail?",
       "noContactsTitle": "No contact with a business email address",
-      "noContactsHint": "A mail needs a contact with a company or shared email address. Add one, or add an address to a contact, in the Contacts card on this page.",
+      "noContactsHint": "A mail needs a contact with a company or shared email address. Add one, or add an address to a contact, in the lead's Contacts card.",
       "goToContacts": "Go to Contacts",
       "mailLegend": "Start from a mail template or write the mail yourself",
       "templateSearchPlaceholder": "Search mail templates by name",
@@ -1093,7 +1068,13 @@
       },
       "phoneContactLegend": "Which contact do you reach?",
       "noPhoneContactsTitle": "No contact with a phone number",
-      "noPhoneContactsHint": "A WhatsApp message or a call needs a contact with a phone number. Add one in the Contacts card on this page."
+      "noPhoneContactsHint": "A WhatsApp message or a call needs a contact with a phone number. Add one in the lead's Contacts card.",
+      "leadTitle": "Choose a lead",
+      "leadDescription": "The lead to reach out to. Next you choose the channel and one of its contacts.",
+      "leadLabel": "Lead",
+      "leadPlaceholder": "Choose a lead",
+      "leadSearchPlaceholder": "Search leads by name",
+      "cancel": "Cancel"
     },
     "complete": "Mark {title} as done",
     "completeTitle": "Mark as done",
@@ -1160,6 +1141,8 @@
     "empty": "No senders yet",
     "emptyHint": "Add a mailbox of your organization's Microsoft 365 tenant to send outreach mail from.",
     "emptyHintMember": "An admin of the organization adds the senders.",
+    "emptyFiltered": "No senders match this search",
+    "emptyFilteredHint": "Try another mail address, or clear the search.",
     "tableLabel": "Senders",
     "delete": "Delete {mailAddress}",
     "deleteTitle": "Delete sender",
@@ -1205,6 +1188,11 @@
       "forbidden": "You do not have permission to do this.",
       "validation": "Check the highlighted fields.",
       "loadHint": "Check your connection and try again."
+    },
+    "filters": {
+      "searchLabel": "Search mail senders",
+      "searchPlaceholder": "Search by mail address",
+      "clear": "Clear search"
     }
   },
   "events": {
@@ -1230,8 +1218,7 @@
       "past": "Events move here the day after they end."
     },
     "tableLabel": "Events",
-    "tabsLabel": "Period",
-    "tabs": {
+    "periods": {
       "upcoming": "Upcoming",
       "past": "Past"
     },
@@ -1258,7 +1245,8 @@
       "actions": "Actions"
     },
     "filters": {
-      "searchLabel": "Search",
+      "period": "Period",
+      "searchLabel": "Search events",
       "searchPlaceholder": "Search by name",
       "clear": "Clear search"
     },
@@ -1389,7 +1377,7 @@
       "contentCount": "Contents"
     },
     "filters": {
-      "searchLabel": "Search",
+      "searchLabel": "Search campaigns",
       "searchPlaceholder": "Search by name",
       "clear": "Clear filters"
     },
@@ -1552,5 +1540,16 @@
         "publishedAtInFuture": "The published date cannot be in the future; schedule the content instead"
       }
     }
+  },
+  "filterPopover": {
+    "trigger": "Filter",
+    "chooseCategory": "Select a filter field to start",
+    "searchOptions": "Search...",
+    "noOptions": "No options",
+    "loading": "Loading",
+    "clear": "Clear all"
+  },
+  "searchInput": {
+    "clear": "Clear search"
   }
 }

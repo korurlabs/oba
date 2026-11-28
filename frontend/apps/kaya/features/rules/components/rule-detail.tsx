@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { ViewToggle } from "@/features/editor/components/view-toggle";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { useEditorParams, type EditorView } from "@/features/editor/hooks/use-editor-params";
 import { ScopePage, type ReadyScope } from "@/features/scope/components";
 import { mountRefOf } from "@/features/scope/components/mount-paths";
@@ -14,7 +15,15 @@ import { FileEditor } from "@/features/versions/components/file-editor";
 import { useEditSource, type SubmittedChange } from "@/features/versions/hooks/use-change-write";
 
 import { useRuleTabKind } from "../hooks/use-rule-kinds";
-import { BackLink, DetailNav, FileDetail, useCurrentQuery, type Neighbour } from "./file-detail";
+import {
+  BackLink,
+  FileDetail,
+  FilePageHeading,
+  GuardedLink,
+  useCurrentQuery,
+  type FileHeadingParts,
+  type Neighbour,
+} from "./file-detail";
 import { rulesSection, type RuleSection } from "./rule-links";
 import { ruleTabRows, tabVersionIds, type RuleTabRow } from "./rule-rows";
 
@@ -29,8 +38,8 @@ function neighbourOf(section: RuleSection, row: RuleTabRow | undefined): Neighbo
 }
 
 /**
- * One delivered file of a section: the back link and the arrows over the
- * file's header, read view and editor.
+ * One delivered file of a section: the page heading with its path, back
+ * link and arrows, over the read view and editor.
  */
 function RuleFile({
   section,
@@ -54,14 +63,14 @@ function RuleFile({
       file={file}
       ready={ready}
       summary={summary}
-      heading={<h1 className="min-w-0 font-mono text-base break-all">{file.path}</h1>}
-      nav={(editing: boolean) => (
-        <DetailNav
-          back={section.listHref}
-          backLabel={section.back}
+      heading={(parts: FileHeadingParts) => (
+        <FilePageHeading
+          title={file.path}
+          back={{ href: section.listHref(current), label: section.back }}
           previous={neighbourOf(section, rows[index - 1])}
           next={neighbourOf(section, rows[index + 1])}
-          showSteps={!editing && index !== -1}
+          showSteps={index !== -1}
+          parts={parts}
         />
       )}
       onRenamed={(path: string) => router.replace(section.savedHref(path, current))}
@@ -99,8 +108,11 @@ function NewRuleFile({ section, ready }: { section: RuleSection; ready: ReadySco
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      <BackLink to={section.listHref} label={section.back} />
-      <h1>{section.newTitle}</h1>
+      <PageHeading
+        title={section.newTitle}
+        back={{ href: section.listHref(current), label: section.back }}
+        linkComponent={GuardedLink}
+      />
       {submitted !== null ? (
         <p className="text-sm">
           <SubmittedNotice submitted={submitted} />

@@ -3,13 +3,16 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { ViewToggle } from "@/features/editor/components/view-toggle";
 import { useEditorParams, type EditorView } from "@/features/editor/hooks/use-editor-params";
 import {
   BackLink,
-  DetailNav,
   FileDetail,
+  FilePageHeading,
+  GuardedLink,
   useCurrentQuery,
+  type FileHeadingParts,
   type Neighbour,
 } from "@/features/rules/components/file-detail";
 import { ScopePage, type ReadyScope } from "@/features/scope/components";
@@ -47,8 +50,8 @@ function neighbourOf(doc: ScopeFile | undefined): Neighbour | null {
 }
 
 /**
- * One delivered doc: the back link and the arrows over the doc's header,
- * read view and editor, its title as the description line.
+ * One delivered doc: the page heading with its path, back link and arrows,
+ * its title as the description line, over the read view and editor.
  */
 function ConventionDoc({
   file,
@@ -73,14 +76,14 @@ function ConventionDoc({
       ready={ready}
       summary={null}
       description={title}
-      heading={<h1 className="min-w-0 font-mono text-base break-all">{file.path}</h1>}
-      nav={(editing: boolean) => (
-        <DetailNav
-          back={backToFolder}
-          backLabel={BACK_LABEL}
+      heading={(parts: FileHeadingParts) => (
+        <FilePageHeading
+          title={file.path}
+          back={{ href: backToFolder(current), label: BACK_LABEL }}
           previous={neighbourOf(docs[index - 1])}
           next={neighbourOf(docs[index + 1])}
-          showSteps={!editing && index !== -1}
+          showSteps={index !== -1}
+          parts={parts}
         />
       )}
       onRenamed={(path: string) => router.replace(conventionDetailHref(path, current))}
@@ -123,8 +126,11 @@ function NewConventionDoc({ ready }: { ready: ReadyScope }) {
 
   return (
     <div className="flex min-w-0 flex-col gap-4">
-      <BackLink to={backToFolder} label={BACK_LABEL} />
-      <h1>New file</h1>
+      <PageHeading
+        title="New convention"
+        back={{ href: backToFolder(current), label: BACK_LABEL }}
+        linkComponent={GuardedLink}
+      />
       {submitted !== null ? (
         <p className="text-sm">
           <SubmittedNotice submitted={submitted} />

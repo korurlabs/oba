@@ -1,11 +1,6 @@
 import { STATUS_BADGES } from "@/features/changes/components/change-data";
-import { rowsOf, type PackRow } from "@/features/repositories/components/repository-pack-rows";
 import { packTree } from "@/features/scope/components/owners";
-import type {
-  Owner,
-  PackRepositoryResponse,
-  RepositoryPackEntryResponse,
-} from "@/features/scope/schemas";
+import type { Owner, PackRepositoryResponse } from "@/features/scope/schemas";
 import type { RepositoryResponse } from "@/features/sessions/schemas";
 import type { VersionResponse, VersionStatus } from "@/features/versions/schemas";
 import { describeError } from "@/lib/api/error-text";
@@ -24,31 +19,7 @@ export function shownPackId(requested: string | null, owners: readonly Owner[]):
 }
 
 /**
- * A repository's own pack list with `packId` added at the end, at the root
- * for an empty folder or mounted in `folder`. The required packs are left
- * out, as the repository packs dialog leaves them out of its save. A list
- * that already holds the pack is returned unchanged.
- */
-export function attachRows(
-  entries: readonly RepositoryPackEntryResponse[],
-  packId: string,
-  folder: string
-): PackRow[] {
-  const rows = rowsOf(entries);
-  if (rows.some((row: PackRow) => row.packId === packId)) return rows;
-  return [...rows, { key: `attach-${packId}`, packId, folder: folder.trim() }];
-}
-
-/** A repository's own pack list without `packId`; the other packs keep their order and folders. */
-export function removeRows(
-  entries: readonly RepositoryPackEntryResponse[],
-  packId: string
-): PackRow[] {
-  return rowsOf(entries).filter((row: PackRow) => row.packId !== packId);
-}
-
-/**
- * The repositories an owner may attach the pack to, by name: not archived,
+ * The repositories an owner may add the pack to, by name: not archived,
  * since an archived repository takes no changes, and not one that composes
  * the pack already.
  */

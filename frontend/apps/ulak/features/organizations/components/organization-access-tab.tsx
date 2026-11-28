@@ -16,8 +16,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@oba/ui/sky/dialog";
-import { EmptyState, TableLoading } from "@oba/ui/sky/page-states";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
+import { ListEmptyState, TableLoading } from "@oba/ui/sky/page-states";
+import { SearchInput } from "@oba/ui/sky/search-input";
+import { Tabs, TabsList, TabsTrigger } from "@oba/ui/sky/tabs";
 import { DataTable } from "@/components/data-table";
+import { useClearSearchLabel, useListEmptyLabels } from "@/components/list-labels";
 import { cn } from "@/lib/utils";
 import {
   GrantedAppSchema,
@@ -26,6 +30,14 @@ import {
 } from "@oba/shared/features/organizations/schemas";
 import { useAppGrants, useMemberAppAccess, useRevokeAppGrant } from "../hooks/use-app-access";
 import { useAppAccessColumns } from "../hooks/use-app-access-columns";
+import { useAccessFilterParams } from "../hooks/use-access-filter-params";
+import {
+  ACCESS_TABS,
+  filterGrants,
+  filterMemberAccess,
+  hasActiveAccessFilter,
+  isAccessTab,
+} from "../lib/access-filters";
 import { useAppName } from "./app-badges";
 import { GrantAppDialog } from "./grant-app-dialog";
 import { OrganizationLoadError } from "./organization-load-error";
@@ -35,57 +47,118 @@ interface AccessTabProps {
 }
 
 /**
- * App grants of the organization and the effective apps of each member.
- * Shown only to an OWNER or ADMIN, who are the only roles that can read
- * grants, so every control is editable here.
+ * The organization's app access in two tabs, with the tab and a search in
+ * the URL: the grants per app, searched by member or group, and the apps
+ * each member ends up with, searched by name. Both lists come whole from the
+ * API, so the search runs here. Shown only to an OWNER or ADMIN, who are the
+ * only roles that can read grants, so every control is editable here.
  */
 export function AccessTab({ organizationId }: AccessTabProps) {
   const t = useTranslations("organization");
   const [grantOpen, setGrantOpen] = useState(false);
+  const [filters, setFilters] = useAccessFilterParams();
+  const clearSearchLabel = useClearSearchLabel();
+  const isFiltered = hasActiveAccessFilter(filters);
+  const clearSearch = () => void setFilters({ search: null });
+
+  const tabs = (
+    <Tabs
+      value={filters.tab}
+      onValueChange={(value) => {
+        if (!isAccessTab(value)) return;
+        // The search belongs to the list that was open; the other tab starts afresh.
+        void setFilters({ tab: value, search: null });
+      }}
+    >
+      <TabsList aria-label={t("access.tabsLabel")}>
+        {ACCESS_TABS.map((tab) => (
+          <TabsTrigger key={tab} value={tab}>
+            {t(`access.tabs.${tab}`)}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </Tabs>
+  );
 
   return (
-    <section className="flex flex-col gap-8" aria-labelledby="organization-access-title">
-      <div className="flex min-h-9 flex-wrap items-center justify-between gap-3">
-        <div className="flex min-w-0 flex-col gap-1">
-          <h2 id="organization-access-title" className="text-xl">
-            {t("access.title")}
-          </h2>
-          <p className="text-muted-foreground text-sm">{t("access.description")}</p>
-        </div>
-        <Button size="sm" onClick={() => setGrantOpen(true)}>
-          <Plus aria-hidden="true" />
-          {t("access.grantAccess")}
-        </Button>
-      </div>
+    <div className="flex flex-col gap-4">
+      <ListToolbar
+        // A new key per tab drops the typed text and its pending search with the old tab.
+        search={
+          <SearchInput
+            key={filters.tab}
+            value={filters.search}
+            onSearchChange={(search) => void setFilters({ search: search ?? null })}
+            label={
+              filters.tab === "grants"
+                ? t("access.searchGrantsLabel")
+                : t("access.searchMembersLabel")
+            }
+            clearLabel={clearSearchLabel}
+          />
+        }
+        tabs={tabs}
+        create={
+          <Button onClick={() => setGrantOpen(true)}>
+            <Plus aria-hidden="true" />
+            {t("access.grantAccess")}
+          </Button>
+        }
+      />
 
-      <GrantsSection organizationId={organizationId} />
-
-      <EffectiveAccessSection organizationId={organizationId} />
+      {filters.tab === "grants" ? (
+        <GrantsList
+          organizationId={organizationId}
+          search={filters.search}
+          isFiltered={isFiltered}
+          onClearSearch={clearSearch}
+        />
+      ) : (
+        <EffectiveAccessList
+          organizationId={organizationId}
+          search={filters.search}
+          isFiltered={isFiltered}
+          onClearSearch={clearSearch}
+        />
+      )}
 
       <GrantAppDialog
         organizationId={organizationId}
         open={grantOpen}
         onOpenChange={setGrantOpen}
       />
-    </section>
+    </div>
   );
+}
+
+interface AccessListProps {
+  organizationId: string;
+  search: string | null;
+  isFiltered: boolean;
+  onClearSearch: () => void;
 }
 
 /**
  * One card per grantable app with its grants. An app value this build does
  * not know yet still gets a card under its raw name, so no grant is hidden
- * from the admin who has to revoke it.
+ * from the admin who has to revoke it. While a search narrows the grants,
+ * only the apps with a matching grant keep their card.
  */
-function GrantsSection({ organizationId }: { organizationId: string }) {
+function GrantsList({ organizationId, search, isFiltered, onClearSearch }: AccessListProps) {
   const t = useTranslations("organization");
   const appName = useAppName();
   const { data: grantsResponse, isLoading, isError, refetch } = useAppGrants(organizationId);
+  const emptyLabels = useListEmptyLabels({
+    emptyTitle: t("access.noGrants"),
+    emptyDescription: "",
+    filteredTitle: t("access.grantsFilteredTitle"),
+  });
 
   const grantsByApp = useMemo(() => {
     const byApp = new Map<string, AppGrant[]>(
       GrantedAppSchema.options.map((app) => [app, [] as AppGrant[]])
     );
-    for (const grant of grantsResponse?.data ?? []) {
+    for (const grant of filterGrants(grantsResponse?.data ?? [], search)) {
       const appGrants = byApp.get(grant.app);
       if (appGrants) {
         appGrants.push(grant);
@@ -93,49 +166,44 @@ function GrantsSection({ organizationId }: { organizationId: string }) {
         byApp.set(grant.app, [grant]);
       }
     }
-    return [...byApp.entries()];
-  }, [grantsResponse]);
+    const entries = [...byApp.entries()];
+    return isFiltered ? entries.filter(([, grants]) => grants.length > 0) : entries;
+  }, [grantsResponse, search, isFiltered]);
+
+  if (isLoading) return <TableLoading label={t("access.grantsLoading")} />;
+  if (isError && !grantsResponse) return <OrganizationLoadError onRetry={() => void refetch()} />;
+  if (grantsByApp.length === 0) {
+    return <ListEmptyState filtered onClearFilters={onClearSearch} labels={emptyLabels} />;
+  }
 
   return (
-    <section className="flex flex-col gap-3" aria-labelledby="organization-access-grants-title">
-      <h3 id="organization-access-grants-title" className="text-lg">
-        {t("access.grantsTitle")}
-      </h3>
-
-      {isLoading ? (
-        <TableLoading label={t("access.grantsLoading")} />
-      ) : isError && !grantsResponse ? (
-        <OrganizationLoadError onRetry={() => void refetch()} />
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2">
-          {grantsByApp.map(([app, grants]) => (
-            <Card key={app} className="gap-0 py-0">
-              <CardHeader className="border-b py-3 [.border-b]:pb-3">
-                <h4 className="text-sm">{appName(app)}</h4>
-              </CardHeader>
-              <CardContent className="px-0">
-                {grants.length === 0 ? (
-                  <p className="text-muted-foreground px-6 py-6 text-center text-sm">
-                    {t("access.noGrants")}
-                  </p>
-                ) : (
-                  <ul className="divide-y">
-                    {grants.map((grant) => (
-                      <GrantRow
-                        key={grant.id}
-                        organizationId={organizationId}
-                        grant={grant}
-                        appLabel={appName(app)}
-                      />
-                    ))}
-                  </ul>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-    </section>
+    <div className="grid gap-4 md:grid-cols-2">
+      {grantsByApp.map(([app, grants]) => (
+        <Card key={app} className="gap-0 py-0">
+          <CardHeader className="border-b py-3 [.border-b]:pb-3">
+            <h2 className="text-sm">{appName(app)}</h2>
+          </CardHeader>
+          <CardContent className="px-0">
+            {grants.length === 0 ? (
+              <p className="text-muted-foreground px-6 py-6 text-center text-sm">
+                {t("access.noGrants")}
+              </p>
+            ) : (
+              <ul className="divide-y">
+                {grants.map((grant) => (
+                  <GrantRow
+                    key={grant.id}
+                    organizationId={organizationId}
+                    grant={grant}
+                    appLabel={appName(app)}
+                  />
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 }
 
@@ -199,17 +267,28 @@ function GrantRow({
 }
 
 /** The apps each active member can open, whatever grant or role gives them. */
-function EffectiveAccessSection({ organizationId }: { organizationId: string }) {
+function EffectiveAccessList({
+  organizationId,
+  search,
+  isFiltered,
+  onClearSearch,
+}: AccessListProps) {
   const t = useTranslations("organization");
   const columns = useAppAccessColumns();
   const { data: accessResponse, isLoading, isError, refetch } = useMemberAppAccess(organizationId);
+  const emptyLabels = useListEmptyLabels({
+    emptyTitle: t("access.noMembers"),
+    emptyDescription: t("access.noMembersDescription"),
+    filteredTitle: t("access.membersFilteredTitle"),
+  });
+  const members = useMemo(
+    () => filterMemberAccess(accessResponse?.data ?? [], search),
+    [accessResponse?.data, search]
+  );
 
   return (
-    <section className="flex flex-col gap-3" aria-labelledby="organization-access-effective-title">
+    <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-1">
-        <h3 id="organization-access-effective-title" className="text-lg">
-          {t("access.effectiveTitle")}
-        </h3>
         <p className="text-muted-foreground text-sm">{t("access.effectiveDescription")}</p>
         <p className="text-muted-foreground text-sm">{t("access.ownerNote")}</p>
       </div>
@@ -219,18 +298,19 @@ function EffectiveAccessSection({ organizationId }: { organizationId: string }) 
       ) : (
         <DataTable<MemberAppAccess>
           columns={columns}
-          data={accessResponse?.data ?? []}
+          data={members}
           isLoading={isLoading}
           loadingLabel={t("access.loading")}
           getRowId={(member: MemberAppAccess) => member.userId}
           emptyMessage={
-            <EmptyState
-              title={t("access.noMembers")}
-              description={t("access.noMembersDescription")}
+            <ListEmptyState
+              filtered={isFiltered}
+              onClearFilters={onClearSearch}
+              labels={emptyLabels}
             />
           }
         />
       )}
-    </section>
+    </div>
   );
 }

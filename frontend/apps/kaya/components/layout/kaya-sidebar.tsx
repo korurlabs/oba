@@ -7,12 +7,12 @@ import {
   ClipboardList,
   Cpu,
   CreditCard,
+  FolderGit2,
   FolderTree,
   GitPullRequest,
   Lightbulb,
   MessagesSquare,
   ScrollText,
-  Settings,
   ShieldAlert,
   ShieldCheck,
   Sparkles,
@@ -59,8 +59,12 @@ export const NAV_ITEMS: readonly NavItem[] = [
 
 const NAV_SECTIONS: readonly NavSection[] = ["Activity", "Configuration"];
 
-/** Settings sits apart below the sections, as it configures the rest. */
-const SETTINGS_ITEM: NavItem = { label: "Settings", href: "/settings", icon: Settings };
+/** Repositories sit apart below the sections: every pack and release is delivered to one. */
+const REPOSITORIES_ITEM: NavItem = {
+  label: "Repositories",
+  href: "/repositories",
+  icon: FolderGit2,
+};
 
 /**
  * A menu link leaves the page and its open editor, so it asks first while a
@@ -94,5 +98,5 @@ export const KAYA_NAV_SECTIONS: readonly SkyNavSection[] = NAV_SECTIONS.map(
   })
 );
 
-/** Settings, set apart at the foot of the menu. */
-export const KAYA_SETTINGS_ITEM: SkyNavItem = toSkyItem(SETTINGS_ITEM);
+/** Repositories, set apart at the foot of the menu. */
+export const KAYA_REPOSITORIES_ITEM: SkyNavItem = toSkyItem(REPOSITORIES_ITEM);
