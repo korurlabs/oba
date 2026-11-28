@@ -4,6 +4,7 @@ import { useCallback, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { AlertTriangle, Plus } from "lucide-react";
 import { Button } from "@oba/ui/sky/button";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { DataTable } from "@/components/data-table";
@@ -16,7 +17,7 @@ import type { MailSenderListItem } from "../schemas";
 import { MailSenderFormDialog } from "./mail-sender-form-dialog";
 
 export interface MailSendersViewProps {
-  /** The page's tabs, shown below the heading. */
+  /** The page's tabs, shown before the create button. */
   tabs?: ReactNode;
 }
 
@@ -49,9 +50,9 @@ export function MailSendersView({ tabs }: MailSendersViewProps) {
   return (
     <div className="flex flex-col gap-6">
       {/* The senders are a tab of the Outreaches page, so the page keeps its title. */}
-      <PageHeading title={tOutreaches("title")} description={t("subtitle")} actions={newButton} />
+      <PageHeading title={tOutreaches("title")} description={t("subtitle")} />
 
-      {tabs && <div className="flex flex-wrap items-end gap-3">{tabs}</div>}
+      {(tabs || newButton) && <ListToolbar tabs={tabs} create={newButton} />}
 
       {mailSenders.isError && mailSenders.data === undefined ? (
         <LoadError
