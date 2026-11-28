@@ -794,7 +794,6 @@
     }
   },
   "mailTemplates": {
-    "title": "E-posta şablonları",
     "subtitle": "Her e-posta erişiminin başlayabileceği onaylı e-postalar.",
     "new": "Yeni şablon",
     "newTitle": "Yeni e-posta şablonu",

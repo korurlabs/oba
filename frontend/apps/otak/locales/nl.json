@@ -794,7 +794,6 @@
     }
   },
   "mailTemplates": {
-    "title": "Mailsjablonen",
     "subtitle": "Goedgekeurde mails waar elke mailbenadering mee kan beginnen.",
     "new": "Nieuw sjabloon",
     "newTitle": "Nieuw mailsjabloon",

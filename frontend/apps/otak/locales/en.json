@@ -794,7 +794,6 @@
     }
   },
   "mailTemplates": {
-    "title": "Mail templates",
     "subtitle": "Approved mails every mail outreach can start from.",
     "new": "New template",
     "newTitle": "New mail template",

@@ -225,7 +225,7 @@ function EventRelationsCard({ eventId }: { eventId: string }) {
     [eventId, page]
   );
   const relations = useRelations(query);
-  const columns = useRelationColumns({ showStage: true, showType: true });
+  const columns = useRelationColumns();
   const rows = useMemo(
     (): RelationListItem[] => relations.data?.data ?? [],
     [relations.data?.data]
