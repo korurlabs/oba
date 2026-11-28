@@ -62,7 +62,9 @@ public class IngestController {
             @ApiResponse(responseCode = "400", description = "KAY_VAL_009: usage out of range; KAY_VAL_013: an event "
                     + "is invalid; KAY_VAL_014: no events and no usage; GEN_API_001: remote URL not accepted"),
             @ApiResponse(responseCode = "401", description = "KAY_SEC_003: token missing, unknown, revoked or expired, "
-                    + "or machine retired"),
+                    + "machine retired, or organization deleted"),
+            @ApiResponse(responseCode = "403", description = "ORG_SEC_005: the organization is disabled; the token stays "
+                    + "valid, so send the batch again later"),
             @ApiResponse(responseCode = "409", description = "KAY_VAL_001: session of another user"),
             @ApiResponse(responseCode = "413", description = "KAY_VAL_012: body over 8 MiB"),
             @ApiResponse(responseCode = "422", description = "KAY_VAL_002: repository archived; GEN_VAL_001: a field "
