@@ -24,7 +24,7 @@ public final class IcpConstant {
     // -------------Limits-----------//
 
     public static final int NAME_MAX_LENGTH = 100;
-    public static final int DESCRIPTION_MAX_LENGTH = 10000;
+    public static final int DESCRIPTION_MAX_LENGTH = 20000;
     public static final int SEARCH_MAX_LENGTH = 100;
 
     // -------------Validation messages-----------//
@@ -33,7 +33,7 @@ public final class IcpConstant {
     public static final String NAME_SIZE_MESSAGE = "Name can not be longer than 100 characters";
     public static final String INDUSTRY_REQUIRED_MESSAGE = "Industry is required";
     public static final String DESCRIPTION_BLANK_MESSAGE = "Description can not be empty; send null for none";
-    public static final String DESCRIPTION_SIZE_MESSAGE = "Description can not be longer than 10000 characters";
+    public static final String DESCRIPTION_SIZE_MESSAGE = "Description can not be longer than 20000 characters";
     public static final String SEARCH_BLANK_MESSAGE = "Search can not be empty; leave it out to list every ICP";
     public static final String SEARCH_SIZE_MESSAGE = "Search can not be longer than 100 characters";
 }

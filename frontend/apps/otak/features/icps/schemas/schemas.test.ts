@@ -55,11 +55,11 @@ describe("ICP form schema", () => {
     expect(errorsOf({ ...valid, name: "   " }).name).toBe("errors.nameRequired");
   });
 
-  test("the name is at most 100 characters and the description at most 10000", () => {
+  test("the name is at most 100 characters and the description at most 20000", () => {
     expect(errorsOf({ ...valid, name: "a".repeat(100) })).toEqual({});
     expect(errorsOf({ ...valid, name: "a".repeat(101) }).name).toBe("errors.nameMax");
-    expect(errorsOf({ ...valid, description: "a".repeat(10000) })).toEqual({});
-    expect(errorsOf({ ...valid, description: "a".repeat(10001) }).description).toBe(
+    expect(errorsOf({ ...valid, description: "a".repeat(20000) })).toEqual({});
+    expect(errorsOf({ ...valid, description: "a".repeat(20001) }).description).toBe(
       "errors.descriptionMax"
     );
   });

@@ -468,7 +468,7 @@
         "nameRequired": "Naam is verplicht",
         "nameMax": "Naam mag maximaal 100 tekens zijn",
         "industryRequired": "Branche is verplicht",
-        "descriptionMax": "Omschrijving mag maximaal 10.000 tekens zijn",
+        "descriptionMax": "Omschrijving mag maximaal 20.000 tekens zijn",
         "sizeRange": "De maximale grootte mag niet onder de minimale grootte liggen"
       }
     },
