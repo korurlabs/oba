@@ -92,7 +92,8 @@
     "websitePlaceholder": "https://voorbeeld.nl",
     "descriptionLabel": "Beschrijving",
     "descriptionPlaceholder": "Wat doet deze organisatie?",
-    "noOrganizations": "Geen organisaties gevonden",
+    "noOrganizations": "Nog geen organisaties",
+    "noOrganizationsDescription": "Maak een organisatie aan om met anderen in Oba te werken, of accepteer een uitnodiging om lid te worden.",
     "new": {
       "title": "Organisatie aanmaken",
       "description": "Stel een nieuwe organisatie-werkruimte in.",
@@ -112,7 +113,6 @@
     "list": {
       "title": "Organisaties",
       "subtitle": "De organisaties waar je lid van bent en je rol in elk ervan",
-      "yourOrganizations": "Jouw organisaties",
       "loading": "Laden..."
     }
   },

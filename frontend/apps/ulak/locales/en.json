@@ -168,7 +168,9 @@
       "setError": "The routine could not be saved",
       "removeSuccess": "Routine removed",
       "removeError": "The routine could not be removed"
-    }
+    },
+    "searchLabel": "Search agents",
+    "filteredTitle": "No agents match these filters"
   },
   "errors": {
     "somethingWentWrong": "Something went wrong",
@@ -217,7 +219,7 @@
     "notFoundDescription": "This organization may have been deleted or you no longer have access.",
     "members": {
       "noMembers": "No members found",
-      "noMembersDescription": "Nobody belongs to this organization yet. Invite people on the Invitations page.",
+      "noMembersDescription": "Nobody belongs to this organization yet. Invite the first member.",
       "userId": "User",
       "email": "Email",
       "role": "Role",
@@ -245,12 +247,15 @@
         "ACTIVE": "Active",
         "DISABLED": "Disabled"
       },
-      "loading": "Loading members"
+      "loading": "Loading members",
+      "searchLabel": "Search by name or email",
+      "filteredTitle": "No members match these filters",
+      "noMembersReadOnly": "An owner or admin of the organization invites its members."
     },
     "invitations": {
       "noInvitations": "No invitations found",
-      "noInvitationsDescription": "No invitations have been sent for this organization.",
-      "invite": "Invite",
+      "noInvitationsDescription": "No invitations have been sent for this organization. Invite the first member.",
+      "invite": "Invite member",
       "createTitle": "Invite to organization",
       "createDescription": "Send an invitation email with a role assignment.",
       "email": "Email address",
@@ -278,7 +283,10 @@
       },
       "emailRequired": "Email is required",
       "emailInvalid": "Enter a valid email address",
-      "loading": "Loading invitations"
+      "loading": "Loading invitations",
+      "searchLabel": "Search by email",
+      "filteredTitle": "No invitations match these filters",
+      "noInvitationsReadOnly": "No invitations have been sent for this organization. An owner or admin invites its members."
     },
     "nameRequired": "Organization name is required",
     "nameMaxLength": "Name must be at most 255 characters",
@@ -355,7 +363,9 @@
       "updateSuccess": "Legal entity updated",
       "updateError": "Failed to update the legal entity. Please try again.",
       "deleteSuccess": "Legal entity deleted",
-      "deleteError": "Failed to delete the legal entity. Please try again."
+      "deleteError": "Failed to delete the legal entity. Please try again.",
+      "searchLabel": "Search legal entities",
+      "filteredTitle": "No legal entities match this search"
     },
     "groups": {
       "newGroup": "New group",
@@ -367,7 +377,8 @@
       "noApps": "No apps",
       "system": "System",
       "actions": "Actions",
-      "viewMembers": "Members",
+      "viewMembers": "View members",
+      "manageMembers": "Manage members",
       "rename": "Rename",
       "delete": "Delete",
       "cancel": "Cancel",
@@ -416,11 +427,12 @@
       "removeMemberError": "Failed to remove the member. Please try again.",
       "loading": "Loading groups",
       "noGroupsDescription": "Create a group to grant apps to several members at once.",
-      "membersLoading": "Loading the members of the group"
+      "membersLoading": "Loading the members of the group",
+      "searchLabel": "Search groups",
+      "filteredTitle": "No groups match this search"
     },
     "access": {
       "description": "Grant apps to members and groups.",
-      "grantsTitle": "Grants",
       "grantAccess": "Grant access",
       "noGrants": "No grants for this app",
       "targetUser": "User",
@@ -443,7 +455,6 @@
       "appRequired": "Select an app",
       "targetTypeRequired": "Select a member or a group",
       "targetRequired": "Select who gets the app",
-      "effectiveTitle": "Effective access",
       "effectiveDescription": "The apps each active member can open, through any grant.",
       "role": "Role",
       "apps": "Apps",
@@ -458,7 +469,16 @@
       "revokeError": "Failed to revoke access. Please try again.",
       "grantsLoading": "Loading grants",
       "loading": "Loading the access of the members",
-      "noMembersDescription": "An active member of the organization is listed here with the apps they can open."
+      "noMembersDescription": "An active member of the organization is listed here with the apps they can open.",
+      "tabsLabel": "Access views",
+      "tabs": {
+        "grants": "Grants",
+        "members": "Effective access"
+      },
+      "searchGrantsLabel": "Search by member or group",
+      "searchMembersLabel": "Search members",
+      "grantsFilteredTitle": "No grants match this search",
+      "membersFilteredTitle": "No members match this search"
     }
   },
   "onboarding": {
@@ -496,5 +516,18 @@
     "description": "Ulak opens the active organizations where you are an owner or admin. You can manage your own profile, settings and invitations in your account, or create an organization there.",
     "openAccount": "Open your account",
     "createOrganization": "Create an organization"
+  },
+  "filterPopover": {
+    "trigger": "Filter",
+    "chooseCategory": "Select a filter field to start",
+    "searchOptions": "Search...",
+    "noOptions": "No options",
+    "loading": "Loading",
+    "clear": "Clear all"
+  },
+  "list": {
+    "clearSearch": "Clear search",
+    "filteredDescription": "Try another search or filter, or clear the filters.",
+    "clearFilters": "Clear filters"
   }
 }

@@ -92,11 +92,12 @@
     "websitePlaceholder": "https://example.com",
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "What does this organization do?",
-    "noOrganizations": "No organizations found",
+    "noOrganizations": "No organizations yet",
+    "noOrganizationsDescription": "Create an organization to work with others in Oba, or accept an invitation to join one.",
     "new": {
-      "title": "Create Organization",
+      "title": "Create organization",
       "description": "Set up a new organization workspace.",
-      "submit": "Create Organization",
+      "submit": "Create organization",
       "submitting": "Creating...",
       "createSuccess": "Organization created successfully",
       "createError": "Failed to create organization. Please try again.",
@@ -112,7 +113,6 @@
     "list": {
       "title": "Organizations",
       "subtitle": "The organizations you belong to and your role in each",
-      "yourOrganizations": "Your organizations",
       "loading": "Loading..."
     }
   },

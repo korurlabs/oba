@@ -168,7 +168,9 @@
       "setError": "Rutin kaydedilemedi",
       "removeSuccess": "Rutin kaldırıldı",
       "removeError": "Rutin kaldırılamadı"
-    }
+    },
+    "searchLabel": "Ajan ara",
+    "filteredTitle": "Bu filtrelere uyan ajan yok"
   },
   "errors": {
     "somethingWentWrong": "Bir şeyler yanlış gitti",
@@ -217,7 +219,7 @@
     "notFoundDescription": "Bu organizasyon silinmiş olabilir veya artık erişiminiz yok.",
     "members": {
       "noMembers": "Üye bulunamadı",
-      "noMembersDescription": "Bu organizasyonda henüz kimse yok. Davetler sayfasından kişileri davet edin.",
+      "noMembersDescription": "Bu organizasyonda henüz kimse yok. İlk üyeyi davet edin.",
       "userId": "Kullanıcı",
       "email": "E-posta",
       "role": "Rol",
@@ -245,12 +247,15 @@
         "ACTIVE": "Aktif",
         "DISABLED": "Devre Dışı"
       },
-      "loading": "Üyeler yükleniyor"
+      "loading": "Üyeler yükleniyor",
+      "searchLabel": "Ada veya e-postaya göre ara",
+      "filteredTitle": "Bu filtrelere uyan üye yok",
+      "noMembersReadOnly": "Organizasyonun üyelerini bir sahip veya yönetici davet eder."
     },
     "invitations": {
       "noInvitations": "Davet bulunamadı",
-      "noInvitationsDescription": "Bu organizasyon için henüz davet gönderilmedi.",
-      "invite": "Davet Et",
+      "noInvitationsDescription": "Bu organizasyon için henüz davet gönderilmedi. İlk üyeyi davet edin.",
+      "invite": "Üye davet et",
       "createTitle": "Organizasyona davet et",
       "createDescription": "Rol atamasıyla bir davet e-postası gönderin.",
       "email": "E-posta adresi",
@@ -278,7 +283,10 @@
       },
       "emailRequired": "E-posta gereklidir",
       "emailInvalid": "Geçerli bir e-posta adresi girin",
-      "loading": "Davetler yükleniyor"
+      "loading": "Davetler yükleniyor",
+      "searchLabel": "E-postaya göre ara",
+      "filteredTitle": "Bu filtrelere uyan davet yok",
+      "noInvitationsReadOnly": "Bu organizasyon için henüz davet gönderilmedi. Üyeleri bir sahip veya yönetici davet eder."
     },
     "nameRequired": "Organizasyon adı gereklidir",
     "nameMaxLength": "Ad en fazla 255 karakter olmalıdır",
@@ -355,7 +363,9 @@
       "updateSuccess": "Tüzel kişi güncellendi",
       "updateError": "Tüzel kişi güncellenemedi. Lütfen tekrar deneyin.",
       "deleteSuccess": "Tüzel kişi silindi",
-      "deleteError": "Tüzel kişi silinemedi. Lütfen tekrar deneyin."
+      "deleteError": "Tüzel kişi silinemedi. Lütfen tekrar deneyin.",
+      "searchLabel": "Tüzel kişi ara",
+      "filteredTitle": "Bu aramaya uyan tüzel kişi yok"
     },
     "groups": {
       "newGroup": "Yeni grup",
@@ -367,7 +377,8 @@
       "noApps": "Uygulama yok",
       "system": "Sistem",
       "actions": "İşlemler",
-      "viewMembers": "Üyeler",
+      "viewMembers": "Üyeleri görüntüle",
+      "manageMembers": "Üyeleri yönet",
       "rename": "Yeniden adlandır",
       "delete": "Sil",
       "cancel": "İptal",
@@ -416,11 +427,12 @@
       "removeMemberError": "Üye çıkarılamadı. Lütfen tekrar deneyin.",
       "loading": "Gruplar yükleniyor",
       "noGroupsDescription": "Uygulamaları birden çok üyeye aynı anda vermek için bir grup oluşturun.",
-      "membersLoading": "Grubun üyeleri yükleniyor"
+      "membersLoading": "Grubun üyeleri yükleniyor",
+      "searchLabel": "Grup ara",
+      "filteredTitle": "Bu aramaya uyan grup yok"
     },
     "access": {
       "description": "Üyelere ve gruplara uygulama erişimi verin.",
-      "grantsTitle": "Erişimler",
       "grantAccess": "Erişim ver",
       "noGrants": "Bu uygulama için erişim yok",
       "targetUser": "Kullanıcı",
@@ -443,7 +455,6 @@
       "appRequired": "Bir uygulama seçin",
       "targetTypeRequired": "Bir üye veya bir grup seçin",
       "targetRequired": "Uygulamayı kimin alacağını seçin",
-      "effectiveTitle": "Geçerli erişim",
       "effectiveDescription": "Her aktif üyenin herhangi bir erişim yoluyla açabildiği uygulamalar.",
       "role": "Rol",
       "apps": "Uygulamalar",
@@ -458,7 +469,16 @@
       "revokeError": "Erişim geri alınamadı. Lütfen tekrar deneyin.",
       "grantsLoading": "Erişimler yükleniyor",
       "loading": "Üyelerin erişimi yükleniyor",
-      "noMembersDescription": "Kuruluşun aktif bir üyesi, açabildiği uygulamalarla burada listelenir."
+      "noMembersDescription": "Kuruluşun aktif bir üyesi, açabildiği uygulamalarla burada listelenir.",
+      "tabsLabel": "Erişim görünümleri",
+      "tabs": {
+        "grants": "Erişimler",
+        "members": "Geçerli erişim"
+      },
+      "searchGrantsLabel": "Üye veya gruba göre ara",
+      "searchMembersLabel": "Üye ara",
+      "grantsFilteredTitle": "Bu aramaya uyan erişim yok",
+      "membersFilteredTitle": "Bu aramaya uyan üye yok"
     }
   },
   "onboarding": {
@@ -496,5 +516,18 @@
     "description": "Ulak, sahibi veya yöneticisi olduğunuz aktif organizasyonları açar. Kendi profilinizi, ayarlarınızı ve davetlerinizi hesabınızda yönetebilir ya da orada bir organizasyon oluşturabilirsiniz.",
     "openAccount": "Hesabınızı açın",
     "createOrganization": "Organizasyon oluşturun"
+  },
+  "filterPopover": {
+    "trigger": "Filtrele",
+    "chooseCategory": "Başlamak için bir filtre alanı seçin",
+    "searchOptions": "Ara...",
+    "noOptions": "Seçenek yok",
+    "loading": "Yükleniyor",
+    "clear": "Tümünü temizle"
+  },
+  "list": {
+    "clearSearch": "Aramayı temizle",
+    "filteredDescription": "Başka bir arama veya filtre deneyin ya da filtreleri temizleyin.",
+    "clearFilters": "Filtreleri temizle"
   }
 }

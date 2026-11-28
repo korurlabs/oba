@@ -92,11 +92,12 @@
     "websitePlaceholder": "https://ornek.com",
     "descriptionLabel": "Açıklama",
     "descriptionPlaceholder": "Bu organizasyon ne yapıyor?",
-    "noOrganizations": "Organizasyon bulunamadı",
+    "noOrganizations": "Henüz organizasyon yok",
+    "noOrganizationsDescription": "Oba'da başkalarıyla çalışmak için bir organizasyon oluşturun veya katılmak için bir daveti kabul edin.",
     "new": {
-      "title": "Organizasyon Oluştur",
+      "title": "Organizasyon oluştur",
       "description": "Yeni bir organizasyon çalışma alanı kurun.",
-      "submit": "Organizasyon Oluştur",
+      "submit": "Organizasyon oluştur",
       "submitting": "Oluşturuluyor...",
       "createSuccess": "Organizasyon başarıyla oluşturuldu",
       "createError": "Organizasyon oluşturulamadı. Lütfen tekrar deneyin.",
@@ -112,7 +113,6 @@
     "list": {
       "title": "Organizasyonlar",
       "subtitle": "Üyesi olduğunuz organizasyonlar ve her birindeki rolünüz",
-      "yourOrganizations": "Organizasyonlarınız",
       "loading": "Yükleniyor..."
     }
   },

@@ -142,6 +142,21 @@ describe("CurrentOrganizationPage sections", () => {
     });
   }
 
+  test("agents and access say in the heading what the section holds, under the organization", () => {
+    const agents = render("agents");
+    expect(agents).toMatch(/<h1[^>]*>[^<]*<\/h1><div[^>]*><p[^>]*>Korur<\/p><p[^>]*>/);
+    expect(agents).toContain(en.agents.description);
+    expect(render("access")).toContain(en.organization.access.description);
+    expect(render("humans")).not.toContain(en.agents.description);
+  });
+
+  test("a hidden section keeps the organization name but not the section's description", () => {
+    me = asRole("MEMBER");
+    const html = render("agents");
+    expect(html).toContain("Korur");
+    expect(html).not.toContain(en.agents.description);
+  });
+
   for (const section of ["agents", "groups", "access"] as const) {
     test(`${section} answers not found for a MEMBER and a GUEST, without its body`, () => {
       for (const role of ["MEMBER", "GUEST"] as const) {

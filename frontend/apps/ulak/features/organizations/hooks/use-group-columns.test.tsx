@@ -127,19 +127,20 @@ describe("useGroupColumns", () => {
     expect(renderCell("name", custom)).not.toContain("groups.system");
   });
 
-  test("the Everyone row offers Members only: no Rename and no Delete", () => {
+  test("the Everyone row offers View members only: no Rename and no Delete", () => {
     const html = renderCell("actions", everyone);
 
     expect(html).toContain("groups.viewMembers");
+    expect(html).not.toContain("groups.manageMembers");
     expect(html).not.toContain("groups.rename");
     expect(html).not.toContain("groups.delete");
   });
 
-  test("a custom row offers Members, Rename and Delete", () => {
+  test("a custom row offers Manage members, Rename and Delete", () => {
     const html = renderCell("actions", custom);
 
     expect(html).toContain("item:");
-    expect(html).toContain("groups.viewMembers");
+    expect(html).toContain("groups.manageMembers");
     expect(html).toContain("groups.rename");
     expect(html).toContain("groups.delete");
   });

@@ -6,7 +6,8 @@
 
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { ComingSoonPanel, PageHeading } from "@/components/layout/page-heading";
+import { PageHeading } from "@oba/ui/sky/page-heading";
+import { ComingSoonPanel } from "@/components/layout/page-heading";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("notifications");

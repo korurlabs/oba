@@ -6,14 +6,17 @@ import { useGetMe } from "@oba/shared/features/users/hooks/use-get-me";
 import { Link } from "@oba/shared/libs/i18n/navigation";
 import { OrganizationRoleBadge } from "@oba/shared/components/organization-role-badge";
 import { Button } from "@oba/ui/sky/button";
-import { Card, CardAction, CardContent, CardHeader } from "@oba/ui/sky/card";
-import { LoadError } from "@oba/ui/sky/page-states";
-import { PageHeading, PanelTitle } from "@/components/layout/page-heading";
+import { Card, CardContent } from "@oba/ui/sky/card";
+import { ListToolbar } from "@oba/ui/sky/list-toolbar";
+import { PageHeading } from "@oba/ui/sky/page-heading";
+import { EmptyState, LoadError } from "@oba/ui/sky/page-states";
 
 /**
  * Organizations screen: the signed-in user's memberships with their role in
- * each, read-only, and a link to create an organization. The memberships come
- * from the current-user ("me") query, which the dashboard layout prefetches.
+ * each, read-only, under a toolbar with the link to create an organization.
+ * The memberships come from the current-user ("me") query, which the
+ * dashboard layout prefetches. A user belongs to a handful of organizations,
+ * so the list has no search.
  */
 export function OrganizationsView() {
   const t = useTranslations();
@@ -23,6 +26,16 @@ export function OrganizationsView() {
   // fetch that failed leaves no user.
   const user = me?.data;
   const organizations = user?.organizations ?? [];
+
+  // Any signed-in user may create an organization; they become its owner.
+  const createButton = (
+    <Button asChild>
+      <Link href="/organizations/new">
+        <Plus aria-hidden="true" />
+        {t("organization.new.title")}
+      </Link>
+    </Button>
+  );
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
@@ -46,39 +59,32 @@ export function OrganizationsView() {
           }}
         />
       ) : (
-        <Card role="region" aria-labelledby="organizations-list-heading">
-          <CardHeader>
-            <PanelTitle id="organizations-list-heading">
-              {t("organization.list.yourOrganizations")}
-            </PanelTitle>
-            <CardAction>
-              {/* Any signed-in user may create an organization; they become its owner. */}
-              <Button asChild size="sm">
-                <Link href="/organizations/new">
-                  <Plus aria-hidden="true" />
-                  {t("organization.new.title")}
-                </Link>
-              </Button>
-            </CardAction>
-          </CardHeader>
-          <CardContent>
-            {organizations.length === 0 ? (
-              <p className="text-muted-foreground text-sm">{t("organization.noOrganizations")}</p>
-            ) : (
-              <ul className="divide-y">
-                {organizations.map((organization) => (
-                  <li
-                    key={organization.id}
-                    className="flex items-center justify-between gap-4 py-2 text-sm"
-                  >
-                    <span className="min-w-0 truncate font-medium">{organization.name}</span>
-                    <OrganizationRoleBadge role={organization.role} />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+        <>
+          <ListToolbar create={createButton} />
+          {organizations.length === 0 ? (
+            <EmptyState
+              title={t("organization.noOrganizations")}
+              description={t("organization.noOrganizationsDescription")}
+              action={createButton}
+            />
+          ) : (
+            <Card>
+              <CardContent>
+                <ul className="divide-y" aria-label={t("organization.list.title")}>
+                  {organizations.map((organization) => (
+                    <li
+                      key={organization.id}
+                      className="flex items-center justify-between gap-4 py-2 text-sm"
+                    >
+                      <span className="min-w-0 truncate font-medium">{organization.name}</span>
+                      <OrganizationRoleBadge role={organization.role} />
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+        </>
       )}
     </div>
   );

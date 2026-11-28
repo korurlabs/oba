@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { PageHeading } from "@oba/ui/sky/page-heading";
 import { EmptyState, TableLoading } from "@oba/ui/sky/page-states";
 import { useGetMe } from "@oba/shared/features/users/hooks/use-get-me";
 import type {
@@ -16,7 +17,6 @@ import { GroupsTab } from "@/features/organizations/components/organization-grou
 import { AccessTab } from "@/features/organizations/components/organization-access-tab";
 import { AgentsTab } from "@/features/agents/components/organization-agents-tab";
 import { OrganizationLoadError } from "@/features/organizations/components/organization-load-error";
-import { PageHeader } from "@/components/layout/page-header";
 import { useOrganizationId } from "@/hooks/use-organization-id";
 
 /** The Ulak pages that administer one part of the current organization. */
@@ -41,8 +41,20 @@ const SECTION_TITLE_KEYS = {
 } as const satisfies Record<OrganizationSection, string>;
 
 /**
+ * The line on what the section holds, for the sections whose purpose the
+ * menu label alone does not tell.
+ */
+const SECTION_DESCRIPTION_KEYS: Partial<
+  Record<OrganizationSection, "agents.description" | "organization.access.description">
+> = {
+  agents: "agents.description",
+  access: "organization.access.description",
+};
+
+/**
  * One section of the organization chosen in the header, under a heading with
- * the page's name and the organization's name.
+ * the page's name, the organization's name, and for some sections a line on
+ * what the section holds.
  *
  * OWNER and ADMIN get edit controls. Agents, Groups and Access answer not found to
  * anyone else, and Legal entities to a GUEST, because the API lets only those
@@ -96,11 +108,21 @@ export function CurrentOrganizationPage({ section }: { section: OrganizationSect
     (((section === "agents" || section === "groups" || section === "access") && !canEdit) ||
       (section === "legalEntities" && !canReadLegalEntities));
 
+  const descriptionKey = SECTION_DESCRIPTION_KEYS[section];
+  const showsBody = !hasNoUser && !isHidden;
+
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
+      <PageHeading
         title={t(`sidebar.${SECTION_TITLE_KEYS[section]}`)}
-        description={organization.name ?? undefined}
+        description={
+          <div className="flex flex-col gap-1">
+            {organization.name && <p className="text-muted-foreground">{organization.name}</p>}
+            {descriptionKey && showsBody && (
+              <p className="text-muted-foreground text-sm">{t(descriptionKey)}</p>
+            )}
+          </div>
+        }
       />
 
       {hasNoUser ? (

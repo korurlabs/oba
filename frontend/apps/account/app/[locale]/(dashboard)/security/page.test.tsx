@@ -23,7 +23,7 @@ describe("security page", () => {
   test("shows the page heading and the coming soon panel", async () => {
     const html = renderToStaticMarkup(await Page());
 
-    expect(html).toContain("<h1>title</h1>");
+    expect(html).toContain('<h1 class="break-words">title</h1>');
     expect(html).toContain("subtitle");
     expect(html).not.toContain("<h2");
     expect(html.match(/>title</g)).toHaveLength(1);

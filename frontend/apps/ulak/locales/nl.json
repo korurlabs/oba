@@ -168,7 +168,9 @@
       "setError": "De routine kon niet worden opgeslagen",
       "removeSuccess": "Routine verwijderd",
       "removeError": "De routine kon niet worden verwijderd"
-    }
+    },
+    "searchLabel": "Agents zoeken",
+    "filteredTitle": "Geen agents voor deze filters"
   },
   "errors": {
     "somethingWentWrong": "Er is iets misgegaan",
@@ -217,7 +219,7 @@
     "notFoundDescription": "Deze organisatie is mogelijk verwijderd of u heeft geen toegang meer.",
     "members": {
       "noMembers": "Geen leden gevonden",
-      "noMembersDescription": "Er hoort nog niemand bij deze organisatie. Nodig mensen uit op de pagina Uitnodigingen.",
+      "noMembersDescription": "Er hoort nog niemand bij deze organisatie. Nodig het eerste lid uit.",
       "userId": "Gebruiker",
       "email": "E-mail",
       "role": "Rol",
@@ -245,12 +247,15 @@
         "ACTIVE": "Actief",
         "DISABLED": "Uitgeschakeld"
       },
-      "loading": "Leden laden"
+      "loading": "Leden laden",
+      "searchLabel": "Zoeken op naam of e-mail",
+      "filteredTitle": "Geen leden voor deze filters",
+      "noMembersReadOnly": "Een eigenaar of beheerder van de organisatie nodigt de leden uit."
     },
     "invitations": {
       "noInvitations": "Geen uitnodigingen gevonden",
-      "noInvitationsDescription": "Er zijn nog geen uitnodigingen verstuurd voor deze organisatie.",
-      "invite": "Uitnodigen",
+      "noInvitationsDescription": "Er zijn nog geen uitnodigingen verstuurd voor deze organisatie. Nodig het eerste lid uit.",
+      "invite": "Lid uitnodigen",
       "createTitle": "Uitnodigen voor organisatie",
       "createDescription": "Stuur een uitnodiging met een rolinstelling.",
       "email": "E-mailadres",
@@ -278,7 +283,10 @@
       },
       "emailRequired": "E-mail is verplicht",
       "emailInvalid": "Voer een geldig e-mailadres in",
-      "loading": "Uitnodigingen laden"
+      "loading": "Uitnodigingen laden",
+      "searchLabel": "Zoeken op e-mail",
+      "filteredTitle": "Geen uitnodigingen voor deze filters",
+      "noInvitationsReadOnly": "Er zijn nog geen uitnodigingen verstuurd voor deze organisatie. Een eigenaar of beheerder nodigt de leden uit."
     },
     "nameRequired": "Organisatienaam is verplicht",
     "nameMaxLength": "Naam mag maximaal 255 tekens bevatten",
@@ -355,7 +363,9 @@
       "updateSuccess": "Juridische entiteit bijgewerkt",
       "updateError": "Het bijwerken van de juridische entiteit is mislukt. Probeer het opnieuw.",
       "deleteSuccess": "Juridische entiteit verwijderd",
-      "deleteError": "Het verwijderen van de juridische entiteit is mislukt. Probeer het opnieuw."
+      "deleteError": "Het verwijderen van de juridische entiteit is mislukt. Probeer het opnieuw.",
+      "searchLabel": "Juridische entiteiten zoeken",
+      "filteredTitle": "Geen juridische entiteiten voor deze zoekopdracht"
     },
     "groups": {
       "newGroup": "Nieuwe groep",
@@ -367,7 +377,8 @@
       "noApps": "Geen apps",
       "system": "Systeem",
       "actions": "Acties",
-      "viewMembers": "Leden",
+      "viewMembers": "Leden bekijken",
+      "manageMembers": "Leden beheren",
       "rename": "Hernoemen",
       "delete": "Verwijderen",
       "cancel": "Annuleren",
@@ -416,11 +427,12 @@
       "removeMemberError": "Lid verwijderen mislukt. Probeer het opnieuw.",
       "loading": "Groepen laden",
       "noGroupsDescription": "Maak een groep om apps aan meerdere leden tegelijk toe te kennen.",
-      "membersLoading": "Leden van de groep laden"
+      "membersLoading": "Leden van de groep laden",
+      "searchLabel": "Groepen zoeken",
+      "filteredTitle": "Geen groepen voor deze zoekopdracht"
     },
     "access": {
       "description": "Ken apps toe aan leden en groepen.",
-      "grantsTitle": "Toekenningen",
       "grantAccess": "Toegang geven",
       "noGrants": "Geen toekenningen voor deze app",
       "targetUser": "Gebruiker",
@@ -443,7 +455,6 @@
       "appRequired": "Selecteer een app",
       "targetTypeRequired": "Selecteer een lid of een groep",
       "targetRequired": "Selecteer wie de app krijgt",
-      "effectiveTitle": "Effectieve toegang",
       "effectiveDescription": "De apps die elk actief lid kan openen, via welke toekenning dan ook.",
       "role": "Rol",
       "apps": "Apps",
@@ -458,7 +469,16 @@
       "revokeError": "Toegang intrekken mislukt. Probeer het opnieuw.",
       "grantsLoading": "Toekenningen laden",
       "loading": "Toegang van de leden laden",
-      "noMembersDescription": "Een actief lid van de organisatie staat hier met de apps die het kan openen."
+      "noMembersDescription": "Een actief lid van de organisatie staat hier met de apps die het kan openen.",
+      "tabsLabel": "Toegangsweergaven",
+      "tabs": {
+        "grants": "Toekenningen",
+        "members": "Effectieve toegang"
+      },
+      "searchGrantsLabel": "Zoeken op lid of groep",
+      "searchMembersLabel": "Leden zoeken",
+      "grantsFilteredTitle": "Geen toekenningen voor deze zoekopdracht",
+      "membersFilteredTitle": "Geen leden voor deze zoekopdracht"
     }
   },
   "onboarding": {
@@ -496,5 +516,18 @@
     "description": "Ulak opent de actieve organisaties waarvan je eigenaar of beheerder bent. In je account beheer je je eigen profiel, instellingen en uitnodigingen, of maak je een organisatie aan.",
     "openAccount": "Open je account",
     "createOrganization": "Maak een organisatie aan"
+  },
+  "filterPopover": {
+    "trigger": "Filteren",
+    "chooseCategory": "Selecteer een filterveld om te beginnen",
+    "searchOptions": "Zoeken...",
+    "noOptions": "Geen opties",
+    "loading": "Laden",
+    "clear": "Alles wissen"
+  },
+  "list": {
+    "clearSearch": "Zoekopdracht wissen",
+    "filteredDescription": "Probeer een andere zoekopdracht of filter, of wis de filters.",
+    "clearFilters": "Filters wissen"
   }
 }
