@@ -22,8 +22,8 @@ export function OutreachesPageView() {
   const handleTabChange = useCallback(
     (value: string) => {
       if (!isOutreachPageTab(value)) return;
-      // The status filter and page belong to the outreaches tab; a tab change starts it afresh.
-      void setFilters({ status: null, page: null });
+      // The filters and page belong to the outreaches tab; a tab change starts it afresh.
+      void setFilters({ status: null, campaign: null, page: null });
       void setTab({ tab: value });
     },
     [setFilters, setTab]

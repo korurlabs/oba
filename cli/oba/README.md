@@ -183,6 +183,7 @@ Every printed cell is sanitized onto one line. Errors and exit statuses are as f
 oba otak relation list --search acme   # every type and stage whose name contains "acme"
 oba otak relation list --type lead --stage new,warm
 oba otak relation list --event <eventId>   # the relations linked to one event
+oba otak relation list --campaign <campaignId>   # the relations linked to one campaign
 oba otak relation create --help   # the fields, required ones and allowed values, read from the live API
 oba otak relation create <<'EOF'
 {"name": "Acme B.V.", "type": "LEAD"}
@@ -196,7 +197,7 @@ oba otak relation delete <id> --yes
 
 The JSON object uses the API's field names and values; the CLI translates nothing. For `create` and `update`, its keys are checked against the request schemas of `GET /v3/api-docs` before any write, and an unknown key fails with the closest known name. Run `--help` for the current field list rather than relying on the example above.
 
-- `list` prints one table `NAME  TYPE  STAGE  WEBSITE  OWNER  CONTACT  CONTACT MAIL  COMPANY MAIL  ID`, so that you can find the id of an existing relation. The API needs a type on every call, so without `--type` it reads every type of the live `type` enum, one paged series of `GET /otak/relations` per type (50 per call, every page), grouped in that enum's order and last change first within a type. Without `--stage` every stage is shown, LOST and PARKED leads and CLOSED and DIRECT customers included: the CLI names every live stage on the lead and customer calls, since the API leaves LOST and PARKED out otherwise. `--stage` (repeated or a comma list) only narrows, to leads and customers: without `--type` suppliers are not read, and `--type SUPPLIER --stage …` is refused, since suppliers have no stage. A stage of the other type, such as `--type lead --stage closed`, matches nothing. `--search` is part of the name, case ignored. `--event <id>` keeps the relations linked to that event (`eventId` on every call); an unknown event id lists nothing. CONTACT and CONTACT MAIL are the name and email of the relation's main person contact, COMPANY MAIL the email of its main business contact (such as info@); each is `-` when there is no such contact or address. Type and stage values are matched case-insensitively against the live API, and an unknown one fails before any call. STAGE is `-` for a supplier; a failed call prints no partial table.
+- `list` prints one table `NAME  TYPE  STAGE  WEBSITE  OWNER  CONTACT  CONTACT MAIL  COMPANY MAIL  ID`, so that you can find the id of an existing relation. The API needs a type on every call, so without `--type` it reads every type of the live `type` enum, one paged series of `GET /otak/relations` per type (50 per call, every page), grouped in that enum's order and last change first within a type. Without `--stage` every stage is shown, LOST and PARKED leads and CLOSED and DIRECT customers included: the CLI names every live stage on the lead and customer calls, since the API leaves LOST and PARKED out otherwise. `--stage` (repeated or a comma list) only narrows, to leads and customers: without `--type` suppliers are not read, and `--type SUPPLIER --stage …` is refused, since suppliers have no stage. A stage of the other type, such as `--type lead --stage closed`, matches nothing. `--search` is part of the name, case ignored. `--event <id>` keeps the relations linked to that event (`eventId` on every call), `--campaign <id>` those linked to that campaign (`campaignId`); an unknown id lists nothing. CONTACT and CONTACT MAIL are the name and email of the relation's main person contact, COMPANY MAIL the email of its main business contact (such as info@); each is `-` when there is no such contact or address. Type and stage values are matched case-insensitively against the live API, and an unknown one fails before any call. STAGE is `-` for a supplier; a failed call prints no partial table.
 - `create` sends the object unchanged in one `POST /otak/relations`. A lead may carry its `stage`. `eventId` links the relation to an event (`oba otak event list` prints the ids); `null` in an update clears the link, and an unknown event fails with 404 `OTK_NOT_009`.
 - `update` changes only the given keys; `null` clears a field. It reads the relation, sends `PUT` when a key other than `type` and `stage` was given, then `PATCH .../type` and `PATCH .../stage` when those differ. A failing step stops the rest, and the error names the steps already applied.
 - `delete` asks for confirmation; without a terminal pass `--yes`. It needs the ADMIN role.
@@ -259,6 +260,44 @@ An event is an expo, conference, meetup or webinar where the organization meets 
 - `delete` asks `Delete event <id>?`; without a terminal pass `--yes`. It needs the ADMIN role; the linked relations stay and lose the link.
 
 Errors and exit statuses are as for relations: 404 `OTK_NOT_009` for an unknown event, 409 `OTK_STA_013` for a name the organization already uses (case ignored), 422 `OTK_VAL_010` for an end date before the start, 422 `GEN_VAL_001` for an invalid value, 403 for a guest, and on `delete` for a member.
+
+## Otak campaigns
+
+```sh
+oba otak campaign list --search wacht
+oba otak campaign list --event <eventId>
+oba otak campaign create --help             # the fields, required ones and allowed values, read from the live API
+oba otak campaign create <<'EOF'
+{"name": "De wacht", "description": "Post about the night watch", "startDate": "2027-03-01", "endDate": "2027-03-31"}
+EOF
+oba otak campaign update <id> <<'EOF'
+{"endDate": "2027-04-15"}
+EOF
+oba otak campaign delete <id> --yes
+
+oba otak campaign content list <campaignId>
+oba otak campaign content create <campaignId> --legal-entity <legalEntityId> <<'EOF'
+{"channel": "LINKEDIN", "language": "NL", "text": "...", "status": "SCHEDULED", "plannedAt": "2027-03-09T09:00:00Z"}
+EOF
+oba otak campaign content update <campaignId> <contentId> <<'EOF'
+{"status": "PUBLISHED", "postUrl": "https://www.linkedin.com/feed/update/urn:li:activity:1/"}
+EOF
+oba otak campaign content delete <campaignId> <contentId> --yes
+oba otak attachment add --content <contentId> --file wacht.png
+```
+
+A campaign is an umbrella of the organization: a name, an optional description and date range (`startDate`, `endDate`, dates such as `2027-03-01`), owner, event and ICP. It holds any number of contents. A content is one thing actually shared, such as one LinkedIn post: one channel (`LINKEDIN`, `X`, `NEWSLETTER`), one language (`NL`, `TR`, `EN`), one text, published by one legal entity of the organization (`oba legal-entity list`), with its own status, planned and published moments, post URL and images as attachments (`oba otak attachment --content`). Translations of one post are contents of the same campaign; a content has no title. Oba does not post: plan a content as `SCHEDULED` with `plannedAt`, post it by hand, then mark it `PUBLISHED`. An outreach (`outreach create --campaign`) and a relation (`campaignId`, source `CAMPAIGN`) can link to a campaign; `outreach list --campaign` and `relation list --campaign` list them.
+
+- `campaign list` prints `NAME  START  END  CONTENTS  OWNER  ID`, last changed first, CONTENTS the number of contents, every cell on one line and `-` for an empty value, or `No campaigns.`. It reads every match in one `GET /otak/campaigns`, which is not paged. `--search` is part of the name, case ignored; `--event <id>` keeps the campaigns of that event (`eventId`).
+- `campaign create` checks the keys against the live `CampaignCreateRequest` schema and sends the object unchanged in one `POST /otak/campaigns`. Only `name` is required.
+- `campaign update` changes only the given keys; `null` clears a field. It reads the campaign, lays the keys over its current values (the owner's id as `ownerUserId`) and sends the full `PUT` (`CampaignUpdateRequest`). The contents stay as they are.
+- `campaign delete` asks `Delete campaign <id>?`; without a terminal pass `--yes`. It needs the ADMIN role and removes the contents and their images; linked outreaches and relations stay and lose the link.
+- `campaign content list <campaignId>` prints `STATUS  CHANNEL  LANGUAGE  LEGAL ENTITY  PLANNED  PUBLISHED  TEXT  ID` from one `GET /otak/campaigns/{campaignId}/contents`, soonest planned first, unplanned last, then last changed first. LEGAL ENTITY is its short name, PLANNED and PUBLISHED are in this machine's zone, TEXT is the first 40 characters on one line; or `No contents.`.
+- `campaign content create <campaignId>` checks the keys against the live `CampaignContentRequest` schema and sends the object unchanged in one `POST`. `legalEntityId`, `channel`, `language` and `text` are required; `--legal-entity <id>` sets `legalEntityId`, replacing one in the object, and the object is then sent re-encoded. The status is `DRAFT` unless given; `PUBLISHED` without `publishedAt` stores now. Moments are RFC 3339 instants.
+- `campaign content update <campaignId> <contentId>` changes only the given keys; `null` clears a field. It reads the contents of the campaign, lays the keys over the content's current values and sends the full `PUT`; a content id not in the list fails with exit status 2 before any change.
+- `campaign content delete <campaignId> <contentId>` asks `Delete content <id>?`; without a terminal pass `--yes`. Any member may delete a content; its images go with it.
+
+Errors: 404 `OTK_NOT_012` for an unknown campaign, 404 `OTK_NOT_013` for a content not in the campaign, 404 `LGE_NOT_001` for a legal entity of another organization, 409 `OTK_STA_015` for a campaign name the organization already uses (case ignored), 422 `OTK_VAL_017` for an end date before the start date, 422 `OTK_VAL_016` for `SCHEDULED` without `plannedAt`, `DRAFT` or `SCHEDULED` with `publishedAt`, or a `publishedAt` in the future, 403 for a guest, and on `campaign delete` for a member.
 
 ## Otak ICPs
 
@@ -376,16 +415,18 @@ oba otak outreach create --relation <relationId> --contact <contactId> --type ma
 oba otak outreach create --relation <relationId> --contact <contactId> --type call --title "Intro call"
 oba otak outreach complete <outreachId>
 oba otak outreach list --relation <relationId> --status draft
+oba otak outreach list --campaign <campaignId>
 ```
 
 `outreach create` stores one DRAFT reach-out to one contact of a relation in `POST /otak/outreaches`; nothing is sent. `--relation`, `--contact`, `--title` and `--type` are required. `--type` is the channel: `mail`, `whatsapp` or `call`, case ignored. It prints `Created outreach <id> (<title>, <TYPE>, DRAFT)`, and for a MAIL also `Mail <mailId>: <subject>`.
 
 - A MAIL is sent from the lead page of the Otak web app, where you choose the mailbox. Its mail comes from exactly one of `--template`, a mail template the API copies into the outreach's own mail, and `--mail-file`, a `.md` mail file as above, whose language `--lang` sets (`NL` without it; the API requires a language). `--lang` without `--mail-file` is refused, since a mail template keeps its own language. `--attach` is repeated or a comma list of document template ids (`oba document template list`), sent as `documentTemplateIds`: the API copies each template's PDF onto the new mail as an attachment, in the same transaction. A template without its PDF answers `DOC_VAL_002`, one of another organization `DOC_NOT_001`, a contact of another relation `OTK_NOT_002`. A document's PDF goes onto the mail after create with `oba document attach-to-mail`. Other files are added after create with `oba otak attachment add --outreach`.
 - A WHATSAPP or CALL happens outside Oba and takes none of `--template`, `--mail-file`, `--lang` and `--attach`; given ones are named and refused before any call.
+- `--campaign <id>`, on any channel, links the outreach to a campaign (`campaignId`); one of another organization answers `OTK_NOT_012`.
 
 `outreach complete <outreachId>` records a DRAFT WHATSAPP or CALL as done with `POST /otak/outreaches/{id}/complete`: it becomes SENT, now, to the contact's phone, and the command prints `Recorded outreach <id> as done (<title>, <TYPE>, SENT to <phone>)`. The API refuses a MAIL with `OTK_VAL_014`, an outreach already done with `OTK_STA_011` and a contact without a phone with `OTK_VAL_015`.
 
-`outreach list` prints `TITLE  TYPE  STATUS  CONTACT  SENT TO  SENT AT  SENDER  ID`, newest first, every page; `--relation` and `--status` (DRAFT, SENT, FAILED) narrow it. SENT TO is the mail address of a MAIL and the phone of a WHATSAPP or CALL.
+`outreach list` prints `TITLE  TYPE  STATUS  CONTACT  SENT TO  SENT AT  SENDER  ID`, newest first, every page; `--relation`, `--status` (DRAFT, SENT, FAILED) and `--campaign` narrow it. SENT TO is the mail address of a MAIL and the phone of a WHATSAPP or CALL.
 
 ## Otak attachments
 
@@ -393,12 +434,14 @@ oba otak outreach list --relation <relationId> --status draft
 oba otak attachment list --outreach <outreachId>
 oba otak attachment add --outreach <outreachId> --file voorstel.pdf --file prijzen.xlsx
 oba otak attachment delete --relation <relationId> --id <attachmentId>
+oba otak attachment download --content <contentId> --id <attachmentId> -o images/
 ```
 
-Every subcommand takes exactly one of `--outreach`, the own mail of a MAIL outreach (read with `GET /otak/outreaches/{id}` for its `mail.id`; a WHATSAPP or CALL has no mail and is refused), and `--relation`. The calls go to `/storage/attachments` with `entityType` `MAIL` or `RELATION` and the `X-Organization-ID` of the current organization.
+Every subcommand takes exactly one of `--outreach`, the own mail of a MAIL outreach (read with `GET /otak/outreaches/{id}` for its `mail.id`; a WHATSAPP or CALL has no mail and is refused), `--relation` and `--content`, a campaign content. The calls go to `/storage/attachments` with `entityType` `MAIL`, `RELATION` or `CAMPAIGN_CONTENT` and the `X-Organization-ID` of the current organization. A content's attachments, its images, need the MEMBER role.
 
 - `list` prints `NAME  SIZE  TYPE  CREATED  ID` in upload order, or `No attachments.`.
 - `add` takes `--file`, repeatable. It reads and checks every file before any call (a leading `~` is the home directory, a blank path is skipped; a regular, non-empty file, at most 12 MB together, no line break in its name, no two with the same content) and uploads them in one multipart `POST /storage/attachments`: a `metadata` JSON part with `{fileName, entityType, entityId}` per file and one `files` part per file, its media type from the extension, else from the content. Content already on the mail or relation answers `STG_VAL_005`. A document's PDF goes onto a mail with `oba document attach-to-mail` (see Documents).
+- `download --id` checks that the id is an attachment of the given parent and writes its file, read from the signed URL of the list, into `-o` (default the current directory) under its stored file name; an existing file is not overwritten without `--force`.
 - `delete --id` checks that the id is an attachment of the given outreach or relation, asks for confirmation (without a terminal pass `--yes`) and sends `DELETE /storage/attachments/{id}`.
 
 A mail's attachments change only while its outreach is not SENT (`OTK_STA_011`) and need the ADMIN role; a relation's need the MEMBER role.

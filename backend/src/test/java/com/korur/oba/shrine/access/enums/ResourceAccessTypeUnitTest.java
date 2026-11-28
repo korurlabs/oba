@@ -56,5 +56,8 @@ class ResourceAccessTypeUnitTest {
         assertEquals(App.KAZAN, ResourceAccessType.TICKET.getApp());
         assertEquals(App.KAZAN, ResourceAccessType.CHAT_MESSAGE.getApp());
         assertEquals(App.KALKAN, ResourceAccessType.KALKAN_PAGE.getApp());
+        assertEquals(App.OTAK, ResourceAccessType.MAIL.getApp());
+        assertEquals(App.OTAK, ResourceAccessType.RELATION.getApp());
+        assertEquals(App.OTAK, ResourceAccessType.CAMPAIGN_CONTENT.getApp());
     }
 }

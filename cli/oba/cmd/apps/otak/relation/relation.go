@@ -34,7 +34,8 @@ stage of the other type matches nothing.
 --search keeps the relations whose name contains the text, case ignored.
 
 --event keeps the relations linked to one event, by its id ('oba otak event list' prints it).
-An unknown event id lists nothing.
+An unknown event id lists nothing. --campaign does the same for one campaign ('oba otak
+campaign list' prints its id).
 
 Type and stage values are matched without regard to case against the live API, and an unknown
 value is refused before any call.
@@ -114,6 +115,7 @@ func NewCmd() *cobra.Command {
 	listCmd.Flags().StringSliceVar(&listQuery.Stages, "stage", nil, "list only leads and customers at these stages; repeat or give a comma list (default every stage)")
 	listCmd.Flags().StringVar(&listQuery.Search, "search", "", "list only relations whose name contains this text, case ignored")
 	listCmd.Flags().StringVar(&listQuery.EventID, "event", "", "list only relations linked to the event with this id")
+	listCmd.Flags().StringVar(&listQuery.CampaignID, "campaign", "", "list only relations linked to the campaign with this id")
 
 	createCmd := &cobra.Command{
 		Use:   "create",

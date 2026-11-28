@@ -105,8 +105,22 @@ public final class OutreachSpecification {
     }
 
     /**
+     * Filters outreaches of one campaign. Returns no-op if campaignId is null. A campaign of
+     * another organization matches nothing, because the organization filter is ANDed.
+     *
+     * @param campaignId the campaign filter of the request, or null for every outreach
+     * @return a specification on the campaign id, or {@link #noOp()}
+     */
+    private static Specification<Outreach> campaignSpecification(UUID campaignId) {
+        if (campaignId == null) {
+            return noOp();
+        }
+        return (root, query, cb) -> cb.equal(root.get(OutreachConstant.FIELD_CAMPAIGN_ID), campaignId);
+    }
+
+    /**
      * Builds the specification of the outreach list: one organization and the optional
-     * relation and status filters, joined with AND.
+     * relation, status and campaign filters, joined with AND.
      *
      * Called by {@link com.korur.oba.apps.otak.outreach.service.impl.OutreachQueryServiceImpl#list}.
      *
@@ -117,6 +131,7 @@ public final class OutreachSpecification {
     public static Specification<Outreach> filterBy(UUID organizationId, OutreachQueryRequest request) {
         return belongsToOrganization(organizationId)
                 .and(relationSpecification(request.getRelationId()))
-                .and(statusSpecification(request.getStatus()));
+                .and(statusSpecification(request.getStatus()))
+                .and(campaignSpecification(request.getCampaignId()));
     }
 }

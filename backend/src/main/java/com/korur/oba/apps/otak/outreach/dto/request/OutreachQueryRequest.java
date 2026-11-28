@@ -48,4 +48,11 @@ public class OutreachQueryRequest extends QueryRequest {
      */
     @Schema(description = "Only outreaches with this status; null for every status", nullable = true, example = "DRAFT")
     private OutreachStatus status;
+
+    /**
+     * Only outreaches of this campaign; null for every campaign and for none.
+     */
+    @Schema(description = "Only outreaches of this campaign; null for every outreach", nullable = true,
+            example = "3b7c9d1e-4f5a-4b6c-8d7e-9f0a1b2c3d4e")
+    private UUID campaignId;
 }

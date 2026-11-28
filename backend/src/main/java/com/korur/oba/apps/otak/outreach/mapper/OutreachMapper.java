@@ -40,8 +40,8 @@ import com.korur.oba.apps.otak.outreach.entity.Outreach;
 public interface OutreachMapper {
 
     /**
-     * Maps a create request to a new entity: the relation, the contact, the title and the
-     * type. The service then sets the trimmed title, the organization, the status
+     * Maps a create request to a new entity: the relation, the contact, the title, the type and
+     * the campaign. The service then sets the trimmed title, the organization, the status
      * {@link com.korur.oba.apps.otak.outreach.enums.OutreachStatus#DRAFT} and the mail link;
      * the send columns stay empty until a send claims the outreach.
      *
@@ -62,7 +62,8 @@ public interface OutreachMapper {
     Outreach toEntity(OutreachCreateRequest request);
 
     /**
-     * Writes the contact and the title of an update request onto the outreach. The mail
+     * Writes the contact, the title and the campaign of an update request onto the outreach;
+     * a null campaign clears it. The mail
      * lives in the outreach's own mail and is written through the mail service. The type is
      * fixed after create and not in the request. The relation is ignored as well: the mail and its attachments belong to that relation, so it is
      * fixed after create. A null contact in the request is not possible,

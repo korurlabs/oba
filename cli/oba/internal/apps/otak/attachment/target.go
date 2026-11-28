@@ -15,14 +15,25 @@ type Target struct {
 	Label      string
 }
 
-// ResolveTarget turns --outreach or --relation, exactly one of them, into the parent. An outreach
-// is read to find the id of its own mail; a WHATSAPP or CALL outreach has no mail and is refused.
-func ResolveTarget(c *client.Client, outreachID, relationID string) (Target, error) {
-	if (outreachID == "") == (relationID == "") {
-		return Target{}, errors.New("pass exactly one of --outreach and --relation")
+// ResolveTarget turns --outreach, --relation or --content, exactly one of them, into the parent;
+// --content is a campaign content, whose attachments are its images.
+// An outreach is read to find the id of its own mail; a WHATSAPP or CALL outreach has no mail and
+// is refused.
+func ResolveTarget(c *client.Client, outreachID, relationID, contentID string) (Target, error) {
+	given := 0
+	for _, id := range []string{outreachID, relationID, contentID} {
+		if id != "" {
+			given++
+		}
+	}
+	if given != 1 {
+		return Target{}, errors.New("pass exactly one of --outreach, --relation and --content")
 	}
 	if relationID != "" {
 		return Target{EntityType: client.StorageEntityTypeRelation, EntityID: relationID, Label: "relation " + relationID}, nil
+	}
+	if contentID != "" {
+		return Target{EntityType: client.StorageEntityTypeCampaignContent, EntityID: contentID, Label: "content " + contentID}, nil
 	}
 	o, err := c.GetOutreach(outreachID)
 	if err != nil {

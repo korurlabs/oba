@@ -51,7 +51,8 @@ type OutreachMailDetail struct {
 // NewOutreach is the body of an outreach create (OutreachCreateRequest). Type is required. A
 // MAIL takes exactly one of MailTemplateID and Mail; a WHATSAPP or CALL takes neither and no
 // document templates. The API copies the PDF of each DocumentTemplateIDs entry onto the new mail
-// as an attachment, in the create's transaction.
+// as an attachment, in the create's transaction. CampaignID links the outreach to a campaign of
+// the organization, nil for none.
 type NewOutreach struct {
 	RelationID          string        `json:"relationId"`
 	ContactID           string        `json:"contactId"`
@@ -60,6 +61,7 @@ type NewOutreach struct {
 	MailTemplateID      *string       `json:"mailTemplateId,omitempty"`
 	Mail                *OutreachMail `json:"mail,omitempty"`
 	DocumentTemplateIDs []string      `json:"documentTemplateIds"`
+	CampaignID          *string       `json:"campaignId,omitempty"`
 }
 
 // OutreachMail is a mail written for one outreach. The API requires its language.
@@ -70,7 +72,7 @@ type OutreachMail struct {
 }
 
 // ListOutreaches reads every outreach of the organization, newest first, filtered by the
-// non-empty query values (relationId, status).
+// non-empty query values (relationId, status, campaignId).
 func (c *Client) ListOutreaches(query url.Values) ([]Outreach, error) {
 	return ListPages[Outreach](c, outreachesPath, query)
 }

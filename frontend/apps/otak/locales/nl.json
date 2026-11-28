@@ -12,6 +12,7 @@
     "documents": "Document",
     "templates": "Sjabloon",
     "events": "Evenement",
+    "campaigns": "Campagne",
     "language": "Taal"
   },
   "errors": {
@@ -95,6 +96,7 @@
       "INBOUND": "Inbound",
       "PARTNER": "Partner",
       "EVENT": "Evenement",
+      "CAMPAIGN": "Campagne",
       "RESEARCH": "Onderzoek",
       "OTHER": "Overig"
     },
@@ -121,7 +123,10 @@
       "ownerLabel": "Eigenaar",
       "eventLabel": "Evenement",
       "eventPlaceholder": "Elk evenement",
-      "eventsLoadError": "De evenementen konden niet worden geladen."
+      "eventsLoadError": "De evenementen konden niet worden geladen.",
+      "campaignLabel": "Campagne",
+      "campaignPlaceholder": "Elke campagne",
+      "campaignsLoadError": "De campagnes konden niet worden geladen."
     },
     "form": {
       "sections": {
@@ -182,7 +187,10 @@
       },
       "event": "Evenement",
       "eventPlaceholder": "Kies een evenement",
-      "eventsLoadError": "De evenementen konden niet worden geladen."
+      "eventsLoadError": "De evenementen konden niet worden geladen.",
+      "campaign": "Campagne",
+      "campaignPlaceholder": "Kies een campagne",
+      "campaignsLoadError": "De campagnes konden niet worden geladen."
     },
     "newPage": {
       "title": "Nieuwe relatie",
@@ -235,7 +243,8 @@
       "typeUnchanged": "De relatie heeft dit type al.",
       "stageNotForType": "Deze fase hoort niet bij het type van de relatie.",
       "loadHint": "Controleer je verbinding en probeer het opnieuw.",
-      "eventNotFound": "Dit evenement bestaat niet meer."
+      "eventNotFound": "Dit evenement bestaat niet meer.",
+      "campaignNotFound": "Deze campagne bestaat niet meer."
     },
     "battlefield": {
       "title": "Battlefield",
@@ -954,7 +963,10 @@
     "filters": {
       "statusLabel": "Status",
       "statusAll": "Alle statussen",
-      "clear": "Filter wissen"
+      "clear": "Filter wissen",
+      "campaignLabel": "Campagne",
+      "campaignAll": "Alle campagnes",
+      "campaignsLoadError": "De campagnes konden niet worden geladen."
     },
     "pagination": {
       "label": "Pagina's",
@@ -983,7 +995,10 @@
         "subjectMax": "Onderwerp mag maximaal 255 tekens zijn",
         "bodyRequired": "Tekst is verplicht",
         "bodyMax": "Tekst mag maximaal 10.000 tekens zijn"
-      }
+      },
+      "campaign": "Campagne",
+      "campaignPlaceholder": "Geen campagne",
+      "campaignsLoadError": "De campagnes konden niet worden geladen."
     },
     "attachments": {
       "filesLegend": "Bestanden bijvoegen",
@@ -1018,7 +1033,8 @@
       "loadHint": "Controleer je verbinding en probeer het opnieuw.",
       "actionNotForType": "Deze actie past niet bij het kanaal van de benadering.",
       "contactWithoutPhone": "De contactpersoon heeft geen telefoonnummer. Voeg er een toe in de kaart Contactpersonen.",
-      "attachmentDuplicate": "Dit bestand is hier al bijgevoegd."
+      "attachmentDuplicate": "Dit bestand is hier al bijgevoegd.",
+      "campaignNotFound": "Deze campagne bestaat niet meer."
     },
     "sendDialog": {
       "title": "{title} versturen",
@@ -1325,6 +1341,216 @@
       "loadError": "De relaties konden niet worden geladen.",
       "empty": "Er zijn nog geen relaties aan dit evenement gekoppeld.",
       "tableLabel": "Relaties van dit evenement"
+    }
+  },
+  "campaigns": {
+    "title": "Campagnes",
+    "subtitle": "Campagnes van de organisatie, elk met haar posts per kanaal, taal en juridische entiteit.",
+    "new": "Nieuwe campagne",
+    "newTitle": "Nieuwe campagne",
+    "editTitle": "Campagne bewerken",
+    "dialogDescription": "Een campagne bundelt posts die bij elkaar horen, zoals één post en zijn vertalingen. Voeg de posts toe op de campagnepagina.",
+    "loadError": "De campagnes konden niet worden geladen.",
+    "reloadError": "De campagnes konden niet worden vernieuwd; deze lijst is mogelijk niet actueel.",
+    "loadOneError": "De campagne kon niet worden geladen.",
+    "loading": "De campagnes worden geladen",
+    "loadingOne": "De campagne wordt geladen",
+    "emptyFiltered": "Geen campagnes voor deze filters",
+    "emptyFilteredHint": "Probeer een andere naam, of wis de zoekopdracht.",
+    "emptyHint": "Voeg een campagne toe en daarna haar inhoud met teksten en afbeeldingen, zodat elke post in één bibliotheek staat.",
+    "tableLabel": "Campagnes",
+    "channels": {
+      "LINKEDIN": "LinkedIn",
+      "X": "X",
+      "NEWSLETTER": "Nieuwsbrief"
+    },
+    "statuses": {
+      "DRAFT": "Concept",
+      "SCHEDULED": "Ingepland",
+      "PUBLISHED": "Gepubliceerd",
+      "ARCHIVED": "Gearchiveerd"
+    },
+    "notPlanned": "Niet ingepland",
+    "notPublished": "Niet gepubliceerd",
+    "noOwner": "Geen eigenaar",
+    "noEvent": "Geen evenement",
+    "noIcp": "Geen ICP",
+    "edit": "{name} bewerken",
+    "delete": "{name} verwijderen",
+    "deleteTitle": "Campagne verwijderen",
+    "deleteConfirm": "{name} verwijderen met haar inhoud en afbeeldingen? Gekoppelde outreaches en relaties blijven en verliezen de koppeling. Dit kan niet ongedaan worden gemaakt.",
+    "deleteAction": "Verwijderen",
+    "columns": {
+      "name": "Naam",
+      "owner": "Eigenaar",
+      "actions": "Acties",
+      "dates": "Data",
+      "event": "Evenement",
+      "contentCount": "Inhoud"
+    },
+    "filters": {
+      "searchLabel": "Zoeken",
+      "searchPlaceholder": "Zoek op naam",
+      "clear": "Filters wissen"
+    },
+    "form": {
+      "name": "Naam",
+      "namePlaceholder": "Zoals Lancering security check",
+      "owner": "Eigenaar",
+      "ownerPlaceholder": "Kies een eigenaar",
+      "ownerNoOtakAccess": "Geen Otak-toegang, dus dit lid kan geen campagne bezitten.",
+      "ownersLoadError": "De leden konden niet worden geladen.",
+      "event": "Evenement",
+      "eventPlaceholder": "Kies een evenement",
+      "eventsLoadError": "De evenementen konden niet worden geladen.",
+      "icp": "ICP",
+      "icpPlaceholder": "Kies een ICP",
+      "icpsLoadError": "De ICP's konden niet worden geladen.",
+      "create": "Campagne aanmaken",
+      "save": "Wijzigingen opslaan",
+      "saving": "Opslaan...",
+      "cancel": "Annuleren",
+      "errors": {
+        "nameRequired": "Naam is verplicht",
+        "dateInvalid": "Vul een geldige datum in",
+        "dateRange": "De einddatum kan niet voor de startdatum liggen"
+      },
+      "description": "Beschrijving",
+      "descriptionPlaceholder": "Waar de campagne over gaat",
+      "startDate": "Startdatum",
+      "endDate": "Einddatum"
+    },
+    "toast": {
+      "created": "Campagne aangemaakt",
+      "updated": "Campagne opgeslagen",
+      "deleted": "Campagne verwijderd",
+      "saveError": "De campagne kon niet worden opgeslagen",
+      "deleteError": "De campagne kon niet worden verwijderd",
+      "contentCreated": "Inhoud aangemaakt",
+      "contentUpdated": "Inhoud opgeslagen",
+      "contentMarkedPublished": "Inhoud als gepubliceerd gemarkeerd",
+      "contentDeleted": "Inhoud verwijderd",
+      "contentSaveError": "De inhoud kon niet worden opgeslagen",
+      "contentDeleteError": "De inhoud kon niet worden verwijderd"
+    },
+    "errors": {
+      "notFound": "Deze campagne bestaat niet meer.",
+      "eventNotFound": "Dit evenement bestaat niet meer.",
+      "icpNotFound": "Deze ICP bestaat niet meer.",
+      "nameTaken": "De organisatie heeft al een campagne met deze naam.",
+      "ownerNotMember": "De eigenaar moet een actief lid van de organisatie zijn.",
+      "ownerWithoutOtakAccess": "Dit lid heeft geen Otak-toegang en kan dus geen campagne bezitten. Een eigenaar of beheerder kan Otak toekennen in Ulak.",
+      "statusDates": "Ingeplande inhoud heeft een geplande datum nodig, concept- of ingeplande inhoud heeft geen publicatiedatum, en een publicatiedatum ligt niet in de toekomst.",
+      "imageDuplicate": "Dit bestand staat al bij de inhoud.",
+      "forbidden": "Je hebt geen toestemming om dit te doen.",
+      "validation": "Controleer de gemarkeerde velden.",
+      "loadHint": "Controleer je verbinding en probeer het opnieuw.",
+      "contentNotFound": "Deze inhoud bestaat niet meer.",
+      "legalEntityNotFound": "Deze juridische entiteit bestaat niet meer.",
+      "dateRange": "De einddatum kan niet voor de startdatum liggen."
+    },
+    "detail": {
+      "title": "Campagne",
+      "back": "Terug naar campagnes",
+      "loading": "De campagne wordt geladen",
+      "loadError": "De campagne kon niet worden geladen.",
+      "notFoundTitle": "Campagne niet gevonden",
+      "notFoundDescription": "Deze campagne bestaat niet, of hoort bij een andere organisatie.",
+      "timestamps": "Aangemaakt {created} · Bijgewerkt {updated}",
+      "edit": "Campagne bewerken",
+      "delete": "Campagne verwijderen",
+      "deleting": "Verwijderen...",
+      "details": "Gegevens",
+      "relationsLink": "Relaties",
+      "outreachesLink": "Outreaches",
+      "owner": "Eigenaar",
+      "event": "Evenement",
+      "icp": "ICP",
+      "icpUnnamed": "ICP",
+      "dates": "Data",
+      "description": "Beschrijving",
+      "contents": "Inhoud",
+      "newContent": "Nieuwe inhoud",
+      "contentsLoading": "De inhoud laden",
+      "contentsLoadError": "De inhoud kon niet worden geladen.",
+      "noContents": "Nog geen inhoud. Voeg er een toe voor elke post, taal en elk kanaal."
+    },
+    "images": {
+      "title": "Afbeeldingen",
+      "loading": "De afbeeldingen worden geladen",
+      "loadError": "De afbeeldingen konden niet worden geladen.",
+      "empty": "Nog geen afbeeldingen.",
+      "open": "{name} openen",
+      "delete": "{name} verwijderen",
+      "deleteTitle": "Afbeelding verwijderen",
+      "deleteConfirm": "{name} verwijderen? Dit kan niet ongedaan worden gemaakt.",
+      "deleteAction": "Verwijderen",
+      "cancel": "Annuleren"
+    },
+    "empty": "Nog geen campagnes",
+    "noDates": "Geen data",
+    "noDescription": "Geen beschrijving",
+    "eventUnnamed": "Evenement",
+    "datesFrom": "Vanaf {date}",
+    "datesUntil": "Tot {date}",
+    "contentColumns": {
+      "status": "Status",
+      "channel": "Kanaal",
+      "language": "Taal",
+      "legalEntity": "Juridische entiteit",
+      "plannedAt": "Ingepland",
+      "publishedAt": "Gepubliceerd",
+      "actions": "Acties"
+    },
+    "contentLabel": "{channel}-inhoud in het {language}",
+    "contentNewTitle": "Nieuwe inhoud",
+    "contentEditTitle": "Inhoud bewerken",
+    "contentDialogDescription": "Eén post of mailing op één kanaal, in één taal, van één juridische entiteit. Oba plaatst hem niet: plaats hem zelf en markeer hem als gepubliceerd.",
+    "contentDeleteTitle": "Inhoud verwijderen",
+    "contentDeleteConfirm": "Deze inhoud met haar afbeeldingen verwijderen? Dit kan niet ongedaan worden gemaakt.",
+    "legalEntitiesLoadError": "De juridische entiteiten konden niet worden geladen.",
+    "legalEntitiesLoading": "De juridische entiteiten laden",
+    "noLegalEntities": "De organisatie heeft nog geen juridische entiteiten. Een eigenaar of beheerder voegt ze toe in Ulak.",
+    "contentForm": {
+      "legalEntity": "Juridische entiteit",
+      "legalEntityPlaceholder": "Kies een juridische entiteit",
+      "channel": "Kanaal",
+      "channelPlaceholder": "Kies een kanaal",
+      "language": "Taal",
+      "languagePlaceholder": "Kies een taal",
+      "status": "Status",
+      "plannedAt": "Ingepland op",
+      "plannedAtHint": "In je eigen tijdzone. Ingeplande inhoud heeft dit nodig.",
+      "publishedAt": "Gepubliceerd op",
+      "publishedAtHint": "Laat leeg als je hem nu als gepubliceerd markeert; vul in voor een post die eerder online ging.",
+      "postUrl": "Postadres",
+      "postUrlPlaceholder": "https://www.linkedin.com/posts/...",
+      "text": "Tekst",
+      "textPlaceholder": "De tekst van de post",
+      "characterCount": "{count, plural, one {# teken} other {# tekens}}",
+      "characterCountOfLimit": "{count} / {limit} tekens",
+      "copy": "Tekst kopiëren",
+      "copied": "Tekst gekopieerd",
+      "copyError": "De tekst kon niet worden gekopieerd. Selecteer hem en kopieer hem met de hand.",
+      "imagesAfterCreate": "Maak eerst de inhoud aan en voeg daarna de afbeeldingen toe.",
+      "markPublished": "Markeren als gepubliceerd",
+      "markingPublished": "Markeren...",
+      "create": "Inhoud aanmaken",
+      "save": "Wijzigingen opslaan",
+      "saving": "Opslaan...",
+      "cancel": "Annuleren",
+      "close": "Sluiten",
+      "errors": {
+        "legalEntityRequired": "Juridische entiteit is verplicht",
+        "channelRequired": "Kanaal is verplicht",
+        "languageRequired": "Taal is verplicht",
+        "textRequired": "Tekst is verplicht",
+        "dateTimeInvalid": "Vul een geldige datum en tijd in",
+        "postUrlInvalid": "Vul een webadres in dat begint met http:// of https://",
+        "plannedAtRequired": "Ingeplande inhoud heeft een geplande datum en tijd nodig",
+        "publishedAtNotAllowed": "Concept- of ingeplande inhoud heeft geen publicatiedatum; markeer hem als gepubliceerd of wis de datum",
+        "publishedAtInFuture": "De publicatiedatum kan niet in de toekomst liggen; plan de inhoud in"
+      }
     }
   }
 }

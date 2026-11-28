@@ -246,3 +246,44 @@ func TestOutreachCompleteShowsAPIError(t *testing.T) {
 		t.Fatalf("err = %v", err)
 	}
 }
+
+func TestOutreachCampaign(t *testing.T) {
+	const campaignID = "cccccccc-cccc-4ccc-8ccc-cccccccccccc"
+	api := clitest.NewSignedInAPI(t)
+	api.Respond("POST "+outreachesPath, http.StatusCreated, `{"data":`+typedOutreachJSON("CALL", "DRAFT", `,"mail":null`)+`}`)
+	var query string
+	api.Handle("GET "+outreachesPath, func(w http.ResponseWriter, r *http.Request) {
+		query = r.URL.RawQuery
+		clitest.WriteJSON(w, `{"data":[],"pagination":{"currentPage":1,"last":true}}`)
+	})
+
+	if _, _, err := runCLI(t, "otak", "outreach", "create", "--relation", clitest.RelationID, "--contact", contactID,
+		"--title", "Intro call", "--type", "call", "--campaign", " "+campaignID+" "); err != nil {
+		t.Fatal(err)
+	}
+	var body map[string]any
+	if err := json.Unmarshal([]byte(api.Request("POST "+outreachesPath).Body), &body); err != nil {
+		t.Fatal(err)
+	}
+	if body["campaignId"] != campaignID {
+		t.Errorf("body = %v", body)
+	}
+	if _, _, err := runCLI(t, "otak", "outreach", "list", "--campaign", campaignID); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(query, "campaignId="+campaignID) {
+		t.Errorf("query = %q", query)
+	}
+}
+
+func TestOutreachCreateWithoutCampaignSendsNone(t *testing.T) {
+	api := clitest.NewSignedInAPI(t)
+	api.Respond("POST "+outreachesPath, http.StatusCreated, `{"data":`+typedOutreachJSON("CALL", "DRAFT", `,"mail":null`)+`}`)
+	if _, _, err := runCLI(t, "otak", "outreach", "create", "--relation", clitest.RelationID, "--contact", contactID,
+		"--title", "Intro call", "--type", "call"); err != nil {
+		t.Fatal(err)
+	}
+	if body := api.Request("POST " + outreachesPath).Body; strings.Contains(body, "campaignId") {
+		t.Errorf("body = %s", body)
+	}
+}

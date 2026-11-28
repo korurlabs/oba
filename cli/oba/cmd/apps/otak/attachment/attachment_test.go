@@ -101,7 +101,7 @@ func TestAttachmentNeedsExactlyOneTarget(t *testing.T) {
 		{"otak", "attachment", "delete", "--id", attachmentID, "--yes"},
 	} {
 		_, _, err := runCLI(t, "", args...)
-		if err == nil || err.Error() != "pass exactly one of --outreach and --relation" {
+		if err == nil || err.Error() != "pass exactly one of --outreach, --relation and --content" {
 			t.Errorf("%v: err = %v", args, err)
 		}
 	}

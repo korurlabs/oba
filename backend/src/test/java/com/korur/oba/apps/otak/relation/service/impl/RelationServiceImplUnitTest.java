@@ -28,6 +28,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 // 4. Internal
+import com.korur.oba.apps.otak.campaign.service.CampaignQueryService;
 import com.korur.oba.apps.otak.event.service.EventQueryService;
 import com.korur.oba.apps.otak.icp.service.IcpQueryService;
 import com.korur.oba.apps.otak.mail.service.MailQueryService;
@@ -38,6 +39,7 @@ import com.korur.oba.apps.otak.relation.dto.response.RelationDetailResponse;
 import com.korur.oba.apps.otak.relation.entity.Relation;
 import com.korur.oba.apps.otak.relation.enums.Country;
 import com.korur.oba.apps.otak.relation.enums.PipelineStage;
+import com.korur.oba.apps.otak.relation.enums.RelationSource;
 import com.korur.oba.apps.otak.relation.enums.RelationType;
 import com.korur.oba.apps.otak.relation.helper.RelationOwnerHelper;
 import com.korur.oba.apps.otak.relation.mapper.RelationMapper;
@@ -81,6 +83,9 @@ class RelationServiceImplUnitTest {
     private EventQueryService eventQueryService;
 
     @Mock
+    private CampaignQueryService campaignQueryService;
+
+    @Mock
     private MailQueryService mailQueryService;
 
     @Mock
@@ -106,7 +111,7 @@ class RelationServiceImplUnitTest {
                 appAccessValidator, loggingService);
         RelationMapper mapper = new RelationMapperImpl();
         service = new RelationServiceImpl(relationRepository, mapper, validator, relationOwnerHelper,
-                icpQueryService, eventQueryService, mailQueryService, attachmentService, documentService, loggingService);
+                icpQueryService, eventQueryService, campaignQueryService, mailQueryService, attachmentService, documentService, loggingService);
         user = User.builder().build();
         user.setId(UUID.randomUUID());
     }
@@ -117,7 +122,7 @@ class RelationServiceImplUnitTest {
 
     private static RelationCreateRequest createRequest(RelationType type, PipelineStage stage, UUID ownerUserId) {
         return new RelationCreateRequest("Fabrikam", type, stage, "https://www.fabrikam.example", null, null, null, null, null,
-                null, null, Country.NL, null, new BigDecimal("25000.00"), ownerUserId, null, null, null);
+                null, null, Country.NL, null, new BigDecimal("25000.00"), ownerUserId, null, null, null, null);
     }
 
     private static RelationUpdateRequest updateRequest(UUID ownerUserId) {
@@ -126,12 +131,12 @@ class RelationServiceImplUnitTest {
 
     private static RelationUpdateRequest updateRequest(UUID ownerUserId, UUID icpId) {
         return new RelationUpdateRequest("Fabrikam B.V.", null, null, null, null, null, null, null, null, null,
-                null, null, ownerUserId, icpId, null, "Met at the fair");
+                null, null, ownerUserId, icpId, null, null, "Met at the fair");
     }
 
     private static RelationCreateRequest createRequestWithIcp(UUID icpId) {
         return new RelationCreateRequest("Fabrikam", RelationType.LEAD, null, null, null, null, null, null, null, null,
-                null, Country.NL, null, null, null, icpId, null, null);
+                null, Country.NL, null, null, null, icpId, null, null, null);
     }
 
     private NotFoundException icpNotFound(UUID icpId) {
@@ -389,12 +394,12 @@ class RelationServiceImplUnitTest {
 
         private RelationCreateRequest createRequestWithEvent(UUID eventId) {
             return new RelationCreateRequest("Fabrikam", RelationType.LEAD, null, null, null, null, null, null, null,
-                    null, null, Country.NL, null, null, null, null, eventId, null);
+                    null, null, Country.NL, null, null, null, null, eventId, null, null);
         }
 
         private RelationUpdateRequest updateRequestWithEvent(UUID eventId) {
             return new RelationUpdateRequest("Fabrikam B.V.", null, null, null, null, null, null, null, null, null,
-                    null, null, null, null, eventId, "Met at the fair");
+                    null, null, null, null, eventId, null, "Met at the fair");
         }
 
         private NotFoundException eventNotFound(UUID eventId) {
@@ -488,6 +493,117 @@ class RelationServiceImplUnitTest {
                     updateRequestWithEvent(eventId))).isInstanceOf(NotFoundException.class);
             verify(relationRepository, never()).saveAndFlush(any());
             assertThat(relation.getEventId()).isEqualTo(currentEventId);
+        }
+    }
+
+    @Nested
+    class CampaignLink {
+
+        private RelationCreateRequest createRequestWithCampaign(UUID campaignId) {
+            return new RelationCreateRequest("Fabrikam", RelationType.LEAD, null, null, null, null, null, null, null,
+                    null, null, Country.NL, RelationSource.CAMPAIGN, null, null, null, null, campaignId, null);
+        }
+
+        private RelationUpdateRequest updateRequestWithCampaign(UUID campaignId) {
+            return new RelationUpdateRequest("Fabrikam B.V.", null, null, null, null, null, null, null, null, null,
+                    null, null, null, null, null, campaignId, "Met at the fair");
+        }
+
+        private NotFoundException campaignNotFound(UUID campaignId) {
+            return new NotFoundException(ExceptionDomainOtakError.NOT_CAMPAIGN_FOUND,
+                    Map.of("campaignId", campaignId));
+        }
+
+        @Test
+        void createWithoutCampaign_skipsTheCampaignCheck() {
+            // Arrange
+            when(relationRepository.save(any(Relation.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            // Act
+            RelationDetailResponse response = service.create(organizationId, user, createRequestWithCampaign(null));
+
+            // Assert
+            verify(campaignQueryService, never()).ensureExists(any(), any());
+            assertThat(captureSaved().getCampaignId()).isNull();
+            assertThat(response.campaignId()).isNull();
+        }
+
+        @Test
+        void createWithCampaignOfOrganization_checksItAndStoresIt() {
+            // Arrange
+            UUID campaignId = UUID.randomUUID();
+            when(relationRepository.save(any(Relation.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+            // Act
+            RelationDetailResponse response = service.create(organizationId, user,
+                    createRequestWithCampaign(campaignId));
+
+            // Assert
+            verify(campaignQueryService).ensureExists(organizationId, campaignId);
+            Relation saved = captureSaved();
+            assertThat(saved.getCampaignId()).isEqualTo(campaignId);
+            assertThat(saved.getSource()).isEqualTo(RelationSource.CAMPAIGN);
+            assertThat(response.campaignId()).isEqualTo(campaignId);
+        }
+
+        @Test
+        void createWithForeignCampaign_throwsNotFoundAndSavesNothing() {
+            // Arrange
+            UUID campaignId = UUID.randomUUID();
+            doThrow(campaignNotFound(campaignId)).when(campaignQueryService).ensureExists(organizationId, campaignId);
+
+            // Act and assert
+            assertThatThrownBy(() -> service.create(organizationId, user, createRequestWithCampaign(campaignId)))
+                    .isInstanceOfSatisfying(NotFoundException.class, (NotFoundException exception) ->
+                            assertThat(exception.getErrorCode())
+                                    .isEqualTo(ExceptionDomainOtakError.NOT_CAMPAIGN_FOUND.getCode()));
+            verify(relationRepository, never()).save(any());
+        }
+
+        @Test
+        void updateWithNullCampaign_skipsTheCheckAndClearsTheLink() {
+            // Arrange
+            Relation relation = storedRelation(RelationType.LEAD, PipelineStage.NEW, null);
+            relation.setCampaignId(UUID.randomUUID());
+            when(relationRepository.saveAndFlush(relation)).thenReturn(relation);
+
+            // Act
+            service.update(organizationId, relation.getId(), updateRequestWithCampaign(null));
+
+            // Assert
+            verify(campaignQueryService, never()).ensureExists(any(), any());
+            assertThat(relation.getCampaignId()).isNull();
+        }
+
+        @Test
+        void updateWithCampaignOfOrganization_checksItAndLinks() {
+            // Arrange
+            UUID campaignId = UUID.randomUUID();
+            Relation relation = storedRelation(RelationType.LEAD, PipelineStage.NEW, null);
+            when(relationRepository.saveAndFlush(relation)).thenReturn(relation);
+
+            // Act
+            service.update(organizationId, relation.getId(), updateRequestWithCampaign(campaignId));
+
+            // Assert
+            verify(campaignQueryService).ensureExists(organizationId, campaignId);
+            assertThat(relation.getCampaignId()).isEqualTo(campaignId);
+        }
+
+        @Test
+        void updateWithForeignCampaign_throwsNotFoundSavesNothingAndKeepsTheLink() {
+            // Arrange
+            UUID campaignId = UUID.randomUUID();
+            UUID currentCampaignId = UUID.randomUUID();
+            Relation relation = storedRelation(RelationType.LEAD, PipelineStage.NEW, null);
+            relation.setCampaignId(currentCampaignId);
+            doThrow(campaignNotFound(campaignId)).when(campaignQueryService).ensureExists(organizationId, campaignId);
+
+            // Act and assert
+            assertThatThrownBy(() -> service.update(organizationId, relation.getId(),
+                    updateRequestWithCampaign(campaignId))).isInstanceOf(NotFoundException.class);
+            verify(relationRepository, never()).saveAndFlush(any());
+            assertThat(relation.getCampaignId()).isEqualTo(currentCampaignId);
         }
     }
 

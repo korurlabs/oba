@@ -81,6 +81,10 @@ public record RelationListResponse(
         @Schema(description = "Expected deal value in euros", nullable = true, example = "25000.00")
         BigDecimal expectedValue,
 
+        @Schema(description = "Campaign of the organization that brought the relation in; null when the relation "
+                + "has none", nullable = true, example = "3b7c9d1e-4f5a-4b6c-8d7e-9f0a1b2c3d4e")
+        UUID campaignId,
+
         @Schema(description = "Last change", example = "2026-11-09T09:30:00Z")
         Instant updatedAt
 ) {

@@ -59,7 +59,7 @@ class OutreachValidatorUnitTest {
     }
 
     private OutreachCreateRequest request(UUID mailTemplateId, MailRequest mail) {
-        return new OutreachCreateRequest(relationId, UUID.randomUUID(), "Title", OutreachType.MAIL, mailTemplateId, mail, List.of());
+        return new OutreachCreateRequest(relationId, UUID.randomUUID(), "Title", OutreachType.MAIL, mailTemplateId, mail, List.of(), null);
     }
 
     private void mailFitsType(OutreachCreateRequest request) {

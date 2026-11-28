@@ -12,6 +12,7 @@
     "documents": "Belge",
     "templates": "Şablon",
     "events": "Etkinlik",
+    "campaigns": "Kampanya",
     "language": "Dil"
   },
   "errors": {
@@ -95,6 +96,7 @@
       "INBOUND": "Gelen talep",
       "PARTNER": "İş ortağı",
       "EVENT": "Etkinlik",
+      "CAMPAIGN": "Kampanya",
       "RESEARCH": "Araştırma",
       "OTHER": "Diğer"
     },
@@ -121,7 +123,10 @@
       "ownerLabel": "Sahip",
       "eventLabel": "Etkinlik",
       "eventPlaceholder": "Herhangi bir etkinlik",
-      "eventsLoadError": "Etkinlikler yüklenemedi."
+      "eventsLoadError": "Etkinlikler yüklenemedi.",
+      "campaignLabel": "Kampanya",
+      "campaignPlaceholder": "Tüm kampanyalar",
+      "campaignsLoadError": "Kampanyalar yüklenemedi."
     },
     "form": {
       "sections": {
@@ -182,7 +187,10 @@
       },
       "event": "Etkinlik",
       "eventPlaceholder": "Bir etkinlik seçin",
-      "eventsLoadError": "Etkinlikler yüklenemedi."
+      "eventsLoadError": "Etkinlikler yüklenemedi.",
+      "campaign": "Kampanya",
+      "campaignPlaceholder": "Bir kampanya seçin",
+      "campaignsLoadError": "Kampanyalar yüklenemedi."
     },
     "newPage": {
       "title": "Yeni ilişki",
@@ -235,7 +243,8 @@
       "typeUnchanged": "İlişki zaten bu türde.",
       "stageNotForType": "Bu aşama ilişkinin türüne ait değil.",
       "loadHint": "Bağlantınızı kontrol edip tekrar deneyin.",
-      "eventNotFound": "Bu etkinlik artık yok."
+      "eventNotFound": "Bu etkinlik artık yok.",
+      "campaignNotFound": "Bu kampanya artık yok."
     },
     "battlefield": {
       "title": "Battlefield",
@@ -954,7 +963,10 @@
     "filters": {
       "statusLabel": "Durum",
       "statusAll": "Tüm durumlar",
-      "clear": "Filtreyi temizle"
+      "clear": "Filtreyi temizle",
+      "campaignLabel": "Kampanya",
+      "campaignAll": "Tüm kampanyalar",
+      "campaignsLoadError": "Kampanyalar yüklenemedi."
     },
     "pagination": {
       "label": "Sayfalar",
@@ -983,7 +995,10 @@
         "subjectMax": "Konu en fazla 255 karakter olabilir",
         "bodyRequired": "Metin zorunludur",
         "bodyMax": "Metin en fazla 10.000 karakter olabilir"
-      }
+      },
+      "campaign": "Kampanya",
+      "campaignPlaceholder": "Kampanya yok",
+      "campaignsLoadError": "Kampanyalar yüklenemedi."
     },
     "attachments": {
       "filesLegend": "Dosya ekle",
@@ -1018,7 +1033,8 @@
       "loadHint": "Bağlantını kontrol et ve tekrar dene.",
       "actionNotForType": "Bu işlem erişimin kanalına uymuyor.",
       "contactWithoutPhone": "Kişinin telefon numarası yok. Kişiler kartında bir numara ekle.",
-      "attachmentDuplicate": "Bu dosya burada zaten ekli."
+      "attachmentDuplicate": "Bu dosya burada zaten ekli.",
+      "campaignNotFound": "Bu kampanya artık yok."
     },
     "sendDialog": {
       "title": "{title} gönder",
@@ -1325,6 +1341,216 @@
       "loadError": "İlişkiler yüklenemedi.",
       "empty": "Bu etkinliğe henüz bağlı ilişki yok.",
       "tableLabel": "Bu etkinliğin ilişkileri"
+    }
+  },
+  "campaigns": {
+    "title": "Kampanyalar",
+    "subtitle": "Kuruluşun kampanyaları; her biri kanal, dil ve tüzel kişiye göre gönderileriyle.",
+    "new": "Yeni kampanya",
+    "newTitle": "Yeni kampanya",
+    "editTitle": "Kampanyayı düzenle",
+    "dialogDescription": "Bir kampanya birbirine ait gönderileri bir araya getirir, örneğin bir gönderi ve çevirileri. Gönderileri kampanya sayfasında ekleyin.",
+    "loadError": "Kampanyalar yüklenemedi.",
+    "reloadError": "Kampanyalar yenilenemedi; bu liste güncel olmayabilir.",
+    "loadOneError": "Kampanya yüklenemedi.",
+    "loading": "Kampanyalar yükleniyor",
+    "loadingOne": "Kampanya yükleniyor",
+    "emptyFiltered": "Bu filtrelere uyan kampanya yok",
+    "emptyFilteredHint": "Başka bir ad deneyin veya aramayı temizleyin.",
+    "emptyHint": "Her gönderi tek bir kütüphanede dursun diye bir kampanya, sonra metinleri ve görselleriyle içeriklerini ekleyin.",
+    "tableLabel": "Kampanyalar",
+    "channels": {
+      "LINKEDIN": "LinkedIn",
+      "X": "X",
+      "NEWSLETTER": "E-bülten"
+    },
+    "statuses": {
+      "DRAFT": "Taslak",
+      "SCHEDULED": "Planlandı",
+      "PUBLISHED": "Yayınlandı",
+      "ARCHIVED": "Arşivlendi"
+    },
+    "notPlanned": "Planlanmadı",
+    "notPublished": "Yayınlanmadı",
+    "noOwner": "Sahibi yok",
+    "noEvent": "Etkinlik yok",
+    "noIcp": "ICP yok",
+    "edit": "{name} kampanyasını düzenle",
+    "delete": "{name} kampanyasını sil",
+    "deleteTitle": "Kampanyayı sil",
+    "deleteConfirm": "{name} içerikleri ve görselleriyle birlikte silinsin mi? Bağlı erişimler ve ilişkiler kalır ve bağlantıyı kaybeder. Bu işlem geri alınamaz.",
+    "deleteAction": "Sil",
+    "columns": {
+      "name": "Ad",
+      "owner": "Sahibi",
+      "actions": "İşlemler",
+      "dates": "Tarihler",
+      "event": "Etkinlik",
+      "contentCount": "İçerikler"
+    },
+    "filters": {
+      "searchLabel": "Ara",
+      "searchPlaceholder": "Ada göre ara",
+      "clear": "Filtreleri temizle"
+    },
+    "form": {
+      "name": "Ad",
+      "namePlaceholder": "Örneğin Güvenlik kontrolü lansmanı",
+      "owner": "Sahibi",
+      "ownerPlaceholder": "Bir sahip seçin",
+      "ownerNoOtakAccess": "Otak erişimi yok, bu üye kampanya sahibi olamaz.",
+      "ownersLoadError": "Üyeler yüklenemedi.",
+      "event": "Etkinlik",
+      "eventPlaceholder": "Bir etkinlik seçin",
+      "eventsLoadError": "Etkinlikler yüklenemedi.",
+      "icp": "ICP",
+      "icpPlaceholder": "Bir ICP seçin",
+      "icpsLoadError": "ICP'ler yüklenemedi.",
+      "create": "Kampanya oluştur",
+      "save": "Değişiklikleri kaydet",
+      "saving": "Kaydediliyor...",
+      "cancel": "İptal",
+      "errors": {
+        "nameRequired": "Ad zorunludur",
+        "dateInvalid": "Geçerli bir tarih girin",
+        "dateRange": "Bitiş tarihi başlangıç tarihinden önce olamaz"
+      },
+      "description": "Açıklama",
+      "descriptionPlaceholder": "Kampanyanın konusu",
+      "startDate": "Başlangıç tarihi",
+      "endDate": "Bitiş tarihi"
+    },
+    "toast": {
+      "created": "Kampanya oluşturuldu",
+      "updated": "Kampanya kaydedildi",
+      "deleted": "Kampanya silindi",
+      "saveError": "Kampanya kaydedilemedi",
+      "deleteError": "Kampanya silinemedi",
+      "contentCreated": "İçerik oluşturuldu",
+      "contentUpdated": "İçerik kaydedildi",
+      "contentMarkedPublished": "İçerik yayınlandı olarak işaretlendi",
+      "contentDeleted": "İçerik silindi",
+      "contentSaveError": "İçerik kaydedilemedi",
+      "contentDeleteError": "İçerik silinemedi"
+    },
+    "errors": {
+      "notFound": "Bu kampanya artık yok.",
+      "eventNotFound": "Bu etkinlik artık yok.",
+      "icpNotFound": "Bu ICP artık yok.",
+      "nameTaken": "Kuruluşun bu adda bir kampanyası zaten var.",
+      "ownerNotMember": "Sahip, kuruluşun aktif bir üyesi olmalıdır.",
+      "ownerWithoutOtakAccess": "Bu üyenin Otak erişimi yok, bu yüzden kampanya sahibi olamaz. Bir sahip veya yönetici Ulak'ta Otak erişimi verebilir.",
+      "statusDates": "Planlanmış bir içeriğin planlanan tarihi olmalı, taslak veya planlanmış bir içeriğin yayınlanma tarihi olmaz ve yayınlanma tarihi gelecekte olamaz.",
+      "imageDuplicate": "Bu dosya içerikte zaten var.",
+      "forbidden": "Bunu yapma izniniz yok.",
+      "validation": "İşaretli alanları kontrol edin.",
+      "loadHint": "Bağlantınızı kontrol edip tekrar deneyin.",
+      "contentNotFound": "Bu içerik artık yok.",
+      "legalEntityNotFound": "Bu tüzel kişi artık yok.",
+      "dateRange": "Bitiş tarihi başlangıç tarihinden önce olamaz."
+    },
+    "detail": {
+      "title": "Kampanya",
+      "back": "Kampanyalara dön",
+      "loading": "Kampanya yükleniyor",
+      "loadError": "Kampanya yüklenemedi.",
+      "notFoundTitle": "Kampanya bulunamadı",
+      "notFoundDescription": "Bu kampanya yok ya da başka bir kuruluşa ait.",
+      "timestamps": "Oluşturuldu {created} · Güncellendi {updated}",
+      "edit": "Kampanyayı düzenle",
+      "delete": "Kampanyayı sil",
+      "deleting": "Siliniyor...",
+      "details": "Ayrıntılar",
+      "relationsLink": "İlişkiler",
+      "outreachesLink": "Outreach'ler",
+      "owner": "Sahibi",
+      "event": "Etkinlik",
+      "icp": "ICP",
+      "icpUnnamed": "ICP",
+      "dates": "Tarihler",
+      "description": "Açıklama",
+      "contents": "İçerikler",
+      "newContent": "Yeni içerik",
+      "contentsLoading": "İçerikler yükleniyor",
+      "contentsLoadError": "İçerikler yüklenemedi.",
+      "noContents": "Henüz içerik yok. Her gönderi, dil ve kanal için bir tane ekleyin."
+    },
+    "images": {
+      "title": "Görseller",
+      "loading": "Görseller yükleniyor",
+      "loadError": "Görseller yüklenemedi.",
+      "empty": "Henüz görsel yok.",
+      "open": "{name} dosyasını aç",
+      "delete": "{name} dosyasını sil",
+      "deleteTitle": "Görseli sil",
+      "deleteConfirm": "{name} silinsin mi? Bu işlem geri alınamaz.",
+      "deleteAction": "Sil",
+      "cancel": "İptal"
+    },
+    "empty": "Henüz kampanya yok",
+    "noDates": "Tarih yok",
+    "noDescription": "Açıklama yok",
+    "eventUnnamed": "Etkinlik",
+    "datesFrom": "{date} tarihinden itibaren",
+    "datesUntil": "{date} tarihine kadar",
+    "contentColumns": {
+      "status": "Durum",
+      "channel": "Kanal",
+      "language": "Dil",
+      "legalEntity": "Tüzel kişi",
+      "plannedAt": "Planlanan",
+      "publishedAt": "Yayınlanan",
+      "actions": "İşlemler"
+    },
+    "contentLabel": "{language} {channel} içeriği",
+    "contentNewTitle": "Yeni içerik",
+    "contentEditTitle": "İçeriği düzenle",
+    "contentDialogDescription": "Tek kanalda, tek dilde, tek tüzel kişiden bir gönderi veya e-bülten. Oba bunu yayınlamaz: kendiniz yayınlayın ve yayınlandı olarak işaretleyin.",
+    "contentDeleteTitle": "İçeriği sil",
+    "contentDeleteConfirm": "Bu içerik görselleriyle birlikte silinsin mi? Bu işlem geri alınamaz.",
+    "legalEntitiesLoadError": "Tüzel kişiler yüklenemedi.",
+    "legalEntitiesLoading": "Tüzel kişiler yükleniyor",
+    "noLegalEntities": "Kuruluşun henüz tüzel kişisi yok. Bir sahip veya yönetici bunları Ulak'ta ekler.",
+    "contentForm": {
+      "legalEntity": "Tüzel kişi",
+      "legalEntityPlaceholder": "Bir tüzel kişi seçin",
+      "channel": "Kanal",
+      "channelPlaceholder": "Bir kanal seçin",
+      "language": "Dil",
+      "languagePlaceholder": "Bir dil seçin",
+      "status": "Durum",
+      "plannedAt": "Planlanan zaman",
+      "plannedAtHint": "Kendi saat diliminizde. Planlanmış bir içerik için gereklidir.",
+      "publishedAt": "Yayınlanma zamanı",
+      "publishedAtHint": "Şimdi yayınlandı olarak işaretliyorsanız boş bırakın; daha önce yayınlanmış bir gönderi için doldurun.",
+      "postUrl": "Gönderi adresi",
+      "postUrlPlaceholder": "https://www.linkedin.com/posts/...",
+      "text": "Metin",
+      "textPlaceholder": "Gönderinin metni",
+      "characterCount": "{count, plural, one {# karakter} other {# karakter}}",
+      "characterCountOfLimit": "{count} / {limit} karakter",
+      "copy": "Metni kopyala",
+      "copied": "Metin kopyalandı",
+      "copyError": "Metin kopyalanamadı. Metni seçip elle kopyalayın.",
+      "imagesAfterCreate": "Önce içeriği oluşturun, sonra görsellerini ekleyin.",
+      "markPublished": "Yayınlandı olarak işaretle",
+      "markingPublished": "İşaretleniyor...",
+      "create": "İçerik oluştur",
+      "save": "Değişiklikleri kaydet",
+      "saving": "Kaydediliyor...",
+      "cancel": "İptal",
+      "close": "Kapat",
+      "errors": {
+        "legalEntityRequired": "Tüzel kişi zorunludur",
+        "channelRequired": "Kanal zorunludur",
+        "languageRequired": "Dil zorunludur",
+        "textRequired": "Metin zorunludur",
+        "dateTimeInvalid": "Geçerli bir tarih ve saat girin",
+        "postUrlInvalid": "http:// veya https:// ile başlayan bir web adresi girin",
+        "plannedAtRequired": "Planlanmış bir içeriğin planlanan tarih ve saati olmalıdır",
+        "publishedAtNotAllowed": "Taslak veya planlanmış bir içeriğin yayınlanma tarihi olmaz; yayınlandı olarak işaretleyin veya tarihi temizleyin",
+        "publishedAtInFuture": "Yayınlanma tarihi gelecekte olamaz; bunun yerine içeriği planlayın"
+      }
     }
   }
 }

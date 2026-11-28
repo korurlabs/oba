@@ -8,6 +8,7 @@ import { SelectFieldStandalone, type SelectOption } from "@oba/shared/features/f
 import { Button } from "@oba/ui/sky/button";
 import { NativeSelect } from "@oba/ui/sky/field";
 import { FilterLabel } from "@/components/page-states";
+import { useCampaignOptions } from "@/features/campaigns/hooks/use-campaigns";
 import { useEvent, useEventOptions } from "@/features/events/hooks/use-events";
 import { useOrganizationMembers } from "@/features/members/hooks/use-organization-members";
 import { memberOptions } from "@/features/members/lib/member-options";
@@ -31,7 +32,7 @@ interface RelationFilterPanelProps {
 
 /**
  * The relations list's filters, each under its label as on Kaya's filter
- * rows: a search on name, the owner, the event and, on the leads and
+ * rows: a search on name, the owner, the event, the campaign and, on the leads and
  * customers tabs, the stages of that tab. Without a stage the leads list hides lost and
  * parked leads and the customers list shows every customer; picking stages
  * lists exactly those. It sits in the toolbar row after the tabs, so it takes
@@ -53,6 +54,9 @@ export function RelationFilterPanel({ filters, onChange }: RelationFilterPanelPr
   const filteredEvent = useEvent(filteredEventId, {
     enabled: events.isSuccess && !filteredEventListed,
   });
+  const campaignId = useId();
+  const campaigns = useCampaignOptions();
+  const filteredCampaignId = filters.campaign ?? "";
 
   const stageOptions = useMemo(
     () =>
@@ -83,6 +87,18 @@ export function RelationFilterPanel({ filters, onChange }: RelationFilterPanelPr
     }
     return options;
   }, [events.data, filteredEventId, filteredEvent.data?.data?.name]);
+  const campaignOptions = useMemo(() => {
+    const options = [...(campaigns.data ?? [])];
+    if (
+      filteredCampaignId !== "" &&
+      !options.some((option) => option.value === filteredCampaignId)
+    ) {
+      // The options hold every campaign; a link to a deleted one, or one read
+      // before the list arrives, shows its id so the filter can be cleared.
+      options.push({ value: filteredCampaignId, label: filteredCampaignId });
+    }
+    return options;
+  }, [campaigns.data, filteredCampaignId]);
 
   return (
     <div className="flex min-w-0 flex-1 flex-wrap items-end gap-3 sm:justify-end">
@@ -145,11 +161,33 @@ export function RelationFilterPanel({ filters, onChange }: RelationFilterPanelPr
           ))}
         </NativeSelect>
       </FilterLabel>
+      <FilterLabel
+        label={t("filters.campaignLabel")}
+        htmlFor={campaignId}
+        className="w-full sm:w-48"
+      >
+        <NativeSelect
+          id={campaignId}
+          value={filteredCampaignId}
+          disabled={campaigns.isPending && campaigns.fetchStatus !== "idle"}
+          onChange={(event) => onChange({ campaign: event.target.value || null })}
+          className="w-full"
+        >
+          <option value="">{t("filters.campaignPlaceholder")}</option>
+          {campaignOptions.map((option: SelectOption) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </NativeSelect>
+      </FilterLabel>
       {hasActiveRelationFilter(filters) && (
         <Button
           variant="ghost"
           className="h-9"
-          onClick={() => onChange({ search: null, owner: null, event: null, stage: null })}
+          onClick={() =>
+            onChange({ search: null, owner: null, event: null, campaign: null, stage: null })
+          }
         >
           <X aria-hidden="true" />
           {t("filters.clear")}
@@ -163,6 +201,11 @@ export function RelationFilterPanel({ filters, onChange }: RelationFilterPanelPr
       {events.isError && (
         <p className="text-warning-text w-full text-xs sm:text-right" role="status">
           {t("filters.eventsLoadError")}
+        </p>
+      )}
+      {campaigns.isError && (
+        <p className="text-warning-text w-full text-xs sm:text-right" role="status">
+          {t("filters.campaignsLoadError")}
         </p>
       )}
     </div>

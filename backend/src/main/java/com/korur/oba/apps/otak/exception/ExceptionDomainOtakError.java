@@ -14,7 +14,7 @@ import com.korur.oba.dojo.exception.enums.ExceptionDomainError;
  * Domain-specific error codes for the Otak domain (OTK).
  *
  * Covers the CRM of an organization: relations, their contacts and the organization's
- * ICPs, events, outreaches, their mails, mail senders and mail templates. A record of
+ * ICPs, events, campaigns, outreaches, their mails, mail senders and mail templates. A record of
  * another organization answers the same not-found code as a missing one, so an id reveals
  * nothing to another tenant.
  *
@@ -35,6 +35,8 @@ public enum ExceptionDomainOtakError implements ExceptionDomainError {
     NOT_EVENT_FOUND("OTK_NOT_009", "Event not found.", ExceptionCategory.NOT),
     NOT_MAIL_TEMPLATE_FOUND("OTK_NOT_010", "Mail template not found.", ExceptionCategory.NOT),
     NOT_MAIL_FOUND("OTK_NOT_011", "Mail not found.", ExceptionCategory.NOT),
+    NOT_CAMPAIGN_FOUND("OTK_NOT_012", "Campaign not found.", ExceptionCategory.NOT),
+    NOT_CAMPAIGN_CONTENT_FOUND("OTK_NOT_013", "Campaign content not found.", ExceptionCategory.NOT),
 
     // ── State (OTK_STA) ──────────────────────────────────────────────────────
     STA_OWNER_NOT_ORGANIZATION_MEMBER("OTK_STA_001", "The owner must be an active member of the organization.", ExceptionCategory.STA),
@@ -46,6 +48,7 @@ public enum ExceptionDomainOtakError implements ExceptionDomainError {
     STA_OUTREACH_NOT_EDITABLE("OTK_STA_011", "The outreach was sent or is being sent and can no longer change.", ExceptionCategory.STA),
     STA_EVENT_NAME_TAKEN("OTK_STA_013", "The organization already has an event with this name.", ExceptionCategory.STA),
     STA_MAIL_TEMPLATE_NAME_TAKEN("OTK_STA_014", "The organization already has a mail template with this name in this language.", ExceptionCategory.STA),
+    STA_CAMPAIGN_NAME_TAKEN("OTK_STA_015", "The organization already has a campaign with this name.", ExceptionCategory.STA),
 
     // ── Validation (OTK_VAL) ─────────────────────────────────────────────────
     VAL_ICP_SIZE_RANGE("OTK_VAL_001", "The minimum company size cannot be above the maximum.", ExceptionCategory.VAL),
@@ -59,7 +62,9 @@ public enum ExceptionDomainOtakError implements ExceptionDomainError {
     VAL_EVENT_PERIOD_WITHOUT_TODAY("OTK_VAL_011", "A period filter needs the viewer's date in today.", ExceptionCategory.VAL),
     VAL_CONTACT_MAIN_FLAG_NOT_FOR_KIND("OTK_VAL_013", "A contact can only be main of its own kind.", ExceptionCategory.VAL),
     VAL_ACTION_NOT_FOR_TYPE("OTK_VAL_014", "This action does not fit the outreach's channel.", ExceptionCategory.VAL),
-    VAL_CONTACT_WITHOUT_PHONE("OTK_VAL_015", "The contact has no phone number.", ExceptionCategory.VAL);
+    VAL_CONTACT_WITHOUT_PHONE("OTK_VAL_015", "The contact has no phone number.", ExceptionCategory.VAL),
+    VAL_CAMPAIGN_CONTENT_STATUS_DATES("OTK_VAL_016", "A scheduled campaign content needs a planned date, a draft or scheduled one has no published date, and a published date is not in the future.", ExceptionCategory.VAL),
+    VAL_CAMPAIGN_DATE_RANGE("OTK_VAL_017", "The end date of a campaign cannot be before its start date.", ExceptionCategory.VAL);
 
     private final String code;
     private final String message;

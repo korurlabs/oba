@@ -21,7 +21,7 @@ class RelationUpdateRequestValidationUnitTest {
             "postalCode", "city", "notes", "website"};
 
     private static RelationUpdateRequest valid() {
-        return new RelationUpdateRequest("Fabrikam", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        return new RelationUpdateRequest("Fabrikam", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     @Test

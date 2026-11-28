@@ -36,7 +36,10 @@ public enum ResourceAccessType {
     MAIL(App.OTAK, OrganizationMemberRole.ADMIN),
 
     // An Otak relation; every member who may open Otak edits it, so every such member writes its files too.
-    RELATION(App.OTAK, OrganizationMemberRole.MEMBER);
+    RELATION(App.OTAK, OrganizationMemberRole.MEMBER),
+
+    // An Otak campaign content; every member who may open Otak edits it, so every such member writes its images too.
+    CAMPAIGN_CONTENT(App.OTAK, OrganizationMemberRole.MEMBER);
 
     private final App app;
     private final OrganizationMemberRole writeRole;

@@ -13,6 +13,7 @@ import java.util.UUID;
 // 4. Internal
 import static com.korur.oba.shrine.legalentity.constant.service.LegalEntityServiceLogConstant.*;
 
+import com.korur.oba.apps.otak.campaign.service.CampaignContentQueryService;
 import com.korur.oba.dojo.logging.enums.LogLayer;
 import com.korur.oba.dojo.logging.enums.LogPrefix;
 import com.korur.oba.dojo.logging.service.LoggingService;
@@ -45,6 +46,7 @@ public class LegalEntityServiceImpl implements LegalEntityService {
     private final LegalEntityValidator legalEntityValidator;
     private final DocumentQueryService documentQueryService;
     private final DocumentTemplateQueryService documentTemplateQueryService;
+    private final CampaignContentQueryService campaignContentQueryService;
     private final LoggingService loggingService;
 
     @Override
@@ -90,7 +92,8 @@ public class LegalEntityServiceImpl implements LegalEntityService {
         LegalEntity legalEntity = legalEntityValidator.ensureLegalEntityExists(organizationId, legalEntityId);
         // Checked before the delete, so the client gets a named conflict instead of a foreign key error.
         boolean inUse = documentQueryService.existsByLegalEntity(organizationId, legalEntityId)
-                || documentTemplateQueryService.existsByLegalEntity(organizationId, legalEntityId);
+                || documentTemplateQueryService.existsByLegalEntity(organizationId, legalEntityId)
+                || campaignContentQueryService.existsByLegalEntity(organizationId, legalEntityId);
         legalEntityValidator.ensureNotInUse(organizationId, legalEntityId, inUse);
 
         legalEntityRepository.delete(legalEntity);

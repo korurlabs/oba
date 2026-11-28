@@ -37,6 +37,7 @@ import com.korur.oba.apps.otak.outreach.constant.OutreachConstant;
  * @param title     the title of the outreach, stored trimmed
  * @param mail      the new subject, body and language of the outreach's mail; null for
  *                  WHATSAPP and CALL
+ * @param campaignId the campaign of the organization the outreach belongs to, or null for none
  * @see com.korur.oba.apps.otak.outreach.service.impl.OutreachServiceImpl#update
  */
 @Schema(description = "Outreach update request; replaces the contact, the title and, for MAIL, the mail")
@@ -56,6 +57,10 @@ public record OutreachUpdateRequest(
         @Schema(description = "New subject and body of the outreach's mail; required for MAIL, null for WHATSAPP "
                 + "and CALL", nullable = true)
         @Valid
-        MailRequest mail
+        MailRequest mail,
+
+        @Schema(description = "Campaign of the organization the outreach belongs to; null for none", nullable = true,
+                example = "3b7c9d1e-4f5a-4b6c-8d7e-9f0a1b2c3d4e")
+        UUID campaignId
 ) {
 }

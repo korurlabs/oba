@@ -49,6 +49,7 @@ import com.korur.oba.apps.otak.outreach.enums.OutreachType;
  * @param documentTemplateIds the document templates of the organization whose PDFs are copied
  *                       onto the new mail as attachments, in this order; null or empty for none,
  *                       a repeated id counts once; null or empty for WHATSAPP and CALL
+ * @param campaignId     the campaign of the organization the outreach belongs to, or null for none
  * @see com.korur.oba.apps.otak.outreach.service.impl.OutreachServiceImpl#create
  */
 @Schema(description = "Outreach create request; a MAIL outreach gives exactly one of mailTemplateId and mail, "
@@ -86,6 +87,10 @@ public record OutreachCreateRequest(
 
         @Schema(description = "Document templates whose PDFs are copied onto the new mail as attachments, in this "
                 + "order; null or empty for none and for WHATSAPP and CALL", nullable = true)
-        List<@NotNull(message = OutreachConstant.DOCUMENT_TEMPLATE_ID_REQUIRED_MESSAGE) UUID> documentTemplateIds
+        List<@NotNull(message = OutreachConstant.DOCUMENT_TEMPLATE_ID_REQUIRED_MESSAGE) UUID> documentTemplateIds,
+
+        @Schema(description = "Campaign of the organization the outreach belongs to; null for none", nullable = true,
+                example = "3b7c9d1e-4f5a-4b6c-8d7e-9f0a1b2c3d4e")
+        UUID campaignId
 ) {
 }

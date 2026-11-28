@@ -9,6 +9,7 @@ import { NativeSelect } from "@oba/ui/sky/field";
 import { LoadError, TableLoading } from "@oba/ui/sky/page-states";
 import { DataTable, TablePagination } from "@/components/data-table";
 import { ActionEmptyState, FilterLabel, PageHeading } from "@/components/page-states";
+import { useCampaignOptions } from "@/features/campaigns/hooks/use-campaigns";
 import { useIsOrganizationAdmin } from "@/hooks/use-is-organization-admin";
 import { useOutreachColumns } from "../hooks/use-outreach-columns";
 import { useOutreachFilterParams } from "../hooks/use-outreach-filter-params";
@@ -24,8 +25,8 @@ export interface OutreachesViewProps {
 }
 
 /**
- * The organization's reach-outs, newest first, with a status filter and
- * paging in the URL. Each row links to its lead. New reach-outs start on a
+ * The organization's reach-outs, newest first, with status and campaign
+ * filters and paging in the URL. Each row links to its lead. New reach-outs start on a
  * lead's page; the reusable mails themselves are the mail templates.
  */
 export function OutreachesView({ tabs }: OutreachesViewProps) {
@@ -33,6 +34,8 @@ export function OutreachesView({ tabs }: OutreachesViewProps) {
   const tErrors = useTranslations("errors");
   const isAdmin = useIsOrganizationAdmin();
   const statusId = useId();
+  const campaignId = useId();
+  const campaigns = useCampaignOptions();
   const [filters, setFilters] = useOutreachFilterParams();
   const query = useMemo(() => toOutreachQuery(filters), [filters]);
   const outreaches = useOutreaches(query);
@@ -44,7 +47,20 @@ export function OutreachesView({ tabs }: OutreachesViewProps) {
     [outreaches.data?.data]
   );
   const pagination = outreaches.data?.pagination;
-  const isFiltered = !!filters.status;
+  const isFiltered = !!filters.status || !!filters.campaign;
+  const filteredCampaignId = filters.campaign ?? "";
+  const campaignOptions = useMemo(() => {
+    const options = [...(campaigns.data ?? [])];
+    if (
+      filteredCampaignId !== "" &&
+      !options.some((option) => option.value === filteredCampaignId)
+    ) {
+      // The options hold every campaign; a link to a deleted one, or one read
+      // before the list arrives, shows its id so the filter can be cleared.
+      options.push({ value: filteredCampaignId, label: filteredCampaignId });
+    }
+    return options;
+  }, [campaigns.data, filteredCampaignId]);
 
   const templatesLink = (
     <Button asChild variant="outline">
@@ -79,6 +95,31 @@ export function OutreachesView({ tabs }: OutreachesViewProps) {
             ))}
           </NativeSelect>
         </FilterLabel>
+        <FilterLabel
+          label={t("filters.campaignLabel")}
+          htmlFor={campaignId}
+          className="w-full sm:w-48"
+        >
+          <NativeSelect
+            id={campaignId}
+            value={filteredCampaignId}
+            disabled={campaigns.isPending && campaigns.fetchStatus !== "idle"}
+            onChange={(event) => void setFilters({ campaign: event.target.value || null, page: 1 })}
+            className="w-full"
+          >
+            <option value="">{t("filters.campaignAll")}</option>
+            {campaignOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </NativeSelect>
+        </FilterLabel>
+        {campaigns.isError && (
+          <p className="text-warning-text w-full text-xs" role="status">
+            {t("filters.campaignsLoadError")}
+          </p>
+        )}
       </div>
 
       {outreaches.isError && outreaches.data === undefined ? (
@@ -96,7 +137,10 @@ export function OutreachesView({ tabs }: OutreachesViewProps) {
             title={t("emptyFiltered")}
             description={t("emptyFilteredHint")}
             action={
-              <Button variant="outline" onClick={() => void setFilters({ status: null, page: 1 })}>
+              <Button
+                variant="outline"
+                onClick={() => void setFilters({ status: null, campaign: null, page: 1 })}
+              >
                 <X aria-hidden="true" />
                 {t("filters.clear")}
               </Button>

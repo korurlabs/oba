@@ -20,8 +20,8 @@ import com.korur.oba.shrine.access.enums.ResourceAccessType;
  * cannot be deleted and must not depend on another page of any organization.
  *
  * uniqueContentPerEntity says whether an upload is refused when the same
- * content is already attached to the same entity. A Kalkan page, a mail and a
- * relation keep one copy of a file each: the same file attached twice to one of
+ * content is already attached to the same entity. A Kalkan page, a mail, a
+ * relation and a campaign content keep one copy of a file each: the same file attached twice to one of
  * them would only be sent or listed twice. Another entity of the type may hold
  * the same content.
  *
@@ -36,7 +36,8 @@ public enum StorageEntityType {
     CHAT_MESSAGE("CHAT_MESSAGE", false, false, ResourceAccessType.CHAT_MESSAGE),
     KALKAN_PAGE("KALKAN_PAGE", false, true, ResourceAccessType.KALKAN_PAGE),
     MAIL("MAIL", false, true, ResourceAccessType.MAIL),
-    RELATION("RELATION", false, true, ResourceAccessType.RELATION);
+    RELATION("RELATION", false, true, ResourceAccessType.RELATION),
+    CAMPAIGN_CONTENT("CAMPAIGN_CONTENT", false, true, ResourceAccessType.CAMPAIGN_CONTENT);
 
     @Getter
     private final String type;

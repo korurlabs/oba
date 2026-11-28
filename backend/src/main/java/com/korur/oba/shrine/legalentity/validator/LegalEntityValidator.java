@@ -93,14 +93,15 @@ public class LegalEntityValidator {
     }
 
     /**
-     * Refuses the delete of a legal entity that documents or templates name. The caller reads
-     * the usage through the document query services, because this validator also serves
+     * Refuses the delete of a legal entity that documents, templates or campaign contents name.
+     * The caller reads the usage through the query services of those domains, because this
+     * validator also serves
      * {@link com.korur.oba.shrine.legalentity.service.impl.LegalEntityQueryServiceImpl}, which
-     * the document domain depends on.
+     * those domains depend on.
      *
      * @param organizationId the organization the caller acts in
      * @param legalEntityId  the legal entity to delete
-     * @param inUse          true when a document or template of the organization names it
+     * @param inUse          true when a document, template or campaign content of the organization names it
      * @throws ConflictException {@link ExceptionDomainLegalEntityError#STA_LEGAL_ENTITY_IN_USE} (LGE_STA_002)
      *         when it is in use
      */

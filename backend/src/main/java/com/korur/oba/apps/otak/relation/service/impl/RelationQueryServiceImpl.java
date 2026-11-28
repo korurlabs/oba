@@ -114,7 +114,7 @@ public class RelationQueryServiceImpl implements RelationQueryService {
 
     /**
      * Lists one page of the organization's relations, last change first, with the list's
-     * filters (type, stage, owner, name, contacts, event) applied by
+     * filters (type, stage, owner, name, contacts, event, campaign) applied by
      * {@link RelationSpecification#filterBy}.
      *
      * Steps: read the page with {@link RelationRepository#findAll}, read the owner names of

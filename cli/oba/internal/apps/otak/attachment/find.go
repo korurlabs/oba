@@ -8,7 +8,7 @@ import (
 )
 
 // Find returns the attachment attachmentID of the target, so that a mistyped id never deletes an
-// attachment of another mail or relation; see attachment.Find.
+// attachment of another parent; see attachment.Find.
 func Find(c *client.Client, t Target, attachmentID string) (client.Attachment, error) {
 	found, ok, err := attachment.Find(c, t.EntityType, t.EntityID, attachmentID)
 	if err != nil {

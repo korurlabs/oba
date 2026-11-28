@@ -107,6 +107,11 @@ public record RelationUpdateRequest(
                 example = "8a4d2c1b-6e5f-4a3b-9c8d-7e6f5a4b3c2d")
         UUID eventId,
 
+        // Must be a campaign of the organization.
+        @Schema(description = "Campaign of the organization that brought the relation in; null for none",
+                nullable = true, example = "3b7c9d1e-4f5a-4b6c-8d7e-9f0a1b2c3d4e")
+        UUID campaignId,
+
         @Schema(description = "Free notes", nullable = true, example = "Met at the textile fair.")
         @NullOrNotBlank(message = RelationConstant.NOTES_BLANK_MESSAGE)
         @Size(max = RelationConstant.NOTES_MAX_LENGTH, message = RelationConstant.NOTES_SIZE_MESSAGE)

@@ -48,6 +48,7 @@ export const RelationSourceSchema = z.enum([
   "INBOUND",
   "PARTNER",
   "EVENT",
+  "CAMPAIGN",
   "RESEARCH",
   "OTHER",
 ]);
@@ -136,6 +137,11 @@ export const relationUpdateRequestSchema = z.object({
   icpId: z.string().nullable(),
   /** The event of the organization where the relation was met; null for none. */
   eventId: z.string().nullable(),
+  /**
+   * The campaign of the organization the relation came from; null for none.
+   * An update is a full replace, so the stored link is sent back unchanged.
+   */
+  campaignId: z.string().nullable(),
   notes: z.string().nullable(),
 });
 
@@ -147,8 +153,9 @@ export const relationCreateRequestSchema = relationUpdateRequestSchema.extend({
 /**
  * The list's query string. `stage` is repeated and applies to leads and
  * customers; a stage foreign to the type matches nothing. Without `type` the
- * server lists every type and every stage and ignores `stage`. `eventId`
- * keeps the relations linked to that event; an unknown id matches nothing.
+ * server lists every type and every stage and ignores `stage`. `eventId` and
+ * `campaignId` keep the relations linked to that event or campaign; an
+ * unknown id matches nothing.
  */
 export const relationQueryRequestSchema = z.object({
   type: RelationTypeSchema.optional(),
@@ -156,6 +163,7 @@ export const relationQueryRequestSchema = z.object({
   ownerUserId: z.string().optional(),
   search: z.string().optional(),
   eventId: z.string().optional(),
+  campaignId: z.string().optional(),
   page: z.number().int().min(1),
   amount: z.number().int().min(1).max(50),
 });
@@ -222,6 +230,7 @@ export const createRelationFormSchema = (t: (key: string) => string) =>
     ownerUserId: z.string(),
     icpId: z.string(),
     eventId: z.string(),
+    campaignId: z.string(),
     notes: z.string().max(RELATION_LIMITS.notesMax, t("errors.notesMax")),
   });
 
@@ -246,6 +255,7 @@ export const relationListItemSchema = z.object({
   /** The email of the main business contact; null without that contact or its email. */
   mainBusinessContactEmail: z.string().nullable(),
   expectedValue: z.number().nullable(),
+  campaignId: z.string().nullable(),
   updatedAt: instantSchema,
 });
 
@@ -268,6 +278,7 @@ export const relationDetailSchema = z.object({
   owner: relationOwnerSchema.nullable(),
   icpId: z.string().nullable(),
   eventId: z.string().nullable(),
+  campaignId: z.string().nullable(),
   notes: z.string().nullable(),
   createdAt: instantSchema,
   updatedAt: instantSchema,
@@ -360,6 +371,7 @@ export function emptyRelationFormValues(type: RelationType | "" = ""): RelationF
     ownerUserId: "",
     icpId: "",
     eventId: "",
+    campaignId: "",
     notes: "",
   };
 }
@@ -383,6 +395,7 @@ export function relationToFormValues(relation: RelationDetail): RelationFormValu
     ownerUserId: relation.owner?.id ?? "",
     icpId: relation.icpId ?? "",
     eventId: relation.eventId ?? "",
+    campaignId: relation.campaignId ?? "",
     notes: relation.notes ?? "",
   };
 }
@@ -405,6 +418,7 @@ export function toRelationUpdateRequest(values: RelationFormValues): RelationUpd
     ownerUserId: emptyToNull(values.ownerUserId),
     icpId: emptyToNull(values.icpId),
     eventId: emptyToNull(values.eventId),
+    campaignId: emptyToNull(values.campaignId),
     notes: emptyToNull(values.notes.trim()) === null ? null : values.notes,
   };
 }

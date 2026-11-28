@@ -22,6 +22,8 @@ import com.korur.oba.apps.kazan.ticket.entity.Ticket;
 import com.korur.oba.apps.kazan.ticket.service.TicketQueryService;
 import com.korur.oba.apps.kalkan.page.entity.KalkanPage;
 import com.korur.oba.apps.kalkan.page.service.KalkanPageQueryService;
+import com.korur.oba.apps.otak.campaign.entity.CampaignContent;
+import com.korur.oba.apps.otak.campaign.service.CampaignContentQueryService;
 import com.korur.oba.apps.otak.mail.entity.Mail;
 import com.korur.oba.apps.otak.mail.service.MailQueryService;
 import com.korur.oba.apps.otak.relation.entity.Relation;
@@ -65,6 +67,8 @@ class ResourceAccessQueryServiceImplUnitTest {
     @Mock
     private RelationQueryService relationQueryService;
     @Mock
+    private CampaignContentQueryService campaignContentQueryService;
+    @Mock
     private ResourceAccessValidator resourceAccessValidator;
 
     private ResourceAccessQueryServiceImpl service;
@@ -78,7 +82,7 @@ class ResourceAccessQueryServiceImplUnitTest {
     void setUp() {
         service = new ResourceAccessQueryServiceImpl(organizationAccessService, ticketQueryService,
                 chatChannelQueryService, kalkanPageQueryService, mailQueryService, relationQueryService,
-                resourceAccessValidator);
+                campaignContentQueryService, resourceAccessValidator);
         userId = UUID.randomUUID();
         user = User.builder().id(userId).build();
         organizationId = UUID.randomUUID();
@@ -319,6 +323,10 @@ class ResourceAccessQueryServiceImplUnitTest {
             return Relation.builder().id(resourceId).organizationId(relationOrganizationId).build();
         }
 
+        private CampaignContent campaignContentOf(UUID contentOrganizationId) {
+            return CampaignContent.builder().id(resourceId).organizationId(contentOrganizationId).build();
+        }
+
         @Test
         void mailMissing_throwsNotFoundBeforeAnyOrganizationCheck() {
             when(mailQueryService.getEntityById(resourceId)).thenThrow(mock(NotFoundException.class));
@@ -419,6 +427,44 @@ class ResourceAccessQueryServiceImplUnitTest {
                 service.verifyResourceAccess(user, organizationId, ResourceAccessType.RELATION, resourceId, action);
             }
 
+            verify(organizationAccessService, times(ResourceAccessAction.values().length))
+                    .verifyOrganizationAccess(organizationId, userId, OrganizationMemberRole.MEMBER, App.OTAK);
+            verify(resourceAccessValidator, never()).verifyMailRules(any(), any(), any());
+        }
+
+        @Test
+        void campaignContentMissing_throwsNotFoundBeforeAnyOrganizationCheck() {
+            when(campaignContentQueryService.getEntityById(resourceId)).thenThrow(mock(NotFoundException.class));
+
+            assertThrows(NotFoundException.class, () -> service.verifyResourceAccess(user, organizationId,
+                    ResourceAccessType.CAMPAIGN_CONTENT, resourceId, ResourceAccessAction.READ));
+
+            verifyNoInteractions(organizationAccessService);
+        }
+
+        @Test
+        void campaignContentOfAnotherOrganization_stopsBeforeMembership() {
+            UUID contentOrganizationId = UUID.randomUUID();
+            when(campaignContentQueryService.getEntityById(resourceId)).thenReturn(campaignContentOf(contentOrganizationId));
+            doThrow(mock(ForbiddenException.class)).when(resourceAccessValidator).verifySameOrganization(user,
+                    organizationId, ResourceAccessType.CAMPAIGN_CONTENT, resourceId, contentOrganizationId);
+
+            assertThrows(ForbiddenException.class, () -> service.verifyResourceAccess(user, organizationId,
+                    ResourceAccessType.CAMPAIGN_CONTENT, resourceId, ResourceAccessAction.WRITE));
+
+            verifyNoInteractions(organizationAccessService);
+        }
+
+        @Test
+        void campaignContentWriteDeleteAndRead_checkMemberRoleOfOtakAfterTheOrganization() {
+            when(campaignContentQueryService.getEntityById(resourceId)).thenReturn(campaignContentOf(organizationId));
+
+            for (ResourceAccessAction action : ResourceAccessAction.values()) {
+                service.verifyResourceAccess(user, organizationId, ResourceAccessType.CAMPAIGN_CONTENT, resourceId, action);
+            }
+
+            verify(resourceAccessValidator, times(ResourceAccessAction.values().length)).verifySameOrganization(user,
+                    organizationId, ResourceAccessType.CAMPAIGN_CONTENT, resourceId, organizationId);
             verify(organizationAccessService, times(ResourceAccessAction.values().length))
                     .verifyOrganizationAccess(organizationId, userId, OrganizationMemberRole.MEMBER, App.OTAK);
             verify(resourceAccessValidator, never()).verifyMailRules(any(), any(), any());

@@ -10,12 +10,15 @@ import (
 	"github.com/korurlabs/oba-cli/internal/dojo/client"
 )
 
-// List reads the outreaches of the organization, newest first, of one relation and one status
-// when they are not empty.
-func List(c *client.Client, relationID, status string) ([]client.Outreach, error) {
+// List reads the outreaches of the organization, newest first, of one relation, one status and
+// one campaign when they are not empty.
+func List(c *client.Client, relationID, status, campaignID string) ([]client.Outreach, error) {
 	q := url.Values{}
 	if relationID != "" {
 		q.Set("relationId", relationID)
+	}
+	if campaignID != "" {
+		q.Set("campaignId", campaignID)
 	}
 	if status != "" {
 		q.Set("status", strings.ToUpper(strings.TrimSpace(status)))

@@ -26,11 +26,14 @@ class StorageEntityTypeUnitTest {
                 StorageEntityType.KALKAN_PAGE.findResourceAccessType());
         assertEquals(Optional.of(ResourceAccessType.MAIL), StorageEntityType.MAIL.findResourceAccessType());
         assertEquals(Optional.of(ResourceAccessType.RELATION), StorageEntityType.RELATION.findResourceAccessType());
+        assertEquals(Optional.of(ResourceAccessType.CAMPAIGN_CONTENT),
+                StorageEntityType.CAMPAIGN_CONTENT.findResourceAccessType());
     }
 
     @Test
-    void isUniqueContentPerEntity_mailRelationAndKalkanPage_areTrueOthersFalse() {
+    void isUniqueContentPerEntity_mailRelationCampaignContentAndKalkanPage_areTrueOthersFalse() {
         assertTrue(StorageEntityType.MAIL.isUniqueContentPerEntity());
+        assertTrue(StorageEntityType.CAMPAIGN_CONTENT.isUniqueContentPerEntity());
         assertTrue(StorageEntityType.RELATION.isUniqueContentPerEntity());
         assertTrue(StorageEntityType.KALKAN_PAGE.isUniqueContentPerEntity());
         assertFalse(StorageEntityType.TICKET.isUniqueContentPerEntity());
@@ -38,15 +41,17 @@ class StorageEntityTypeUnitTest {
     }
 
     @Test
-    void isUniqueContentAcrossType_mailAndRelation_areFalse() {
+    void isUniqueContentAcrossType_mailRelationAndCampaignContent_areFalse() {
         assertFalse(StorageEntityType.MAIL.isUniqueContentAcrossType());
+        assertFalse(StorageEntityType.CAMPAIGN_CONTENT.isUniqueContentAcrossType());
         assertFalse(StorageEntityType.RELATION.isUniqueContentAcrossType());
     }
 
     @Test
-    void values_areTheFiveAttachableTypes() {
+    void values_areTheSixAttachableTypes() {
         assertArrayEquals(new StorageEntityType[] {StorageEntityType.TICKET, StorageEntityType.CHAT_MESSAGE,
-                        StorageEntityType.KALKAN_PAGE, StorageEntityType.MAIL, StorageEntityType.RELATION},
+                        StorageEntityType.KALKAN_PAGE, StorageEntityType.MAIL, StorageEntityType.RELATION,
+                        StorageEntityType.CAMPAIGN_CONTENT},
                 StorageEntityType.values());
     }
 

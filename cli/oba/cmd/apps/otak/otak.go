@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/korurlabs/oba-cli/cmd/apps/otak/attachment"
+	"github.com/korurlabs/oba-cli/cmd/apps/otak/campaign"
 	"github.com/korurlabs/oba-cli/cmd/apps/otak/contact"
 	"github.com/korurlabs/oba-cli/cmd/apps/otak/event"
 	"github.com/korurlabs/oba-cli/cmd/apps/otak/find"
@@ -23,7 +24,7 @@ func NewCmd() *cobra.Command {
 		Long: "Otak keeps the relations of the current organization: the companies it tries to win, sells to and buys from, " +
 			"with the mail templates, outreaches and attachments it reaches out to them with.",
 	}
-	cmd.AddCommand(relation.NewCmd(), contact.NewCmd(), icp.NewCmd(), event.NewCmd(), find.NewCmd(),
+	cmd.AddCommand(relation.NewCmd(), contact.NewCmd(), icp.NewCmd(), event.NewCmd(), campaign.NewCmd(), find.NewCmd(),
 		mailtemplate.NewCmd(), outreach.NewCmd(), attachment.NewCmd())
 	return cmd
 }
