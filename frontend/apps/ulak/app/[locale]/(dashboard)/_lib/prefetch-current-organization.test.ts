@@ -10,6 +10,7 @@ import {
   ORGANIZATION_KEYS,
 } from "@/features/organizations/hooks/query-keys";
 import { AGENT_KEYS } from "@/features/agents/hooks/query-keys";
+import { AZURE_CONNECTION_KEYS } from "@/features/integrations/hooks/query-keys";
 
 // The session and the API calls are stand-ins: each call records that it ran and
 // answers with a marker. The query keys are the real ones the client hooks use,
@@ -21,6 +22,7 @@ let failing: Set<string>;
 const actualAuth = { ...(await import("@oba/shared/libs/auth")) };
 const actualApi = { ...(await import("@/features/organizations/api")) };
 const actualAgentsApi = { ...(await import("@/features/agents/api")) };
+const actualIntegrationsApi = { ...(await import("@/features/integrations/api")) };
 
 function answer(name: string) {
   return async (organizationId: string) => {
@@ -48,11 +50,16 @@ mock.module("@/features/agents/api", () => ({
   ...actualAgentsApi,
   listAgents: answer("agents"),
 }));
+mock.module("@/features/integrations/api", () => ({
+  ...actualIntegrationsApi,
+  listAzureConnections: answer("azureConnections"),
+}));
 
 afterAll(() => {
   mock.module("@oba/shared/libs/auth", () => actualAuth);
   mock.module("@/features/organizations/api", () => actualApi);
   mock.module("@/features/agents/api", () => actualAgentsApi);
+  mock.module("@/features/integrations/api", () => actualIntegrationsApi);
 });
 
 const { prefetchCurrentOrganization } = await import("./prefetch-current-organization");
@@ -65,6 +72,8 @@ const SECTION_KEYS: Record<OrganizationSection, readonly (readonly unknown[])[]>
   legalEntities: [LEGAL_ENTITY_KEYS.list("org-1")],
   access: [APP_ACCESS_KEYS.grants("org-1"), APP_ACCESS_KEYS.members("org-1")],
   invitations: [INVITATION_KEYS.list("org-1")],
+  integrations: [AZURE_CONNECTION_KEYS.list("org-1")],
+  azureIntegration: [AZURE_CONNECTION_KEYS.list("org-1")],
   settings: [],
 };
 
@@ -119,6 +128,14 @@ describe("prefetchCurrentOrganization", () => {
   test("the agents section asks for the organization's agents", async () => {
     await prefetchCurrentOrganization(new QueryClient(), "agents");
     expect(calls.sort()).toEqual(["agents:org-1", "organization:org-1"]);
+  });
+
+  test("both integration sections ask for the organization's Azure connections", async () => {
+    for (const section of ["integrations", "azureIntegration"] as const) {
+      calls = [];
+      await prefetchCurrentOrganization(new QueryClient(), section);
+      expect(calls.sort()).toEqual(["azureConnections:org-1", "organization:org-1"]);
+    }
   });
 
   test("fetches nothing without a default organization", async () => {

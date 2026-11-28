@@ -15,6 +15,8 @@ import { LegalEntitiesTab } from "@/features/organizations/components/organizati
 import { GroupsTab } from "@/features/organizations/components/organization-groups-tab";
 import { AccessTab } from "@/features/organizations/components/organization-access-tab";
 import { AgentsTab } from "@/features/agents/components/organization-agents-tab";
+import { IntegrationsTab } from "@/features/integrations/components/integrations-tab";
+import { AzureConnectionsTab } from "@/features/integrations/components/azure-connections-tab";
 import { OrganizationLoadError } from "@/features/organizations/components/organization-load-error";
 import { PageHeader } from "@/components/layout/page-header";
 import { useOrganizationId } from "@/hooks/use-organization-id";
@@ -27,6 +29,8 @@ export type OrganizationSection =
   | "legalEntities"
   | "access"
   | "invitations"
+  | "integrations"
+  | "azureIntegration"
   | "settings";
 
 /** Menu label of each section, under the `sidebar` messages. */
@@ -37,15 +41,26 @@ const SECTION_TITLE_KEYS = {
   legalEntities: "legalEntities",
   access: "access",
   invitations: "invitations",
+  integrations: "integrations",
+  azureIntegration: "azureIntegration",
   settings: "organizationSettings",
 } as const satisfies Record<OrganizationSection, string>;
+
+/** The sections whose data the API lets only an OWNER or ADMIN read. */
+const ADMIN_ONLY_SECTIONS: readonly OrganizationSection[] = [
+  "agents",
+  "groups",
+  "access",
+  "integrations",
+  "azureIntegration",
+];
 
 /**
  * One section of the organization chosen in the header, under a heading with
  * the page's name and the organization's name.
  *
- * OWNER and ADMIN get edit controls. Agents, Groups and Access answer not found to
- * anyone else, and Legal entities to a GUEST, because the API lets only those
+ * OWNER and ADMIN get edit controls. Agents, Groups, Access and the
+ * integrations answer not found to anyone else, and Legal entities to a GUEST, because the API lets only those
  * roles read them. The role comes from the current-user ("me") query: while it
  * loads the skeleton shows, and when no user could be loaded an error with a
  * retry replaces the section, so "role unknown" never renders as "read-only".
@@ -93,7 +108,7 @@ export function CurrentOrganizationPage({ section }: { section: OrganizationSect
 
   const isHidden =
     !hasNoUser &&
-    (((section === "agents" || section === "groups" || section === "access") && !canEdit) ||
+    ((ADMIN_ONLY_SECTIONS.includes(section) && !canEdit) ||
       (section === "legalEntities" && !canReadLegalEntities));
 
   return (
@@ -155,6 +170,10 @@ function SectionBody({
           currentUserRole={currentRole}
         />
       );
+    case "integrations":
+      return <IntegrationsTab organizationId={organizationId} />;
+    case "azureIntegration":
+      return <AzureConnectionsTab organizationId={organizationId} />;
     case "settings":
       return (
         <OrganizationDetailForm

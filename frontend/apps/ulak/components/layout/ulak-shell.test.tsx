@@ -135,6 +135,25 @@ describe("UlakShell menu", () => {
     expect(html).not.toContain('href="/organizations"');
   });
 
+  test("puts Integrations in the footer directly above Organization settings", () => {
+    const html = render();
+    const footer = html.slice(html.indexOf('data-sidebar="footer"'));
+    const integrations = footer.indexOf('href="/integrations"');
+    const settings = footer.indexOf('href="/settings"');
+    expect(integrations).toBeGreaterThan(-1);
+    expect(footer).toContain("<span>Integrations</span>");
+    expect(integrations).toBeLessThan(settings);
+    // No other menu link sits between the two.
+    expect(footer.slice(integrations, settings).match(/<a\b/g)).toHaveLength(1);
+  });
+
+  test("marks Integrations on its page and on every page below it", () => {
+    for (const path of ["/integrations", "/integrations/azure"]) {
+      pathname = path;
+      expect(activeHrefs(render())).toEqual(["/integrations"]);
+    }
+  });
+
   test("marks only the page in view", () => {
     pathname = "/groups";
     const html = render();

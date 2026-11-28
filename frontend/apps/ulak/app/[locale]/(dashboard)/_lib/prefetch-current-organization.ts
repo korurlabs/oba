@@ -19,6 +19,8 @@ import {
 } from "@/features/organizations/hooks/query-keys";
 import { listAgents } from "@/features/agents/api";
 import { AGENT_KEYS } from "@/features/agents/hooks/query-keys";
+import { listAzureConnections } from "@/features/integrations/api";
+import { AZURE_CONNECTION_KEYS } from "@/features/integrations/hooks/query-keys";
 import type { OrganizationSection } from "@/features/organizations/components/current-organization-page";
 
 interface OrganizationQuery {
@@ -73,6 +75,16 @@ function sectionQueries(organizationId: string, section: OrganizationSection): O
         {
           queryKey: INVITATION_KEYS.list(organizationId),
           queryFn: () => listInvitations(organizationId),
+        },
+      ];
+    // The provider index shows each provider's connection count, so both
+    // integration pages read the same list.
+    case "integrations":
+    case "azureIntegration":
+      return [
+        {
+          queryKey: AZURE_CONNECTION_KEYS.list(organizationId),
+          queryFn: () => listAzureConnections(organizationId),
         },
       ];
     case "settings":

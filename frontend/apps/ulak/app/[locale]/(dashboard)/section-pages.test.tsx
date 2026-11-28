@@ -36,6 +36,8 @@ const PAGES: Array<{ route: string; section: OrganizationSection; title: string 
   { route: "legal-entities", section: "legalEntities", title: "legalEntities" },
   { route: "access", section: "access", title: "access" },
   { route: "invitations", section: "invitations", title: "invitations" },
+  { route: "integrations", section: "integrations", title: "integrations" },
+  { route: "integrations/azure", section: "azureIntegration", title: "azureIntegration" },
   { route: "settings", section: "settings", title: "organizationSettings" },
 ];
 

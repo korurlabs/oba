@@ -1,6 +1,6 @@
 "use client";
 
-import { Bot, KeyRound, Landmark, Mail, Settings, Users, UsersRound } from "lucide-react";
+import { Bot, KeyRound, Landmark, Mail, Plug, Settings, Users, UsersRound } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { AppSwitcher } from "@oba/shared/components/app-header/app-switcher";
@@ -59,7 +59,10 @@ export function UlakShell({
       ],
     },
   ];
+  // Integrations sits directly above Organization settings: both configure the
+  // organization itself rather than one of its parts.
   const footerItems: readonly SkyNavItem[] = [
+    { label: t("integrations"), href: "/integrations", icon: Plug },
     { label: t("organizationSettings"), href: "/settings", icon: Settings },
   ];
 

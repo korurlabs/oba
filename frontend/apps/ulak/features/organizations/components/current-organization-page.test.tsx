@@ -37,6 +37,12 @@ const actualDetail = { ...(await import("./organization-detail-form")) };
 const actualAgents = {
   ...(await import("@/features/agents/components/organization-agents-tab")),
 };
+const actualIntegrations = {
+  ...(await import("@/features/integrations/components/integrations-tab")),
+};
+const actualAzure = {
+  ...(await import("@/features/integrations/components/azure-connections-tab")),
+};
 
 function body(name: string) {
   return function Body(props: { canEdit?: boolean; currentUserRole?: string }) {
@@ -81,6 +87,14 @@ mock.module("@/features/agents/components/organization-agents-tab", () => ({
   ...actualAgents,
   AgentsTab: body("agents"),
 }));
+mock.module("@/features/integrations/components/integrations-tab", () => ({
+  ...actualIntegrations,
+  IntegrationsTab: body("integrations"),
+}));
+mock.module("@/features/integrations/components/azure-connections-tab", () => ({
+  ...actualAzure,
+  AzureConnectionsTab: body("azureIntegration"),
+}));
 
 afterAll(() => {
   mock.module("@/hooks/use-organization-id", () => actualId);
@@ -93,6 +107,8 @@ afterAll(() => {
   mock.module("./organization-invitations-tab", () => actualInvitations);
   mock.module("./organization-detail-form", () => actualDetail);
   mock.module("@/features/agents/components/organization-agents-tab", () => actualAgents);
+  mock.module("@/features/integrations/components/integrations-tab", () => actualIntegrations);
+  mock.module("@/features/integrations/components/azure-connections-tab", () => actualAzure);
 });
 
 const { CurrentOrganizationPage } = await import("./current-organization-page");
@@ -104,6 +120,8 @@ const SECTIONS: Array<{ section: OrganizationSection; title: string }> = [
   { section: "legalEntities", title: en.sidebar.legalEntities },
   { section: "access", title: en.sidebar.access },
   { section: "invitations", title: en.sidebar.invitations },
+  { section: "integrations", title: en.sidebar.integrations },
+  { section: "azureIntegration", title: en.sidebar.azureIntegration },
   { section: "settings", title: en.sidebar.organizationSettings },
 ];
 
@@ -142,7 +160,13 @@ describe("CurrentOrganizationPage sections", () => {
     });
   }
 
-  for (const section of ["agents", "groups", "access"] as const) {
+  for (const section of [
+    "agents",
+    "groups",
+    "access",
+    "integrations",
+    "azureIntegration",
+  ] as const) {
     test(`${section} answers not found for a MEMBER and a GUEST, without its body`, () => {
       for (const role of ["MEMBER", "GUEST"] as const) {
         me = asRole(role);
