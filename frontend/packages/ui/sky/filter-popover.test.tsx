@@ -5,6 +5,7 @@ import {
   FilterPopover,
   FilterPopoverPanel,
   categoryActiveCount,
+  groupOptions,
   hasOptionSearch,
   nextSingleValue,
   shownCategory,
@@ -96,6 +97,22 @@ function panel(categories: FilterCategory[], selectedKey: string | null, search 
       labels={LABELS}
     />
   );
+}
+
+function stages(value: string[] = []): MultiFilterCategory {
+  return {
+    key: "stage",
+    label: "Stage",
+    mode: "multi",
+    value,
+    onChange: () => undefined,
+    searchable: true,
+    options: [
+      { value: "NEW", label: "New", group: "Lead" },
+      { value: "QUALIFIED", label: "Qualified", group: "Lead" },
+      { value: "ACTIVE", label: "Active", group: "Customer" },
+    ],
+  };
 }
 
 describe("active counts", () => {
@@ -262,5 +279,46 @@ describe("FilterPopover", () => {
     const html = trigger([period("past")]);
     expect(html).toContain('data-active="true"');
     expect(html).toMatch(/tabular-nums">1<\/span>/);
+  });
+});
+
+describe("option groups", () => {
+  test("splits options into runs of one group, in their order", () => {
+    const groups = groupOptions([
+      { value: "a", label: "A" },
+      { value: "b", label: "B", group: "Lead" },
+      { value: "c", label: "C", group: "Lead" },
+      { value: "d", label: "D", group: "Customer" },
+    ]);
+    expect(groups.map((group) => group.heading)).toEqual([null, "Lead", "Customer"]);
+    expect(groups[1]?.options.map((option) => option.value)).toEqual(["b", "c"]);
+    expect(groupOptions([])).toEqual([]);
+  });
+
+  test("options without a group render no heading", () => {
+    const html = panel([status()], null);
+    expect(html).not.toContain('role="group"');
+    expect(html).not.toContain("data-option-group");
+  });
+
+  test("each group shows its heading once, labelling the group, above its options", () => {
+    const html = panel([stages(["ACTIVE"])], null);
+    expect(html.match(/role="group"/g)).toHaveLength(2);
+    expect(html.match(/>Lead</g)).toHaveLength(1);
+    const order = [">Lead<", "New", "Qualified", ">Customer<", "Active"].map((part) =>
+      html.indexOf(part)
+    );
+    for (const index of order) expect(index).toBeGreaterThan(-1);
+    expect([...order].sort((a, b) => a - b)).toEqual(order);
+    const labelledBy = html.match(/aria-labelledby="([^"]+)"/)?.[1];
+    expect(labelledBy).toBeDefined();
+    expect(html).toContain(`id="${labelledBy}"`);
+  });
+
+  test("the option search matches a group's heading and drops emptied groups", () => {
+    expect(visibleOptions(stages(), "customer").map((option) => option.value)).toEqual(["ACTIVE"]);
+    const html = panel([stages()], null, "qual");
+    expect(html).toContain(">Lead<");
+    expect(html).not.toContain(">Customer<");
   });
 });

@@ -18,7 +18,16 @@ export type FilterOption = {
   icon?: React.ReactNode;
   /** Muted text after the label, such as a prefix or an e-mail address. */
   hint?: string;
+  /**
+   * The translated heading of the group the option belongs to, such as the
+   * relation type above its stages. Options of one group follow each other;
+   * the heading shows once above them.
+   */
+  group?: string;
 };
+
+/** A run of options under one heading; `heading` is null for options without a group. */
+export type FilterOptionGroup = { heading: string | null; options: FilterOption[] };
 
 type FilterCategoryBase = {
   /** Unique within the popover; also names the radio group of a single select. */
@@ -129,7 +138,8 @@ export function hasOptionSearch(category: FilterCategory): boolean {
 
 /**
  * The options shown for `search`. A server search already narrowed them; a
- * static list is narrowed here on the label and the hint, ignoring case.
+ * static list is narrowed here on the label, the hint and the group heading,
+ * ignoring case, so typing a group's name lists its options.
  */
 export function visibleOptions(category: FilterCategory, search: string): FilterOption[] {
   if (category.onSearchChange !== undefined || !category.searchable) return category.options;
@@ -138,8 +148,28 @@ export function visibleOptions(category: FilterCategory, search: string): Filter
   return category.options.filter(
     (option) =>
       option.label.toLowerCase().includes(needle) ||
-      (option.hint?.toLowerCase().includes(needle) ?? false)
+      (option.hint?.toLowerCase().includes(needle) ?? false) ||
+      (option.group?.toLowerCase().includes(needle) ?? false)
   );
+}
+
+/**
+ * The options split into runs of one group each, in their given order, so a
+ * heading shows above each run and a search that empties a group drops its
+ * heading too.
+ */
+export function groupOptions(options: readonly FilterOption[]): FilterOptionGroup[] {
+  const groups: FilterOptionGroup[] = [];
+  for (const option of options) {
+    const heading = option.group ?? null;
+    const last = groups[groups.length - 1];
+    if (last && last.heading === heading) {
+      last.options.push(option);
+    } else {
+      groups.push({ heading, options: [option] });
+    }
+  }
+  return groups;
 }
 
 /** The category whose options show: the chosen one, or the only one when there is just one. */
@@ -288,6 +318,53 @@ export function FilterPopoverPanel({
   );
 }
 
+function OptionRow({
+  category,
+  option,
+  radioName,
+}: {
+  category: FilterCategory;
+  option: FilterOption;
+  /** Names the radio group of a single select. */
+  radioName: string;
+}) {
+  const checked = isChecked(category, option.value);
+  return (
+    <label className={OPTION_ROW_CLASS}>
+      {category.mode === "multi" ? (
+        <input
+          type="checkbox"
+          className="accent-korur-blue size-4 shrink-0"
+          checked={checked}
+          onChange={() => choose(category, option.value)}
+        />
+      ) : (
+        <input
+          type="radio"
+          name={radioName}
+          className="accent-korur-blue size-4 shrink-0"
+          checked={checked}
+          onChange={() => choose(category, option.value)}
+          // A radio fires no change when it is already chosen, so the
+          // click itself clears it: a single select can go back to "any".
+          onClick={() => {
+            if (checked) choose(category, option.value);
+          }}
+        />
+      )}
+      {option.icon}
+      <span className="truncate" title={option.label}>
+        {option.label}
+      </span>
+      {option.hint && (
+        <span className="text-muted-foreground ml-auto max-w-[45%] shrink-0 truncate text-xs">
+          {option.hint}
+        </span>
+      )}
+    </label>
+  );
+}
+
 function CategoryOptions({
   category,
   options,
@@ -306,43 +383,43 @@ function CategoryOptions({
           {category.error}
         </p>
       )}
-      {options.map((option) => {
-        const checked = isChecked(category, option.value);
-        return (
-          <label key={option.value} className={OPTION_ROW_CLASS}>
-            {category.mode === "multi" ? (
-              <input
-                type="checkbox"
-                className="accent-korur-blue size-4 shrink-0"
-                checked={checked}
-                onChange={() => choose(category, option.value)}
+      {groupOptions(options).map((group, index) =>
+        group.heading === null ? (
+          <React.Fragment key={`options-${index}`}>
+            {group.options.map((option) => (
+              <OptionRow
+                key={option.value}
+                category={category}
+                option={option}
+                radioName={groupName}
               />
-            ) : (
-              <input
-                type="radio"
-                name={groupName}
-                className="accent-korur-blue size-4 shrink-0"
-                checked={checked}
-                onChange={() => choose(category, option.value)}
-                // A radio fires no change when it is already chosen, so the
-                // click itself clears it: a single select can go back to "any".
-                onClick={() => {
-                  if (checked) choose(category, option.value);
-                }}
+            ))}
+          </React.Fragment>
+        ) : (
+          <div
+            key={`group-${index}`}
+            role="group"
+            aria-labelledby={`${groupName}-group-${index}`}
+            data-option-group
+            className="space-y-1 pt-1 first:pt-0"
+          >
+            <div
+              id={`${groupName}-group-${index}`}
+              className="text-muted-foreground px-2 pt-1 pb-0.5 text-xs font-medium"
+            >
+              {group.heading}
+            </div>
+            {group.options.map((option) => (
+              <OptionRow
+                key={option.value}
+                category={category}
+                option={option}
+                radioName={groupName}
               />
-            )}
-            {option.icon}
-            <span className="truncate" title={option.label}>
-              {option.label}
-            </span>
-            {option.hint && (
-              <span className="text-muted-foreground ml-auto max-w-[45%] shrink-0 truncate text-xs">
-                {option.hint}
-              </span>
-            )}
-          </label>
-        );
-      })}
+            ))}
+          </div>
+        )
+      )}
       {category.isLoading ? (
         <div role="status" className="flex justify-center py-2">
           <Loader2 className="text-muted-foreground size-4 animate-spin" aria-hidden />

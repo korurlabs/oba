@@ -4,8 +4,9 @@ import { cn } from "../src/lib/utils";
 
 export type ListToolbarProps = {
   /**
-   * The list's search, first on the left. The slot sets no width: a search
-   * input takes `w-40 sm:w-56`, as on Kazan's lists.
+   * The list's search, first on the left, usually the sky `SearchInput`.
+   * The slot sets no width: `SearchInput` brings Kazan's `w-40 sm:w-56`, and
+   * any other search input takes the same.
    */
   search?: React.ReactNode;
   /**
